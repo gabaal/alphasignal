@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaSignal — Institutional Crypto Intelligence</title>
+    <meta name="description" content="AlphaSignal: Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/pwa-icon-512.png">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="cyber-theme">
+    <div class="layout hidden" id="main-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">☰</button>
+                <div class="logo-orb"></div>
+                <h1>Alpha<span>Signal</span></h1>
+                <button class="close-sidebar-mobile" id="close-sidebar-btn">×</button>
+            </div>
+            
+
+            <nav class="nav-menu">
+                <div class="nav-item active" data-view="signals">
+                    <span class="icon">📡</span> Signals
+                </div>
+                <div class="nav-item" data-view="briefing">
+                    <span class="icon">🤖</span> AI Briefing <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="mindshare">
+                    <span class="icon">🧠</span> Mindshare <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="flow">
+                    <span class="icon">🌊</span> Flow Monitor <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="heatmap">
+                    <span class="icon">🗺️</span> Heatmap <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="catalysts">
+                    <span class="icon">🗓️</span> Catalysts <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="whales">
+                    <span class="icon">🐳</span> Whale Pulse <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="pulse">
+                    <span class="icon">📈</span> Market Pulse <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="rotation">
+                    <span class="icon">🔄</span> Rotation <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="backtest">
+                    <span class="icon">🧪</span> Strategy Lab <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="risk">
+                    <span class="icon">🛡️</span> Global Risk <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="narrative">
+                    <span class="icon">🌌</span> Narrative Galaxy <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="tradelab">
+                    <span class="icon">🧪</span> Trade Lab <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="liquidity">
+                    <span class="icon">📊</span> Order Flow (GOMM) <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="newsroom">
+                    <span class="icon">📰</span> Newsroom <span class="premium-lock">🔒</span>
+                </div>
+                <div class="nav-item" data-view="alerts">
+                    <span class="icon">🔔</span> Alerts <span class="premium-lock">🔒</span>
+                    <span class="alert-badge" id="alert-badge" style="display:none">0</span>
+                </div>
+            </nav>
+
+            <div class="user-profile-section">
+                <div class="user-info">
+                    <span class="user-status-dot"></span>
+                    <span id="display-user-email">Institutional User</span>
+                </div>
+                <button id="logout-btn" class="logout-action">LOGOUT_TERMINAL</button>
+            </div>
+
+            <div class="btc-live-ticker">
+                <label>BTC-USD</label>
+                <span id="btc-price">Syncing...</span>
+            </div>
+        </aside>
+
+        <main class="content">
+            <header class="top-bar">
+                <div class="signal-feed">
+                    <div class="feed-label">LIVE ALPHA</div>
+                    <div id="alpha-scroller" class="scroller">
+                        <span>Connecting to data streams...</span>
+                    </div>
+                </div>
+                <div class="search-container">
+                    <input type="text" id="global-search" placeholder="SEARCH TICKER (e.g. AAPL, TSLA, SOL-USD)..." autocomplete="off">
+                    <span class="search-hint">ENTER ↵</span>
+                </div>
+                <div class="top-bar-actions">
+                    <div class="countdown-timer" id="countdown-timer" title="Auto-refresh countdown">
+                        <span class="countdown-icon">⏱</span>
+                        <span id="countdown-value">5:00</span>
+                    </div>
+                    <button id="refresh-btn">⚡ Re-calculate Signals</button>
+                </div>
+            </header>
+
+            <div id="app-view">
+                <!-- Dynamic content -->
+            </div>
+        </main>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-nav">
+            <div class="mobile-nav-item active" data-view="signals">
+                <span class="m-icon">📡</span>
+                <span class="m-label">Signals</span>
+            </div>
+            <div class="mobile-nav-item" data-view="briefing">
+                <span class="m-icon">🤖</span>
+                <span class="m-label">AI Intel</span>
+            </div>
+            <div class="mobile-nav-item" data-view="heatmap">
+                <span class="m-icon">🗺️</span>
+                <span class="m-label">Market</span>
+            </div>
+            <div class="mobile-nav-item" id="mobile-more-btn">
+                <span class="m-icon">⋯</span>
+                <span class="m-label">More</span>
+            </div>
+        </nav>
+    </div>
+
+    <div id="detail-overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <button class="close-overlay">×</button>
+            <div id="detail-body">
+                <!-- Detail content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Pack G5: AI Analyst Modal -->
+    <div id="ai-modal" class="overlay hidden">
+        <div class="overlay-content ai-analyst-panel">
+            <button class="close-ai-modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">×</button>
+            <div class="ai-header">
+                <div class="ai-orb"></div>
+                <h2>Alpha Intelligence Analyst</h2>
+            </div>
+            <div id="ai-content" class="ai-text-flow">
+                <!-- AI text injected here -->
+            </div>
+            <div class="ai-footer">
+                <span class="ai-status">Synthesis Complete</span>
+                <button class="intel-action-btn" style="width:auto" onclick="document.getElementById('ai-modal').classList.add('hidden')">ACKNOWLEDGE</button>
+            </div>
+        </div>
+    </div>
+    <!-- News Article Modal -->
+    <div id="news-modal" class="overlay hidden">
+        <div class="overlay-content news-article-panel">
+            <button class="close-overlay" onclick="document.getElementById('news-modal').classList.add('hidden')">×</button>
+            <div id="news-article-body">
+                <!-- News content injected here -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Auth Shell -->
+    <div id="auth-overlay" class="overlay hidden">
+        <div class="overlay-content auth-panel">
+            <div class="auth-header">
+                <div class="logo-orb large"></div>
+                <h2>ALPHASIGNAL<span>TERMINAL</span></h2>
+                <p>INSTITUTIONAL INTELLIGENCE ACCESS</p>
+            </div>
+            
+            <div id="auth-form-container" class="auth-body">
+                <div class="input-group">
+                    <label>EMAIL</label>
+                    <input type="email" id="auth-email" placeholder="ENTER EMAIL..." autocomplete="off" />
+                </div>
+                <div class="input-group">
+                    <label>PASSWORD</label>
+                    <input type="password" id="auth-password" placeholder="ENTER PASSWORD..." autocomplete="off" />
+                </div>
+                
+                <div id="auth-error" class="auth-error hidden"></div>
+                
+                <button id="login-btn" class="intel-action-btn large">AUTHORIZE_ACCESS</button>
+                <div class="auth-switch">
+                    NEED ACCESS? <a href="#" id="toggle-auth">REQUEST_REGISTRATION</a>
+                </div>
+            </div>
+            
+            <div class="auth-footer">
+                <div class="security-badge">256-BIT ENCRYPTION ACTIVE</div>
+                <div class="system-status">BIOMETRIC_SYNC_WAITING</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paywall Modal -->
+    <div id="paywall-overlay" class="overlay hidden">
+        <div class="overlay-content paywall-panel">
+            <button class="close-overlay" onclick="document.getElementById('paywall-overlay').classList.add('hidden')">×</button>
+            <div class="paywall-header">
+                <div class="premium-orb"></div>
+                <h2>PREMIUM<span>ACCESS</span></h2>
+                <p>INSTITUTIONAL GRADE INTELLIGENCE</p>
+            </div>
+            <div class="paywall-body">
+                <div class="benefit-item">
+                    <span class="benefit-icon">🤖</span>
+                    <div class="benefit-text">
+                        <h4>AI Deep-Dive Analyst</h4>
+                        <p>Real-time neural synthesis of multidimensional signals.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">🐳</span>
+                    <div class="benefit-text">
+                        <h4>Whale Pulse Monitor</h4>
+                        <p>Track institutional-sized moves on-chain before they hit the tape.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">🛡️</span>
+                    <div class="benefit-text">
+                        <h4>Institutional Risk Engine</h4>
+                        <p>Advanced systemic correlation & VaR analytics.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">📊</span>
+                    <div class="benefit-text">
+                        <h4>Order Flow (GOMM)</h4>
+                        <p>Visualizing professional liquidity walls and execution tape.</p>
+                    </div>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="price">$7.99<span>/mo</span></div>
+                    <button class="intel-action-btn large" onclick="handleSubscribe()">UPGRADE TO PRO</button>
+                </div>
+                <p class="paywall-footer-text">SECURE SUBSCRIPTION • 256-BIT ENCRYPTION • CANCEL ANYTIME</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications"></div>
+    <div id="toast-container"></div>
+    <script src="tape.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.log('Service Worker registration failed', err));
+            });
+        }
+    </script>
+</body>
+</html>
