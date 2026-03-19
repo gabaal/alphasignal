@@ -147,8 +147,10 @@ async function handleAuth(isSignup) {
 }
 
 async function logout() {
+    console.log("Logout initiated...");
     try {
         await fetchAPI('/auth/logout', 'POST');
+        console.log("Logout API success, reloading...");
         location.reload(); 
     } catch (e) {
         console.error("Logout failed", e);
@@ -1591,6 +1593,30 @@ const viewMap = {
 };
 
 function switchView(view) {
+    // Update SEO Meta
+    const viewTitles = {
+        'signals': 'Live Alpha Signals',
+        'briefing': 'AI Intelligence Briefing',
+        'mindshare': 'Social Mindshare Analytics',
+        'flow': 'Institutional Flow Monitor',
+        'heatmap': 'Market Heatmap',
+        'catalysts': 'Earnings & Events Catalysts',
+        'whales': 'Whale Pulse Monitor',
+        'pulse': 'Institutional Market Pulse',
+        'rotation': 'Sector Rotation Matrix',
+        'backtest': 'Strategy Backtest Lab',
+        'risk': 'Global Systemic Risk',
+        'narrative': 'Narrative Galaxy Search',
+        'tradelab': 'Trade Idea Lab',
+        'liquidity': 'Order Flow Magnitude',
+        'newsroom': 'Institutional Newsroom',
+        'alerts': 'Real-time Signal Alerts'
+    };
+    const subTitle = viewTitles[view] || view.charAt(0).toUpperCase() + view.slice(1);
+    const fullTitle = `${subTitle} | AlphaSignal — Institutional Crypto Intelligence`;
+    document.title = fullTitle;
+    console.log(`SEO Update: Title set to "${fullTitle}" for view "${view}"`);
+
     if (viewMap[view]) {
         // Sync desktop nav
         document.querySelectorAll('.nav-item').forEach(i => {
@@ -1661,6 +1687,20 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Enter key support for login fields
+    const authFields = ['auth-email', 'auth-password'];
+    authFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const isSignup = document.getElementById('toggle-auth').textContent.includes('ALREADY_HAVE_ACCESS');
+                    handleAuth(isSignup);
+                }
+            });
+        }
+    });
+
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
 
@@ -1670,7 +1710,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault();
             const isSignup = toggleAuthLink.textContent.includes('REQUEST_REGISTRATION');
             toggleAuthLink.textContent = isSignup ? 'ALREADY_HAVE_ACCESS? LOGIN' : 'NEED ACCESS? REQUEST_REGISTRATION';
-            document.getElementById('login-btn').textContent = isSignup ? 'REGISTER_ACCOUNT' : 'AUTHORIZE_ACCESS';
+            document.getElementById('login-btn').textContent = isSignup ? 'REGISTER_ACCOUNT' : 'LOGIN';
         });
     }
 
@@ -1692,7 +1732,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     // Always start these for basic access (Signals and BTC are free)
     updateBTC();
-    renderSignals();
+    switchView('signals');
     startCountdown(); 
     
     // Intervals
@@ -1701,4 +1741,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         syncAlerts(); 
         setInterval(syncAlerts, 60000);
     }
+    
+    // Debug hooks
+    window.terminalLogout = logout;
+    window.terminalSwitchView = switchView;
 });
