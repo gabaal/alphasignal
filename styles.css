@@ -1029,3 +1029,40 @@ input[type="range"]::-webkit-slider-thumb {
     background: rgba(255, 62, 62, 0.1);
 }
 .btn-icon { font-size: 1rem; }
+
+/* ============= MACRO COMPASS ============= */
+.macro-grid { margin-top: 1rem; }
+.macro-card { 
+    background: var(--bg-card); 
+    border: 1px solid var(--border); 
+    border-radius: 16px; 
+    padding: 1.5rem; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.macro-event-item {
+    transition: all 0.2s ease;
+}
+.macro-event-item:hover {
+    background: rgba(255,255,255,0.05) !important;
+    transform: translateX(5px);
+}
+
+.impact-critical { 
+    background: rgba(255, 62, 62, 0.2); 
+    color: var(--risk-high); 
+    border: 1px solid var(--risk-high); 
+    box-shadow: 0 0 10px rgba(255, 62, 62, 0.2);
+}
+.impact-low { 
+    background: rgba(255, 255, 255, 0.05); 
+    color: var(--text-dim); 
+    border: 1px solid var(--border); 
+}
+
+/* GOMM Refinement */
+.ob-visualization {
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+.wall-list > div:hover {
+    background: rgba(255,255,255,0.02);
+}

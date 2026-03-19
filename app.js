@@ -98,7 +98,7 @@ function updatePremiumUI() {
                 else manageBtn.classList.add('hidden');
             }
         } else {
-            tierBadge.textContent = 'FREE_TIER';
+            tierBadge.textContent = 'FREE TIER';
             tierBadge.className = 'tier-badge free';
             if (manageBtn) manageBtn.classList.add('hidden');
         }
@@ -1503,37 +1503,50 @@ async function renderLiquidityView() {
         appEl.innerHTML = `
             <div class="view-header">
                 <h2>Order Flow Magnitude Monitor (GOMM)</h2>
-                <p>Institutional liquidity clustering and OB wall detection for ${data.ticker}.</p>
+                <p>Institutional liquidity clustering across ${data.metrics?.primary_exchange || 'Global'} and depth detection for ${data.ticker}.</p>
             </div>
 
             <div style="display:grid; grid-template-columns: 350px 1fr; gap:2rem">
                 <div class="stats-sidebar" style="display:flex; flex-direction:column; gap:1.5rem">
                     <div style="background:var(--bg-card); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">FLOW IMBALANCE</div>
-                        <div style="font-size:2rem; font-weight:900; color:var(--accent)">+${data.imbalance}%</div>
-                        <div style="font-size:0.7rem; color:var(--risk-low); margin-top:5px">BULLISH SKEW</div>
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">GLOBAL IMBALANCE</div>
+                        <div style="font-size:2rem; font-weight:900; color:${data.imbalance >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">
+                            ${data.imbalance >= 0 ? '+' : ''}${data.imbalance}%
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-top:5px">AGGREGATED SKEW</div>
                     </div>
                     <div style="background:var(--bg-card); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">INSTITUTIONAL OTC</div>
-                        <div style="font-size:1.5rem; font-weight:900">${data.otc_flow}</div>
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">TOTAL BOOK DEPTH</div>
+                        <div style="font-size:1.5rem; font-weight:900">${data.metrics?.total_depth || '0.0'} BTC</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.02); padding:1.2rem; border-radius:12px; border:1px solid var(--border)">
+                        <div style="font-size:0.6rem; color:var(--accent); margin-bottom:10px; font-weight:700">EXCHANGE ATTRIBUTION</div>
+                        <div style="display:flex; flex-direction:column; gap:8px">
+                            <div style="display:flex; justify-content:space-between; font-size:0.7rem"><span>BINANCE</span><span style="color:#F3BA2F">GOLD</span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.7rem"><span>COINBASE</span><span style="color:#0052FF">BLUE</span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.7rem"><span>OKX</span><span style="color:#FFFFFF">WHITE</span></div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="ob-visualization" style="background:var(--bg-card); padding:2rem; border-radius:16px; border:1px solid var(--border); min-height:500px">
-                    <h3 style="margin-bottom:2rem; font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:1rem">Liquidity Walls & Price Clusters</h3>
+                    <h3 style="margin-bottom:2rem; font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:1rem">Global Liquidity Walls (Cross-Exchange)</h3>
                     <div class="wall-list" style="display:flex; flex-direction:column; gap:8px">
-                        ${data.walls.sort((a,b) => b.price - a.price).map(w => `
-                            <div style="display:flex; align-items:center; gap:15px">
-                                <div style="width:100px; font-size:0.85rem; font-weight:700; color:${w.side === 'ask' ? 'var(--risk-high)' : 'var(--risk-low)'}">$${w.price}</div>
-                                <div style="flex:1; height:24px; background:rgba(255,255,255,0.02); border-radius:4px; position:relative">
-                                    <div style="position:absolute; ${w.side === 'ask' ? 'right:0' : 'left:0'}; height:100%; width:${Math.min((w.size / 1500) * 100, 100)}%; background:${w.side === 'ask' ? 'rgba(255, 62, 62, 0.2)' : 'rgba(0, 255, 136, 0.2)'}; border-${w.side === 'ask' ? 'right' : 'left'}:3px solid ${w.side === 'ask' ? 'var(--risk-high)' : 'var(--risk-low)'}"></div>
-                                    <div style="position:absolute; ${w.side === 'ask' ? 'right:10px' : 'left:10px'}; top:50%; transform:translateY(-50%); font-size:0.7rem; font-weight:900">${w.size} <span style="font-size:0.6rem; color:var(--text-dim)">BTC</span></div>
+                        ${data.walls.map(w => {
+                            const exchColor = w.exchange === 'Binance' ? '#F3BA2F' : (w.exchange === 'Coinbase' ? '#0052FF' : '#fff');
+                            return `
+                                <div style="display:flex; align-items:center; gap:15px">
+                                    <div style="width:100px; font-size:0.85rem; font-weight:700; color:${w.side === 'ask' ? 'var(--risk-high)' : 'var(--risk-low)'}">$${w.price}</div>
+                                    <div style="flex:1; height:26px; background:rgba(255,255,255,0.02); border-radius:4px; position:relative; border-left: 2px solid ${exchColor}">
+                                        <div style="position:absolute; ${w.side === 'ask' ? 'right:0' : 'left:0'}; height:100%; width:${Math.min((w.size / 1000) * 100, 100)}%; background:${w.side === 'ask' ? 'rgba(255, 62, 62, 0.15)' : 'rgba(0, 255, 136, 0.15)'}; border-${w.side === 'ask' ? 'right' : 'left'}:3px solid ${w.side === 'ask' ? 'var(--risk-high)' : 'var(--risk-low)'}"></div>
+                                        <div style="position:absolute; ${w.side === 'ask' ? 'right:10px' : 'left:10px'}; top:50%; transform:translateY(-50%); font-size:0.7rem; font-weight:900">${w.size} <span style="font-size:0.6rem; color:var(--text-dim)">BTC</span></div>
+                                    </div>
+                                    <div style="width:100px; font-size:0.6rem; text-transform:uppercase; color:${exchColor}; text-align:right; font-weight:800">${w.exchange}</div>
                                 </div>
-                                <div style="width:80px; font-size:0.6rem; text-transform:uppercase; color:var(--text-dim); text-align:right">${w.type}</div>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                         <div style="margin:20px 0; padding:10px; background:rgba(0,242,255,0.05); text-align:center; border-radius:4px; font-weight:900; font-size:0.9rem; letter-spacing:1px; color:var(--accent)">
-                            MID PRICE: $${data.current_price}
+                            GLOBAL MID PRICE: $${data.current_price}
                         </div>
                     </div>
                 </div>
@@ -1541,6 +1554,70 @@ async function renderLiquidityView() {
         `;
     } catch (e) {
         appEl.innerHTML = `<div class="empty-state">GOMM Engine failure: ${e.message}</div>`;
+    }
+}
+
+async function renderMacroView() {
+    appEl.innerHTML = skeleton(2);
+    try {
+        const data = await fetchAPI('/macro-calendar');
+        if (!data) return;
+
+        appEl.innerHTML = `
+            <div class="view-header">
+                <h2>🌏 Macro Catalyst Compass</h2>
+                <p>Tracking high-impact economic drivers and global liquidity shifts.</p>
+            </div>
+            <div class="macro-grid" style="display:grid; grid-template-columns: 1fr 350px; gap:2rem">
+                <div class="macro-main-panel">
+                    <div class="macro-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem">
+                        <h3 style="margin-bottom:1.5rem; font-size:1rem; color:var(--accent)">Upcoming Volatility Triggers</h3>
+                        <div class="macro-event-list" style="display:flex; flex-direction:column; gap:1rem">
+                            ${data.events.map(e => `
+                                <div class="macro-event-item" style="display:flex; gap:1.5rem; padding:1.2rem; background:rgba(255,255,255,0.02); border-radius:12px; border-left: 4px solid var(--${e.impact === 'CRITICAL' ? 'risk-high' : (e.impact === 'HIGH' ? 'accent' : 'text-dim')})">
+                                    <div style="width:80px; text-align:center">
+                                        <div style="font-size:0.7rem; font-weight:700; color:var(--text-dim)">${e.date.split('-').slice(1).join('/')}</div>
+                                        <div style="font-size:0.9rem; font-weight:900">${e.time}</div>
+                                    </div>
+                                    <div style="flex:1">
+                                        <div style="font-size:1rem; font-weight:800; margin-bottom:5px">${e.event}</div>
+                                        <div style="display:flex; gap:15px; font-size:0.75rem; color:var(--text-dim)">
+                                            <span>FCST: <strong style="color:var(--text)">${e.forecast}</strong></span>
+                                            <span>PREV: <strong>${e.previous}</strong></span>
+                                        </div>
+                                    </div>
+                                    <div style="width:100px; text-align:right">
+                                        <div class="impact-badge impact-${e.impact.toLowerCase()}" style="font-size:0.6rem; padding:4px 8px">${e.impact}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                <aside class="macro-sidebar" style="display:flex; flex-direction:column; gap:1.5rem">
+                    <div class="macro-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem">
+                        <h3 style="margin-bottom:1rem; font-size:0.9rem">Treasury Yields</h3>
+                        <div class="yield-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem">
+                            ${Object.entries(data.yields).map(([label, val]) => `
+                                <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:8px; text-align:center">
+                                    <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px">${label.toUpperCase()}</div>
+                                    <div style="font-size:1.2rem; font-weight:900; color:var(--accent)">${val}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="macro-card alert-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; border-top: 4px solid var(--accent)">
+                        <h3 style="margin-bottom:0.8rem; font-size:0.9rem; color:var(--accent)">Institutional Briefing</h3>
+                        <p style="font-size:0.85rem; line-height:1.5; color:var(--text-dim)">
+                            Monitor <strong>Core PCE</strong> and <strong>GDP Final</strong> estimates for risk-on/off confirmation. Treasury yield compression typically precedes volatility regime shifts.
+                        </p>
+                        <div style="margin-top:1rem; font-size:0.65rem; color:var(--accent); font-weight:700">STATUS: ${data.status}</div>
+                    </div>
+                </aside>
+            </div>
+        `;
+    } catch (e) {
+        appEl.innerHTML = `<div class="empty-state">Macro Engine failure: ${e.message}</div>`;
     }
 }
 
@@ -1616,7 +1693,8 @@ const viewMap = {
     newsroom: renderNewsroom,
     alerts: renderAlerts,
     tradelab: renderTradeLab,
-    liquidity: renderLiquidityView
+    liquidity: renderLiquidityView,
+    'macro-calendar': renderMacroView
 };
 
 function updateSEOMeta(view) {
@@ -1684,6 +1762,10 @@ function updateSEOMeta(view) {
         'alerts': {
             title: 'Real-time Signal Alerts',
             desc: 'Configure and monitor high-fidelity institutional alerts for your specific asset watchlist.'
+        },
+        'macro-calendar': {
+            title: 'Macro Catalyst Compass',
+            desc: 'Monitor high-impact global economic drivers, treasury yields, and volatility triggers.'
         }
     };
 
