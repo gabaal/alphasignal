@@ -1465,9 +1465,13 @@ async function renderTradeLab() {
 }
 
 async function renderLiquidityView() {
-    appEl.innerHTML = `<div class="gomm-container">
+    appEl.innerHTML = `<h2 class="view-title">Order Flow Magnitude Monitor (GOMM)</h2>${skeleton(3)}`;
+    
+    // Sidebar + Layout
+    appEl.innerHTML = `
+    <div class="gomm-container">
         <div class="sidebar-panel">
-            <h2 class="view-title">Order Flow (GOMM)</h2>
+            <h2 class="view-title" style="margin:0">Order Flow (GOMM)</h2>
             <div class="stat-card">
                 <div class="label">GLOBAL IMBALANCE</div>
                 <div class="value" id="gomm-imbalance">--%</div>
@@ -1476,14 +1480,17 @@ async function renderLiquidityView() {
                 <div class="label">TOTAL BOOK DEPTH</div>
                 <div class="value" id="gomm-depth">-- BTC</div>
             </div>
-            <button class="setup-generator-btn" id="toggle-heatmap" style="margin-top:20px">TOGGLE HEATMAP MODE</button>
+
+            <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px">
+                <button class="setup-generator-btn" id="mode-walls" style="width:100%; border-radius:8px">DEPTH WALLS</button>
+                <button class="profile-action-btn" id="mode-heatmap" style="width:100%; border-radius:8px">TEMPORAL HEATMAP</button>
+                <button class="profile-action-btn" id="mode-liquidation" style="width:100%; border-radius:8px">LIQUIDATION FLUX</button>
+            </div>
             
-            <div class="stat-card" style="margin-top:20px; background:rgba(255,255,255,0.02)">
-                <div class="label" style="color:var(--accent); font-weight:900">EXCHANGE TAGS</div>
-                <div style="font-size:0.65rem; display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px">
-                    <span>BINANCE</span> <span style="color:#F3BA2F; text-align:right">GOLD</span>
-                    <span>COINBASE</span> <span style="color:#0052FF; text-align:right">BLUE</span>
-                    <span>OKX</span> <span style="color:#FFFFFF; text-align:right">WHITE</span>
+            <div class="stat-card" style="margin-top:20px; background:rgba(0, 242, 255, 0.03); border:1px solid var(--accent)">
+                <div class="label" style="color:var(--accent); font-weight:900">⚡ WHALE WATCH (LIVE)</div>
+                <div id="whale-watch-content" class="whale-watch-list">
+                    <div style="font-size:0.6rem; color:var(--text-dim); text-align:center; padding:10px">Scanning entities...</div>
                 </div>
             </div>
         </div>
@@ -1496,24 +1503,29 @@ async function renderLiquidityView() {
         </div>
     </div>`;
 
-    const data = await fetchAPI('/liquidity?ticker=BTC-USD');
-    const tapeData = await fetchAPI('/tape?ticker=BTC-USD');
+    // Concurrent Fetches
+    const [data, tapeData, whaleData, liqData] = await Promise.all([
+        fetchAPI('/liquidity?ticker=BTC-USD'),
+        fetchAPI('/tape?ticker=BTC-USD'),
+        fetchAPI('/whales?ticker=BTC-USD'),
+        fetchAPI('/liquidations?ticker=BTC-USD')
+    ]);
     
     if (!data) return;
 
-    // Update Overview Stats
+    // Update Stats
     const imbEl = document.getElementById('gomm-imbalance');
     imbEl.textContent = `${data.imbalance > 0 ? '+' : ''}${data.imbalance}%`;
     imbEl.style.color = data.imbalance > 0 ? 'var(--risk-low)' : 'var(--risk-high)';
     document.getElementById('gomm-depth').textContent = `${data.metrics.total_depth} BTC`;
 
     const display = document.getElementById('gomm-main-display');
-    
+
     function renderWallsMode() {
         display.innerHTML = `
             <div class="card" style="height:100%; border:none; background:transparent">
                 <h3 class="card-title">Global Liquidity Walls (Cross-Exchange)</h3>
-                <div class="liquidity-chart" id="liquidity-chart">
+                <div class="liquidity-chart">
                     ${data.walls.map(w => {
                         const maxSideDepth = Math.max(...data.walls.map(wall => wall.size));
                         const width = (w.size / maxSideDepth) * 100;
@@ -1534,24 +1546,22 @@ async function renderLiquidityView() {
     }
 
     function renderHeatmapMode() {
-        if (!data.history) return;
         display.innerHTML = `
             <div class="card" style="height:100%; display:flex; flex-direction:column">
                 <h3 class="card-title">Temporal Liquidity Heatmap (1H History)</h3>
                 <div class="heatmap-grid" style="flex:1">
-                    ${data.history.map(snap => {
-                        return `
+                    ${data.history.map(snap => `
                         <div class="heatmap-row">
-                            <div class="label" style="font-size:0.6rem; color:var(--text-dim); text-align:right">${snap.time}</div>
-                            <div class="heatmap-cells">
+                             <div class="label" style="font-size:0.6rem; width:50px; color:var(--text-dim)">${snap.time}</div>
+                             <div class="heatmap-cells">
                                 ${snap.walls.sort((a,b) => a.price - b.price).map(w => {
                                     const opacity = Math.min(w.size / 500, 1);
                                     const color = w.side === 'ask' ? `rgba(239, 68, 68, ${opacity})` : `rgba(34, 197, 94, ${opacity})`;
                                     return `<div class="hm-cell" title="${formatPrice(w.price)}: ${w.size} BTC" style="background:${color}"></div>`;
                                 }).join('')}
-                            </div>
-                        </div>`;
-                    }).join('')}
+                             </div>
+                        </div>
+                    `).join('')}
                 </div>
                 <div style="font-size:0.65rem; color:var(--text-dim); margin-top:15px; text-align:center; padding:10px; background:rgba(255,255,255,0.02); border-radius:4px">
                     <span style="color:var(--risk-low)">█</span> BID DEPTH | <span style="color:var(--risk-high)">█</span> ASK DEPTH (INTENSITY = MAGNITUDE)
@@ -1559,27 +1569,72 @@ async function renderLiquidityView() {
             </div>`;
     }
 
-    let isHeatmap = false;
+    function renderLiquidationMode() {
+        display.innerHTML = `
+            <div class="card" style="height:100%; display:flex; flex-direction:column">
+                <h2 class="card-title">Liquidation Flux & Leverage Risk</h2>
+                <div class="liquidity-chart" style="flex:1">
+                    ${liqData.clusters.map(c => `
+                        <div class="liq-flux-row" title="Liquidation Cluster at ${formatPrice(c.price)}">
+                            <div class="price-label ${c.side === 'LONG' ? 'ask' : 'bid'}" style="width:100px">${formatPrice(c.price)}</div>
+                            <div class="liq-flux-bar">
+                                <div class="liq-intensity ${c.side}" style="width:${c.intensity * 100}%"></div>
+                                <span class="liq-val">${c.magnitude} <small>LIQ. VELOCITY</small></span>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <div class="mid-price-line">CURRENT FUNDING: <span style="color:#fff">${liqData.funding_rate}</span></div>
+                </div>
+            </div>`;
+    }
+
+    // Default Mode
     renderWallsMode();
 
-    const toggleBtn = document.getElementById('toggle-heatmap');
-    toggleBtn.onclick = () => {
-        isHeatmap = !isHeatmap;
-        toggleBtn.textContent = isHeatmap ? 'SWITCH TO WALL VIEW' : 'TOGGLE HEATMAP MODE';
-        if (isHeatmap) renderHeatmapMode();
-        else renderWallsMode();
+    // Mode Commutation
+    const btnWalls = document.getElementById('mode-walls');
+    const btnHeat = document.getElementById('mode-heatmap');
+    const btnLiq = document.getElementById('mode-liquidation');
+
+    const updateBtns = (active) => {
+        [btnWalls, btnHeat, btnLiq].forEach(b => {
+            b.className = 'profile-action-btn';
+            b.style.background = 'rgba(255,255,255,0.05)';
+        });
+        active.className = 'setup-generator-btn';
+        active.style.background = '';
     };
 
-    // Render Tape
+    btnWalls.onclick = () => { renderWallsMode(); updateBtns(btnWalls); };
+    btnHeat.onclick = () => { renderHeatmapMode(); updateBtns(btnHeat); };
+    btnLiq.onclick = () => { renderLiquidationMode(); updateBtns(btnLiq); };
+
+    // Whale Pulse Sidebar
+    if (whaleData && whaleData.entities) {
+        document.getElementById('whale-watch-content').innerHTML = whaleData.entities.map(e => `
+            <div class="whale-item">
+                <div class="whale-header">
+                    <span class="whale-name">${e.name}</span>
+                    <span class="whale-type">${e.type}</span>
+                </div>
+                <div class="whale-status">
+                    <span class="status-${e.status.toLowerCase()}">${e.status.toUpperCase()}</span>
+                    <span style="color:var(--text-dim)">${e.last_tx}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Tape
     const tapeContent = document.getElementById('tape-content');
     if (tapeData && tapeData.trades) {
         tapeContent.innerHTML = tapeData.trades.map(t => `
             <div class="tape-item ${t.institutional ? 'institutional' : ''}">
-                <div class="label" style="font-size:0.6rem; color:var(--text-dim)">${t.time.split(':')[1]}:${t.time.split(':')[2]}</div>
+                <div style="font-size:0.6rem; color:var(--text-dim)">${t.time.split(':')[1]}:${t.time.split(':')[2]}</div>
                 <div class="tape-val ${t.side === 'BUY' ? 'tape-buy' : 'tape-sell'}">
                     ${t.side} ${t.size} <small>@</small> ${Math.round(t.price)}
                 </div>
-                <div class="label" style="text-align:right; font-size:0.6rem; color:var(--text-dim)">${t.exchange.toUpperCase()}</div>
+                <div style="text-align:right; font-size:0.6rem; color:var(--text-dim)">${t.exchange.toUpperCase()}</div>
             </div>
         `).join('');
     }

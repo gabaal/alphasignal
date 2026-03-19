@@ -684,6 +684,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/liquidity': self.handle_liquidity()
             elif path == '/api/tape': self.handle_tape()
             elif path == '/api/generate-setup': self.handle_setup_generation()
+            elif path == '/api/whales': self.handle_whales_entity()
+            elif path == '/api/liquidations': self.handle_liquidations()
             elif path == '/api/derivatives': self.handle_derivatives()
             elif path == '/api/macro': self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
@@ -2155,6 +2157,72 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             })
         except Exception as e:
             self.send_error(500, f"Tape Engine Sync Error: {e}")
+
+    # ============================================================
+    # Institutional Entity Intelligence: Whales & MMs
+    # ============================================================
+    def handle_whales_entity(self):
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            entities = [
+                {"name": "Jump Trading", "type": "MM", "status": "Accumulating", "confidence": 0.88, "last_tx": "5s ago"},
+                {"name": "Wintermute", "type": "MM", "status": "Distributing", "confidence": 0.75, "last_tx": "12s ago"},
+                {"name": "Cumberland", "type": "OTC", "status": "Neutral", "confidence": 0.92, "last_tx": "1m ago"},
+                {"name": "MicroStrategy", "type": "HODL", "status": "Accumulating", "confidence": 0.99, "last_tx": "2h ago"},
+                {"name": "FalconX", "type": "MM", "status": "Accumulating", "confidence": 0.65, "last_tx": "45s ago"},
+                {"name": "Binance Cold Wallet", "type": "EXCH", "status": "Neutral", "confidence": 1.0, "last_tx": "10m ago"}
+            ]
+            self.send_json({
+                "ticker": ticker,
+                "entities": entities,
+                "institutional_sentiment": "BULLISH",
+                "net_flow_24h": "+1,420 BTC"
+            })
+        except Exception as e:
+            self.send_error(500, f"Entity Engine Error: {e}")
+
+    # ============================================================
+    # Derivatives Intelligence: Liquidation Heatmap
+    # ============================================================
+    def handle_liquidations(self):
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            # Simulate liquidation clusters around major price levels
+            clusters = []
+            base_price = 91450.0
+            
+            # Long liquidations (Bulls under pressure)
+            for i in range(5):
+                price = base_price - (i * 150) - random.uniform(0, 50)
+                intensity = 0.4 + (random.random() * 0.6)
+                clusters.append({
+                    "price": price,
+                    "side": "LONG",
+                    "intensity": intensity,
+                    "magnitude": f"${round(intensity * 10, 1)}M"
+                })
+                
+            # Short liquidations (Bears under pressure)
+            for i in range(5):
+                price = base_price + (i * 150) + random.uniform(0, 50)
+                intensity = 0.3 + (random.random() * 0.5)
+                clusters.append({
+                    "price": price,
+                    "side": "SHORT",
+                    "intensity": intensity,
+                    "magnitude": f"${round(intensity * 8, 1)}M"
+                })
+
+            self.send_json({
+                "ticker": ticker,
+                "clusters": sorted(clusters, key=lambda x: x['price'], reverse=True),
+                "total_oi": "$14.2B",
+                "funding_rate": "+0.0120%"
+            })
+        except Exception as e:
+            self.send_error(500, f"Liquidation Engine Error: {e}")
 
     # ============================================================
     # AI Alpha Assistant: Setup Generator

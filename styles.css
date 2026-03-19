@@ -1473,3 +1473,93 @@ input[type="range"]::-webkit-slider-thumb {
 
 .tape-buy { color: var(--risk-low); }
 .tape-sell { color: var(--risk-high); }
+/* Whale Watch Sidebar */
+.whale-watch-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.whale-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: 0.2s;
+}
+
+.whale-item:hover {
+    border-color: var(--accent);
+    background: rgba(0, 242, 255, 0.03);
+}
+
+.whale-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.whale-name { font-weight: 900; font-size: 0.85rem; color: var(--text-header); }
+.whale-type { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+.whale-status {
+    font-size: 0.7rem;
+    font-weight: 800;
+    display: flex;
+    justify-content: space-between;
+}
+
+.status-accumulating { color: var(--risk-low); }
+.status-distributing { color: var(--risk-high); }
+.status-neutral { color: var(--text-dim); }
+
+/* Liquidation Flux */
+.liq-flux-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 32px;
+    padding: 0 10px;
+}
+
+.liq-flux-bar {
+    flex: 1;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.liq-intensity {
+    position: absolute;
+    height: 100%;
+    left: 0;
+    top: 0;
+    transition: width 0.8s ease;
+}
+
+.liq-intensity.LONG {
+    background: linear-gradient(to right, rgba(239, 68, 68, 0.6), rgba(239, 68, 68, 0.1));
+    border-left: 4px solid var(--risk-high);
+}
+
+.liq-intensity.SHORT {
+    background: linear-gradient(to right, rgba(34, 197, 94, 0.6), rgba(34, 197, 94, 0.1));
+    border-left: 4px solid var(--risk-low);
+}
+
+.liq-val {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    font-weight: 950;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
