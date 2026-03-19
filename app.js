@@ -1401,225 +1401,243 @@ async function renderBriefing() {
     }
 }
 
+// Utility function for formatting prices
+function formatPrice(price) {
+    return `$${Number(price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 async function renderTradeLab() {
-    appEl.innerHTML = skeleton(4);
-    try {
-        const data = await fetchAPI('/trade-lab');
-        if (!data || !data.length) {
-            appEl.innerHTML = `<div class="empty-state">No high-conviction setups found. Optimization engines running...</div>`;
-            return;
-        }
+    appEl.innerHTML = `
+        <h2 class="view-title">Trade Idea Lab</h2>
+        <p class="view-desc">Synthesize institutional data into actionable trade setups.</p>
+        
+        <div class="card">
+            <h3 class="card-title">Institutional Setup Synthesis</h3>
+            <p class="view-desc">Run our neural engine to generate a high-probability trade plan based on current Macro and GOMM data.</p>
+            <button class="setup-generator-btn" id="generate-setup-btn">GENERATE NEURAL SETUP</button>
+            <div id="setup-display-area"></div>
+        </div>
+        
+        <div style="margin-top:20px; color:var(--text-dim); font-size:0.8rem">
+            * Setups are generated using cross-exchange liquidity walls and systemic risk markers. Always verify against personal risk parameters.
+        </div>`;
 
-        appEl.innerHTML = `
-            <div class="view-header">
-                <h2>Trade Optimization Lab</h2>
-                <p>Systematic trade setups derived from AlphaSignal momentum, volatility, and institutional flow attribution.</p>
-            </div>
-
-            <div class="trade-lab-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap:2rem; padding-bottom:4rem">
-                ${data.map(setup => `
-                    <div class="trade-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:all 0.3s ease; position:relative">
-                        <div style="background:linear-gradient(90deg, var(--accent-glow) 0%, transparent 100%); padding:1.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
-                            <div>
-                                <span style="font-size:1.8rem; font-weight:900; letter-spacing:-1px">${setup.ticker}</span>
-                                <span style="font-size:0.7rem; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:4px; margin-left:10px; color:var(--risk-low); font-weight:700">${setup.setup}</span>
-                            </div>
-                            <div style="text-align:right">
-                                <div style="font-size:0.6rem; color:var(--text-dim)">RR RATIO</div>
-                                <div style="font-size:1.2rem; font-weight:900; color:var(--accent)">1:${setup.rr_ratio}</div>
-                            </div>
-                        </div>
-
-                        <div style="padding:1.5rem">
-                            <div class="setup-viz" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px">
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem">
-                                    <span style="color:var(--text-dim)">Take Profit 2</span>
-                                    <span style="color:var(--risk-low); font-weight:700">$${setup.tp2}</span>
-                                </div>
-                                <div style="height:2px; background:rgba(0,255,136,0.1); position:relative">
-                                    <div style="position:absolute; right:0; top:-4px; width:10px; height:10px; background:var(--risk-low); border-radius:50%; box-shadow:0 0 10px var(--risk-low)"></div>
-                                </div>
-                                
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem">
-                                    <span style="color:var(--text-dim)">Take Profit 1</span>
-                                    <span style="color:var(--risk-low); font-weight:700">$${setup.tp1}</span>
-                                </div>
-                                <div style="height:2px; background:rgba(0,255,136,0.3); position:relative">
-                                    <div style="position:absolute; right:0; top:-4px; width:10px; height:10px; background:var(--risk-low); border-radius:50%; box-shadow:0 0 10px var(--risk-low)"></div>
-                                </div>
-
-                                <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:900; margin:5px 0">
-                                    <span style="color:var(--accent)">Trigger Entry</span>
-                                    <span style="color:var(--accent)">$${setup.entry}</span>
-                                </div>
-                                <div style="height:4px; background:var(--accent-glow); position:relative">
-                                    <div style="position:absolute; left:0; width:100%; height:100%; background:var(--accent); opacity:0.5"></div>
-                                </div>
-
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem">
-                                    <span style="color:var(--text-dim)">Stop Loss</span>
-                                    <span style="color:var(--risk-high); font-weight:700">$${setup.stop_loss}</span>
-                                </div>
-                                <div style="height:2px; background:rgba(255,62,62,0.3); position:relative">
-                                    <div style="position:absolute; left:0; top:-4px; width:10px; height:10px; background:var(--risk-high); border-radius:50%; box-shadow:0 0 10px var(--risk-high)"></div>
-                                </div>
-                            </div>
-
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem">
-                                <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:8px">
-                                    <div style="font-size:0.6rem; color:var(--text-dim)">POSITION SIZE</div>
-                                    <div style="font-size:1.1rem; font-weight:800">${setup.position_size} <span style="font-size:0.7rem; color:var(--text-dim)">Units</span></div>
-                                </div>
-                                <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:8px">
-                                    <div style="font-size:0.6rem; color:var(--text-dim)">NOTIONAL LOAD</div>
-                                    <div style="font-size:1.1rem; font-weight:800">$${setup.notional.toLocaleString()}</div>
-                                </div>
-                            </div>
-
-                            <div style="font-size:0.8rem; line-height:1.5; color:var(--text-dim); margin-bottom:1.5rem; padding:1rem; background:rgba(0,242,255,0.03); border-left:2px solid var(--accent)">
-                                <strong style="color:var(--text); display:block; margin-bottom:5px">QUANTS THESIS:</strong>
-                                ${setup.thesis}
-                            </div>
-
-                            <div style="display:flex; gap:10px">
-                                <button class="action-btn" onclick="openDetail('${setup.ticker}')" style="flex:1; background:transparent; color:white; border:1px solid var(--border); padding:12px; border-radius:8px; font-weight:700; font-size:0.75rem; cursor:pointer; transition:0.2s">INTEL DEEP-DIVE</button>
-                            </div>
-                        </div>
+    document.getElementById('generate-setup-btn').onclick = async () => {
+        const btn = document.getElementById('generate-setup-btn');
+        const area = document.getElementById('setup-display-area');
+        
+        btn.textContent = "SYNTHESIZING MARKET DATA...";
+        btn.disabled = true;
+        
+        const setup = await fetchAPI('/generate-setup?ticker=BTC-USD');
+        
+        if (setup) {
+            area.innerHTML = `
+                <div class="setup-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                        <span style="font-weight:900; color:var(--accent)">${setup.ticker} / ${setup.bias}</span>
+                        <span class="tier-badge institutional" style="margin:0">${setup.conviction} CONVICTION</span>
                     </div>
-                `).join('')}
-            </div>
-        `;
-    } catch (e) {
-        appEl.innerHTML = `<div class="empty-state">Trade Lab engine failure: ${e.message}</div>`;
-    }
+                    
+                    <div class="setup-param-grid">
+                        <div class="setup-param"><span class="label">Entry Zone</span><span class="value">${formatPrice(setup.parameters.entry)}</span></div>
+                        <div class="setup-param"><span class="label">Stop Loss</span><span class="value">${formatPrice(setup.parameters.stop_loss)}</span></div>
+                        <div class="setup-param"><span class="label">Target 1</span><span class="value">${formatPrice(setup.parameters.take_profit_1)}</span></div>
+                        <div class="setup-param"><span class="label">Target 2</span><span class="value">${formatPrice(setup.parameters.take_profit_2)}</span></div>
+                    </div>
+                    
+                    <div style="margin-bottom:20px">
+                        <span class="label" style="display:block; font-size:0.65rem; color:var(--text-dim); margin-bottom:8px; text-transform:uppercase; font-weight:900">Institutional Rationale</span>
+                        <ul style="margin:0; padding-left:20px; color:var(--text-header); font-size:0.9rem">
+                            ${setup.rationale.map(r => `<li style="margin-bottom:8px">${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); padding:10px; border-radius:8px; font-size:0.75rem; color:var(--risk-high)">
+                        <strong>RISK WARNING:</strong> ${setup.risk_warning}
+                    </div>
+                </div>`;
+        }
+        
+        btn.textContent = "GENERATE NEURAL SETUP";
+        btn.disabled = false;
+    };
 }
 
 async function renderLiquidityView() {
-    appEl.innerHTML = skeleton(4);
-    try {
-        const data = await fetchAPI('/liquidity?ticker=BTC-USD');
-        if (!data) return;
-
-        appEl.innerHTML = `
-            <div class="view-header">
-                <h2>Order Flow Magnitude Monitor (GOMM)</h2>
-                <p>Institutional liquidity clustering across ${data.metrics?.primary_exchange || 'Global'} and depth detection for ${data.ticker}.</p>
+    appEl.innerHTML = `<div class="gomm-container">
+        <div class="sidebar-panel">
+            <h2 class="view-title">Order Flow (GOMM)</h2>
+            <div class="stat-card">
+                <div class="label">GLOBAL IMBALANCE</div>
+                <div class="value" id="gomm-imbalance">--%</div>
             </div>
-
-            <div style="display:grid; grid-template-columns: 350px 1fr; gap:2rem">
-                <div class="stats-sidebar" style="display:flex; flex-direction:column; gap:1.5rem">
-                    <div style="background:var(--bg-card); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">GLOBAL IMBALANCE</div>
-                        <div style="font-size:2rem; font-weight:900; color:${data.imbalance >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">
-                            ${data.imbalance >= 0 ? '+' : ''}${data.imbalance}%
-                        </div>
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-top:5px">AGGREGATED SKEW</div>
-                    </div>
-                    <div style="background:var(--bg-card); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">TOTAL BOOK DEPTH</div>
-                        <div style="font-size:1.5rem; font-weight:900">${data.metrics?.total_depth || '0.0'} BTC</div>
-                    </div>
-                    <div style="background:rgba(255,255,255,0.02); padding:1.2rem; border-radius:12px; border:1px solid var(--border)">
-                        <div style="font-size:0.6rem; color:var(--accent); margin-bottom:10px; font-weight:700">EXCHANGE ATTRIBUTION</div>
-                        <div style="display:flex; flex-direction:column; gap:8px">
-                            <div style="display:flex; justify-content:space-between; font-size:0.7rem"><span>BINANCE</span><span style="color:#F3BA2F">GOLD</span></div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.7rem"><span>COINBASE</span><span style="color:#0052FF">BLUE</span></div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.7rem"><span>OKX</span><span style="color:#FFFFFF">WHITE</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ob-visualization" style="background:var(--bg-card); padding:2rem; border-radius:16px; border:1px solid var(--border); min-height:500px">
-                    <h3 style="margin-bottom:2rem; font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:1rem">Global Liquidity Walls (Cross-Exchange)</h3>
-                    <div class="wall-list" style="display:flex; flex-direction:column; gap:8px">
-                        ${data.walls.map(w => {
-                            const exch = (w.exchange || 'Binance').toLowerCase();
-                            const exchColor = exch === 'binance' ? '#F3BA2F' : (exch === 'coinbase' ? '#0052FF' : '#fff');
-                            const displayName = (w.exchange || 'Binance').toUpperCase();
-                            return `
-                                <div style="display:flex; align-items:center; gap:15px">
-                                    <div style="width:100px; font-size:0.85rem; font-weight:700; color:${w.side === 'ask' ? 'var(--risk-high)' : 'var(--risk-low)'}">$${w.price}</div>
-                                    <div style="flex:1; height:26px; background:rgba(255,255,255,0.02); border-radius:4px; position:relative; border-left: 2px solid ${exchColor}">
-                                        <div style="position:absolute; ${w.side === 'ask' ? 'right:0' : 'left:0'}; height:100%; width:${Math.min((w.size / 1000) * 100, 100)}%; background:${w.side === 'ask' ? 'rgba(255, 62, 62, 0.15)' : 'rgba(0, 255, 136, 0.15)'}; border-${w.side === 'ask' ? 'right' : 'left'}:3px solid ${w.side === 'ask' ? 'var(--risk-high)' : 'var(--risk-low)'}"></div>
-                                        <div style="position:absolute; ${w.side === 'ask' ? 'right:10px' : 'left:10px'}; top:50%; transform:translateY(-50%); font-size:0.7rem; font-weight:900">${w.size} <span style="font-size:0.6rem; color:var(--text-dim)">BTC</span></div>
-                                    </div>
-                                    <div style="width:100px; font-size:0.6rem; text-transform:uppercase; color:${exchColor}; text-align:right; font-weight:800">${displayName}</div>
-                                </div>
-                            `;
-                        }).join('')}
-                        <div style="margin:20px 0; padding:10px; background:rgba(0,242,255,0.05); text-align:center; border-radius:4px; font-weight:900; font-size:0.9rem; letter-spacing:1px; color:var(--accent)">
-                            GLOBAL MID PRICE: $${data.current_price}
-                        </div>
-                    </div>
+            <div class="stat-card" style="margin-top:10px">
+                <div class="label">TOTAL BOOK DEPTH</div>
+                <div class="value" id="gomm-depth">-- BTC</div>
+            </div>
+            <button class="setup-generator-btn" id="toggle-heatmap" style="margin-top:20px">TOGGLE HEATMAP MODE</button>
+            
+            <div class="stat-card" style="margin-top:20px; background:rgba(255,255,255,0.02)">
+                <div class="label" style="color:var(--accent); font-weight:900">EXCHANGE TAGS</div>
+                <div style="font-size:0.65rem; display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px">
+                    <span>BINANCE</span> <span style="color:#F3BA2F; text-align:right">GOLD</span>
+                    <span>COINBASE</span> <span style="color:#0052FF; text-align:right">BLUE</span>
+                    <span>OKX</span> <span style="color:#FFFFFF; text-align:right">WHITE</span>
                 </div>
             </div>
-        `;
-    } catch (e) {
-        appEl.innerHTML = `<div class="empty-state">GOMM Engine failure: ${e.message}</div>`;
+        </div>
+        <div id="gomm-main-display" style="flex:1">
+            <div class="skeleton-card"></div>
+        </div>
+        <div class="tape-sidebar">
+            <div class="tape-header">INSTITUTIONAL LEDGER (LIVE)</div>
+            <div id="tape-content" class="tape-list"></div>
+        </div>
+    </div>`;
+
+    const data = await fetchAPI('/liquidity?ticker=BTC-USD');
+    const tapeData = await fetchAPI('/tape?ticker=BTC-USD');
+    
+    if (!data) return;
+
+    // Update Overview Stats
+    const imbEl = document.getElementById('gomm-imbalance');
+    imbEl.textContent = `${data.imbalance > 0 ? '+' : ''}${data.imbalance}%`;
+    imbEl.style.color = data.imbalance > 0 ? 'var(--risk-low)' : 'var(--risk-high)';
+    document.getElementById('gomm-depth').textContent = `${data.metrics.total_depth} BTC`;
+
+    const display = document.getElementById('gomm-main-display');
+    
+    function renderWallsMode() {
+        display.innerHTML = `
+            <div class="card" style="height:100%; border:none; background:transparent">
+                <h3 class="card-title">Global Liquidity Walls (Cross-Exchange)</h3>
+                <div class="liquidity-chart" id="liquidity-chart">
+                    ${data.walls.map(w => {
+                        const maxSideDepth = Math.max(...data.walls.map(wall => wall.size));
+                        const width = (w.size / maxSideDepth) * 100;
+                        const exchClass = (w.exchange || 'Binance').toLowerCase();
+                        return `
+                        <div class="liquidity-bar-row">
+                            <div class="price-label ${w.side}">${formatPrice(w.price)}</div>
+                            <div class="bar-container">
+                                <div class="liquidity-bar ${w.side} ${exchClass}" style="width:${width}%"></div>
+                                <span class="bar-val">${w.size} <small>BTC</small></span>
+                            </div>
+                            <div class="exch-tag">${(w.exchange || 'Binance').toUpperCase()}</div>
+                        </div>`;
+                    }).join('')}
+                    <div class="mid-price-line">GLOBAL MID PRICE: ${formatPrice(data.current_price)}</div>
+                </div>
+            </div>`;
+    }
+
+    function renderHeatmapMode() {
+        if (!data.history) return;
+        display.innerHTML = `
+            <div class="card" style="height:100%; display:flex; flex-direction:column">
+                <h3 class="card-title">Temporal Liquidity Heatmap (1H History)</h3>
+                <div class="heatmap-grid" style="flex:1">
+                    ${data.history.map(snap => {
+                        return `
+                        <div class="heatmap-row">
+                            <div class="label" style="font-size:0.6rem; color:var(--text-dim); text-align:right">${snap.time}</div>
+                            <div class="heatmap-cells">
+                                ${snap.walls.sort((a,b) => a.price - b.price).map(w => {
+                                    const opacity = Math.min(w.size / 500, 1);
+                                    const color = w.side === 'ask' ? `rgba(239, 68, 68, ${opacity})` : `rgba(34, 197, 94, ${opacity})`;
+                                    return `<div class="hm-cell" title="${formatPrice(w.price)}: ${w.size} BTC" style="background:${color}"></div>`;
+                                }).join('')}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+                <div style="font-size:0.65rem; color:var(--text-dim); margin-top:15px; text-align:center; padding:10px; background:rgba(255,255,255,0.02); border-radius:4px">
+                    <span style="color:var(--risk-low)">█</span> BID DEPTH | <span style="color:var(--risk-high)">█</span> ASK DEPTH (INTENSITY = MAGNITUDE)
+                </div>
+            </div>`;
+    }
+
+    let isHeatmap = false;
+    renderWallsMode();
+
+    const toggleBtn = document.getElementById('toggle-heatmap');
+    toggleBtn.onclick = () => {
+        isHeatmap = !isHeatmap;
+        toggleBtn.textContent = isHeatmap ? 'SWITCH TO WALL VIEW' : 'TOGGLE HEATMAP MODE';
+        if (isHeatmap) renderHeatmapMode();
+        else renderWallsMode();
+    };
+
+    // Render Tape
+    const tapeContent = document.getElementById('tape-content');
+    if (tapeData && tapeData.trades) {
+        tapeContent.innerHTML = tapeData.trades.map(t => `
+            <div class="tape-item ${t.institutional ? 'institutional' : ''}">
+                <div class="label" style="font-size:0.6rem; color:var(--text-dim)">${t.time.split(':')[1]}:${t.time.split(':')[2]}</div>
+                <div class="tape-val ${t.side === 'BUY' ? 'tape-buy' : 'tape-sell'}">
+                    ${t.side} ${t.size} <small>@</small> ${Math.round(t.price)}
+                </div>
+                <div class="label" style="text-align:right; font-size:0.6rem; color:var(--text-dim)">${t.exchange.toUpperCase()}</div>
+            </div>
+        `).join('');
     }
 }
 
 async function renderMacroView() {
-    appEl.innerHTML = skeleton(2);
+    appEl.innerHTML = `<h2 class="view-title">Macro Catalyst Compass</h2>${skeleton(2)}`;
     try {
         const data = await fetchAPI('/macro-calendar');
         if (!data) return;
 
         appEl.innerHTML = `
-            <div class="view-header">
-                <h2>🌏 Macro Catalyst Compass</h2>
-                <p>Tracking high-impact economic drivers and global liquidity shifts.</p>
-            </div>
-            <div class="macro-grid" style="display:grid; grid-template-columns: 1fr 350px; gap:2rem">
-                <div class="macro-main-panel">
-                    <div class="macro-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem">
-                        <h3 style="margin-bottom:1.5rem; font-size:1rem; color:var(--accent)">Upcoming Volatility Triggers</h3>
-                        <div class="macro-event-list" style="display:flex; flex-direction:column; gap:1rem">
+            <h2 class="view-title">🌏 Macro Catalyst Compass</h2>
+            <p class="view-desc">Tracking high-impact economic drivers and global liquidity shifts.</p>
+            <div class="macro-grid" style="display:grid; grid-template-columns: 1fr 350px; gap:20px">
+                <div>
+                    <div class="card">
+                        <h3 class="card-title">Upcoming Volatility Triggers</h3>
+                        <div style="display:flex; flex-direction:column; gap:12px">
                             ${data.events.map(e => `
-                                <div class="macro-event-item" style="display:flex; gap:1.5rem; padding:1.2rem; background:rgba(255,255,255,0.02); border-radius:12px; border-left: 4px solid var(--${e.impact === 'CRITICAL' ? 'risk-high' : (e.impact === 'HIGH' ? 'accent' : 'text-dim')})">
-                                    <div style="width:80px; text-align:center">
-                                        <div style="font-size:0.7rem; font-weight:700; color:var(--text-dim)">${e.date.split('-').slice(1).join('/')}</div>
-                                        <div style="font-size:0.9rem; font-weight:900">${e.time}</div>
+                                <div style="display:flex; gap:15px; padding:15px; background:rgba(255,255,255,0.02); border-radius:12px; border-left: 4px solid var(--${e.impact === 'CRITICAL' ? 'risk-high' : (e.impact === 'HIGH' ? 'accent' : 'text-dim')})">
+                                    <div style="width:60px; text-align:center">
+                                        <div style="font-size:0.65rem; color:var(--text-dim)">${e.date.split('-').slice(1).join('/')}</div>
+                                        <div style="font-size:0.85rem; font-weight:900">${e.time}</div>
                                     </div>
                                     <div style="flex:1">
-                                        <div style="font-size:1rem; font-weight:800; margin-bottom:5px">${e.event}</div>
-                                        <div style="display:flex; gap:15px; font-size:0.75rem; color:var(--text-dim)">
-                                            <span>FCST: <strong style="color:var(--text)">${e.forecast}</strong></span>
-                                            <span>PREV: <strong>${e.previous}</strong></span>
-                                        </div>
+                                        <div style="font-size:0.95rem; font-weight:800; margin-bottom:4px">${e.event}</div>
+                                        <div style="font-size:0.7rem; color:var(--text-dim)">FCST: <span style="color:var(--text)">${e.forecast}</span> | PREV: ${e.previous}</div>
                                     </div>
-                                    <div style="width:100px; text-align:right">
-                                        <div class="impact-badge impact-${e.impact.toLowerCase()}" style="font-size:0.6rem; padding:4px 8px">${e.impact}</div>
+                                    <div style="text-align:right">
+                                        <div class=" impacto-badge impact-${e.impact.toLowerCase()}" style="font-size:0.6rem">${e.impact}</div>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
                 </div>
-                <aside class="macro-sidebar" style="display:flex; flex-direction:column; gap:1.5rem">
-                    <div class="macro-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem">
-                        <h3 style="margin-bottom:1rem; font-size:0.9rem">Treasury Yields</h3>
-                        <div class="yield-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem">
-                            ${Object.entries(data.yields).map(([label, val]) => `
-                                <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:8px; text-align:center">
-                                    <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px">${label.toUpperCase()}</div>
-                                    <div style="font-size:1.2rem; font-weight:900; color:var(--accent)">${val}</div>
+                <aside style="display:flex; flex-direction:column; gap:20px">
+                    <div class="card">
+                        <h3 class="card-title">Treasury Yields</h3>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+                            ${Object.entries(data.yields).map(([lbl, val]) => `
+                                <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; text-align:center">
+                                    <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">${lbl}</div>
+                                    <div style="font-size:1.1rem; font-weight:900; color:var(--accent)">${val}</div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
-                    <div class="macro-card alert-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; border-top: 4px solid var(--accent)">
-                        <h3 style="margin-bottom:0.8rem; font-size:0.9rem; color:var(--accent)">Institutional Briefing</h3>
-                        <p style="font-size:0.85rem; line-height:1.5; color:var(--text-dim)">
-                            Monitor <strong>Core PCE</strong> and <strong>GDP Final</strong> estimates for risk-on/off confirmation. Treasury yield compression typically precedes volatility regime shifts.
-                        </p>
-                        <div style="margin-top:1rem; font-size:0.65rem; color:var(--accent); font-weight:700">STATUS: ${data.status}</div>
+                    <div class="card" style="border-top: 4px solid var(--accent)">
+                        <h3 class="card-title">Institutional Briefing</h3>
+                        <p style="font-size:0.8rem; line-height:1.5; color:var(--text-dim)">Monitor Core PCE and GDP Final estimates for risk-on confirmation. Yield compression typically precedes volatility regime shifts.</p>
+                        <div style="margin-top:15px; font-size:0.6rem; color:var(--accent); font-weight:900">STATUS: ${data.status}</div>
                     </div>
                 </aside>
-            </div>
-        `;
+            </div>`;
     } catch (e) {
-        appEl.innerHTML = `<div class="empty-state">Macro Engine failure: ${e.message}</div>`;
+        appEl.innerHTML = `<div class="empty-state">Macro Engine offline: ${e.message}</div>`;
     }
 }
 

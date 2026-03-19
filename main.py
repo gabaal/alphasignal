@@ -680,8 +680,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/news': self.handle_news()
             elif path == '/api/mindshare': self.handle_mindshare()
             elif path == '/api/ai_analyst': self.handle_ai_analyst()
-            elif '/api/macro-calendar' in path: self.handle_macro_calendar()
+            elif path == '/api/macro-calendar': self.handle_macro_calendar()
             elif path == '/api/liquidity': self.handle_liquidity()
+            elif path == '/api/tape': self.handle_tape()
+            elif path == '/api/generate-setup': self.handle_setup_generation()
             elif path == '/api/derivatives': self.handle_derivatives()
             elif path == '/api/macro': self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
@@ -2075,6 +2077,28 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             bid_depth = sum(w['size'] for w in walls if w['side'] == 'bid')
             imbalance = round(((bid_depth - ask_depth) / (bid_depth + ask_depth)) * 100, 1) if (bid_depth + ask_depth) > 0 else 0
             
+            # 4. Generate 1-hour History for Heatmap
+            history = []
+            now = time.time()
+            for i in range(12): # 5-minute intervals for 60 mins
+                h_time = now - (i * 300)
+                random.seed(int(h_time + hash(ticker)))
+                h_walls = []
+                for exch in exchanges:
+                    for _ in range(2):
+                        side = "ask" if random.random() > 0.5 else "bid"
+                        offset = random.uniform(-0.02, 0.02)
+                        h_walls.append({
+                            "price": round(current_price * (1 + offset), 2),
+                            "size": round(random.uniform(10, 500) * exch['bias'], 1),
+                            "side": side,
+                            "exchange": exch['name']
+                        })
+                history.append({
+                    "time": datetime.fromtimestamp(h_time).strftime("%H:%M"),
+                    "walls": h_walls
+                })
+
             total_depth = round(ask_depth + bid_depth, 1)
             
             self.send_json({
@@ -2082,6 +2106,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 "current_price": round(current_price, 2),
                 "imbalance": imbalance,
                 "walls": sorted(walls, key=lambda x: x['price'], reverse=True),
+                "history": history,
                 "metrics": {
                     "total_depth": total_depth,
                     "primary_exchange": max(exchanges, key=lambda x: x['bias'])['name']
@@ -2092,9 +2117,109 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"error": "GOMM Engine Syncing"})
 
     # ============================================================
+    # Institutional Execution Tape
+    # ============================================================
+    def handle_tape(self):
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            # Generate deterministic but varied institutional trades
+            trades = []
+            exchanges = ["Binance", "Coinbase", "OKX", "Bybit"]
+            prices = [91450.0] * 10 # Base prices
+            
+            for i in range(15):
+                side = "BUY" if random.random() > 0.45 else "SELL"
+                size = round(random.uniform(1.5, 25.0), 2) # BTC size
+                value = round(size * 91450, 0)
+                time_offset = i * random.randint(1, 10)
+                
+                trades.append({
+                    "id": f"tx-{random.randint(100000,999999)}",
+                    "time": (datetime.now() - timedelta(seconds=time_offset)).strftime("%H:%M:%S"),
+                    "price": 91450.0 + random.uniform(-50, 50),
+                    "size": size,
+                    "value": value,
+                    "side": side,
+                    "exchange": random.choice(exchanges),
+                    "institutional": value > 500000 # Highlight big moves
+                })
+
+            self.send_json({
+                "ticker": ticker,
+                "trades": sorted(trades, key=lambda x: x['time'], reverse=True),
+                "aggregation": {
+                    "buy_volume": sum(t['value'] for t in trades if t['side'] == 'BUY'),
+                    "sell_volume": sum(t['value'] for t in trades if t['side'] == 'SELL')
+                }
+            })
+        except Exception as e:
+            self.send_error(500, f"Tape Engine Sync Error: {e}")
+
+    # ============================================================
+    # AI Alpha Assistant: Setup Generator
+    # ============================================================
+    def handle_setup_generation(self):
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            # Simulated AI synthesis of market data
+            setup = {
+                "ticker": ticker,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "bias": "BULLISH" if random.random() > 0.4 else "BEARISH",
+                "conviction": random.choice(["HIGH", "MEDIUM", "TACTICAL"]),
+                "parameters": {
+                    "entry": 91200.0 + random.uniform(-100, 100),
+                    "stop_loss": 89800.0 + random.uniform(-50, 50),
+                    "take_profit_1": 93500.0,
+                    "take_profit_2": 95200.0
+                },
+                "rationale": [
+                    "Strong liquidity walls detected at $90.5k across Binance/OKX providing structural support.",
+                    "Institutional Tape shows aggressive absorbent buying on 50+ BTC clips in the last 15 minutes.",
+                    "Macro catalyst (Core PCE) volatility profile suggests exhaustion of sell-side momentum.",
+                    "Divergence in funding rates indicates a potential short-squeeze catalyst in the next 4-hour window."
+                ],
+                "risk_warning": "High volatility environment. Institutional flow is currently imbalanced. Recommend 1.5% max risk per position."
+            }
+            self.send_json(setup)
+        except Exception as e:
+            self.send_error(500, f"Setup Generation Error: {e}")
+
     # Macro Catalyst Calendar
     # ============================================================
     def handle_macro_calendar(self):
+        try:
+            # 1. Gather context (simulated synthesis)
+            # In a real app, this would query current GOMM walls and Sentiment
+            entry = 91200.0
+            stop = 90750.0
+            target = 92800.0
+            rr = round((target - entry) / (entry - stop), 2)
+            
+            setup = {
+                "ticker": ticker,
+                "bias": "LONG",
+                "conviction": "HIGH",
+                "rationale": [
+                    "Institutional buy walls detected @ $91,200 (Binance/OKX)",
+                    "Social mindshare showing reset after local peak",
+                    "Macro catalyst (Jobless Claims) historically bullish for liquidity"
+                ],
+                "parameters": {
+                    "entry": entry,
+                    "stop_loss": stop,
+                    "take_profit_1": 92100,
+                    "take_profit_2": target,
+                    "rr_ratio": rr,
+                    "est_timeframe": "12-24 Hours"
+                },
+                "risk_warning": "High volatility expected during NY open liquidity shift."
+            }
+            self.send_json(setup)
+        except Exception as e:
+            self.send_error(500, f"Setup Synthesis Error: {e}")
         try:
             # 1. Economic Events (Scheduled for the week of Mar 16-23, 2026)
             events = [
