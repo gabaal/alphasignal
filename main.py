@@ -103,7 +103,8 @@ UNIVERSE = {
     'ETF': ['IBIT', 'FBTC', 'ARKB', 'BITO'],
     'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD'],
     'L1': ['SOL-USD', 'ETH-USD', 'ADA-USD', 'AVAX-USD'],
-    'STABLES': ['USDC-USD', 'USDT-USD', 'DAI-USD']
+    'STABLES': ['USDC-USD', 'USDT-USD', 'DAI-USD'],
+    'MEMES': ['DOGE-USD', 'SHIB-USD', 'PEPE-USD', 'WIF-USD']
 }
 
 WHALE_WALLETS = {
@@ -825,7 +826,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 "L1": {"x": 600, "y": 200, "color": "#fffa00"},
                 "STABLES": {"x": 400, "y": 300, "color": "#8b949e"},
                 "MEMES": {"x": 200, "y": 450, "color": "#ff3e3e"},
-                "EXCHANGE": {"x": 600, "y": 450, "color": "#00f2ff"},
+                "EXCHANGE": {"x": 600, "y": 450, "color": "#fffa00"},
                 "MINERS": {"x": 400, "y": 150, "color": "#00ff88"}
             }
             
