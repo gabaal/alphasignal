@@ -6,6 +6,7 @@ let countdownSeconds = 300;
 let countdownInterval = null;
 let isPremiumUser = false;
 let isAuthenticatedUser = false;
+let hasStripeId = false;
 
 // ============= Core Utilities =============
 async function fetchAPI(endpoint, method = 'GET', body = null) {
@@ -26,7 +27,10 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
             return null;
         }
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
         return await res.json();
     } catch (e) { 
         console.error('API Error:', e); 
@@ -39,11 +43,17 @@ async function checkAuthStatus() {
     if (status && status.authenticated) {
         isAuthenticatedUser = true;
         isPremiumUser = status.is_premium || false;
+        hasStripeId = status.has_stripe_id || false;
         showAuth(false);
+        
+        // Populate New Profile Card
         const emailEl = document.getElementById('display-user-email');
-        if (emailEl && status.email) {
-            emailEl.textContent = status.email + (isPremiumUser ? ' (PREMIUM)' : ' (FREE)');
+        const initialsEl = document.getElementById('user-initials');
+        if (status.email) {
+            if (emailEl) emailEl.textContent = status.email;
+            if (initialsEl) initialsEl.textContent = status.email.substring(0, 2).toUpperCase();
         }
+        
         updatePremiumUI();
         return true;
     } else {
@@ -60,7 +70,6 @@ function updatePremiumUI() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         const view = item.getAttribute('data-view');
-        // Signals is free
         if (view !== 'signals') {
             if (!isPremiumUser) {
                 if (!item.querySelector('.premium-lock')) {
@@ -76,11 +85,23 @@ function updatePremiumUI() {
         }
     });
 
-    // Update logout btn style for premium
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn && isPremiumUser) {
-        logoutBtn.style.borderColor = 'var(--risk-low)';
-        logoutBtn.textContent = 'LOGOUT_PREMIUM';
+    // Update Profile Card Tier & Actions
+    const tierBadge = document.getElementById('user-tier-badge');
+    const manageBtn = document.getElementById('manage-sub-btn');
+    
+    if (tierBadge) {
+        if (isPremiumUser) {
+            tierBadge.textContent = 'INSTITUTIONAL';
+            tierBadge.className = 'tier-badge institutional';
+            if (manageBtn) {
+                if (hasStripeId) manageBtn.classList.remove('hidden');
+                else manageBtn.classList.add('hidden');
+            }
+        } else {
+            tierBadge.textContent = 'FREE_TIER';
+            tierBadge.className = 'tier-badge free';
+            if (manageBtn) manageBtn.classList.add('hidden');
+        }
     }
 }
 
@@ -160,31 +181,37 @@ async function logout() {
 
 async function handleSubscribe() {
     try {
-        // 1. Get Stripe Publishable Key
         const config = await fetchAPI('/config');
         if (!config || !config.stripe_publishable_key) {
             throw new Error("Missing Stripe configuration on server.");
         }
         
         const stripe = Stripe(config.stripe_publishable_key);
-        
-        // 2. Create Checkout Session
         const session = await fetchAPI('/stripe/create-checkout-session', 'POST');
         if (!session || !session.id) {
             throw new Error(session?.error || "Could not create checkout session.");
         }
         
-        // 3. Redirect to Stripe
-        const result = await stripe.redirectToCheckout({
-            sessionId: session.id,
-        });
-        
-        if (result.error) {
-            alert(result.error.message);
-        }
+        const result = await stripe.redirectToCheckout({ sessionId: session.id });
+        if (result.error) alert(result.error.message);
     } catch (e) {
         console.error("Subscription error:", e);
         alert(`SUBSCRIPTION_ERROR: ${e.message}`);
+    }
+}
+
+async function manageSubscription() {
+    console.log("Portal redirect initiated...");
+    try {
+        const res = await fetchAPI('/stripe/create-portal-session', 'POST');
+        if (res && res.url) {
+            window.location.href = res.url;
+        } else {
+            throw new Error(res?.error || "Could not generate portal session.");
+        }
+    } catch (e) {
+        console.error("Portal error:", e);
+        alert(`BILLING_ERROR: ${e.message}`);
     }
 }
 
@@ -1115,7 +1142,7 @@ function openNewsArticle(index) {
                 <div class="news-tag tag-${news.sentiment.toLowerCase()}">${news.sentiment}</div>
                 <div class="news-time">${news.time} // ${news.ticker}</div>
             </div>
-            <h1 class="article-title">${news.headline}</h1>
+            <h2 class="article-title">${news.headline}</h2>
         </div>
         <div class="article-content">
             ${news.content || `<p>${news.summary}</p><p>Full intelligence report is currently being synthesized by AlphaSignal Prime. Check back shortly for deep-dive analysis into the institutional flow dynamics of ${news.ticker}.</p>`}
@@ -1338,7 +1365,7 @@ async function renderBriefing() {
                     <div class="brief-sentiment-tag" style="background:var(--risk-low); color:black; font-weight:900; font-size:0.6rem; padding:4px 12px; border-radius:100px; width:fit-content; margin-bottom:1.5rem">
                         ${data.market_sentiment}
                     </div>
-                    <h1 style="font-size:2.5rem; font-weight:900; line-height:1.1; margin-bottom:1rem; letter-spacing:-1px">${data.headline}</h1>
+                    <h3 style="font-size:2.5rem; font-weight:900; line-height:1.1; margin-bottom:1rem; letter-spacing:-1px">${data.headline}</h3>
                     <p style="font-size:1.1rem; line-height:1.6; color:var(--text); opacity:0.9">${data.summary}</p>
                     <div style="margin-top:2rem; display:flex; gap:20px; font-size:0.8rem; color:var(--text-dim)">
                         <span><strong>MACRO:</strong> ${data.macro_context}</span>
@@ -1592,30 +1619,101 @@ const viewMap = {
     liquidity: renderLiquidityView
 };
 
+function updateSEOMeta(view) {
+    const viewMetadata = {
+        'signals': {
+            title: 'Live Alpha Signals',
+            desc: 'Real-time multi-asset trading signals across crypto, equities, and forex derived from institutional data feeds.'
+        },
+        'briefing': {
+            title: 'AI Intelligence Briefing',
+            desc: 'Daily neural synthesis of global market trends, sentiment shifts, and high-conviction institutional alpha.'
+        },
+        'mindshare': {
+            title: 'Social Mindshare Analytics',
+            desc: 'Track real-time social sentiment, narrative dominance, and crowd positioning across major crypto assets.'
+        },
+        'flow': {
+            title: 'Institutional Flow Monitor',
+            desc: 'Monitor whale moves, exchange inflows, and institutional positioning to identify market rotation early.'
+        },
+        'heatmap': {
+            title: 'Market Heatmap',
+            desc: 'Visual cross-asset correlation and performance heatmap for rapid portfolio assessment.'
+        },
+        'catalysts': {
+            title: 'Earnings & Events Catalysts',
+            desc: 'Comprehensive calendar of institutional-grade volatility events, earnings releases, and macro triggers.'
+        },
+        'whales': {
+            title: 'Whale Pulse Monitor',
+            desc: 'Institutional-sized transaction tracking and exchange flow alerts for rapid market insight.'
+        },
+        'pulse': {
+            title: 'Institutional Market Pulse',
+            desc: 'Real-time monitoring of Fear & Greed index, Lead-Lag signals, and systemic market health.'
+        },
+        'rotation': {
+            title: 'Sector Rotation Matrix',
+            desc: 'Advanced analysis of capital flows between asset classes and sectors to identify the next trend.'
+        },
+        'backtest': {
+            title: 'Strategy Backtest Lab',
+            desc: 'Quant-grade backtesting environment for validating trading strategies against historical institutional data.'
+        },
+        'risk': {
+            title: 'Global Systemic Risk',
+            desc: 'Real-time systemic risk monitoring, correlation spikes, and volatility regime detection.'
+        },
+        'narrative': {
+            title: 'Narrative Galaxy Search',
+            desc: 'Explore emerging market narratives and cluster shifts using NLP-driven trend analysis.'
+        },
+        'tradelab': {
+            title: 'Trade Idea Lab',
+            desc: 'Generate and validate institutional-grade trade setups with defined risk-reward parameters.'
+        },
+        'liquidity': {
+            title: 'Order Flow Magnitude',
+            desc: 'Visualize professional liquidity walls, order book depth, and institutional execution tape.'
+        },
+        'newsroom': {
+            title: 'Institutional Newsroom',
+            desc: 'Curation of the highest-impact financial news and regulatory developments effecting global markets.'
+        },
+        'alerts': {
+            title: 'Real-time Signal Alerts',
+            desc: 'Configure and monitor high-fidelity institutional alerts for your specific asset watchlist.'
+        }
+    };
+
+    const meta = viewMetadata[view] || {
+        title: view.charAt(0).toUpperCase() + view.slice(1),
+        desc: 'AlphaSignal Institutional Intelligence Terminal - Real-time signals and AI insights.'
+    };
+
+    const fullTitle = `${meta.title} | AlphaSignal — Institutional Crypto Intelligence`;
+    document.title = fullTitle;
+
+    // Update Meta Description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+        metaDesc.setAttribute('content', meta.desc);
+    }
+
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', fullTitle);
+
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', meta.desc);
+
+    console.log(`SEO Update: Meta updated for view "${view}"`);
+}
+
 function switchView(view) {
     // Update SEO Meta
-    const viewTitles = {
-        'signals': 'Live Alpha Signals',
-        'briefing': 'AI Intelligence Briefing',
-        'mindshare': 'Social Mindshare Analytics',
-        'flow': 'Institutional Flow Monitor',
-        'heatmap': 'Market Heatmap',
-        'catalysts': 'Earnings & Events Catalysts',
-        'whales': 'Whale Pulse Monitor',
-        'pulse': 'Institutional Market Pulse',
-        'rotation': 'Sector Rotation Matrix',
-        'backtest': 'Strategy Backtest Lab',
-        'risk': 'Global Systemic Risk',
-        'narrative': 'Narrative Galaxy Search',
-        'tradelab': 'Trade Idea Lab',
-        'liquidity': 'Order Flow Magnitude',
-        'newsroom': 'Institutional Newsroom',
-        'alerts': 'Real-time Signal Alerts'
-    };
-    const subTitle = viewTitles[view] || view.charAt(0).toUpperCase() + view.slice(1);
-    const fullTitle = `${subTitle} | AlphaSignal — Institutional Crypto Intelligence`;
-    document.title = fullTitle;
-    console.log(`SEO Update: Title set to "${fullTitle}" for view "${view}"`);
+    updateSEOMeta(view);
 
     if (viewMap[view]) {
         // Sync desktop nav

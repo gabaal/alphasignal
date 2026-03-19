@@ -374,17 +374,28 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 
                 # Check real subscription status in Supabase
                 is_premium = False
+                stripe_customer_id = None
                 sub_data = SupabaseClient.query("subscriptions", filters=f"user_id=eq.{user_id}")
                 if sub_data and isinstance(sub_data, list) and len(sub_data) > 0:
                     is_premium = sub_data[0].get('subscription', False)
+                    stripe_customer_id = sub_data[0].get('stripe_customer_id')
                 
                 # Fallback for explicit premium emails (compatibility)
                 if not is_premium:
                     is_premium = email.endswith('.premium') or email == 'premium@example.com' or 'premium' in email.lower()
                 
-                return {"authenticated": True, "email": email, "user_id": user_id, "is_premium": is_premium}
+                return {
+                    "authenticated": True, 
+                    "email": email, 
+                    "user_id": user_id, 
+                    "is_premium": is_premium, 
+                    "has_stripe_id": bool(stripe_customer_id),
+                    "stripe_customer_id": stripe_customer_id
+                }
             return None
-        except: return None
+        except Exception as e:
+            print(f"Auth verification error: {e}")
+            return None
 
     def do_POST(self):
         try:
@@ -451,6 +462,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     
                     checkout_session = stripe.checkout.Session.create(**stripe_params)
                     print(f"[{datetime.now()}] Stripe Session Created: {checkout_session.id} for user {auth_info.get('user_id')}")
+                    # Save user_id for the success redirect to handle fulfillment even without webhooks
                     self.send_json({"id": checkout_session.id})
                 except Exception as e:
                     print(f"[{datetime.now()}] Stripe Session Error: {e}")
@@ -480,6 +492,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                             data = {
                                 "user_id": user_id,
                                 "subscription": True,
+                                "stripe_customer_id": session.get('customer'),
                                 "updated_at": datetime.now().isoformat()
                             }
                             requests.post(url, headers=headers, json=data, timeout=5)
@@ -488,6 +501,31 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 except Exception as e:
                     print(f"Webhook error: {e}")
                     self.send_error(400, str(e))
+            elif path == '/api/stripe/create-portal-session':
+                auth_info = self.is_authenticated()
+                if not auth_info:
+                    self.send_response(401)
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "AUTHENTICATION_REQUIRED: Please log in again."}).encode('utf-8'))
+                    return
+
+                if not auth_info.get('stripe_customer_id'):
+                    print(f"[{datetime.now()}] Portal Error: User {auth_info.get('email')} has no stripe_customer_id")
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "METRIC_ERROR: No active Stripe subscription found for this account. If you just subscribed, please wait a moment."}).encode('utf-8'))
+                    return
+
+                try:
+                    origin = self.headers.get('Origin') or "http://localhost:8006"
+                    portal_session = stripe.billing_portal.Session.create(
+                        customer=auth_info.get('stripe_customer_id'),
+                        return_url=f"{origin}/",
+                    )
+                    self.send_json({"url": portal_session.url})
+                except Exception as e:
+                    print(f"[{datetime.now()}] Stripe Portal Error: {e}")
+                    self.send_error(500, str(e))
             else:
                 self.send_error(404, "Path not found")
         except Exception as e:
@@ -512,6 +550,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                             SupabaseClient.query("subscriptions", method="POST", data={
                                 "user_id": user_id,
                                 "subscription": True,
+                                "stripe_customer_id": session.customer,
                                 "updated_at": datetime.now().isoformat()
                             })
                 except Exception as e:
