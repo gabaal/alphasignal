@@ -533,8 +533,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps({"stripe_publishable_key": STRIPE_PUBLISHABLE_KEY}).encode('utf-8'))
                 return
 
-            if path in ['/api/signals', '/api/btc']:
-                # Signals and BTC are public
+            if path in ['/api/signals', '/api/btc', '/api/market-pulse', '/api/alerts']:
+                # Signals, BTC, Pulse and Alerts are public
                 pass
             elif path.startswith('/api/'):
                 auth_info = self.is_authenticated()
@@ -1264,10 +1264,49 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json([])
 
     def handle_market_pulse(self):
-        self.send_json({
-            "fgIndex": 72, 
-            "fgLabel": "Greed", 
-        })
+        try:
+            # 1. Fear & Greed (Dynamic mock based on BTC sentiment)
+            btc_sentiment = get_sentiment('BTC-USD')
+            fg_index = int(50 + (btc_sentiment * 40))
+            fg_label = "Extreme Fear" if fg_index < 25 else "Fear" if fg_index < 45 else "Neutral" if fg_index < 55 else "Greed" if fg_index < 75 else "Extreme Greed"
+
+            # 2. Lead-Lag Signal (BTC vs Alt Basket: L1 + DEFI)
+            alts = UNIVERSE['L1'] + UNIVERSE['DEFI']
+            btc_data = CACHE.download('BTC-USD', period='7d', interval='1d', column='Close')
+            alt_data = CACHE.download(alts, period='7d', interval='1d', column='Close')
+            
+            if btc_data is not None and alt_data is not None and not btc_data.empty and not alt_data.empty:
+                # Handle potential MultiIndex or Series
+                btc_series = btc_data.iloc[:, 0] if isinstance(btc_data, pd.DataFrame) else btc_data
+                btc_ret = (btc_series.iloc[-1] / btc_series.iloc[0]) - 1
+                
+                # Alt basket performance
+                alt_returns = (alt_data.iloc[-1] / alt_data.iloc[0]) - 1
+                avg_alt_ret = alt_returns.mean()
+                
+                divergence = round((btc_ret - avg_alt_ret) * 100, 2)
+                leader = "BTC" if btc_ret > avg_alt_ret else "ALTS"
+                signal = f"{leader} Outperforming" if abs(divergence) > 1 else "Market Synced"
+                
+                lead_lag = {
+                    "leader": leader,
+                    "divergence": abs(divergence),
+                    "signal": signal
+                }
+            else:
+                lead_lag = {"leader": "SYNC", "divergence": 0, "signal": "Data Synchronizing"}
+
+            self.send_json({
+                "fgIndex": fg_index, 
+                "fgLabel": fg_label,
+                "leadLag": lead_lag
+            })
+        except Exception as e:
+            print(f"Market Pulse Error: {e}")
+            self.send_json({
+                "fgIndex": 50, "fgLabel": "Neutral",
+                "leadLag": {"leader": "SYNC", "divergence": 0, "signal": "Engine Warmup"}
+            })
 
     def handle_risk(self):
         """Phase 2: Systemic Risk Engine - Quantifies market-wide synchronization."""
