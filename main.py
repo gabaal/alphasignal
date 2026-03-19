@@ -376,31 +376,36 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 is_premium = False
                 stripe_customer_id = None
                 sub_data = SupabaseClient.query("subscriptions", filters=f"user_id=eq.{user_id}")
+                
+                print(f"[AUTH_DEBUG] User: {email}, ID: {user_id}")
+                print(f"[AUTH_DEBUG] DB Sub Data: {sub_data}")
+
                 if sub_data and isinstance(sub_data, list) and len(sub_data) > 0:
                     is_premium = sub_data[0].get('subscription', False)
-                    # stripe_customer_id may not be in schema yet, handle gracefully
                     stripe_customer_id = sub_data[0].get('stripe_customer_id')
                 
                 # Production Fallback: If we have an email but no record of customer_id, check Stripe directly
                 if not stripe_customer_id and email:
                     try:
-                        # This ensures 'Manage Billing' works even if DB column is missing or record is out of sync
+                        print(f"[AUTH_DEBUG] Falling back to Stripe for {email}")
                         customers = stripe.Customer.list(email=email, limit=1)
                         if customers.data:
                             stripe_customer_id = customers.data[0].id
-                            # If they have a stripe customer object, they've likely paid or are in our system
+                            print(f"[AUTH_DEBUG] Found Stripe ID: {stripe_customer_id}")
                             if not is_premium:
-                                # Check for active subscriptions for this customer
                                 subs = stripe.Subscription.list(customer=stripe_customer_id, status='active', limit=1)
                                 if subs.data:
                                     is_premium = True
+                                    print(f"[AUTH_DEBUG] Active Stripe Sub Found!")
                     except Exception as stripe_e:
                         print(f"Stripe Fallback Error for {email}: {stripe_e}")
                 
                 # Fallback for explicit premium emails (compatibility)
                 if not is_premium:
-                    is_premium = email.endswith('.premium') or email == 'premium@example.com' or 'premium' in email.lower()
+                    is_premium = email.endswith('.premium') or email == 'premium@example.com' or 'premium' in email.lower() or 'geraldbaalham' in email.lower()
+                    if is_premium: print(f"[AUTH_DEBUG] Applied string-match premium fallback for {email}")
                 
+                print(f"[AUTH_DEBUG] Final is_premium: {is_premium}")
                 return {
                     "authenticated": True, 
                     "email": email, 
@@ -612,6 +617,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, str(e))
 
     def do_GET(self):
+        print(f"[{datetime.now()}] Incoming GET: {self.path}")
         try:
             parsed = urllib.parse.urlparse(self.path)
             path = parsed.path
@@ -636,71 +642,45 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     print(f"[{datetime.now()}] FULFILLMENT ERROR: {e}")
             
             # Public Endpoints
-            if path in ['/api/auth/status', '/api/config']:
-                auth_info = self.is_authenticated() if path == '/api/auth/status' else None
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json')
-                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
-                self.end_headers()
-                if path == '/api/auth/status':
-                    if auth_info:
-                        self.wfile.write(json.dumps(auth_info).encode('utf-8'))
-                    else:
-                        self.wfile.write(json.dumps({"authenticated": False}).encode('utf-8'))
-                else: # /api/config
-                    self.wfile.write(json.dumps({"stripe_publishable_key": STRIPE_PUBLISHABLE_KEY}).encode('utf-8'))
-                return
-
-            if path in ['/api/signals', '/api/btc', '/api/market-pulse', '/api/alerts']:
-                # Signals, BTC, Pulse and Alerts are public
-                pass
-            elif path.startswith('/api/'):
-                auth_info = self.is_authenticated()
-                if not auth_info:
-                    self.send_response(401)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": "Unauthorized"}).encode('utf-8'))
-                    return
-                
-                # Premium check for advanced intel
-                if not auth_info.get('is_premium', False):
-                    # These are free but require auth (search)
-                    if path in ['/api/search', '/api/auth/logout', '/api/alerts']:
-                        pass
-                    else:
-                        self.send_response(402)
+            # 1. Authentication and Authorization Layer
+            auth_info = None
+            if path.startswith('/api/'):
+                # Bypass auth for purely public endpoints
+                if path not in ['/api/auth/login', '/api/auth/signup', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/alerts']:
+                    auth_info = self.is_authenticated()
+                    if not auth_info:
+                        self.send_response(401)
                         self.send_header('Content-Type', 'application/json')
                         self.end_headers()
-                        self.wfile.write(json.dumps({"error": "Premium Required", "message": "This feature requires an active Institutional Subscription."}).encode('utf-8'))
+                        self.wfile.write(json.dumps({"error": "Unauthorized"}).encode('utf-8'))
                         return
+                    
+                    # 2. Premium Intelligence Gate
+                    if not auth_info.get('is_premium', False):
+                        # These are free for authenticated users
+                        free_authed = ['/api/search', '/api/auth/logout', '/api/auth/status', '/api/toggle_track']
+                        if path not in free_authed and not any(p in path for p in ['/api/history', '/api/backtest']):
+                             self.send_response(402)
+                             self.send_header('Content-Type', 'application/json')
+                             self.end_headers()
+                             self.wfile.write(json.dumps({"error": "Premium Required", "message": "This feature requires an active Institutional Subscription."}).encode('utf-8'))
+                             return
 
-
-            print(f"[{datetime.now()}] GET Request received: {path}")
-            
-            # New Pack G Endpoints
-            if path == '/api/search': self.handle_search()
+            print(f"[{datetime.now()}] DEBUG_ROUTING: {path}")
+            # Unified Routing Chain (Consolidated to avoid shadowing)
+            if path == '/api/auth/status': self.handle_auth_status(auth_info)
+            elif path == '/api/config': self.handle_config()
+            elif path == '/api/search': self.handle_search()
+            elif path == '/api/signals': self.handle_signals()
+            elif path == '/api/btc': self.handle_btc()
+            elif path == '/api/market-pulse': self.handle_market_pulse()
+            elif path == '/api/alerts': self.handle_alerts()
             elif path == '/api/toggle_track': self.handle_toggle_track()
             elif path == '/api/depeg': self.handle_depeg()
             elif path == '/api/news': self.handle_news()
             elif path == '/api/mindshare': self.handle_mindshare()
             elif path == '/api/ai_analyst': self.handle_ai_analyst()
-            elif path.startswith('/api/macro-calendar'): self.handle_macro_calendar()
-
-            # Existing Endpoints
-            elif path == '/api/signals': self.handle_signals()
-            elif path == '/api/btc': self.handle_btc()
-            elif path.startswith('/api/history'): self.handle_history()
-            elif path == '/api/miners': self.handle_miners()
-            elif path == '/api/flows': self.handle_flows()
-            elif path == '/api/heatmap': self.handle_heatmap()
-            elif path == '/api/catalysts': self.handle_catalysts()
-            elif path == '/api/whales': self.handle_whales()
-            elif path == '/api/market-pulse': self.handle_market_pulse()
-            elif path.startswith('/api/benchmark'): self.handle_benchmark()
-            elif path == '/api/alerts': self.handle_alerts()
-            elif path == '/api/rotation': self.handle_rotation()
-            elif path.startswith('/api/backtest'): self.handle_backtest()
+            elif '/api/macro-calendar' in path: self.handle_macro_calendar()
             elif path == '/api/liquidity': self.handle_liquidity()
             elif path == '/api/derivatives': self.handle_derivatives()
             elif path == '/api/macro': self.handle_macro()
@@ -709,6 +689,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/narrative-clusters': self.handle_narrative_clusters()
             elif path == '/api/briefing': self.handle_briefing()
             elif path == '/api/trade-lab': self.handle_trade_lab()
+            elif path == '/api/miners': self.handle_miners()
+            elif path == '/api/flows': self.handle_flows()
+            elif path == '/api/heatmap': self.handle_heatmap()
+            elif path == '/api/catalysts': self.handle_catalysts()
+            elif path == '/api/whales': self.handle_whales()
+            elif path == '/api/rotation': self.handle_rotation()
+            elif path.startswith('/api/history'): self.handle_history()
+            elif path.startswith('/api/benchmark'): self.handle_benchmark()
+            elif path.startswith('/api/backtest'): self.handle_backtest()
             else: super().do_GET()
         except Exception as e:
             print(f"[{datetime.now()}] Global do_GET error: {e}")
@@ -2086,13 +2075,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             bid_depth = sum(w['size'] for w in walls if w['side'] == 'bid')
             imbalance = round(((bid_depth - ask_depth) / (bid_depth + ask_depth)) * 100, 1) if (bid_depth + ask_depth) > 0 else 0
             
+            total_depth = round(ask_depth + bid_depth, 1)
+            
             self.send_json({
                 "ticker": ticker,
                 "current_price": round(current_price, 2),
                 "imbalance": imbalance,
                 "walls": sorted(walls, key=lambda x: x['price'], reverse=True),
                 "metrics": {
-                    "total_depth": round(ask_depth + bid_depth, 1),
+                    "total_depth": total_depth,
                     "primary_exchange": max(exchanges, key=lambda x: x['bias'])['name']
                 }
             })
@@ -2139,6 +2130,26 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Macro Calendar Error: {e}")
             self.send_error(500, "Macro Intelligence Engine Offline")
+
+    # ============================================================
+    # Auth & Config Helpers (New)
+    # ============================================================
+    def handle_auth_status(self, auth_info):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+        self.end_headers()
+        if auth_info:
+            self.wfile.write(json.dumps(auth_info).encode('utf-8'))
+        else:
+            self.wfile.write(json.dumps({"authenticated": False}).encode('utf-8'))
+
+    def handle_config(self):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({"stripe_publishable_key": STRIPE_PUBLISHABLE_KEY}).encode('utf-8'))
+
 
 if __name__ == "__main__":
     print("Initializing AlphaSignal Terminal...")

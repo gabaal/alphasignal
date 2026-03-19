@@ -1533,7 +1533,9 @@ async function renderLiquidityView() {
                     <h3 style="margin-bottom:2rem; font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:1rem">Global Liquidity Walls (Cross-Exchange)</h3>
                     <div class="wall-list" style="display:flex; flex-direction:column; gap:8px">
                         ${data.walls.map(w => {
-                            const exchColor = w.exchange === 'Binance' ? '#F3BA2F' : (w.exchange === 'Coinbase' ? '#0052FF' : '#fff');
+                            const exch = (w.exchange || 'Binance').toLowerCase();
+                            const exchColor = exch === 'binance' ? '#F3BA2F' : (exch === 'coinbase' ? '#0052FF' : '#fff');
+                            const displayName = (w.exchange || 'Binance').toUpperCase();
                             return `
                                 <div style="display:flex; align-items:center; gap:15px">
                                     <div style="width:100px; font-size:0.85rem; font-weight:700; color:${w.side === 'ask' ? 'var(--risk-high)' : 'var(--risk-low)'}">$${w.price}</div>
@@ -1541,7 +1543,7 @@ async function renderLiquidityView() {
                                         <div style="position:absolute; ${w.side === 'ask' ? 'right:0' : 'left:0'}; height:100%; width:${Math.min((w.size / 1000) * 100, 100)}%; background:${w.side === 'ask' ? 'rgba(255, 62, 62, 0.15)' : 'rgba(0, 255, 136, 0.15)'}; border-${w.side === 'ask' ? 'right' : 'left'}:3px solid ${w.side === 'ask' ? 'var(--risk-high)' : 'var(--risk-low)'}"></div>
                                         <div style="position:absolute; ${w.side === 'ask' ? 'right:10px' : 'left:10px'}; top:50%; transform:translateY(-50%); font-size:0.7rem; font-weight:900">${w.size} <span style="font-size:0.6rem; color:var(--text-dim)">BTC</span></div>
                                     </div>
-                                    <div style="width:100px; font-size:0.6rem; text-transform:uppercase; color:${exchColor}; text-align:right; font-weight:800">${w.exchange}</div>
+                                    <div style="width:100px; font-size:0.6rem; text-transform:uppercase; color:${exchColor}; text-align:right; font-weight:800">${displayName}</div>
                                 </div>
                             `;
                         }).join('')}
