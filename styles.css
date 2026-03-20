@@ -26,8 +26,8 @@ h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
 /* Brand */
 .brand { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 2rem; }
 .logo-orb { width: 32px; height: 32px; background: radial-gradient(circle, var(--accent), #7000ff); border-radius: 50%; box-shadow: 0 0 15px var(--accent-glow); }
-.brand h1 { font-size: 1.5rem; }
-.brand h1 span { color: var(--accent); }
+.brand-title { font-size: 1.5rem; font-weight: 900; }
+.brand-title span { color: var(--accent); }
 
 /* Pack G4: Watchlist Selector */
 .watchlist-selector-container { margin-bottom: 2rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border); }
@@ -331,7 +331,7 @@ h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
     }
     
     .sidebar .brand { justify-content: space-between; margin-bottom: 3rem; }
-    .sidebar .brand h1 { font-size: 1.2rem; }
+    .sidebar .brand-title { font-size: 1.2rem; }
     .sidebar .hamburger { display: none; } /* Hide hamburger inside sidebar */
 
     /* Grid layout for menu items on mobile */
@@ -504,7 +504,7 @@ h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
 }
 
 @media (max-width: 480px) {
-    .brand h1 { font-size: 1.2rem; }
+    .brand-title { font-size: 1.2rem; }
     .intel-action-btn.large { padding: 1rem; font-size: 0.9rem; }
     .auth-panel { padding: 2rem 1.5rem; }
     

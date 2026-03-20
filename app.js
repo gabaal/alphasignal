@@ -361,7 +361,7 @@ async function renderSignals(category = 'ALL') {
     const cats = ['ALL', 'EXCHANGE', 'PROXY', 'MINERS', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
 
     appEl.innerHTML = `
-        <div class="view-header"><h2>Signal Intelligence Dashboard</h2></div>
+        <div class="view-header"><h1>Signal Intelligence Dashboard</h1></div>
         <div class="view-actions">
             <div class="category-filters">
                 ${cats.map(c => `<button class="filter-btn ${category === c ? 'active' : ''}" onclick="renderSignals('${c}')">${c}</button>`).join('')}
@@ -406,7 +406,7 @@ async function renderFlows() {
     const data = await fetchAPI('/flows');
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header"><h2>Institutional Flow Monitor</h2></div>
+        <div class="view-header"><h1>Institutional Flow Monitor</h1></div>
         <div class="pulse-grid">
             <div class="pulse-card"><h3>Net ETF Inflow</h3><div class="big-val">$${data.netFlow}M</div><p>Aggregated spot volume</p></div>
             <div class="pulse-card"><h3>Sector Momentum</h3><div class="big-val ${data.sectorMomentum >= 0 ? 'pos' : 'neg'}">${data.sectorMomentum >= 0 ? '+' : ''}${data.sectorMomentum}%</div><p>Miner vs Proxy divergence</p></div>
@@ -430,7 +430,7 @@ async function renderHeatmap() {
     
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Statistical Intensity Heatmap</h2>
+            <h1>Statistical Intensity Heatmap</h1>
             <p>Visualizing real-time Z-score deviations across the institutional universe.</p>
         </div>
         
@@ -773,7 +773,7 @@ async function renderMindshare() {
     const data = await fetchAPI('/mindshare');
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header"><h2>Mindshare Scatter Plot</h2><p>Mapping Narrative Momentum vs Developer Engineering Activity.</p></div>
+        <div class="view-header"><h1>Mindshare Scatter Plot</h1><p>Mapping Narrative Momentum vs Developer Engineering Activity.</p></div>
         <div class="mindshare-container">
             <div class="chart-container" style="height:550px"><canvas id="mindshareChart"></canvas></div>
             <div class="mindshare-legend">
@@ -835,7 +835,7 @@ async function renderCatalysts() {
     const data = await fetchAPI('/catalysts');
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header"><h2>Upcoming Intelligence Catalysts</h2></div>
+        <div class="view-header"><h1>Upcoming Intelligence Catalysts</h1></div>
         <div class="catalyst-list">
             ${data.map(c => `
                 <div class="catalyst-item">
@@ -858,7 +858,7 @@ async function renderMacroCalendar() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Institutional Macro Compass</h2>
+            <h1>Institutional Macro Compass</h1>
             <p>Real-time synthesis of global economic catalysts and their projected impact on liquidity.</p>
         </div>
         
@@ -916,7 +916,7 @@ async function renderWhales() {
     if (!data) return;
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Institutional Whale Pulse</h2>
+            <h1>Institutional Whale Pulse</h1>
             <p>Real-time monitor of unconfirmed large-scale transfers (> 50 BTC) on the Bitcoin network.</p>
         </div>
         <div class="whale-list">
@@ -948,7 +948,7 @@ async function renderMarketPulse() {
     const data = await fetchAPI('/market-pulse');
     if (!data || !data.leadLag) return;
     appEl.innerHTML = `
-        <div class="view-header"><h2>Institutional Market Pulse</h2></div>
+        <div class="view-header"><h1>Institutional Market Pulse</h1></div>
         <div class="pulse-grid">
             <div class="pulse-card"><h3>Fear & Greed Index</h3><div class="big-val">${data.fgIndex}</div><p>${data.fgLabel}</p></div>
             <div class="pulse-card"><h3>Lead-Lag Signal</h3><div class="big-val" style="font-size:2rem">${data.leadLag.leader} ${data.leadLag.divergence}%</div><p>${data.leadLag.signal}</p></div>
@@ -963,7 +963,7 @@ async function renderMacroSync() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Market Pulse: Macro Sync</h2>
+            <h1>Market Pulse: Macro Sync</h1>
             <p>Real-time correlation analytics between Bitcoin and traditional macro assets.</p>
         </div>
         <div class="macro-sync-container">
@@ -1004,7 +1004,7 @@ async function renderRotation() {
     
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Sector Correlation Matrix</h2>
+            <h1>Sector Correlation Matrix</h1>
             <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>
         </div>
         
@@ -1062,7 +1062,7 @@ async function runOptimizationLab(z, rebalance, count) {
     
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Strategy Optimization Lab</h2>
+            <h1>Strategy Optimization Lab</h1>
             <p>Fine-tune quantitative parameters to maximize Alpha vs Bitcoin benchmark.</p>
         </div>
 
@@ -1168,7 +1168,7 @@ async function renderNewsroom() {
         <div class="view-header">
             <div style="display:flex; align-items:center; gap:10px">
                 <div class="live-indicator"></div>
-                <h2>Live Intelligence Newsroom</h2>
+                <h1>Live Intelligence Newsroom</h1>
             </div>
             <p>Real-time institutional narrative stream correlated with AlphaSignal intensity.</p>
         </div>
@@ -1220,7 +1220,7 @@ async function renderRiskIntelligence() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Global Risk Intelligence</h2>
+            <h1>Global Risk Intelligence</h1>
             <p>Quantitative monitoring of systemic stability, VaR exposure, and stress-test liquidations.</p>
         </div>
         
@@ -1290,7 +1290,7 @@ async function renderNarrativeGalaxy() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Narrative Cluster Galaxy V2</h2>
+            <h1>Narrative Cluster Galaxy V2</h1>
             <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
         </div>
         
@@ -1442,7 +1442,7 @@ async function renderBriefing() {
 
         appEl.innerHTML = `
             <div class="view-header">
-                <h2>Institutional Intelligence Briefing</h2>
+                <h1>Institutional Intelligence Briefing</h1>
                 <p>AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.</p>
             </div>
             
@@ -1495,7 +1495,7 @@ function formatPrice(price) {
 
 async function renderTradeLab() {
     appEl.innerHTML = `
-        <h2 class="view-title">Trade Idea Lab</h2>
+        <h1 class="view-title">Trade Idea Lab</h1>
         <p class="view-desc">Synthesize institutional data into actionable trade setups.</p>
         
         <div class="card">
@@ -1552,13 +1552,13 @@ async function renderTradeLab() {
 }
 
 async function renderLiquidityView() {
-    appEl.innerHTML = `<h2 class="view-title">Order Flow Magnitude Monitor (GOMM)</h2>${skeleton(3)}`;
+    appEl.innerHTML = `<h1 class="view-title">Order Flow Magnitude Monitor (GOMM)</h1>${skeleton(3)}`;
     
     // Sidebar + Layout
     appEl.innerHTML = `
     <div class="gomm-container">
         <div class="sidebar-panel">
-            <h2 class="view-title" style="margin:0">Order Flow (GOMM)</h2>
+            <h1 class="view-title" style="margin:0">Order Flow (GOMM)</h1>
             <div class="stat-card">
                 <div class="label">GLOBAL IMBALANCE</div>
                 <div class="value" id="gomm-imbalance">--%</div>
@@ -1731,13 +1731,13 @@ async function renderLiquidityView() {
 }
 
 async function renderMacroView() {
-    appEl.innerHTML = `<h2 class="view-title">Macro Catalyst Compass</h2>${skeleton(2)}`;
+    appEl.innerHTML = `<h1 class="view-title">Macro Catalyst Compass</h1>${skeleton(2)}`;
     try {
         const data = await fetchAPI('/macro-calendar');
         if (!data) return;
 
         appEl.innerHTML = `
-            <h2 class="view-title">🌏 Macro Catalyst Compass</h2>
+            <h1 class="view-title">🌏 Macro Catalyst Compass</h1>
             <p class="view-desc">Tracking high-impact economic drivers and global liquidity shifts.</p>
             <div class="macro-grid" style="display:grid; grid-template-columns: 1fr 350px; gap:20px">
                 <div>
@@ -1804,7 +1804,7 @@ async function renderAlerts() {
     
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Live Intelligence Alerts</h2>
+            <h1>Live Intelligence Alerts</h1>
             <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
         </div>
         <div class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
@@ -1941,22 +1941,53 @@ function updateSEOMeta(view) {
     };
 
     const fullTitle = `${meta.title} | AlphaSignal — Institutional Crypto Intelligence`;
+    const viewUrl = `https://alphasignal.digital/?view=${view}`;
+
     document.title = fullTitle;
 
-    // Update Meta Description
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-        metaDesc.setAttribute('content', meta.desc);
+    // 1. Update Meta Description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', meta.desc);
+
+    // 2. Update Canonical Link
+    const canon = document.getElementById('canonical-link');
+    if (canon) canon.setAttribute('href', viewUrl);
+
+    // 3. Update Social (Open Graph & Twitter)
+    const updateAttr = (id, attr, val) => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute(attr, val);
+    };
+
+    updateAttr('og-title', 'content', fullTitle);
+    updateAttr('og-desc', 'content', meta.desc);
+    updateAttr('og-url', 'content', viewUrl);
+    updateAttr('twitter-title', 'content', fullTitle);
+    updateAttr('twitter-desc', 'content', meta.desc);
+    updateAttr('twitter-url', 'content', viewUrl);
+
+    // 4. Update JSON-LD (Breadcrumbs)
+    const ldJsonEl = document.getElementById('ld-json');
+    if (ldJsonEl) {
+        const breadcrumb = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [{
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Signals",
+                "item": "https://alphasignal.digital/"
+            }, {
+                "@type": "ListItem",
+                "position": 2,
+                "name": meta.title,
+                "item": viewUrl
+            }]
+        };
+        ldJsonEl.textContent = JSON.stringify(breadcrumb);
     }
 
-    // Update Open Graph tags
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute('content', fullTitle);
-
-    const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) ogDesc.setAttribute('content', meta.desc);
-
-    console.log(`SEO Update: Meta updated for view "${view}"`);
+    console.log(`SEO Update: Full synchronization complete for view "${view}"`);
 }
 
 function switchView(view) {
