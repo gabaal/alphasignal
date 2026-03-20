@@ -84,8 +84,8 @@
                 <div class="nav-item" data-view="whales" aria-label="View Whale Pulse (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">waves</span> Whale Pulse <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
-                <div class="nav-item" data-view="pulse" aria-label="View Market Pulse (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">show_chart</span> Market Pulse <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
+                <div class="nav-item" data-view="regime" aria-label="View Market Regime Hub (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">Analytics</span> Regime Hub <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="rotation" aria-label="View Sector Rotation (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">sync</span> Rotation <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
@@ -93,8 +93,11 @@
                 <div class="nav-item" data-view="backtest" aria-label="View Strategy Backtest Lab (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">science</span> Strategy Lab <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
-                <div class="nav-item" data-view="risk" aria-label="View Global Risk (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">shield</span> Global Risk <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
+                <div class="nav-item" data-view="risk" aria-label="View Risk Matrix (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">grid_on</span> Risk Matrix <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
+                </div>
+                <div class="nav-item" data-view="stress" aria-label="View Stress Lab (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">warning_amber</span> Stress Lab <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="narrative" aria-label="View Narrative Galaxy (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">hub</span> Narrative Galaxy <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
@@ -117,8 +120,8 @@
                 </div>
             </nav>
 
-            <div class="user-profile-card">
-                <div class="profile-header">
+            <div class="user-profile-card profile-dropdown" id="user-profile-dropdown" aria-haspopup="true" aria-expanded="false">
+                <div class="profile-header dropdown-trigger">
                     <div class="user-avatar">
                         <span id="user-initials">IU</span>
                     </div>
@@ -126,14 +129,25 @@
                         <span id="display-user-email">Institutional User</span>
                         <div id="user-tier-badge" class="tier-badge free">FREE TIER</div>
                     </div>
+                    <span class="material-symbols-outlined dropdown-caret">expand_more</span>
                 </div>
-                <div class="profile-actions">
+                <div class="profile-actions dropdown-menu">
                     <button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()">
                         <span class="btn-icon material-symbols-outlined">credit_card</span> MANAGE BILLING
                     </button>
                     <button id="logout-btn" class="profile-action-btn logout-btn" aria-label="Logout from Terminal">
                         <span class="btn-icon material-symbols-outlined">logout</span> LOGOUT
                     </button>
+                </div>
+            </div>
+
+            <div class="institutional-pulse-sidebar">
+                <div class="pulse-header">
+                    <span class="pulse-dot"></span>
+                    <label>INSTITUTIONAL PULSE</label>
+                </div>
+                <div id="sidebar-pulse-content" class="pulse-body">
+                    <div class="pulse-item">Initializing pulse streams...</div>
                 </div>
             </div>
 
@@ -311,7 +325,7 @@
     <div id="notifications"></div>
     <div id="toast-container"></div>
     <script src="tape.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=1.1"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

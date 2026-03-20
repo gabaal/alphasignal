@@ -746,6 +746,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/catalysts': self.handle_catalysts()
             elif path == '/api/whales_entity': self.handle_whales_entity()
             elif path == '/api/rotation': self.handle_rotation()
+            elif path.startswith('/api/correlation'): self.handle_correlation()
+            elif path.startswith('/api/stress-test'): self.handle_stress_test()
+            elif path.startswith('/api/regime'): self.handle_regime()
             elif path.startswith('/api/history'): self.handle_history()
             elif path.startswith('/api/benchmark'): self.handle_benchmark()
             elif path.startswith('/api/backtest'): self.handle_backtest()
@@ -798,6 +801,91 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 "mindshare": round((narrative + engineer) / 2, 1)
             })
         self.send_json(results)
+
+    # ============================================================
+    # Phase 6: Market Regime Framework
+    # ============================================================
+    def handle_regime(self):
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            # Fetch 60d of data for regime analysis
+            data = CACHE.download(ticker, period='60d', interval='1d', column='Close')
+            if data is None or data.empty:
+                self.send_json({"error": "No data for regime analysis"})
+                return
+
+            # Simplified Markov-Switching Approximation
+            # 1. Volatility (High/Low)
+            returns = data.pct_change().dropna()
+            vol_val = returns.rolling(window=10).std().iloc[-1]
+            if hasattr(vol_val, 'iloc'): vol_val = vol_val.iloc[0]
+            vol = float(vol_val)
+            
+            avg_vol_val = returns.std()
+            if hasattr(avg_vol_val, 'iloc'): avg_vol_val = avg_vol_val.iloc[0]
+            avg_vol = float(avg_vol_val)
+            
+            is_high_vol = vol > (avg_vol * 1.2)
+
+            # 2. Trend (Bullish/Bearish/Side)
+            sma_20_val = data.rolling(window=20).mean().iloc[-1]
+            if hasattr(sma_20_val, 'iloc'): sma_20_val = sma_20_val.iloc[0]
+            sma_20 = float(sma_20_val)
+            
+            sma_50_val = data.rolling(window=50).mean().iloc[-1]
+            if hasattr(sma_50_val, 'iloc'): sma_50_val = sma_50_val.iloc[0]
+            sma_50 = float(sma_50_val)
+            
+            price_val = data.iloc[-1]
+            if hasattr(price_val, 'iloc'): price_val = price_val.iloc[0]
+            current_price = float(price_val)
+            
+            trend = "NEUTRAL"
+            if current_price > sma_20 > sma_50: trend = "BULLISH"
+            elif current_price < sma_20 < sma_50: trend = "BEARISH"
+
+            # 3. Regime Detection Logic
+            regime = "ACCUMULATION" # Default
+            confidence = 0.6
+            
+            if trend == "BULLISH":
+                if is_high_vol: regime = "VOLATILE BREAKOUT"
+                else: regime = "STEADY TRENDING"
+                confidence = 0.85
+            elif trend == "BEARISH":
+                if is_high_vol: regime = "CAPITULATION"
+                else: regime = "DISTRIBUTION"
+                confidence = 0.8
+            else:
+                if is_high_vol: regime = "CHOPPY / VOLATILE"
+                else: regime = "ACCUMULATION"
+                confidence = 0.7
+
+            # Historical Regime Shifts (Simplified mock for visualization)
+            history = []
+            for i in range(5, 0, -1):
+                date = (datetime.now() - timedelta(days=i*7)).strftime("%Y-%m-%d")
+                history.append({"date": date, "regime": random.choice(["ACCUMULATION", "TRENDING", "DISTRIBUTION", "VOLATILE"])})
+            
+            self.send_json({
+                "ticker": ticker,
+                "current_regime": regime,
+                "confidence": round(confidence, 2),
+                "trend": trend,
+                "volatility": "HIGH" if is_high_vol else "LOW",
+                "metrics": {
+                    "vol_score": round(vol * 100, 2),
+                    "sma_20_dist": round(((current_price / sma_20) - 1) * 100, 2),
+                },
+                "history": history
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"Regime error for {ticker}: {e}")
+            self.send_json({"error": "Internal computation error"})
+
 
     # ============================================================
     # Pack J: Liquidity & Execution Intelligence
@@ -1547,90 +1635,215 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             })
 
     def handle_risk(self):
-        """Phase 2: Systemic Risk Engine - Quantifies market-wide synchronization."""
+        """Phase 7: Advanced Institutional Risk Engine."""
         try:
-            sectors = list(UNIVERSE.keys())
+            # 1. Gather all unique tickers from UNIVERSE
+            all_tickers = []
+            for ticks in UNIVERSE.values(): all_tickers.extend(ticks)
+            all_tickers = sorted(list(set(all_tickers)))
+
+            # 2. Bulk download 60d history for Beta/Alpha calc
+            data = CACHE.download(all_tickers + ['BTC-USD'], period='60d', interval='1d', column='Close')
+            if data is None or data.empty:
+                self.send_json({"error": "Data sync pending"})
+                return
+
+            btc_data = data['BTC-USD'].dropna()
+            btc_rets = btc_data.pct_change().dropna()
+            
+            asset_risk = []
+            sector_rets = {cat: [] for cat in UNIVERSE.keys()}
+
+            for ticker in all_tickers:
+                if ticker not in data.columns or ticker == 'BTC-USD': continue
+                prices = data[ticker].dropna()
+                if len(prices) < 20: continue
+                
+                rets = prices.pct_change().dropna()
+                
+                # Align with BTC for Beta
+                common = rets.index.intersection(btc_rets.index)
+                if len(common) < 15: continue
+                
+                a_rets = rets.loc[common]
+                b_rets = btc_rets.loc[common]
+                
+                # Beta = Cov(Ra, Rb) / Var(Rb)
+                cov = np.cov(a_rets, b_rets)[0, 1]
+                var_b = np.var(b_rets)
+                beta = cov / var_b if var_b > 0 else 1.0
+                
+                # Alpha (Approx 30d annualized)
+                alpha = (a_rets.iloc[-1] - (beta * b_rets.iloc[-1])) * 252 * 100
+                
+                vol = a_rets.std() * np.sqrt(252) * 100
+                var_1d_95 = round(1.645 * a_rets.std() * 100, 2)
+                
+                status = "STABLE"
+                if vol > 80: status = "HIGH"
+                elif vol > 60: status = "ELEVATED"
+                
+                asset_risk.append({
+                    "ticker": ticker,
+                    "beta": round(float(beta), 2),
+                    "alpha": round(float(alpha), 2),
+                    "vol": round(float(vol), 2),
+                    "var_1d_95": var_1d_95,
+                    "status": status
+                })
+                
+                # Aggregate for Sector Tension
+                for cat, ticks in UNIVERSE.items():
+                    if ticker in ticks:
+                        sector_rets[cat].append(rets)
+
+            # 3. Calculate Global Tension Index
             indices = pd.DataFrame()
+            for cat, rets_list in sector_rets.items():
+                if rets_list:
+                    # Aligning series before concat
+                    concat_data = pd.concat(rets_list, axis=1)
+                    indices[cat] = concat_data.mean(axis=1)
             
-            # 1. Fetch data and build indices (similar to rotation but optimized)
-            for cat, ticks in UNIVERSE.items():
-                try:
-                    p = CACHE.download(ticks[0], period='35d', interval='1d', column='Close')
-                    if p is not None and not p.empty:
-                        # Clean potential Series mismatch
-                        if isinstance(p, pd.DataFrame): p = p.iloc[:, 0]
-                        indices[cat] = p.pct_change()
-                except Exception as e: 
-                    print(f"Risk Engine: Skip sector {cat} due to {e}")
-                    continue
-            
-            if indices.empty:
-                self.send_json({"tension": 0, "hotspots": [], "timestamp": datetime.now().strftime("%H:%M")})
-                return
-
-            # 2. Calculate Correlation
-            # We use absolute correlation because inverse sync is still "tension" from a systemic perspective
-            corr_matrix = indices.tail(30).corr().abs()
-            
-            if corr_matrix.empty:
-                self.send_json({"tension": 0, "hotspots": [], "timestamp": datetime.now().strftime("%H:%M")})
-                return
-
-            # 3. Calculate Global Tension Index (0-100)
-            # Use a copy to avoid "underlying array is read-only" error
-            corr_values = corr_matrix.to_numpy(copy=True)
-            np.fill_diagonal(corr_values, 0)
-            
-            # Flatten and get mean of non-zero entries (pairs only)
-            all_pairs = corr_values.flatten()
-            valid_pairs = all_pairs[all_pairs > 0]
-            avg_corr = valid_pairs.mean() if len(valid_pairs) > 0 else 0
-            
-            # Exponential scaling for tension (0.7+ is extreme, 0.4 is mid)
-            tension_index = int(min(100, (avg_corr ** 1.5) * 150))
-            
-            # calculate a mock VaR based on avg correlation and sector volatility
-            # Higher correlation = higher systemic VaR
-            var_base = 4.2  # 4.2% daily VaR as a floor
-            var_1d_95 = round(var_base * (1 + (tension_index / 100)), 2)
-            
-            # Identifiy Hotspots (Sectors with highest average correlation to others)
-            sector_scores = []
-            for s in sectors:
-                if s in corr_matrix.index:
+            tension_index = 0
+            hotspots = []
+            if not indices.empty:
+                corr_matrix = indices.tail(30).corr().abs()
+                corr_values = corr_matrix.to_numpy(copy=True)
+                np.fill_diagonal(corr_values, 0)
+                avg_corr = corr_values[corr_values > 0].mean() if np.any(corr_values > 0) else 0
+                tension_index = int(min(100, (avg_corr ** 1.5) * 150))
+                
+                for s in indices.columns:
                     score = corr_matrix.loc[s].mean()
-                    sector_scores.append({"sector": s, "score": round(float(score), 2)})
-            
-            sector_scores.sort(key=lambda x: x['score'], reverse=True)
-            
-            # Stress Test Scenarios
+                    hotspots.append({"sector": s, "score": round(float(score), 2)})
+                hotspots.sort(key=lambda x: x['score'], reverse=True)
+
+            # 4. Stress Test Scenarios
             scenarios = [
                 {"name": "Spot ETF Outflow", "prob": "15%", "impact": -8.5, "outcome": "Liquidity Drain"},
                 {"name": "Stablecoin De-peg", "prob": "5%", "impact": -14.2, "outcome": "Systemic Contagion"},
                 {"name": "Fed Rate Hike", "prob": "25%", "impact": -5.1, "outcome": "Risk-Off Rotation"}
             ]
 
-            # Asset-Specific Risk Attribution (New)
-            asset_risk = [
-                {"ticker": "BTC-USD", "var_pct": round(var_1d_95 * 0.8, 2), "annual_vol": 45.2, "status": "STABLE"},
-                {"ticker": "ETH-USD", "var_pct": round(var_1d_95 * 1.1, 2), "annual_vol": 58.4, "status": "ELEVATED"},
-                {"ticker": "SOL-USD", "var_pct": round(var_1d_95 * 1.5, 2), "annual_vol": 82.1, "status": "HIGH"},
-                {"ticker": "MARA", "var_pct": round(var_1d_95 * 2.2, 2), "annual_vol": 115.5, "status": "HIGH"}
-            ]
-
-            res = {
+            self.send_json({
                 "systemic_risk": tension_index,
-                "var_1d_95": var_1d_95,
+                "asset_risk": sorted(asset_risk, key=lambda x: x['vol'], reverse=True)[:10],
+                "hotspots": hotspots[:3],
+                "all_scores": hotspots,
                 "scenarios": scenarios,
-                "asset_risk": asset_risk,
-                "hotspots": sector_scores[:3],
-                "all_scores": sector_scores,
                 "timestamp": datetime.now().strftime("%H:%M")
-            }
-            self.send_json(res)
+            })
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             print(f"Risk Engine Error: {e}")
-            self.send_json({"error": "Sync Failure", "tension": 0, "hotspots": []})
+            self.send_json({"error": str(e)})
+
+
+    def handle_correlation(self):
+        """Phase 7: Live Correlation Engine for any asset basket."""
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tickers_str = query.get('tickers', ['BTC-USD,ETH-USD,SOL-USD,MARA,COIN'])[0]
+        tickers = tickers_str.split(',')
+        period = query.get('period', ['60d'])[0]
+        
+        print(f"\n[DEBUG] handle_correlation: tickers={tickers}, period={period}")
+        
+        try:
+            # Use harvest-style download for resilience
+            data = pd.DataFrame()
+            for t in tickers:
+                try:
+                    p = CACHE.download(t, period=period, interval='1d', column='Close')
+                    if p is not None and not p.empty:
+                        # Convert to Series if it's a DF (sometimes yf returns DF for single ticker)
+                        if isinstance(p, pd.DataFrame):
+                            p = p.iloc[:, 0]
+                        data[t] = p
+                except Exception as e:
+                    print(f"Error downloading {t}: {e}")
+            
+            if data.empty:
+                print("[DEBUG] Correlation failed: No data found")
+                self.send_json({"error": "No data found for tickers"})
+                return
+            
+            # Robust returns calculation: Handles mixed calendars (stock vs crypto)
+            # We fill NaNs to avoid dropping all rows if calendars don't match perfectly
+            rets = data.pct_change()
+            
+            # For correlation, we need overlapping dates. min_periods helps.
+            corr_matrix = rets.corr(min_periods=10).fillna(0)
+            print(f"[DEBUG] Correlation matrix computed. Shape: {corr_matrix.shape}")
+            
+            matrix = []
+            for t1 in tickers:
+                row = []
+                for t2 in tickers:
+                    try:
+                        if t1 in corr_matrix.index and t2 in corr_matrix.columns:
+                            val = float(corr_matrix.loc[t1, t2])
+                        else:
+                            val = 0.0
+                    except:
+                        val = 0.0
+                    row.append(round(val, 2))
+                matrix.append(row)
+            
+            self.send_json({
+                "tickers": tickers,
+                "matrix": matrix,
+                "timestamp": datetime.now().strftime("%H:%M")
+            })
+            print("[DEBUG] Correlation response sent successfully")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"Correlation Error: {e}")
+            self.send_json({"error": str(e)})
+
+    def handle_stress_test(self):
+        """Phase 7: Systematic Stress Test Engine."""
+        try:
+            all_tickers = [t for sub in UNIVERSE.values() for t in sub][:15] # Limit for speed
+            data = CACHE.download(all_tickers + ['BTC-USD'], period='180d', interval='1d', column='Close')
+            
+            btc_rets = data['BTC-USD'].pct_change().dropna()
+            results = []
+            
+            for ticker in all_tickers:
+                if ticker not in data.columns or ticker == 'BTC-USD': continue
+                rets = data[ticker].pct_change().dropna()
+                common = rets.index.intersection(btc_rets.index)
+                if len(common) < 30: continue
+                
+                # Linear Regression Beta
+                a_rets = rets.loc[common]
+                b_rets = btc_rets.loc[common]
+                
+                cov = np.cov(a_rets, b_rets)[0, 1]
+                var_b = np.var(b_rets)
+                beta = cov / var_b if var_b > 0 else 1.0
+                
+                # Impact of specific drops
+                results.append({
+                    "ticker": ticker,
+                    "beta": round(float(beta), 2),
+                    "impacts": {
+                        "btc_minus_5": round(float(beta * -5.0), 2),
+                        "btc_minus_10": round(float(beta * -10.0), 2),
+                        "btc_minus_20": round(float(beta * -20.0), 2)
+                    }
+                })
+            
+            self.send_json({
+                "benchmark": "BTC-USD",
+                "scenarios": results,
+                "timestamp": datetime.now().strftime("%H:%M")
+            })
+        except Exception as e:
+            self.send_json({"error": str(e)})
 
 
     def handle_rotation(self):
@@ -2003,8 +2216,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         try:
             btc = CACHE.download('BTC-USD', period='2d', interval='1d', column='Close')
             if isinstance(btc, pd.DataFrame): btc = btc.squeeze()
-            price = float(btc.iloc[-1])
-            prev = float(btc.iloc[-2])
+            
+            # Robust extraction of latest and previous values 
+            v_curr = btc.iloc[-1]
+            if hasattr(v_curr, 'iloc'): v_curr = v_curr.iloc[0]
+            price = float(v_curr)
+            
+            v_prev = btc.iloc[-2]
+            if hasattr(v_prev, 'iloc'): v_prev = v_prev.iloc[0]
+            prev = float(v_prev)
             
             # Ensure price isn't 0
             if price == 0: raise ValueError("Price is 0")

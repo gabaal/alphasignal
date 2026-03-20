@@ -361,7 +361,10 @@ async function renderSignals(category = 'ALL') {
         <div class="signal-grid">
             ${filtered.map(s => `
                 <div class="signal-card ${Math.abs(s.zScore) > 2 ? 'z-outlier' : ''}" onclick="openDetail('${s.ticker}', '${s.category}', ${s.btcCorrelation}, ${s.alpha}, ${s.sentiment}, '60d', ${s.category === 'TRACKED'})">
-                    <div class="ai-trigger" onclick="event.stopPropagation(); openAIAnalyst('${s.ticker}')"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
+                    <div class="card-controls" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10">
+                        <div class="ai-trigger" onclick="event.stopPropagation(); openAIAnalyst('${s.ticker}')" title="Run AI Deep-Dive"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
+                        <div class="share-trigger" onclick="event.stopPropagation(); shareSignal('${s.ticker}', ${s.alpha}, ${s.sentiment}, ${s.zScore})" title="Share to X (Twitter)"><span class="material-symbols-outlined" style="font-size: 18px;">share</span></div>
+                    </div>
                     <div class="card-header">
                         <div>
                             <div class="ticker">${s.ticker}</div>
@@ -1222,71 +1225,161 @@ function openNewsArticle(index) {
     `;
 }
 
-async function renderRiskIntelligence() {
-    appEl.innerHTML = skeleton(2);
+async function renderRiskMatrix() {
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>Institutional Correlation Matrix</h1>
+            <p>Real-time statistical synchronization across the institutional universe.</p>
+        </div>
+        <div class="view-actions">
+            <div class="category-filters" id="risk-matrix-filters">
+                <button class="filter-btn active" onclick="loadRiskMatrix('BTC-USD,ETH-USD,SOL-USD,MARA,COIN,MSTR,BNB-USD,XRP-USD,ADA-USD,DOGE-USD')">MAJOR BASKET</button>
+                <button class="filter-btn" onclick="loadRiskMatrix('MARA,RIOT,CLSK,HIVE,CAN,WULF,IREN')">MINERS</button>
+                <button class="filter-btn" onclick="loadRiskMatrix('COIN,MSTR,HOOD,PYPL,MARA,IBIT')">PROXIES</button>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:10px">
+                <select id="matrix-period" class="tf-btn" style="background:var(--bg-card); border:1px solid var(--border); color:white; padding:0 10px" onchange="loadRiskMatrix()">
+                    <option value="30d">30D WINDOW</option>
+                    <option value="60d" selected>60D WINDOW</option>
+                    <option value="180d">180D WINDOW</option>
+                </select>
+            </div>
+        </div>
+        <div id="matrix-container" style="margin-top:2rem">${skeleton(1)}</div>
+    `;
+    loadRiskMatrix();
+}
+
+async function loadRiskMatrix(tickers = null) {
+    if (tickers) window.currentRiskTickers = tickers;
+    const currentTickers = window.currentRiskTickers || 'BTC-USD,ETH-USD,SOL-USD,MARA,COIN,MSTR,BNB-USD,XRP-USD,ADA-USD,DOGE-USD';
+    const period = document.getElementById('matrix-period')?.value || '60d';
+    
+    // UI Update for buttons
+    const btns = document.querySelectorAll('#risk-matrix-filters .filter-btn');
+    btns.forEach(b => {
+        if (b.getAttribute('onclick')?.includes(currentTickers)) b.classList.add('active');
+        else b.classList.remove('active');
+    });
+
+    const container = document.getElementById('matrix-container');
+    const data = await fetchAPI(`/correlation?tickers=${currentTickers}&period=${period}`);
+    
+    if (!data || data.error) {
+        container.innerHTML = `<div class="error-msg">Matrix Load Failed: ${data?.error || 'Unknown Error'}</div>`;
+        return;
+    }
+
+    const tks = currentTickers.split(',');
+    container.innerHTML = `
+        <div class="rotation-matrix-container">
+            <div class="matrix-grid" style="grid-template-columns: 100px repeat(${tks.length}, 1fr)">
+                <div></div>
+                ${tks.map(t => `<div class="matrix-label horizontal" style="font-size:0.6rem">${t.split('-')[0]}</div>`).join('')}
+                ${data.matrix.map((row, i) => `
+                    <div class="matrix-label vertical" style="font-size:0.6rem; height:40px">${tks[i].split('-')[0]}</div>
+                    ${row.map(val => {
+                        const intensity = Math.abs(val);
+                        const color = val >= 0 ? `rgba(0, 242, 255, ${intensity * 0.8})` : `rgba(255, 107, 107, ${intensity * 0.8})`;
+                        return `<div class="matrix-cell" style="background:${color}; height:40px; font-size:0.7rem; border:0.5px solid rgba(255,255,255,0.05)" title="${tks[i]} vs ${tks[row.indexOf(val)]}: ${val}">${val.toFixed(2)}</div>`;
+                    }).join('')}
+                `).join('')}
+            </div>
+        </div>
+        <div style="margin-top:2rem; padding:1.5rem; background:rgba(0,242,255,0.05); border:1px solid var(--accent); border-radius:12px">
+            <h4 style="color:var(--accent); margin-bottom:0.5rem">Institutional Insight</h4>
+            <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.6">
+                A correlation above <b>0.85</b> indicates high institutional synchronization. When systemic correlation spikes across all sectors, it often signals a <b>"Risk-Off"</b> regime where alpha is compressed. Conversely, decoupling (low correlation) highlights idiosyncratic opportunities.
+            </p>
+        </div>
+    `;
+}
+
+async function renderStressHub() {
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>Stress Lab & Risk Attribution</h1>
+            <p>Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
+        </div>
+        <div class="risk-top-grid" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px; margin-bottom:2rem">
+            <div id="risk-summary-area">${skeleton(1)}</div>
+            <div id="stress-scenarios-area">${skeleton(1)}</div>
+        </div>
+        <div id="risk-attribution-area">${skeleton(1)}</div>
+    `;
+
     const data = await fetchAPI('/risk');
     if (!data || data.error) return;
 
-    appEl.innerHTML = `
-        <div class="view-header">
-            <h1>Global Risk Intelligence</h1>
-            <p>Quantitative monitoring of systemic stability, VaR exposure, and stress-test liquidations.</p>
+    // 1. Risk Summary
+    document.getElementById('risk-summary-area').innerHTML = `
+        <div class="risk-summary-card">
+            <div class="risk-gauge-container">
+                <div class="risk-label">SYSTEMIC TENSION</div>
+                <div class="risk-value" style="color:${data.systemic_risk > 70 ? 'var(--risk-high)' : data.systemic_risk > 40 ? '#fffa00' : 'var(--risk-low)'}">
+                    ${data.systemic_risk}<span>/100</span>
+                </div>
+                <div class="risk-status">${data.systemic_risk > 70 ? 'CRITICAL' : data.systemic_risk > 40 ? 'ELEVATED' : 'STABLE'}</div>
+            </div>
+            <div class="var-box" style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.03); border-radius:12px">
+                <label style="font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">SECTOR HOTSPOTS</label>
+                <div style="margin-top:10px">
+                    ${data.hotspots.map(h => `
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px">
+                            <span>${h.sector}</span>
+                            <span class="pos">${h.score.toFixed(2)} SYNC</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
         </div>
-        
-        <div class="risk-top-grid" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px; margin-bottom:2rem">
-            <div class="risk-summary-card">
-                <div class="risk-gauge-container">
-                    <div class="risk-label">SYSTEMIC RISK INDEX</div>
-                    <div class="risk-value" style="color:${data.systemic_risk > 70 ? 'var(--risk-high)' : data.systemic_risk > 40 ? '#fffa00' : 'var(--risk-low)'}">
-                        ${data.systemic_risk}<span>/100</span>
+    `;
+
+    // 2. Stress Scenarios
+    document.getElementById('stress-scenarios-area').innerHTML = `
+        <div class="stress-test-container">
+            <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">STRESS TEST CORE SCENARIOS</h3>
+            <div class="stress-grid">
+                ${data.scenarios.map(s => `
+                    <div class="stress-card">
+                        <div class="s-top">
+                            <span class="s-name">${s.name}</span>
+                            <span class="s-prob">Prob: ${s.prob}</span>
+                        </div>
+                        <div class="s-impact" style="color:${s.impact < 0 ? 'var(--risk-high)' : 'var(--risk-low)'}">
+                            ${s.impact > 0 ? '+' : ''}${s.impact}% Portfolio Impact
+                        </div>
+                        <div class="s-outcome">${s.outcome}</div>
                     </div>
-                    <div class="risk-status">${data.systemic_risk > 70 ? 'CRITICAL' : data.systemic_risk > 40 ? 'ELEVATED' : 'STABLE'}</div>
-                </div>
-                <div class="var-box" style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.03); border-radius:12px">
-                    <label style="font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">PORTFOLIO VaR (95% / 24H)</label>
-                    <div style="font-size:2rem; font-weight:800; font-family:'Outfit'; color:var(--risk-high)">${data.var_1d_95}%</div>
-                    <p style="font-size:0.75rem; color:var(--text-dim); margin-top:8px">Statistically anticipated drawdown under normal conditions.</p>
-                </div>
+                `).join('')}
             </div>
-
-            <div class="stress-test-container">
-                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent)">STRESS TEST SCENARIOS</h3>
-                <div class="stress-grid">
-                    ${data.scenarios.map(s => `
-                        <div class="stress-card">
-                            <div class="s-top">
-                                <span class="s-name">${s.name}</span>
-                                <span class="s-prob">Prob: ${s.prob}</span>
-                            </div>
-                            <div class="s-impact" style="color:${s.impact < 0 ? 'var(--risk-high)' : 'var(--risk-low)'}">
-                                ${s.impact > 0 ? '+' : ''}${s.impact}% Portfolio Impact
-                            </div>
-                            <div class="s-outcome">${s.outcome}</div>
-                        </div>
-                    `).join('')}
-                </div>
+            <div class="simulation-banner" style="margin-top:1.5rem; padding:1rem; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.2); border-radius:8px; font-size:0.75rem; color:var(--risk-high)">
+                <strong>⚠️ SYSTEMIC WARNING:</strong> Elevated correlation in ${data.hotspots[0]?.sector} sector suggests rising liquidity contagion risk.
             </div>
         </div>
+    `;
 
-        <div class="risk-bottom-grid" style="display:grid; grid-template-columns: 1fr; gap:30px">
-            <div class="asset-risk-table">
-                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent)">ASSET-SPECIFIC RISK ATTRIBUTION</h3>
-                <div class="risk-table-header">
-                    <span>ASSET</span>
-                    <span>1D VaR (95%)</span>
-                    <span>ANN. VOLATILITY</span>
-                    <span>STATUS</span>
-                </div>
-                <div class="risk-table-body">
-                    ${data.asset_risk.map(a => `
-                        <div class="risk-row">
-                            <span class="r-ticker">${a.ticker}</span>
-                            <span class="r-var neg">${a.var_pct}%</span>
-                            <span class="r-vol">${a.annual_vol}%</span>
-                            <span class="r-status status-${a.status.toLowerCase()}">${a.status}</span>
-                        </div>
-                    `).join('')}
-                </div>
+    // 3. Attribution Table
+    document.getElementById('risk-attribution-area').innerHTML = `
+        <div class="asset-risk-table">
+            <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">ASSET-SPECIFIC BETA & ALPHA ATTRIBUTION</h3>
+            <div class="risk-table-header" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr">
+                <span>ASSET</span>
+                <span>BETA (vs BTC)</span>
+                <span>ALPHA (ANN.)</span>
+                <span>ANN. VOL</span>
+                <span>STATUS</span>
+            </div>
+            <div class="risk-table-body">
+                ${data.asset_risk.map(a => `
+                    <div class="risk-row" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr">
+                        <span class="r-ticker" style="font-weight:900">${a.ticker}</span>
+                        <span class="r-var">${a.beta.toFixed(2)}</span>
+                        <span class="r-alpha ${a.alpha >= 0 ? 'pos' : 'neg'}">${a.alpha.toFixed(1)}%</span>
+                        <span class="r-vol">${a.vol.toFixed(1)}%</span>
+                        <span class="r-status status-${a.status.toLowerCase()}">${a.status}</span>
+                    </div>
+                `).join('')}
             </div>
         </div>
     `;
@@ -1849,6 +1942,93 @@ async function syncAlerts() {
     }
 }
 
+async function updateInstitutionalPulse() {
+    const pulseBody = document.getElementById('sidebar-pulse-content');
+    if (!pulseBody) return;
+
+    const signals = await fetchAPI('/signals');
+    if (!signals || !signals.length) return;
+
+    // Get top 3 Alpha signals
+    const topAlpha = [...signals].sort((a, b) => b.alpha - a.alpha).slice(0, 3);
+    
+    pulseBody.innerHTML = topAlpha.map(s => `
+        <div class="pulse-item" onclick="openDetail('${s.ticker}', '${s.category}')">
+            <div class="pulse-pair">
+                <span class="p-ticker">${s.ticker}</span>
+                <span class="p-alpha pos">+${s.alpha.toFixed(1)}%</span>
+            </div>
+            <div class="pulse-meta">Institutional Alpha Detected</div>
+        </div>
+    `).join('');
+}
+
+async function renderRegime() {
+    appEl.innerHTML = `<h1 class="view-title">Market Regime Hub</h1>${skeleton(1)}`;
+    const data = await fetchAPI('/regime?ticker=BTC-USD');
+    if (!data) return;
+
+    const regimeClass = data.current_regime.toLowerCase().replace(/ /g, '-').replace(/\//g, '');
+    
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>Market Regime Framework</h1>
+            <p>Statistical classification of market cycles using Markov-Switching approximation.</p>
+        </div>
+        
+        <div class="regime-container">
+            <div class="regime-hero-card ${regimeClass}">
+                <div class="regime-badge">${data.current_regime}</div>
+                <div class="regime-main-stat">
+                    <div class="regime-label">CURRENT STATE: ${data.ticker}</div>
+                    <div class="regime-confidence">Confidence Index: ${(data.confidence * 100).toFixed(0)}%</div>
+                </div>
+                <div class="regime-metrics-row">
+                    <div class="r-metric">
+                        <label>TREND BIAS</label>
+                        <span class="${data.trend === 'BULLISH' ? 'pos' : (data.trend === 'BEARISH' ? 'neg' : 'dim')}">${data.trend}</span>
+                    </div>
+                    <div class="r-metric">
+                        <label>VOLATILITY</label>
+                        <span>${data.volatility}</span>
+                    </div>
+                    <div class="r-metric">
+                        <label>SMA 20 DIST</label>
+                        <span class="${data.metrics.sma_20_dist >= 0 ? 'pos' : 'neg'}">${data.metrics.sma_20_dist}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="regime-history-panel" style="margin-top:2rem">
+                <h3>Historical Regime Shifts</h3>
+                <div class="regime-timeline">
+                    ${data.history.map(h => `
+                        <div class="timeline-point">
+                            <div class="tp-date">${h.date}</div>
+                            <div class="tp-label">${h.regime}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="regime-guide-grid" style="margin-top:3rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px">
+                <div class="guide-card">
+                    <h4>ACCUMULATION</h4>
+                    <p>Smart money building positions. Historically low volatility with stabilizing sentiment.</p>
+                </div>
+                <div class="guide-card">
+                    <h4>TRENDING</h4>
+                    <p>High-conviction directional movement. Sustained alpha and institutional momentum.</p>
+                </div>
+                <div class="guide-card">
+                    <h4>DISTRIBUTION</h4>
+                    <p>Liquidity being exited into late buyers. High volatility with trend exhaustion signs.</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // ============= Initialization =============
 const viewMap = {
     signals: renderSignals, 
@@ -1860,10 +2040,11 @@ const viewMap = {
     'macro-calendar': renderMacroCalendar,
     whales: renderWhales,
 
-    pulse: renderMarketPulse,
+    regime: renderRegime,
     rotation: renderRotation,
     backtest: renderBacktest,
-    risk: renderRiskIntelligence,
+    risk: renderRiskMatrix,
+    stress: renderStressHub,
     narrative: renderNarrativeGalaxy,
     newsroom: renderNewsroom,
     alerts: renderAlerts,
@@ -2431,9 +2612,9 @@ function updateSEOMeta(view) {
             title: 'Whale Pulse Monitor',
             desc: 'Institutional-sized transaction tracking and exchange flow alerts for rapid market insight.'
         },
-        'pulse': {
-            title: 'Institutional Market Pulse',
-            desc: 'Real-time monitoring of Fear & Greed index, Lead-Lag signals, and systemic market health.'
+        'regime': {
+            title: 'Market Regime Hub',
+            desc: 'Real-time statistical detection of market regimes including Accumulation, Distribution, and Trending states.'
         },
         'rotation': {
             title: 'Sector Rotation Matrix',
@@ -2679,14 +2860,54 @@ window.addEventListener('DOMContentLoaded', async () => {
     switchView(initialView);
     startCountdown(); 
     
+    // Sidebar Profile Dropdown
+    const profileDropdown = document.getElementById('user-profile-dropdown');
+    if (profileDropdown) {
+        profileDropdown.addEventListener('click', (e) => {
+            // If we click internal buttons (logout/billing), don't just toggle
+            if (e.target.closest('button')) return;
+            
+            e.stopPropagation();
+            const isOpen = profileDropdown.classList.contains('open');
+            profileDropdown.classList.toggle('open');
+            profileDropdown.setAttribute('aria-expanded', !isOpen);
+        });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        if (profileDropdown && profileDropdown.classList.contains('open')) {
+            profileDropdown.classList.remove('open');
+            profileDropdown.setAttribute('aria-expanded', 'false');
+        }
+    });
+
     // Intervals
     setInterval(updateBTC, 60000);
     if (isAuthenticatedUser && isPremiumUser) {
         syncAlerts(); 
         setInterval(syncAlerts, 60000);
+        updateInstitutionalPulse();
+        setInterval(updateInstitutionalPulse, 30000);
     }
     
     // Debug hooks
     window.terminalLogout = logout;
     window.terminalSwitchView = switchView;
 });
+
+function shareSignal(ticker, alpha, sentiment, zScore) {
+    const sentimentLabel = sentiment > 0.1 ? 'BULLISH' : (sentiment < -0.1 ? 'BEARISH' : 'NEUTRAL');
+    const text = `🚨 AlphaSignal Terminal Update: $${ticker}\n\n` +
+                 `📈 Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
+                 `🧠 Sentiment Synthesis: ${sentimentLabel}\n` +
+                 `⚡ Z-Score Intensity: ${zScore.toFixed(2)}\n\n` +
+                 `Institutional intelligence detected. View the full terminal:\n`;
+    
+    // Construct sharing URL
+    const url = `https://alphasignal.digital/?view=signals&ticker=${ticker}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    
+    console.log("Sharing signal:", ticker);
+    window.open(twitterUrl, '_blank');
+}
