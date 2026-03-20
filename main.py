@@ -722,7 +722,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/btc': self.handle_btc()
             elif path == '/api/market-pulse': self.handle_market_pulse()
             elif path == '/api/alerts': self.handle_alerts()
-            elif path == '/api/toggle_track': self.handle_toggle_track()
+
             elif path == '/api/depeg': self.handle_depeg()
             elif path == '/api/news': self.handle_news()
             elif path == '/api/mindshare': self.handle_mindshare()
@@ -1155,24 +1155,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_json({"error": f"Institutional fetch failed: {str(e)}"})
 
-    def handle_toggle_track(self):
-        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-        ticker = query.get('ticker', [None])[0]
-        if not ticker: return self.send_json({"error": "No ticker provided"})
-        ticker = ticker.upper()
 
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT 1 FROM tracked_tickers WHERE ticker = ?", (ticker,))
-        if c.fetchone():
-            c.execute("DELETE FROM tracked_tickers WHERE ticker = ?", (ticker,))
-            status = "untracked"
-        else:
-            c.execute("INSERT INTO tracked_tickers (ticker) VALUES (?)", (ticker,))
-            status = "tracked"
-        conn.commit()
-        conn.close()
-        self.send_json({"status": status})
 
     # ============================================================
     # Pack G5: AI Analyst

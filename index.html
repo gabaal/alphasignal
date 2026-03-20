@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlphaSignal — Institutional Crypto Intelligence</title>
     <meta name="description" content="AlphaSignal: Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
+    <meta name="keywords" content="crypto, institutional intelligence, order flow, AI market analysis, alpha signals, trading dashboard">
+    <meta name="author" content="AlphaSignal">
+    <meta name="robots" content="index, follow">
     <link rel="canonical" id="canonical-link" href="https://alphasignal.digital/">
     
     <!-- Open Graph / Facebook -->
@@ -40,6 +43,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="assets/pwa-icon-512.png">
@@ -50,65 +54,62 @@
 <body class="cyber-theme">
     <div class="layout hidden" id="main-layout">
         <aside class="sidebar" id="sidebar" role="complementary" aria-label="Main Navigation">
-            <div class="brand">
-                <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">☰</button>
-                <div class="logo-orb"></div>
+            <div class="brand" onclick="switchView('home')" style="cursor:pointer; justify-content: center; padding: 1rem 0;" role="link" aria-label="Go to Home">
                 <div class="brand-title">Alpha<span>Signal</span></div>
-                <button class="close-sidebar-mobile" id="close-sidebar-btn">×</button>
             </div>
             
 
             <nav class="nav-menu" role="navigation">
                 <div class="nav-item active" data-view="signals" aria-label="View Signals">
-                    <span class="icon" aria-hidden="true">📡</span> Signals
+                    <span class="icon material-symbols-outlined" aria-hidden="true">radar</span> Signals
                 </div>
                 <div class="nav-item" data-view="macro-calendar" aria-label="View Macro Catalyst Calendar (Premium)">
-                    <span class="icon" aria-hidden="true">🌏</span> Macro Compass <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">public</span> Macro Compass <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="briefing" aria-label="View AI Briefing (Premium)">
-                    <span class="icon" aria-hidden="true">🤖</span> AI Briefing <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">memory</span> AI Briefing <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="mindshare" aria-label="View Social Mindshare (Premium)">
-                    <span class="icon" aria-hidden="true">🧠</span> Mindshare <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">psychology</span> Mindshare <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="flow" aria-label="View Institutional flow (Premium)">
-                    <span class="icon" aria-hidden="true">🌊</span> Flow Monitor <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">water</span> Flow Monitor <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="heatmap" aria-label="View Market Heatmap (Premium)">
-                    <span class="icon" aria-hidden="true">🗺️</span> Heatmap <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">grid_view</span> Heatmap <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="catalysts" aria-label="View Earnings Catalysts (Premium)">
-                    <span class="icon" aria-hidden="true">🗓️</span> Catalysts <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">event</span> Catalysts <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="whales" aria-label="View Whale Pulse (Premium)">
-                    <span class="icon" aria-hidden="true">🐳</span> Whale Pulse <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">waves</span> Whale Pulse <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="pulse" aria-label="View Market Pulse (Premium)">
-                    <span class="icon" aria-hidden="true">📈</span> Market Pulse <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">show_chart</span> Market Pulse <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="rotation" aria-label="View Sector Rotation (Premium)">
-                    <span class="icon" aria-hidden="true">🔄</span> Rotation <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">sync</span> Rotation <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="backtest" aria-label="View Strategy Backtest Lab (Premium)">
-                    <span class="icon" aria-hidden="true">🧪</span> Strategy Lab <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">science</span> Strategy Lab <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="risk" aria-label="View Global Risk (Premium)">
-                    <span class="icon" aria-hidden="true">🛡️</span> Global Risk <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">shield</span> Global Risk <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="narrative" aria-label="View Narrative Galaxy (Premium)">
-                    <span class="icon" aria-hidden="true">🌌</span> Narrative Galaxy <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">hub</span> Narrative Galaxy <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="tradelab" aria-label="View Trade Idea Lab (Premium)">
-                    <span class="icon" aria-hidden="true">🧪</span> Trade Lab <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">experiment</span> Trade Lab <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="liquidity" aria-label="View Order Flow GOMM (Premium)">
-                    <span class="icon" aria-hidden="true">📊</span> Order Flow (GOMM) <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">bar_chart</span> Order Flow (GOMM) <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="newsroom" aria-label="View Institutional Newsroom (Premium)">
-                    <span class="icon" aria-hidden="true">📰</span> Newsroom <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">newspaper</span> Newsroom <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="alerts" aria-label="View Signal Alerts">
-                    <span class="icon" aria-hidden="true">🔔</span> Alerts <span class="premium-lock" aria-label="Locked">🔒</span>
+                    <span class="icon material-symbols-outlined" aria-hidden="true">notifications</span> Alerts <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                     <span class="alert-badge" id="alert-badge" style="display:none" aria-label="Active Alerts Count">0</span>
                 </div>
             </nav>
@@ -125,10 +126,10 @@
                 </div>
                 <div class="profile-actions">
                     <button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()">
-                        <span class="btn-icon">💳</span> MANAGE BILLING
+                        <span class="btn-icon material-symbols-outlined">credit_card</span> MANAGE BILLING
                     </button>
                     <button id="logout-btn" class="profile-action-btn logout-btn" aria-label="Logout from Terminal">
-                        <span class="btn-icon">🚪</span> LOGOUT
+                        <span class="btn-icon material-symbols-outlined">logout</span> LOGOUT
                     </button>
                 </div>
             </div>
@@ -153,7 +154,7 @@
                 </div>
                 <div class="top-bar-actions">
                     <div class="countdown-timer" id="countdown-timer" title="Auto-refresh countdown">
-                        <span class="countdown-icon">⏱</span>
+                        <span class="countdown-icon material-symbols-outlined">timer</span>
                         <span id="countdown-value">5:00</span>
                     </div>
                     <button id="refresh-btn" aria-label="Recalculate Signals">⚡ Re-calculate Signals</button>
@@ -167,19 +168,19 @@
 
         <nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation">
             <div class="mobile-nav-item active" data-view="signals" aria-label="View Signals">
-                <span class="m-icon" aria-hidden="true">📡</span>
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">radar</span>
                 <span class="m-label">Signals</span>
             </div>
             <div class="mobile-nav-item" data-view="briefing" aria-label="View AI Intel">
-                <span class="m-icon" aria-hidden="true">🤖</span>
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">memory</span>
                 <span class="m-label">AI Intel</span>
             </div>
             <div class="mobile-nav-item" data-view="heatmap" aria-label="View Market">
-                <span class="m-icon" aria-hidden="true">🗺️</span>
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">grid_view</span>
                 <span class="m-label">Market</span>
             </div>
             <div class="mobile-nav-item" id="mobile-more-btn" aria-label="View More Options">
-                <span class="m-icon" aria-hidden="true">⋯</span>
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">more_horiz</span>
                 <span class="m-label">More</span>
             </div>
         </nav>
@@ -267,28 +268,28 @@
             </div>
             <div class="paywall-body">
                 <div class="benefit-item">
-                    <span class="benefit-icon">🤖</span>
+                    <span class="benefit-icon material-symbols-outlined">memory</span>
                     <div class="benefit-text">
                         <h4>AI Deep-Dive Analyst</h4>
                         <p>Real-time neural synthesis of multidimensional signals.</p>
                     </div>
                 </div>
                 <div class="benefit-item">
-                    <span class="benefit-icon">🐳</span>
+                    <span class="benefit-icon material-symbols-outlined">waves</span>
                     <div class="benefit-text">
                         <h4>Whale Pulse Monitor</h4>
                         <p>Track institutional-sized moves on-chain before they hit the tape.</p>
                     </div>
                 </div>
                 <div class="benefit-item">
-                    <span class="benefit-icon">🛡️</span>
+                    <span class="benefit-icon material-symbols-outlined">shield</span>
                     <div class="benefit-text">
                         <h4>Institutional Risk Engine</h4>
                         <p>Advanced systemic correlation & VaR analytics.</p>
                     </div>
                 </div>
                 <div class="benefit-item">
-                    <span class="benefit-icon">📊</span>
+                    <span class="benefit-icon material-symbols-outlined">bar_chart</span>
                     <div class="benefit-text">
                         <h4>Order Flow (GOMM)</h4>
                         <p>Visualizing professional liquidity walls and execution tape.</p>

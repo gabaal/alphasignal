@@ -255,9 +255,9 @@ function formatPrice(val) {
 }
 
 function getSentimentLabel(score) {
-    if (score > 0.1) return 'Bullish 📈';
-    if (score < -0.1) return 'Bearish 📉';
-    return 'Neutral ⚖️';
+    if (score > 0.1) return 'Bullish <span class="material-symbols-outlined" style="font-size: 16px; margin-left: 4px; vertical-align: middle;">trending_up</span>';
+    if (score < -0.1) return 'Bearish <span class="material-symbols-outlined" style="font-size: 16px; margin-left: 4px; vertical-align: middle;">trending_down</span>';
+    return 'Neutral <span class="material-symbols-outlined" style="font-size: 16px; margin-left: 4px; vertical-align: middle;">drag_handle</span>';
 }
 
 function getSentimentClass(score) {
@@ -328,18 +328,6 @@ async function executeSearch() {
     }
 }
 
-async function toggleTrack(ticker) {
-    const data = await fetchAPI(`/toggle_track?ticker=${ticker}`);
-    if (data) {
-        // Refresh detail view to show new status
-        const tf = document.querySelector('.tf-btn.active')?.textContent || '60d';
-        // We'll need to re-fetch search data to get the new status or just toggle it locally
-        const btn = document.getElementById('track-toggle-btn');
-        const isTracked = btn.textContent.includes('UNFOLLOW');
-        btn.textContent = isTracked ? '📡 FOLLOW ASSET' : '🗑 UNFOLLOW ASSET';
-        btn.className = isTracked ? 'tf-btn' : 'tf-btn active';
-    }
-}
 
 // ============= Signals View =============
 let lastSignalsData = null;
@@ -371,11 +359,11 @@ async function renderSignals(category = 'ALL') {
         <div class="signal-grid">
             ${filtered.map(s => `
                 <div class="signal-card ${Math.abs(s.zScore) > 2 ? 'z-outlier' : ''}" onclick="openDetail('${s.ticker}', '${s.category}', ${s.btcCorrelation}, ${s.alpha}, ${s.sentiment}, '60d', ${s.category === 'TRACKED'})">
-                    <div class="ai-trigger" onclick="event.stopPropagation(); openAIAnalyst('${s.ticker}')">🤖</div>
+                    <div class="ai-trigger" onclick="event.stopPropagation(); openAIAnalyst('${s.ticker}')"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
                     <div class="card-header">
                         <div>
                             <div class="ticker">${s.ticker}</div>
-                            <div class="label-tag cat-${s.category.toLowerCase()}">${s.category}</div>
+                            <div class="label-tag cat-${s.category.toLowerCase()}">${s.category === 'TRACKED' ? 'CUSTOM' : s.category}</div>
                         </div>
                         <div class="price-box" style="text-align:right">
                             <div style="font-weight:700">${formatPrice(s.price)}</div>
@@ -503,10 +491,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <div class="detail-header">
             <div><span class="category-label">${category}</span><h2>${ticker} Intelligence</h2></div>
             <div style="display:flex; gap:1rem; align-items:flex-start">
-                <button id="track-toggle-btn" class="tf-btn ${isTracked ? 'active' : ''}" onclick="toggleTrack('${ticker}')">
-                    ${isTracked ? '🗑 UNFOLLOW ASSET' : '📡 FOLLOW ASSET'}
-                </button>
-                <button class="intel-action-btn" style="width:auto" onclick="openAIAnalyst('${ticker}')">RUN AI DEEP-DIVE 🤖</button>
+
+                <button class="intel-action-btn" style="width:auto" onclick="openAIAnalyst('${ticker}')">RUN AI DEEP-DIVE <span class="material-symbols-outlined" style="font-size: 18px; margin-left: 6px; vertical-align: middle;">smart_toy</span></button>
             </div>
         </div>
 
@@ -1860,8 +1846,76 @@ const viewMap = {
     alerts: renderAlerts,
     tradelab: renderTradeLab,
     liquidity: renderLiquidityView,
-    'macro-calendar': renderMacroView
+    'macro-calendar': renderMacroView,
+    home: renderHome
 };
+
+async function renderHome() {
+    appEl.innerHTML = `
+        <div class="landing-page">
+            <div class="landing-bg-overlay" style="background-image: url('landing_hero_abstract.png')"></div>
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1>Institutional Intelligence Terminal. <span>Live.</span></h1>
+                    <p class="hero-subtitle">
+                        AlphaSignal provides real-time multi-asset intelligence across crypto, equities, and forex. 
+                        Synthesized by AI. Verified by institutional order flow.
+                    </p>
+                    <div class="hero-actions">
+                        <button class="intel-action-btn large" onclick="switchView('signals')">LAUNCH TERMINAL ⚡</button>
+                        <button class="profile-action-btn" onclick="openAIAnalyst('BTC-USD')">VIEW SAMPLE INTEL 🤖</button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-img-wrapper">
+                        <img src="terminal_interface_mockup.png" alt="Institutional Terminal Mockup" class="hero-img">
+                        <div class="hero-img-glow"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="features-showcase">
+                <div class="f-grid">
+                    <div class="f-card" onclick="switchView('signals')">
+                        <div class="f-icon"><img src="icon_signal.png" alt="Signal Intelligence"></div>
+                        <h3>Signal Intelligence</h3>
+                        <p>Real-time Z-score deviations and relative alpha across 500+ institutional assets.</p>
+                    </div>
+                    <div class="f-card" onclick="switchView('briefing')">
+                        <div class="f-icon"><img src="icon_ai.png" alt="AI Briefing"></div>
+                        <h3>AI Briefing</h3>
+                        <p>Daily neural synthesis of global market trends and institutional narrative shifts.</p>
+                    </div>
+                    <div class="f-card" onclick="switchView('liquidity')">
+                        <div class="f-icon"><img src="icon_flow.png" alt="Order Flow (GOMM)"></div>
+                        <h3>Order Flow (GOMM)</h3>
+                        <p>Visualizing professional liquidity walls and execution tape from 15+ exchanges.</p>
+                    </div>
+                    <div class="f-card" onclick="switchView('whales')">
+                        <div class="f-icon"><img src="icon_whale.png" alt="Whale Pulse"></div>
+                        <h3>Whale Pulse</h3>
+                        <p>Institutional-sized transaction tracking and exchange flow alerts.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-status-bar">
+                <div class="status-item">
+                    <span class="s-label">SYSTEM_STATUS:</span>
+                    <span class="s-value status-online">OPTIMAL</span>
+                </div>
+                <div class="status-item">
+                    <span class="s-label">DATA_STREAMS:</span>
+                    <span class="s-value">1,248 LIVE EPS</span>
+                </div>
+                <div class="status-item">
+                    <span class="s-label">NEURAL_SYNTH:</span>
+                    <span class="s-value">ACTIVE</span>
+                </div>
+            </section>
+        </div>
+    `;
+}
 
 function updateSEOMeta(view) {
     const viewMetadata = {
@@ -1927,11 +1981,15 @@ function updateSEOMeta(view) {
         },
         'alerts': {
             title: 'Real-time Signal Alerts',
-            desc: 'Configure and monitor high-fidelity institutional alerts for your specific asset watchlist.'
+            desc: 'Configure and monitor high-fidelity institutional alerts for your specific asset portfolio.'
         },
         'macro-calendar': {
             title: 'Macro Catalyst Compass',
             desc: 'Monitor high-impact global economic drivers, treasury yields, and volatility triggers.'
+        },
+        'home': {
+            title: 'Institutional Intelligence Terminal',
+            desc: 'AlphaSignal provides real-time multi-asset intelligence across crypto, equities, and forex. AI-driven alpha synthesis for the modern institution.'
         }
     };
 
@@ -1941,7 +1999,7 @@ function updateSEOMeta(view) {
     };
 
     const fullTitle = `${meta.title} | AlphaSignal — Institutional Crypto Intelligence`;
-    const viewUrl = `https://alphasignal.digital/?view=${view}`;
+    const viewUrl = view === 'home' ? 'https://alphasignal.digital/' : `https://alphasignal.digital/?view=${view}`;
 
     document.title = fullTitle;
 
@@ -2047,8 +2105,9 @@ if (closeSidebarBtn) {
 // Close sidebar when clicking outside on mobile
 document.addEventListener('click', (e) => {
     const sidebar = document.getElementById('sidebar');
+    const hamburger = document.getElementById('hamburger-btn');
     if (window.innerWidth <= 900 && sidebar.classList.contains('open')) {
-        if (!sidebar.contains(e.target) && e.target !== document.getElementById('hamburger-btn')) {
+        if (!sidebar.contains(e.target) && (!hamburger || e.target !== hamburger)) {
             sidebar.classList.remove('open');
         }
     }
@@ -2109,7 +2168,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     // Always start these for basic access (Signals and BTC are free)
     updateBTC();
-    switchView('signals');
+    switchView('home');
     startCountdown(); 
     
     // Intervals
