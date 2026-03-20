@@ -973,7 +973,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     rets = prices.pct_change().dropna()
                     z_score = (rets.iloc[-1] - rets.mean()) / rets.std() if len(rets) > 10 else 0
                     
-                    category = 'TRACKED'
+                    category = 'CRYPTO' if '-USD' in ticker else 'EQUITY'
                     for cat, tickers in UNIVERSE.items():
                         if ticker in tickers:
                             category = cat

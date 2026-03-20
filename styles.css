@@ -1029,6 +1029,19 @@ input[type="range"]::-webkit-slider-thumb {
     background: #fff;
 }
 
+.intel-action-btn.large.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    box-shadow: none;
+}
+
+.intel-action-btn.large.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-dim);
+    transform: translateY(-3px);
+}
+
 .auth-switch {
     margin-top: 1.5rem;
     font-size: 0.75rem;

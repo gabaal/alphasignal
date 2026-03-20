@@ -70,17 +70,19 @@ function updatePremiumUI() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         const view = item.getAttribute('data-view');
-        if (view !== 'signals') {
-            if (!isPremiumUser) {
-                if (!item.querySelector('.premium-lock')) {
-                    const lock = document.createElement('span');
-                    lock.className = 'premium-lock';
-                    lock.textContent = ' 🔒';
-                    item.appendChild(lock);
-                }
-            } else {
-                const lock = item.querySelector('.premium-lock');
-                if (lock) lock.remove();
+        // Views that are ALWAYS free
+        const isFreeView = (view === 'signals' || view === 'help' || view === 'home');
+        
+        if (isFreeView || isPremiumUser) {
+            const lock = item.querySelector('.premium-lock');
+            if (lock) lock.remove();
+        } else {
+            if (!item.querySelector('.premium-lock')) {
+                const lock = document.createElement('span');
+                lock.className = 'premium-lock material-symbols-outlined';
+                lock.setAttribute('aria-label', 'Locked');
+                lock.textContent = 'lock';
+                item.appendChild(lock);
             }
         }
     });
@@ -1891,8 +1893,12 @@ async function renderHome() {
                         Synthesized by AI. Verified by institutional order flow.
                     </p>
                     <div class="hero-actions">
-                        <button class="intel-action-btn large" onclick="switchView('signals')" title="Launch the AlphaSignal Crypto Trading Terminal" aria-label="Launch Terminal">LAUNCH TERMINAL ⚡</button>
-                        <button class="profile-action-btn" onclick="openAIAnalyst('BTC-USD')" title="View sample AI intelligence report" aria-label="View Sample Intel">VIEW SAMPLE INTEL 🤖</button>
+                        <button class="intel-action-btn large" onclick="switchView('signals')" title="Launch the AlphaSignal Crypto Trading Terminal" aria-label="Launch Terminal">
+                            <span class="material-symbols-outlined" style="margin-right:8px">radar</span> LAUNCH TERMINAL
+                        </button>
+                        <button class="intel-action-btn large secondary" onclick="openAIAnalyst('BTC-USD')" title="View sample AI intelligence report" aria-label="View Sample Intel">
+                            <span class="material-symbols-outlined" style="margin-right:8px">smart_toy</span> VIEW SAMPLE INTEL
+                        </button>
                     </div>
                 </div>
                 <div class="hero-visual">
