@@ -2073,3 +2073,86 @@ input[type="range"]::-webkit-slider-thumb {
     font-weight: 700;
     font-size: 0.9rem;
 }
+
+/* Strategy Lab V2 */
+.strategy-workspace {
+    margin-top: 2rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.strat-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    outline: none;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.strat-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.summary-card {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-card label {
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.summary-card .val {
+    font-size: 1.8rem;
+    font-weight: 950;
+    font-family: 'Outfit';
+}
+
+.main-return { border-left: 4px solid var(--accent); background: linear-gradient(135deg, rgba(0, 242, 255, 0.05), transparent); }
+.bench-return { border-left: 4px solid #fff; }
+.alpha-card { border-left: 4px solid var(--risk-low); }
+
+.lab-metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.mini-stat {
+    padding: 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.mini-stat label {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.mini-stat .val {
+    font-family: 'JetBrains Mono';
+    font-weight: 900;
+    font-size: 1rem;
+}
+

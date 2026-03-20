@@ -1062,49 +1062,41 @@ async function renderRotation() {
         </div>`;
 }
 
-async function renderBacktest() {
+async function renderStrategyLab() {
     appEl.innerHTML = skeleton(1);
-    // Initial load with defaults
-    runOptimizationLab(1.5, 7, 5);
+    runStrategyBacktest('BTC-USD', 'trend_regime');
 }
 
-async function runOptimizationLab(z, rebalance, count) {
-    const data = await fetchAPI(`/backtest?z_threshold=${z}&rebalance=${rebalance}&count=${count}`);
+async function runStrategyBacktest(ticker, strategy) {
+    const data = await fetchAPI(`/backtest?ticker=${ticker}&strategy=${strategy}`);
     if (!data || !data.summary) return;
     
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Strategy Optimization Lab</h1>
-            <p>Fine-tune quantitative parameters to maximize Alpha vs Bitcoin benchmark.</p>
+            <h1>AI Strategy Lab <span class="premium-badge">PRO</span></h1>
+            <p>Validate quantitative alphas using high-fidelity historical simulations.</p>
         </div>
 
-        <div class="lab-workspace" style="display:grid; grid-template-columns: 350px 1fr; gap:30px">
-            <div class="lab-controls">
+        <div class="strategy-workspace" style="display:grid; grid-template-columns: 320px 1fr; gap:30px">
+            <div class="strategy-controls">
                 <div class="control-box">
-                    <div style="display:flex; justify-content:space-between">
-                        <label>Z-SCORE INTENSITY</label>
-                        <span class="ctrl-val" id="z-val">${z}</span>
-                    </div>
-                    <input type="range" min="0.5" max="3.0" step="0.1" value="${z}" oninput="document.getElementById('z-val').textContent=this.value" onchange="runOptimizationLab(this.value, document.getElementById('reb-input').value, document.getElementById('count-input').value)">
-                    <p class="ctrl-desc">Entry conviction bar. Lower = more trades, Higher = elite quality.</p>
+                    <label>ASSET SELECTION</label>
+                    <select id="strat-ticker" class="strat-select" onchange="runStrategyBacktest(this.value, document.getElementById('strat-type').value)">
+                        <option value="BTC-USD" ${ticker === 'BTC-USD' ? 'selected' : ''}>BTC-USD (Bitcoin)</option>
+                        <option value="ETH-USD" ${ticker === 'ETH-USD' ? 'selected' : ''}>ETH-USD (Ethereum)</option>
+                        <option value="SOL-USD" ${ticker === 'SOL-USD' ? 'selected' : ''}>SOL-USD (Solana)</option>
+                        <option value="MSTR" ${ticker === 'MSTR' ? 'selected' : ''}>MSTR (MicroStrategy)</option>
+                        <option value="COIN" ${ticker === 'COIN' ? 'selected' : ''}>COIN (Coinbase)</option>
+                        <option value="MARA" ${ticker === 'MARA' ? 'selected' : ''}>MARA (Marathon)</option>
+                    </select>
                 </div>
 
                 <div class="control-box">
-                    <div style="display:flex; justify-content:space-between">
-                        <label>REBALANCE FREQUENCY</label>
-                        <span class="ctrl-val" id="reb-val">${rebalance}d</span>
-                    </div>
-                    <input type="range" id="reb-input" min="1" max="30" step="1" value="${rebalance}" oninput="document.getElementById('reb-val').textContent=this.value+'d'" onchange="runOptimizationLab(document.getElementById('z-val').textContent, this.value, document.getElementById('count-input').value)">
-                    <p class="ctrl-desc">Days between portfolio re-calibration.</p>
-                </div>
-
-                <div class="control-box">
-                    <div style="display:flex; justify-content:space-between">
-                        <label>PORTFOLIO CONCENTRATION</label>
-                        <span class="ctrl-val" id="count-val">${count}</span>
-                    </div>
-                    <input type="range" id="count-input" min="3" max="15" step="1" value="${count}" oninput="document.getElementById('count-val').textContent=this.value" onchange="runOptimizationLab(document.getElementById('z-val').textContent, document.getElementById('reb-input').value, this.value)">
-                    <p class="ctrl-desc">Max number of assets in the portfolio.</p>
+                    <label>QUANT STRATEGY</label>
+                    <select id="strat-type" class="strat-select" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, this.value)">
+                        <option value="trend_regime" ${strategy === 'trend_regime' ? 'selected' : ''}>EMA Crossover (20/50)</option>
+                        <option value="regime_alpha" ${strategy === 'regime_alpha' ? 'selected' : ''}>Regime Velocity Alpha</option>
+                    </select>
                 </div>
                 
                 <div class="lab-metrics-grid" style="margin-top:2rem">
@@ -1114,61 +1106,109 @@ async function runOptimizationLab(z, rebalance, count) {
                     </div>
                     <div class="mini-stat">
                         <label>MAX DRAWDOWN</label>
-                        <div class="val neg">-${data.summary.maxDrawdown}%</div>
+                        <div class="val neg">-${Math.abs(data.summary.maxDrawdown)}%</div>
+                    </div>
+                    <div class="mini-stat">
+                        <label>WIN RATE</label>
+                        <div class="val">${data.summary.winRate}%</div>
                     </div>
                 </div>
+
+                <button class="intel-action-btn" style="margin-top: 2rem; width: 100%" onclick="shareStrategyResult('${ticker}', ${data.summary.totalReturn})">
+                    <span class="material-symbols-outlined">share</span> SHARE PERFORMANCE
+                </button>
             </div>
 
-            <div class="lab-results">
-                <div class="backtest-summary" style="margin-bottom:1.5rem">
-                    <div class="summary-box">
-                        <label>STRATEGY RETURN</label>
-                        <div class="val ${data.summary.totalReturn >= 0 ? 'pos' : 'neg'}">${data.summary.totalReturn}%</div>
+            <div class="strategy-results">
+                <div class="backtest-summary-cards" style="display:flex; gap:20px; margin-bottom:20px">
+                    <div class="summary-card main-return">
+                        <label>STRATEGY RETURN (180D)</label>
+                        <div class="val ${data.summary.totalReturn >= 0 ? 'pos' : 'neg'}">${data.summary.totalReturn >= 0 ? '+' : ''}${data.summary.totalReturn}%</div>
                     </div>
-                    <div class="summary-box">
-                        <label>ALPHA (EXCESS)</label>
-                        <div class="val pos">+${data.summary.alpha}%</div>
+                    <div class="summary-card bench-return">
+                        <label>BENCHMARK (BTC)</label>
+                        <div class="val ${data.summary.benchmarkReturn !== undefined ? (data.summary.benchmarkReturn >= 0 ? 'pos' : 'neg') : (data.summary.btcReturn >= 0 ? 'pos' : 'neg')}">${data.summary.benchmarkReturn !== undefined ? (data.summary.benchmarkReturn >= 0 ? '+' : '') + data.summary.benchmarkReturn : (data.summary.btcReturn >= 0 ? '+' : '') + data.summary.btcReturn}%</div>
+                    </div>
+                    <div class="summary-card alpha-card">
+                        <label>EXCESS ALPHA</label>
+                        <div class="val pos">${data.summary.alpha >= 0 ? '+' : ''}${data.summary.alpha}%</div>
                     </div>
                 </div>
-                <div class="chart-container" style="height: 400px">
-                    <canvas id="backtestChart"></canvas>
+
+                <div class="chart-container" style="height: 450px; background: rgba(0,0,0,0.2); border-radius:16px; border:1px solid var(--border); padding: 20px">
+                    <canvas id="strategyChart"></canvas>
                 </div>
             </div>
         </div>
-        
-        <div class="attribution-header" style="margin-top:3rem; margin-bottom:1rem">
-            <h3>Sector Alpha Attribution</h3>
-        </div>
-        <div class="attribution-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem">
-            ${Object.entries(data.attribution).map(([sector, impact]) => `
-                <div class="p-stat-card">
-                    <label>${sector}</label>
-                    <div class="val ${impact >= 0 ? 'pos' : 'neg'}">${impact >= 0 ? '+' : ''}${impact}%</div>
-                </div>
-            `).join('')}
-        </div>`;
-    
-    const ctx = document.getElementById('backtestChart').getContext('2d');
-    new Chart(ctx, {
+    `;
+
+    renderStrategyChart(data.equityCurve || data.weeklyReturns);
+}
+
+function renderStrategyChart(curve) {
+    const ctx = document.getElementById('strategyChart').getContext('2d');
+    if (window.activeStrategyChart) window.activeStrategyChart.destroy();
+
+    window.activeStrategyChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.weeklyReturns.map(d => d.date),
+            labels: curve.map(p => p.date),
             datasets: [
-                { label: 'Optimized Strategy', data: data.weeklyReturns.map(d => d.portfolio), borderColor: '#00f2ff', borderWidth: 3, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, pointRadius: 0 },
-                { label: 'BTC Benchmark', data: data.weeklyReturns.map(d => d.btc), borderColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderDash: [5,5], fill: false, tension: 0.4, pointRadius: 0 }
+                {
+                    label: 'Strategy Equity',
+                    data: curve.map(p => p.portfolio),
+                    borderColor: '#00f2ff',
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    tension: 0.1,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 242, 255, 0.05)'
+                },
+                {
+                    label: 'Benchmark (BTC)',
+                    data: curve.map(p => p.benchmark || p.btc),
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    tension: 0.1,
+                    fill: false
+                }
             ]
         },
-        options: { 
-            responsive: true, maintainAspectRatio: false, 
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
             interaction: { intersect: false, mode: 'index' },
-            plugins: { legend: { labels: { color: 'white', font: { family: 'JetBrains Mono', size: 10 } } } },
+            plugins: {
+                legend: { display: true, position: 'top', labels: { color: '#8b949e', font: { family: 'Outfit', weight: 800, size: 10 } } },
+                tooltip: { 
+                    backgroundColor: 'rgba(13, 17, 23, 0.95)',
+                    titleColor: '#00f2ff',
+                    bodyColor: '#e6edf3',
+                    borderColor: '#30363d',
+                    borderWidth: 1,
+                    padding: 12,
+                    boxPadding: 6,
+                    usePointStyle: true,
+                    callbacks: {
+                        label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; }
+                    }
+                }
+            },
             scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { size: 10 } } },
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { size: 10 } } }
+                x: { grid: { display: false }, ticks: { color: '#8b949e', maxRotation: 0, autoSkip: true, maxTicksLimit: 10, font: { family: 'JetBrains Mono', size: 10 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: value => value + '%' } }
             }
         }
     });
 }
+
+function shareStrategyResult(ticker, returns) {
+    const text = `Validating my alpha on ${ticker} with AlphaSignal Strategy Lab. Strategy Return: ${returns}% (180D). 🚀 #AlphaSignal #CryptoIntelligence`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
+}
+
 // ============= Newsroom View =============
 async function renderNewsroom() {
     appEl.innerHTML = skeleton(4);
@@ -2042,7 +2082,7 @@ const viewMap = {
 
     regime: renderRegime,
     rotation: renderRotation,
-    backtest: renderBacktest,
+    'strategy-lab': renderStrategyLab,
     risk: renderRiskMatrix,
     stress: renderStressHub,
     narrative: renderNarrativeGalaxy,

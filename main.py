@@ -1991,68 +1991,88 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         self.send_json(news)
 
     def handle_backtest(self):
-        # Pack L: Strategy Optimization Lab Engine
+        # Pack L: Strategy Optimization Lab Engine (Real History Edition)
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-        z_threshold = float(query.get('z_threshold', [1.5])[0])
-        rebalance_days = int(query.get('rebalance', [7])[0])
-        max_assets = int(query.get('count', [5])[0])
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        strategy = query.get('strategy', ['trend_regime'])[0]
+        rebalance_days = int(query.get('rebalance', [1])[0]) # Daily check by default
         
         try:
-            # For the Research Lab, we simulate the equity curve based on historical volatility 
-            # and a strategy edge derived from the user's optimization parameters.
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=365)
-            dates = pd.date_range(start=start_date, end=end_date, freq=f'{rebalance_days}D')
-            
-            portfolio_val = 100.0
-            btc_val = 100.0
-            equity_curve = [{"date": dates[0].strftime('%Y-%m-%d'), "portfolio": 100.0, "btc": 100.0}]
-            
-            # Simulated Sector Attribution
-            sectors = list(UNIVERSE.keys())
-            attribution = {s: 0.0 for s in sectors}
-            
-            # Strategy Edge calculation: 
-            # Higher Z-Threshold = Higher conviction but fewer trades. 
-            # Rebalance frequency affects turnover costs/momentum capture.
-            base_edge = 0.004 # 0.4% per period base
-            edge_boost = (z_threshold - 1.0) * 0.002 # Conviction bonus
-            vol_penalty = (rebalance_days / 30) * 0.005 # Less frequent rebalance = higher volatility drag
-            
-            for i in range(1, len(dates)):
-                daily_alpha = np.random.normal(base_edge + edge_boost - vol_penalty, 0.02)
-                market_drift = np.random.normal(0.001, 0.015)
+            # 1. Fetch real historical data (180 days)
+            hist = yf.download(ticker, period='180d', interval='1d', progress=False)
+            if hist.empty:
+                self.send_json({"error": f"No data found for {ticker}"})
+                return
                 
-                portfolio_val *= (1 + daily_alpha + market_drift)
-                btc_val *= (1 + market_drift)
+            # Fetch BTC for benchmark if ticker isn't BTC
+            if ticker != 'BTC-USD':
+                btc_hist = yf.download('BTC-USD', period='180d', interval='1d', progress=False)
+            else:
+                btc_hist = hist.copy()
+
+            # 2. Strategy Logic: EMA Crossover (20/50)
+            df = hist[['Close']].copy()
+            df['EMA20'] = df['Close'].ewm(span=20, adjust=False).mean()
+            df['EMA50'] = df['Close'].ewm(span=50, adjust=False).mean()
+            
+            # Simple Signal: Buy EMA20 > EMA50
+            df['Signal'] = np.where(df['EMA20'] > df['EMA50'], 1, 0)
+            df['PctChange'] = df['Close'].pct_change()
+            df['StrategyReturn'] = df['Signal'].shift(1) * df['PctChange']
+            
+            # 3. Simulate Equity Curves
+            # Initial capital = 100
+            df['Equity'] = (1 + df['StrategyReturn'].fillna(0)).cumprod() * 100
+            
+            # Benchmark (Buy & Hold)
+            btc_df = btc_hist[['Close']].copy()
+            btc_df['Benchmark'] = (1 + btc_df['Close'].pct_change().fillna(0)).cumprod() * 100
+            
+            # Prepare result curve
+            equity_curve = []
+            for i in range(len(df)):
+                date_str = df.index[i].strftime('%Y-%m-%d')
+                # Align benchmark if possible
+                bench_val = btc_df.loc[df.index[i], 'Benchmark'] if df.index[i] in btc_df.index else 100.0
                 
                 equity_curve.append({
-                    "date": dates[i].strftime('%Y-%m-%d'),
-                    "portfolio": round(float(portfolio_val), 2),
-                    "btc": round(float(btc_val), 2)
+                    "date": date_str,
+                    "portfolio": round(float(df['Equity'].iloc[i]), 2),
+                    "benchmark": round(float(bench_val), 2)
                 })
-                
-                # Update mock attribution
-                for s in sectors:
-                    attribution[s] += round(np.random.uniform(-1, 2), 2)
 
-            total_return = round(((portfolio_val - 100) / 100) * 100, 1)
-            btc_total = round(((btc_val - 100) / 100) * 100, 1)
+            # Metrics
+            final_val = float(df['Equity'].iloc[-1])
+            total_return = round(final_val - 100, 2)
+            bench_final = float(btc_df['Benchmark'].iloc[-1])
+            bench_return = round(bench_final - 100, 2)
             
+            # Quick Risk Metrics
+            returns = df['StrategyReturn'].dropna()
+            sharpe = round((returns.mean() / returns.std() * np.sqrt(252)), 2) if len(returns) > 0 and returns.std() != 0 else 0
+            
+            # Max Drawdown
+            rolling_max = df['Equity'].cummax()
+            drawdown = (df['Equity'] - rolling_max) / rolling_max
+            max_dd = round(float(drawdown.min() * 100), 1)
+
             self.send_json({
                 "summary": {
                     "totalReturn": total_return,
-                    "btcReturn": btc_total,
-                    "alpha": round(total_return - btc_total, 1),
-                    "winRate": np.random.randint(52, 60),
-                    "sharpe": round(np.random.uniform(1.2, 2.5), 2),
-                    "maxDrawdown": round(np.random.uniform(10, 25), 1)
+                    "benchmarkReturn": bench_return,
+                    "alpha": round(total_return - bench_return, 2),
+                    "sharpe": sharpe,
+                    "maxDrawdown": max_dd,
+                    "winRate": round(float((returns > 0).sum() / len(returns) * 100), 1) if len(returns) > 0 else 0
                 },
-                "weeklyReturns": equity_curve,
-                "attribution": {s: round(v, 1) for s, v in attribution.items()}
+                "ticker": ticker,
+                "equityCurve": equity_curve,
+                "strategy": strategy
             })
         except Exception as e:
             print(f"Backtest engine error: {e}")
+            import traceback
+            traceback.print_exc()
             self.send_json({"error": str(e)})
 
     def generate_timeline(self, ticker, prices, seed):
