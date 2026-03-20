@@ -363,7 +363,7 @@ async function renderSignals(category = 'ALL') {
                     <div class="card-header">
                         <div>
                             <div class="ticker">${s.ticker}</div>
-                            <div class="label-tag cat-${s.category.toLowerCase()}">${s.category === 'TRACKED' ? 'CUSTOM' : s.category}</div>
+                            <div class="label-tag cat-${s.category.toLowerCase()}">${s.category}</div>
                         </div>
                         <div class="price-box" style="text-align:right">
                             <div style="font-weight:700">${formatPrice(s.price)}</div>
@@ -743,10 +743,31 @@ function renderChart(history) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { 
-                legend: { display: window.activeOverlays.ema || window.activeOverlays.vol, labels: { color: 'white', font: { size: 10, family: 'JetBrains Mono' } } }
+                legend: { display: window.activeOverlays.ema || window.activeOverlays.vol, labels: { color: 'white', font: { size: 10, family: 'JetBrains Mono' } } },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 }).format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                }
             },
             scales: {
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono' } } },
+                y: { 
+                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                    ticks: { 
+                        color: '#888', 
+                        font: { family: 'JetBrains Mono' },
+                        callback: function(value) {
+                            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 8 }).format(value);
+                        }
+                    } 
+                },
                 x: { grid: { display: false }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } }
             }
         }
@@ -1847,7 +1868,15 @@ const viewMap = {
     tradelab: renderTradeLab,
     liquidity: renderLiquidityView,
     'macro-calendar': renderMacroView,
-    home: renderHome
+    home: renderHome,
+    'explain-signals': renderDocsSignals,
+    'explain-briefing': renderDocsBriefing,
+    'explain-liquidity': renderDocsLiquidity,
+    'explain-whales': renderDocsWhales,
+    'explain-mindshare': renderDocsMindshare,
+    'explain-benchmark': renderDocsBenchmark,
+    'explain-alerts': renderDocsAlerts,
+    help: renderHelp
 };
 
 async function renderHome() {
@@ -1915,6 +1944,155 @@ async function renderHome() {
             </section>
         </div>
     `;
+}
+
+// ============= Documentation Views (Hidden Routes) =============
+function renderExplainPage(title, subtitle, sections) {
+    appEl.innerHTML = `
+        <div class="view-header"><h1>${title} - Terminal Documentation</h1></div>
+        <div class="doc-container" style="max-width: 800px; margin: 0 auto; padding-top: 2rem;">
+            <p style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 2rem; line-height: 1.6;">${subtitle}</p>
+            <div class="doc-features">
+                ${sections.map(s => `
+                    <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                        <h3 style="color: var(--accent); margin-bottom: 0.5rem; display: flex; align-items: center;"><span class="material-symbols-outlined" style="margin-right: 8px;">${s.icon}</span> ${s.title}</h3>
+                        <p style="color: var(--text-main); line-height: 1.5;">${s.desc}</p>
+                    </div>
+                `).join('')}
+            </div>
+            <button class="intel-action-btn" style="margin-top: 2rem;" onclick="switchView('help')"><span class="material-symbols-outlined" style="margin-right:8px; vertical-align:middle;">arrow_back</span> RETURN TO HELP HUB</button>
+        </div>
+    `;
+}
+
+function renderHelp() {
+    appEl.innerHTML = `
+        <div class="view-header"><h1>Terminal Documentation</h1></div>
+        <div class="doc-container" style="max-width: 900px; margin: 0 auto; padding-top: 2rem;">
+            <p style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 2rem; line-height: 1.6;">Select a module below to view detailed methodology, data sources, and analytical frameworks.</p>
+            <div class="f-grid">
+                <div class="f-card" onclick="switchView('explain-signals')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">radar</span></div>
+                    <h3>Signal Intelligence</h3>
+                    <p>Understanding Z-Score deviations and alpha generation.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-briefing')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">memory</span></div>
+                    <h3>AI Briefing</h3>
+                    <p>How global market trends are neutrally synthesized.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-liquidity')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">bar_chart</span></div>
+                    <h3>Order Flow (GOMM)</h3>
+                    <p>Interpreting liquidity walls and execution tape.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-whales')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">waves</span></div>
+                    <h3>Whale Pulse</h3>
+                    <p>Detecting massive on-chain block transactions.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-mindshare')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">hub</span></div>
+                    <h3>Narrative Galaxy</h3>
+                    <p>Using NLP-driven social cluster visualization.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-benchmark')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">science</span></div>
+                    <h3>Portfolio Simulation</h3>
+                    <p>Modeling and backtesting quant portfolios.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-alerts')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">event</span></div>
+                    <h3>Catalyst Monitor</h3>
+                    <p>Tracking macro variables and critical events.</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderDocsSignals() {
+    renderExplainPage(
+        "Signal Intelligence",
+        "The AlphaSignal intelligence dashboard uses algorithmic Z-test deviations and institutional volume weighting to identify market anomalies ahead of the crowd.",
+        [
+            { icon: 'trending_up', title: 'Relative Alpha Score', desc: 'Measures the outperformance or underperformance of an asset compared to Bitcoin over a rolling 60-day window, indicating institutional momentum.' },
+            { icon: 'psychology', title: 'Neural Market Sentiment', desc: 'Real-time NLP analysis of social velocity and news sentiment scored from -1 (Extremely Bearish) to +1 (Extremely Bullish).' },
+            { icon: 'bolt', title: 'Z-Score Outliers', desc: 'Statistical identification of abnormal price action beyond 2 standard deviations, often highlighting algorithmic stop-runs or insider accumulation.' }
+        ]
+    );
+}
+
+function renderDocsBriefing() {
+    renderExplainPage(
+        "AI Market Briefing",
+        "A daily, dynamically synthesized neural report on global market trends and institutional narrative shifts.",
+        [
+            { icon: 'auto_awesome', title: 'Dynamic Synthesis', desc: 'Our language models synthesize vast amounts of structured financial data into a cohesive summary.' },
+            { icon: 'pie_chart', title: 'Sector Performance', desc: 'Aggregated view of how sub-sectors (Defi, Exchanges, Layer 1s, Memes) are behaving relative to the broader market.' },
+            { icon: 'radar', title: 'Narrative Shifts', desc: 'Identification of rotational trends from one narrative cluster to another before they appear in mainstream media.' }
+        ]
+    );
+}
+
+function renderDocsLiquidity() {
+    renderExplainPage(
+        "Order Flow Magnitude (GOMM)",
+        "Visualizing professional liquidity walls and execution tape from 15+ top-tier institutional exchanges.",
+        [
+            { icon: 'water_drop', title: 'Liquidity Heatmap', desc: 'A dense visual mapping of limit order resting on the books. Highlights potential support and resistance zones.' },
+            { icon: 'list_alt', title: 'Execution Tape (Institutional)', desc: 'Filtering out retail noise to show only large block trades executing across fragmented exchanges.' },
+            { icon: 'history', title: 'Historical Snapshots', desc: 'Captures and replays historical orderbook configurations to model how liquidity walls shift in real-time.' }
+        ]
+    );
+}
+
+function renderDocsWhales() {
+    renderExplainPage(
+        "Institutional Whale Pulse",
+        "Institutional-sized transaction tracking and exchange flow alerts for rapid market insight.",
+        [
+            { icon: 'waves', title: 'Tx Magnitude', desc: 'Filter out the noise and only see transactions exceeding set monetary thresholds ($1m, $10m+).' },
+            { icon: 'account_balance', title: 'Entity Attribution', desc: 'Trace transactions back to known exchange wallets, institutional custodians, or decentralized protocols.' },
+            { icon: 'notifications_active', title: 'Real-Time Alerts', desc: 'Instant push notifications when anomalous wallet behavior is detected on-chain.' }
+        ]
+    );
+}
+
+function renderDocsMindshare() {
+    renderExplainPage(
+        "Narrative Galaxy Cluster",
+        "Explore emerging market narratives and cluster shifts using NLP-driven trend analysis.",
+        [
+            { icon: 'hub', title: 'Cluster Visualization', desc: 'Nodes represent specific terms and entities; proximity denotes contextual correlation.' },
+            { icon: 'show_chart', title: 'Frequency Momentum', desc: 'Visual sizing based on mention frequency across crypto-native social networks and news.' },
+            { icon: 'explore', title: 'Narrative Rotation', desc: 'Detect capital moving from one ecosystem (e.g., L1s) to another (e.g., DeFi) through social chatter.' }
+        ]
+    );
+}
+
+function renderDocsBenchmark() {
+    renderExplainPage(
+        "Portfolio Simulation",
+        "A proprietary risk-adjusted intelligence workbench designed for modeling hypothetical institutional portfolios.",
+        [
+            { icon: 'table_chart', title: 'Asset Weighting', desc: 'Construct a tailored allocation of assets and compare its historical performance against benchmarks.' },
+            { icon: 'analytics', title: 'Sharpe & Volatility', desc: 'Measure the risk-adjusted returns (Sharpe Ratio) and maximum drawdown.' },
+            { icon: 'insights', title: 'Alpha Overlay', desc: 'Apply AlphaSignal metrics directly onto your simulated portfolio to optimize your entry positioning.' }
+        ]
+    );
+}
+
+function renderDocsAlerts() {
+    renderExplainPage(
+        "Earnings & Catalyst Monitor",
+        "A comprehensive operational calendar of institutional-grade volatility events.",
+        [
+            { icon: 'calendar_month', title: 'Macro Events', desc: 'FOMC meetings, CPI prints, and Treasury auctions that inject volatility into all risk-on assets.' },
+            { icon: 'token', title: 'Token Unlocks', desc: 'Scheduled supply emissions that cause dilution and predictable downward pressure.' },
+            { icon: 'verified', title: 'Network Upgrades', desc: 'Hard forks and technical roadmap milestones that often serve as local price tops.' }
+        ]
+    );
 }
 
 function updateSEOMeta(view) {
@@ -1990,7 +2168,18 @@ function updateSEOMeta(view) {
         'home': {
             title: 'Institutional Intelligence Terminal',
             desc: 'AlphaSignal provides real-time multi-asset intelligence across crypto, equities, and forex. AI-driven alpha synthesis for the modern institution.'
-        }
+        },
+        'help': {
+            title: 'Help & Documentation Hub',
+            desc: 'Complete documentation on AlphaSignal methodologies, data sources, and analytical frameworks.'
+        },
+        'explain-signals': { title: 'Documentation — Signal Intelligence', desc: 'Learn how AlphaSignal utilizes Z-Score deviations and neural sentiment for alpha generation.' },
+        'explain-briefing': { title: 'Documentation — AI Briefing', desc: 'Understand our dynamic neural synthesis and sector performance tracking.' },
+        'explain-liquidity': { title: 'Documentation — Order Flow GOMM', desc: 'Documentation on interpreting liquidity walls and institutional tape.' },
+        'explain-whales': { title: 'Documentation — Whale Pulse', desc: 'Learn how to detect and interpret massive on-chain transactions.' },
+        'explain-mindshare': { title: 'Documentation — Narrative Galaxy', desc: 'Guide to using our NLP-driven social cluster visualization.' },
+        'explain-benchmark': { title: 'Documentation — Portfolio Simulation', desc: 'How to model and backtest institutional crypto portfolios.' },
+        'explain-alerts': { title: 'Documentation — Catalyst Monitor', desc: 'Tracking macro variables, token unlocks, and critical market events.' }
     };
 
     const meta = viewMetadata[view] || {
@@ -2168,7 +2357,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     // Always start these for basic access (Signals and BTC are free)
     updateBTC();
-    switchView('home');
+    
+    // Support deep-linking via URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialView = viewMap[urlParams.get('view')] ? urlParams.get('view') : 'home';
+    switchView(initialView);
     startCountdown(); 
     
     // Intervals

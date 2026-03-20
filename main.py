@@ -1332,7 +1332,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         conn.close()
 
         universe_tickers = [t for sub in UNIVERSE.values() for t in sub]
-        all_tickers = list(set(universe_tickers + tracked))
+        all_tickers = sorted(list(set(universe_tickers + tracked)))
         results = []
         try:
             btc_data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close').squeeze()
@@ -1350,7 +1350,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     rets = prices.pct_change().dropna()
                     z_score = (rets.iloc[-1] - rets.mean()) / rets.std() if len(rets) > 10 else 0
                     
-                    category = 'TRACKED'
+                    category = 'CRYPTO' if '-USD' in ticker else 'EQUITY'
                     for cat, tickers in UNIVERSE.items():
                         if ticker in tickers:
                             category = cat
