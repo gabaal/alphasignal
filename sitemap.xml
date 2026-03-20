@@ -48,4 +48,40 @@
       <changefreq>monthly</changefreq>
       <priority>0.4</priority>
    </url>
+   <url>
+      <loc>https://alphasignal.digital/?view=explain-zscore</loc>
+      <lastmod>2026-03-20</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.4</priority>
+   </url>
+   <url>
+      <loc>https://alphasignal.digital/?view=explain-alpha</loc>
+      <lastmod>2026-03-20</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.4</priority>
+   </url>
+   <url>
+      <loc>https://alphasignal.digital/?view=explain-correlation</loc>
+      <lastmod>2026-03-20</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.4</priority>
+   </url>
+   <url>
+      <loc>https://alphasignal.digital/?view=explain-sentiment</loc>
+      <lastmod>2026-03-20</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.4</priority>
+   </url>
+   <url>
+      <loc>https://alphasignal.digital/?view=explain-risk</loc>
+      <lastmod>2026-03-20</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.4</priority>
+   </url>
+   <url>
+      <loc>https://alphasignal.digital/?view=explain-glossary</loc>
+      <lastmod>2026-03-20</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.4</priority>
+   </url>
 </urlset>

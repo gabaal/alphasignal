@@ -1878,6 +1878,12 @@ const viewMap = {
     'explain-mindshare': renderDocsMindshare,
     'explain-benchmark': renderDocsBenchmark,
     'explain-alerts': renderDocsAlerts,
+    'explain-zscore': renderDocsZScore,
+    'explain-alpha': renderDocsAlpha,
+    'explain-correlation': renderDocsCorrelation,
+    'explain-sentiment': renderDocsSentiment,
+    'explain-risk': renderDocsRisk,
+    'explain-glossary': renderDocsGlossary,
     help: renderHelp
 };
 
@@ -1953,11 +1959,14 @@ async function renderHome() {
 }
 
 // ============= Documentation Views (Hidden Routes) =============
-function renderExplainPage(title, subtitle, sections) {
+function renderExplainPage(title, subtitle, detailedDesc, sections) {
     appEl.innerHTML = `
         <div class="view-header"><h1>${title} - Terminal Documentation</h1></div>
         <div class="doc-container" style="max-width: 800px; margin: 0 auto; padding-top: 2rem;">
-            <p style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 2rem; line-height: 1.6;">${subtitle}</p>
+            <p style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.6; font-weight: 500;">${subtitle}</p>
+            <div style="background: rgba(0, 242, 255, 0.03); border-left: 2px solid var(--accent); padding: 1.5rem; margin-bottom: 2.5rem; color: var(--text-main); line-height: 1.7; font-size: 0.95rem; border-radius: 0 8px 8px 0;">
+                ${detailedDesc}
+            </div>
             <div class="doc-features">
                 ${sections.map(s => `
                     <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.05);">
@@ -2011,6 +2020,36 @@ function renderHelp() {
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">event</span></div>
                     <h3>Catalyst Monitor</h3>
                     <p>Tracking macro variables and critical events.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-zscore')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">insights</span></div>
+                    <h3>Z-Score Interpretation</h3>
+                    <p>Decoding statistical intensity and outlier detection.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-alpha')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">trending_up</span></div>
+                    <h3>Alpha Strategy</h3>
+                    <p>Trading relative strength and market benchmarks.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-correlation')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">link</span></div>
+                    <h3>Correlation Analysis</h3>
+                    <p>Identifying market decoupling and rotation events.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-sentiment')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">psychology</span></div>
+                    <h3>Sentiment Synthesis</h3>
+                    <p>How we process social mindshare and news flow.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-risk')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">shield_with_heart</span></div>
+                    <h3>Risk Management</h3>
+                    <p>Using volatility and drawdowns for sizing.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-glossary')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">menu_book</span></div>
+                    <h3>Terminal Glossary</h3>
+                    <p>Quick reference for all institutional metrics.</p>
                 </div>
             </div>
         </div>
@@ -2101,6 +2140,78 @@ function renderDocsAlerts() {
     );
 }
 
+function renderDocsZScore() {
+    renderExplainPage(
+        "Z-Score Interpretation",
+        "Statistical intensity monitoring for advanced volatility arbitrage and outlier detection.",
+        [
+            { icon: 'analytics', title: 'Standard Deviation', desc: 'A Z-score of +3.0 indicates a move 3 standard deviations above the mean, suggesting extreme overextension.' },
+            { icon: 'trending_up', title: 'Mean Reversion', desc: 'High Z-scores (+3.5 or -3.5) are historically associated with short-term exhaustion and reversal points.' },
+            { icon: 'bolt', title: 'Momentum Breakouts', desc: 'Z-scores between +1.5 and +2.5 often represent the "sweet spot" for trend following and institutional accumulation.' }
+        ]
+    );
+}
+
+function renderDocsAlpha() {
+    renderExplainPage(
+        "Alpha Generation Strategy",
+        "Quantifying relative strength by stripping away market noise and benchmark beta.",
+        [
+            { icon: 'benchmark', title: 'Benchmark Beta', desc: 'Alpha measures a ticker\'s performance relative to Bitcoin (the market benchmark).' },
+            { icon: 'show_chart', title: 'Institutional Strength', desc: 'Positive Alpha indicates assets that are attracting capital even when the broader market is flat or declining.' },
+            { icon: 'filter_list', title: 'Selection Alpha', desc: 'Focusing on the top 10% of Alpha-positive tickers significantly improves risk-adjusted returns.' }
+        ]
+    );
+}
+
+function renderDocsCorrelation() {
+    renderExplainPage(
+        "Correlation & Decoupling",
+        "Monitoring the mathematical relationship between Bitcoin and the broader altcoin/equity universe.",
+        [
+            { icon: 'link', title: 'High Correlation (>0.85)', desc: 'Indicates "Risk-On" environments where assets move in lockstep with Bitcoin broad-market beta.' },
+            { icon: 'link_off', title: 'Decoupling (<0.50)', desc: 'Identifies idiosyncratic strength. This is where professional traders look for unique alpha opportunities.' },
+            { icon: 'sync', title: 'Relative Rotation', desc: 'Shifting correlations often precede sector rotation (e.g., capital moving from Large-Caps to DeFi).' }
+        ]
+    );
+}
+
+function renderDocsSentiment() {
+    renderExplainPage(
+        "Sentiment Synthesis",
+        "Using NLP to quantify institutional sentiment by processing millions of data points from social mindshare and global financial news.",
+        [
+            { icon: 'psychology', title: 'Neural Scoring', desc: 'Sentiment scores range from -1.0 (Panic) to +1.0 (Euphoria), derived from institutional-grade NLP models.' },
+            { icon: 'hub', title: 'Narrative Clusters', desc: 'Detecting emerging market themes before they hit mainstream headlines by analyzing social cluster density.' },
+            { icon: 'dynamic_feed', title: 'Sentiment Velocity', desc: 'The speed of sentiment change often precedes price action. A rapid shift from Neutral to Bullish is a leading indicator.' }
+        ]
+    );
+}
+
+function renderDocsRisk() {
+    renderExplainPage(
+        "Risk Management",
+        "Institutional frameworks for protecting capital through volatility analysis and drawdown modeling.",
+        [
+            { icon: 'monitoring', title: 'Volatility (Vol)', desc: 'Measures the price variance. High Vol assets require smaller position sizes to maintain a constant risk profile.' },
+            { icon: 'trending_down', title: 'Max Drawdown', desc: 'Tracks the peak-to-trough decline. Essential for calculating risk-adjusted returns and stop-loss placement.' },
+            { icon: 'account_balance_wallet', title: 'Kelly Criterion', desc: 'How to use terminal win rates and risk/reward ratios to optimize capital allocation.' }
+        ]
+    );
+}
+
+function renderDocsGlossary() {
+    renderExplainPage(
+        "Terminal Glossary",
+        "A quick-reference guide to the metrics and terminology used across the AlphaSignal platform.",
+        [
+            { icon: 'terminal', title: 'Alpha (%)', desc: 'Outperformance relative to the benchmark (BTC-USD). Positive Alpha = Beating the market.' },
+            { icon: 'database', title: 'Z-Score', desc: 'Distance from the mean in standard deviations. Used to spot overextended price moves.' },
+            { icon: 'waves', title: 'Whale Flow', desc: 'Institutional block order detection logic that filters out retail "noise".' }
+        ]
+    );
+}
+
 function updateSEOMeta(view) {
     const viewMetadata = {
         'signals': {
@@ -2185,7 +2296,13 @@ function updateSEOMeta(view) {
         'explain-whales': { title: 'Documentation — Whale Pulse', desc: 'Learn how to detect and interpret massive on-chain transactions.' },
         'explain-mindshare': { title: 'Documentation — Narrative Galaxy', desc: 'Guide to using our NLP-driven social cluster visualization.' },
         'explain-benchmark': { title: 'Documentation — Portfolio Simulation', desc: 'How to model and backtest institutional crypto portfolios.' },
-        'explain-alerts': { title: 'Documentation — Catalyst Monitor', desc: 'Tracking macro variables, token unlocks, and critical market events.' }
+        'explain-alerts': { title: 'Documentation — Catalyst Monitor', desc: 'Tracking macro variables, token unlocks, and critical market events.' },
+        'explain-zscore': { title: 'Documentation — Z-Score Interpretation', desc: 'Decoding statistical intensity and outlier detection for advanced volatility arbitrage.' },
+        'explain-alpha': { title: 'Documentation — Alpha Strategy', desc: 'How to calculate and trade relative strength benchmarks vs Bitcoin to maximize institutional alpha.' },
+        'explain-correlation': { title: 'Documentation — Market Correlation', desc: 'Understanding the mathematical relationship between assets and market-wide decoupling events.' },
+        'explain-sentiment': { title: 'Documentation — Sentiment Synthesis', desc: 'How we process social mindshare and news flow using institutional-grade NLP.' },
+        'explain-risk': { title: 'Documentation — Risk Management', desc: 'Institutional frameworks for protecting capital using volatility and drawdown modeling.' },
+        'explain-glossary': { title: 'Documentation — Terminal Glossary', desc: 'A quick-reference guide to all technical metrics used across the AlphaSignal platform.' }
     };
 
     const meta = viewMetadata[view] || {
