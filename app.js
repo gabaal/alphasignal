@@ -1862,13 +1862,13 @@ async function renderHome() {
                         Synthesized by AI. Verified by institutional order flow.
                     </p>
                     <div class="hero-actions">
-                        <button class="intel-action-btn large" onclick="switchView('signals')">LAUNCH TERMINAL ⚡</button>
-                        <button class="profile-action-btn" onclick="openAIAnalyst('BTC-USD')">VIEW SAMPLE INTEL 🤖</button>
+                        <button class="intel-action-btn large" onclick="switchView('signals')" title="Launch the AlphaSignal Crypto Trading Terminal" aria-label="Launch Terminal">LAUNCH TERMINAL ⚡</button>
+                        <button class="profile-action-btn" onclick="openAIAnalyst('BTC-USD')" title="View sample AI intelligence report" aria-label="View Sample Intel">VIEW SAMPLE INTEL 🤖</button>
                     </div>
                 </div>
                 <div class="hero-visual">
                     <div class="hero-img-wrapper">
-                        <img src="terminal_interface_mockup.png" alt="Institutional Terminal Mockup" class="hero-img">
+                        <img src="terminal_interface_mockup.png" alt="Institutional Terminal Mockup" class="hero-img" width="800" height="450" loading="lazy">
                         <div class="hero-img-glow"></div>
                     </div>
                 </div>
@@ -1877,22 +1877,22 @@ async function renderHome() {
             <section class="features-showcase">
                 <div class="f-grid">
                     <div class="f-card" onclick="switchView('signals')">
-                        <div class="f-icon"><img src="icon_signal.png" alt="Signal Intelligence"></div>
+                        <div class="f-icon"><img src="icon_signal.png" alt="Signal Intelligence" width="48" height="48" loading="lazy"></div>
                         <h3>Signal Intelligence</h3>
                         <p>Real-time Z-score deviations and relative alpha across 500+ institutional assets.</p>
                     </div>
                     <div class="f-card" onclick="switchView('briefing')">
-                        <div class="f-icon"><img src="icon_ai.png" alt="AI Briefing"></div>
+                        <div class="f-icon"><img src="icon_ai.png" alt="AI Briefing" width="48" height="48" loading="lazy"></div>
                         <h3>AI Briefing</h3>
                         <p>Daily neural synthesis of global market trends and institutional narrative shifts.</p>
                     </div>
                     <div class="f-card" onclick="switchView('liquidity')">
-                        <div class="f-icon"><img src="icon_flow.png" alt="Order Flow (GOMM)"></div>
+                        <div class="f-icon"><img src="icon_flow.png" alt="Order Flow (GOMM)" width="48" height="48" loading="lazy"></div>
                         <h3>Order Flow (GOMM)</h3>
                         <p>Visualizing professional liquidity walls and execution tape from 15+ exchanges.</p>
                     </div>
                     <div class="f-card" onclick="switchView('whales')">
-                        <div class="f-icon"><img src="icon_whale.png" alt="Whale Pulse"></div>
+                        <div class="f-icon"><img src="icon_whale.png" alt="Whale Pulse" width="48" height="48" loading="lazy"></div>
                         <h3>Whale Pulse</h3>
                         <p>Institutional-sized transaction tracking and exchange flow alerts.</p>
                     </div>
