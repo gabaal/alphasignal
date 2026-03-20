@@ -1572,3 +1572,15 @@ input[type="range"]::-webkit-slider-thumb {
     color: #fff;
     text-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
+
+/* Phase 5: Narrative Galaxy V2 Ticker */
+@keyframes scroll-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.hot-topics-ticker div {
+    display: flex;
+    white-space: nowrap;
+    will-change: transform;
+}

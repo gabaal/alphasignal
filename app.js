@@ -851,6 +851,65 @@ async function renderCatalysts() {
 }
 
 // ============= Whale Pulse =============
+async function renderMacroCalendar() {
+    appEl.innerHTML = skeleton(6);
+    const data = await fetchAPI('/macro-calendar');
+    if (!data) return;
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h2>Institutional Macro Compass</h2>
+            <p>Real-time synthesis of global economic catalysts and their projected impact on liquidity.</p>
+        </div>
+        
+        <div class="macro-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:2rem">
+            ${Object.entries(data.yields || {}).map(([label, val]) => `
+                <div class="stat-card" style="background:var(--bg-card); padding:1.2rem; border:1px solid var(--border); border-radius:12px">
+                    <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">${label.toUpperCase()}</div>
+                    <div style="font-size:1.5rem; font-weight:800; color:var(--accent)">${val}</div>
+                </div>
+            `).join('')}
+            <div class="stat-card" style="background:var(--bg-card); padding:1.2rem; border:1px solid var(--border); border-radius:12px">
+                <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">ENGINE_STATUS</div>
+                <div style="font-size:1.5rem; font-weight:800; color:var(--risk-low)">${data.status}</div>
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <div class="glass-card" style="grid-column: 1 / -1">
+                <div class="card-header">
+                    <h3>Economic Intelligence Calendar</h3>
+                    <span class="label-tag">WEEKLYWIDE_SYNC</span>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>DATE</th>
+                                <th>EVENT</th>
+                                <th>IMPACT</th>
+                                <th>FORECAST</th>
+                                <th>PREVIOUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.events.map(e => `
+                                <tr>
+                                    <td style="font-family:'JetBrains Mono'">${e.date} <span style="color:var(--text-dim); font-size:0.7rem">${e.time}</span></td>
+                                    <td style="font-weight:700">${e.event}</td>
+                                    <td><span class="impact-badge impact-${e.impact.toLowerCase()}">${e.impact}</span></td>
+                                    <td>${e.forecast}</td>
+                                    <td style="color:var(--text-dim)">${e.previous}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 async function renderWhales() {
     appEl.innerHTML = skeleton(5);
     const data = await fetchAPI('/whales');
@@ -1231,9 +1290,17 @@ async function renderNarrativeGalaxy() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h2>Narrative Cluster Galaxy</h2>
-            <p>Spatial mapping of the crypto universe. Assets are clustered by sector and momentum intensity.</p>
+            <h2>Narrative Cluster Galaxy V2</h2>
+            <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
         </div>
+        
+        <div class="hot-topics-ticker" style="background:rgba(0, 242, 255, 0.05); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-bottom:1.5rem; display:flex; gap:15px; align-items:center; overflow:hidden">
+            <span style="font-size:0.6rem; font-weight:900; color:var(--accent); white-space:nowrap">EMERGING NARRATIVES:</span>
+            <div style="display:flex; gap:20px; animation: scroll-left 40s linear infinite">
+                ${data.hot_topics.map(t => `<span style="font-size:0.75rem; font-weight:800; color:white; white-space:nowrap"># ${t}</span>`).join('')}
+            </div>
+        </div>
+
         <div class="galaxy-container" style="position:relative; width:100%; height:600px; background:radial-gradient(circle at center, #0a0b1e 0%, #000 100%); border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.05)">
             <canvas id="galaxyCanvas" style="width:100%; height:100%"></canvas>
             <div id="galaxyTooltip" class="galaxy-tooltip" style="display:none; position:absolute; pointer-events:none; z-index:1000"></div>
@@ -1242,9 +1309,15 @@ async function renderNarrativeGalaxy() {
                 ${Object.entries(data.anchors).map(([key, val]) => `
                     <div style="display:flex; align-items:center; gap:8px; font-size:0.6rem; color:var(--text-dim)">
                         <div style="width:10px; height:10px; border-radius:2px; background:${val.color}"></div>
-                        ${key}
+                        <div>
+                            <div style="color:white; font-weight:800">${key}</div>
+                            <div style="font-size:0.5rem">${val.topic}</div>
+                        </div>
                     </div>
                 `).join('')}
+            </div>
+            <div class="galaxy-timestamp" style="position:absolute; top:20px; right:20px; font-size:0.6rem; color:var(--accent); font-weight:900">
+                SYNC_TIME: ${data.timestamp}
             </div>
         </div>
     `;
@@ -1322,12 +1395,26 @@ async function renderNarrativeGalaxy() {
             tooltip.style.left = (mx + 20) + 'px';
             tooltip.style.top = (my + 20) + 'px';
             tooltip.innerHTML = `
-                <div style="background:rgba(10,11,30,0.95); border:1px solid ${hoveredStar.color}; padding:10px; border-radius:8px; backdrop-filter:blur(10px)">
-                    <div style="font-weight:800; color:white">${hoveredStar.ticker}</div>
-                    <div style="font-size:0.7rem; color:var(--text-dim); margin-top:2px">${hoveredStar.category}</div>
-                    <div style="font-size:0.9rem; font-weight:700; color:${hoveredStar.momentum >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}; margin-top:5px">
-                        ${hoveredStar.momentum > 0 ? '+' : ''}${hoveredStar.momentum}%
+                <div style="background:rgba(10,11,30,0.95); border:1px solid ${hoveredStar.color}; padding:12px; border-radius:8px; backdrop-filter:blur(10px); min-width:140px">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px">
+                        <span style="font-weight:900; color:white; font-size:1rem">${hoveredStar.ticker}</span>
+                        <span style="font-size:0.6rem; color:var(--text-dim)">${hoveredStar.category}</span>
                     </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px">
+                        <div>
+                            <div style="font-size:0.55rem; color:var(--text-dim)">MOMENTUM</div>
+                            <div style="font-weight:800; color:${hoveredStar.momentum >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">${hoveredStar.momentum > 0 ? '+' : ''}${hoveredStar.momentum}%</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.55rem; color:var(--text-dim)">SENTIMENT</div>
+                            <div style="font-weight:800; color:${hoveredStar.sentiment >= 0 ? 'var(--accent)' : 'var(--risk-high)'}">${hoveredStar.sentiment >= 0 ? '+' : ''}${hoveredStar.sentiment}</div>
+                        </div>
+                    </div>
+                    ${hoveredStar.meta && hoveredStar.meta.length ? `
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px">
+                            ${hoveredStar.meta.map(m => `<span style="font-size:0.5rem; background:rgba(0,242,255,0.1); color:var(--accent); padding:2px 5px; border-radius:3px; font-weight:900">${m}</span>`).join('')}
+                        </div>
+                    ` : ''}
                 </div>
             `;
         } else {
@@ -1548,7 +1635,10 @@ async function renderLiquidityView() {
     function renderHeatmapMode() {
         display.innerHTML = `
             <div class="card" style="height:100%; display:flex; flex-direction:column">
-                <h3 class="card-title">Temporal Liquidity Heatmap (1H History)</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+                    <h3 class="card-title" style="margin:0">Temporal Liquidity Heatmap (1H History)</h3>
+                    <span style="font-size:0.55rem; background:rgba(34, 197, 94, 0.1); color:var(--risk-low); padding:2px 8px; border-radius:4px; font-weight:900; letter-spacing:1px">HISTORICAL PERSISTENCE ACTIVE</span>
+                </div>
                 <div class="heatmap-grid" style="flex:1">
                     ${data.history.map(snap => `
                         <div class="heatmap-row">
@@ -1758,6 +1848,7 @@ const viewMap = {
     flow: renderFlows,
     heatmap: renderHeatmap,
     catalysts: renderCatalysts,
+    'macro-calendar': renderMacroCalendar,
     whales: renderWhales,
 
     pulse: renderMarketPulse,
