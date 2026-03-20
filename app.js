@@ -358,7 +358,7 @@ async function renderSignals(category = 'ALL') {
     startCountdown(); // Reset timer on successful fetch
 
     const filtered = category === 'ALL' ? signals : signals.filter(s => s.category === category);
-    const cats = ['ALL', 'EXCHANGE', 'PROXY', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
+    const cats = ['ALL', 'EXCHANGE', 'PROXY', 'MINERS', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
 
     appEl.innerHTML = `
         <div class="view-header"><h2>Signal Intelligence Dashboard</h2></div>
