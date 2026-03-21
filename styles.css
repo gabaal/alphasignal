@@ -253,6 +253,111 @@ select, option {
     transform: translateY(-3px);
     box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
 }
+/* Trade Lab Expansion */
+.trade-lab-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.picks-section {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.picks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.pick-mini-card {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.3s ease;
+    border-left: 3px solid var(--accent);
+}
+
+.pick-mini-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 242, 255, 0.1);
+}
+
+.pick-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.pick-header .ticker {
+    font-weight: 900;
+    font-size: 1.1rem;
+}
+
+.pick-header .rr-badge {
+    font-size: 0.65rem;
+    font-weight: 900;
+    background: rgba(0, 242, 255, 0.1);
+    color: var(--accent);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.pick-params {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.p-item label {
+    display: block;
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+}
+
+.p-item span {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.generator-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.lab-disclaimer {
+    margin-top: 20px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+}
+
+.risk-notice {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--risk-high);
+    margin-top: 15px;
+}
+
+@media (max-width: 1200px) {
+    .trade-lab-layout {
+        grid-template-columns: 1fr;
+    }
+}
 
 .setup-card {
     background: rgba(255,255,255,0.02);

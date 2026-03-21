@@ -1639,60 +1639,111 @@ function formatPrice(price) {
 
 async function renderTradeLab() {
     appEl.innerHTML = `
-        <h1 class="view-title">Trade Idea Lab</h1>
-        <p class="view-desc">Synthesize institutional data into actionable trade setups.</p>
-        
-        <div class="card">
-            <h3 class="card-title">Institutional Setup Synthesis</h3>
-            <p class="view-desc">Run our neural engine to generate a high-probability trade plan based on current Macro and GOMM data.</p>
-            <button class="setup-generator-btn" id="generate-setup-btn">GENERATE NEURAL SETUP</button>
-            <div id="setup-display-area"></div>
+        <div class="view-header">
+            <h1>Trade Intelligence Lab <span class="premium-badge">PRO</span></h1>
+            <p>Synthesizing institutional flow, macro catalysts, and technical regimes into actionable setups.</p>
         </div>
         
-        <div style="margin-top:20px; color:var(--text-dim); font-size:0.8rem">
-            * Setups are generated using cross-exchange liquidity walls and systemic risk markers. Always verify against personal risk parameters.
+        <div class="trade-lab-layout">
+            <section class="picks-section">
+                <div class="section-header">
+                    <span class="material-symbols-outlined">analytics</span>
+                    <h3>Institutional Alpha Picks (Systematic)</h3>
+                </div>
+                <div id="alpha-picks-grid" class="picks-grid">
+                    ${skeleton(2)}
+                </div>
+            </section>
+
+            <section class="generator-section">
+                <div class="card">
+                    <h3 class="card-title">Neural Setup Generator</h3>
+                    <p class="view-desc">On-demand synthesis for a specific asset using the latest GOMM and Macro context.</p>
+                    <div class="generator-controls">
+                        <input type="text" id="gen-ticker" value="BTC-USD" class="strat-select" style="width:120px; text-transform:uppercase">
+                        <button class="setup-generator-btn" id="generate-setup-btn" style="flex:1">GENERATE NEURAL SETUP</button>
+                    </div>
+                    <div id="setup-display-area"></div>
+                </div>
+                <div class="lab-disclaimer">
+                    * Setups are generated using cross-exchange liquidity walls and systemic risk markers. Always verify against personal risk parameters.
+                </div>
+            </section>
         </div>`;
 
+    // 1. Fetch Alpha Picks
+    const picks = await fetchAPI('/trade-lab');
+    const picksGrid = document.getElementById('alpha-picks-grid');
+    if (picks && picks.length) {
+        picksGrid.innerHTML = picks.map(p => `
+            <div class="pick-mini-card">
+                <div class="pick-header">
+                    <span class="ticker">${p.ticker}</span>
+                    <span class="rr-badge">RR ${p.rr_ratio}</span>
+                </div>
+                <div class="pick-params">
+                    <div class="p-item"><label>ENTRY</label><span>${formatPrice(p.entry)}</span></div>
+                    <div class="p-item"><label>TARGET</label><span class="pos">${formatPrice(p.tp1)}</span></div>
+                    <div class="p-item"><label>STOP</label><span class="neg">${formatPrice(p.stop_loss)}</span></div>
+                </div>
+                <button class="intel-action-btn mini" onclick="runNeuralSetup('${p.ticker}')">VIEW ANALYSIS</button>
+            </div>
+        `).join('');
+    } else {
+        picksGrid.innerHTML = '<p class="empty-state">No high-conviction systematic setups detected in this cycle.</p>';
+    }
+
+    // 2. Setup Generator Logic
     document.getElementById('generate-setup-btn').onclick = async () => {
-        const btn = document.getElementById('generate-setup-btn');
-        const area = document.getElementById('setup-display-area');
-        
+        const ticker = document.getElementById('gen-ticker').value || 'BTC-USD';
+        runNeuralSetup(ticker);
+    };
+}
+
+async function runNeuralSetup(ticker) {
+    const btn = document.getElementById('generate-setup-btn');
+    const area = document.getElementById('setup-display-area');
+    
+    if (btn) {
         btn.textContent = "SYNTHESIZING MARKET DATA...";
         btn.disabled = true;
-        
-        const setup = await fetchAPI('/generate-setup?ticker=BTC-USD');
-        
-        if (setup) {
-            area.innerHTML = `
-                <div class="setup-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-                        <span style="font-weight:900; color:var(--accent)">${setup.ticker} / ${setup.bias}</span>
-                        <span class="tier-badge institutional" style="margin:0">${setup.conviction} CONVICTION</span>
-                    </div>
-                    
-                    <div class="setup-param-grid">
-                        <div class="setup-param"><span class="label">Entry Zone</span><span class="value">${formatPrice(setup.parameters.entry)}</span></div>
-                        <div class="setup-param"><span class="label">Stop Loss</span><span class="value">${formatPrice(setup.parameters.stop_loss)}</span></div>
-                        <div class="setup-param"><span class="label">Target 1</span><span class="value">${formatPrice(setup.parameters.take_profit_1)}</span></div>
-                        <div class="setup-param"><span class="label">Target 2</span><span class="value">${formatPrice(setup.parameters.take_profit_2)}</span></div>
-                    </div>
-                    
-                    <div style="margin-bottom:20px">
-                        <span class="label" style="display:block; font-size:0.65rem; color:var(--text-dim); margin-bottom:8px; text-transform:uppercase; font-weight:900">Institutional Rationale</span>
-                        <ul style="margin:0; padding-left:20px; color:var(--text-header); font-size:0.9rem">
-                            ${setup.rationale.map(r => `<li style="margin-bottom:8px">${r}</li>`).join('')}
-                        </ul>
-                    </div>
-                    
-                    <div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); padding:10px; border-radius:8px; font-size:0.75rem; color:var(--risk-high)">
-                        <strong>RISK WARNING:</strong> ${setup.risk_warning}
-                    </div>
-                </div>`;
-        }
-        
+    }
+    
+    const setup = await fetchAPI(`/generate-setup?ticker=${ticker.toUpperCase()}`);
+    
+    if (setup) {
+        area.innerHTML = `
+            <div class="setup-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                    <span style="font-weight:900; color:var(--accent)">${setup.ticker} / ${setup.bias}</span>
+                    <span class="tier-badge institutional" style="margin:0">${setup.conviction} CONVICTION</span>
+                </div>
+                
+                <div class="setup-param-grid">
+                    <div class="setup-param"><span class="label">Entry Zone</span><span class="value">${formatPrice(setup.parameters.entry)}</span></div>
+                    <div class="setup-param"><span class="label">Stop Loss</span><span class="value">${formatPrice(setup.parameters.stop_loss)}</span></div>
+                    <div class="setup-param"><span class="label">Target 1</span><span class="value">${formatPrice(setup.parameters.take_profit_1)}</span></div>
+                    <div class="setup-param"><span class="label">Target 2</span><span class="value">${formatPrice(setup.parameters.take_profit_2)}</span></div>
+                </div>
+                
+                <div style="margin-bottom:20px">
+                    <span class="label" style="display:block; font-size:0.65rem; color:var(--text-dim); margin-bottom:8px; text-transform:uppercase; font-weight:900">Institutional Rationale</span>
+                    <ul style="margin:0; padding-left:20px; color:var(--text-header); font-size:0.9rem">
+                        ${setup.rationale.map(r => `<li style="margin-bottom:8px">${r}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="risk-notice">
+                    <strong>RISK WARNING:</strong> ${setup.risk_warning}
+                </div>
+            </div>`;
+        area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    if (btn) {
         btn.textContent = "GENERATE NEURAL SETUP";
         btn.disabled = false;
-    };
+    }
 }
 
 async function renderLiquidityView() {
