@@ -2884,6 +2884,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // Close overlays when clicking outside the content area
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('overlay')) {
+            e.target.classList.add('hidden');
+            if (e.target.id === 'detail-overlay' && window.activeTape) {
+                window.activeTape.stop();
+            }
+        }
+    });
+
     document.getElementById('refresh-btn').addEventListener('click', () => renderSignals(currentSignalCategory));
 
     document.getElementById('global-search').addEventListener('keypress', (e) => {
