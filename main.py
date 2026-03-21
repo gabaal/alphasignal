@@ -200,51 +200,56 @@ class DataCache:
             "expires_at": time.time() + self._ttl
         })
 
-    def download(self, tickers, period='60d', interval='1d', column='Close'):
-        key = f"dl:{','.join(tickers) if isinstance(tickers, list) else tickers}:{period}:{interval}:{column}"
+    def download(self, tickers, period='1y', interval='1d', column=None):
+        """Standardized downloader for single and multi-asset requests."""
+        if isinstance(tickers, str): tickers = [tickers]
+        unique_tickers = list(dict.fromkeys(tickers))
+        key = f"dl:{','.join(unique_tickers)}:{period}:{interval}:{column}"
+        
+        # Check L2 Cache
         cached = self.get(key)
         if cached is not None:
-            # Handle pandas conversion if it was cached as list/dict
-            if isinstance(cached, dict) and 'prices' in cached:
-                return pd.Series(cached['prices'], index=pd.to_datetime(cached['dates']))
             if isinstance(cached, dict) and 'df' in cached:
                 return pd.read_json(io.StringIO(cached['df']))
             return cached
             
-    def download(self, tickers, period='1y', interval='1d', column=None):
-        """Standardized downloader for single and multi-asset requests."""
-        if isinstance(tickers, str): tickers = [tickers]
-        
         try:
-            # Check L1 Cache
-            cache_key = f"{','.join(tickers)}:{period}:{interval}:{column}"
-            # ... (cache check logic placeholder, actual implementation below)
-            
-            raw = yf.download(tickers, period=period, interval=interval, progress=False)
+            raw = yf.download(unique_tickers, period=period, interval=interval, progress=False)
             if raw.empty: return None
             
-            # 1. Flatten MultiIndex (Always handle this at source)
+            # 1. Standardize Output to DataFrame
+            data = raw
+            
+            # 2. Case A: Multi-asset request (YFinance returns MultiIndex [Metric, Ticker])
             if isinstance(raw.columns, pd.MultiIndex):
-                # If column is specified (e.g. 'Close'), extract it
-                if column and column in raw.columns.levels[0]:
-                    raw = raw[column]
-                # Then flatten
-                if isinstance(raw, pd.DataFrame):
-                    raw.columns = raw.columns.get_level_values(0)
+                if column:
+                    # Metric is level 0, Ticker is level 1 by default in 0.2+
+                    try:
+                        data = raw.xs(column, axis=1, level=0)
+                    except:
+                        # Fallback for older versions or different structure
+                        if column in raw.columns.levels[0]:
+                            data = raw[column]
+                else:
+                    # Flatten to Ticker_Metric if no specific column requested
+                    data.columns = [f"{t}_{m}" if isinstance(t, str) else t for m, t in data.columns]
             
-            # 2. Extract specific column if flat and requested
-            if column and isinstance(raw, pd.DataFrame) and column in raw.columns:
-                raw = raw[column]
+            # 2. Case B: Single-asset request (YFinance returns Flat Index [Metric])
+            else:
+                if column and column in raw.columns:
+                    data = raw[column]
+                # If no column, it's already a single-asset DataFrame [Open, Close, ...]
             
-            # 3. Clean and return
-            # If tickers was a list of 1 and we didn't ask for a column, we still return a DataFrame
-            # But if we asked for a column, we expect a Series
-            return raw
-        except Exception as e:
-            print(f"DataCache download failed: {e}")
-            return None
+            # 3. Cache and return
+            serializable = data
+            if isinstance(data, pd.DataFrame):
+                # Ensure no duplicates (should be unique by now if extraction worked)
+                if not data.columns.is_unique:
+                    data = data.loc[:, ~data.columns.duplicated()]
                 serializable = {'df': data.to_json()}
-                
+            elif isinstance(data, pd.Series):
+                serializable = {'prices': data.values.tolist(), 'dates': data.index.strftime('%Y-%m-%d').tolist()}
+            
             self.set(key, serializable)
             return data
         except Exception as e:
