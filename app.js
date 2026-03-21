@@ -1704,18 +1704,38 @@ async function runNeuralSetup(ticker) {
     const btn = document.getElementById('generate-setup-btn');
     const area = document.getElementById('setup-display-area');
     
+    // Provide immediate feedback if triggered via "View Analysis"
+    if (area) {
+        area.innerHTML = `<div class="loading-state" style="padding:40px; text-align:center">
+            <div class="spinner" style="margin-bottom:15px"></div>
+            <p>SYNTHESIZING NEURAL SETUP FOR ${ticker.toUpperCase()}...</p>
+        </div>`;
+    }
+
     if (btn) {
-        btn.textContent = "SYNTHESIZING MARKET DATA...";
+        btn.textContent = "SYNTHESIZING...";
         btn.disabled = true;
     }
     
-    const setup = await fetchAPI(`/generate-setup?ticker=${ticker.toUpperCase()}`);
-    
-    if (setup) {
+    try {
+        const setup = await fetchAPI(`/generate-setup?ticker=${ticker.toUpperCase()}`);
+        
+        if (!setup || setup.error) {
+            if (area) {
+                area.innerHTML = `
+                    <div class="error-card" style="padding:20px; border:1px solid var(--neg); background:rgba(255,59,48,0.1); border-radius:12px; text-align:center">
+                        <span class="material-symbols-outlined" style="font-size:3rem; color:var(--neg); margin-bottom:10px">warning</span>
+                        <h4 style="color:var(--text-header)">SYNTHESIS FAILED</h4>
+                        <p style="color:var(--text-dim); font-size:0.8rem">${setup?.error || 'Market data stream interrupted. Ticker may be invalid or halted.'}</p>
+                    </div>`;
+            }
+            return;
+        }
+        
         area.innerHTML = `
-            <div class="setup-card">
+            <div class="setup-card animate-in">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-                    <span style="font-weight:900; color:var(--accent)">${setup.ticker} / ${setup.bias}</span>
+                    <span style="font-weight:900; color:var(--accent); font-size:1.1rem">${setup.ticker} / ${setup.bias}</span>
                     <span class="tier-badge institutional" style="margin:0">${setup.conviction} CONVICTION</span>
                 </div>
                 
@@ -1728,8 +1748,8 @@ async function runNeuralSetup(ticker) {
                 
                 <div style="margin-bottom:20px">
                     <span class="label" style="display:block; font-size:0.65rem; color:var(--text-dim); margin-bottom:8px; text-transform:uppercase; font-weight:900">Institutional Rationale</span>
-                    <ul style="margin:0; padding-left:20px; color:var(--text-header); font-size:0.9rem">
-                        ${setup.rationale.map(r => `<li style="margin-bottom:8px">${r}</li>`).join('')}
+                    <ul class="rationale-list">
+                        ${setup.rationale.map(r => `<li>${r}</li>`).join('')}
                     </ul>
                 </div>
                 
@@ -1738,11 +1758,13 @@ async function runNeuralSetup(ticker) {
                 </div>
             </div>`;
         area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    
-    if (btn) {
-        btn.textContent = "GENERATE NEURAL SETUP";
-        btn.disabled = false;
+    } catch (e) {
+        console.error('Setup Gen Error:', e);
+    } finally {
+        if (btn) {
+            btn.textContent = "GENERATE NEURAL SETUP";
+            btn.disabled = false;
+        }
     }
 }
 
