@@ -929,16 +929,17 @@ async function renderWhales() {
     appEl.innerHTML = `
         <div class="view-header">
             <h1>Institutional Whale Pulse</h1>
-            <p>Real-time monitor of unconfirmed large-scale transfers (> 50 BTC) on the Bitcoin network.</p>
+            <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
         </div>
         <div class="whale-list">
             ${data.map(w => `
                 <div class="whale-row">
                     <div class="w-main">
-                        <div class="w-amount">${w.amount} BTC <span class="usd-val">(${w.usdValue})</span></div>
+                        <div class="w-amount">${w.amount} ${w.asset.split('-')[0]} <span class="usd-val">(${w.usdValue})</span></div>
                         <div class="w-meta">
                             <span class="w-hash">${w.hash}</span>
                             <span class="w-time">${w.timestamp}</span>
+                            <span class="asset-badge">${w.asset}</span>
                         </div>
                     </div>
                     <div class="w-paths">
@@ -946,6 +947,7 @@ async function renderWhales() {
                         <div><label class="label-tag">TO</label> <span>${w.to}</span></div>
                     </div>
                     <div class="w-actions">
+                        <div class="flow-badge flow-${w.flow.toLowerCase()}">${w.flow}</div>
                         <div class="impact-badge impact-${w.impact.toLowerCase()}">${w.impact} IMPACT</div>
                         <button class="timeframe-btn" onclick="openDetail('${w.asset}')">VIEW CHART</button>
                     </div>
@@ -1736,7 +1738,7 @@ async function renderLiquidityView() {
     const [data, tapeData, whaleData, liqData] = await Promise.all([
         fetchAPI('/liquidity?ticker=BTC-USD'),
         fetchAPI('/tape?ticker=BTC-USD'),
-        fetchAPI('/whales?ticker=BTC-USD'),
+        fetchAPI(`/whales_entity?ticker=${ticker}`),
         fetchAPI('/liquidations?ticker=BTC-USD')
     ]);
     

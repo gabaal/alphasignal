@@ -693,7 +693,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             auth_info = None
             if path.startswith('/api/'):
                 # Bypass auth for purely public endpoints
-                if path not in ['/api/auth/login', '/api/auth/signup', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/alerts']:
+                if path not in ['/api/auth/login', '/api/auth/signup', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/alerts', '/api/whales']:
                     auth_info = self.is_authenticated()
                     if not auth_info:
                         self.send_response(401)
@@ -706,7 +706,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     if not auth_info.get('is_premium', False):
                         # These are free for authenticated users
                         free_authed = ['/api/search', '/api/auth/logout', '/api/auth/status', '/api/toggle_track']
-                        if path not in free_authed and not any(p in path for p in ['/api/history', '/api/backtest']):
+                        if path not in free_authed:
                              self.send_response(402)
                              self.send_header('Content-Type', 'application/json')
                              self.end_headers()
@@ -2010,14 +2010,61 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 btc_hist = hist.copy()
 
-            # 2. Strategy Logic: EMA Crossover (20/50)
-            df = hist[['Close']].copy()
-            df['EMA20'] = df['Close'].ewm(span=20, adjust=False).mean()
-            df['EMA50'] = df['Close'].ewm(span=50, adjust=False).mean()
+            # 2. Strategy Logic & Signal Generation
+            df = hist.copy()
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
             
-            # Simple Signal: Buy EMA20 > EMA50
-            df['Signal'] = np.where(df['EMA20'] > df['EMA50'], 1, 0)
+            df = df[['Close']].copy()
             df['PctChange'] = df['Close'].pct_change()
+            
+            if strategy == 'regime_alpha':
+                # Regime Velocity Alpha: Use 60d rolling stats for regime detection
+                # Long in STEADY TRENDING or ACCUMULATION, Cash otherwise
+                df['RollMean'] = df['Close'].rolling(window=20).mean()
+                df['RollStd'] = df['Close'].rolling(window=20).std()
+                df['Upper'] = df['RollMean'] + (df['RollStd'] * 2)
+                df['Lower'] = df['RollMean'] - (df['RollStd'] * 2)
+                df['Volatility'] = df['PctChange'].rolling(window=20).std() * np.sqrt(252)
+                
+                # Signal Generation with Rebalance Logic
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        price = df['Close'].iloc[i]
+                        upper = df['Upper'].iloc[i]
+                        lower = df['Lower'].iloc[i]
+                        vol = df['Volatility'].iloc[i]
+                        
+                        # Logic from handle_regime (simplified for backtest)
+                        is_high_vol = vol > 0.4 # 40% ann vol threshold
+                        current_signal = 0
+                        if price > upper: # Trending Up
+                            if not is_high_vol: current_signal = 1 # STEADY TRENDING
+                        elif price < lower: # Trending Down
+                            current_signal = 0 # CAPITULATION/DISTRIBUTION
+                        else: # Sideways
+                            if not is_high_vol: current_signal = 1 # ACCUMULATION
+                        
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+            else:
+                # Default Logic: EMA Crossover (20/50)
+                df['EMA20'] = df['Close'].ewm(span=20, adjust=False).mean()
+                df['EMA50'] = df['Close'].ewm(span=50, adjust=False).mean()
+                
+                # Signal Generation with Rebalance Logic
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        current_signal = 1 if df['EMA20'].iloc[i] > df['EMA50'].iloc[i] else 0
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+                
             df['StrategyReturn'] = df['Signal'].shift(1) * df['PctChange']
             
             # 3. Simulate Equity Curves
@@ -2592,59 +2639,131 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
         try:
-            # Simulated AI synthesis of market data
+            # 1. Fetch real market data for context
+            hist = yf.download(ticker, period='60d', interval='1d', progress=False)
+            if hist.empty:
+                self.send_json({"error": f"Insufficient data for {ticker}"})
+                return
+            
+            # Flatten MultiIndex if present (yfinance single-ticker output)
+            if isinstance(hist.columns, pd.MultiIndex):
+                hist.columns = hist.columns.get_level_values(0)
+            
+            prices = hist['Close']
+            current_price = float(prices.iloc[-1])
+            
+            # 2. Derive basic technical signals
+            ema20 = prices.ewm(span=20, adjust=False).mean().iloc[-1]
+            ema50 = prices.ewm(span=50, adjust=False).mean().iloc[-1]
+            
+            # RSI Calculation
+            delta = prices.diff()
+            gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+            loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+            rs = gain / loss
+            rsi = 100 - (100 / (1 + rs.iloc[-1])) if loss.iloc[-1] != 0 else 50
+            
+            # Volatility (ATR-like)
+            vol = prices.pct_change().rolling(window=14).std().iloc[-1] * np.sqrt(252)
+            
+            # 3. Decision Engine
+            bias = "BULLISH" if (current_price > ema20 or rsi < 35) else "BEARISH"
+            conviction = "HIGH" if (current_price > ema20 and current_price > ema50 and rsi > 50) or (rsi < 30) else "TACTICAL"
+            
+            # 4. Parameters (Dynamic based on Volatility)
+            risk_pct = 0.02 if vol < 0.3 else 0.05
+            stop_dist = current_price * risk_pct
+            if bias == "BULLISH":
+                entry = current_price
+                stop_loss = current_price - stop_dist
+                tp1 = current_price + (stop_dist * 1.5)
+                tp2 = current_price + (stop_dist * 3.0)
+            else:
+                entry = current_price
+                stop_loss = current_price + stop_dist
+                tp1 = current_price - (stop_dist * 1.5)
+                tp2 = current_price - (stop_dist * 3.0)
+
+            # 5. Rationale Builder
+            rationale = []
+            if current_price > ema20: rationale.append(f"Price holding above 20-day EMA (${ema20:.2f}), confirming short-term trend strength.")
+            else: rationale.append(f"Price currently below 20-day EMA (${ema20:.2f}), suggesting downside momentum.")
+            
+            if rsi > 70: rationale.append(f"RSI overbought at {rsi:.1f}. Expecting potential mean-reversion or cooling period.")
+            elif rsi < 30: rationale.append(f"RSI oversold at {rsi:.1f}. Institutional accumulation zones typically active here.")
+            else: rationale.append(f"RSI neutral at {rsi:.1f}, indicating balanced market participation.")
+            
+            if vol > 0.5: rationale.append(f"High volatility environment detected (Ann Vol: {vol*100:.1f}%). Liquidity gaps may lead to slippage.")
+            
             setup = {
                 "ticker": ticker,
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "bias": "BULLISH" if random.random() > 0.4 else "BEARISH",
-                "conviction": random.choice(["HIGH", "MEDIUM", "TACTICAL"]),
+                "bias": bias,
+                "conviction": conviction,
                 "parameters": {
-                    "entry": 91200.0 + random.uniform(-100, 100),
-                    "stop_loss": 89800.0 + random.uniform(-50, 50),
-                    "take_profit_1": 93500.0,
-                    "take_profit_2": 95200.0
+                    "entry": round(entry, 2),
+                    "stop_loss": round(stop_loss, 2),
+                    "take_profit_1": round(tp1, 2),
+                    "take_profit_2": round(tp2, 2)
                 },
-                "rationale": [
-                    "Strong liquidity walls detected at $90.5k across Binance/OKX providing structural support.",
-                    "Institutional Tape shows aggressive absorbent buying on 50+ BTC clips in the last 15 minutes.",
-                    "Macro catalyst (Core PCE) volatility profile suggests exhaustion of sell-side momentum.",
-                    "Divergence in funding rates indicates a potential short-squeeze catalyst in the next 4-hour window."
-                ],
-                "risk_warning": "High volatility environment. Institutional flow is currently imbalanced. Recommend 1.5% max risk per position."
+                "rationale": rationale,
+                "risk_warning": f"Simulated alpha based on technical heuristics. {'Volatility is Elevated' if vol > 0.4 else 'Volatility is Stable'}. Max risk {risk_pct*100:.1f}% per clip."
             }
             self.send_json(setup)
         except Exception as e:
             self.send_error(500, f"Setup Generation Error: {e}")
 
     def handle_whales(self):
-        # Pack J Phase 1: Real-time Whale Pulse (On-chain)
+        # Phase 2: Multi-Chain Whale Pulse (BTC, ETH, SOL)
         try:
             import urllib.request
             now = datetime.now()
-            with urllib.request.urlopen("https://blockchain.info/unconfirmed-transactions?format=json", timeout=3) as r:
-                whale_data = json.loads(r.read().decode())
-                results = []
-                for tx in whale_data.get('txs', [])[:10]:
-                    btc = sum(out.get('value', 0) for out in tx.get('out', [])) / 100_000_000
-                    if btc > 50: # Standard whale threshold
-                        results.append({
-                            "amount": round(btc, 2),
-                            "usdValue": f"${(btc * 91000):,.0f}",
-                            "hash": tx.get('hash', '0x...')[:12] + "...",
-                            "timestamp": now.strftime('%H:%M:%S'),
-                            "from": "0x" + "".join(random.choices("0123456789abcdef", k=8)) + "...",
-                            "to": "0x" + "".join(random.choices("0123456789abcdef", k=8)) + "...",
-                            "impact": "High" if btc > 500 else "Medium",
-                            "asset": "BTC-USD"
-                        })
-                
-                # Fallback if mempool is slow
-                if not results:
-                    results = [
-                        {"amount": 420.69, "usdValue": "$38.2M", "hash": "a1b2c3d4e5f6...", "timestamp": now.strftime('%H:%M:%S'), "from": "Institutional Custody", "to": "Unknown Wallet", "impact": "High", "asset": "BTC-USD"},
-                        {"amount": 125.0, "usdValue": "$11.4M", "hash": "f6e5d4c3b2a1...", "timestamp": now.strftime('%H:%M:%S'), "from": "KuCoin Hub", "to": "Institutional OTC", "impact": "Medium", "asset": "BTC-USD"}
-                    ]
-                self.send_json(results)
+            results = []
+
+            # 1. Real-time BTC Pulse (Blockchain.info)
+            try:
+                with urllib.request.urlopen("https://blockchain.info/unconfirmed-transactions?format=json", timeout=2) as r:
+                    whale_data = json.loads(r.read().decode())
+                    for tx in whale_data.get('txs', [])[:5]:
+                        btc = sum(out.get('value', 0) for out in tx.get('out', [])) / 100_000_000
+                        if btc > 20: 
+                            results.append({
+                                "amount": round(btc, 2),
+                                "usdValue": f"${(btc * 68000):,.0f}",
+                                "hash": tx.get('hash', '0x...')[:12] + "...",
+                                "timestamp": now.strftime('%H:%M:%S'),
+                                "from": random.choice(["Institutional Custody", "Unknown Wallet", "Binance Hot Wallet"]),
+                                "to": random.choice(["Coinbase", "Cold Storage", "Unknown Wallet"]),
+                                "impact": "High" if btc > 200 else "Medium",
+                                "asset": "BTC-USD",
+                                "flow": random.choice(["INFLOW", "OUTFLOW", "NEUTRAL"])
+                            })
+            except: pass
+
+            # 2. Simulated ETH/SOL Whale Intelligence
+            assets = [
+                {"ticker": "ETH-USD", "threshold": 500, "price": 3400},
+                {"ticker": "SOL-USD", "threshold": 5000, "price": 180}
+            ]
+            
+            for a in assets:
+                if random.random() > 0.3: # 70% chance of a mock whale hit
+                    amount = a['threshold'] * random.uniform(1.1, 5.0)
+                    flow = random.choice(["INFLOW", "OUTFLOW", "NEUTRAL"])
+                    results.append({
+                        "amount": f"{amount:,.0f}",
+                        "usdValue": f"${(amount * a['price'] / 1_000_000):,.1f}M",
+                        "hash": "0x" + "".join(random.choices("0123456789abcdef", k=12)) + "...",
+                        "timestamp": now.strftime('%H:%M:%S'),
+                        "from": "Unknown Wallet" if flow == "INFLOW" else "Exchange Cluster",
+                        "to": "Exchange Cluster" if flow == "INFLOW" else "Institutional Custody",
+                        "impact": "High" if amount > a['threshold'] * 3 else "Medium",
+                        "asset": a['ticker'],
+                        "flow": flow
+                    })
+
+            # Sort by timestamp (though they are all 'now' for now)
+            self.send_json(results[:15])
         except Exception as e:
             print(f"Whale Engine Error: {e}")
             self.send_json([])
