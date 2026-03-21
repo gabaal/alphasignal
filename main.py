@@ -693,7 +693,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             auth_info = None
             if path.startswith('/api/'):
                 # Bypass auth for purely public endpoints
-                if path not in ['/api/auth/login', '/api/auth/signup', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/alerts', '/api/whales']:
+                if path not in ['/api/auth/login', '/api/auth/signup', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/alerts', '/api/whales', '/api/whales_entity']:
                     auth_info = self.is_authenticated()
                     if not auth_info:
                         self.send_response(401)

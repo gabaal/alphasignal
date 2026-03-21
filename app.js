@@ -1738,7 +1738,7 @@ async function renderLiquidityView() {
     const [data, tapeData, whaleData, liqData] = await Promise.all([
         fetchAPI('/liquidity?ticker=BTC-USD'),
         fetchAPI('/tape?ticker=BTC-USD'),
-        fetchAPI(`/whales_entity?ticker=${ticker}`),
+        fetchAPI('/whales_entity?ticker=BTC-USD'),
         fetchAPI('/liquidations?ticker=BTC-USD')
     ]);
     
