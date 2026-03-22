@@ -104,6 +104,12 @@
                 <div class="nav-item" data-view="correlation-matrix" aria-label="View Correlation Matrix (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">grid_4x4</span> Correlation <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
+                <div class="nav-item" data-view="alpha-score" aria-label="View Alpha Score (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">electric_bolt</span> Alpha Score <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
+                </div>
+                <div class="nav-item" data-view="performance-dashboard" aria-label="View Performance Dashboard (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">trending_up</span> Performance <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
+                </div>
                 <div class="nav-item" data-view="risk" aria-label="View Risk Matrix (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">grid_on</span> Risk Matrix <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
@@ -200,6 +206,12 @@
                         <!-- Feature 2: Notification Panel -->
                         <div id="notif-panel" style="display:none; position:absolute; right:0; top:calc(100% + 8px); width:340px; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 40px rgba(0,0,0,0.6); z-index:1000; overflow:hidden; max-height:420px; overflow-y:auto"></div>
                     </div>
+                    <!-- Feature 5: Export Report -->
+                    <button id="export-btn" onclick="exportReport()" aria-label="Export Report"
+                            style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; padding:7px 12px; cursor:pointer; color:var(--text); font-size:0.65rem; letter-spacing:1px; transition:all 0.2s"
+                            onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                        📥 Export
+                    </button>
                     <button id="refresh-btn" aria-label="Recalculate Signals">⚡ Re-calculate Signals</button>
                 </div>
             </header>

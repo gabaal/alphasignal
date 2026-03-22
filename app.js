@@ -565,7 +565,243 @@ async function renderMiners() {
     renderSignals('MINERS');
 }
 
-// ============= Feature 3: Correlation Matrix =============
+// ============================================================
+// Feature 2: Alpha Score Composite
+// ============================================================
+async function renderAlphaScore() {
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>⚡ Alpha Score <span class="premium-badge">LIVE</span></h1>
+            <p>Composite 0–100 ranking across momentum, sentiment, signal engine alerts & volatility.</p>
+        </div>
+        <div class="card" style="padding:1rem">${skeleton(1)}</div>
+    `;
+    const data = await fetchAPI('/alpha-score');
+    if (!data || !data.scores || !data.scores.length) {
+        appEl.innerHTML += `<div class="card" style="text-align:center; padding:2rem; color:var(--text-dim)">Scoring engine computing... try again in 30s.</div>`;
+        return;
+    }
+
+    const gradeColors = { A: '#22c55e', B: '#60a5fa', C: '#facc15', D: '#ef4444' };
+    const signalColors = { 'STRONG BUY': '#22c55e', 'BUY': '#86efac', 'NEUTRAL': '#60a5fa', 'CAUTION': '#ef4444' };
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>⚡ Alpha Score <span class="premium-badge">LIVE</span></h1>
+            <p>Composite 0–100 ranking · Updated ${data.updated} · ${data.scores.length} assets scored</p>
+        </div>
+        <div class="card" style="overflow-x:auto">
+            <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
+                <thead>
+                    <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
+                        <th style="text-align:left; padding:8px 12px">#</th>
+                        <th style="text-align:left; padding:8px 12px">ASSET</th>
+                        <th style="text-align:left; padding:8px 12px">SECTOR</th>
+                        <th style="text-align:left; padding:8px 12px; width:180px">SCORE</th>
+                        <th style="text-align:center; padding:8px 12px">GRADE</th>
+                        <th style="text-align:center; padding:8px 12px">SIGNAL</th>
+                        <th style="text-align:left; padding:8px 12px">WHY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.scores.map((s, i) => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s"
+                            onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                            <td style="padding:10px 12px; color:var(--text-dim)">${i + 1}</td>
+                            <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
+                            <td style="padding:10px 12px; color:var(--text-dim); font-size:0.65rem; letter-spacing:1px">${s.sector}</td>
+                            <td style="padding:10px 12px">
+                                <div style="display:flex; align-items:center; gap:8px">
+                                    <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden">
+                                        <div style="width:${s.score}%; height:100%; background:${gradeColors[s.grade] || '#60a5fa'}; border-radius:4px; transition:width 1s ease"></div>
+                                    </div>
+                                    <span style="font-weight:700; font-size:0.8rem; color:${gradeColors[s.grade]}">${s.score}</span>
+                                </div>
+                            </td>
+                            <td style="padding:10px 12px; text-align:center">
+                                <span style="background:${gradeColors[s.grade] || '#999'}33; color:${gradeColors[s.grade] || '#999'}; padding:2px 10px; border-radius:20px; font-weight:700; font-size:0.75rem">${s.grade}</span>
+                            </td>
+                            <td style="padding:10px 12px; text-align:center">
+                                <span style="color:${signalColors[s.signal] || '#60a5fa'}; font-size:0.6rem; letter-spacing:1px">${s.signal}</span>
+                            </td>
+                            <td style="padding:10px 12px; color:var(--text-dim); font-size:0.62rem; max-width:200px">${(s.reasons || []).join(' · ') || '—'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+// ============================================================
+// Feature 4: Performance Dashboard
+// ============================================================
+async function renderPerformanceDashboard() {
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1>
+            <p>Terminal signal track record — win rate, returns, and monthly breakdown.</p>
+        </div>
+        <div class="card" style="padding:1rem">${skeleton(1)}</div>
+    `;
+    const d = await fetchAPI('/performance');
+    if (!d) return;
+
+    const noData = d.total_signals === 0;
+    const winColor = d.avg_return >= 0 ? '#22c55e' : '#ef4444';
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1>
+            <p>Track record as of ${d.updated} · Based on ${d.total_signals} signals captured since launch</p>
+        </div>
+
+        <!-- KPI Row -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1rem">
+            ${[
+                ['TOTAL SIGNALS', d.total_signals, '#60a5fa', '📡'],
+                ['WIN RATE', d.total_signals > 0 ? d.win_rate + '%' : 'N/A', d.win_rate >= 50 ? '#22c55e' : '#ef4444', '🎯'],
+                ['AVG RETURN', d.total_signals > 0 ? (d.avg_return >= 0 ? '+' : '') + d.avg_return + '%' : 'N/A', winColor, '💰'],
+                ['TOTAL PnL', d.total_signals > 0 ? (d.total_return >= 0 ? '+' : '') + d.total_return + '%' : 'N/A', winColor, '🏆'],
+            ].map(([label, val, color, icon]) => `
+                <div class="card" style="padding:1.2rem; text-align:center">
+                    <div style="font-size:1.4rem; margin-bottom:4px">${icon}</div>
+                    <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px">${label}</div>
+                    <div style="font-size:1.5rem; font-weight:900; color:${color}">${val}</div>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- Best / Worst -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
+            <div class="card" style="padding:1rem">
+                <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px">🏆 BEST PICK</div>
+                <div style="font-size:1rem; font-weight:700; color:#22c55e">${d.best_pick?.ticker || '—'}</div>
+                <div style="font-size:0.8rem; color:#22c55e">${d.best_pick?.return > -999 ? '+' + d.best_pick.return + '%' : 'N/A'}</div>
+            </div>
+            <div class="card" style="padding:1rem">
+                <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px">📉 WORST PICK</div>
+                <div style="font-size:1rem; font-weight:700; color:#ef4444">${d.worst_pick?.ticker || '—'}</div>
+                <div style="font-size:0.8rem; color:#ef4444">${d.worst_pick?.return < 999 ? d.worst_pick.return + '%' : 'N/A'}</div>
+            </div>
+        </div>
+
+        ${noData ? `<div class="card" style="padding:3rem; text-align:center; color:var(--text-dim); font-size:0.85rem">
+            No signal history yet. Performance data will appear as the Harvest engine captures signals.
+        </div>` : ''}
+
+        <!-- Monthly Breakdown -->
+        ${d.monthly && d.monthly.length ? `
+        <div class="card" style="overflow-x:auto">
+            <div style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:1rem">MONTHLY BREAKDOWN</div>
+            <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
+                <thead>
+                    <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
+                        <th style="text-align:left; padding:8px 12px">MONTH</th>
+                        <th style="text-align:right; padding:8px 12px">SIGNALS</th>
+                        <th style="text-align:right; padding:8px 12px">AVG RETURN</th>
+                        <th style="text-align:left; padding:8px 12px; width:200px">PERFORMANCE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${d.monthly.map(m => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                            <td style="padding:10px 12px; color:var(--text)">${m.month}</td>
+                            <td style="padding:10px 12px; text-align:right; color:var(--text-dim)">${m.signals}</td>
+                            <td style="padding:10px 12px; text-align:right; font-weight:700; color:${m.avg_roi >= 0 ? '#22c55e' : '#ef4444'}">${m.avg_roi >= 0 ? '+' : ''}${m.avg_roi}%</td>
+                            <td style="padding:10px 12px">
+                                <div style="height:6px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden; max-width:180px">
+                                    <div style="width:${Math.min(100, Math.abs(m.avg_roi) * 5)}%; height:100%; background:${m.avg_roi >= 0 ? '#22c55e' : '#ef4444'}; border-radius:4px"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>` : ''}
+    `;
+}
+
+// ============================================================
+// Feature 5: Export Report
+// ============================================================
+async function exportReport() {
+    const btn = document.getElementById('export-btn');
+    if (btn) { btn.textContent = '⏳ Exporting...'; btn.disabled = true; }
+
+    try {
+        // Trigger JSON download from backend
+        const link = document.createElement('a');
+        link.href = `${API_BASE}/export`;
+        link.download = `alphasignal_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Also generate a printable HTML snapshot
+        const [signals, perf, scores] = await Promise.all([
+            fetchAPI('/signal-history'),
+            fetchAPI('/performance'),
+            fetchAPI('/alpha-score')
+        ]);
+
+        const now = new Date().toLocaleString();
+        const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>AlphaSignal Export ${now}</title>
+<style>
+  body { font-family: 'Courier New', monospace; background:#0a0e1a; color:#e2e8f0; padding:40px; }
+  h1 { color: #60a5fa; border-bottom: 2px solid #1e3a5f; padding-bottom: 10px; }
+  h2 { color: #94a3b8; font-size: 0.9rem; letter-spacing: 3px; margin-top: 40px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.8rem; }
+  th { color: #64748b; text-align: left; padding: 8px; border-bottom: 1px solid #1e293b; }
+  td { padding: 8px; border-bottom: 1px solid #0f172a; }
+  .stat { display: inline-block; background: #1e293b; padding: 8px 20px; border-radius: 8px; margin: 8px; text-align: center; }
+  .val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
+  .lbl { font-size: 0.6rem; color: #64748b; letter-spacing: 2px; }
+  .pos { color: #22c55e; } .neg { color: #ef4444; }
+</style></head><body>
+<h1>⚡ AlphaSignal Terminal — Intelligence Export</h1>
+<p style="color:#64748b">Generated: ${now}</p>
+
+<h2>PERFORMANCE METRICS</h2>
+<div>
+  <div class="stat"><div class="val">${perf?.total_signals || 0}</div><div class="lbl">SIGNALS</div></div>
+  <div class="stat"><div class="val">${perf?.win_rate || 0}%</div><div class="lbl">WIN RATE</div></div>
+  <div class="stat"><div class="val ${(perf?.avg_return || 0) >= 0 ? 'pos' : 'neg'}">${(perf?.avg_return || 0) >= 0 ? '+' : ''}${perf?.avg_return || 0}%</div><div class="lbl">AVG RETURN</div></div>
+</div>
+
+<h2>TOP ALPHA SCORES</h2>
+<table>
+<tr><th>RANK</th><th>ASSET</th><th>SECTOR</th><th>SCORE</th><th>SIGNAL</th></tr>
+${(scores?.scores || []).slice(0, 10).map((s, i) => `<tr><td>${i+1}</td><td>${s.ticker}</td><td>${s.sector}</td><td>${s.score}/100</td><td>${s.signal}</td></tr>`).join('')}
+</table>
+
+<h2>RECENT SIGNALS</h2>
+<table>
+<tr><th>TICKER</th><th>TYPE</th><th>RETURN %</th><th>DATE</th></tr>
+${(signals || []).slice(0, 10).map(s => `<tr><td>${s.ticker}</td><td>${s.type}</td><td class="${s.return >= 0 ? 'pos' : 'neg'}">${s.return >= 0 ? '+' : ''}${s.return}%</td><td>${s.timestamp?.split('T')[0]}</td></tr>`).join('')}
+</table>
+</body></html>`;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const printLink = document.createElement('a');
+        printLink.href = url;
+        printLink.download = `alphasignal_report_${new Date().toISOString().split('T')[0]}.html`;
+        document.body.appendChild(printLink);
+        printLink.click();
+        document.body.removeChild(printLink);
+        URL.revokeObjectURL(url);
+
+    } catch(e) {
+        console.error('Export failed:', e);
+    } finally {
+        if (btn) { btn.textContent = '📥 Export Report'; btn.disabled = false; }
+    }
+}
+
+
 async function renderCorrelationMatrix() {
     appEl.innerHTML = `
         <div class="view-header">
@@ -2662,6 +2898,8 @@ const viewMap = {
     'explain-glossary': renderDocsGlossary,
     'signal-archive': renderSignalArchive,
     'correlation-matrix': renderCorrelationMatrix,
+    'alpha-score': renderAlphaScore,
+    'performance-dashboard': renderPerformanceDashboard,
     help: renderHelp
 };
 

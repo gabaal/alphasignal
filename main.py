@@ -927,6 +927,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/catalysts': self.handle_catalysts()
             elif path == '/api/whales_entity': self.handle_whales_entity()
             elif path == '/api/notifications': self.handle_notifications()
+            elif path == '/api/alpha-score': self.handle_alpha_score()
+            elif path == '/api/performance': self.handle_performance()
+            elif path == '/api/export': self.handle_export()
             elif path == '/api/rotation': self.handle_rotation()
             elif path.startswith('/api/correlation'): self.handle_correlation()
             elif path.startswith('/api/stress-test'): self.handle_stress_test()
@@ -3118,6 +3121,189 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Whale Engine Error: {e}")
             self.send_json([])
+
+    def handle_alpha_score(self):
+        """Feature 2: Composite Alpha Score (0-100) for each asset in the universe."""
+        try:
+            # Build a flat list of scoreable assets (excluding stables)
+            assets = []
+            for sector, tickers in UNIVERSE.items():
+                if sector == 'STABLES': continue
+                for t in tickers:
+                    assets.append({'ticker': t, 'sector': sector})
+            
+            # Fetch 60d data batch
+            all_tickers = [a['ticker'] for a in assets]
+            data = CACHE.download(all_tickers, period='60d', interval='1d')
+            
+            scored = []
+            for asset in assets:
+                t = asset['ticker']
+                score = 50  # Start at neutral
+                reasons = []
+                
+                try:
+                    # 1. Momentum Score (0-40 pts): 5d and 20d price change
+                    prices = None
+                    if data is not None and not data.empty:
+                        if t in data.columns:
+                            prices = data[t].dropna()
+                        elif hasattr(data.columns, 'levels'):
+                            try: prices = data['Close'][t].dropna()
+                            except: pass
+                    
+                    mom_score = 0
+                    if prices is not None and len(prices) >= 6:
+                        ret_5d = float((prices.iloc[-1] - prices.iloc[-5]) / prices.iloc[-5] * 100)
+                        ret_20d = float((prices.iloc[-1] - prices.iloc[-20]) / prices.iloc[-20] * 100) if len(prices) >= 21 else 0
+                        mom_score = max(-20, min(20, ret_5d * 2)) + max(-20, min(20, ret_20d))
+                        score += mom_score
+                        if ret_5d > 3: reasons.append(f'+{ret_5d:.1f}% 5d momentum')
+                        elif ret_5d < -3: reasons.append(f'{ret_5d:.1f}% 5d decline')
+                    
+                    # 2. Sentiment Score (0-30 pts)
+                    sentiment = get_sentiment(t)
+                    sent_score = int(sentiment * 30)
+                    score += sent_score
+                    if sentiment > 0.3: reasons.append('Positive news sentiment')
+                    elif sentiment < -0.3: reasons.append('Negative news flow')
+                    
+                    # 3. Alert Engine Score (+10 if recently signalled)
+                    conn = sqlite3.connect(DB_PATH)
+                    c = conn.cursor()
+                    c.execute("SELECT COUNT(*) FROM alerts_history WHERE ticker=? AND timestamp > datetime('now', '-72 hours')", (t,))
+                    alert_count = c.fetchone()[0]
+                    conn.close()
+                    if alert_count > 0:
+                        score += 15
+                        reasons.append(f'Engine signal ({alert_count} in 72h)')
+                    
+                    # 4. Volatility Penalty (-10 if extreme vol)
+                    if prices is not None and len(prices) >= 20:
+                        vol = float(prices.pct_change().std() * 100)
+                        if vol > 8:
+                            score -= 10
+                            reasons.append(f'High volatility ({vol:.1f}%/d)')
+                    
+                    # Clamp score
+                    score = max(0, min(100, int(score)))
+                    
+                    if prices is not None and len(prices) > 0:
+                        current_price = round(float(prices.iloc[-1]), 4)
+                    else:
+                        current_price = 0.0
+                    
+                    scored.append({
+                        'ticker': t,
+                        'sector': asset['sector'],
+                        'score': score,
+                        'price': current_price,
+                        'grade': 'A' if score >= 80 else 'B' if score >= 60 else 'C' if score >= 40 else 'D',
+                        'signal': 'STRONG BUY' if score >= 80 else 'BUY' if score >= 65 else 'NEUTRAL' if score >= 45 else 'CAUTION',
+                        'reasons': reasons[:3]
+                    })
+                except Exception as asset_e:
+                    continue
+            
+            # Sort by score desc
+            scored.sort(key=lambda x: x['score'], reverse=True)
+            self.send_json({'scores': scored, 'updated': datetime.now().strftime('%H:%M UTC')})
+        except Exception as e:
+            print(f"Alpha Score Error: {e}")
+            import traceback; traceback.print_exc()
+            self.send_json({'scores': [], 'error': str(e)})
+
+    def handle_performance(self):
+        """Feature 4: Performance Dashboard - track record from alerts_history."""
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            
+            # Pull all signals with entry price
+            c.execute("SELECT ticker, price, timestamp FROM alerts_history WHERE price IS NOT NULL AND price > 0 ORDER BY timestamp DESC LIMIT 100")
+            signals = c.fetchall()
+            conn.close()
+            
+            total = len(signals)
+            wins = 0; losses = 0; total_roi = 0.0
+            best = {'ticker': '-', 'return': -999}
+            worst = {'ticker': '-', 'return': 999}
+            monthly = {}
+            
+            for ticker, entry_p, ts in signals:
+                try:
+                    data = CACHE.download(ticker, period='1d', interval='1m', column='Close')
+                    if data is None or (hasattr(data, 'empty') and data.empty): continue
+                    curr_p = float(data.iloc[-1] if not hasattr(data.iloc[-1], 'iloc') else data.iloc[-1].iloc[0])
+                    roi = round(((curr_p - entry_p) / entry_p) * 100, 2)
+                    total_roi += roi
+                    if roi > 0: wins += 1
+                    else: losses += 1
+                    if roi > best['return']: best = {'ticker': ticker, 'return': roi}
+                    if roi < worst['return']: worst = {'ticker': ticker, 'return': roi}
+                    
+                    # Monthly breakdown
+                    month = ts[:7] if ts else 'Unknown'
+                    if month not in monthly:
+                        monthly[month] = {'signals': 0, 'total_roi': 0.0}
+                    monthly[month]['signals'] += 1
+                    monthly[month]['total_roi'] += roi
+                except: continue
+            
+            win_rate = round((wins / total * 100), 1) if total > 0 else 0
+            avg_return = round(total_roi / total, 2) if total > 0 else 0
+            
+            monthly_series = sorted([
+                {'month': m, 'signals': v['signals'], 'avg_roi': round(v['total_roi'] / v['signals'], 2)}
+                for m, v in monthly.items()
+            ], key=lambda x: x['month'])
+            
+            self.send_json({
+                'total_signals': total,
+                'win_rate': win_rate,
+                'avg_return': avg_return,
+                'total_return': round(total_roi, 2),
+                'best_pick': best,
+                'worst_pick': worst,
+                'monthly': monthly_series,
+                'updated': datetime.now().strftime('%H:%M UTC')
+            })
+        except Exception as e:
+            print(f"Performance Error: {e}")
+            self.send_json({'total_signals': 0, 'win_rate': 0, 'avg_return': 0, 'error': str(e)})
+
+    def handle_export(self):
+        """Feature 5: Export a JSON snapshot of current live data."""
+        try:
+            # Aggregate live data from multiple sources
+            snapshot = {
+                'exported_at': datetime.now().isoformat(),
+                'terminal': 'AlphaSignal Institutional Terminal',
+                'btc_price': LIVE_PRICES.get('BTC', 0),
+                'eth_price': LIVE_PRICES.get('ETH', 0),
+                'sol_price': LIVE_PRICES.get('SOL', 0),
+            }
+            
+            # Top signals from alerts_history
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT ticker, type, message, price, timestamp FROM alerts_history ORDER BY timestamp DESC LIMIT 10")
+            snapshot['recent_signals'] = [
+                {'ticker': r[0], 'type': r[1], 'message': r[2], 'entry_price': r[3], 'timestamp': r[4]}
+                for r in c.fetchall()
+            ]
+            conn.close()
+            
+            # Set headers for file download
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Disposition', f'attachment; filename="alphasignal_export_{datetime.now().strftime("%Y%m%d_%H%M")}.json"')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(snapshot, indent=2).encode())
+        except Exception as e:
+            print(f"Export Error: {e}")
+            self.send_json({'error': str(e)})
 
     def handle_notifications(self):
         """Feature 2: Return last 10 alerts for the notification bell."""
