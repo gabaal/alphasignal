@@ -834,7 +834,7 @@ function renderChart(history) {
 // ============= Pack G2: Mindshare View =============
 async function renderMindshare() {
     appEl.innerHTML = skeleton(1);
-    const data = await fetchAPI('/mindshare');
+    const data = await fetchAPI(`/mindshare?v=${Date.now()}`);
     if (!data) return;
     appEl.innerHTML = `
         <div class="view-header"><h1>Mindshare Scatter Plot</h1><p>Mapping Narrative Momentum vs Developer Engineering Activity.</p></div>
@@ -1494,7 +1494,7 @@ async function renderStressHub() {
 
 async function renderNarrativeGalaxy() {
     appEl.innerHTML = skeleton(1);
-    const data = await fetchAPI('/narrative-clusters');
+    const data = await fetchAPI(`/narrative-clusters?v=${Date.now()}`);
     if (!data || !data.clusters) return;
 
     appEl.innerHTML = `

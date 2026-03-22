@@ -930,8 +930,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 else:
                     vol_proxy = 0.5
             
-            narrative = 50 + (sentiment * 30) + (vol_proxy * 10)
-            engineer = 40 + (sentiment * 15) + (vol_proxy * 5)
+            narrative = 20 + (sentiment * 40) + (vol_proxy * 20)
+            engineer = 15 + (sentiment * 25) + (vol_proxy * 15)
             
             # Bound results
             narrative = max(min(narrative, 99.0), 10.0)
@@ -1160,7 +1160,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             # 1. Coordinate Anchors for Sectors
             anchors = {
                 "DEFI": {"x": 200, "y": 200, "color": "#00f2ff", "topic": "Liquidity Protocols"},
-                "L1": {"x": 600, "y": 200, "color": "#fffa00", "topic": "Smart Contract War"},
+                "L1": {"x": 600, "y": 200, "color": "#a855f7", "topic": "Smart Contract War"},
                 "STABLES": {"x": 400, "y": 300, "color": "#8b949e", "topic": "Fiat Backing"},
                 "MEMES": {"x": 200, "y": 450, "color": "#ff3e3e", "topic": "Social Arbitrage"},
                 "EXCHANGE": {"x": 600, "y": 450, "color": "#fffa00", "topic": "CeFi Compliance"},
