@@ -9,50 +9,7 @@ let isAuthenticatedUser = false;
 let hasStripeId = false;
 
 // ============= Visualization Utilities =============
-function createTradingViewChart(containerId, data) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
 
-    const chart = LightweightCharts.createChart(container, {
-        layout: {
-            background: { color: 'transparent' },
-            textColor: '#6b7280',
-        },
-        grid: {
-            vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-            horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
-        },
-        rightPriceScale: {
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-        },
-        timeScale: {
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-            timeVisible: true,
-        },
-    });
-
-    const candleSeries = chart.addCandlestickSeries({
-        upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
-        wickUpColor: '#26a69a', wickDownColor: '#ef5350',
-    });
-
-    const formattedData = data.map(d => ({
-        time: Math.floor(new Date(d.Date || d.time).getTime() / 1000),
-        open: d.Open || d.open,
-        high: d.High || d.high,
-        low: d.Low || d.low,
-        close: d.Close || d.close
-    })).sort((a,b) => a.time - b.time);
-
-    candleSeries.setData(formattedData);
-    
-    window.addEventListener('resize', () => {
-        chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
-    });
-    
-    return chart;
-}
 
 // ============= Core Utilities =============
 async function fetchAPI(endpoint, method = 'GET', body = null) {
@@ -1884,6 +1841,7 @@ async function runNeuralSetup(ticker) {
 }
 
 async function renderLiquidityView() {
+    const ticker = 'BTC-USD';
     appEl.innerHTML = `<h1 class="view-title">Order Flow Magnitude Monitor (GOMM)</h1>${skeleton(3)}`;
     
     // Sidebar + Layout
@@ -1972,21 +1930,70 @@ async function renderLiquidityView() {
                     <h3 class="card-title" style="margin:0">Temporal Liquidity Heatmap (Deep Dive)</h3>
                     <span style="font-size:0.55rem; background:rgba(34, 197, 94, 0.1); color:var(--risk-low); padding:2px 8px; border-radius:4px; font-weight:900; letter-spacing:1px">TRADINGVIEW ENGINE ACTIVE</span>
                 </div>
-                <div id="${heatmapId}" style="flex:1; border-radius:8px; overflow:hidden"></div>
+                <div id="${heatmapId}" style="height:350px; min-height:350px; background:rgba(0,0,0,0.4); border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1)"></div>
                 <div style="font-size:0.65rem; color:var(--text-dim); margin-top:10px; text-align:center; padding:5px">
                     REAL-TIME INSTITUTIONAL FLOW PERSISTENCE (1M GRANULARITY)
                 </div>
             </div>`;
         
-        // Small delay to ensure browser layout is stable and avoid SecurityError during frame access
         setTimeout(() => {
-            if (data.history && data.history.length) {
-                createTradingViewChart(heatmapId, data.history);
-            } else {
+            if (!data || !data.history || !data.history.length) {
                  const el = document.getElementById(heatmapId);
                  if (el) el.innerHTML = '<p class="empty-state">Synchronization in progress. Awaiting historical stream...</p>';
+                 return;
             }
-        }, 50);
+
+            try {
+                const container = document.getElementById(heatmapId);
+                if (!container) return;
+                container.innerHTML = '';
+                
+                const chart = LightweightCharts.createChart(container, {
+                    layout: { 
+                        background: { color: '#09090b' }, 
+                        textColor: '#d1d5db',
+                        fontSize: 10,
+                        fontFamily: 'JetBrains Mono'
+                    },
+                    grid: { 
+                        vertLines: { color: 'rgba(255, 255, 255, 0.03)' }, 
+                        horzLines: { color: 'rgba(255, 255, 255, 0.03)' } 
+                    },
+                    rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.1)' },
+                    timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true },
+                    width: container.clientWidth || 800,
+                    height: 350
+                });
+
+                const candleSeries = chart.addCandlestickSeries({
+                    upColor: '#22c55e', downColor: '#ef4444', 
+                    borderVisible: false, wickUpColor: '#22c55e', wickDownColor: '#ef4444'
+                });
+                const priceSeries = chart.addAreaSeries({
+                    lineColor: 'rgba(34, 197, 94, 0.4)', 
+                    topColor: 'rgba(34, 197, 94, 0.1)', 
+                    bottomColor: 'rgba(34, 197, 94, 0)',
+                    lineWidth: 2,
+                });
+
+                const formatted = data.history.map(d => {
+                    let ts = d.unix_time || Math.floor(new Date(d.timestamp).getTime() / 1000);
+                    return {
+                        time: ts,
+                        open: d.open || d.price,
+                        high: d.high || d.price,
+                        low: d.low || d.price,
+                        close: d.close || d.price
+                    };
+                }).filter(d => !isNaN(d.time)).sort((a,b) => a.time - b.time);
+
+                candleSeries.setData(formatted);
+                priceSeries.setData(formatted.map(d => ({ time: d.time, value: d.close })));
+                chart.timeScale().fitContent();
+            } catch (err) {
+                console.error('Heatmap Render Error:', err);
+            }
+        }, 300);
     }
 
     function renderLiquidationMode() {

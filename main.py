@@ -403,7 +403,12 @@ class HarvestService:
                         bid_offset = random.uniform(0.001, 0.015)
                         walls.append({"price": round(current_price * (1 - bid_offset), 2), "size": round(random.uniform(50, 800) * exch['bias'], 1), "side": "bid", "exchange": exch['name']})
             
-            snapshot = {"time": datetime.now().strftime("%H:%M"), "walls": walls}
+            snapshot = {
+                "timestamp": datetime.now().isoformat(),
+                "time": datetime.now().strftime("%H:%M"), 
+                "price": current_price,
+                "walls": walls
+            }
             c.execute("INSERT INTO orderbook_snapshots (ticker, snapshot_data) VALUES (?, ?)", (ticker, json.dumps(snapshot)))
         
         # Prune snapshots older than 24h
@@ -2652,34 +2657,48 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
-                c.execute("SELECT snapshot_data FROM orderbook_snapshots WHERE ticker = ? ORDER BY timestamp DESC LIMIT 12", (ticker,))
+                c.execute("SELECT snapshot_data FROM orderbook_snapshots WHERE ticker = ? ORDER BY timestamp DESC LIMIT 24", (ticker,))
                 rows = c.fetchall()
-                history = [json.loads(r[0]) for r in rows]
+                history = []
+                for r in rows:
+                    snap = json.loads(r[0])
+                    # Backfill missing OHLC for older snapshots
+                    if 'close' not in snap:
+                        snap['close'] = current_price
+                        snap['open'] = current_price
+                        snap['high'] = current_price
+                        snap['low'] = current_price
+                    if 'timestamp' not in snap:
+                        # Use current time as fallback (rough)
+                        snap['timestamp'] = datetime.now().isoformat()
+                    history.append(snap)
                 conn.close()
             except Exception as db_e:
                 print(f"Heatmap DB Error: {db_e}")
 
-            # Fallback to session history if DB is empty or fails
-            if not history:
-                now = time.time()
-                for i in range(12): # 5-minute intervals for 60 mins
-                    h_time = now - (i * 300)
+            # Ensure at least 24 items for a healthy chart
+            if len(history) < 24:
+                needed = 24 - len(history)
+                last_time = history[-1]['timestamp'] if history else datetime.now().isoformat()
+                base_ts = datetime.fromisoformat(last_time).timestamp()
+                
+                for i in range(1, needed + 1):
+                    h_time = base_ts - (i * 300)
                     random.seed(int(h_time + hash(ticker)))
-                    h_walls = []
-                    for exch in exchanges:
-                        for _ in range(2):
-                            side = "ask" if random.random() > 0.5 else "bid"
-                            offset = random.uniform(-0.02, 0.02)
-                            h_walls.append({
-                                "price": round(current_price * (1 + offset), 2),
-                                "size": round(random.uniform(10, 500) * exch['bias'], 1),
-                                "side": side,
-                                "exchange": exch['name']
-                            })
+                    prices = [current_price * (1 + random.uniform(-0.005, 0.005)) for _ in range(4)]
                     history.append({
+                        "timestamp": datetime.fromtimestamp(h_time).isoformat(),
+                        "unix_time": int(h_time),
                         "time": datetime.fromtimestamp(h_time).strftime("%H:%M"),
-                        "walls": h_walls
+                        "price": current_price,
+                        "open": prices[0],
+                        "high": max(prices),
+                        "low": min(prices),
+                        "close": prices[3],
+                        "walls": []
                     })
+                # Re-sort to ensure TV order
+                history.sort(key=lambda x: x['timestamp'])
 
             total_depth = round(ask_depth + bid_depth, 1)
             
@@ -2794,14 +2813,22 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         try:
             # Deterministic liquidation clusters based on real price volatility
             # Higher volatility = larger/more clusters
-            hist = CACHE.download(ticker, period='2d', interval='1h')
+            hist = CACHE.download(ticker, period='2d', interval='1h', column='Close')
             base_price = 91450.0
             vol_proxy = 0.005
             
-            if hist is not None and not hist.empty:
-                prices = hist.values if isinstance(hist, pd.Series) else hist['Close'].values
-                base_price = float(prices[-1])
-                vol_proxy = np.std(np.diff(prices) / prices[:-1]) if len(prices) > 1 else 0.005
+            if hist is not None and not (hasattr(hist, 'empty') and hist.empty):
+                # Standardize to Series then values
+                if isinstance(hist, pd.DataFrame):
+                    # If it's a single column DF, squeeze it
+                    hist = hist.squeeze()
+                
+                if hasattr(hist, 'values'):
+                    prices = hist.values
+                    base_price = float(prices[-1])
+                    vol_proxy = np.std(np.diff(prices) / prices[:-1]) if len(prices) > 1 else 0.005
+                else:
+                    base_price = float(hist)
             
             clusters = []
             random.seed(int(base_price))
@@ -2832,11 +2859,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     "notional": f"${random.randint(1, 10)}M"
                 })
 
+            funding_rate = f"{'+' if vol_proxy > 0.003 else '-'}{abs(vol_proxy * 5):.4f}%"
+            
             self.send_json({
                 "ticker": ticker,
                 "price": base_price,
                 "clusters": clusters,
-                "total_24h": f"${(vol_proxy * 5000):.1f}M"
+                "total_24h": f"${(vol_proxy * 5000):.1f}M",
+                "funding_rate": funding_rate
             })
         except Exception as e:
             print(f"Liquidations Error: {e}")
