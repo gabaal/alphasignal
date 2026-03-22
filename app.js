@@ -3463,8 +3463,8 @@ async function renderHome() {
                 <div class="hero-content">
                     <h1>Institutional Intelligence Terminal. <span>Live.</span></h1>
                     <p class="hero-subtitle">
-                        AlphaSignal provides real-time multi-asset intelligence across crypto, equities, and forex. 
-                        Synthesized by AI. Verified by institutional order flow.
+                        AlphaSignal provides real-time multi-asset intelligence across bitcoin, equities, and forex. 
+                        Synthesized by AI. Verified by institutional order flow. Alphasignal: The definitive alpha and signal terminal.
                     </p>
                     <div class="hero-actions">
                         <button class="intel-action-btn large" onclick="switchView('signals')" title="Launch the AlphaSignal Crypto Trading Terminal" aria-label="Launch Terminal">
@@ -3484,26 +3484,71 @@ async function renderHome() {
             </section>
 
             <section class="features-showcase">
+                <div class="section-title-wrap">
+                    <h2>Institutional Intelligence Suite</h2>
+                    <p>AlphaSignal delivers institutional-grade signals and performance tracking for the modern portfolio.</p>
+                </div>
                 <div class="f-grid">
                     <div class="f-card" onclick="switchView('signals')">
                         <div class="f-icon"><img src="icon_signal.png" alt="Signal Intelligence" width="48" height="48" loading="lazy"></div>
-                        <h3>Signal Intelligence</h3>
-                        <p>Real-time Z-score deviations and relative alpha across 500+ institutional assets.</p>
+                        <h3>Alpha Signal Intelligence</h3>
+                        <p>Real-time Z-score deviations and relative alpha signals across 500+ institutional assets including Bitcoin and major Indices.</p>
                     </div>
                     <div class="f-card" onclick="switchView('briefing')">
                         <div class="f-icon"><img src="icon_ai.png" alt="AI Briefing" width="48" height="48" loading="lazy"></div>
-                        <h3>AI Briefing</h3>
-                        <p>Daily neural synthesis of global market trends and institutional narrative shifts.</p>
+                        <h3>AI Market Briefing</h3>
+                        <p>Daily neural synthesis of global market trends, sentiment shifts, and institutional narrative strategy.</p>
                     </div>
                     <div class="f-card" onclick="switchView('liquidity')">
                         <div class="f-icon"><img src="icon_flow.png" alt="Order Flow (GOMM)" width="48" height="48" loading="lazy"></div>
-                        <h3>Order Flow (GOMM)</h3>
-                        <p>Visualizing professional liquidity walls and execution tape from 15+ exchanges.</p>
+                        <h3>Market Order Flow</h3>
+                        <p>Visualize professional liquidity walls, depth of book, and execution tape to maximize trading performance.</p>
                     </div>
                     <div class="f-card" onclick="switchView('whales')">
                         <div class="f-icon"><img src="icon_whale.png" alt="Whale Pulse" width="48" height="48" loading="lazy"></div>
-                        <h3>Whale Pulse</h3>
-                        <p>Institutional-sized transaction tracking and exchange flow alerts.</p>
+                        <h3>AI Whale Tracking</h3>
+                        <p>Real-time institutional-sized transaction tracking and exchange flow alerts for Bitcoin and Eth whales.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="seo-content-extra" style="padding: 4rem 2rem; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2)">
+                <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 4rem;">
+                    <div>
+                        <h2 style="color: var(--accent); margin-bottom: 1.5rem; font-size: 1.5rem;">The Alphasignal Advantage</h2>
+                        <p style="color: var(--text-dim); line-height: 1.8; margin-bottom: 1.5rem;">
+                            In the fast-moving digital asset market, professional traders require more than just price action. <strong>AlphaSignal</strong> bridges the gap between retail noise and institutional intelligence. Our proprietary <strong>alpha synthesis</strong> engine tracks thousands of data points across <strong>Bitcoin</strong> on-chain flows, exchange liquidity, and social sentiment to deliver a high-conviction <strong>signal</strong> for every market regime.
+                        </p>
+                        <p style="color: var(--text-dim); line-height: 1.8;">
+                            Whether you are validating a new <strong>strategy</strong> or monitoring <strong>performance</strong>, our terminal provides the statistical depth needed to outperform the benchmark.
+                        </p>
+                    </div>
+                    <div>
+                        <h2 style="color: var(--accent); margin-bottom: 1.5rem; font-size: 1.5rem;">Risk & Stress Monitoring</h2>
+                        <p style="color: var(--text-dim); line-height: 1.8; margin-bottom: 1.5rem;">
+                            Protecting capital is the foundation of institutional success. AlphaSignal's <strong>risk</strong> suite offers real-time <strong>stress</strong> testing and correlation matrices to identify systemic decoupling. Monitor <strong>market stress</strong> levels through our VIX-style volatility proxies and cross-chain velocity trackers.
+                        </p>
+                        <p style="color: var(--text-dim); line-height: 1.8;">
+                            Our <strong>AI whale</strong> pulse technology alerts you to massive movements before they hit the order book, giving you a distinct timing advantage in volatile conditions.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="faq-section" style="padding: 4rem 2rem; border-top: 1px solid var(--border);">
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <h2 style="text-align: center; margin-bottom: 3rem;">Frequently Asked Questions</h2>
+                    <div class="faq-item" style="margin-bottom: 2rem;">
+                        <h4 style="color: var(--text); margin-bottom: 0.5rem;">How does Alphasignal calculate Alpha?</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude.</p>
+                    </div>
+                    <div class="faq-item" style="margin-bottom: 2rem;">
+                        <h4 style="color: var(--text); margin-bottom: 0.5rem;">What makes your AI Whale Tracking different?</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">Unlike basic transaction scanners, our AI Whale pulse utilizes cluster analysis to identify entity-linked movement, distinguishing between exchange cold storage shifts and true institutional accumulation.</p>
+                    </div>
+                    <div class="faq-item" style="margin-bottom: 2rem;">
+                        <h4 style="color: var(--text); margin-bottom: 0.5rem;">Is this terminal suitable for automated strategies?</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">Yes, AlphaSignal is designed for strategy validation. Our Signal Archive and Backtest Lab allow you to verify the historical performance of multi-asset signals across different market regimes.</p>
                     </div>
                 </div>
             </section>
@@ -4043,8 +4088,8 @@ function renderDocsGlossaryImplementation() {
 function updateSEOMeta(view) {
     const viewMetadata = {
         'signals': {
-            title: 'Live Alpha Signals',
-            desc: 'Real-time multi-asset trading signals across crypto, equities, and forex derived from institutional data feeds.'
+            title: 'Alpha Signals & Market Intelligence',
+            desc: 'Real-time multi-asset alpha signals across bitcoin, equities, and forex. Alphasignal provides high-fidelity signals derived from institutional data.'
         },
         'briefing': {
             title: 'AI Intelligence Briefing',
@@ -4067,8 +4112,8 @@ function updateSEOMeta(view) {
             desc: 'Comprehensive calendar of institutional-grade volatility events, earnings releases, and macro triggers.'
         },
         'whales': {
-            title: 'Whale Pulse Monitor',
-            desc: 'Institutional-sized transaction tracking and exchange flow alerts for rapid market insight.'
+            title: 'AI Whale Pulse Monitor',
+            desc: 'Institutional AI whale tracking and exchange flow alerts for rapid market insight into large Bitcoin and altcoin moves.'
         },
         'regime': {
             title: 'Market Regime Hub',
@@ -4079,12 +4124,12 @@ function updateSEOMeta(view) {
             desc: 'Advanced analysis of capital flows between asset classes and sectors to identify the next trend.'
         },
         'backtest': {
-            title: 'Strategy Backtest Lab',
-            desc: 'Quant-grade backtesting environment for validating trading strategies against historical institutional data.'
+            title: 'Strategy & Performance Lab',
+            desc: 'Quant-grade strategy backtesting and performance validation against historical institutional market data.'
         },
         'risk': {
-            title: 'Global Systemic Risk',
-            desc: 'Real-time systemic risk monitoring, correlation spikes, and volatility regime detection.'
+            title: 'Market Risk & Stress Hub',
+            desc: 'Real-time market risk monitoring, stress-test simulations, correlation spikes, and volatility regime detection.'
         },
         'narrative': {
             title: 'Narrative Galaxy Search',
@@ -4115,8 +4160,8 @@ function updateSEOMeta(view) {
             desc: 'Monitor high-impact global economic drivers, treasury yields, and volatility triggers.'
         },
         'home': {
-            title: 'Institutional Intelligence Terminal',
-            desc: 'AlphaSignal provides real-time multi-asset intelligence across crypto, equities, and forex. AI-driven alpha synthesis for the modern institution.'
+            title: 'Alphasignal: Institutional Alpha & Signals Terminal',
+            desc: 'Alphasignal provides real-time multi-asset market intelligence across bitcoin, equities, and forex. AI-driven alpha strategy synthesis for the modern institution.'
         },
         'help': {
             title: 'Help & Documentation Hub',

@@ -2070,6 +2070,64 @@ input[type="range"]::-webkit-slider-thumb {
     50% { opacity: 0.6; }
 }
 
+/* Landing Page Expansion Styles */
+.section-title-wrap {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-title-wrap h2 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, #fff, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.section-title-wrap p {
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.faq-section h2 {
+    font-size: 2.5rem;
+    background: linear-gradient(to right, #fff, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.faq-item {
+    background: rgba(255,255,255,0.02);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    transition: 0.3s;
+}
+
+.faq-item:hover {
+    border-color: var(--accent);
+    background: rgba(0, 242, 255, 0.03);
+}
+
+.seo-content-extra div h2 {
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.seo-content-extra div h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: var(--accent);
+}
+
 @media (max-width: 900px) {
     .hero-section { flex-direction: column; text-align: center; padding: 6rem 1.5rem; gap: 3rem; }
     .hero-section h1 { font-size: 3rem; letter-spacing: -1px; }

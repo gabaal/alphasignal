@@ -2174,11 +2174,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 return
             
             # Robust returns calculation: Handles mixed calendars (stock vs crypto)
-            # We fill NaNs to avoid dropping all rows if calendars don't match perfectly
+            # We forward-fill NaNs to handle weekend gaps and ensure Monday returns are valid.
+            data = data.ffill()
             rets = data.pct_change()
             
-            # For correlation, we need overlapping dates. min_periods helps.
-            corr_matrix = rets.corr(min_periods=10).fillna(0)
+            # For correlation, we need overlapping dates. min_periods=5 is more robust.
+            corr_matrix = rets.corr(min_periods=5).fillna(0)
             print(f"[DEBUG] Correlation matrix computed. Shape: {corr_matrix.shape}")
             
             matrix = []
