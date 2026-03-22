@@ -1248,11 +1248,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"ticker": ticker, "attribution": []})
 
     def handle_narrative_clusters(self):
-        # Pack N Phase 2: AI Narrative Clusters V2 (Real-time Synthesis)
+        # Pack N Phase 6: Narrative Galaxy Clustering (Dynamic & Linked)
         try:
             results = []
+            links = []
             
-            # 1. Coordinate Anchors for Sectors
+            # 1. Base Anchors
             anchors = {
                 "DEFI": {"x": 200, "y": 200, "color": "#00f2ff", "topic": "Liquidity Protocols"},
                 "L1": {"x": 600, "y": 200, "color": "#a855f7", "topic": "Smart Contract War"},
@@ -1275,54 +1276,74 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             sorted_keywords = sorted(trending_keywords.items(), key=lambda x: x[1], reverse=True)[:10]
             hot_topics = [k[0].upper() for k in sorted_keywords]
 
+            # Dynamic Anchors (Phase 6)
+            if "AI" in hot_topics or any("AI" in t for t in hot_topics):
+                anchors["AI"] = {"x": 400, "y": 100, "color": "#ff00ff", "topic": "Neural Narrative"}
+            if "MODULAR" in hot_topics:
+                anchors["MODULAR"] = {"x": 800, "y": 300, "color": "#ff8800", "topic": "Execution Layers"}
+
             # 3. Map Tickers to the Galaxy
             all_tickers = [t for sub in UNIVERSE.values() for t in sub]
-            # Download recent data for momentum calculation
-            data = CACHE.download(all_tickers[:25], period='2d', interval='1d', column='Close')
+            data = CACHE.download(all_tickers[:30], period='2d', interval='1d', column='Close')
+            
+            ticker_positions = {}
             
             for cat, ticks in UNIVERSE.items():
                 anchor = anchors.get(cat, {"x": 400, "y": 300, "color": "white"})
                 for ticker in ticks:
-                    # Calculate momentum (velocity in the galaxy)
+                    # Deterministic positioning based on sentiment & seed
+                    sentiment = get_sentiment(ticker)
+                    random.seed(hash(ticker))
+                    radius = 40 + (abs(sentiment) * 120) 
+                    angle = random.uniform(0, 2 * np.pi)
+                    
+                    x = anchor.get("x", 400) + np.cos(angle) * radius
+                    y = anchor.get("y", 300) + np.sin(angle) * radius
+                    
+                    # Momentum calculation
                     momentum = 0
                     if ticker in data.columns:
                         prices = data[ticker].dropna()
                         if len(prices) >= 2:
                             momentum = ((float(prices.iloc[-1]) - float(prices.iloc[-2])) / float(prices.iloc[-2])) * 100
                     
-                    # V2 Intelligence: Distance from center is also influenced by sentiment intensity
-                    sentiment = get_sentiment(ticker)
-                    
-                    # Add deterministic but organic noise
-                    random.seed(hash(ticker))
-                    radius = 40 + (abs(sentiment) * 120) 
-                    angle = random.uniform(0, 2 * np.pi)
-                    
-                    # Position calculation
-                    x = anchor["x"] + np.cos(angle) * radius
-                    y = anchor["y"] + np.sin(angle) * radius
-                    
-                    # Meta-tags for V2 (Emerging Narratives)
                     meta = []
                     if abs(momentum) > 3: meta.append("VOLATILITY_EXPANSION")
                     if sentiment > 0.4: meta.append("BULLISH_ABSORPTION")
-                    if any(k.lower() in ticker.lower() for k in hot_topics): meta.append("NARRATIVE_SYNC")
+                    if any(k.lower() in ticker.lower() or k.lower() in cat.lower() for k in hot_topics): meta.append("NARRATIVE_SYNC")
 
-                    results.append({
+                    star = {
                         "ticker": ticker,
                         "category": cat,
                         "x": x,
                         "y": y,
                         "momentum": round(momentum, 2),
                         "sentiment": round(sentiment, 2),
-                        "color": anchor["color"],
-                        "size": 6 + (abs(sentiment) * 10) + (abs(momentum) / 2),
+                        "color": anchor.get("color", "white"),
+                        "size": 6 + (abs(sentiment) * 12) + (abs(momentum) / 2),
                         "meta": meta
-                    })
-            
+                    }
+                    results.append(star)
+                    ticker_positions[ticker] = {"x": x, "y": y}
+
+            # 4. Generate Relationship Links (Phase 6)
+            for i in range(len(results)):
+                for j in range(i + 1, len(results)):
+                    s1 = results[i]
+                    s2 = results[j]
+                    
+                    # Link if same category and high sentiment synergy
+                    if s1['category'] == s2['category'] and s1['sentiment'] * s2['sentiment'] > 0.3:
+                         links.append({"source": s1['ticker'], "target": s2['ticker'], "type": "CLUSTER_BOND"})
+                    
+                    # Link if narrative sync cross-category
+                    if "NARRATIVE_SYNC" in s1['meta'] and "NARRATIVE_SYNC" in s2['meta']:
+                         links.append({"source": s1['ticker'], "target": s2['ticker'], "type": "NARRATIVE_BRIDGE"})
+
             self.send_json({
                 "clusters": results, 
                 "anchors": anchors, 
+                "links": links[:100], # Cap for performance
                 "hot_topics": hot_topics,
                 "timestamp": datetime.now().strftime("%H:%M")
             })
@@ -2965,11 +2986,26 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 "last_tx": "12s ago"
             })
 
+            # Generate 24h flow history (24 points)
+            flow_history = []
+            # Use ticker hash + hour for deterministic but moving history
+            base_seed = hash(ticker) + int(time.time() / 3600)
+            random.seed(base_seed)
+            current_flow = random.randint(-100, 100)
+            for h in range(24):
+                change = random.randint(-20, 20)
+                current_flow += change
+                flow_history.append({
+                    "hour": h,
+                    "flow": current_flow
+                })
+
             self.send_json({
                 "ticker": ticker,
                 "entities": entities,
                 "institutional_sentiment": "BULLISH" if random.random() > 0.4 else "NEUTRAL",
-                "net_flow_24h": f"{'+' if random.random() > 0.5 else '-'}{random.randint(50, 500)} {ticker.split('-')[0]}"
+                "net_flow_24h": f"{'+' if current_flow > 0 else ''}{current_flow} {ticker.split('-')[0]}",
+                "flow_history": flow_history
             })
         except Exception as e:
             print(f"Entity Error: {e}")

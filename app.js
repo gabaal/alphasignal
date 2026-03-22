@@ -494,6 +494,72 @@ function exportCSV(data, filename) {
     document.body.removeChild(link);
 }
 
+async function generateAssetReport(ticker) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    showToast('GENERATING...', `Compiling institutional report for ${ticker}`, 'alert');
+    
+    // Fetch data for the report
+    const [historyData, alertData, alphaData] = await Promise.all([
+        fetchAPI(`/history?ticker=${ticker}&period=1mo`),
+        fetchAPI('/alerts'),
+        fetchAPI(`/alpha-score?ticker=${ticker}`)
+    ]);
+
+    const primaryColor = [0, 242, 255]; // --accent hex #00f2ff
+    
+    // Header
+    doc.setFillColor(13, 17, 23);
+    doc.rect(0, 0, 220, 40, 'F');
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFontSize(22);
+    doc.text("ALPHASIGNAL INSTITUTIONAL", 15, 25);
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.text(`CONFIDENTIAL INTEL REPORT | ${new Date().toLocaleString()}`, 15, 35);
+    
+    // Asset Section
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFontSize(18);
+    doc.text(`ASSET: ${ticker}`, 15, 55);
+    
+    doc.setTextColor(200, 200, 200);
+    doc.setFontSize(12);
+    doc.text("CORE METRICS SUMMARY", 15, 65);
+    
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.line(15, 68, 195, 68);
+    
+    // Alpha Score Section
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    const alphaScore = alphaData?.score ?? 'N/A';
+    doc.text(`COMPOSITE ALPHA SCORE: ${alphaScore}/100`, 20, 80);
+    doc.text(`SENTIMENT INDEX: ${alphaData?.sentiment_label ?? 'NEUTRAL'}`, 20, 90);
+    doc.text(`Z-SCORE OUTLIER: ${alphaData?.z_score ?? '0.00'} STDEV`, 20, 100);
+    
+    // Market Context
+    doc.setTextColor(200, 200, 200);
+    doc.setFontSize(12);
+    doc.text("INSTITUTIONAL NARRATIVE", 15, 115);
+    doc.line(15, 118, 195, 118);
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    const splitText = doc.splitTextToSize(historyData?.summary || "Institutional narrative synthesis pending for this asset. Market patterns suggest standard accumulation in stable regimes.", 175);
+    doc.text(splitText, 15, 125);
+    
+    // Disclaimer
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text("DISCLAIMER: This document is for institutional intelligence purposes only. Past performance does not guarantee future results.", 15, 280);
+    
+    doc.save(`AlphaSignal_Report_${ticker}.pdf`);
+    showToast('SUCCESS', 'Institutional PDF report generated', 'success');
+}
+
 
 
 // ============= AI Analyst =============
@@ -1063,6 +1129,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             <div><span class="category-label">${category}</span><h2>${ticker} Intelligence</h2></div>
             <div style="display:flex; gap:1rem; align-items:flex-start">
 
+                <button class="intel-action-btn" style="width:auto; margin-right: 0.5rem" onclick="generateAssetReport('${ticker}')">DOWNLOAD PDF <span class="material-symbols-outlined" style="font-size: 18px; margin-left: 6px; vertical-align: middle;">picture_as_pdf</span></button>
                 <button class="intel-action-btn" style="width:auto" onclick="openAIAnalyst('${ticker}')">RUN AI DEEP-DIVE <span class="material-symbols-outlined" style="font-size: 18px; margin-left: 6px; vertical-align: middle;">smart_toy</span></button>
             </div>
         </div>
@@ -1538,13 +1605,37 @@ async function renderMacroCalendar() {
 
 async function renderWhales() {
     appEl.innerHTML = skeleton(5);
-    const data = await fetchAPI('/whales');
+    const [data, entityData] = await Promise.all([
+        fetchAPI('/whales'),
+        fetchAPI('/whales_entity?ticker=BTC-USD')
+    ]);
     if (!data) return;
+
     appEl.innerHTML = `
         <div class="view-header">
             <h1>Institutional Whale Pulse</h1>
             <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
         </div>
+
+        <div class="whale-pulse-header" style="display:grid; grid-template-columns: 1fr 300px; gap:2rem; margin-bottom:2rem">
+            <div class="glass-card" style="padding:1.5rem">
+                <div class="card-header">
+                    <h3>24H Net Flow History (BTC)</h3>
+                    <span class="label-tag">AGGREGATED_FLOW</span>
+                </div>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="whale-flow-chart"></canvas>
+                </div>
+            </div>
+            <div class="glass-card" style="padding:1.5rem; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center">
+                <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:0.5rem">TOTAL 24H NET FLOW</div>
+                <div style="font-size:2.5rem; font-weight:900; color:${entityData?.net_flow_24h?.startsWith('+') ? 'var(--risk-low)' : 'var(--risk-high)'}">
+                    ${entityData?.net_flow_24h || '0 BTC'}
+                </div>
+                <div style="font-size:0.8rem; margin-top:0.5rem; color:var(--text-dim)">Institutional Sentiment: <span class="${entityData?.institutional_sentiment === 'BULLISH' ? 'pos' : 'dim'}">${entityData?.institutional_sentiment || 'NEUTRAL'}</span></div>
+            </div>
+        </div>
+
         <div class="whale-list">
             ${data.map(w => `
                 <div class="whale-row">
@@ -1568,6 +1659,42 @@ async function renderWhales() {
                 </div>
             `).join('')}
         </div>`;
+
+    if (entityData && entityData.flow_history) {
+        renderWhaleFlowChart(entityData.flow_history);
+    }
+}
+
+function renderWhaleFlowChart(history) {
+    const ctx = document.getElementById('whale-flow-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: history.map(h => `${h.hour}h`),
+            datasets: [{
+                label: 'Net Flow',
+                data: history.map(h => h.flow),
+                borderColor: '#00f2ff',
+                backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+            scales: {
+                x: { display: false },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#666', font: { size: 10 } }
+                }
+            }
+        }
+    });
 }
 
 // ============= Market Pulse =============
@@ -2069,8 +2196,10 @@ async function renderNarrativeGalaxy() {
         
         <div class="hot-topics-ticker" style="background:rgba(0, 242, 255, 0.05); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-bottom:1.5rem; display:flex; gap:15px; align-items:center; overflow:hidden">
             <span style="font-size:0.6rem; font-weight:900; color:var(--accent); white-space:nowrap">EMERGING NARRATIVES:</span>
-            <div style="display:flex; gap:20px; animation: scroll-left 40s linear infinite">
-                ${data.hot_topics.map(t => `<span style="font-size:0.75rem; font-weight:800; color:white; white-space:nowrap"># ${t}</span>`).join('')}
+            <div style="flex:1; overflow:hidden; mask-image: linear-gradient(to right, transparent, black 15px); -webkit-mask-image: linear-gradient(to right, transparent, black 15px);">
+                <div style="display:flex; gap:20px; animation: scroll-left 80s linear infinite">
+                    ${data.hot_topics.map(t => `<span style="font-size:0.75rem; font-weight:800; color:white; white-space:nowrap"># ${t}</span>`).join('')}
+                </div>
             </div>
         </div>
 
@@ -2123,6 +2252,25 @@ async function renderNarrativeGalaxy() {
             });
             ctx.stroke();
         });
+
+        // 2. Draw Narrative Links (Phase 6)
+        if (data.links) {
+            data.links.forEach(link => {
+                const s1 = stars.find(s => s.ticker === link.source);
+                const s2 = stars.find(s => s.ticker === link.target);
+                if (s1 && s2) {
+                    ctx.beginPath();
+                    const isBridge = link.type === 'NARRATIVE_BRIDGE';
+                    ctx.strokeStyle = isBridge ? 'rgba(0, 242, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)';
+                    ctx.setLineDash(isBridge ? [5, 5] : []);
+                    ctx.lineWidth = isBridge ? 1.5 : 1;
+                    ctx.moveTo(s1.x, s1.y);
+                    ctx.lineTo(s2.x, s2.y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+        }
 
         // Draw stars
         stars.forEach(star => {

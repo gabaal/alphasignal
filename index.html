@@ -53,6 +53,7 @@
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="cyber-theme">
     <div class="layout hidden" id="main-layout">
@@ -183,8 +184,10 @@
             <header class="top-bar">
                 <div class="signal-feed">
                     <div class="feed-label">LIVE ALPHA</div>
-                    <div id="alpha-scroller" class="scroller">
-                        <span>Connecting to data streams...</span>
+                    <div class="scroller-container">
+                        <div id="alpha-scroller" class="scroller">
+                            <span>Connecting to data streams...</span>
+                        </div>
                     </div>
                 </div>
                 <div class="search-container" role="search">
