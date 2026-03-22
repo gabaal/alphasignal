@@ -1372,8 +1372,8 @@ async function renderMindshare() {
         options: {
             responsive: true, maintainAspectRatio: false,
             scales: {
-                x: { title: { display: true, text: 'ENGINEERING MINDSHARE', color: '#8b949e' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { title: { display: true, text: 'NARRATIVE MOMENTUM', color: '#8b949e' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                x: { min: 0, max: 100, title: { display: true, text: 'ENGINEERING MINDSHARE (X)', color: '#8b949e' }, grid: { color: ctx => ctx.tick.value === 50 ? 'rgba(0, 242, 255, 0.4)' : 'rgba(255,255,255,0.05)' } },
+                y: { min: 0, max: 100, title: { display: true, text: 'NARRATIVE MOMENTUM (Y)', color: '#8b949e' }, grid: { color: ctx => ctx.tick.value === 50 ? 'rgba(0, 242, 255, 0.4)' : 'rgba(255,255,255,0.05)' } }
             },
             plugins: {
                 tooltip: { callbacks: { label: ctx => ctx.raw.label } },

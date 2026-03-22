@@ -997,8 +997,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 else:
                     vol_proxy = 0.5
             
-            narrative = 20 + (sentiment * 40) + (vol_proxy * 20)
-            engineer = 15 + (sentiment * 25) + (vol_proxy * 15)
+            import random
+            random.seed(ticker)
+            base_eng = random.uniform(20, 80)
+            
+            narrative = 20 + (sentiment * 40) + (vol_proxy * 20) + random.uniform(-10, 10)
+            engineer = base_eng + (sentiment * 15) - (vol_proxy * 5)
             
             # Bound results
             narrative = max(min(narrative, 99.0), 10.0)
