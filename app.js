@@ -2106,7 +2106,7 @@ async function renderStressHub() {
         <div id="risk-attribution-area">${skeleton(1)}</div>
     `;
 
-    const data = await fetchAPI('/risk');
+    const data = await fetchAPI('/stress-test');
     if (!data || data.error) return;
 
     // 1. Risk Summary
@@ -4217,10 +4217,13 @@ function updateSEOMeta(view) {
     updateAttr('twitter-desc', 'content', meta.desc);
     updateAttr('twitter-url', 'content', viewUrl);
 
-    // 4. Update JSON-LD (Breadcrumbs)
-    const ldJsonEl = document.getElementById('ld-json');
+    // 4. Update JSON-LD (Breadcrumbs & FAQ)
+    const ldJsonEl = document.getElementById('ld-json-dynamic');
     if (ldJsonEl) {
-        const breadcrumb = {
+        const schemas = [];
+        
+        // Always add Breadcrumbs
+        schemas.push({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             "itemListElement": [{
@@ -4234,8 +4237,35 @@ function updateSEOMeta(view) {
                 "name": meta.title,
                 "item": viewUrl
             }]
-        };
-        ldJsonEl.textContent = JSON.stringify(breadcrumb);
+        });
+
+        // Add FAQ if on Home View
+        if (view === 'home' || view === 'landing') {
+            schemas.push({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How does Alphasignal calculate Alpha?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What makes your AI Whale Tracking different?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Unlike basic transaction scanners, our AI Whale pulse utilizes cluster analysis to identify entity-linked movement, distinguishing between exchange cold storage shifts and true institutional accumulation."
+                        }
+                    }
+                ]
+            });
+        }
+
+        ldJsonEl.textContent = JSON.stringify(schemas);
     }
 
     console.log(`SEO Update: Full synchronization complete for view "${view}"`);

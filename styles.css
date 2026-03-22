@@ -2128,6 +2128,101 @@ input[type="range"]::-webkit-slider-thumb {
     background: var(--accent);
 }
 
+/* Global Footer */
+.global-footer {
+    margin-top: 8rem;
+    padding: 5rem 2rem 3rem;
+    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.4));
+    border-top: 1px solid var(--border);
+    position: relative;
+    z-index: 10;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr;
+    gap: 4rem;
+    max-width: 1200px;
+    margin: 0 auto 4rem;
+}
+
+.footer-brand p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    max-width: 300px;
+}
+
+.footer-links h4, .footer-seo h4 {
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+}
+
+.footer-links ul {
+    list-style: none;
+}
+
+.footer-links li {
+    margin-bottom: 0.8rem;
+}
+
+.footer-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--accent);
+    padding-left: 5px;
+}
+
+.footer-seo p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1.8;
+}
+
+.footer-seo strong {
+    color: var(--text-main);
+}
+
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono';
+}
+
+.system-badges {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.badge {
+    padding: 2px 8px;
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    border-radius: 4px;
+    color: var(--accent);
+}
+
+@media (max-width: 900px) {
+    .footer-grid { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
+    .footer-brand p { margin: 1rem auto 0; }
+    .footer-bottom { flex-direction: column; gap: 1.5rem; }
+}
+
 @media (max-width: 900px) {
     .hero-section { flex-direction: column; text-align: center; padding: 6rem 1.5rem; gap: 3rem; }
     .hero-section h1 { font-size: 3rem; letter-spacing: -1px; }

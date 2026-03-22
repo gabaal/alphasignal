@@ -934,7 +934,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/btc': self.handle_btc()
             elif path == '/api/market-pulse': self.handle_market_pulse()
             elif path == '/api/alerts': self.handle_alerts()
-
+            elif path == '/api/risk': self.handle_risk()
             elif path == '/api/depeg': self.handle_depeg()
             elif path == '/api/news': self.handle_news()
             elif path == '/api/mindshare': self.handle_mindshare()

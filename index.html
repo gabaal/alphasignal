@@ -24,7 +24,7 @@
     <meta property="twitter:description" id="twitter-desc" content="Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
     <meta property="twitter:image" content="https://alphasignal.digital/assets/social-preview.png">
 
-    <script type="application/ld+json" id="ld-json">
+    <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
@@ -38,6 +38,21 @@
       },
       "description": "Institutional-grade crypto intelligence terminal providing real-time signals, risk analytics, and AI-driven insights."
     }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AlphaSignal",
+      "url": "https://alphasignal.digital/",
+      "logo": "https://alphasignal.digital/assets/pwa-icon-512.png",
+      "sameAs": [
+        "https://twitter.com/alphasignal"
+      ]
+    }
+    </script>
+    <script type="application/ld+json" id="ld-json-dynamic">
+    { }
     </script>
 
     <link rel="stylesheet" href="styles.css">
@@ -229,6 +244,36 @@
             <div id="app-view">
                 <!-- Dynamic content -->
             </div>
+
+            <footer class="global-footer" role="contentinfo">
+                <div class="footer-grid">
+                    <div class="footer-brand">
+                        <div class="brand-title">Alpha<span>Signal</span></div>
+                        <p>Institutional Alpha & Multi-Asset Intelligence Terminal. Synthesized by AI.</p>
+                    </div>
+                    <div class="footer-links">
+                        <h4>Terminal Modules</h4>
+                        <ul>
+                            <li><a href="#" onclick="switchView('signals')">Alpha Signals</a></li>
+                            <li><a href="#" onclick="switchView('whales')">Whale Pulse</a></li>
+                            <li><a href="#" onclick="switchView('correlation-matrix')">Correlation Lab</a></li>
+                            <li><a href="#" onclick="switchView('risk')">Risk Matrix</a></li>
+                            <li><a href="#" onclick="switchView('help')">Documentation</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-seo">
+                        <h4>Institutional Intel</h4>
+                        <p>Alphasignal provides professional <strong>market</strong> signals, <strong>strategy</strong> validation, and <strong>risk</strong> analytics for digital asset portfolios. Monitor <strong>bitcoin</strong> flows and <strong>AI whale</strong> movements in real-time.</p>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <span>&copy; 2026 ALPHASIGNAL TERMINAL. VERIFIED_INTELLIGENCE_LOCKED</span>
+                    <div class="system-badges">
+                        <span class="badge">SECURE_SSL</span>
+                        <span class="badge">AI_NEURAL_ACTIVE</span>
+                    </div>
+                </div>
+            </footer>
         </main>
 
         <nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation">
