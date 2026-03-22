@@ -8,6 +8,52 @@ let isPremiumUser = false;
 let isAuthenticatedUser = false;
 let hasStripeId = false;
 
+// ============= Visualization Utilities =============
+function createTradingViewChart(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    const chart = LightweightCharts.createChart(container, {
+        layout: {
+            background: { color: 'transparent' },
+            textColor: '#6b7280',
+        },
+        grid: {
+            vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+            horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        },
+        rightPriceScale: {
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+        },
+        timeScale: {
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            timeVisible: true,
+        },
+    });
+
+    const candleSeries = chart.addCandlestickSeries({
+        upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
+        wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+    });
+
+    const formattedData = data.map(d => ({
+        time: Math.floor(new Date(d.Date || d.time).getTime() / 1000),
+        open: d.Open || d.open,
+        high: d.High || d.high,
+        low: d.Low || d.low,
+        close: d.Close || d.close
+    })).sort((a,b) => a.time - b.time);
+
+    candleSeries.setData(formattedData);
+    
+    window.addEventListener('resize', () => {
+        chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+    });
+    
+    return chart;
+}
+
 // ============= Core Utilities =============
 async function fetchAPI(endpoint, method = 'GET', body = null) {
     try {
@@ -652,20 +698,26 @@ function renderDetailLiquidity(data) {
 
 function renderFlowAttribution(data) {
     const container = document.getElementById('flow-attribution-container');
-    if (!data.attribution) {
-        container.innerHTML = '<p class="empty-state">No entity data available.</p>';
+    if (!data || !data.attribution || !data.attribution.length) {
+        container.innerHTML = '<p class="empty-state">No entity data available for this ticker.</p>';
         return;
     }
 
+    // Safety: use .percentage or .value as fallback, and ensure numeric
+    const processAttr = data.attribution.map(e => ({
+        ...e,
+        percentage: Number(e.percentage || e.value || 0)
+    }));
+
     container.innerHTML = `
         <div class="flow-distribution-bar" style="height:12px; display:flex; border-radius:6px; overflow:hidden; margin-bottom:1rem; background:rgba(255,255,255,0.05)">
-            ${data.attribution.map(e => `<div style="width:${e.percentage}%; background:${e.color}" title="${e.name}: ${e.percentage}%"></div>`).join('')}
+            ${processAttr.map(e => `<div style="width:${e.percentage}%; background:${e.color}" title="${e.name}: ${e.percentage}%"></div>`).join('')}
         </div>
         <div class="entity-legend-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-            ${data.attribution.map(e => `
+            ${processAttr.map(e => `
                 <div class="entity-row" style="display:flex; justify-content:space-between; font-size:0.7rem; align-items:center">
                     <div style="display:flex; align-items:center; gap:6px">
-                        <div style="width:8px; height:8px; border-radius:2px; background:${e.color}"></div>
+                        <div style="width:8px; height:8px; border-radius:3px; background:${e.color}"></div>
                         <span style="color:var(--text-dim)">${e.name}</span>
                     </div>
                     <span style="font-weight:700">${e.percentage}%</span>
@@ -1062,6 +1114,13 @@ async function renderRotation() {
                 `).join('')}
             </div>
         </div>`;
+    
+    // Inject TradingView Chart for Strategy Performance
+    const hist = await fetchAPI(`/history?ticker=${ticker}&period=180d`);
+    if (hist && hist.length > 0) {
+        const chart = createTradingViewChart('backtest-chart-container', hist);
+        // Add markers for trades if data.trades exist (optional enhancement)
+    }
 }
 
 async function renderStrategyLab() {
@@ -1137,13 +1196,19 @@ async function runStrategyBacktest(ticker, strategy) {
                     </div>
                 </div>
 
-                <div class="chart-container" style="height: 450px; background: rgba(0,0,0,0.2); border-radius:16px; border:1px solid var(--border); padding: 20px">
+                <div id="strat-tv-container" style="height: 300px; margin-bottom: 20px; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.05); overflow:hidden"></div>
+                <div class="chart-container" style="height: 250px; background: rgba(0,0,0,0.1); border-radius:16px; border:1px solid var(--border); padding: 20px">
                     <canvas id="strategyChart"></canvas>
                 </div>
             </div>
         </div>
     `;
 
+    // Initialize Institutional Visuals
+    const hist = await fetchAPI(`/history?ticker=${ticker}&period=180d`);
+    if (hist && hist.length > 0) {
+        createTradingViewChart('strat-tv-container', hist);
+    }
     renderStrategyChart(data.equityCurve || data.weeklyReturns);
 }
 
@@ -1669,7 +1734,15 @@ async function renderTradeLab() {
                     * Setups are generated using cross-exchange liquidity walls and systemic risk markers. Always verify against personal risk parameters.
                 </div>
             </section>
-        </div>`;
+        </div>
+        <section class="leaderboard-section" style="margin-top:3rem">
+            <div class="section-header">
+                <span class="material-symbols-outlined">military_tech</span>
+                <h3>Institutional Alpha Leaderboard (Historical Performance)</h3>
+            </div>
+            <div id="leaderboard-grid" class="leaderboard-grid">${skeleton(1)}</div>
+        </section>
+        `;
 
     // 1. Fetch Alpha Picks
     const picks = await fetchAPI('/trade-lab');
@@ -1693,7 +1766,49 @@ async function renderTradeLab() {
         picksGrid.innerHTML = '<p class="empty-state">No high-conviction systematic setups detected in this cycle.</p>';
     }
 
-    // 2. Setup Generator Logic
+    // 2. Fetch Leaderboard (Phase 8 Performance Tracking)
+    try {
+        const leaderboard = await fetchAPI('/leaderboard');
+        const lbGrid = document.getElementById('leaderboard-grid');
+        if (lbGrid) {
+            if (leaderboard && leaderboard.length) {
+                lbGrid.innerHTML = `
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>TICKER</th>
+                                <th>SIGNAL DATE</th>
+                                <th>ENTRY</th>
+                                <th>MAX EXCURSION</th>
+                                <th>STATE</th>
+                                <th>RETURN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${leaderboard.map(lb => `
+                                <tr>
+                                    <td class="ticker">${lb.ticker}</td>
+                                    <td>${lb.date}</td>
+                                    <td>${formatPrice(lb.entry)}</td>
+                                    <td>${formatPrice(lb.max_excursion)}</td>
+                                    <td><span class="status-badge ${lb.state.toLowerCase()}">${lb.state}</span></td>
+                                    <td class="return ${lb.return >= 0 ? 'pos' : 'neg'}">${lb.return >= 0 ? '+' : ''}${lb.return}%</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                lbGrid.innerHTML = '<p class="empty-state" style="padding:20px; text-align:center; color:var(--text-dim)">No historical performance records available for this cycle.</p>';
+            }
+        }
+    } catch (e) {
+        console.error("Leaderboard fetch failed:", e);
+        const lbGrid = document.getElementById('leaderboard-grid');
+        if (lbGrid) lbGrid.innerHTML = '<p class="error-msg">Failed to sync institutional leaderboard.</p>';
+    }
+
+    // 3. Setup Generator Logic
     document.getElementById('generate-setup-btn').onclick = async () => {
         const ticker = document.getElementById('gen-ticker').value || 'BTC-USD';
         runNeuralSetup(ticker);
@@ -1850,30 +1965,28 @@ async function renderLiquidityView() {
     }
 
     function renderHeatmapMode() {
+        const heatmapId = `tv-heatmap-${ticker.replace(/[^a-z0-9]/gi, '')}`;
         display.innerHTML = `
-            <div class="card" style="height:100%; display:flex; flex-direction:column">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
-                    <h3 class="card-title" style="margin:0">Temporal Liquidity Heatmap (1H History)</h3>
-                    <span style="font-size:0.55rem; background:rgba(34, 197, 94, 0.1); color:var(--risk-low); padding:2px 8px; border-radius:4px; font-weight:900; letter-spacing:1px">HISTORICAL PERSISTENCE ACTIVE</span>
+            <div class="card" style="height:100%; display:flex; flex-direction:column; background:rgba(0,0,0,0.2)">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding: 0 10px">
+                    <h3 class="card-title" style="margin:0">Temporal Liquidity Heatmap (Deep Dive)</h3>
+                    <span style="font-size:0.55rem; background:rgba(34, 197, 94, 0.1); color:var(--risk-low); padding:2px 8px; border-radius:4px; font-weight:900; letter-spacing:1px">TRADINGVIEW ENGINE ACTIVE</span>
                 </div>
-                <div class="heatmap-grid" style="flex:1">
-                    ${data.history.map(snap => `
-                        <div class="heatmap-row">
-                             <div class="label" style="font-size:0.6rem; width:50px; color:var(--text-dim)">${snap.time}</div>
-                             <div class="heatmap-cells">
-                                ${snap.walls.sort((a,b) => a.price - b.price).map(w => {
-                                    const opacity = Math.min(w.size / 500, 1);
-                                    const color = w.side === 'ask' ? `rgba(239, 68, 68, ${opacity})` : `rgba(34, 197, 94, ${opacity})`;
-                                    return `<div class="hm-cell" title="${formatPrice(w.price)}: ${w.size} BTC" style="background:${color}"></div>`;
-                                }).join('')}
-                             </div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div style="font-size:0.65rem; color:var(--text-dim); margin-top:15px; text-align:center; padding:10px; background:rgba(255,255,255,0.02); border-radius:4px">
-                    <span style="color:var(--risk-low)">█</span> BID DEPTH | <span style="color:var(--risk-high)">█</span> ASK DEPTH (INTENSITY = MAGNITUDE)
+                <div id="${heatmapId}" style="flex:1; border-radius:8px; overflow:hidden"></div>
+                <div style="font-size:0.65rem; color:var(--text-dim); margin-top:10px; text-align:center; padding:5px">
+                    REAL-TIME INSTITUTIONAL FLOW PERSISTENCE (1M GRANULARITY)
                 </div>
             </div>`;
+        
+        // Small delay to ensure browser layout is stable and avoid SecurityError during frame access
+        setTimeout(() => {
+            if (data.history && data.history.length) {
+                createTradingViewChart(heatmapId, data.history);
+            } else {
+                 const el = document.getElementById(heatmapId);
+                 if (el) el.innerHTML = '<p class="empty-state">Synchronization in progress. Awaiting historical stream...</p>';
+            }
+        }, 50);
     }
 
     function renderLiquidationMode() {
@@ -2115,15 +2228,9 @@ async function renderRegime() {
             </div>
 
             <div class="regime-history-panel" style="margin-top:2rem">
-                <h3>Historical Regime Shifts</h3>
-                <div class="regime-timeline">
-                    ${data.history.map(h => `
-                        <div class="timeline-point">
-                            <div class="tp-date">${h.date}</div>
-                            <div class="tp-label">${h.regime}</div>
-                        </div>
-                    `).join('')}
-                </div>
+                <h3>STRUCTURAL ALPHA HEATMAP (D3.JS)</h3>
+                <div id="regime-heatmap-container" style="height:200px; background:rgba(255,255,255,0.02); border-radius:12px; margin-top:1rem"></div>
+                <div style="font-size:0.7rem; color:var(--text-dim); text-align:right; margin-top:8px">PROBABILITY DENSITY OVER 180D LOOKBACK</div>
             </div>
 
             <div class="regime-guide-grid" style="margin-top:3rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px">
@@ -2137,11 +2244,8 @@ async function renderRegime() {
                 </div>
                 <div class="guide-card">
                     <h4>DISTRIBUTION</h4>
-                    <p>Liquidity being exited into late buyers. High volatility with trend exhaustion signs.</p>
-                </div>
-            </div>
-        </div>
     `;
+    renderRegimeHeatmap('regime-heatmap-container', data.history);
 }
 
 // ============= Initialization =============
@@ -3035,4 +3139,107 @@ function shareSignal(ticker, alpha, sentiment, zScore) {
     
     console.log("Sharing signal:", ticker);
     window.open(twitterUrl, '_blank');
+}
+// ============= Notification & Alert Hooks (Phase 8) =============
+async function showNotificationSettings(visible) {
+    const modal = document.getElementById('notification-modal');
+    const layout = document.querySelector('.layout');
+    
+    if (visible) {
+        // Fetch current settings
+        const settings = await fetchAPI('/user/settings');
+        if (settings) {
+            document.getElementById('discord-webhook').value = settings.discord_webhook || '';
+            document.getElementById('telegram-webhook').value = settings.telegram_webhook || '';
+            document.getElementById('alerts-enabled').checked = settings.alerts_enabled !== false;
+        }
+        modal.classList.remove('hidden');
+        if (layout) layout.style.filter = 'blur(10px)';
+    } else {
+        modal.classList.add('hidden');
+        if (layout) layout.style.filter = 'none';
+    }
+}
+
+async function saveNotificationSettings() {
+    const discord = document.getElementById('discord-webhook').value.trim();
+    const telegram = document.getElementById('telegram-webhook').value.trim();
+    const enabled = document.getElementById('alerts-enabled').checked;
+    const errorEl = document.getElementById('notif-error');
+    
+    // Basic validation for Discord
+    if (discord && !discord.startsWith('https://discord.com/api/webhooks/')) {
+        errorEl.textContent = "INVALID_HOOK: Discord webhook must start with https://discord.com/api/webhooks/";
+        errorEl.classList.remove('hidden');
+        return;
+    }
+    
+    errorEl.classList.add('hidden');
+    const res = await fetchAPI('/user/settings', 'POST', {
+        discord_webhook: discord,
+        telegram_webhook: telegram,
+        alerts_enabled: enabled
+    });
+    
+    if (res && res.success) {
+        showToast("ALERTS_CONFIGURED: Advanced intelligence hooks updated successfully.");
+        showNotificationSettings(false);
+    } else {
+        errorEl.textContent = "SYNC_FAILED: Could not persist alert configuration.";
+        errorEl.classList.remove('hidden');
+    }
+}
+function renderRegimeHeatmap(containerId, history) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 200;
+    const margin = { top: 10, right: 10, bottom: 20, left: 30 };
+    
+    const svg = d3.select(`#${containerId}`)
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+        
+    const xScale = d3.scaleBand()
+        .domain(history.map(d => d.date))
+        .range([0, width - margin.left - margin.right])
+        .padding(0.1);
+        
+    const yScale = d3.scaleLinear()
+        .domain([0, 1])
+        .range([height - margin.top - margin.bottom, 0]);
+        
+    const colorScale = d3.scaleOrdinal()
+        .domain(["High-Vol Expansion", "Low-Vol Compression", "Neutral / Accumulation"])
+        .range(["#ef5350", "#26a69a", "#ffa726"]);
+        
+    svg.selectAll("rect")
+        .data(history)
+        .enter()
+        .append("rect")
+        .attr("x", d => xScale(d.date))
+        .attr("y", 0)
+        .attr("width", xScale.bandwidth())
+        .attr("height", height - margin.top - margin.bottom)
+        .attr("fill", d => colorScale(d.regime))
+        .attr("opacity", 0.6)
+        .on("mouseover", function(event, d) {
+            d3.select(this).attr("opacity", 1);
+            showToast(`${d.date}: ${d.regime}`);
+        })
+        .on("mouseout", function() {
+            d3.select(this).attr("opacity", 0.6);
+        });
+        
+    // Abstract Axis
+    svg.append("g")
+        .attr("transform", `translate(0,${height - margin.top - margin.bottom})`)
+        .call(d3.axisBottom(xScale).tickValues(xScale.domain().filter((d,i) => !(i%10))))
+        .style("font-size", "8px")
+        .style("color", "rgba(255,255,255,0.3)");
 }

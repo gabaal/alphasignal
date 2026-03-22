@@ -2366,3 +2366,54 @@ input[type="range"]::-webkit-slider-thumb {
     font-size: 1rem;
 }
 
+/* Leaderboard Section */
+.leaderboard-section {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.leaderboard-table th {
+    text-align: left;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.leaderboard-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    font-size: 0.85rem;
+}
+
+.leaderboard-table tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.status-badge.hit_tp2, .status-badge.hit_tp1 { background: rgba(0, 255, 136, 0.1); color: var(--risk-low); }
+.status-badge.active { background: rgba(0, 242, 255, 0.1); color: var(--accent); }
+.status-badge.stopped { background: rgba(255, 62, 62, 0.1); color: var(--risk-high); }
+
+.return.pos { color: var(--risk-low); font-weight: 700; }
+.return.neg { color: var(--risk-high); font-weight: 700; }

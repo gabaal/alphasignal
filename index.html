@@ -49,6 +49,8 @@
     <link rel="apple-touch-icon" href="assets/pwa-icon-512.png">
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body class="cyber-theme">
@@ -135,6 +137,9 @@
                 <div class="profile-actions dropdown-menu">
                     <button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()">
                         <span class="btn-icon material-symbols-outlined">credit_card</span> MANAGE BILLING
+                    </button>
+                    <button class="profile-action-btn" onclick="showNotificationSettings(true)">
+                        <span class="btn-icon material-symbols-outlined">notifications_active</span> ALERT HOOKS
                     </button>
                     <button id="logout-btn" class="profile-action-btn logout-btn" aria-label="Logout from Terminal">
                         <span class="btn-icon material-symbols-outlined">logout</span> LOGOUT
@@ -327,6 +332,35 @@
     <div id="toast-container"></div>
     <script src="tape.js"></script>
     <script src="app.js?v=1.1"></script>
+    <!-- Notification Settings Modal -->
+    <div id="notification-modal" class="auth-overlay hidden">
+        <div class="auth-container animate-in">
+            <div class="auth-header">
+                <h2>ALERT CONFIGURATION</h2>
+                <p>Configure Discord or Telegram webhooks for real-time intelligence pushes.</p>
+            </div>
+            <div class="auth-form">
+                <div class="form-group">
+                    <label for="discord-webhook">DISCORD WEBHOOK</label>
+                    <input type="url" id="discord-webhook" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="telegram-webhook">TELEGRAM HOOK (Coming Soon)</label>
+                    <input type="text" id="telegram-webhook" placeholder="Disabled" disabled autocomplete="off">
+                </div>
+                <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" id="alerts-enabled" checked style="width:auto;">
+                    <label for="alerts-enabled" style="margin:0;">SYSTEM ALERTS ENABLED</label>
+                </div>
+                <div id="notif-error" class="error-text hidden" style="margin-bottom:1rem;"></div>
+                <div class="auth-actions">
+                    <button class="auth-btn primary" onclick="saveNotificationSettings()">SAVE CONFIGURATION</button>
+                    <button class="auth-btn secondary" onclick="showNotificationSettings(false)">CLOSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
