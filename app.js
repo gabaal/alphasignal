@@ -1,5 +1,48 @@
 const API_BASE = '/api';
 const appEl = document.getElementById('app-view');
+
+function createTradingViewChart(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const chart = LightweightCharts.createChart(container, {
+        layout: { 
+            background: { color: '#09090b' }, 
+            textColor: '#d1d5db',
+            fontSize: 10,
+            fontFamily: 'JetBrains Mono'
+        },
+        grid: { 
+            vertLines: { color: 'rgba(255, 255, 255, 0.03)' }, 
+            horzLines: { color: 'rgba(255, 255, 255, 0.03)' } 
+        },
+        rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.1)' },
+        timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true },
+        width: container.clientWidth || 800,
+        height: container.clientHeight || 300
+    });
+
+    const candleSeries = chart.addCandlestickSeries({
+        upColor: '#22c55e', downColor: '#ef4444', 
+        borderVisible: false, wickUpColor: '#22c55e', wickDownColor: '#ef4444'
+    });
+
+    const formatted = data.map(d => {
+        let ts = d.unix_time || Math.floor(new Date(d.date || d.timestamp).getTime() / 1000);
+        return {
+            time: ts,
+            open: d.open || d.price,
+            high: d.high || d.price,
+            low: d.low || d.price,
+            close: d.close || d.price
+        };
+    }).filter(d => !isNaN(d.time)).sort((a,b) => a.time - b.time);
+
+    candleSeries.setData(formatted);
+    chart.timeScale().fitContent();
+    return chart;
+}
 let currentBTCPrice = 70000;
 let alertCount = 0;
 let countdownSeconds = 300;
