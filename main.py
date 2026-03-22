@@ -926,6 +926,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/heatmap': self.handle_heatmap()
             elif path == '/api/catalysts': self.handle_catalysts()
             elif path == '/api/whales_entity': self.handle_whales_entity()
+            elif path == '/api/notifications': self.handle_notifications()
             elif path == '/api/rotation': self.handle_rotation()
             elif path.startswith('/api/correlation'): self.handle_correlation()
             elif path.startswith('/api/stress-test'): self.handle_stress_test()
@@ -3118,6 +3119,39 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Whale Engine Error: {e}")
             self.send_json([])
 
+    def handle_notifications(self):
+        """Feature 2: Return last 10 alerts for the notification bell."""
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("""
+                SELECT id, type, ticker, message, severity, price, timestamp
+                FROM alerts_history
+                ORDER BY timestamp DESC
+                LIMIT 10
+            """)
+            rows = c.fetchall()
+            # Count unread in last 24h
+            c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
+            unread = c.fetchone()[0]
+            conn.close()
+
+            notifs = []
+            for row_id, sig_type, ticker, message, severity, price, ts in rows:
+                icon = '🚀' if sig_type == 'SENTIMENT_SPIKE' else '📈' if sig_type == 'MOMENTUM_BREAKOUT' else '⚡'
+                notifs.append({
+                    "id": row_id,
+                    "icon": icon,
+                    "title": f"{ticker} — {sig_type.replace('_', ' ')}",
+                    "body": message,
+                    "timestamp": ts,
+                    "type": sig_type
+                })
+            self.send_json({"notifications": notifs, "unread": unread})
+        except Exception as e:
+            print(f"Notifications Error: {e}")
+            self.send_json({"notifications": [], "unread": 0})
+
     def handle_signal_history(self):
         """Phase B: Return all alerts from alerts_history with current PnL."""
         try:
@@ -3377,7 +3411,7 @@ class WebSocketServer:
             for c in dead: WS_CLIENTS.discard(c)
 
     def price_broadcast_loop(self):
-        """Fetch prices every 2 seconds and broadcast to all WS clients."""
+        """Fetch prices every 5 seconds and broadcast prices + signal count."""
         tickers = {'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD'}
         while self.running:
             try:
@@ -3387,10 +3421,30 @@ class WebSocketServer:
                         val = data.iloc[-1]
                         if hasattr(val, 'iloc'): val = val.iloc[0]
                         LIVE_PRICES[sym] = round(float(val), 2)
-                self.broadcast(json.dumps({"type": "prices", "data": LIVE_PRICES}))
+
+                # Feature 5: Include live signal count from DB
+                try:
+                    conn = sqlite3.connect(DB_PATH)
+                    cur = conn.cursor()
+                    cur.execute("SELECT COUNT(*) FROM alerts_history")
+                    signal_count = cur.fetchone()[0]
+                    cur.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
+                    new_today = cur.fetchone()[0]
+                    conn.close()
+                except:
+                    signal_count = 0
+                    new_today = 0
+
+                self.broadcast(json.dumps({
+                    "type": "prices",
+                    "data": LIVE_PRICES,
+                    "signal_count": signal_count,
+                    "new_today": new_today
+                }))
             except Exception as e:
                 print(f"WS Broadcast Error: {e}")
             time.sleep(5)
+
 
     def run(self):
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

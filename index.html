@@ -63,8 +63,11 @@
 
             <nav class="nav-menu" role="navigation">
                 <div class="nav-item active" data-view="signals" aria-label="View Signals">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">radar</span> Signals
+                    <span class="icon material-symbols-outlined" aria-hidden="true">radar</span>
+                    Signals
+                    <span id="signal-count-badge" style="display:none; margin-left:auto; background:var(--accent); color:#000; font-size:0.55rem; font-weight:700; padding:2px 7px; border-radius:20px; letter-spacing:0.5px; align-items:center; justify-content:center">0</span>
                 </div>
+
                 <div class="nav-item" data-view="macro-calendar" aria-label="View Macro Catalyst Calendar (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">public</span> Macro Compass <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
@@ -97,6 +100,9 @@
                 </div>
                 <div class="nav-item" data-view="signal-archive" aria-label="View Signal Archive (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">radar</span> Signal Archive <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
+                </div>
+                <div class="nav-item" data-view="correlation-matrix" aria-label="View Correlation Matrix (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">grid_4x4</span> Correlation <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
                 <div class="nav-item" data-view="risk" aria-label="View Risk Matrix (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">grid_on</span> Risk Matrix <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
@@ -182,6 +188,17 @@
                     <div class="countdown-timer" id="countdown-timer" title="Auto-refresh countdown">
                         <span class="countdown-icon material-symbols-outlined">timer</span>
                         <span id="countdown-value">5:00</span>
+                    </div>
+                    <!-- Feature 2: Notification Bell -->
+                    <div style="position:relative">
+                        <button id="notif-bell-btn" onclick="openNotificationPanel()" aria-label="Notifications"
+                                style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; padding:7px 10px; cursor:pointer; color:var(--text); display:flex; align-items:center; gap:4px; font-size:1rem; transition:all 0.2s"
+                                onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                            <span class="material-symbols-outlined" style="font-size:1.1rem">notifications</span>
+                            <span id="bell-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ef4444; color:white; font-size:0.5rem; font-weight:700; min-width:16px; height:16px; border-radius:50%; align-items:center; justify-content:center; letter-spacing:0">0</span>
+                        </button>
+                        <!-- Feature 2: Notification Panel -->
+                        <div id="notif-panel" style="display:none; position:absolute; right:0; top:calc(100% + 8px); width:340px; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 40px rgba(0,0,0,0.6); z-index:1000; overflow:hidden; max-height:420px; overflow-y:auto"></div>
                     </div>
                     <button id="refresh-btn" aria-label="Recalculate Signals">⚡ Re-calculate Signals</button>
                 </div>

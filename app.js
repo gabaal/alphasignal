@@ -71,17 +71,33 @@ function initLivePriceStream() {
                             currentBTCPrice = p.BTC;
                             const el = document.getElementById('btc-price');
                             if (el) el.textContent = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                            // Pulse the live dot
                             const dot = document.getElementById('live-dot');
                             if (dot) { dot.style.opacity = '1'; setTimeout(() => { dot.style.opacity = '0.4'; }, 300); }
                         }
-                        // Update any other price elements in view
                         ['ETH', 'SOL'].forEach(sym => {
                             if (p[sym]) {
                                 const els = document.querySelectorAll(`[data-live-price="${sym}"]`);
                                 els.forEach(e => e.textContent = `$${p[sym].toLocaleString('en-US', {minimumFractionDigits: 2})}`);
                             }
                         });
+
+                        // Feature 5: Live Signal Counter badge
+                        if (msg.signal_count !== undefined) {
+                            const badge = document.getElementById('signal-count-badge');
+                            if (badge) {
+                                badge.textContent = msg.signal_count;
+                                badge.style.display = msg.signal_count > 0 ? 'inline-flex' : 'none';
+                            }
+                        }
+
+                        // Feature 2: Bell badge from new_today
+                        if (msg.new_today !== undefined) {
+                            const bellBadge = document.getElementById('bell-badge');
+                            if (bellBadge) {
+                                bellBadge.textContent = msg.new_today;
+                                bellBadge.style.display = msg.new_today > 0 ? 'flex' : 'none';
+                            }
+                        }
                     }
                 } catch(e) {}
             };
@@ -100,6 +116,66 @@ function initLivePriceStream() {
 
     connect();
 }
+
+// Feature 2: Notification Bell Panel
+async function openNotificationPanel() {
+    const panel = document.getElementById('notif-panel');
+    if (!panel) return;
+    const isOpen = panel.classList.contains('open');
+    if (isOpen) { panel.classList.remove('open'); return; }
+
+    panel.classList.add('open');
+    panel.innerHTML = `<div style="padding:1rem; color:var(--text-dim); font-size:0.75rem">Loading...</div>`;
+
+    const data = await fetchAPI('/notifications');
+    if (!data || !data.notifications) {
+        panel.innerHTML = `<div style="padding:1rem; color:var(--text-dim); font-size:0.75rem">No signals yet.</div>`;
+        return;
+    }
+
+    const { notifications, unread } = data;
+
+    if (!notifications.length) {
+        panel.innerHTML = `<div style="padding:1.5rem; text-align:center; color:var(--text-dim); font-size:0.75rem">No signals recorded yet.<br>Check back after the next harvest cycle.</div>`;
+        return;
+    }
+
+    panel.innerHTML = `
+        <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
+            <span style="font-size:0.65rem; letter-spacing:2px; color:var(--text-dim)">SIGNAL FEED</span>
+            <span style="font-size:0.6rem; color:var(--accent)">${unread} NEW TODAY</span>
+        </div>
+        ${notifications.map(n => `
+            <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 0.2s"
+                 onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px">
+                    <span style="font-size:1rem">${n.icon}</span>
+                    <div style="flex:1">
+                        <div style="font-size:0.7rem; font-weight:700; color:var(--text); margin-bottom:3px">${n.title}</div>
+                        <div style="font-size:0.62rem; color:var(--text-dim); line-height:1.4">${n.body}</div>
+                    </div>
+                    <div style="font-size:0.55rem; color:var(--text-dim); white-space:nowrap">${n.timestamp ? n.timestamp.split('T')[0] : ''}</div>
+                </div>
+            </div>
+        `).join('')}
+        <div style="padding:10px 16px; text-align:center">
+            <button onclick="switchView('signal-archive'); document.getElementById('notif-panel').classList.remove('open')" 
+                    style="font-size:0.6rem; letter-spacing:1px; color:var(--accent); background:none; border:none; cursor:pointer">
+                VIEW ALL IN ARCHIVE →
+            </button>
+        </div>
+    `;
+}
+
+// Close notification panel when clicking outside
+document.addEventListener('click', (e) => {
+    const panel = document.getElementById('notif-panel');
+    const bell = document.getElementById('notif-bell-btn');
+    if (panel && bell && !panel.contains(e.target) && !bell.contains(e.target)) {
+        panel.classList.remove('open');
+    }
+});
+
 
 // ============= Visualization Utilities =============
 
@@ -487,6 +563,136 @@ async function renderSignals(category = 'ALL') {
 // ============= Miners View =============
 async function renderMiners() {
     renderSignals('MINERS');
+}
+
+// ============= Feature 3: Correlation Matrix =============
+async function renderCorrelationMatrix() {
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>📊 Correlation Matrix <span class="premium-badge">LIVE</span></h1>
+            <p>60-day Pearson correlation of returns across institutional asset classes.</p>
+        </div>
+        <div class="card" style="padding:1.5rem">
+            <div style="margin-bottom:1.5rem; display:flex; gap:12px; flex-wrap:wrap; align-items:center">
+                <label style="font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">BASKET:</label>
+                <select id="corr-basket" onchange="loadCorrelationMatrix(this.value)"
+                        style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); padding:6px 12px; border-radius:8px; font-size:0.7rem">
+                    <option value="BTC-USD,ETH-USD,SOL-USD,AVAX-USD,BNB-USD">Core Crypto (5)</option>
+                    <option value="BTC-USD,ETH-USD,SOL-USD,MARA,COIN,MSTR">Crypto + Equities (6)</option>
+                    <option value="BTC-USD,ETH-USD,SOL-USD,AAVE-USD,UNI-USD,LINK-USD">DeFi Basket (6)</option>
+                    <option value="BTC-USD,IVV,GC=F,DX-Y.NYB,^TNX">Macro Cross-Asset (5)</option>
+                </select>
+                <span style="font-size:0.6rem; color:var(--text-dim)">Period: 60 days · Returns: Daily</span>
+            </div>
+            <div id="corr-chart" style="width:100%; overflow-x:auto"></div>
+            <div style="margin-top:1.5rem; display:flex; align-items:center; gap:8px; font-size:0.6rem; color:var(--text-dim)">
+                <span style="width:40px; height:8px; background:linear-gradient(to right, #ef4444, rgba(255,255,255,0.1), #22c55e); border-radius:4px; display:inline-block"></span>
+                -1.0 (Inverse) → 0 (None) → +1.0 (Perfect)
+            </div>
+        </div>
+    `;
+    loadCorrelationMatrix('BTC-USD,ETH-USD,SOL-USD,AVAX-USD,BNB-USD');
+}
+
+async function loadCorrelationMatrix(tickers) {
+    const container = document.getElementById('corr-chart');
+    if (!container) return;
+    container.innerHTML = `<div style="padding:2rem; text-align:center; color:var(--text-dim); font-size:0.75rem">Computing correlations...</div>`;
+
+    const data = await fetchAPI(`/correlation?tickers=${tickers}&period=60d`);
+    if (!data || data.error || !data.matrix) {
+        container.innerHTML = `<div style="padding:2rem; text-align:center; color:#ef4444; font-size:0.75rem">Could not load data. Try a different basket.</div>`;
+        return;
+    }
+
+    const { matrix, tickers: labels } = data;
+    const n = labels.length;
+    const size = Math.min(Math.floor((container.clientWidth || 600) / n), 90);
+    const margin = { top: 20, right: 20, bottom: 20, left: 80 };
+    const width = size * n + margin.left + margin.right;
+    const height = size * n + margin.top + margin.bottom + 50;
+
+    container.innerHTML = '';
+    const svg = d3.select('#corr-chart')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+    // Color scale: red (-1) → grey (0) → green (+1)
+    const colorScale = d3.scaleLinear()
+        .domain([-1, 0, 1])
+        .range(['#ef4444', '#1f2937', '#22c55e']);
+
+    // Row labels
+    g.selectAll('.row-label')
+        .data(labels)
+        .enter().append('text')
+        .attr('class', 'row-label')
+        .attr('x', -8)
+        .attr('y', (d, i) => i * size + size / 2 + 4)
+        .attr('text-anchor', 'end')
+        .attr('font-size', '10px')
+        .attr('fill', 'rgba(255,255,255,0.7)')
+        .text(d => d.replace('-USD', ''));
+
+    // Col labels
+    g.selectAll('.col-label')
+        .data(labels)
+        .enter().append('text')
+        .attr('x', (d, i) => i * size + size / 2)
+        .attr('y', n * size + 18)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '10px')
+        .attr('fill', 'rgba(255,255,255,0.7)')
+        .text(d => d.replace('-USD', ''));
+
+    // Tooltip
+    const tooltip = d3.select('body').append('div')
+        .style('position', 'fixed').style('background', 'rgba(0,0,0,0.9)')
+        .style('border', '1px solid rgba(255,255,255,0.1)').style('border-radius', '8px')
+        .style('padding', '8px 12px').style('font-size', '0.7rem').style('color', '#fff')
+        .style('pointer-events', 'none').style('z-index', '9999').style('display', 'none');
+
+    // Cells
+    matrix.forEach((row, i) => {
+        row.forEach((val, j) => {
+            const cell = g.append('rect')
+                .attr('x', j * size + 1)
+                .attr('y', i * size + 1)
+                .attr('width', size - 2)
+                .attr('height', size - 2)
+                .attr('rx', 4)
+                .attr('fill', colorScale(val))
+                .attr('opacity', 0.85)
+                .style('cursor', 'default')
+                .on('mouseover', function(event) {
+                    d3.select(this).attr('opacity', 1).attr('stroke', '#fff').attr('stroke-width', 1);
+                    tooltip.style('display', 'block')
+                        .html(`<strong>${labels[i].replace('-USD','')} × ${labels[j].replace('-USD','')}</strong><br/>Correlation: <span style="color:${val >= 0 ? '#22c55e' : '#ef4444'}">${val >= 0 ? '+' : ''}${val.toFixed(3)}</span>`);
+                })
+                .on('mousemove', function(event) {
+                    tooltip.style('left', (event.clientX + 12) + 'px').style('top', (event.clientY - 10) + 'px');
+                })
+                .on('mouseout', function() {
+                    d3.select(this).attr('opacity', i === j ? 1 : 0.85).attr('stroke', 'none');
+                    tooltip.style('display', 'none');
+                });
+
+            // Value text
+            if (size >= 50) {
+                g.append('text')
+                    .attr('x', j * size + size / 2)
+                    .attr('y', i * size + size / 2 + 4)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', '9px')
+                    .attr('font-weight', '700')
+                    .attr('fill', Math.abs(val) > 0.5 ? '#fff' : 'rgba(255,255,255,0.55)')
+                    .text(val.toFixed(2));
+            }
+        });
+    });
 }
 
 // ============= Pack G1: Flow Monitor =============
@@ -2455,6 +2661,7 @@ const viewMap = {
     'explain-api': renderDocsAPI,
     'explain-glossary': renderDocsGlossary,
     'signal-archive': renderSignalArchive,
+    'correlation-matrix': renderCorrelationMatrix,
     help: renderHelp
 };
 
