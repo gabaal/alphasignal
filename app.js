@@ -2453,15 +2453,26 @@ async function renderPortfolioLab() {
     });
 }
 
-async function renderNarrativeGalaxy() {
+async function renderNarrativeGalaxy(filterChain = 'ALL') {
     appEl.innerHTML = skeleton(1);
-    const data = await fetchAPI(`/narrative-clusters?v=${Date.now()}`);
+    const data = await fetchAPI(`/narrative-clusters?chain=${filterChain}&v=${Date.now()}`);
     if (!data || !data.clusters) return;
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1>Narrative Cluster Galaxy V2</h1>
-            <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">
+            <div>
+                <h1>Narrative Cluster Galaxy V2 <span class="premium-badge">PRO</span></h1>
+                <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
+            </div>
+            <div class="view-actions" style="margin-bottom:0">
+                <select id="galaxy-chain-filter" class="tf-btn" style="background:var(--bg-card); border:1px solid var(--border); color:white; padding:0 15px; height:36px; cursor:pointer" onchange="renderNarrativeGalaxy(this.value)">
+                    <option value="ALL" ${filterChain === 'ALL' ? 'selected' : ''}>ALL NETWORKS</option>
+                    <option value="SOL" ${filterChain === 'SOL' ? 'selected' : ''}>SOLANA_ECO</option>
+                    <option value="ETH" ${filterChain === 'ETH' ? 'selected' : ''}>ETHEREUM_ECO</option>
+                    <option value="ADA" ${filterChain === 'ADA' ? 'selected' : ''}>CARDANO_ECO</option>
+                    <option value="AVAX" ${filterChain === 'AVAX' ? 'selected' : ''}>AVALANCHE_ECO</option>
+                </select>
+            </div>
         </div>
         
         <div class="hot-topics-ticker" style="background:rgba(0, 242, 255, 0.05); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-bottom:1.5rem; display:flex; gap:15px; align-items:center; overflow:hidden">
@@ -3215,6 +3226,36 @@ async function renderMacroView() {
     }
 }
 
+async function renderDocsVelocity() {
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>Narrative Velocity Methodology</h1>
+            <p>Documentation on how AlphaSignal calculates institutional capital rotation and social attention.</p>
+        </div>
+        <div class="docs-container" style="max-width:800px; margin:0 auto; line-height:1.7; color:var(--text-dim); padding: 2rem 0">
+            <section style="margin-bottom:2.5rem; background:rgba(255,255,255,0.02); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
+                <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">1. CORE VELOCITY METRIC</h3>
+                <p>Velocity represents <strong>Volume Acceleration</strong>. It is calculated by taking the current interval volume and dividing it by the 5-period moving average of previous volumes. A score > 1.0 indicates volume is expanding relative to its recent local benchmark, suggesting institutional entry or exit.</p>
+            </section>
+            <section style="margin-bottom:2.5rem; background:rgba(255,255,255,0.02); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
+                <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">2. SOCIAL HEAT (MINDSHARE)</h3>
+                <p>We monitor thousands of news sources and institutional social channels. Social Heat is a normalized score (0-10) based on the volume of bullish mentions relative to the total mention volume for that specific L1 ecosystem.</p>
+            </section>
+            <section style="margin-bottom:2.5rem; background:rgba(255,255,255,0.02); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
+                <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">3. INSTITUTIONAL VIGOR</h3>
+                <p>Vigor is a Z-Score approximation of price momentum adjusted for volume confirmation. A high Vigor score suggests that price movement is backed by significant capital flow, reducing the probability of a "fake-out."</p>
+            </section>
+            <section style="margin-bottom:2.5rem; background:rgba(255,255,255,0.02); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
+                <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">4. THE RADAR CHART</h3>
+                <p>The Radar Chart plots these four dimensions (Momentum, Liquidity, Social Heat, Vigor) to provide a "Network Signature." Institutional traders use this to identify which chains are receiving the most "High-Conviction" capital rotation.</p>
+            </section>
+            <div style="text-align:center; margin-top:2rem">
+                <button class="intel-action-btn" onclick="switchView('velocity')" style="width:auto">RETURN TO VELOCITY TERMINAL</button>
+            </div>
+        </div>
+    `;
+}
+
 // ============= Core Features =============
 async function updateBTC() {
     const data = await fetchAPI('/btc');
@@ -3410,6 +3451,7 @@ const viewMap = {
     'correlation-matrix': renderCorrelationMatrix,
     'alpha-score': renderAlphaScore,
     'performance-dashboard': renderPerformanceDashboard,
+    'explain-velocity': renderDocsVelocity,
     help: renderHelp
 };
 
@@ -3549,6 +3591,11 @@ function renderHelp() {
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">radar</span></div>
                     <h3>Signal Intelligence</h3>
                     <p>Understanding Z-Score deviations and alpha generation.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-velocity')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">speed</span></div>
+                    <h3>Chain Velocity</h3>
+                    <p>Documentation on capital rotation tracking and volume acceleration.</p>
                 </div>
                 <div class="f-card" onclick="switchView('explain-briefing')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">memory</span></div>
@@ -4043,6 +4090,10 @@ function updateSEOMeta(view) {
             title: 'Narrative Galaxy Search',
             desc: 'Explore emerging market narratives and cluster shifts using NLP-driven trend analysis.'
         },
+        'velocity': {
+            title: 'Cross-Chain Narrative Velocity',
+            desc: 'Institutional capital rotation tracking using volume acceleration and social heat.'
+        },
         'tradelab': {
             title: 'Trade Idea Lab',
             desc: 'Generate and validate institutional-grade trade setups with defined risk-reward parameters.'
@@ -4086,7 +4137,8 @@ function updateSEOMeta(view) {
         'explain-playbook': { title: 'Documentation — Trading Playbook', desc: 'Advanced trading strategies and multi-signal institutional execution frameworks.' },
         'explain-regimes': { title: 'Documentation — Market Regimes', desc: 'Identifying market cycles through institutional flow, volatility, and sentiment analysis.' },
         'explain-api': { title: 'Documentation — Institutional API', desc: 'Programmatic access for real-time alpha signals, liquidity depth, and narrative intelligence.' },
-        'explain-glossary': { title: 'Documentation — Terminal Glossary', desc: 'A quick-reference guide to all technical metrics used across the AlphaSignal platform.' }
+        'explain-glossary': { title: 'Documentation — Terminal Glossary', desc: 'A quick-reference guide to all technical metrics used across the AlphaSignal platform.' },
+        'explain-velocity': { title: 'Documentation — Cross-Chain Velocity', desc: 'Understanding institutional capital rotation using volume acceleration and social heat.' }
     };
 
     const meta = viewMetadata[view] || {

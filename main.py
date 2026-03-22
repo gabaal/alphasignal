@@ -416,6 +416,16 @@ class HarvestService:
                     signal_type = "MOMENTUM_BREAKOUT"
                     message = f"Volatility Expansion detected in {ticker}. Price action outperforming benchmark."
                 
+                # Cross-Chain Velocity Alert (Phase 9)
+                if ticker in UNIVERSE['L1']:
+                    # Calculate velocity similar to handle_chain_velocity
+                    vols = [float(h) for h in data[ticker].dropna().values] if ticker in data.columns else []
+                    if len(vols) >= 6:
+                        velocity = (vols[-1] / (sum(vols[-6:-1])/5))
+                        if velocity > 2.5:
+                            signal_type = "VELOCITY_BREAKOUT"
+                            message = f"Institutional Velocity Breakout on {ticker.split('-')[0]} ({round(velocity, 1)}x vol acceleration)."
+                
                 if signal_type:
                     # Check if we already alerted this ticker recently (last 6h) to avoid spam
                     c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND timestamp > datetime('now', '-6 hours')", (ticker,))
@@ -1408,6 +1418,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 anchors["MODULAR"] = {"x": 800, "y": 300, "color": "#ff8800", "topic": "Execution Layers"}
 
             # 3. Map Tickers to the Galaxy
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            target_chain = query.get('chain', [None])[0]
+            
             all_tickers = [t for sub in UNIVERSE.values() for t in sub]
             data = CACHE.download(all_tickers[:30], period='2d', interval='1d', column='Close')
             
@@ -1416,6 +1429,16 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             for cat, ticks in UNIVERSE.items():
                 anchor = anchors.get(cat, {"x": 400, "y": 300, "color": "white"})
                 for ticker in ticks:
+                    # Filter by chain if requested
+                    if target_chain and target_chain != "ALL":
+                        # Simple rule: if ticker contains chain name or belongs to L1 category
+                        is_match = target_chain.upper() in ticker.upper()
+                        if not is_match and cat == "L1" and target_chain.upper() in ticker.upper(): is_match = True
+                        # For L1 assets, only show if they MATCH the target chain
+                        if cat == "L1" and target_chain.upper() not in ticker.upper(): continue
+                        # For other categories, we show them but maybe they'll be links
+                        # Actually, better to just filter the whole view if requested
+                        if not is_match and cat != "L1": continue 
                     # Deterministic positioning based on sentiment & seed
                     sentiment = get_sentiment(ticker)
                     random.seed(hash(ticker))
