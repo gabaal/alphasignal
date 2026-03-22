@@ -10,6 +10,10 @@ import time
 import sqlite3
 import threading
 import io
+import socket
+import struct
+import hashlib
+import base64
 import requests
 from datetime import datetime, timedelta
 import random
@@ -901,6 +905,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/news': self.handle_news()
             elif path == '/api/mindshare': self.handle_mindshare()
             elif path == '/api/ai_analyst': self.handle_ai_analyst()
+            elif path == '/api/signal-history': self.handle_signal_history()
             elif path == '/api/macro-calendar': self.handle_macro_calendar()
             elif path == '/api/liquidity': self.handle_liquidity()
             elif path == '/api/tape': self.handle_tape()
@@ -3113,49 +3118,130 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Whale Engine Error: {e}")
             self.send_json([])
 
-    def handle_macro_calendar(self):
-        # Pack G Phase 2: Macro Catalyst Compass
+    def handle_signal_history(self):
+        """Phase B: Return all alerts from alerts_history with current PnL."""
         try:
-            now = datetime.now()
-            # 1. Dynamic Economic Events (Relative to today)
-            # Standard high-impact events we track weekly
-            events_raw = [
-                ("Initial Jobless Claims (US)", "12:30", "MEDIUM", "210K", "215K"),
-                ("Existing Home Sales (Mar)", "14:00", "LOW", "4.3M", "4.38M"),
-                ("Fed Member Speaks", "20:00", "MEDIUM", "-", "-"),
-                ("Consumer Confidence", "14:00", "HIGH", "104.0", "106.7"),
-                ("GDP Q4 (Final Estimate)", "12:30", "HIGH", "3.2%", "3.2%"),
-                ("Core PCE Price Index (MoM)", "12:30", "CRITICAL", "0.3%", "0.4%")
-            ]
-            
-            events = []
-            for i, (name, time, impact, f, p) in enumerate(events_raw):
-                # Spread events across the next 7 days
-                evt_date = (now + timedelta(days=i)).strftime('%Y-%m-%d')
-                events.append({
-                    "date": evt_date, "time": time, "event": name, 
-                    "impact": impact, "forecast": f, "previous": p
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("""
+                SELECT id, type, ticker, message, severity, price, timestamp
+                FROM alerts_history
+                ORDER BY timestamp DESC
+                LIMIT 50
+            """)
+            rows = c.fetchall()
+            conn.close()
+
+            results = []
+            for row_id, sig_type, ticker, message, severity, entry_p, ts in rows:
+                curr_p = entry_p
+                roi = 0.0
+                state = "ACTIVE"
+                try:
+                    data = CACHE.download(ticker, period='1d', interval='1m', column='Close')
+                    if data is not None and not data.empty and entry_p and entry_p > 0:
+                        curr_p = round(float(data.iloc[-1]), 4)
+                        roi = round(((curr_p - entry_p) / entry_p) * 100, 2)
+                        if roi > 10: state = "HIT_TP2"
+                        elif roi > 5: state = "HIT_TP1"
+                        elif roi < -3: state = "STOPPED"
+                except: pass
+
+                results.append({
+                    "id": row_id,
+                    "type": sig_type,
+                    "ticker": ticker,
+                    "message": message,
+                    "severity": severity,
+                    "entry": round(entry_p, 4) if entry_p else None,
+                    "current": curr_p,
+                    "return": roi,
+                    "state": state,
+                    "timestamp": ts
                 })
 
-            # 2. Treasury Yields via yfinance
+            self.send_json(results)
+        except Exception as e:
+            print(f"Signal History Error: {e}")
+            self.send_json([])
+
+    def handle_macro_calendar(self):
+        # Pack G Phase 2: Macro Catalyst Compass - REAL DATA
+        try:
+            now = datetime.now()
+            events = []
+
+            # 1. Try fetching real events from TradingEconomics calendar via free scrape
+            try:
+                headers = {'User-Agent': 'Mozilla/5.0 (compatible; AlphaSignal/1.0)'}
+                r = requests.get(
+                    'https://finnhub.io/api/v1/calendar/economic?from='
+                    f'{now.strftime("%Y-%m-%d")}&to={(now + timedelta(days=7)).strftime("%Y-%m-%d")}'
+                    '&token=demo',
+                    headers=headers, timeout=3
+                )
+                if r.status_code == 200:
+                    data = r.json()
+                    for ev in data.get('economicCalendar', [])[:20]:
+                        impact_map = {'high': 'HIGH', 'medium': 'MEDIUM', 'low': 'LOW'}
+                        events.append({
+                            "date": ev.get('time', now.strftime('%Y-%m-%d'))[:10],
+                            "time": ev.get('time', '')[-8:-3] if len(ev.get('time', '')) > 10 else '12:00',
+                            "event": ev.get('event', 'Economic Event'),
+                            "impact": impact_map.get(ev.get('impact', 'low').lower(), 'MEDIUM'),
+                            "forecast": str(ev.get('estimate', '-')),
+                            "previous": str(ev.get('prev', '-')),
+                            "country": ev.get('country', 'US')
+                        })
+            except Exception as api_e:
+                print(f"Macro API: {api_e}")
+
+            # 2. Fallback: Curated high-impact events dynamically dated to this week
+            if not events:
+                # Key recurring US economic events with realistic dates
+                weekly_schedule = [
+                    (0, "Initial Jobless Claims (US)", "12:30", "HIGH", "212K", "220K"),
+                    (1, "PCE Price Index (MoM)", "12:30", "CRITICAL", "0.3%", "0.4%"),
+                    (2, "FOMC Meeting Minutes", "18:00", "CRITICAL", "-", "-"),
+                    (3, "Consumer Price Index (US)", "12:30", "HIGH", "0.3%", "0.4%"),
+                    (4, "GDP Growth Rate QoQ", "12:30", "HIGH", "2.8%", "3.2%"),
+                    (5, "Fed Chair Powell Speaks", "19:00", "CRITICAL", "-", "-"),
+                    (6, "Nonfarm Payrolls (US)", "12:30", "CRITICAL", "185K", "256K"),
+                ]
+                for day_offset, name, time_str, impact, forecast, previous in weekly_schedule:
+                    evt_date = (now + timedelta(days=day_offset)).strftime('%Y-%m-%d')
+                    events.append({
+                        "date": evt_date, "time": time_str, "event": name,
+                        "impact": impact, "forecast": forecast, "previous": previous,
+                        "country": "US"
+                    })
+
+            # 3. Treasury Yields via yfinance
             yields = {}
-            for ticker in ['^TNX', '^IRX']:
+            for ticker in ['^TNX', '^IRX', '^FVX']:
                 try:
-                    t = yf.Ticker(ticker)
-                    # Use a stable historical fallback if real-time fails
-                    h = t.history(period='5d')
+                    h = yf.Ticker(ticker).history(period='5d')
                     if not h.empty:
-                        val = h['Close'].iloc[-1]
-                        label = "10Y Yield" if ticker == '^TNX' else "13W Bill"
+                        val = round(h['Close'].iloc[-1], 3)
+                        label = {"^TNX": "10Y Yield", "^IRX": "13W Bill", "^FVX": "5Y Yield"}[ticker]
                         yields[label] = f"{val:.2f}%"
                 except: pass
-            
-            if not yields: yields = {"10Y Yield": "4.32%", "13W Bill": "5.38%"} # Institutional fallback
+            if not yields: yields = {"10Y Yield": "4.32%", "13W Bill": "5.38%", "5Y Yield": "4.15%"}
+
+            # 4. Fear & Greed proxy (BTC 30d vol)
+            fear_greed = 50
+            try:
+                btc = CACHE.download('BTC-USD', period='30d', interval='1d', column='Close')
+                if btc is not None and len(btc) > 1:
+                    vol = float(btc.pct_change().std() * 100 * (365**0.5))
+                    fear_greed = max(10, min(90, int(100 - vol * 2)))
+            except: pass
 
             self.send_json({
-                "events": events,
+                "events": sorted(events, key=lambda x: x['date']),
                 "yields": yields,
-                "status": "OPERATIONAL",
+                "fear_greed": fear_greed,
+                "status": "LIVE" if len(events) > 7 else "CURATED",
                 "last_update": datetime.now().strftime("%Y-%m-%d %H:%M")
             })
         except Exception as e:
@@ -3219,6 +3305,110 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"success": True})
 
 
+
+# ============================================================
+# Phase A: WebSocket Live Price Server (Port 8007)
+# ============================================================
+WS_CLIENTS = set()
+WS_LOCK = threading.Lock()
+LIVE_PRICES = {"BTC": 0.0, "ETH": 0.0, "SOL": 0.0}
+
+class WebSocketServer:
+    PORT = 8007
+    
+    def __init__(self):
+        self.running = True
+
+    def _handshake(self, conn):
+        data = conn.recv(4096).decode('utf-8')
+        key = ''
+        for line in data.split('\r\n'):
+            if 'Sec-WebSocket-Key' in line:
+                key = line.split(': ')[1].strip()
+                break
+        if not key: return False
+        magic = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+        accept = base64.b64encode(hashlib.sha1((key + magic).encode()).digest()).decode()
+        response = (
+            'HTTP/1.1 101 Switching Protocols\r\n'
+            'Upgrade: websocket\r\n'
+            'Connection: Upgrade\r\n'
+            f'Sec-WebSocket-Accept: {accept}\r\n\r\n'
+        )
+        conn.send(response.encode())
+        return True
+
+    def _encode(self, msg):
+        payload = msg.encode('utf-8')
+        n = len(payload)
+        header = bytearray([0x81])
+        if n < 126:
+            header.append(n)
+        elif n < 65536:
+            header.append(126)
+            header += struct.pack('>H', n)
+        else:
+            header.append(127)
+            header += struct.pack('>Q', n)
+        return bytes(header) + payload
+
+    def _handle_client(self, conn, addr):
+        try:
+            if not self._handshake(conn): return
+            with WS_LOCK: WS_CLIENTS.add(conn)
+            while self.running:
+                try:
+                    data = conn.recv(1024)
+                    if not data: break
+                except: break
+        except: pass
+        finally:
+            with WS_LOCK: WS_CLIENTS.discard(conn)
+            try: conn.close()
+            except: pass
+
+    def broadcast(self, msg):
+        encoded = self._encode(msg)
+        dead = set()
+        with WS_LOCK:
+            for c in WS_CLIENTS:
+                try: c.sendall(encoded)
+                except: dead.add(c)
+            for c in dead: WS_CLIENTS.discard(c)
+
+    def price_broadcast_loop(self):
+        """Fetch prices every 2 seconds and broadcast to all WS clients."""
+        tickers = {'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD'}
+        while self.running:
+            try:
+                for sym, tick in tickers.items():
+                    data = CACHE.download(tick, period='1d', interval='1m', column='Close')
+                    if data is not None and not (hasattr(data, 'empty') and data.empty):
+                        val = data.iloc[-1]
+                        if hasattr(val, 'iloc'): val = val.iloc[0]
+                        LIVE_PRICES[sym] = round(float(val), 2)
+                self.broadcast(json.dumps({"type": "prices", "data": LIVE_PRICES}))
+            except Exception as e:
+                print(f"WS Broadcast Error: {e}")
+            time.sleep(5)
+
+    def run(self):
+        srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            srv.bind(('0.0.0.0', self.PORT))
+        except OSError:
+            print(f"WS port {self.PORT} already in use, skipping.")
+            return
+        srv.listen(10)
+        print(f"[WebSocket] Live price stream on ws://127.0.0.1:{self.PORT}")
+        threading.Thread(target=self.price_broadcast_loop, daemon=True).start()
+        while self.running:
+            try:
+                conn, addr = srv.accept()
+                threading.Thread(target=self._handle_client, args=(conn, addr), daemon=True).start()
+            except: break
+
 if __name__ == "__main__":
     print("Initializing AlphaSignal Terminal...")
     # Start Harvester
@@ -3226,6 +3416,11 @@ if __name__ == "__main__":
     h_thread = threading.Thread(target=harvester.run, daemon=True)
     print("Starting background Harvester thread...")
     h_thread.start()
+
+    # Start WebSocket Live Price Server
+    ws_server = WebSocketServer()
+    ws_thread = threading.Thread(target=ws_server.run, daemon=True)
+    ws_thread.start()
     
     print(f"Binding TCPServer to 0.0.0.0:{PORT}...")
     try:

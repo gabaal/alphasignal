@@ -51,6 +51,56 @@ let isPremiumUser = false;
 let isAuthenticatedUser = false;
 let hasStripeId = false;
 
+// ============================================================
+// Phase A: WebSocket Live Price Client
+// ============================================================
+function initLivePriceStream() {
+    let ws = null;
+    let retryDelay = 2000;
+
+    function connect() {
+        try {
+            ws = new WebSocket('ws://localhost:8007');
+
+            ws.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'prices') {
+                        const p = msg.data;
+                        if (p.BTC) {
+                            currentBTCPrice = p.BTC;
+                            const el = document.getElementById('btc-price');
+                            if (el) el.textContent = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            // Pulse the live dot
+                            const dot = document.getElementById('live-dot');
+                            if (dot) { dot.style.opacity = '1'; setTimeout(() => { dot.style.opacity = '0.4'; }, 300); }
+                        }
+                        // Update any other price elements in view
+                        ['ETH', 'SOL'].forEach(sym => {
+                            if (p[sym]) {
+                                const els = document.querySelectorAll(`[data-live-price="${sym}"]`);
+                                els.forEach(e => e.textContent = `$${p[sym].toLocaleString('en-US', {minimumFractionDigits: 2})}`);
+                            }
+                        });
+                    }
+                } catch(e) {}
+            };
+
+            ws.onclose = () => {
+                retryDelay = Math.min(retryDelay * 1.5, 30000);
+                setTimeout(connect, retryDelay);
+            };
+
+            ws.onerror = () => ws.close();
+
+        } catch(e) {
+            setTimeout(connect, retryDelay);
+        }
+    }
+
+    connect();
+}
+
 // ============= Visualization Utilities =============
 
 
@@ -2110,6 +2160,73 @@ async function renderLiquidityView() {
     }
 }
 
+async function renderSignalArchive() {
+    appEl.innerHTML = `
+        <h1 class="view-title">📡 Signal Archive <span class="premium-badge">LIVE</span></h1>
+        <p class="view-desc">Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
+        <div class="card" style="padding:1rem">${skeleton(1)}</div>
+    `;
+    const data = await fetchAPI('/signal-history');
+
+    if (!data || !data.length) {
+        appEl.innerHTML = `
+            <h1 class="view-title">📡 Signal Archive</h1>
+            <div class="card" style="text-align:center; padding:3rem">
+                <p style="color:var(--text-dim); font-size:0.85rem">No signals recorded yet. The engine will populate this after the next Harvest cycle (every 60 min).</p>
+            </div>`;
+        return;
+    }
+
+    const stateColors = {
+        'HIT_TP2': '#22c55e', 'HIT_TP1': '#86efac',
+        'ACTIVE': '#60a5fa', 'STOPPED': '#ef4444'
+    };
+    const stateIcons = { 'HIT_TP2': '🎯', 'HIT_TP1': '✅', 'ACTIVE': '⚡', 'STOPPED': '🛑' };
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>📡 Signal Archive <span class="premium-badge">LIVE</span></h1>
+            <p>Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
+        </div>
+        <div class="card" style="overflow-x:auto">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+                <span style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px">SHOWING LAST ${data.length} SIGNALS</span>
+                <span style="font-size:0.6rem; color:var(--accent); letter-spacing:1px">REAL-TIME PnL TRACKING ACTIVE</span>
+            </div>
+            <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
+                <thead>
+                    <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
+                        <th style="text-align:left; padding:8px 12px">TICKER</th>
+                        <th style="text-align:left; padding:8px 12px">TYPE</th>
+                        <th style="text-align:right; padding:8px 12px">ENTRY</th>
+                        <th style="text-align:right; padding:8px 12px">CURRENT</th>
+                        <th style="text-align:right; padding:8px 12px">RETURN</th>
+                        <th style="text-align:center; padding:8px 12px">STATE</th>
+                        <th style="text-align:left; padding:8px 12px">TIMESTAMP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(s => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                            <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
+                            <td style="padding:10px 12px; color:var(--text-dim)">${s.type?.replace(/_/g,' ') || '-'}</td>
+                            <td style="padding:10px 12px; text-align:right; font-family:monospace">${s.entry ? '$' + s.entry.toLocaleString() : '-'}</td>
+                            <td style="padding:10px 12px; text-align:right; font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
+                            <td style="padding:10px 12px; text-align:right; font-weight:700; color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
+                            <td style="padding:10px 12px; text-align:center">
+                                <span style="background:${stateColors[s.state] || '#60a5fa'}22; color:${stateColors[s.state] || '#60a5fa'}; padding:2px 10px; border-radius:20px; font-size:0.6rem; letter-spacing:1px">
+                                    ${stateIcons[s.state] || '⚡'} ${s.state}
+                                </span>
+                            </td>
+                            <td style="padding:10px 12px; color:var(--text-dim)">${s.timestamp ? s.timestamp.split('T')[0] : '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
 async function renderMacroView() {
     appEl.innerHTML = `<h1 class="view-title">Macro Catalyst Compass</h1>${skeleton(2)}`;
     try {
@@ -2337,6 +2454,7 @@ const viewMap = {
     'explain-regimes': renderDocsRegimes,
     'explain-api': renderDocsAPI,
     'explain-glossary': renderDocsGlossary,
+    'signal-archive': renderSignalArchive,
     help: renderHelp
 };
 
@@ -3129,6 +3247,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Run auth check before data sync
     await checkAuthStatus();
+    
+    // Start live price WebSocket stream
+    initLivePriceStream();
     
     // Always start these for basic access (Signals and BTC are free)
     updateBTC();
