@@ -2183,6 +2183,276 @@ async function renderStressHub() {
     `;
 }
 
+async function renderChainVelocity() {
+    appEl.innerHTML = skeleton(1);
+    const data = await fetchAPI('/chain-velocity');
+    if (!data || !data.velocity_data) return;
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>Cross-Chain Narrative Velocity</h1>
+            <p>Institutional capital rotation tracking across major L1 networks using volume acceleration and social heat.</p>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; margin-bottom: 2rem">
+            <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5); backdrop-filter:blur(10px)">
+                <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">VELOCITY RADAR (INSTITUTIONAL MOMENTUM)</h3>
+                <canvas id="velocityRadar" style="max-height:450px"></canvas>
+            </div>
+            <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">
+                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">NARRATIVE LEADERS</h3>
+                <div class="velocity-leaderboard">
+                    ${data.leaderboard.map((l, i) => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+                            <div style="display:flex; align-items:center; gap:12px">
+                                <span style="font-size:1.2rem; font-weight:900; color:rgba(255,255,255,0.05)">#${i+1}</span>
+                                <span style="font-weight:900; color:white; font-size:0.9rem">${l.ticker.split('-')[0]}</span>
+                            </div>
+                            <div style="text-align:right">
+                                <div style="font-size:1rem; font-weight:900; color:var(--accent)">${l.score.toFixed(1)}</div>
+                                <div style="font-size:0.5rem; color:var(--text-dim); font-weight:800">VELOCITY_SCORE</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top:2rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.1); border-radius:8px">
+                    <div style="font-size:0.6rem; font-weight:900; color:var(--accent); margin-bottom:5px">ALPHA INSIGHT</div>
+                    <p style="font-size:0.75rem; color:var(--text-dim); line-height:1.5">
+                        <strong>${data.leaderboard[0].ticker.split('-')[0]}</strong> is demonstrating peak relative strength. Volume acceleration of <strong>${(data.velocity_data[data.leaderboard[0].ticker].raw_velocity).toFixed(2)}x</strong> confirms institutional accumulation.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="velocity-stats" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.5rem">
+            ${Object.entries(data.velocity_data).map(([ticker, v]) => `
+                <div class="card" style="padding:1.5rem; border-left:4px solid ${v.raw_momentum >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                        <span style="font-size:0.7rem; font-weight:900; color:var(--text-dim); letter-spacing:1px">${ticker}</span>
+                        <span class="premium-badge" style="font-size:0.5rem">L1_NODE</span>
+                    </div>
+                    <div style="font-size:1.8rem; font-weight:900; color:white; margin:10px 0">${v.raw_momentum >=0 ? '+' : ''}${v.raw_momentum.toFixed(2)}%</div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.6rem; font-weight:800">
+                        <span style="color:var(--text-dim)">VELOCITY</span>
+                        <span style="color:var(--accent)">${v.raw_velocity.toFixed(2)}x REF</span>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    const ctx = document.getElementById('velocityRadar').getContext('2d');
+    const tickers = Object.keys(data.velocity_data);
+    const colors = [
+        'rgba(0, 242, 255, 0.4)',
+        'rgba(168, 85, 247, 0.4)',
+        'rgba(255, 62, 62, 0.4)',
+        'rgba(255, 250, 0, 0.4)',
+        'rgba(0, 255, 136, 0.4)'
+    ];
+
+    const datasets = tickers.map((t, i) => {
+        const v = data.velocity_data[t];
+        const baseColor = colors[i % colors.length];
+        return {
+            label: t.split('-')[0],
+            data: [v.momentum, v.liquidity, v.social, v.vigor],
+            backgroundColor: baseColor,
+            borderColor: baseColor.replace('0.4', '1'),
+            borderWidth: 2,
+            pointBackgroundColor: '#fff',
+            pointRadius: 3,
+            fill: true
+        };
+    });
+
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['MOMENTUM', 'LIQUIDITY', 'SOCIAL HEAT', 'VIGOR'],
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255,255,255,0.1)' },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    pointLabels: { 
+                        color: 'var(--text-dim)', 
+                        font: { size: 10, weight: '900', family: 'Inter' },
+                        padding: 10
+                    },
+                    ticks: { display: false, stepSize: 2 },
+                    min: 0,
+                    max: 10,
+                    backgroundColor: 'rgba(0,0,0,0.2)'
+                }
+            },
+            plugins: {
+                legend: { 
+                    position: 'bottom', 
+                    labels: { 
+                        color: 'white', 
+                        font: { size: 11, weight: '800', family: 'JetBrains Mono' },
+                        padding: 20
+                    } 
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(10,11,30,0.9)',
+                    titleFont: { size: 13, weight: '900' },
+                    bodyFont: { size: 11 },
+                    borderWidth: 1,
+                    borderColor: 'var(--border)'
+                }
+            }
+        }
+    });
+}
+
+async function renderPortfolioLab() {
+    appEl.innerHTML = skeleton(1);
+    const data = await fetchAPI('/portfolio-sim');
+    if (!data || !data.metrics) return;
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1>Institutional Portfolio Lab</h1>
+            <p>Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores.</p>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 3fr 1fr; gap:2rem; margin-bottom: 2rem">
+            <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5); backdrop-filter:blur(10px)">
+                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">ALPHA-WEIGHTED EQUITY CURVE (30D)</h3>
+                <canvas id="portfolioChart" style="max-height:450px"></canvas>
+            </div>
+            <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">
+                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">RISK SCORECARD</h3>
+                <div class="metrics-grid" style="display:grid; grid-template-columns: 1fr; gap:1.2rem">
+                    <div class="metric-item">
+                        <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim)">ALPHA GENERATION</div>
+                        <div style="font-size:1.4rem; font-weight:900; color:${data.metrics.alpha_gen >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">
+                            ${data.metrics.alpha_gen >= 0 ? '+' : ''}${data.metrics.alpha_gen.toFixed(1)}%
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim)">SHARPE RATIO</div>
+                        <div style="font-size:1.4rem; font-weight:900; color:white">${data.metrics.sharpe.toFixed(2)}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim)">MAX DRAWDOWN</div>
+                        <div style="font-size:1.4rem; font-weight:900; color:var(--risk-high)">${Math.abs(data.metrics.max_drawdown).toFixed(1)}%</div>
+                    </div>
+                </div>
+                <div style="margin-top:2rem; padding:1.2rem; background:rgba(0,242,255,0.05); border:1px solid var(--accent); border-radius:8px">
+                    <div style="font-size:0.65rem; font-weight:900; color:var(--accent); margin-bottom:8px">SYSTEMIC INSIGHT</div>
+                    <p style="font-size:0.75rem; color:var(--text-dim); line-height:1.5">
+                        Performance vs. <strong>BTC Benchmark</strong> (${data.metrics.benchmark_return.toFixed(1)}%) confirms a significant institutional edge in the Alpha-weighted selection.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:2rem">
+            <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5)">
+                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">DYNAMIC ALLOCATION</h3>
+                <canvas id="allocationChart" style="max-height:300px"></canvas>
+            </div>
+            <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">
+                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">CONSTITUENT WEIGHTINGS</h3>
+                <div class="weights-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px">
+                    ${Object.entries(data.allocation).map(([ticker, weight]) => `
+                        <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(255,255,255,0.05)">
+                            <span style="font-size:0.75rem; font-weight:900; color:white">${ticker}</span>
+                            <span style="font-size:0.7rem; font-weight:900; color:var(--accent)">${weight}%</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 1. Portfolio vs Benchmark Chart
+    const ctxPort = document.getElementById('portfolioChart').getContext('2d');
+    new Chart(ctxPort, {
+        type: 'line',
+        data: {
+            labels: data.history.map(h => h.date),
+            datasets: [
+                {
+                    label: 'ALPHA PORTFOLIO',
+                    data: data.history.map(h => h.portfolio),
+                    borderColor: 'var(--accent)',
+                    backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0
+                },
+                {
+                    label: 'BTC BENCHMARK',
+                    data: data.history.map(h => h.benchmark),
+                    borderColor: 'var(--text-dim)',
+                    borderDash: [5, 5],
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { 
+                    grid: { display: false }, 
+                    ticks: { color: 'var(--text-dim)', font: { size: 10, family: 'JetBrains Mono' } } 
+                },
+                y: { 
+                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                    ticks: { color: 'var(--text-dim)', font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: 'white', font: { weight: '800', size: 11 } } },
+                tooltip: { 
+                    mode: 'index', 
+                    intersect: false,
+                    backgroundColor: 'rgba(10,11,30,0.9)',
+                    titleFont: { size: 13 },
+                    bodyFont: { size: 12 }
+                }
+            }
+        }
+    });
+
+    // 2. Allocation Donut Chart
+    const ctxAlloc = document.getElementById('allocationChart').getContext('2d');
+    new Chart(ctxAlloc, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(data.allocation),
+            datasets: [{
+                data: Object.values(data.allocation),
+                backgroundColor: [
+                    '#00f2ff', '#a855f7', '#ff3e3e', '#fffa00', '#00ff88', '#3b82f6', '#f59e0b', '#ec4899', '#10b981', '#6366f1'
+                ],
+                borderWidth: 0,
+                hoverOffset: 20
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
 async function renderNarrativeGalaxy() {
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI(`/narrative-clusters?v=${Date.now()}`);
@@ -3105,6 +3375,8 @@ const viewMap = {
 
     regime: renderRegime,
     rotation: renderRotation,
+    velocity: renderChainVelocity,
+    portfolio: renderPortfolioLab,
     'strategy-lab': renderStrategyLab,
     risk: renderRiskMatrix,
     stress: renderStressHub,

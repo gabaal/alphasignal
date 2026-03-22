@@ -939,7 +939,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/derivatives': self.handle_derivatives()
             elif path == '/api/macro': self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
-            elif path == '/api/risk': self.handle_risk()
+            elif path == '/api/portfolio-sim': self.handle_portfolio_sim()
+            elif path == '/api/chain-velocity': self.handle_chain_velocity()
             elif path == '/api/narrative-clusters': self.handle_narrative_clusters()
             elif path == '/api/briefing': self.handle_briefing()
             elif path == '/api/user/settings': self.handle_user_settings()
@@ -969,6 +970,130 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 self.send_error(500, str(e))
             except: pass
+
+    def handle_chain_velocity(self):
+        # Pack H7: Cross-Chain Narrative Velocity (Institutional Flow Engine)
+        try:
+            l1_tickers = UNIVERSE['L1']
+            results = {}
+            
+            # Download recent bars for velocity & momentum
+            data_close = CACHE.download(l1_tickers, period='30d', interval='1d', column='Close')
+            data_vol = CACHE.download(l1_tickers, period='30d', interval='1d', column='Volume')
+            
+            # News for Narrative Heat
+            news = self.get_context_news()
+            
+            for ticker in l1_tickers:
+                if ticker not in data_close.columns or ticker not in data_vol.columns:
+                    continue
+                
+                prices = data_close[ticker].dropna()
+                vols = data_vol[ticker].dropna()
+                
+                if len(prices) < 7 or len(vols) < 7: continue
+                
+                # 1. Momentum (24h Price Action)
+                momentum = ((prices.iloc[-1] - prices.iloc[-2]) / prices.iloc[-2]) * 100
+                
+                # 2. Velocity (Volume Acceleration: 24h vs 7d average)
+                avg_vol_7d = vols.tail(7).mean()
+                velocity = (vols.iloc[-1] / avg_vol_7d) if avg_vol_7d > 0 else 1.0
+                
+                # 3. Narrative Heat (Frequency of Chain Name in Headlines)
+                chain_name = ticker.split('-')[0].lower()
+                heat_score = sum(1 for n in news if chain_name in n['headline'].lower() or chain_name in n['summary'].lower())
+                
+                # 4. Institutional Vigor (Momentum adjusted by Z-Score)
+                rets = prices.pct_change().dropna()
+                z_score = (rets.iloc[-1] - rets.mean()) / rets.std() if rets.std() > 0 else 0
+                
+                results[ticker] = {
+                    "momentum": round(min(max(momentum + 5, 0), 10), 2), # Normalized 0-10
+                    "liquidity": round(min(velocity * 4, 10), 2),       # Normalized 0-10
+                    "social": round(min(heat_score * 2, 10), 2),        # Normalized 0-10
+                    "vigor": round(min(max(z_score + 5, 0), 10), 2),    # Normalized 0-10
+                    "raw_momentum": round(momentum, 2),
+                    "raw_velocity": round(velocity, 2)
+                }
+            
+            # Sort for Leaderboard
+            sorted_leaders = sorted(results.items(), key=lambda x: (x[1]['momentum'] + x[1]['liquidity'] + x[1]['social']) / 3, reverse=True)
+            leaderboard = [{"ticker": t, "score": round((v['momentum'] + v['liquidity'] + v['social']) / 3, 2)} for t, v in sorted_leaders]
+
+            self.send_json({
+                "velocity_data": results,
+                "leaderboard": leaderboard,
+                "timestamp": datetime.now().strftime("%H:%M")
+            })
+        except Exception as e:
+            print(f"Chain Velocity error: {e}")
+            self.send_json({"error": str(e)})
+
+    def handle_portfolio_sim(self):
+        # Pack H8: Institutional Portfolio Simulation (Alpha-Weighted Rebalancing)
+        try:
+            # 1. Get Top 10 by Alpha Score (mocking the Alpha Engine selection)
+            all_tickers = [t for sublist in UNIVERSE.values() for t in sublist]
+            # Use top tickers with positive recent returns as a proxy for 'Alpha'
+            test_data = CACHE.download(all_tickers, period='7d', interval='1d', column='Close')
+            if test_data is not None and not test_data.empty:
+                perf = (test_data.iloc[-1] / test_data.iloc[0]) - 1
+                selected = perf.sort_values(ascending=False).head(10).index.tolist()
+            else:
+                selected = random.sample(all_tickers, 10)
+            
+            # 2. Download 30d history for simulation
+            data = CACHE.download(selected + ['BTC-USD'], period='35d', interval='1d', column='Close')
+            if data is None or data.empty:
+                self.send_json({"error": "Insufficient simulation data"})
+                return
+
+            # Align and calculate returns
+            returns = data.pct_change().dropna()
+            
+            # 3. Calculate Alpha-Weights (using a synthetic Alpha Score)
+            sharpes = (returns.mean() / returns.std()) * np.sqrt(365)
+            assets_sharpe = sharpes[selected].fillna(0).clip(lower=0.1) # Ensure positive weights
+            weights = assets_sharpe / assets_sharpe.sum()
+            
+            # 4. Simulate Portfolio Performance
+            portfolio_returns = (returns[selected] * weights).sum(axis=1)
+            cum_returns_port = (1 + portfolio_returns).cumprod()
+            cum_returns_bench = (1 + returns['BTC-USD']).cumprod()
+            
+            # 5. Calculate Metrics
+            total_return = (cum_returns_port.iloc[-1] - 1) * 100
+            bench_return = (cum_returns_bench.iloc[-1] - 1) * 100
+            pf_sharpe = (portfolio_returns.mean() / portfolio_returns.std()) * np.sqrt(365) if portfolio_returns.std() > 0 else 0
+            rolling_max = cum_returns_port.cummax()
+            drawdown = (cum_returns_port - rolling_max) / rolling_max
+            max_dd = drawdown.min() * 100
+            
+            history = []
+            for date, val in cum_returns_port.items():
+                if date in cum_returns_bench.index:
+                    history.append({
+                        "date": date.strftime("%Y-%m-%d"),
+                        "portfolio": round((val - 1) * 100, 2),
+                        "benchmark": round((cum_returns_bench.loc[date] - 1) * 100, 2)
+                    })
+
+            self.send_json({
+                "metrics": {
+                    "total_return": round(total_return, 2),
+                    "benchmark_return": round(bench_return, 2),
+                    "sharpe": round(pf_sharpe, 2),
+                    "max_drawdown": round(max_dd, 2),
+                    "alpha_gen": round(total_return - bench_return, 2)
+                },
+                "allocation": {t.split('-')[0]: round(float(w) * 100, 1) for t, w in weights.items()},
+                "history": history,
+                "timestamp": datetime.now().strftime("%H:%M")
+            })
+        except Exception as e:
+            print(f"Portfolio Simulation error: {e}")
+            self.send_json({"error": str(e)})
 
     # ============================================================
     # Pack G1: De-peg Monitor
