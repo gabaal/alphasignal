@@ -2839,7 +2839,14 @@ async function renderRegime() {
             <div class="regime-history-panel" style="margin-top:2rem">
                 <h3>STRUCTURAL ALPHA HEATMAP (D3.JS)</h3>
                 <div id="regime-heatmap-container" style="height:200px; background:rgba(255,255,255,0.02); border-radius:12px; margin-top:1rem"></div>
-                <div style="font-size:0.7rem; color:var(--text-dim); text-align:right; margin-top:8px">PROBABILITY DENSITY OVER 180D LOOKBACK</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px">
+                    <div style="display:flex; gap:16px; font-size:0.65rem; color:var(--text-dim); font-weight:700">
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ef5350; border-radius:2px"></span> HIGH-VOL EXPANSION</div>
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ffa726; border-radius:2px"></span> NEUTRAL / ACCUMULATION</div>
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#26a69a; border-radius:2px"></span> LOW-VOL COMPRESSION</div>
+                    </div>
+                    <div style="font-size:0.7rem; color:var(--text-dim); text-align:right">PROBABILITY DENSITY OVER 180D LOOKBACK</div>
+                </div>
             </div>
 
             <div class="regime-guide-grid" style="margin-top:3rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px">
@@ -2853,6 +2860,14 @@ async function renderRegime() {
                 </div>
                 <div class="guide-card">
                     <h4>DISTRIBUTION</h4>
+                    <p>Price high, momentum slowing. Volume spikes on negative days as smart money exits.</p>
+                </div>
+                <div class="guide-card">
+                    <h4>VOLATILE</h4>
+                    <p>Erratic, high-range price swings. Elevated risk environment with no clear directional edge.</p>
+                </div>
+            </div>
+        </div>
     `;
     renderRegimeHeatmap('regime-heatmap-container', data.history);
 }
