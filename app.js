@@ -65,6 +65,7 @@ function initLivePriceStream() {
             ws.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
+                    
                     if (msg.type === 'prices') {
                         const p = msg.data;
                         if (p.BTC) {
@@ -98,6 +99,10 @@ function initLivePriceStream() {
                                 bellBadge.style.display = msg.new_today > 0 ? 'flex' : 'none';
                             }
                         }
+                    } else if (msg.type === 'alert') {
+                        showToast(`📡 ${msg.data.signal_type}`, msg.data.message, 'alert');
+                    } else if (msg.type === 'regime_shift') {
+                        showToast(`⚖️ REGIME SHIFT`, `Market has shifted from ${msg.data.old} to ${msg.data.new}.`, 'regime');
                     }
                 } catch(e) {}
             };
@@ -115,6 +120,29 @@ function initLivePriceStream() {
     }
 
     connect();
+}
+
+function showToast(title, message, type = 'alert') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-header">
+            <span class="toast-title">${title}</span>
+            <span class="material-symbols-outlined" style="font-size:1rem; cursor:pointer; opacity:0.5" onclick="this.parentElement.parentElement.remove()">close</span>
+        </div>
+        <div class="toast-body">${message}</div>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-remove after 6 seconds
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 400);
+    }, 6000);
 }
 
 // Feature 2: Notification Bell Panel
@@ -1363,21 +1391,63 @@ async function renderMindshare() {
             datasets: [{
                 label: 'Asset Mindshare',
                 data: data.map(d => ({ x: d.engineer, y: d.narrative, label: d.ticker })),
-                backgroundColor: 'rgba(0, 242, 255, 0.6)',
+                backgroundColor: '#00f2ff',
                 borderColor: '#00f2ff',
-                pointRadius: 8,
-                pointHoverRadius: 12
+                pointRadius: 6,
+                pointHoverRadius: 10,
+                datalabels: {
+                    align: 'top',
+                    offset: 5,
+                    color: '#fff',
+                    font: { weight: 'bold', size: 10, family: 'JetBrains Mono' },
+                    formatter: (v) => v.label
+                }
             }]
         },
+        plugins: [ChartDataLabels, {
+            id: 'quadrants',
+            beforeDraw(chart) {
+                const { ctx, chartArea: { top, bottom, left, right, width, height }, scales: { x, y } } = chart;
+                const midX = x.getPixelForValue(50);
+                const midY = y.getPixelForValue(50);
+
+                ctx.save();
+                // Alpha Quadrant (Top Right)
+                ctx.fillStyle = 'rgba(0, 242, 255, 0.05)';
+                ctx.fillRect(midX, top, right - midX, midY - top);
+                // Hype Quadrant (Top Left)
+                ctx.fillStyle = 'rgba(188, 19, 254, 0.05)';
+                ctx.fillRect(left, top, midX - left, midY - top);
+                // Underlying Quadrant (Bottom Right)
+                ctx.fillStyle = 'rgba(255, 159, 0, 0.05)';
+                ctx.fillRect(midX, midY, right - midX, bottom - midY);
+                ctx.restore();
+            }
+        }],
         options: {
             responsive: true, maintainAspectRatio: false,
             scales: {
-                x: { min: 0, max: 100, title: { display: true, text: 'ENGINEERING MINDSHARE (X)', color: '#8b949e' }, grid: { color: ctx => ctx.tick.value === 50 ? 'rgba(0, 242, 255, 0.4)' : 'rgba(255,255,255,0.05)' } },
-                y: { min: 0, max: 100, title: { display: true, text: 'NARRATIVE MOMENTUM (Y)', color: '#8b949e' }, grid: { color: ctx => ctx.tick.value === 50 ? 'rgba(0, 242, 255, 0.4)' : 'rgba(255,255,255,0.05)' } }
+                x: { 
+                    min: 0, max: 100, 
+                    title: { display: true, text: 'ENGINEERING MINDSHARE (X)', color: '#8b949e', font: { size: 10, weight: 'bold' } }, 
+                    grid: { color: ct => ct.tick.value === 50 ? 'rgba(0, 242, 255, 0.3)' : 'rgba(255,255,255,0.03)' } 
+                },
+                y: { 
+                    min: 0, max: 100, 
+                    title: { display: true, text: 'NARRATIVE MOMENTUM (Y)', color: '#8b949e', font: { size: 10, weight: 'bold' } }, 
+                    grid: { color: ct => ct.tick.value === 50 ? 'rgba(0, 242, 255, 0.3)' : 'rgba(255,255,255,0.03)' } 
+                }
             },
             plugins: {
-                tooltip: { callbacks: { label: ctx => ctx.raw.label } },
-                legend: { display: false }
+                tooltip: { 
+                    backgroundColor: 'rgba(13, 17, 23, 0.9)',
+                    titleColor: '#00f2ff',
+                    borderColor: 'rgba(0, 242, 255, 0.2)',
+                    borderWidth: 1,
+                    callbacks: { label: ct => ` ${ct.raw.label}: Eng ${ct.raw.x} / Narr ${ct.raw.y}` } 
+                },
+                legend: { display: false },
+                datalabels: { display: true }
             }
         }
     });
@@ -1626,7 +1696,7 @@ async function runStrategyBacktest(ticker, strategy) {
     
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>AI Strategy Lab <span class="premium-badge">PRO</span></h1>
+            <h1>Strategy Lab <span class="premium-badge pulse">PRO</span></h1>
             <p>Validate quantitative alphas using high-fidelity historical simulations.</p>
         </div>
 
@@ -1649,6 +1719,8 @@ async function runStrategyBacktest(ticker, strategy) {
                     <select id="strat-type" class="strat-select" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, this.value)">
                         <option value="trend_regime" ${strategy === 'trend_regime' ? 'selected' : ''}>EMA Crossover (20/50)</option>
                         <option value="regime_alpha" ${strategy === 'regime_alpha' ? 'selected' : ''}>Regime Velocity Alpha</option>
+                        <option value="bollinger_bands" ${strategy === 'bollinger_bands' ? 'selected' : ''}>Bollinger Band Mean Reversion</option>
+                        <option value="vwap_cross" ${strategy === 'vwap_cross' ? 'selected' : ''}>VWAP Crossover (EMA5 Anchor)</option>
                     </select>
                 </div>
                 
@@ -2197,7 +2269,7 @@ function formatPrice(price) {
 async function renderTradeLab() {
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Trade Intelligence Lab <span class="premium-badge">PRO</span></h1>
+            <h1>Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1>
             <p>Synthesizing institutional flow, macro catalysts, and technical regimes into actionable setups.</p>
         </div>
         

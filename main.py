@@ -315,8 +315,9 @@ NOTIFY = NotificationService()
 
 
 class HarvestService:
-    def __init__(self, cache, interval=3600):
+    def __init__(self, cache, ws_server=None, interval=3600):
         self.cache = cache
+        self.ws_server = ws_server
         self.interval = interval
         self.running = True
 
@@ -346,6 +347,15 @@ class HarvestService:
                     
                     if last_regime and new_regime != last_regime:
                         print(f"[{datetime.now()}] !!! REGIME SHIFT DETECTED: {new_regime}")
+                        # Broadcast via WebSocket for real-time Frontend toast
+                        if self.ws_server:
+                            try:
+                                self.ws_server.broadcast(json.dumps({
+                                    "type": "regime_shift",
+                                    "data": {"new": new_regime, "old": last_regime}
+                                }))
+                            except: pass
+                        
                         # Notify all users with alerts enabled
                         conn = sqlite3.connect(DB_PATH)
                         c = conn.cursor()
@@ -413,6 +423,20 @@ class HarvestService:
                         c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
                                  (signal_type, ticker, message, "medium", curr_p, datetime.now().isoformat()))
                         print(f"[{datetime.now()}] ALPHA ALERT: {ticker} @ {curr_p}")
+                        
+                        # Broadcast via WebSocket for real-time Frontend toast
+                        if self.ws_server:
+                            try:
+                                self.ws_server.broadcast(json.dumps({
+                                    "type": "alert",
+                                    "data": {
+                                        "ticker": ticker, 
+                                        "signal_type": signal_type.replace('_', ' '), 
+                                        "price": curr_p, 
+                                        "message": message
+                                    }
+                                }))
+                            except: pass
             except: continue
             
         conn.commit()
@@ -2221,12 +2245,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 btc_hist = hist.copy()
 
-            # 2. Strategy Logic & Signal Generation
             df = hist.copy()
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = df.columns.get_level_values(0)
             
-            df = df[['Close']].copy()
+            # Preserve Volume for strategies like VWAP
+            df = df[['Close', 'Volume']].copy()
             df['PctChange'] = df['Close'].pct_change()
             
             if strategy == 'regime_alpha':
@@ -2258,6 +2282,45 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                         else: # Sideways
                             if not is_high_vol: current_signal = 1 # ACCUMULATION
                         
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+            elif strategy == 'bollinger_bands':
+                # Bollinger Band Mean Reversion
+                df['MA20'] = df['Close'].rolling(window=20).mean()
+                df['Std'] = df['Close'].rolling(window=20).std()
+                df['Upper'] = df['MA20'] + (df['Std'] * 2)
+                df['Lower'] = df['MA20'] - (df['Std'] * 2)
+                
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        price = df['Close'].iloc[i]
+                        ma = df['MA20'].iloc[i]
+                        lower = df['Lower'].iloc[i]
+                        
+                        if price < lower: current_signal = 1 # Buy Oversold
+                        elif price > ma: current_signal = 0 # Sell at Mean
+                        else: current_signal = last_signal
+                        
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+            elif strategy == 'vwap_cross':
+                # VWAP (Volume Weighted Average Price) Crossover
+                df['PV'] = df['Close'] * df['Volume']
+                df['CumPV'] = df['PV'].rolling(window=20).sum()
+                df['CumV'] = df['Volume'].rolling(window=20).sum()
+                # Use a small epsilon to avoid division by zero
+                df['VWAP'] = df['CumPV'] / df.apply(lambda x: x['CumV'] if x['CumV'] > 0 else 1, axis=1)
+                df['EMA5'] = df['Close'].ewm(span=5, adjust=False).mean()
+                
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        current_signal = 1 if df['EMA5'].iloc[i] > df['VWAP'].iloc[i] else 0
                         last_signal = current_signal
                     signals[i] = last_signal
                 df['Signal'] = signals
@@ -3655,16 +3718,16 @@ class WebSocketServer:
 
 if __name__ == "__main__":
     print("Initializing AlphaSignal Terminal...")
-    # Start Harvester
-    harvester = HarvestService(CACHE)
-    h_thread = threading.Thread(target=harvester.run, daemon=True)
-    print("Starting background Harvester thread...")
-    h_thread.start()
-
     # Start WebSocket Live Price Server
     ws_server = WebSocketServer()
     ws_thread = threading.Thread(target=ws_server.run, daemon=True)
     ws_thread.start()
+
+    # Start Harvester (now with ws_server reference)
+    harvester = HarvestService(CACHE, ws_server=ws_server)
+    h_thread = threading.Thread(target=harvester.run, daemon=True)
+    print("Starting background Harvester thread...")
+    h_thread.start()
     
     print(f"Binding TCPServer to 0.0.0.0:{PORT}...")
     try:
