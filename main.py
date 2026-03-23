@@ -148,7 +148,10 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS price_history (ticker TEXT, date TEXT, price REAL, PRIMARY KEY (ticker, date))''')
     c.execute('''CREATE TABLE IF NOT EXISTS cache_store (key TEXT PRIMARY KEY, value TEXT, expires_at REAL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS orderbook_snapshots (id INTEGER PRIMARY KEY, ticker TEXT, snapshot_data TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS user_settings (user_email TEXT PRIMARY KEY, discord_webhook TEXT, telegram_webhook TEXT, alerts_enabled INTEGER DEFAULT 1)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS user_settings (user_email TEXT PRIMARY KEY, discord_webhook TEXT, telegram_webhook TEXT, telegram_chat_id TEXT, alerts_enabled INTEGER DEFAULT 1)''')
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN telegram_chat_id TEXT")
+    except: pass
     conn.commit()
     conn.close()
 
@@ -287,26 +290,37 @@ class NotificationService:
         try:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute("SELECT discord_webhook, telegram_webhook FROM user_settings WHERE user_email = ? AND alerts_enabled = 1", (user_email,))
+            c.execute("SELECT discord_webhook, telegram_chat_id FROM user_settings WHERE user_email = ? AND alerts_enabled = 1", (user_email,))
             row = c.fetchone()
             conn.close()
             
             if not row: return
-            discord, telegram = row
+            discord, telegram_chat_id = row
             
-            payload = {
-                "embeds": [{
-                    "title": f"AlphaSignal Intelligence: {title}",
-                    "description": message,
-                    "color": 0x00f2ff,
-                    "timestamp": datetime.now().isoformat(),
-                    "footer": {"text": "AlphaSignal Terminal | Institutional Depth"}
-                }]
-            }
-            
+            # Discord Dispatch
             if discord:
+                payload = {
+                    "embeds": [{
+                        "title": f"AlphaSignal Intelligence: {title}",
+                        "description": message,
+                        "color": 0x00f2ff,
+                        "timestamp": datetime.now().isoformat(),
+                        "footer": {"text": "AlphaSignal Terminal | Institutional Depth"}
+                    }]
+                }
                 requests.post(discord, json=payload, timeout=5)
-            # Telegram logic would go here with bot API, but for now we focus on Webhooks (Discord style)
+            
+            # Telegram Dispatch
+            if telegram_chat_id and os.getenv("TELEGRAM_BOT_TOKEN"):
+                bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+                msg_text = f"🚨 *AlphaSignal Intelligence: {title}*\n\n{message}\n\n_Institutional Depth Engine_"
+                tg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                requests.post(tg_url, json={
+                    "chat_id": telegram_chat_id,
+                    "text": msg_text,
+                    "parse_mode": "Markdown"
+                }, timeout=5)
+                
         except Exception as e:
             print(f"[{datetime.now()}] Notification Push Error: {e}")
 
@@ -1592,13 +1606,40 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 if context_parts: macro_context = " | ".join(context_parts)
             except: pass
 
+            # 4. Regime Timeline for Chart (BTC-USD Benchmark)
+            regime_timeline = []
+            try:
+                hist_data = CACHE.download('BTC-USD', period='1y', interval='1d')
+                if hist_data is not None and not hist_data.empty:
+                    prices = np.array(hist_data).flatten()
+                    # Clean possible NaNs
+                    prices = prices[~np.isnan(prices)]
+                    
+                    for i in range(min(30, len(prices)-50), -1, -1):
+                        p_slice = prices[:len(prices)-i]
+                        if len(p_slice) < 50: continue
+                        
+                        c_p = p_slice[-1]
+                        s50 = np.mean(p_slice[-50:])
+                        
+                        h_regime = "NEUTRAL"
+                        if c_p > s50: h_regime = "BULLISH"
+                        elif c_p < s50: h_regime = "BEARISH"
+                        
+                        date = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
+                        regime_timeline.append({"date": date, "regime": h_regime, "price": float(c_p)})
+            except Exception as e:
+                print(f"Regime error: {e}")
+
             brief = {
                 "headline": headline,
                 "summary": summary,
                 "market_sentiment": market_sentiment,
                 "top_ideas": ideas,
                 "macro_context": macro_context,
-                "sector_data": sorted_sectors[:4] # Top 4 sectors for the UI
+                "sector_data": sorted_sectors[:6],
+                "regime_timeline": regime_timeline,
+                "timestamp": datetime.now().strftime("%H:%M")
             }
             
             self.send_json(brief)
@@ -2043,7 +2084,58 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json([])
 
     def handle_catalysts(self):
-        self.send_json([{"date": "2026-03-18", "event": "FOMC Decision", "type": "MACRO", "impact": "Extreme"}])
+        # Pack G Phase 2: Catalyst Compass - Combined Earnings & Macro
+        try:
+            now = datetime.now()
+            catalysts = []
+            
+            # 1. Macro Schedule (Hardcoded for next 30 days based on typical calendar)
+            macro_events = [
+                (2, "NFP - Non-Farm Payrolls", "MACRO", "High"),
+                (10, "CPI - Consumer Price Index", "MACRO", "Extreme"),
+                (15, "FOMC - Fed Interest Rate Decision", "MACRO", "Extreme"),
+                (22, "PPI - Producer Price Index", "MACRO", "Medium"),
+                (28, "PCE - Core Inflation Data", "MACRO", "High")
+            ]
+            
+            for days, event, e_type, impact in macro_events:
+                evt_date = (now + timedelta(days=days)).strftime("%Y-%m-%d")
+                catalysts.append({
+                    "date": evt_date,
+                    "event": event,
+                    "type": e_type,
+                    "impact": impact,
+                    "ticker": "MARKET",
+                    "days_until": days
+                })
+            
+            # 2. Earnings for Crypto-Correlated Equities
+            correlated_tickers = ["COIN", "MSTR", "NVDA", "TSLA", "MARA", "RIOT"]
+            for ticker in correlated_tickers:
+                try:
+                    # yfinance calendar returns a dict with 'Earnings Date' or 'Earnings Date Range'
+                    cal = yf.Ticker(ticker).calendar
+                    if cal is not None and not cal.empty:
+                        # Extract first date if list
+                        e_date = cal.iloc[0, 0] if hasattr(cal, 'iloc') else cal.get('Earnings Date', [None])[0]
+                        if e_date and hasattr(e_date, 'date'):
+                            days_until = (e_date.date() - now.date()).days
+                            if 0 <= days_until <= 60:
+                                catalysts.append({
+                                    "date": e_date.date().strftime("%Y-%m-%d"),
+                                    "event": f"{ticker} Quarterly Earnings",
+                                    "type": "EARNINGS",
+                                    "impact": "High" if ticker in ["NVDA", "COIN"] else "Medium",
+                                    "ticker": ticker,
+                                    "days_until": days_until
+                                })
+                except: pass
+                
+            sorted_catalysts = sorted(catalysts, key=lambda x: x['date'])
+            self.send_json(sorted_catalysts)
+        except Exception as e:
+            print(f"Catalysts Error: {e}")
+            self.send_json([])
 
     def handle_market_pulse(self):
         try:
@@ -3754,16 +3846,29 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"notifications": [], "unread": 0})
 
     def handle_signal_history(self):
-        """Phase B: Return all alerts from alerts_history with current PnL."""
+        """Phase B: Return all alerts from alerts_history with current PnL and filters."""
         try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            f_ticker = query.get('ticker', [None])[0]
+            f_type = query.get('type', [None])[0]
+            f_days = int(query.get('days', [30])[0])
+
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute("""
-                SELECT id, type, ticker, message, severity, price, timestamp
-                FROM alerts_history
-                ORDER BY timestamp DESC
-                LIMIT 50
-            """)
+            
+            sql = "SELECT id, type, ticker, message, severity, price, timestamp FROM alerts_history WHERE timestamp > datetime('now', ?)"
+            params = [f"-{f_days} day"]
+            
+            if f_ticker:
+                sql += " AND ticker = ?"
+                params.append(f_ticker)
+            if f_type:
+                sql += " AND type = ?"
+                params.append(f_type)
+                
+            sql += " ORDER BY timestamp DESC LIMIT 100"
+            
+            c.execute(sql, params)
             rows = c.fetchall()
             conn.close()
 
@@ -3914,14 +4019,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         if self.command == 'GET':
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute("SELECT discord_webhook, telegram_webhook, alerts_enabled FROM user_settings WHERE user_email = ?", (email,))
+            c.execute("SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled FROM user_settings WHERE user_email = ?", (email,))
             row = c.fetchone()
             conn.close()
             
             if row:
-                self.send_json({"discord_webhook": row[0], "telegram_webhook": row[1], "alerts_enabled": bool(row[2])})
+                self.send_json({"discord_webhook": row[0], "telegram_webhook": row[1], "telegram_chat_id": row[2], "alerts_enabled": bool(row[3])})
             else:
-                self.send_json({"discord_webhook": "", "telegram_webhook": "", "alerts_enabled": True})
+                self.send_json({"discord_webhook": "", "telegram_webhook": "", "telegram_chat_id": "", "alerts_enabled": True})
         
         elif self.command == 'POST':
             length = int(self.headers.get('Content-Length', 0))
@@ -3929,12 +4034,13 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             
             discord = post_data.get('discord_webhook', '')
             telegram = post_data.get('telegram_webhook', '')
+            tg_chat_id = post_data.get('telegram_chat_id', '')
             enabled = 1 if post_data.get('alerts_enabled', True) else 0
             
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute("INSERT OR REPLACE INTO user_settings (user_email, discord_webhook, telegram_webhook, alerts_enabled) VALUES (?, ?, ?, ?)",
-                      (email, discord, telegram, enabled))
+            c.execute("INSERT OR REPLACE INTO user_settings (user_email, discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled) VALUES (?, ?, ?, ?, ?)",
+                      (email, discord, telegram, tg_chat_id, enabled))
             conn.commit()
             conn.close()
             self.send_json({"success": True})

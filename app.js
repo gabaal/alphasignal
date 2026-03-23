@@ -1540,24 +1540,81 @@ async function renderMindshare() {
 
 
 // ============= Catalysts View =============
+let catalystDataCache = null;
+let activeCatalystDate = null;
+
 async function renderCatalysts() {
-    appEl.innerHTML = skeleton(2);
-    const data = await fetchAPI('/catalysts');
-    if (!data) return;
+    if (!catalystDataCache) {
+        appEl.innerHTML = `
+            <div class="view-header">
+                <h1>Intelligence Catalyst Compass</h1>
+                <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
+            </div>
+            <div class="card" style="padding:1rem">${skeleton(2)}</div>
+        `;
+        catalystDataCache = await fetchAPI('/catalysts');
+        if (!catalystDataCache) return;
+    }
+
+    // Generate 14-day strip
+    const days = [];
+    const now = new Date();
+    for (let i = 0; i < 14; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const hasEvent = catalystDataCache.some(e => e.date === dateStr);
+        days.push({
+            date: dateStr,
+            day: d.getDate(),
+            weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
+            hasEvent
+        });
+    }
+
+    const filteredData = activeCatalystDate 
+        ? catalystDataCache.filter(c => c.date === activeCatalystDate)
+        : catalystDataCache;
+
     appEl.innerHTML = `
-        <div class="view-header"><h1>Upcoming Intelligence Catalysts</h1></div>
-        <div class="catalyst-list">
-            ${data.map(c => `
-                <div class="catalyst-item">
-                    <div class="cat-date">${c.date}</div>
-                    <div class="cat-card">
-                        <div class="cat-type">${c.type}</div>
-                        <h3>${c.event}</h3>
-                        <p style="margin-top:0.5rem; color:var(${c.impact === 'Extreme' ? '--risk-high' : '--accent'})">IMPACT: ${c.impact}</p>
-                    </div>
+        <div class="view-header">
+            <h1>Intelligence Catalyst Compass</h1>
+            <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
+        </div>
+
+        <div class="catalyst-calendar-strip" style="display:flex; gap:10px; margin-bottom:2rem; overflow-x:auto; padding-bottom:10px">
+            ${days.map(d => `
+                <div class="catalyst-day ${d.hasEvent ? 'has-event' : ''}" 
+                     onclick="activeCatalystDate = activeCatalystDate === '${d.date}' ? null : '${d.date}'; renderCatalysts()"
+                     style="flex:1; min-width:60px; background:${activeCatalystDate === d.date ? 'rgba(0, 242, 255, 0.15)' : 'rgba(255,255,255,0.02)'}; border:1px solid ${d.hasEvent || activeCatalystDate === d.date ? 'var(--accent)' : 'var(--border)'}; border-radius:12px; padding:12px 5px; text-align:center; cursor:pointer; transition:all 0.2s">
+                    <div style="font-size:0.55rem; color:var(--text-dim); margin-bottom:5px">${d.weekday}</div>
+                    <div style="font-size:1.1rem; font-weight:900; color:${d.hasEvent ? 'var(--accent)' : 'var(--text)'}">${d.day}</div>
+                    ${d.hasEvent ? '<div style="width:4px; height:4px; background:var(--accent); border-radius:50%; margin:5px auto 0"></div>' : ''}
                 </div>
             `).join('')}
-        </div>`;
+        </div>
+
+        ${activeCatalystDate ? `<div style="margin-bottom:1rem; font-size:0.8rem; color:var(--accent); cursor:pointer" onclick="activeCatalystDate=null; renderCatalysts()">← CLEAR FILTER</div>` : ''}
+
+        <div class="catalyst-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem">
+            ${filteredData.length > 0 ? filteredData.map(c => `
+                <div class="catalyst-item-card glass-card" onclick="${c.ticker !== 'MARKET' ? `openAIAnalyst('${c.ticker}')` : ''}" style="padding:1.5rem; position:relative; overflow:hidden; cursor:${c.ticker !== 'MARKET' ? 'pointer' : 'default'}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem">
+                        <span style="font-size:0.6rem; font-weight:900; background:rgba(255,255,255,0.05); padding:3px 10px; border-radius:4px; color:var(--text-dim)">${c.type}</span>
+                        <span class="event-countdown-badge" style="background:${c.days_until <= 3 ? 'var(--risk-high)' : 'var(--accent)'}; color:#000; font-size:0.55rem; font-weight:900; padding:2px 8px; border-radius:4px">
+                            T-${c.days_until} DAYS
+                        </span>
+                    </div>
+                    <h3 style="font-size:1.1rem; margin-bottom:0.5rem; color:${c.impact === 'Extreme' ? 'var(--risk-high)' : 'var(--text)'}">${c.event}</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem">
+                        <div style="font-size:0.7rem; color:var(--text-dim)">DATE: <span style="color:var(--text)">${c.date}</span></div>
+                        <div style="font-size:0.7rem; color:var(--text-dim)">IMPACT: <span style="font-weight:900; color:var(--risk-low)">${c.impact.toUpperCase()}</span></div>
+                    </div>
+                    ${c.ticker !== 'MARKET' ? `<div style="margin-top:1rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.05); font-size:0.6rem; color:var(--accent)">CLICK TO OPEN AI ANALYST</div>` : ''}
+                </div>
+            `).join('') : '<div class="empty-state">No major catalysts scheduled for this date. Select another day or clear filter.</div>'}
+        </div>
+    `;
 }
 
 // ============= Whale Pulse =============
@@ -2692,6 +2749,19 @@ async function renderBriefing() {
                     </div>
                 </div>
 
+                <!-- Feature 1: Regime Overlay Chart -->
+                <div class="glass-card" style="margin-bottom:2rem; padding:1.5rem; height:350px; position:relative">
+                    <h3 style="color:var(--accent); font-size:0.8rem; margin-bottom:1.5rem; letter-spacing:1px">ALPHASIGNAL REGIME OVERLAY (BTC-USD)</h3>
+                    <div style="height:250px">
+                        <canvas id="regimeChart"></canvas>
+                    </div>
+                    <div style="display:flex; justify-content:center; gap:20px; margin-top:10px; font-size:0.6rem; color:var(--text-dim)">
+                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(34,197,94,0.4); border:1px solid #22c55e88"></div> BULLISH</span>
+                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(239,68,68,0.4); border:1px solid #ef444488"></div> BEARISH</span>
+                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3)"></div> NEUTRAL</span>
+                    </div>
+                </div>
+
                 <!-- Sector Pulse Matrix -->
                 <div class="glass-card" style="margin-bottom:2rem; padding:1.5rem">
                     <h3 style="color:var(--accent); font-size:0.8rem; margin-bottom:1.5rem; letter-spacing:1px">SYSTEMIC SECTOR ATTRIBUTION</h3>
@@ -2732,6 +2802,65 @@ async function renderBriefing() {
                 </div>
             </div>
         `;
+
+        // Initialize Regime Chart
+        if (data.regime_timeline && data.regime_timeline.length) {
+            const ctx = document.getElementById('regimeChart').getContext('2d');
+            const labels = data.regime_timeline.map(r => r.date);
+            const prices = data.regime_timeline.map(r => r.price);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'BTC Price',
+                        data: prices,
+                        borderColor: '#00f2ff',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 9 } }
+                        }
+                    }
+                },
+                plugins: [{
+                    beforeDraw: (chart) => {
+                        const { ctx, chartArea: { top, bottom, left, right, width }, scales: { x } } = chart;
+                        const timeline = data.regime_timeline;
+                        const count = timeline.length;
+                        const stepWidth = width / (count - 1);
+
+                        timeline.forEach((item, index) => {
+                            if (index === count - 1) return;
+                            const startX = left + (index * stepWidth);
+                            const endX = left + ((index + 1) * stepWidth);
+                            
+                            let color = 'rgba(255,255,255,0.03)';
+                            if (item.regime === 'BULLISH') color = 'rgba(34,197,94,0.3)';
+                            if (item.regime === 'BEARISH') color = 'rgba(239,68,68,0.3)';
+                            
+                            ctx.fillStyle = color;
+                            ctx.fillRect(startX, top, endX - startX, bottom - top);
+                        });
+                    }
+                }]
+            });
+        }
     } catch (e) {
         appEl.innerHTML = `<div class="empty-state">Failed to load briefing: ${e.message}</div>`;
     }
@@ -3063,6 +3192,11 @@ async function renderLiquidityView() {
                     lineWidth: 2,
                 });
 
+                // Tooltip Element
+                const tooltip = document.createElement('div');
+                tooltip.className = 'chart-tooltip';
+                container.appendChild(tooltip);
+
                 const formatted = data.history.map(d => {
                     let ts = d.unix_time || Math.floor(new Date(d.timestamp).getTime() / 1000);
                     return {
@@ -3077,6 +3211,32 @@ async function renderLiquidityView() {
                 candleSeries.setData(formatted);
                 priceSeries.setData(formatted.map(d => ({ time: d.time, value: d.close })));
                 chart.timeScale().fitContent();
+
+                // Crosshair Move Logic
+                chart.subscribeCrosshairMove(param => {
+                    if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
+                        tooltip.style.display = 'none';
+                    } else {
+                        const d = param.seriesData.get(candleSeries);
+                        if (d) {
+                            tooltip.style.display = 'block';
+                            tooltip.style.left = Math.min(container.clientWidth - 210, param.point.x + 15) + 'px';
+                            tooltip.style.top = Math.max(10, param.point.y - 100) + 'px';
+                            tooltip.innerHTML = `
+                                <div style="color:var(--text-dim); margin-bottom:10px; font-weight:900; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px">MARKET NODE INTEL</div>
+                                <div class="tooltip-row"><span class="tooltip-label">OPEN</span><span class="tooltip-value">${formatPrice(d.open)}</span></div>
+                                <div class="tooltip-row"><span class="tooltip-label">HIGH</span><span class="tooltip-value">${formatPrice(d.high)}</span></div>
+                                <div class="tooltip-row"><span class="tooltip-label">LOW</span><span class="tooltip-value">${formatPrice(d.low)}</span></div>
+                                <div class="tooltip-row"><span class="tooltip-label">CLOSE</span><span class="tooltip-value">${formatPrice(d.close)}</span></div>
+                                <div class="tooltip-row" style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:5px">
+                                    <span class="tooltip-label">VOL</span><span class="tooltip-value" style="color:var(--risk-low)">INSTITUTIONAL</span>
+                                </div>
+                            `;
+                        } else {
+                            tooltip.style.display = 'none';
+                        }
+                    }
+                });
             } catch (err) {
                 console.error('Heatmap Render Error:', err);
             }
@@ -3155,70 +3315,112 @@ async function renderLiquidityView() {
 }
 
 async function renderSignalArchive() {
-    appEl.innerHTML = `
-        <h1 class="view-title">📡 Signal Archive <span class="premium-badge">LIVE</span></h1>
-        <p class="view-desc">Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
-        <div class="card" style="padding:1rem">${skeleton(1)}</div>
-    `;
-    const data = await fetchAPI('/signal-history');
-
-    if (!data || !data.length) {
-        appEl.innerHTML = `
-            <h1 class="view-title">📡 Signal Archive</h1>
-            <div class="card" style="text-align:center; padding:3rem">
-                <p style="color:var(--text-dim); font-size:0.85rem">No signals recorded yet. The engine will populate this after the next Harvest cycle (every 60 min).</p>
-            </div>`;
-        return;
-    }
-
-    const stateColors = {
-        'HIT_TP2': '#22c55e', 'HIT_TP1': '#86efac',
-        'ACTIVE': '#60a5fa', 'STOPPED': '#ef4444'
-    };
-    const stateIcons = { 'HIT_TP2': '🎯', 'HIT_TP1': '✅', 'ACTIVE': '⚡', 'STOPPED': '🛑' };
-
+    // 1. Initial skeleton and header
     appEl.innerHTML = `
         <div class="view-header">
             <h1>📡 Signal Archive <span class="premium-badge">LIVE</span></h1>
             <p>Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
         </div>
-        <div class="card" style="overflow-x:auto">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
-                <span style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px">SHOWING LAST ${data.length} SIGNALS</span>
-                <span style="font-size:0.6rem; color:var(--accent); letter-spacing:1px">REAL-TIME PnL TRACKING ACTIVE</span>
+        <div id="archive-filters" class="glass-card" style="margin-bottom:1.5rem; padding:1.2rem; display:flex; gap:1.5rem; align-items:flex-end; flex-wrap:wrap">
+            <div class="form-group" style="margin:0">
+                <label style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px; display:block">TICKER SEARCH</label>
+                <input type="text" id="filter-ticker" placeholder="BTC-USD..." style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:0.75rem; width:140px">
             </div>
-            <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
-                <thead>
-                    <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
-                        <th style="text-align:left; padding:8px 12px">TICKER</th>
-                        <th style="text-align:left; padding:8px 12px">TYPE</th>
-                        <th style="text-align:right; padding:8px 12px">ENTRY</th>
-                        <th style="text-align:right; padding:8px 12px">CURRENT</th>
-                        <th style="text-align:right; padding:8px 12px">RETURN</th>
-                        <th style="text-align:center; padding:8px 12px">STATE</th>
-                        <th style="text-align:left; padding:8px 12px">TIMESTAMP</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${data.map(s => `
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
-                            <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
-                            <td style="padding:10px 12px; color:var(--text-dim)">${s.type?.replace(/_/g,' ') || '-'}</td>
-                            <td style="padding:10px 12px; text-align:right; font-family:monospace">${s.entry ? '$' + s.entry.toLocaleString() : '-'}</td>
-                            <td style="padding:10px 12px; text-align:right; font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
-                            <td style="padding:10px 12px; text-align:right; font-weight:700; color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
-                            <td style="padding:10px 12px; text-align:center">
-                                <span style="background:${stateColors[s.state] || '#60a5fa'}22; color:${stateColors[s.state] || '#60a5fa'}; padding:2px 10px; border-radius:20px; font-size:0.6rem; letter-spacing:1px">
-                                    ${stateIcons[s.state] || '⚡'} ${s.state}
-                                </span>
-                            </td>
-                            <td style="padding:10px 12px; color:var(--text-dim)">${s.timestamp ? s.timestamp.split('T')[0] : '-'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
+            <div class="form-group" style="margin:0">
+                <label style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px; display:block">SIGNAL TYPE</label>
+                <select id="filter-type" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:0.75rem">
+                    <option value="">ALL TYPES</option>
+                    <option value="SENTIMENT_SPIKE">SENTIMENT SPIKE</option>
+                    <option value="MOMENTUM_BREAKOUT">MOMENTUM BREAKOUT</option>
+                    <option value="VOLATILITY_EXPANSION">VOLATILITY EXPANSION</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px; display:block">LOOKBACK</label>
+                <select id="filter-days" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:0.75rem">
+                    <option value="7">LAST 7 DAYS</option>
+                    <option value="30" selected>LAST 30 DAYS</option>
+                    <option value="90">LAST 90 DAYS</option>
+                </select>
+            </div>
+            <button id="apply-filters" class="setup-generator-btn" style="padding:8px 20px; font-size:0.7rem; height:36px">APPLY FILTERS</button>
+        </div>
+        <div id="archive-table-container">
+            <div class="card" style="padding:1rem">${skeleton(5)}</div>
         </div>
     `;
+
+    const loadData = async () => {
+        const ticker = document.getElementById('filter-ticker').value;
+        const type = document.getElementById('filter-type').value;
+        const days = document.getElementById('filter-days').value;
+        
+        const container = document.getElementById('archive-table-container');
+        container.innerHTML = `<div class="card" style="padding:1rem">${skeleton(5)}</div>`;
+        
+        let url = `/signal-history?days=${days}`;
+        if (ticker) url += `&ticker=${ticker.toUpperCase()}`;
+        if (type) url += `&type=${type}`;
+        
+        const data = await fetchAPI(url);
+        
+        if (!data || !data.length) {
+            container.innerHTML = `
+                <div class="card" style="text-align:center; padding:3rem">
+                    <p style="color:var(--text-dim); font-size:0.85rem">No signals found matching these criteria.</p>
+                </div>`;
+            return;
+        }
+
+        const stateColors = {
+            'HIT_TP2': '#22c55e', 'HIT_TP1': '#86efac',
+            'ACTIVE': '#60a5fa', 'STOPPED': '#ef4444'
+        };
+        const stateIcons = { 'HIT_TP2': '🎯', 'HIT_TP1': '✅', 'ACTIVE': '⚡', 'STOPPED': '🛑' };
+
+        container.innerHTML = `
+            <div class="card" style="overflow-x:auto">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+                    <span style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px">SHOWING ${data.length} MATCHING SIGNALS</span>
+                    <span style="font-size:0.6rem; color:var(--accent); letter-spacing:1px">REAL-TIME PnL TRACKING ACTIVE</span>
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
+                    <thead>
+                        <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
+                            <th style="text-align:left; padding:8px 12px">TICKER</th>
+                            <th style="text-align:left; padding:8px 12px">TYPE</th>
+                            <th style="text-align:right; padding:8px 12px">ENTRY</th>
+                            <th style="text-align:right; padding:8px 12px">CURRENT</th>
+                            <th style="text-align:right; padding:8px 12px">RETURN</th>
+                            <th style="text-align:center; padding:8px 12px">STATE</th>
+                            <th style="text-align:left; padding:8px 12px">TIMESTAMP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(s => `
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                                <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
+                                <td style="padding:10px 12px; color:var(--text-dim)">${s.type?.replace(/_/g,' ') || '-'}</td>
+                                <td style="padding:10px 12px; text-align:right; font-family:monospace">${s.entry ? '$' + s.entry.toLocaleString() : '-'}</td>
+                                <td style="padding:10px 12px; text-align:right; font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
+                                <td style="padding:10px 12px; text-align:right; font-weight:700; color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
+                                <td style="padding:10px 12px; text-align:center">
+                                    <span style="background:${stateColors[s.state] || '#60a5fa'}22; color:${stateColors[s.state] || '#60a5fa'}; padding:2px 10px; border-radius:20px; font-size:0.6rem; letter-spacing:1px">
+                                        ${stateIcons[s.state] || '⚡'} ${s.state}
+                                    </span>
+                                </td>
+                                <td style="padding:10px 12px; color:var(--text-dim)">${s.timestamp ? s.timestamp.split(' ')[0] : '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    };
+
+    document.getElementById('apply-filters').onclick = loadData;
+    // Load initial data
+    loadData();
 }
 
 async function renderMacroView() {
@@ -4496,6 +4698,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Debug hooks
     window.terminalLogout = logout;
     window.terminalSwitchView = switchView;
+    window.toggleSidebar = () => {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('open');
+    };
+});
+
+// Sidebar auto-close on mobile
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768) {
+        const navItem = e.target.closest('.nav-item');
+        if (navItem) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('open');
+        }
+    }
 });
 
 function shareSignal(ticker, alpha, sentiment, zScore) {
@@ -4515,16 +4732,26 @@ function shareSignal(ticker, alpha, sentiment, zScore) {
 }
 // ============= Notification & Alert Hooks (Phase 8) =============
 async function showNotificationSettings(visible) {
+    console.log(`[AlphaSignal] Notification Settings Modal: ${visible ? 'OPEN' : 'CLOSE'}`);
     const modal = document.getElementById('notification-modal');
     const layout = document.querySelector('.layout');
     
+    if (!modal) {
+        console.error('[AlphaSignal] ERROR: #notification-modal not found in DOM.');
+        return;
+    }
+    
     if (visible) {
         // Fetch current settings
-        const settings = await fetchAPI('/user/settings');
-        if (settings) {
-            document.getElementById('discord-webhook').value = settings.discord_webhook || '';
-            document.getElementById('telegram-webhook').value = settings.telegram_webhook || '';
-            document.getElementById('alerts-enabled').checked = settings.alerts_enabled !== false;
+        try {
+            const settings = await fetchAPI('/user/settings');
+            if (settings) {
+                if (document.getElementById('discord-webhook')) document.getElementById('discord-webhook').value = settings.discord_webhook || '';
+                if (document.getElementById('telegram-chat-id')) document.getElementById('telegram-chat-id').value = settings.telegram_chat_id || '';
+                if (document.getElementById('alerts-enabled')) document.getElementById('alerts-enabled').checked = settings.alerts_enabled !== false;
+            }
+        } catch (err) {
+            console.warn('[AlphaSignal] Failed to fetch user settings, showing blank form.', err);
         }
         modal.classList.remove('hidden');
         if (layout) layout.style.filter = 'blur(10px)';
@@ -4535,31 +4762,44 @@ async function showNotificationSettings(visible) {
 }
 
 async function saveNotificationSettings() {
+    console.log('[AlphaSignal] Persisting Alert Configuration...');
     const discord = document.getElementById('discord-webhook').value.trim();
-    const telegram = document.getElementById('telegram-webhook').value.trim();
+    const telegram = document.getElementById('telegram-chat-id').value.trim();
     const enabled = document.getElementById('alerts-enabled').checked;
     const errorEl = document.getElementById('notif-error');
     
+    if (errorEl) errorEl.classList.add('hidden');
+    
     // Basic validation for Discord
     if (discord && !discord.startsWith('https://discord.com/api/webhooks/')) {
-        errorEl.textContent = "INVALID_HOOK: Discord webhook must start with https://discord.com/api/webhooks/";
-        errorEl.classList.remove('hidden');
+        if (errorEl) {
+            errorEl.textContent = "INVALID_HOOK: Discord webhook must start with https://discord.com/api/webhooks/";
+            errorEl.classList.remove('hidden');
+        }
+        console.warn('[AlphaSignal] Invalid Discord Webhook format.');
         return;
     }
     
-    errorEl.classList.add('hidden');
-    const res = await fetchAPI('/user/settings', 'POST', {
-        discord_webhook: discord,
-        telegram_webhook: telegram,
-        alerts_enabled: enabled
-    });
-    
-    if (res && res.success) {
-        showToast("ALERTS_CONFIGURED: Advanced intelligence hooks updated successfully.");
-        showNotificationSettings(false);
-    } else {
-        errorEl.textContent = "SYNC_FAILED: Could not persist alert configuration.";
-        errorEl.classList.remove('hidden');
+    try {
+        const res = await fetchAPI('/user/settings', 'POST', {
+            discord_webhook: discord,
+            telegram_chat_id: telegram,
+            alerts_enabled: enabled
+        });
+        
+        if (res && res.success) {
+            console.log('[AlphaSignal] Settings Sync Complete.');
+            showToast("ALERTS_CONFIGURED: Advanced intelligence hooks updated successfully.");
+            showNotificationSettings(false);
+        } else {
+            throw new Error('Sync failed response');
+        }
+    } catch (err) {
+        console.error('[AlphaSignal] Sync Failure:', err);
+        if (errorEl) {
+            errorEl.textContent = "SYNC_FAILED: Could not persist alert configuration.";
+            errorEl.classList.remove('hidden');
+        }
     }
 }
 function renderRegimeHeatmap(containerId, history) {

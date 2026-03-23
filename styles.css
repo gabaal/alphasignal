@@ -218,6 +218,31 @@ select, option {
 .overlay-content { background: var(--bg-card); width: 100%; max-width: 900px; max-height: 90vh; border-radius: 20px; border: 1px solid var(--border); padding: 2.5rem; overflow-y: auto; position: relative; }
 .close-overlay, .close-ai-modal { position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; font-size: 2rem; color: var(--text-dim); cursor: pointer; }
 
+/* Tooltips */
+.chart-tooltip {
+    width: 200px;
+    height: auto;
+    position: absolute;
+    display: none;
+    padding: 12px;
+    box-sizing: border-box;
+    font-size: 11px;
+    text-align: left;
+    z-index: 1000;
+    top: 12px;
+    left: 12px;
+    pointer-events: none;
+    border: 1px solid var(--accent);
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-family: 'JetBrains Mono', monospace;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.tooltip-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.tooltip-label { color: var(--text-dim); }
+.tooltip-value { font-weight: 700; color: var(--accent); }
 /* Skeletons */
 .skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
 .skeleton-card { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; height: 350px; overflow: hidden; }
@@ -554,6 +579,43 @@ select, option {
     font-family: 'JetBrains Mono', monospace;
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    :root { --sidebar-w: 200px; }
+}
+
+@media (max-width: 768px) {
+    :root { --sidebar-w: 0px; }
+    .sidebar {
+        position: fixed;
+        left: -100%;
+        width: 260px;
+        transition: left 0.3s ease;
+        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+    }
+    .sidebar.open { left: 0; }
+    .content { padding: 1rem; }
+    .top-bar { flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.8rem; }
+    .top-bar-actions { justify-content: space-between; }
+    .feed-label { display: none; }
+    
+    .grid-1-2, .grid-2-1, .grid-3 { grid-template-columns: 1fr !important; }
+    .glass-card { height: auto !important; }
+    canvas { max-height: 250px !important; }
+}
+
+.mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+}
 /* Mobile Adjustments for GOMM Expansion */
 @media (max-width: 1200px) {
     .gomm-container {
