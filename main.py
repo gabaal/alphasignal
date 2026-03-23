@@ -1153,10 +1153,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             if path.startswith('/api/'):
                 # Bypass auth for purely public endpoints
                 public_routes = [
-                    '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', 
+                    '/api/config', '/api/signals', '/api/btc', '/api/market-pulse',
                     '/api/alerts', '/api/whales', '/api/whales_entity',
                     '/api/leaderboard', '/api/trade-lab', '/api/generate-setup', 
-                    '/api/liquidity', '/api/portfolio-sim', '/api/chain-velocity'
+                    '/api/liquidity', '/api/portfolio-sim', '/api/chain-velocity',
+                    '/api/portfolio/risk', '/api/portfolio/correlations'
                 ]
                 if path not in public_routes:
                     auth_info = self.is_authenticated()
@@ -1193,6 +1194,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path.startswith('/api/portfolio-sim') or path == '/api/portfolio-performance': 
                 self.handle_portfolio_performance()
             elif path == '/api/chain-velocity': self.handle_chain_velocity()
+            elif path == '/api/portfolio/risk': self.handle_portfolio_risk()
+            elif path == '/api/portfolio/correlations': self.handle_portfolio_correlations()
             elif path == '/api/narrative-clusters': self.handle_narrative_clusters()
             elif path == '/api/briefing': self.handle_briefing()
             elif path == '/api/user/settings': self.handle_user_settings()
@@ -4287,6 +4290,89 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"success": False, "error": "Bot dispatch failed. Terminal Check: Ensure TELEGRAM_BOT_TOKEN is set in environment."})
         except Exception as e:
             self.send_error_json(f"Test Telegram Error: {e}")
+
+    def handle_portfolio_risk(self):
+        try:
+            # 1. Get current portfolio composition from DB
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute("SELECT assets_json FROM portfolio_history ORDER BY timestamp DESC LIMIT 1")
+            row = c.fetchone()
+            conn.close()
+            
+            assets = json.loads(row["assets_json"]) if row and row["assets_json"] else ['BTC-USD', 'ETH-USD', 'SOL-USD']
+            
+            # 2. Download 90d history for risk modeling
+            data = CACHE.download(assets + ['BTC-USD'], period='95d', interval='1d', column='Close')
+            if data is None or data.empty:
+                self.send_error_json("Insufficient data for risk modeling.")
+                return
+
+            returns = data.pct_change().dropna()
+            
+            # 3. Calculate Portfolio Metrics
+            # Equal weighting proxy for current held assets
+            weights = np.array([1.0/len(assets)] * len(assets))
+            port_returns = returns[assets].dot(weights)
+            
+            # Value at Risk (95% CI) - Historical Simulation
+            var_95 = np.percentile(port_returns, 5) * 100
+            
+            # Beta to Benchmark (BTC)
+            covariance = np.cov(port_returns, returns['BTC-USD'])[0][1]
+            variance = np.var(returns['BTC-USD'])
+            beta = covariance / variance if variance > 0 else 1.0
+            
+            # Sortino Ratio (Downside Risk adjusted)
+            downside_returns = port_returns[port_returns < 0]
+            downside_std = downside_returns.std() * np.sqrt(365)
+            sortino = (port_returns.mean() * 365) / downside_std if downside_std > 0 else 0
+            
+            self.send_json({
+                "status": "success",
+                "risk_profile": "MODERATE" if abs(var_95) < 5 else "HIGH",
+                "metrics": {
+                    "var_95": round(abs(var_95), 2),
+                    "beta": round(beta, 2),
+                    "sortino": round(sortino, 2),
+                    "volatility_ann": round(port_returns.std() * np.sqrt(365) * 100, 2)
+                },
+                "assets": assets
+            })
+        except Exception as e:
+            self.send_error_json(f"Risk Engine Error: {e}")
+
+    def handle_portfolio_correlations(self):
+        try:
+            # Get assets from universe for a broad correlation matrix
+            all_tickers = [t for sub in UNIVERSE.values() for t in sub][:15] # Top 15 for performance
+            data = CACHE.download(all_tickers, period='35d', interval='1d', column='Close')
+            
+            if data is None or data.empty:
+                self.send_error_json("Insufficient correlation data.")
+                return
+
+            corr_matrix = data.pct_change().dropna().corr()
+            
+            # Format for heatmap (triangular matrix or full)
+            formatted = []
+            tickers = corr_matrix.columns.tolist()
+            for i, t1 in enumerate(tickers):
+                for t2 in tickers:
+                    formatted.append({
+                        "x": t1.split('-')[0],
+                        "y": t2.split('-')[0],
+                        "v": round(float(corr_matrix.loc[t1, t2]), 2)
+                    })
+            
+            self.send_json({
+                "status": "success",
+                "matrix": formatted,
+                "tickers": [t.split('-')[0] for t in tickers]
+            })
+        except Exception as e:
+            self.send_error_json(f"Correlation Error: {e}")
 
     def handle_portfolio_performance(self):
         try:
