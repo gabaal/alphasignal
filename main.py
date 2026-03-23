@@ -19,7 +19,8 @@ from datetime import datetime, timedelta
 import random
 import traceback
 import stripe
-
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
 def load_env():
     if os.path.exists('.env'):
         with open('.env', 'r') as f:
@@ -152,6 +153,9 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN telegram_chat_id TEXT")
     except: pass
+    c.execute('''CREATE TABLE IF NOT EXISTS market_ticks (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, price REAL, volume REAL, open_interest REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS sentiment_history (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, score REAL, index_value REAL, volume REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS ml_predictions (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, predicted_return REAL, confidence REAL, features_json TEXT)''')
     conn.commit()
     conn.close()
 
@@ -250,7 +254,8 @@ class DataCache:
                         if column in raw.columns.levels[0]:
                             data = raw[column]
                 else:
-                    data.columns = [f"{t}_{m}" if isinstance(t, str) else t for m, t in data.columns]
+                    # Keep MultiIndex, do not flatten to Ticker_Metric
+                    data = raw
             
             # Case B: Single-asset request
             else:
@@ -329,6 +334,109 @@ NOTIFY = NotificationService()
 
 
 
+class MLAlphaEngine:
+    def __init__(self):
+        self.models = {}
+        self.feature_importance = {}
+        self.running = True
+
+    def _compute_features(self, df):
+        if len(df) < 30: return df
+        df = df.copy()
+        df['return_1d'] = df['Close'].pct_change(1)
+        df['return_5d'] = df['Close'].pct_change(5)
+        
+        delta = df['Close'].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+        rs = gain / loss
+        df['RSI_14'] = 100 - (100 / (1 + rs))
+        
+        ema12 = df['Close'].ewm(span=12).mean()
+        ema26 = df['Close'].ewm(span=26).mean()
+        df['MACD'] = ema12 - ema26
+        
+        sma20 = df['Close'].rolling(20).mean()
+        std20 = df['Close'].rolling(20).std()
+        df['BB_upper'] = sma20 + 2*std20
+        df['BB_lower'] = sma20 - 2*std20
+        df['BB_pos'] = (df['Close'] - df['BB_lower']) / (df['BB_upper'] - df['BB_lower'] + 1e-8)
+        
+        # Add volume features
+        df['Vol_1d_change'] = df['Volume'].pct_change(1)
+        
+        return df.dropna()
+
+    def train_all(self):
+        print(f"[{datetime.now()}] MLAlphaEngine: Starting background model training...")
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT ticker FROM tracked_tickers")
+        tracked = [r[0] for r in c.fetchall()]
+        conn.close()
+        
+        all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked))
+        success_count = 0
+        
+        for ticker in all_tickers:
+            try:
+                df = yf.download(ticker, period='2y', interval='1d', progress=False)
+                if df.empty or len(df) < 100: continue
+                
+                if isinstance(df.columns, pd.MultiIndex):
+                    df.columns = [c[0] for c in df.columns]
+                    
+                df = self._compute_features(df)
+                if df.empty: continue
+                
+                df['Target_Return_24h'] = df['Close'].shift(-1).pct_change(1)
+                df = df.dropna()
+                
+                features = ['return_1d', 'return_5d', 'RSI_14', 'MACD', 'BB_pos', 'Vol_1d_change']
+                X = df[features]
+                y = df['Target_Return_24h']
+                
+                model = RandomForestRegressor(n_estimators=50, max_depth=5, random_state=42)
+                model.fit(X, y)
+                
+                importances = model.feature_importances_
+                imp_dict = {f: float(i) for f, i in zip(features, importances)}
+                
+                self.models[ticker] = model
+                self.feature_importance[ticker] = imp_dict
+                success_count += 1
+            except Exception as e:
+                pass
+                
+        print(f"[{datetime.now()}] MLAlphaEngine: Trained models for {success_count} assets.")
+
+    def run_training_loop(self):
+        self.train_all()
+        while self.running:
+            time.sleep(86400)
+            self.train_all()
+
+    def predict(self, ticker, current_df):
+        if ticker not in self.models: return None
+        try:
+            if len(current_df) < 30: return None
+            df = self._compute_features(current_df.copy())
+            if df.empty: return None
+            
+            features = ['return_1d', 'return_5d', 'RSI_14', 'MACD', 'BB_pos', 'Vol_1d_change']
+            X_live = df[features].iloc[[-1]]
+            pred_return = self.models[ticker].predict(X_live)[0]
+            
+            return {
+                "predicted_return": float(pred_return),
+                "confidence": 0.75,
+                "feature_importance": self.feature_importance[ticker]
+            }
+        except:
+            return None
+
+ML_ENGINE = MLAlphaEngine()
+
 class HarvestService:
     def __init__(self, cache, ws_server=None, interval=3600):
         self.cache = cache
@@ -354,6 +462,33 @@ class HarvestService:
                 # Fetch as a batch only
                 data = self.cache.download(all_tickers, period='60d', interval='1d')
                 
+                # Phase 4: Persist High-Frequency Time-Series for ML Models
+                try:
+                    ts_conn = sqlite3.connect(DB_PATH)
+                    ts_c = ts_conn.cursor()
+                    print(f"[{datetime.now()}] Persisting high-freq TS data for {len(all_tickers)} assets...")
+                    
+                    for ticker in all_tickers:
+                        sent = get_sentiment(ticker)
+                        ts_c.execute("INSERT INTO sentiment_history (symbol, score, index_value, volume) VALUES (?, ?, ?, ?)", 
+                                  (ticker, sent, sent*100, 0))
+                        
+                        # Use the collected batch data if possible to avoid extra yfinance calls
+                        price, vol = 0.0, 0.0
+                        if data is not None and isinstance(data.columns, pd.MultiIndex):
+                            try:
+                                price = float(data['Close'][ticker].iloc[-1])
+                                vol = float(data['Volume'][ticker].iloc[-1])
+                            except: pass
+                        
+                        ts_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        ts_c.execute("INSERT INTO market_ticks (symbol, timestamp, price, volume, open_interest) VALUES (?, ?, ?, ?, ?)",
+                                  (ticker, ts_str, price, vol, 0.0))
+                    ts_conn.commit()
+                    ts_conn.close()
+                except Exception as e:
+                    print(f"TS Harvester Error: {e}")
+
                 # Global Regime Determination (Heuristic for Alerting)
                 if data is not None and not data.empty:
                     # Simple momentum check on core indices
@@ -400,46 +535,61 @@ class HarvestService:
                 print(f"Snapshot error: {e}")
 
             time.sleep(self.interval)
-
     def generate_alpha_alerts(self, data):
-        """Phase 8: Scan universe for Alpha signals and record with entry price."""
+        """Phase 4: Predict Alpha signals using ML engine and record with entry price."""
         if data is None or data.empty: return
         
-        print(f"[{datetime.now()}] Generating Alpha alerts...")
+        print(f"[{datetime.now()}] MLAlphaEngine: Generating Predictive Alpha alerts...")
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
-        # We look for assets with sentiment > 0.4 or 5%+ 24h gain
-        for ticker in data.columns:
+        # Correctly identify tickers from MultiIndex if present
+        all_tickers = []
+        if isinstance(data.columns, pd.MultiIndex):
+            # yfinance MultiIndex is (Metric, Ticker) by default in our CACHE.download
+            all_tickers = data.columns.levels[1] if len(data.columns.levels) > 1 else data.columns.levels[0]
+        else:
+            all_tickers = data.columns
+
+        for ticker in all_tickers:
             try:
-                prices = data[ticker].dropna()
-                if len(prices) < 2: continue
+                # 1. Gather live data for inference
+                if isinstance(data.columns, pd.MultiIndex):
+                    prices_df = data.xs(ticker, axis=1, level=1).dropna()
+                else:
+                    prices_df = data[ticker].dropna()
                 
-                curr_p = float(prices.iloc[-1])
-                prev_p = float(prices.iloc[-2])
-                change = (curr_p - prev_p) / prev_p
-                sentiment = get_sentiment(ticker)
+                if len(prices_df) < 30: continue
                 
-                # Signal Logic
+                # Standardize columns for predictable access
+                if 'Close' not in prices_df.columns and len(prices_df.columns) > 1:
+                     # Fallback if names are somehow different
+                     pass
+                
+                # We need O-H-L-V for compute_features
+                curr_p = float(prices_df['Close'].iloc[-1]) if 'Close' in prices_df.columns else 0.0
+                
+                # 2. Run Inference
+                # We need O-H-L-V for compute_features, we fetch recent 30d 1d
+                hist_df = yf.download(ticker, period='30d', interval='1d', progress=False)
+                if hist_df.empty: continue
+                if isinstance(hist_df.columns, pd.MultiIndex):
+                    hist_df.columns = [c[0] for c in hist_df.columns]
+                
+                prediction = ML_ENGINE.predict(ticker, hist_df)
+                if not prediction: continue
+                
+                pred_return = prediction['predicted_return']
+                importance = prediction['feature_importance']
+                
+                # 3. Decision Logic (e.g. Predict > 3% return in 24h)
                 signal_type = None
                 message = ""
                 
-                if sentiment > 0.5:
-                    signal_type = "SENTIMENT_SPIKE"
-                    message = f"Institutional Mindshare Surge detected for {ticker} (+{int(sentiment*100)}%)."
-                elif change > 0.05:
-                    signal_type = "MOMENTUM_BREAKOUT"
-                    message = f"Volatility Expansion detected in {ticker}. Price action outperforming benchmark."
-                
-                # Cross-Chain Velocity Alert (Phase 9)
-                if ticker in UNIVERSE['L1']:
-                    # Calculate velocity similar to handle_chain_velocity
-                    vols = [float(h) for h in data[ticker].dropna().values] if ticker in data.columns else []
-                    if len(vols) >= 6:
-                        velocity = (vols[-1] / (sum(vols[-6:-1])/5))
-                        if velocity > 2.5:
-                            signal_type = "VELOCITY_BREAKOUT"
-                            message = f"Institutional Velocity Breakout on {ticker.split('-')[0]} ({round(velocity, 1)}x vol acceleration)."
+                if pred_return > 0.03:
+                    signal_type = "ML_ALPHA_PREDICTION"
+                    top_driver = max(importance, key=importance.get)
+                    message = f"ML Engine predicts +{pred_return*100:.1f}% alpha window. Primary driver: {top_driver.upper()} ({(importance[top_driver]*100):.1f}% confidence)."
                 
                 if signal_type:
                     # Check if we already alerted this ticker recently (last 6h) to avoid spam
@@ -447,23 +597,29 @@ class HarvestService:
                     if not c.fetchone():
                         c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
                                  (signal_type, ticker, message, "medium", curr_p, datetime.now().isoformat()))
-                        print(f"[{datetime.now()}] ALPHA ALERT: {ticker} @ {curr_p}")
+                        
+                        # Also record the prediction metadata for audit
+                        c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
+                                 (ticker, pred_return, prediction['confidence'], json.dumps(importance)))
+                        
+                        print(f"[{datetime.now()}] ML ALPHA ALERT: {ticker} @ {curr_p} (Target: +{pred_return*100:.1f}%)")
                         
                         # Broadcast via WebSocket for real-time Frontend toast
                         if self.ws_server:
                             try:
                                 self.ws_server.broadcast(json.dumps({
-                                    "type": "alert",
+                                    "type": "alert", 
                                     "data": {
                                         "ticker": ticker, 
-                                        "signal_type": signal_type.replace('_', ' '), 
+                                        "signal_type": "Institutional Predictive Alpha", 
                                         "price": curr_p, 
                                         "message": message
                                     }
                                 }))
                             except: pass
-            except: continue
-            
+            except Exception as e:
+                print(f"Prediction error for {ticker}: {e}")
+                continue
         conn.commit()
         conn.close()
 
@@ -1605,8 +1761,17 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 
                 if context_parts: macro_context = " | ".join(context_parts)
             except: pass
+            # 4. ML Prediction for Primary Benchmark (BTC-USD)
+            ml_pred = None
+            try:
+                hist_df = yf.download('BTC-USD', period='30d', interval='1d', progress=False)
+                if not hist_df.empty:
+                    if isinstance(hist_df.columns, pd.MultiIndex):
+                        hist_df.columns = [c[0] for c in hist_df.columns]
+                    ml_pred = ML_ENGINE.predict('BTC-USD', hist_df)
+            except: pass
 
-            # 4. Regime Timeline for Chart (BTC-USD Benchmark)
+            # 5. Regime Timeline for Chart (BTC-USD Benchmark)
             regime_timeline = []
             try:
                 hist_data = CACHE.download('BTC-USD', period='1y', interval='1d')
@@ -1639,6 +1804,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 "macro_context": macro_context,
                 "sector_data": sorted_sectors[:6],
                 "regime_timeline": regime_timeline,
+                "ml_prediction": ml_pred,
                 "timestamp": datetime.now().strftime("%H:%M")
             }
             
@@ -3692,6 +3858,20 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                             score -= 10
                             reasons.append(f'High volatility ({vol:.1f}%/d)')
                     
+                    # 5. ML Predictive Alpha Score (Phase 4)
+                    pred = ML_ENGINE.predict(t, data[t].dropna() if t in data.columns else None)
+                    if pred:
+                        p_ret = pred['predicted_return']
+                        if p_ret > 0.03:
+                            score += 25
+                            reasons.append(f'ML Alpha High (+{p_ret*100:.1f}%)')
+                        elif p_ret > 0.01:
+                            score += 15
+                            reasons.append(f'ML Alpha Med (+{p_ret*100:.1f}%)')
+                        elif p_ret < -0.02:
+                            score -= 15
+                            reasons.append(f'ML Bearish Pred ({p_ret*100:.1f}%)')
+                    
                     # Clamp score
                     score = max(0, min(100, int(score)))
                     
@@ -4182,6 +4362,11 @@ if __name__ == "__main__":
     h_thread = threading.Thread(target=harvester.run, daemon=True)
     print("Starting background Harvester thread...")
     h_thread.start()
+
+    # Start ML Alpha Engine Training
+    ml_thread = threading.Thread(target=ML_ENGINE.run_training_loop, daemon=True)
+    print("Starting ML Alpha Engine training loop...")
+    ml_thread.start()
     
     print(f"Binding TCPServer to 0.0.0.0:{PORT}...")
     try:

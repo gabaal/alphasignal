@@ -681,7 +681,7 @@ async function renderAlphaScore() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>⚡ Alpha Score <span class="premium-badge">LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
             <p>Composite 0–100 ranking · Updated ${data.updated} · ${data.scores.length} assets scored</p>
         </div>
         <div class="card" style="overflow-x:auto">
@@ -718,7 +718,9 @@ async function renderAlphaScore() {
                             <td style="padding:10px 12px; text-align:center">
                                 <span style="color:${signalColors[s.signal] || '#60a5fa'}; font-size:0.6rem; letter-spacing:1px">${s.signal}</span>
                             </td>
-                            <td style="padding:10px 12px; color:var(--text-dim); font-size:0.62rem; max-width:200px">${(s.reasons || []).join(' · ') || '—'}</td>
+                            <td style="padding:10px 12px; color:var(--text-dim); font-size:0.62rem; max-width:200px">
+                                ${(s.reasons || []).map(r => r.includes('ML') ? `<strong style="color:var(--accent)">${r}</strong>` : r).join(' · ') || '—'}
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -746,20 +748,20 @@ async function renderPerformanceDashboard() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Performance Dashboard <span class="premium-badge">LIVE</span></h1>
             <p>Track record as of ${d.updated} · Based on ${d.total_signals} signals captured since launch</p>
         </div>
 
         <!-- KPI Row -->
         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1rem">
             ${[
-                ['TOTAL SIGNALS', d.total_signals, '#60a5fa', '📡'],
-                ['WIN RATE', d.total_signals > 0 ? d.win_rate + '%' : 'N/A', d.win_rate >= 50 ? '#22c55e' : '#ef4444', '🎯'],
-                ['AVG RETURN', d.total_signals > 0 ? (d.avg_return >= 0 ? '+' : '') + d.avg_return + '%' : 'N/A', winColor, '💰'],
-                ['TOTAL PnL', d.total_signals > 0 ? (d.total_return >= 0 ? '+' : '') + d.total_return + '%' : 'N/A', winColor, '🏆'],
+                ['TOTAL SIGNALS', d.total_signals, '#60a5fa', 'radar'],
+                ['WIN RATE', d.total_signals > 0 ? d.win_rate + '%' : 'N/A', d.win_rate >= 50 ? '#22c55e' : '#ef4444', 'track_changes'],
+                ['AVG RETURN', d.total_signals > 0 ? (d.avg_return >= 0 ? '+' : '') + d.avg_return + '%' : 'N/A', winColor, 'trending_up'],
+                ['TOTAL PnL', d.total_signals > 0 ? (d.total_return >= 0 ? '+' : '') + d.total_return + '%' : 'N/A', winColor, 'workspace_premium'],
             ].map(([label, val, color, icon]) => `
                 <div class="card" style="padding:1.2rem; text-align:center">
-                    <div style="font-size:1.4rem; margin-bottom:4px">${icon}</div>
+                    <div style="font-size:1.4rem; margin-bottom:12px; color:var(--accent)"><span class="material-symbols-outlined">${icon}</span></div>
                     <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px">${label}</div>
                     <div style="font-size:1.5rem; font-weight:900; color:${color}">${val}</div>
                 </div>
@@ -768,13 +770,17 @@ async function renderPerformanceDashboard() {
 
         <!-- Best / Worst -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
-            <div class="card" style="padding:1rem">
-                <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px">🏆 BEST PICK</div>
+            <div class="card" style="padding:1rem; border-left:3px solid #22c55e">
+                <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; display:flex; align-items:center; gap:6px">
+                    <span class="material-symbols-outlined" style="font-size:14px; color:#22c55e">workspace_premium</span> BEST PICK
+                </div>
                 <div style="font-size:1rem; font-weight:700; color:#22c55e">${d.best_pick?.ticker || '—'}</div>
                 <div style="font-size:0.8rem; color:#22c55e">${d.best_pick?.return > -999 ? '+' + d.best_pick.return + '%' : 'N/A'}</div>
             </div>
-            <div class="card" style="padding:1rem">
-                <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px">📉 WORST PICK</div>
+            <div class="card" style="padding:1rem; border-left:3px solid #ef4444">
+                <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; display:flex; align-items:center; gap:6px">
+                    <span class="material-symbols-outlined" style="font-size:14px; color:#ef4444">trending_down</span> WORST PICK
+                </div>
                 <div style="font-size:1rem; font-weight:700; color:#ef4444">${d.worst_pick?.ticker || '—'}</div>
                 <div style="font-size:0.8rem; color:#ef4444">${d.worst_pick?.return < 999 ? d.worst_pick.return + '%' : 'N/A'}</div>
             </div>
@@ -1032,7 +1038,7 @@ async function renderFlows() {
     if (!data) return;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Institutional Flow Monitor</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">flowsheet</span> Institutional Flow Monitor</h1>
             <p>Tracking the velocity of capital rotating into the ecosystem via spot ETFs and major aggregates.</p>
         </div>
         <div class="pulse-grid">
@@ -1441,7 +1447,7 @@ async function renderMindshare() {
     const data = await fetchAPI(`/mindshare?v=${Date.now()}`);
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header"><h1>Mindshare Scatter Plot</h1><p>Mapping Narrative Momentum vs Developer Engineering Activity.</p></div>
+        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">share</span> Mindshare Scatter Plot</h1><p>Mapping Narrative Momentum vs Developer Engineering Activity.</p></div>
         <div class="mindshare-container">
             <div class="chart-container" style="height:550px"><canvas id="mindshareChart"></canvas></div>
             <div class="mindshare-legend">
@@ -1578,7 +1584,7 @@ async function renderCatalysts() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Intelligence Catalyst Compass</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">auto_awesome</span> Intelligence Catalyst Compass</h1>
             <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
         </div>
 
@@ -1625,7 +1631,7 @@ async function renderMacroCalendar() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Institutional Macro Compass</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">calendar_month</span> Institutional Macro Compass</h1>
             <p>Real-time synthesis of global economic catalysts and their projected impact on liquidity.</p>
         </div>
         
@@ -1687,7 +1693,7 @@ async function renderWhales() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Institutional Whale Pulse</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">waves</span> Institutional Whale Pulse</h1>
             <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
         </div>
 
@@ -1777,7 +1783,7 @@ async function renderMarketPulse() {
     const data = await fetchAPI('/market-pulse');
     if (!data || !data.leadLag) return;
     appEl.innerHTML = `
-        <div class="view-header"><h1>Institutional Market Pulse</h1></div>
+        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">insights</span> Institutional Market Pulse</h1></div>
         <div class="pulse-grid">
             <div class="pulse-card"><h3>Fear & Greed Index</h3><div class="big-val">${data.fgIndex}</div><p>${data.fgLabel}</p></div>
             <div class="pulse-card"><h3>Lead-Lag Signal</h3><div class="big-val" style="font-size:2rem">${data.leadLag.leader} ${data.leadLag.divergence}%</div><p>${data.leadLag.signal}</p></div>
@@ -1792,7 +1798,7 @@ async function renderMacroSync() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Market Pulse: Macro Sync</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">sync</span> Market Pulse: Macro Sync</h1>
             <p>Real-time correlation analytics between Bitcoin and traditional macro assets.</p>
         </div>
         <div class="macro-sync-container">
@@ -1833,7 +1839,7 @@ async function renderRotation() {
     
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Sector Correlation Matrix</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">rotate_right</span> Sector Correlation Matrix</h1>
             <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>
         </div>
         
@@ -1897,7 +1903,7 @@ async function runStrategyBacktest(ticker, strategy) {
     
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Strategy Lab <span class="premium-badge pulse">PRO</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">science</span> Strategy Lab <span class="premium-badge pulse">PRO</span></h1>
             <p>Validate quantitative alphas using high-fidelity historical simulations.</p>
         </div>
 
@@ -2053,7 +2059,7 @@ async function renderNewsroom() {
         <div class="view-header">
             <div style="display:flex; align-items:center; gap:10px">
                 <div class="live-indicator"></div>
-                <h1>Live Intelligence Newsroom</h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1>
             </div>
             <p>Real-time institutional narrative stream correlated with AlphaSignal intensity.</p>
         </div>
@@ -2101,7 +2107,7 @@ function openNewsArticle(index) {
 async function renderRiskMatrix() {
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Institutional Correlation Matrix</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">grid_on</span> Institutional Correlation Matrix</h1>
             <p>Real-time statistical synchronization across the institutional universe.</p>
         </div>
         <div class="view-actions">
@@ -2171,7 +2177,7 @@ async function loadRiskMatrix(tickers = null) {
 async function renderStressHub() {
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Stress Lab & Risk Attribution</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--risk-high)">warning</span> Institutional Stress Lab</h1>
             <p>Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
         </div>
         <div class="risk-top-grid" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px; margin-bottom:2rem">
@@ -2265,7 +2271,7 @@ async function renderChainVelocity() {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Cross-Chain Narrative Velocity</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">speed</span> Cross-Chain Narrative Velocity</h1>
             <p>Institutional capital rotation tracking across major L1 networks using volume acceleration and social heat.</p>
         </div>
 
@@ -2397,7 +2403,7 @@ async function renderPortfolioLab(customBasket = null) {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Institutional Portfolio Lab</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">pie_chart</span> Institutional Portfolio Lab</h1>
             <p>Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores.</p>
         </div>
 
@@ -2549,7 +2555,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL') {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">
             <div>
-                <h1>Narrative Cluster Galaxy V2 <span class="premium-badge">PRO</span></h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">hub</span> Narrative Cluster Galaxy V2 <span class="premium-badge">PRO</span></h1>
                 <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
             </div>
             <div class="view-actions" style="margin-bottom:0">
@@ -2732,18 +2738,43 @@ async function renderBriefing() {
 
         appEl.innerHTML = `
             <div class="view-header">
-                <h1>Institutional Intelligence Briefing</h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">psychology</span> Institutional Intelligence Briefing</h1>
                 <p>AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.</p>
             </div>
             
             <div class="briefing-container" style="max-width:900px; margin:0 auto">
                 <div class="brief-hero" style="background:linear-gradient(135deg, rgba(0, 242, 255, 0.1) 0%, rgba(0, 0, 0, 0.5) 100%); border:1px solid var(--accent); border-radius:16px; padding:2.5rem; margin-bottom:2rem; position:relative; overflow:hidden">
-                    <div style="position:absolute; top:-50px; right:-50px; font-size:10rem; opacity:0.05; pointer-events:none">🤖</div>
+                    <div style="position:absolute; top:-50px; right:-50px; font-size:10rem; opacity:0.05; pointer-events:none; color:var(--accent)"><span class="material-symbols-outlined" style="font-size:12rem">psychology</span></div>
                     <div class="brief-sentiment-tag" style="background:var(--risk-low); color:black; font-weight:900; font-size:0.6rem; padding:4px 12px; border-radius:100px; width:fit-content; margin-bottom:1.5rem">
                         ${data.market_sentiment}
                     </div>
                     <h3 style="font-size:2.5rem; font-weight:900; line-height:1.1; margin-bottom:1rem; letter-spacing:-1px">${data.headline}</h3>
                     <p style="font-size:1.1rem; line-height:1.6; color:var(--text); opacity:0.9">${data.summary}</p>
+                    
+                    ${data.ml_prediction ? `
+                        <div style="margin-top:2rem; padding:1.5rem; background:rgba(0, 242, 255, 0.05); border:1px solid rgba(0, 242, 255, 0.2); border-radius:12px">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+                                <span style="font-size:0.7rem; font-weight:900; color:var(--accent); letter-spacing:1px">NEURAL ALPHA PREDICTION (24H)</span>
+                                <span style="font-size:0.6rem; background:var(--accent); color:black; padding:2px 8px; border-radius:4px; font-weight:900">CONFIDENCE: ${(data.ml_prediction.confidence * 100).toFixed(0)}%</span>
+                            </div>
+                            <div style="display:flex; align-items:flex-end; gap:1.5rem">
+                                <div style="font-size:2.5rem; font-weight:900; color:${data.ml_prediction.predicted_return > 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">
+                                    ${data.ml_prediction.predicted_return > 0 ? '+' : ''}${(data.ml_prediction.predicted_return * 100).toFixed(2)}%
+                                </div>
+                                <div style="flex:1">
+                                    <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px; font-weight:700">PRIMARY ALPHA DRIVERS</div>
+                                    <div style="display:flex; gap:8px">
+                                        ${Object.entries(data.ml_prediction.feature_importance).sort((a,b) => b[1] - a[1]).slice(0,3).map(([k, v]) => `
+                                            <div style="font-size:0.55rem; color:var(--text); background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; border:1px solid rgba(255,255,255,0.1)">
+                                                ${k.replace('_', ' ')}: <span style="color:var(--accent)">${(v*100).toFixed(0)}%</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+
                     <div style="margin-top:2rem; display:flex; gap:20px; font-size:0.8rem; color:var(--text-dim)">
                         <span><strong>MACRO:</strong> ${data.macro_context}</span>
                     </div>
@@ -2874,7 +2905,7 @@ function formatPrice(price) {
 async function renderTradeLab() {
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1>
             <p>Synthesizing institutional flow, macro catalysts, and technical regimes into actionable setups.</p>
         </div>
         
@@ -3060,7 +3091,7 @@ async function renderLiquidityView() {
     appEl.innerHTML = `
     <div class="gomm-container">
         <div class="sidebar-panel">
-            <h1 class="view-title" style="margin:0">Order Flow (GOMM)</h1>
+            <h1 class="view-title" style="margin:0"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">waterfall_chart</span> Order Flow (GOMM)</h1>
             <div class="stat-card">
                 <div class="label">GLOBAL IMBALANCE</div>
                 <div class="value" id="gomm-imbalance">--%</div>
@@ -3482,7 +3513,7 @@ async function renderMacroView() {
 async function renderDocsVelocity() {
     appEl.innerHTML = `
         <div class="view-header">
-            <h1>Narrative Velocity Methodology</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Narrative Velocity Methodology</h1>
             <p>Documentation on how AlphaSignal calculates institutional capital rotation and social attention.</p>
         </div>
         <div class="docs-container" style="max-width:800px; margin:0 auto; line-height:1.7; color:var(--text-dim); padding: 2rem 0">
