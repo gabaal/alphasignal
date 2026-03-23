@@ -216,28 +216,28 @@
                     <span class="search-hint" aria-hidden="true">ENTER ↵</span>
                 </div>
                 <div class="top-bar-actions">
-                    <div class="countdown-timer" id="countdown-timer" title="Auto-refresh countdown">
-                        <span class="countdown-icon material-symbols-outlined">timer</span>
-                        <span id="countdown-value">5:00</span>
+                    <div class="action-group" id="live-meta-group">
+                        <div class="countdown-timer" id="countdown-timer" title="Auto-refresh countdown">
+                            <span class="countdown-icon material-symbols-outlined">timer</span>
+                            <span id="countdown-value">5:00</span>
+                        </div>
+                        <div class="notif-wrapper">
+                            <button id="notif-bell-btn" onclick="openNotificationPanel()" aria-label="Notifications" class="action-btn-styled">
+                                <span class="material-symbols-outlined">notifications</span>
+                            </button>
+                            <span id="bell-badge">0</span>
+                            <div id="notif-panel" class="notif-dropdown"></div>
+                        </div>
                     </div>
-                    <!-- Feature 2: Notification Bell -->
-                    <div style="position:relative">
-                        <button id="notif-bell-btn" onclick="openNotificationPanel()" aria-label="Notifications"
-                                style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; padding:7px 10px; cursor:pointer; color:var(--text); display:flex; align-items:center; gap:4px; font-size:1rem; transition:all 0.2s"
-                                onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-                            <span class="material-symbols-outlined" style="font-size:1.1rem">notifications</span>
-                            <span id="bell-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ef4444; color:white; font-size:0.5rem; font-weight:700; min-width:16px; height:16px; border-radius:50%; align-items:center; justify-content:center; letter-spacing:0">0</span>
+
+                    <div class="action-group" id="system-actions-group">
+                        <button id="export-btn" onclick="exportReport()" aria-label="Export Report" class="action-btn-styled outline">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">ios_share</span> EXPORT
                         </button>
-                        <!-- Feature 2: Notification Panel -->
-                        <div id="notif-panel" style="display:none; position:absolute; right:0; top:calc(100% + 8px); width:340px; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 40px rgba(0,0,0,0.6); z-index:1000; overflow:hidden; max-height:420px; overflow-y:auto"></div>
+                        <button id="refresh-btn" aria-label="Recalculate Signals" class="action-btn-styled primary">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">bolt</span> RE-CALCULATE
+                        </button>
                     </div>
-                    <!-- Feature 5: Export Report -->
-                    <button id="export-btn" onclick="exportReport()" aria-label="Export Report"
-                            style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; padding:7px 12px; cursor:pointer; color:var(--text); font-size:0.65rem; letter-spacing:1px; transition:all 0.2s"
-                            onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-                        📥 Export
-                    </button>
-                    <button id="refresh-btn" aria-label="Recalculate Signals">⚡ Re-calculate Signals</button>
                 </div>
             </header>
 

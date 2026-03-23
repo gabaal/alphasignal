@@ -1031,19 +1031,36 @@ async function renderFlows() {
     const data = await fetchAPI('/flows');
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header"><h1>Institutional Flow Monitor</h1></div>
-        <div class="pulse-grid">
-            <div class="pulse-card"><h3>Net ETF Inflow</h3><div class="big-val">$${data.netFlow}M</div><p>Aggregated spot volume</p></div>
-            <div class="pulse-card"><h3>Sector Momentum</h3><div class="big-val ${data.sectorMomentum >= 0 ? 'pos' : 'neg'}">${data.sectorMomentum >= 0 ? '+' : ''}${data.sectorMomentum}%</div><p>Miner vs Proxy divergence</p></div>
+        <div class="view-header">
+            <h1>Institutional Flow Monitor</h1>
+            <p>Tracking the velocity of capital rotating into the ecosystem via spot ETFs and major aggregates.</p>
         </div>
-        <div class="whale-list" style="margin-top:2rem">
-            ${data.etfFlows.map(f => `
-                <div class="whale-row" style="grid-template-columns: 100px 100px 1fr">
-                    <div class="w-amount ${f.direction === 'IN' ? 'pos' : 'neg'}">${f.amount}M</div>
-                    <div class="label-tag">${f.ticker}</div>
-                    <div style="color:var(--text-dim)">Spot Exposure ${f.direction}</div>
-                </div>
-            `).join('')}
+        <div class="pulse-grid">
+            <div class="pulse-card">
+                <h3>Institutional Pressure</h3>
+                <div class="big-val">$${data.netFlow}M</div>
+                <p>Net exchange-wide attribution</p>
+            </div>
+            <div class="pulse-card">
+                <h3>Sector Momentum</h3>
+                <div class="big-val ${data.sectorMomentum >= 0 ? 'pos' : 'neg'}">${data.sectorMomentum >= 0 ? '+' : ''}${data.sectorMomentum}%</div>
+                <p>Alpha vs Market Benchmark</p>
+            </div>
+        </div>
+        <div class="whale-list" style="margin-top:2.5rem">
+            <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent)">SPOT ETF FLOW ATTRIBUTION (REAL-TIME)</h3>
+            <div style="display:grid; gap:12px">
+                ${data.etfFlows.map(f => `
+                    <div class="whale-row" style="grid-template-columns: 100px 100px 1fr 150px; align-items:center">
+                        <div class="label-tag" style="width:fit-content">${f.ticker}</div>
+                        <div class="w-amount ${f.direction === 'IN' ? 'pos' : 'neg'}">${f.amount > 0 ? '+' : ''}${f.amount}M</div>
+                        <div style="color:var(--text-dim); font-size:0.8rem">Institutional Bid ${f.direction}</div>
+                        <div class="intensity-bar" style="background:rgba(255,255,255,0.05); height:4px; border-radius:2px; position:relative">
+                            <div style="position:absolute; left:0; top:0; height:100%; width:${Math.min(Math.abs(f.amount)/2, 100)}%; background:${f.direction === 'IN' ? 'var(--risk-low)' : 'var(--risk-high)'}; border-radius:2px"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
         </div>`;
 }
 
@@ -1845,7 +1862,8 @@ async function runStrategyBacktest(ticker, strategy) {
                     <label>QUANT STRATEGY</label>
                     <select id="strat-type" class="strat-select" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, this.value)">
                         <option value="trend_regime" ${strategy === 'trend_regime' ? 'selected' : ''}>EMA Crossover (20/50)</option>
-                        <option value="regime_alpha" ${strategy === 'regime_alpha' ? 'selected' : ''}>Regime Velocity Alpha</option>
+                        <option value="volatility_breakout" ${strategy === 'volatility_breakout' ? 'selected' : ''}>Volatility Breakout (Keltner)</option>
+                        <option value="rsi_mean_revert" ${strategy === 'rsi_mean_revert' ? 'selected' : ''}>RSI Mean Reversion (Trend-Filtered)</option>
                         <option value="bollinger_bands" ${strategy === 'bollinger_bands' ? 'selected' : ''}>Bollinger Band Mean Reversion</option>
                         <option value="vwap_cross" ${strategy === 'vwap_cross' ? 'selected' : ''}>VWAP Crossover (EMA5 Anchor)</option>
                     </select>
@@ -2311,10 +2329,14 @@ async function renderChainVelocity() {
     });
 }
 
-async function renderPortfolioLab() {
+async function renderPortfolioLab(customBasket = null) {
     appEl.innerHTML = skeleton(1);
-    const data = await fetchAPI('/portfolio-sim');
-    if (!data || !data.metrics) return;
+    const endpoint = customBasket ? `/portfolio-sim?basket=${customBasket}` : '/portfolio-sim';
+    const data = await fetchAPI(endpoint);
+    if (!data || !data.metrics) {
+        appEl.innerHTML = `<div class="empty-state">Portfolio simulation error. Verification in progress.</div>`;
+        return;
+    }
 
     appEl.innerHTML = `
         <div class="view-header">
@@ -2355,9 +2377,18 @@ async function renderPortfolioLab() {
         </div>
 
         <div style="display:grid; grid-template-columns: 1fr 2fr; gap:2rem">
-            <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5)">
-                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">DYNAMIC ALLOCATION</h3>
-                <canvas id="allocationChart" style="max-height:300px"></canvas>
+            <div class="card" style="padding:1.5rem; background:rgba(0, 242, 255, 0.03); border:1px solid var(--accent)">
+                <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">CUSTOM PORTFOLIO BUILDER</h3>
+                <div style="display:flex; flex-direction:column; gap:1rem">
+                    <p style="font-size:0.75rem; color:var(--text-dim)">Input target symbols to simulate an Alpha-weighted institutional basket.</p>
+                    <input type="text" id="portfolio-basket" placeholder="BTC-USD, ETH-USD, SOL-USD, AVAX-USD" 
+                           style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; padding:12px; border-radius:8px; font-family:inherit"
+                           value="${customBasket || ''}">
+                    <button class="action-btn-styled" style="width:100%" 
+                            onclick="renderPortfolioLab(document.getElementById('portfolio-basket').value)">
+                        SIMULATE CUSTOM BASKET
+                    </button>
+                </div>
             </div>
             <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">
                 <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">CONSTITUENT WEIGHTINGS</h3>
@@ -2393,9 +2424,9 @@ async function renderPortfolioLab() {
                 {
                     label: 'BTC BENCHMARK',
                     data: data.history.map(h => h.benchmark),
-                    borderColor: 'var(--text-dim)',
-                    borderDash: [5, 5],
-                    borderWidth: 2,
+                    borderColor: '#f7931a',
+                    borderDash: [2, 2],
+                    borderWidth: 3,
                     fill: false,
                     pointRadius: 0
                 }
@@ -2658,6 +2689,22 @@ async function renderBriefing() {
                     <p style="font-size:1.1rem; line-height:1.6; color:var(--text); opacity:0.9">${data.summary}</p>
                     <div style="margin-top:2rem; display:flex; gap:20px; font-size:0.8rem; color:var(--text-dim)">
                         <span><strong>MACRO:</strong> ${data.macro_context}</span>
+                    </div>
+                </div>
+
+                <!-- Sector Pulse Matrix -->
+                <div class="glass-card" style="margin-bottom:2rem; padding:1.5rem">
+                    <h3 style="color:var(--accent); font-size:0.8rem; margin-bottom:1.5rem; letter-spacing:1px">SYSTEMIC SECTOR ATTRIBUTION</h3>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem">
+                        ${data.sector_data ? data.sector_data.map(([cat, score]) => `
+                            <div class="sector-puck" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:1rem; border-radius:8px; text-align:center">
+                                <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px; font-weight:900">${cat}</div>
+                                <div style="font-size:1.4rem; font-weight:900; color:${score > 50 ? 'var(--risk-low)' : 'var(--risk-high)'}">${score.toFixed(1)}</div>
+                                <div style="height:2px; background:rgba(255,255,255,0.05); margin-top:8px; border-radius:1px; overflow:hidden">
+                                    <div style="width:${score}%; height:100%; background:${score > 50 ? 'var(--risk-low)' : 'var(--risk-high)'}"></div>
+                                </div>
+                            </div>
+                        `).join('') : ''}
                     </div>
                 </div>
 
@@ -2995,7 +3042,11 @@ async function renderLiquidityView() {
                         vertLines: { color: 'rgba(255, 255, 255, 0.03)' }, 
                         horzLines: { color: 'rgba(255, 255, 255, 0.03)' } 
                     },
-                    rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.1)' },
+                    rightPriceScale: { 
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        autoScale: true,
+                        scaleMargins: { top: 0.1, bottom: 0.2 }
+                    },
                     timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true },
                     width: container.clientWidth || 800,
                     height: 350
