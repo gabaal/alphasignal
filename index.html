@@ -9,6 +9,12 @@
     <meta name="author" content="AlphaSignal">
     <meta name="robots" content="index, follow">
     <link rel="canonical" id="canonical-link" href="https://alphasignal.digital/">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AlphaSignal">
+    <link rel="apple-touch-icon" href="assets/pwa-icon-512.png">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -440,7 +446,10 @@
                 </div>
                 <div class="input-group">
                     <label for="telegram-chat-id">TELEGRAM CHAT ID</label>
-                    <input type="text" id="telegram-chat-id" placeholder="e.g. 12345678" autocomplete="off">
+                    <div style="display:flex; gap:8px">
+                        <input type="text" id="telegram-chat-id" placeholder="e.g. 12345678" autocomplete="off" style="flex:1">
+                        <button class="intel-action-btn secondary" onclick="testTelegramConnection()" style="padding:0 12px; font-size:0.6rem; width:auto; border:1px solid var(--border)">TEST</button>
+                    </div>
                 </div>
                 <div class="input-group" style="flex-direction:row; align-items:center; gap:10px;">
                     <input type="checkbox" id="alerts-enabled" checked style="width:20px; height:20px; cursor:pointer">

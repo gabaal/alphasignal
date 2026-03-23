@@ -2397,7 +2397,10 @@ async function renderPortfolioLab(customBasket = null) {
     const endpoint = customBasket ? `/portfolio-sim?basket=${customBasket}` : '/portfolio-sim';
     const data = await fetchAPI(endpoint);
     if (!data || !data.metrics) {
-        appEl.innerHTML = `<div class="empty-state">Portfolio simulation error. Verification in progress.</div>`;
+        appEl.innerHTML = `<div class="empty-state">
+            <span class="material-symbols-outlined" style="font-size:3rem; color:var(--accent); margin-bottom:1rem">hourglass_empty</span>
+            <p>Portfolio simulation error. Calibration in progress.</p>
+        </div>`;
         return;
     }
 
@@ -2407,7 +2410,7 @@ async function renderPortfolioLab(customBasket = null) {
             <p>Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores.</p>
         </div>
 
-        <div style="display:grid; grid-template-columns: 3fr 1fr; gap:2rem; margin-bottom: 2rem">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:2rem; margin-bottom: 2rem">
             <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5); backdrop-filter:blur(10px)">
                 <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">ALPHA-WEIGHTED EQUITY CURVE (30D)</h3>
                 <canvas id="portfolioChart" style="max-height:450px"></canvas>
@@ -2478,11 +2481,12 @@ async function renderPortfolioLab(customBasket = null) {
                     label: 'ALPHA PORTFOLIO',
                     data: data.history.map(h => h.portfolio),
                     borderColor: 'var(--accent)',
-                    backgroundColor: 'rgba(0, 242, 255, 0.1)',
-                    borderWidth: 3,
+                    backgroundColor: 'rgba(0, 242, 255, 0.05)',
+                    borderWidth: 2,
                     fill: true,
-                    tension: 0.3,
-                    pointRadius: 0
+                    tension: 0.1,
+                    pointRadius: 2,
+                    pointBackgroundColor: 'var(--accent)'
                 },
                 {
                     label: 'BTC BENCHMARK',
@@ -4789,6 +4793,25 @@ async function showNotificationSettings(visible) {
     } else {
         modal.classList.add('hidden');
         if (layout) layout.style.filter = 'none';
+    }
+}
+
+async function testTelegramConnection() {
+    const chatID = document.getElementById('telegram-chat-id').value.trim();
+    if (!chatID) {
+        showToast("ERROR: Please enter a Chat ID first.");
+        return;
+    }
+    showToast("TESTING_CONNECTION: Dispatching signal to Telegram...");
+    try {
+        const res = await fetchAPI('/settings/test-telegram', 'POST', { chat_id: chatID });
+        if (res && res.success) {
+            showToast("CONNECTION_SUCCESS: Check your Telegram for the AlphaSignal probe.");
+        } else {
+            showToast(`CONNECTION_FAIL: ${res.error || 'Check bot token in environment vars'}`);
+        }
+    } catch (err) {
+        showToast("CONNECTION_ERROR: Institutional node unreachable.");
     }
 }
 
