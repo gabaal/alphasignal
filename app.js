@@ -1,5 +1,6 @@
 const API_BASE = '/api';
 const appEl = document.getElementById('app-view');
+let lastNeuralSetup = null;
 
 function createTradingViewChart(containerId, data) {
     const container = document.getElementById(containerId);
@@ -50,12 +51,24 @@ let countdownInterval = null;
 let isPremiumUser = false;
 let isAuthenticatedUser = false;
 let hasStripeId = false;
+let isSafeMode = false;
+
+// PWA Offline Monitoring
+function updateOnlineStatus() {
+    if (!navigator.onLine) {
+        showToast("CONNECTIVITY_LOST", "Terminal connection interrupted. Re-establishing link...", "alert");
+    } else {
+        showToast("CONNECTION_RESTORED", "Terminal link stabilized. Syncing data...", "success");
+    }
+}
+window.addEventListener('offline', updateOnlineStatus);
+window.addEventListener('online', updateOnlineStatus);
 
 // ============================================================
 // Phase A: WebSocket Live Price Client
 // ============================================================
 function initLivePriceStream() {
-    let ws = null;
+    if (window.liveWS) return; // Prevent multiple connections
     let retryDelay = 2000;
 
     function connect() {
@@ -70,8 +83,14 @@ function initLivePriceStream() {
                         const p = msg.data;
                         if (p.BTC) {
                             currentBTCPrice = p.BTC;
+                            const btcText = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            
                             const el = document.getElementById('btc-price');
-                            if (el) el.textContent = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            if (el) el.textContent = btcText;
+                            
+                            const elLanding = document.getElementById('btc-price-landing');
+                            if (elLanding) elLanding.textContent = `BTC: ${btcText}`;
+
                             const dot = document.getElementById('live-dot');
                             if (dot) { dot.style.opacity = '1'; setTimeout(() => { dot.style.opacity = '0.4'; }, 300); }
                         }
@@ -114,6 +133,7 @@ function initLivePriceStream() {
 
             ws.onerror = () => ws.close();
 
+            window.liveWS = ws;
         } catch(e) {
             setTimeout(connect, retryDelay);
         }
@@ -270,13 +290,14 @@ function updatePremiumUI() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         const view = item.getAttribute('data-view');
-        // Views that are ALWAYS free
         const isFreeView = (view === 'signals' || view === 'help' || view === 'home' || view?.startsWith('explain-'));
         
         if (isFreeView || isPremiumUser) {
             const lock = item.querySelector('.premium-lock');
             if (lock) lock.remove();
+            item.classList.remove('locked-nav');
         } else {
+            item.classList.add('locked-nav');
             if (!item.querySelector('.premium-lock')) {
                 const lock = document.createElement('span');
                 lock.className = 'premium-lock material-symbols-outlined';
@@ -604,11 +625,18 @@ let currentSignalCategory = 'ALL';
 async function renderSignals(category = 'ALL') {
     currentSignalCategory = category;
     appEl.innerHTML = skeleton(8);
-    const signals = await fetchAPI('/signals');
+    let signals = await fetchAPI('/signals');
     if (!signals) {
         appEl.innerHTML = '<div class="error-msg">Fail to sync with intelligence streams. Check connection.</div>';
         return;
     }
+    
+    // Phase 7.3: Institutional Safe Mode Filtering – Filter out high-vol memes and small-caps
+    if (isSafeMode) {
+        const safeCategories = ['L1', 'EXCHANGE', 'DEFI', 'INFRA', 'EQUITIES', 'MACRO', 'ETF', 'PROXY'];
+        signals = signals.filter(s => safeCategories.includes(s.category));
+    }
+
     lastSignalsData = signals;
     updateScroller(signals);
     startCountdown(); // Reset timer on successful fetch
@@ -679,10 +707,16 @@ async function renderAlphaScore() {
     const gradeColors = { A: '#22c55e', B: '#60a5fa', C: '#facc15', D: '#ef4444' };
     const signalColors = { 'STRONG BUY': '#22c55e', 'BUY': '#86efac', 'NEUTRAL': '#60a5fa', 'CAUTION': '#ef4444' };
 
+    let scores = data.scores || [];
+    if (isSafeMode) {
+        const safeSectors = ['L1', 'EXCHANGE', 'DEFI', 'MACRO', 'EQUITIES', 'INFRA', 'ETF', 'PROXY'];
+        scores = scores.filter(s => safeSectors.includes(s.sector) || safeSectors.includes(s.category));
+    }
+
     appEl.innerHTML = `
         <div class="view-header">
             <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
-            <p>Composite 0–100 ranking · Updated ${data.updated} · ${data.scores.length} assets scored</p>
+            <p>Composite 0–100 ranking · Updated ${data.updated} · ${scores.length} assets scored ${isSafeMode ? '<span style="color:var(--accent); font-weight:700">[SAFE MODE ACTIVE]</span>' : ''}</p>
         </div>
         <div class="card" style="overflow-x:auto">
             <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
@@ -694,11 +728,12 @@ async function renderAlphaScore() {
                         <th style="text-align:left; padding:8px 12px; width:180px">SCORE</th>
                         <th style="text-align:center; padding:8px 12px">GRADE</th>
                         <th style="text-align:center; padding:8px 12px">SIGNAL</th>
+                        <th style="text-align:left; padding:8px 12px">MODEL SPECS</th>
                         <th style="text-align:left; padding:8px 12px">WHY</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.scores.map((s, i) => `
+                    ${scores.map((s, i) => `
                         <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s"
                             onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
                             <td style="padding:10px 12px; color:var(--text-dim)">${i + 1}</td>
@@ -717,6 +752,18 @@ async function renderAlphaScore() {
                             </td>
                             <td style="padding:10px 12px; text-align:center">
                                 <span style="color:${signalColors[s.signal] || '#60a5fa'}; font-size:0.6rem; letter-spacing:1px">${s.signal}</span>
+                            </td>
+                            <td style="padding:10px 12px; min-width:140px">
+                                <div style="display:flex; flex-direction:column; gap:4px">
+                                    <div style="display:flex; gap:6px; align-items:center">
+                                        <span style="font-size:0.55rem; color:var(--text-dim); background:rgba(255,255,255,0.05); padding:1px 4px; border-radius:3px">CONSENSUS:</span>
+                                        <span style="font-size:0.6rem; font-weight:900; color:${s.consensus === 'HIGH' ? '#22c55e' : s.consensus === 'MEDIUM' ? '#60a5fa' : '#ef4444'}">${s.consensus}</span>
+                                    </div>
+                                    <div style="display:flex; gap:6px; font-size:0.55rem; color:var(--text-dim)">
+                                        <span style="letter-spacing:1px">LSTM: <span style="color:var(--accent)">${s.lstm_conf}%</span></span>
+                                        <span style="letter-spacing:1px">XGB: <span style="color:var(--accent)">${s.xgb_conf}%</span></span>
+                                    </div>
+                                </div>
                             </td>
                             <td style="padding:10px 12px; color:var(--text-dim); font-size:0.62rem; max-width:200px">
                                 ${(s.reasons || []).map(r => r.includes('ML') ? `<strong style="color:var(--accent)">${r}</strong>` : r).join(' · ') || '—'}
@@ -747,9 +794,19 @@ async function renderPerformanceDashboard() {
     const winColor = d.avg_return >= 0 ? '#22c55e' : '#ef4444';
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Performance Dashboard <span class="premium-badge">LIVE</span></h1>
-            <p>Track record as of ${d.updated} · Based on ${d.total_signals} signals captured since launch</p>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start">
+            <div>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Portfolio Lab <span class="premium-badge">LIVE</span></h1>
+                <p>Institutional record as of ${d.updated} · Based on ${d.total_signals} signals</p>
+            </div>
+            <div style="display:flex; gap:0.5rem">
+                <button class="timeframe-btn" onclick="downloadPortfolioData('csv')" style="display:flex; align-items:center; gap:6px; background:rgba(0, 242, 255, 0.1); border-color:var(--accent)">
+                    <span class="material-symbols-outlined" style="font-size:18px">download</span> Export CSV
+                </button>
+                <button class="timeframe-btn" onclick="downloadPortfolioData('json')" style="display:flex; align-items:center; gap:6px">
+                    <span class="material-symbols-outlined" style="font-size:18px">data_object</span> JSON
+                </button>
+            </div>
         </div>
 
         <!-- KPI Row -->
@@ -825,6 +882,25 @@ async function renderPerformanceDashboard() {
 // ============================================================
 // Feature 5: Export Report
 // ============================================================
+async function downloadPortfolioData(format) {
+    const notifyBtn = document.querySelector(`button[onclick="downloadPortfolioData('${format}')"]`);
+    const originalText = notifyBtn ? notifyBtn.innerHTML : '';
+    if (notifyBtn) notifyBtn.innerHTML = '⌛ ...';
+
+    try {
+        const link = document.createElement('a');
+        link.href = `${API_BASE}/portfolio/export?format=${format}`;
+        link.download = `alphasignal_portfolio_${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (e) {
+        console.error("Download failed:", e);
+    } finally {
+        if (notifyBtn) setTimeout(() => notifyBtn.innerHTML = originalText, 1000);
+    }
+}
+
 async function exportReport() {
     const btn = document.getElementById('export-btn');
     if (btn) { btn.textContent = '⏳ Exporting...'; btn.disabled = true; }
@@ -2675,7 +2751,19 @@ async function renderNarrativeGalaxy(filterChain = 'ALL') {
     canvas.height = rect.height * devicePixelRatio;
     ctx.scale(devicePixelRatio, devicePixelRatio);
 
-    const stars = data.clusters;
+    let clusters = data.clusters || [];
+    
+    // Phase 7.3: Institutional Safe Mode Filtering
+    if (isSafeMode) {
+        const safeCats = ['L1', 'EXCHANGE', 'DEFI', 'INFRA', 'EQUITIES'];
+        clusters = clusters.filter(c => safeCats.includes(c.category));
+    }
+
+    const stars = clusters.map(c => ({
+        ...c,
+        x: c.x * rect.width, // Scale coordinates to canvas size
+        y: c.y * rect.height
+    }));
     const hoverScale = 1.2;
     let hoveredStar = null;
 
@@ -3025,7 +3113,10 @@ async function renderTradeLab() {
                     <div class="p-item"><label>TARGET</label><span class="pos">${formatPrice(p.tp1)}</span></div>
                     <div class="p-item"><label>STOP</label><span class="neg">${formatPrice(p.stop_loss)}</span></div>
                 </div>
-                <button class="intel-action-btn mini" onclick="runNeuralSetup('${p.ticker}')">VIEW ANALYSIS</button>
+                <div style="display:flex; gap:8px; margin-top:10px">
+                    <button class="intel-action-btn mini" style="flex:1" onclick="runNeuralSetup('${p.ticker}')">ANALYSIS</button>
+                    <button class="intel-action-btn mini" style="flex:1; background:var(--accent); color:white" onclick="generateTicket('${p.ticker}')">TICKET</button>
+                </div>
             </div>
         `).join('');
     } else {
@@ -3137,7 +3228,22 @@ async function runNeuralSetup(ticker) {
                 <div class="risk-notice">
                     <strong>RISK WARNING:</strong> ${setup.risk_warning}
                 </div>
+                
+                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px; display:flex; gap:15px">
+                    <button class="intel-action-btn" id="ticket-gen-btn" style="flex:1; background:var(--accent); color:white" onclick="showTradeTicket()">
+                        <span class="material-symbols-outlined" style="vertical-align:middle; font-size:1.2rem; margin-right:5px">receipt_long</span>
+                        GENERATE EXECUTION TICKET
+                    </button>
+                </div>
             </div>`;
+        area.innerHTML += `
+            <div style="margin-top:20px; text-align:center">
+                <button class="intel-action-btn mini outline" style="width:auto; padding:8px 20px" onclick="switchView('trade-ledger')">
+                    <span class="material-symbols-outlined" style="font-size:1rem; margin-right:5px">list_alt</span> VIEW AUDIT LEDGER
+                </button>
+            </div>
+        `;
+        lastNeuralSetup = setup;
         area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (e) {
         console.error('Setup Gen Error:', e);
@@ -3146,6 +3252,167 @@ async function runNeuralSetup(ticker) {
             btn.textContent = "GENERATE NEURAL SETUP";
             btn.disabled = false;
         }
+    }
+}
+
+async function generateTicket(ticker) {
+    try {
+        showToast("Processing", `Generating Execution Ticket for ${ticker}...`, "alert");
+        const setup = await fetchAPI(`/generate-setup?ticker=${ticker.toUpperCase()}`);
+        if (setup && !setup.error) {
+            showTradeTicket(setup);
+        } else {
+            showToast("Error", "Failed to generate ticket metadata.", "alert");
+        }
+    } catch (e) {
+        showToast("Error", "Connection to Neural Engine failed.", "alert");
+    }
+}
+
+function showTradeTicket(setup = null) {
+    const s = setup || lastNeuralSetup;
+    if (!s) {
+        showToast("Error", "No active setup to ticket.", "alert");
+        return;
+    }
+
+    // Auto-persist to Ledger in background
+    fetchAPI('/trade-ledger', 'POST', {
+        ticker: s.ticker,
+        action: s.action,
+        price: s.parameters?.entry || 0,
+        target: s.parameters?.take_profit_1 || 0,
+        stop: s.parameters?.stop_loss || 0,
+        rr: s.parameters?.rr_ratio || 0,
+        slippage: s.parameters?.slippage_est || 0
+    }).then(res => console.log("[AlphaSignal] Ticket persisted to Ledger:", res))
+      .catch(err => console.error("[AlphaSignal] Ledger Persistence Failed:", err));
+
+    const ticketId = `AS-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    const ticketText = `ALPHASIGNAL EXECUTION TICKET\nID: ${ticketId}\nASSET: ${s.ticker}\nACTION: ${s.action}\nENTRY: ${s.parameters.entry}\nTP1: ${s.parameters.take_profit_1}\nTP2: ${s.parameters.take_profit_2}\nSL: ${s.parameters.stop_loss}\nR/R: ${s.parameters.rr_ratio}\nSOURCE: AlphaSignal Neural Engine v4.2`;
+
+    const area = document.getElementById('setup-display-area');
+    if (!area) return;
+
+    area.innerHTML = `
+        <div class="trade-ticket animate-in">
+            <div class="ticket-id">ORDER ID: ${ticketId} | SYSTEM TIME: ${s.timestamp}</div>
+            <div class="ticket-main">
+                <div class="ticket-info">
+                    <div class="ticket-action ${s.action.toLowerCase()}">${s.action}</div>
+                    <div class="ticket-symbol">${s.ticker} / USD</div>
+                </div>
+                <div class="ticket-meta" style="text-align:right">
+                    <div style="color:var(--accent); font-weight:900">CONVICTION: ${s.conviction}</div>
+                    <div>EST. SLIPPAGE: ${s.parameters.slippage_est}</div>
+                </div>
+            </div>
+            
+            <div class="ticket-grid">
+                <div class="ticket-item"><label>ENTRY ZONE</label><span>${formatPrice(s.parameters.entry)}</span></div>
+                <div class="ticket-item"><label>R/R RATIO</label><span>${s.parameters.rr_ratio} : 1</span></div>
+                <div class="ticket-item"><label>TARGET 1</label><span class="pos">${formatPrice(s.parameters.take_profit_1)}</span></div>
+                <div class="ticket-item"><label>STOP LOSS</label><span class="neg">${formatPrice(s.parameters.stop_loss)}</span></div>
+                <div class="ticket-item"><label>TARGET 2</label><span class="pos">${formatPrice(s.parameters.take_profit_2)}</span></div>
+                <div class="ticket-item"><label>EXP. VOLATILITY</label><span>HIGH (ADAPTIVE)</span></div>
+            </div>
+
+            <div class="ticket-footer">
+                <div class="ticket-meta">
+                    <div style="font-weight:700">INSTRUCTION: LIMIT ORDER / GTC</div>
+                    <div>Verified by AlphaSignal Intelligence Hub</div>
+                </div>
+                <button class="ticket-copy-btn" id="copy-ticket-btn" onclick="copyTicketToClipboard('${ticketId}')">
+                    COPY TO CLIPBOARD
+                </button>
+            </div>
+            <input type="hidden" id="raw-ticket-${ticketId}" value="${ticketText}">
+        </div>
+        <button class="intel-action-btn" style="margin-top:1rem; width:100%" onclick="runNeuralSetup('${s.ticker}')">BACK TO ANALYSIS</button>
+    `;
+    
+    area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function renderTradeLedger() {
+    appEl.innerHTML = skeleton();
+    try {
+        const res = await fetchAPI('/trade-ledger');
+        if (!res || res.error) {
+            appEl.innerHTML = `
+                <div class="view-header">
+                    <h2>Institutional Trade Ledger</h2>
+                </div>
+                <div class="paywall-feature-block">
+                    <span class="material-symbols-outlined" style="font-size:4rem; color:var(--accent); margin-bottom:1.5rem">history_edu</span>
+                    <h3>PERSISTENT AUDIT HISTORY</h3>
+                    <p>The Trade Ledger persists your institutional execution tickets across sessions. This feature is restricted to Premium Alpha accounts.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const trades = res.data || [];
+        appEl.innerHTML = `
+            <div class="view-header">
+                <div>
+                    <h2>Institutional Trade Ledger</h2>
+                    <p class="subtitle">Auditable record of generated neural execution tickets.</p>
+                </div>
+                <button class="intel-action-btn mini" onclick="switchView('tradelab')">
+                    <span class="material-symbols-outlined">add</span> NEW SETUP
+                </button>
+            </div>
+
+            <div class="ledger-container">
+                <table class="ledger-table">
+                    <thead>
+                        <tr>
+                            <th>TIMESTAMP</th>
+                            <th>TICKER</th>
+                            <th>ACTION</th>
+                            <th>PRICE</th>
+                            <th>TARGET</th>
+                            <th>STOP</th>
+                            <th>R/R</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${trades.length ? trades.map(t => `
+                            <tr>
+                                <td style="color:var(--text-dim); font-size:0.7rem">${t.timestamp}</td>
+                                <td style="font-weight:900">${t.ticker}</td>
+                                <td style="color:${t.action === 'BUY' ? 'var(--risk-low)' : 'var(--risk-high)'}; font-weight:900">${t.action}</td>
+                                <td style="font-family:'JetBrains Mono'">${formatPrice(t.price)}</td>
+                                <td style="color:var(--risk-low)">${formatPrice(t.target)}</td>
+                                <td style="color:var(--risk-high)">${formatPrice(t.stop)}</td>
+                                <td style="font-weight:900; color:var(--accent)">${t.rr}:1</td>
+                            </tr>
+                        `).join('') : `<tr><td colspan="7" style="text-align:center; padding:3rem; color:var(--text-dim)">No execution tickets recorded in the ledger.</td></tr>`}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (e) {
+        appEl.innerHTML = `<div class="error">Failed to load trade ledger.</div>`;
+    }
+}
+
+async function copyTicketToClipboard(id) {
+    const text = document.getElementById(`raw-ticket-${id}`).value;
+    const btn = document.getElementById('copy-ticket-btn');
+    
+    try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "COPIED!";
+        btn.classList.add('copied');
+        showToast("Success", "Execution ticket copied to clipboard.", "alert");
+        setTimeout(() => {
+            btn.textContent = "COPY TO CLIPBOARD";
+            btn.classList.remove('copied');
+        }, 2000);
+    } catch (err) {
+        showToast("Error", "Could not access clipboard.", "alert");
     }
 }
 
@@ -3805,6 +4072,7 @@ const viewMap = {
     'explain-telegram': renderDocsTelegram,
     'explain-pwa': renderDocsPWA,
     'explain-portfolio-lab': renderDocsPortfolioLab,
+    'trade-ledger': renderTradeLedger,
     help: renderHelp
 };
 
@@ -3903,21 +4171,6 @@ async function renderHome() {
                         <h4 style="color: var(--text); margin-bottom: 0.5rem;">Is this terminal suitable for automated strategies?</h4>
                         <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">Yes, AlphaSignal is designed for strategy validation. Our Signal Archive and Backtest Lab allow you to verify the historical performance of multi-asset signals across different market regimes.</p>
                     </div>
-                </div>
-            </section>
-
-            <section class="app-status-bar">
-                <div class="status-item">
-                    <span class="s-label">SYSTEM_STATUS:</span>
-                    <span class="s-value status-online">OPTIMAL</span>
-                </div>
-                <div class="status-item">
-                    <span class="s-label">DATA_STREAMS:</span>
-                    <span class="s-value">1,248 LIVE EPS</span>
-                </div>
-                <div class="status-item">
-                    <span class="s-label">NEURAL_SYNTH:</span>
-                    <span class="s-value">ACTIVE</span>
                 </div>
             </section>
         </div>
@@ -4698,6 +4951,21 @@ function updateSEOMeta(view) {
 }
 
 function switchView(view) {
+    // 1. Check Access Rights
+    const isFreeView = (view === 'signals' || view === 'help' || view === 'home' || view?.startsWith('explain-'));
+    
+    if (!isFreeView && !isPremiumUser) {
+        console.warn(`Access Denied: ${view} is a premium view.`);
+        if (!isAuthenticatedUser) {
+            showAuth(true);
+            showToast("AUTHENTICATION REQUIRED", "Please login to access institutional intelligence.", "alert");
+        } else {
+            showPaywall(true);
+            showToast("PREMIUM REQUIRED", "This module requires an active Institutional subscription.", "alert");
+        }
+        return;
+    }
+
     // Update SEO Meta
     updateSEOMeta(view);
 
@@ -4716,7 +4984,8 @@ function switchView(view) {
         
         // Hide sidebar on mobile after selection
         if (window.innerWidth <= 900) {
-            document.getElementById('sidebar').classList.remove('open');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('open');
         }
     }
 }
@@ -4872,8 +5141,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     window.terminalLogout = logout;
     window.terminalSwitchView = switchView;
     window.toggleSidebar = () => {
+        const layout = document.getElementById('main-layout');
         const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.toggle('open');
+        if (window.innerWidth <= 900) {
+            sidebar.classList.toggle('open');
+        } else {
+            layout.classList.toggle('collapsed');
+        }
     };
 });
 
@@ -5064,4 +5338,52 @@ function renderCorrelationHeatmap(data) {
             ${cell.x === cell.y ? cell.x : ''}
         </div>`;
     }).join('');
+}
+function toggleSafeMode() {
+    isSafeMode = !isSafeMode;
+    const trigger = document.getElementById('safe-mode-trigger');
+    const status = document.getElementById('safe-mode-status');
+    const icon = document.getElementById('safe-mode-icon');
+    const indicator = document.getElementById('safe-mode-indicator');
+    
+    if (isSafeMode) {
+        trigger.style.background = 'rgba(0, 242, 255, 0.1)';
+        trigger.style.borderColor = 'var(--accent)';
+        status.innerText = 'ACTIVE';
+        status.style.color = 'var(--accent)';
+        icon.style.color = 'var(--accent)';
+        indicator.style.background = 'var(--accent)';
+        indicator.style.boxShadow = '0 0 10px var(--accent)';
+        showToast('Safe Mode Active', 'Low-liquidity and high-risk assets filtered out.', 'success');
+    } else {
+        trigger.style.background = 'rgba(255, 255, 255, 0.03)';
+        trigger.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        status.innerText = 'INACTIVE';
+        status.style.color = 'rgba(255,255,255,0.3)';
+        icon.style.color = 'var(--text-dim)';
+        indicator.style.background = 'rgba(255,255,255,0.1)';
+        indicator.style.boxShadow = 'none';
+        showToast('Safe Mode Inactive', 'All assets in the universe are now visible.', 'alert');
+    }
+    
+    // Refresh current view if it's one of the filtered ones
+    const currentView = document.querySelector('.nav-item.active')?.dataset.view;
+    if (['signals', 'alpha-score', 'narrative'].includes(currentView)) {
+        if (currentView === 'signals') renderSignals();
+        else if (currentView === 'alpha-score') renderAlphaScore();
+        else if (currentView === 'narrative') renderNarrativeGalaxy();
+    }
+}
+window.toggleSafeMode = toggleSafeMode;
+
+// Ensure Live Streams connect on load
+document.addEventListener('DOMContentLoaded', () => {
+    initLivePriceStream();
+    updateInstitutionalPulse();
+});
+
+// Backup call if DOMContentLoaded already fired
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initLivePriceStream();
+    updateInstitutionalPulse();
 }

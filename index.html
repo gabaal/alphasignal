@@ -9,6 +9,10 @@
     <meta name="author" content="AlphaSignal">
     <meta name="robots" content="index, follow">
     <link rel="canonical" id="canonical-link" href="https://alphasignal.digital/">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AlphaSignal">
+    <meta name="theme-color" content="#05070a">
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -188,6 +192,19 @@
                     <button id="logout-btn" class="profile-action-btn logout-btn" aria-label="Logout from Terminal">
                         <span class="btn-icon material-symbols-outlined">logout</span> LOGOUT
                     </button>
+                </div>
+            </div>
+
+            <div class="safe-mode-toggle-wrapper" style="padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 0.5rem;">
+                <div class="safe-mode-trigger" onclick="toggleSafeMode()" id="safe-mode-trigger" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0, 242, 255, 0.03); padding:10px 12px; border-radius:10px; cursor:pointer; border: 1px solid rgba(0, 242, 255, 0.1); transition: all 0.2s;">
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <span class="material-symbols-outlined" id="safe-mode-icon" style="color:var(--text-dim); font-size:1.2rem">shield</span>
+                        <div style="display:flex; flex-direction:column">
+                            <span style="font-size:0.6rem; font-weight:900; letter-spacing:1px; color:var(--text-dim)">SAFE MODE</span>
+                            <span style="font-size:0.5rem; color:rgba(255,255,255,0.3); font-weight:700" id="safe-mode-status">INACTIVE</span>
+                        </div>
+                    </div>
+                    <div id="safe-mode-indicator" style="width:8px; height:8px; background:rgba(255,255,255,0.1); border-radius:50%; box-shadow: 0 0 5px rgba(255,255,255,0.05)"></div>
                 </div>
             </div>
 

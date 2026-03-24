@@ -1,24 +1,37 @@
 {
-  "name": "AlphaSignal Institutional",
+  "name": "AlphaSignal Terminal",
   "short_name": "AlphaSignal",
-  "description": "Real-time Multi-Asset Intelligence Dashboard",
+  "description": "Institutional Crypto Intelligence & Signal Terminal",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0b",
-  "theme_color": "#0a0a0b",
-  "orientation": "portrait",
+  "background_color": "#05070a",
+  "theme_color": "#05070a",
+  "orientation": "any",
   "icons": [
     {
-      "src": "assets/pwa-icon-512.png",
+      "src": "assets/pwa-icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
+    },
+    {
+      "src": "assets/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     },
     {
       "src": "assets/pwa-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "terminal_interface_mockup.png",
+      "sizes": "800x450",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Institutional Dashboard"
     }
   ]
 }
