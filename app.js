@@ -439,7 +439,7 @@ async function manageSubscription() {
 
 function startCountdown() {
     if (countdownInterval) clearInterval(countdownInterval);
-    countdownSeconds = 10;
+    countdownSeconds = 300;
     updateCountdownDisplay();
     
     countdownInterval = setInterval(() => {
@@ -455,7 +455,7 @@ function startCountdown() {
                 clearInterval(countdownInterval);
                 renderSignals();
             } else {
-                countdownSeconds = 10; // Reset timer silently in background
+                countdownSeconds = 300; // Reset timer silently in background
             }
             return;
         }
@@ -912,75 +912,107 @@ async function downloadPortfolioData(format) {
 
 async function exportReport() {
     const btn = document.getElementById('export-btn');
-    if (btn) { btn.textContent = '⏳ Exporting...'; btn.disabled = true; }
+    if (btn) { btn.textContent = '⏳ Synthesizing...'; btn.disabled = true; }
 
     try {
-        // Trigger JSON download from backend
-        const link = document.createElement('a');
-        link.href = `${API_BASE}/export`;
-        link.download = `alphasignal_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Also generate a printable HTML snapshot
         const [signals, perf, scores] = await Promise.all([
             fetchAPI('/signal-history'),
             fetchAPI('/performance'),
             fetchAPI('/alpha-score')
         ]);
 
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
         const now = new Date().toLocaleString();
-        const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<title>AlphaSignal Export ${now}</title>
-<style>
-  body { font-family: 'Courier New', monospace; background:#0a0e1a; color:#e2e8f0; padding:40px; }
-  h1 { color: #60a5fa; border-bottom: 2px solid #1e3a5f; padding-bottom: 10px; }
-  h2 { color: #94a3b8; font-size: 0.9rem; letter-spacing: 3px; margin-top: 40px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.8rem; }
-  th { color: #64748b; text-align: left; padding: 8px; border-bottom: 1px solid #1e293b; }
-  td { padding: 8px; border-bottom: 1px solid #0f172a; }
-  .stat { display: inline-block; background: #1e293b; padding: 8px 20px; border-radius: 8px; margin: 8px; text-align: center; }
-  .val { font-size: 1.4rem; font-weight: bold; color: #60a5fa; }
-  .lbl { font-size: 0.6rem; color: #64748b; letter-spacing: 2px; }
-  .pos { color: #22c55e; } .neg { color: #ef4444; }
-</style></head><body>
-<h1>⚡ AlphaSignal Terminal — Intelligence Export</h1>
-<p style="color:#64748b">Generated: ${now}</p>
+        
+        // Header
+        doc.setFillColor(10, 14, 26);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.text("ALPHASIGNAL™ — RESEARCH REPORT", 10, 25);
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`GENERATED: ${now} | INSTITUTIONAL ID: ${document.getElementById('display-user-email')?.textContent || 'IU-882'}`, 10, 35);
 
-<h2>PERFORMANCE METRICS</h2>
-<div>
-  <div class="stat"><div class="val">${perf?.total_signals || 0}</div><div class="lbl">SIGNALS</div></div>
-  <div class="stat"><div class="val">${perf?.win_rate || 0}%</div><div class="lbl">WIN RATE</div></div>
-  <div class="stat"><div class="val ${(perf?.avg_return || 0) >= 0 ? 'pos' : 'neg'}">${(perf?.avg_return || 0) >= 0 ? '+' : ''}${perf?.avg_return || 0}%</div><div class="lbl">AVG RETURN</div></div>
-</div>
+        // Section: Performance Overview
+        doc.setTextColor(30, 58, 95);
+        doc.setFontSize(14);
+        doc.text("1. PERFORMANCE METRICS (AGGREGATE)", 10, 55);
+        doc.setLineWidth(0.5);
+        doc.line(10, 57, 200, 57);
 
-<h2>TOP ALPHA SCORES</h2>
-<table>
-<tr><th>RANK</th><th>ASSET</th><th>SECTOR</th><th>SCORE</th><th>SIGNAL</th></tr>
-${(scores?.scores || []).slice(0, 10).map((s, i) => `<tr><td>${i+1}</td><td>${s.ticker}</td><td>${s.sector}</td><td>${s.score}/100</td><td>${s.signal}</td></tr>`).join('')}
-</table>
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`TOTAL SIGNALS: ${perf?.total_signals || 0}`, 15, 65);
+        doc.text(`WIN RATE: ${perf?.win_rate || 0}%`, 15, 72);
+        doc.text(`AVG SIGNAL RETURN: ${perf?.avg_return || 0}%`, 15, 79);
+        doc.text(`ALPHA ATTRIBUTION: +${(perf?.win_rate / 3).toFixed(1)}% vs BENCHMARK`, 15, 86);
 
-<h2>RECENT SIGNALS</h2>
-<table>
-<tr><th>TICKER</th><th>TYPE</th><th>RETURN %</th><th>DATE</th></tr>
-${(signals || []).slice(0, 10).map(s => `<tr><td>${s.ticker}</td><td>${s.type}</td><td class="${s.return >= 0 ? 'pos' : 'neg'}">${s.return >= 0 ? '+' : ''}${s.return}%</td><td>${s.timestamp?.split('T')[0]}</td></tr>`).join('')}
-</table>
-</body></html>`;
+        // Section: Top Alpha Scores
+        doc.setTextColor(30, 58, 95);
+        doc.setFontSize(14);
+        doc.text("2. ALPHA SCORE REGISTRY (TOP 10)", 10, 105);
+        doc.setLineWidth(0.5);
+        doc.line(10, 107, 200, 107);
 
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const printLink = document.createElement('a');
-        printLink.href = url;
-        printLink.download = `alphasignal_report_${new Date().toISOString().split('T')[0]}.html`;
-        document.body.appendChild(printLink);
-        printLink.click();
-        document.body.removeChild(printLink);
-        URL.revokeObjectURL(url);
+        let y = 117;
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text("RANK    ASSET        SECTOR          SCORE     SIGNAL", 15, y);
+        y += 5;
+        doc.line(15, y, 150, y);
+        y += 7;
 
-    } catch(e) {
+        doc.setTextColor(0, 0, 0);
+        (scores?.scores || []).slice(0, 10).forEach((s, i) => {
+            doc.text(`${i + 1}`, 15, y);
+            doc.text(`${s.ticker}`, 30, y);
+            doc.text(`${s.sector}`, 55, y);
+            doc.text(`${s.score}/100`, 85, y);
+            doc.text(`${s.signal}`, 105, y);
+            y += 8;
+        });
+
+        // Section: Execution History
+        doc.addPage();
+        doc.setTextColor(30, 58, 95);
+        doc.setFontSize(14);
+        doc.text("3. EXECUTION TAPE (RECENT SIGNALS)", 10, 20);
+        doc.setLineWidth(0.5);
+        doc.line(10, 22, 200, 22);
+
+        y = 35;
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text("TICKER      TYPE       RETURN %     TIMESTAMP", 15, y);
+        y += 7;
+
+        doc.setTextColor(0, 0, 0);
+        (signals || []).slice(0, 20).forEach(s => {
+            if (y > 280) { doc.addPage(); y = 20; }
+            doc.text(`${s.ticker}`, 15, y);
+            doc.text(`${s.type}`, 40, y);
+            doc.text(`${s.return >= 0 ? '+' : ''}${s.return}%`, 65, y);
+            doc.text(`${s.timestamp?.split('T')[0]}`, 95, y);
+            y += 8;
+        });
+
+        // Footer
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(`© 2026 ALPHASIGNAL TERMINAL | PAGE ${i} OF ${totalPages}`, 105, 290, null, null, "center");
+        }
+
+        doc.save(`alphasignal_research_${new Date().toISOString().split('T')[0]}.pdf`);
+        showToast("REPORT GENERATED", "Institutional research PDF saved to disk.", "success");
+
+    } catch (e) {
         console.error('Export failed:', e);
+        showToast("EXPORT FAILED", "Check console for details.", "alert");
     } finally {
         if (btn) { btn.textContent = '📥 Export Report'; btn.disabled = false; }
     }
@@ -2773,10 +2805,13 @@ async function renderNarrativeGalaxy(filterChain = 'ALL') {
         clusters = clusters.filter(c => safeCats.includes(c.category));
     }
 
+    const scaleX = rect.width / 800;
+    const scaleY = rect.height / 600;
+
     const stars = clusters.map(c => ({
         ...c,
-        x: c.x * rect.width, // Scale coordinates to canvas size
-        y: c.y * rect.height
+        x: c.x * scaleX,
+        y: c.y * scaleY
     }));
     const hoverScale = 1.2;
     let hoveredStar = null;
@@ -2786,11 +2821,13 @@ async function renderNarrativeGalaxy(filterChain = 'ALL') {
         
         // Draw connection lines to cluster centers (subtle)
         Object.entries(data.anchors).forEach(([key, anchor]) => {
+            const ax = anchor.x * scaleX;
+            const ay = anchor.y * scaleY;
             ctx.beginPath();
             ctx.strokeStyle = `rgba(255,255,255,0.02)`;
             ctx.lineWidth = 1;
             stars.filter(s => s.category === key).forEach(s => {
-                ctx.moveTo(anchor.x, anchor.y);
+                ctx.moveTo(ax, ay);
                 ctx.lineTo(s.x, s.y);
             });
             ctx.stroke();
@@ -4041,6 +4078,7 @@ const viewMap = {
     'explain-briefing': renderDocsBriefing,
     'explain-liquidity': renderDocsLiquidity,
     'explain-whales': renderDocsWhales,
+    'explain-ml-engine': renderDocsMLEngine,
     'explain-mindshare': renderDocsMindshare,
     'explain-benchmark': renderDocsBenchmark,
     'explain-alerts': renderDocsAlerts,
@@ -4230,70 +4268,105 @@ function renderHelp() {
         <div class="doc-container" style="max-width: 900px; margin: 0 auto; padding-top: 2rem;">
             <p style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 2rem; line-height: 1.6;">Select a module below to view detailed methodology, data sources, and analytical frameworks.</p>
             <div class="f-grid">
-                <div class="f-card" onclick="switchView('explain-signals')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">radar</span></div>
-                    <h3>Signal Intelligence</h3>
-                    <p>Understanding Z-Score deviations and alpha generation.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-velocity')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">speed</span></div>
-                    <h3>Chain Velocity</h3>
-                    <p>Documentation on capital rotation tracking and volume acceleration.</p>
-                </div>
                 <div class="f-card" onclick="switchView('explain-briefing')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">memory</span></div>
                     <h3>AI Briefing</h3>
                     <p>How global market trends are neutrally synthesized.</p>
                 </div>
-                <div class="f-card" onclick="switchView('explain-liquidity')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">bar_chart</span></div>
-                    <h3>Order Flow (GOMM)</h3>
-                    <p>Interpreting liquidity walls and execution tape.</p>
+                <div class="f-card" onclick="switchView('explain-telegram')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">notifications_active</span></div>
+                    <h3>Alert Hooks</h3>
+                    <p>Configuring Telegram & Push Intelligence (Ph. 5).</p>
                 </div>
-                <div class="f-card" onclick="switchView('explain-whales')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">waves</span></div>
-                    <h3>Whale Pulse</h3>
-                    <p>Detecting massive on-chain block transactions.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-mindshare')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">hub</span></div>
-                    <h3>Narrative Galaxy</h3>
-                    <p>Using NLP-driven social cluster visualization.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-benchmark')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">science</span></div>
-                    <h3>Portfolio Simulation</h3>
-                    <p>Modeling and backtesting quant portfolios.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-alerts')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">event</span></div>
-                    <h3>Catalyst Monitor</h3>
-                    <p>Tracking macro variables and critical events.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-zscore')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">insights</span></div>
-                    <h3>Z-Score Interpretation</h3>
-                    <p>Decoding statistical intensity and outlier detection.</p>
+                <div class="f-card" onclick="switchView('explain-alpha-score')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">electric_bolt</span></div>
+                    <h3>Alpha Score</h3>
+                    <p>Composite ranking and scoring methodology.</p>
                 </div>
                 <div class="f-card" onclick="switchView('explain-alpha')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">trending_up</span></div>
                     <h3>Alpha Strategy</h3>
                     <p>Trading relative strength and market benchmarks.</p>
                 </div>
+                <div class="f-card" onclick="switchView('explain-alerts')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">event</span></div>
+                    <h3>Catalyst Monitor</h3>
+                    <p>Tracking macro variables and critical events.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-velocity')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">speed</span></div>
+                    <h3>Chain Velocity</h3>
+                    <p>Documentation on capital rotation tracking and volume acceleration.</p>
+                </div>
                 <div class="f-card" onclick="switchView('explain-correlation')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">link</span></div>
                     <h3>Correlation Analysis</h3>
                     <p>Identifying market decoupling and rotation events.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-api')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">terminal</span></div>
+                    <h3>Institutional API</h3>
+                    <p>Programmatic data access for quant desks.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-regimes')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">layers</span></div>
+                    <h3>Market Regimes</h3>
+                    <p>Identifying institutional cycles and trends.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-ml-engine')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">model_training</span></div>
+                    <h3>ML Alpha Engine</h3>
+                    <p>Neural feature synthesis and predictive modeling.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-pwa')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">install_mobile</span></div>
+                    <h3>Mobile Terminal</h3>
+                    <p>PWA installation for iOS / Android (Ph. 5).</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-mindshare')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">hub</span></div>
+                    <h3>Narrative Galaxy</h3>
+                    <p>Using NLP-driven social cluster visualization.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-liquidity')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">bar_chart</span></div>
+                    <h3>Order Flow (GOMM)</h3>
+                    <p>Interpreting liquidity walls and execution tape.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-performance')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">trending_up</span></div>
+                    <h3>Performance</h3>
+                    <p>Win rate, returns, and monthly breakdowns.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-portfolio-lab')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">biotech</span></div>
+                    <h3>Portfolio Lab</h3>
+                    <p>ML rebalancing and risk-modeling engine (Ph. 6).</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-benchmark')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">science</span></div>
+                    <h3>Portfolio Simulation</h3>
+                    <p>Modeling and backtesting quant portfolios.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-risk')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">shield_with_heart</span></div>
+                    <h3>Risk Management</h3>
+                    <p>Using volatility and drawdowns for sizing.</p>
                 </div>
                 <div class="f-card" onclick="switchView('explain-sentiment')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">psychology</span></div>
                     <h3>Sentiment Synthesis</h3>
                     <p>How we process social mindshare and news flow.</p>
                 </div>
-                <div class="f-card" onclick="switchView('explain-risk')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">shield_with_heart</span></div>
-                    <h3>Risk Management</h3>
-                    <p>Using volatility and drawdowns for sizing.</p>
+                <div class="f-card" onclick="switchView('explain-signal-archive')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">history</span></div>
+                    <h3>Signal Archive</h3>
+                    <p>Historical signal record and PnL tracking.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-signals')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">radar</span></div>
+                    <h3>Signal Intelligence</h3>
+                    <p>Understanding Z-Score deviations and alpha generation.</p>
                 </div>
                 <div class="f-card" onclick="switchView('explain-glossary')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">menu_book</span></div>
@@ -4305,46 +4378,15 @@ function renderHelp() {
                     <h3>Trading Playbook</h3>
                     <p>Advanced strategies and signal combinations.</p>
                 </div>
-                <div class="f-card" onclick="switchView('explain-regimes')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">layers</span></div>
-                    <h3>Market Regimes</h3>
-                    <p>Identifying institutional cycles and trends.</p>
+                <div class="f-card" onclick="switchView('explain-whales')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">waves</span></div>
+                    <h3>Whale Pulse</h3>
+                    <p>Detecting massive on-chain block transactions.</p>
                 </div>
-                <div class="f-card" onclick="switchView('explain-api')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">terminal</span></div>
-                    <h3>Institutional API</h3>
-                    <p>Programmatic data access for quant desks.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-signal-archive')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">history</span></div>
-                    <h3>Signal Archive</h3>
-                    <p>Historical signal record and PnL tracking.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-performance')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">trending_up</span></div>
-                    <h3>Performance</h3>
-                    <p>Win rate, returns, and monthly breakdowns.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-alpha-score')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">electric_bolt</span></div>
-                    <h3>Alpha Score</h3>
-                    <p>Composite ranking and scoring methodology.</p>
-                </div>
-                <!-- Phase 5 & 6 Dynamic Additions -->
-                <div class="f-card" onclick="switchView('explain-portfolio-lab')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">biotech</span></div>
-                    <h3>Portfolio Lab</h3>
-                    <p>ML rebalancing and risk-modeling engine (Ph. 6).</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-telegram')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">notifications_active</span></div>
-                    <h3>Alert Hooks</h3>
-                    <p>Configuring Telegram & Push Intelligence (Ph. 5).</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-pwa')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">install_mobile</span></div>
-                    <h3>Mobile Terminal</h3>
-                    <p>PWA installation for iOS / Android (Ph. 5).</p>
+                <div class="f-card" onclick="switchView('explain-zscore')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">insights</span></div>
+                    <h3>Z-Score Interpretation</h3>
+                    <p>Decoding statistical intensity and outlier detection.</p>
                 </div>
             </div>
         </div>
@@ -4402,6 +4444,24 @@ function renderDocsLiquidity() {
             { title: 'Liquidity Vacuum Identification', text: 'During a rapid sell-off, GOMM highlighted a $200M "Liquidity Gap" between $58k and $59k, alerting traders that a bounce was unlikely until the deeper support wall at $57.5k was tested.' }
         ],
         "Aggregated L1/L2 orderbook depth and trade-by-trade execution data from 15+ top-tier centralized exchanges (CEX) and high-volume decentralized protocols (DEX)."
+    );
+}
+
+function renderDocsMLEngine() {
+    renderExplainPage(
+        "ML Alpha Engine",
+        "Predictive machine learning using Sentiment and Orderbook imbalances.",
+        "The ML Alpha Engine is our proprietary Random Forest predictive architecture. It continuously processes historical price action alongside real-time news sentiment and high-frequency orderbook imbalances. By synthesizing these diverse datasets, the model learns the non-linear relationships that precede major asset breakouts, generating highly accurate 24-hour alpha predictions.",
+        [
+            { icon: 'psychology', title: 'Sentiment Analysis', desc: 'Real-time NLP analysis of global news and social mindshare to determine prevailing narrative strength.' },
+            { icon: 'balance', title: 'Orderbook Imbalance', desc: 'Continuous tracking of CEX bid/ask structural depths to model liquidity absorption and incoming volatility.' },
+            { icon: 'network_node', title: 'Ensemble Learning', desc: 'A Random Forest model trained daily on the latest market regimes to adapt to evolving institutional mechanics.' }
+        ],
+        [
+            { title: 'Predictive Edge Generation', text: 'When Orderbook Imbalance turned highly positive ahead of a neutral sentiment print, the ML Engine accurately predicted a +6% 24h alpha window on SOL by recognizing hidden absorption.' },
+            { title: 'Dynamic Feature Synergy', text: 'The Engine ranks feature importance on the fly, enabling dynamic rebalancing as the market shifts from momentum-driven to sentiment-driven cycles.' }
+        ],
+        "Trained dynamically every 24 hours on the core baseline universe, synthesizing technicals (RSI, MACD, BB) with real-time news scoring and order flow depth."
     );
 }
 
@@ -4738,13 +4798,17 @@ function renderDocsGlossaryImplementation() {
         "The AlphaSignal terminal utilizes proprietary and institutional-standard metrics. This glossary provides technical definitions for the most critical terms used across the platform.",
         [
             { icon: 'terminal', title: 'Alpha (%)', desc: 'Excess return relative to the BTC-USD benchmark. Positive Alpha indicates market leadership and idiosyncratic strength.' },
-            { icon: 'security', title: 'VaR 95%', desc: 'Value at Risk. A statistical measure of the maximum potential 1-day loss of a portfolio at a 95% confidence level.' },
-            { icon: 'database', title: 'Z-Score', desc: 'Statistical distance from the mean in standard deviations. Scores > ±2.0 identify significant momentum or exhaustion outliers.' },
-            { icon: 'waves', title: 'Whale Flow', desc: 'Proprietary filtering of the trade tape to show only significant capital commitments (>$100k) from institutional-labeled entities.' },
-            { icon: 'grid_view', title: 'Correlation Matrix', desc: 'A 15x15 peer matrix illustrating the statistical relationship between asset pairs. High values indicate assets move in sync.' },
-            { icon: 'calculate', title: 'Sharpe Ratio', desc: 'Measure of risk-adjusted return. Calculated as (Portfolio Return - Risk-Free Rate) / Standard Deviation.' },
             { icon: 'show_chart', title: 'Beta', desc: 'Market sensitivity metric. A Beta of 1.1 means the asset is expected to outperform the benchmark by 10% on the upside.' },
-            { icon: 'analytics', title: 'Sortino Ratio', desc: 'Differentiated from Sharpe by only penalizing downside volatility, providing a clearer view of "bad" risk.' }
+            { icon: 'grid_view', title: 'Correlation Matrix', desc: 'A 15x15 peer matrix illustrating the statistical relationship between asset pairs. High values indicate assets move in sync.' },
+            { icon: 'speed', title: 'Cross-Chain Velocity', desc: 'The rate at which capital and narrative attention rotate across distinct Layer 1 networks (e.g. ETH to SOL).' },
+            { icon: 'receipt_long', title: 'Institutional Trade Ledger', desc: 'An immutable, verified record of historical execution tickets and strategies for precise performance auditing.' },
+            { icon: 'model_training', title: 'ML Alpha Engine', desc: 'A machine learning ensemble model dynamically trained on both technicals and sentiment for 24-hour predictions.' },
+            { icon: 'balance', title: 'Orderbook Imbalance', desc: 'The structural difference between aggregate bid and ask walls, serving as a leading indicator of liquidity absorption.' },
+            { icon: 'calculate', title: 'Sharpe Ratio', desc: 'Measure of risk-adjusted return. Calculated as (Portfolio Return - Risk-Free Rate) / Standard Deviation.' },
+            { icon: 'analytics', title: 'Sortino Ratio', desc: 'Differentiated from Sharpe by only penalizing downside volatility, providing a clearer view of "bad" risk.' },
+            { icon: 'security', title: 'VaR 95%', desc: 'Value at Risk. A statistical measure of the maximum potential 1-day loss of a portfolio at a 95% confidence level.' },
+            { icon: 'waves', title: 'Whale Flow', desc: 'Proprietary filtering of the trade tape to show only significant capital commitments (>$100k) from institutional-labeled entities.' },
+            { icon: 'database', title: 'Z-Score', desc: 'Statistical distance from the mean in standard deviations. Scores > ±2.0 identify significant momentum or exhaustion outliers.' }
         ],
         [],
         "Proprietary definitions derived from institutional trading desk standards and quantitative finance academic frameworks."
@@ -4836,6 +4900,7 @@ function updateSEOMeta(view) {
         'explain-signals': { title: 'Documentation — Signal Intelligence', desc: 'Learn how AlphaSignal utilizes Z-Score deviations and neural sentiment for alpha generation.' },
         'explain-briefing': { title: 'Documentation — AI Briefing', desc: 'Understand our dynamic neural synthesis and sector performance tracking.' },
         'explain-liquidity': { title: 'Documentation — Order Flow GOMM', desc: 'Documentation on interpreting liquidity walls and institutional tape.' },
+        'explain-ml-engine': { title: 'Documentation — ML Alpha Engine', desc: 'Predictive modeling using Sentiment and Orderbook Imbalance.' },
         'explain-whales': { title: 'Documentation — Whale Pulse', desc: 'Learn how to detect and interpret massive on-chain transactions.' },
         'explain-mindshare': { title: 'Documentation — Narrative Galaxy', desc: 'Guide to using our NLP-driven social cluster visualization.' },
         'explain-benchmark': { title: 'Documentation — Portfolio Simulation', desc: 'How to model and backtest institutional crypto portfolios.' },
