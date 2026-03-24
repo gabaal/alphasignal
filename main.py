@@ -1131,11 +1131,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     print(f"[{datetime.now()}] Stripe Portal Error: {e}")
                     self.send_error(500, str(e))
             elif path == '/api/user/settings':
-                self.handle_user_settings()
+                self.handle_user_settings(post_data)
             elif path == '/api/trade-ledger':
-                self.handle_trade_ledger()
+                self.handle_trade_ledger(post_data)
             elif path == '/api/settings/test-telegram':
-                self.handle_test_telegram()
+                self.handle_test_telegram(post_data)
             else:
                 self.send_error(404, "Path not found")
         except Exception as e:
@@ -4230,10 +4230,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
     # Auth & Config Helpers (New)
     # ============================================================
     def handle_auth_status(self, auth_info):
+        # Even though this is a public route, we want to REPORT the status if logged in
+        if not auth_info:
+            auth_info = self.is_authenticated()
+            
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
         self.end_headers()
+        
         if auth_info:
             self.wfile.write(json.dumps(auth_info).encode('utf-8'))
         else:
@@ -4245,7 +4250,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps({"stripe_publishable_key": STRIPE_PUBLISHABLE_KEY}).encode('utf-8'))
 
-    def handle_user_settings(self):
+    def handle_user_settings(self, post_data=None):
         auth_info = self.is_authenticated()
         if not auth_info:
             self.send_response(401)
@@ -4267,8 +4272,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"discord_webhook": "", "telegram_webhook": "", "telegram_chat_id": "", "alerts_enabled": True})
         
         elif self.command == 'POST':
-            length = int(self.headers.get('Content-Length', 0))
-            post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
+            if post_data is None:
+                length = int(self.headers.get('Content-Length', 0))
+                post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             
             discord = post_data.get('discord_webhook', '')
             telegram = post_data.get('telegram_webhook', '')
@@ -4327,10 +4333,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_error_json(f"Live Simulation Error: {e}")
 
-    def handle_test_telegram(self):
+    def handle_test_telegram(self, post_data=None):
         try:
-            length = int(self.headers.get('Content-Length', 0))
-            post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
+            if not post_data:
+                length = int(self.headers.get('Content-Length', 0))
+                post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             chat_id = post_data.get('chat_id')
             
             if not chat_id:
@@ -4525,7 +4532,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_error_json(f"Export Handler Error: {e}")
 
-    def handle_trade_ledger(self):
+    def handle_trade_ledger(self, post_data=None):
         auth_info = self.is_authenticated()
         if not auth_info:
             return self.send_error(401, "Authentication Required")
@@ -4539,21 +4546,27 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             if self.command == 'GET':
                 c.execute("SELECT * FROM trade_ledger WHERE user_email = ? ORDER BY timestamp DESC", (email,))
                 rows = c.fetchall()
-                data = [dict(r) for r in rows]
-                self.send_json({"status": "success", "data": data})
+                ledger = [dict(r) for r in rows]
+                self.send_json(ledger)
             
             elif self.command == 'POST':
-                length = int(self.headers.get('Content-Length', 0))
-                post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
+                if not post_data:
+                    length = int(self.headers.get('Content-Length', 0))
+                    post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
                 
-                # Extract fields
+                # Extract fields with robustness for strings (like percentages)
+                def clean_float(val):
+                    if isinstance(val, str):
+                        return float(val.replace('%', '').strip())
+                    return float(val or 0)
+
                 ticker = post_data.get('ticker', 'UNKNOWN')
                 action = post_data.get('action', 'BUY')
-                price = float(post_data.get('price', 0))
-                target = float(post_data.get('target', 0))
-                stop = float(post_data.get('stop', 0))
-                rr = float(post_data.get('rr', 0))
-                slippage = float(post_data.get('slippage', 0))
+                price = clean_float(post_data.get('price', 0))
+                target = clean_float(post_data.get('target', 0))
+                stop = clean_float(post_data.get('stop', 0))
+                rr = clean_float(post_data.get('rr', 0))
+                slippage = clean_float(post_data.get('slippage', 0))
                 
                 c.execute("""INSERT INTO trade_ledger 
                            (user_email, ticker, action, price, target, stop, rr, slippage)
@@ -4562,6 +4575,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 conn.commit()
                 self.send_json({"status": "success", "message": "Ticket persisted to Ledger."})
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             self.send_error_json(f"Ledger Error: {e}")
         finally:
             conn.close()
@@ -4581,13 +4596,29 @@ class WebSocketServer:
         self.running = True
 
     def _handshake(self, conn):
-        data = conn.recv(4096).decode('utf-8')
-        key = ''
-        for line in data.split('\r\n'):
-            if 'Sec-WebSocket-Key' in line:
-                key = line.split(': ')[1].strip()
-                break
-        if not key: return False
+        try:
+            # Read until we find the end of headers or hit a limit
+            data = b""
+            while b"\r\n\r\n" not in data and len(data) < 16384:
+                chunk = conn.recv(4096)
+                if not chunk: break
+                data += chunk
+            
+            if not data: return False
+            text = data.decode('utf-8', errors='ignore')
+            
+            headers = {}
+            for line in text.replace('\r\n', '\n').split('\n'):
+                if ':' in line:
+                    k, v = line.split(':', 1)
+                    headers[k.strip().lower()] = v.strip()
+            
+            key = headers.get('sec-websocket-key')
+            if not key: 
+                return False
+        except Exception as e:
+            print(f"[{datetime.now()}] WS Handshake error: {e}", flush=True)
+            return False
         magic = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
         accept = base64.b64encode(hashlib.sha1((key + magic).encode()).digest()).decode()
         response = (

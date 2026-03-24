@@ -134,6 +134,9 @@
                 <div class="nav-item" data-view="alpha-score" aria-label="View Alpha Score (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">electric_bolt</span> Alpha Score <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
+                <div class="nav-item" data-view="trade-ledger" aria-label="View Trade Ledger Audit (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">list_alt</span> Trade Ledger <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
+                </div>
                 <div class="nav-item" data-view="performance-dashboard" aria-label="View Performance Dashboard (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">trending_up</span> Performance <span class="premium-lock material-symbols-outlined" aria-label="Locked">lock</span>
                 </div>
@@ -208,20 +211,6 @@
                 </div>
             </div>
 
-            <div class="institutional-pulse-sidebar">
-                <div class="pulse-header">
-                    <span class="pulse-dot"></span>
-                    <label>INSTITUTIONAL PULSE</label>
-                </div>
-                <div id="sidebar-pulse-content" class="pulse-body">
-                    <div class="pulse-item">Initializing pulse streams...</div>
-                </div>
-            </div>
-
-            <div class="btc-live-ticker">
-                <label>BTC-USD</label>
-                <span id="btc-price">Syncing...</span>
-            </div>
         </aside>
 
         <main class="content" role="main">
@@ -446,7 +435,7 @@
     <div id="notifications"></div>
     <div id="toast-container"></div>
     <script src="tape.js"></script>
-    <script src="app.js?v=1.1"></script>
+    <script src="app.js?v=1.4"></script>
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
     <div id="notification-modal" class="overlay hidden">

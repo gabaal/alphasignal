@@ -85,8 +85,6 @@ function initLivePriceStream() {
                             currentBTCPrice = p.BTC;
                             const btcText = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                             
-                            const el = document.getElementById('btc-price');
-                            if (el) el.textContent = btcText;
                             
                             const elLanding = document.getElementById('btc-price-landing');
                             if (elLanding) elLanding.textContent = `BTC: ${btcText}`;
@@ -251,7 +249,8 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
             const errorData = await res.json().catch(() => ({}));
             throw new Error(errorData.error || `HTTP ${res.status}`);
         }
-        return await res.json();
+        const data = await res.json();
+        return data;
     } catch (e) { 
         console.error('API Error:', e); 
         return null; 
@@ -3352,7 +3351,7 @@ async function renderTradeLedger() {
             return;
         }
 
-        const trades = res.data || [];
+        const trades = Array.isArray(res) ? res : (res.data || []);
         appEl.innerHTML = `
             <div class="view-header">
                 <div>
@@ -3727,7 +3726,7 @@ async function renderSignalArchive() {
         if (type) url += `&type=${type}`;
         
         const data = await fetchAPI(url);
-        
+        console.log(`[AlphaSignal API] Response from ${url}:`, data);
         if (!data || !data.length) {
             container.innerHTML = `
                 <div class="card" style="text-align:center; padding:3rem">
@@ -3877,9 +3876,7 @@ async function renderDocsVelocity() {
 async function updateBTC() {
     const data = await fetchAPI('/btc');
     if (data && data.price) {
-        const el = document.getElementById('btc-price');
-        el.textContent = `$${data.price.toLocaleString(undefined, {maximumFractionDigits:0})}`;
-        el.className = data.change >= 0 ? 'pos' : 'neg';
+        // Updated elsewhere or removed
     }
 }
 
@@ -3927,26 +3924,6 @@ async function syncAlerts() {
     }
 }
 
-async function updateInstitutionalPulse() {
-    const pulseBody = document.getElementById('sidebar-pulse-content');
-    if (!pulseBody) return;
-
-    const signals = await fetchAPI('/signals');
-    if (!signals || !signals.length) return;
-
-    // Get top 3 Alpha signals
-    const topAlpha = [...signals].sort((a, b) => b.alpha - a.alpha).slice(0, 3);
-    
-    pulseBody.innerHTML = topAlpha.map(s => `
-        <div class="pulse-item" onclick="openDetail('${s.ticker}', '${s.category}')">
-            <div class="pulse-pair">
-                <span class="p-ticker">${s.ticker}</span>
-                <span class="p-alpha pos">+${s.alpha.toFixed(1)}%</span>
-            </div>
-            <div class="pulse-meta">Institutional Alpha Detected</div>
-        </div>
-    `).join('');
-}
 
 async function renderRegime() {
     appEl.innerHTML = `<h1 class="view-title">Market Regime Hub</h1>${skeleton(1)}`;
@@ -5133,8 +5110,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (isAuthenticatedUser && isPremiumUser) {
         syncAlerts(); 
         setInterval(syncAlerts, 60000);
-        updateInstitutionalPulse();
-        setInterval(updateInstitutionalPulse, 30000);
+        // updateInstitutionalPulse();
+        // setInterval(updateInstitutionalPulse, 30000);
     }
     
     // Debug hooks
@@ -5379,11 +5356,11 @@ window.toggleSafeMode = toggleSafeMode;
 // Ensure Live Streams connect on load
 document.addEventListener('DOMContentLoaded', () => {
     initLivePriceStream();
-    updateInstitutionalPulse();
+    // updateInstitutionalPulse();
 });
 
 // Backup call if DOMContentLoaded already fired
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     initLivePriceStream();
-    updateInstitutionalPulse();
+    // updateInstitutionalPulse();
 }
