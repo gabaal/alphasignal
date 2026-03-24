@@ -2949,7 +2949,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     "alpha": round(total_return - bench_return, 2),
                     "sharpe": sharpe,
                     "maxDrawdown": max_dd,
-                    "winRate": round(float((returns > 0).sum() / len(returns) * 100), 1) if len(returns) > 0 else 0
+                    "winRate": round(float((returns[df['Signal'].shift(1) != 0] > 0).sum() / (df['Signal'].shift(1) != 0).sum() * 100), 1) if (df['Signal'].shift(1) != 0).sum() > 0 else 0
                 },
                 "ticker": ticker,
                 "equityCurve": equity_curve,

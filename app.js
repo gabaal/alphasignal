@@ -439,14 +439,24 @@ async function manageSubscription() {
 
 function startCountdown() {
     if (countdownInterval) clearInterval(countdownInterval);
-    countdownSeconds = 300;
+    countdownSeconds = 10;
     updateCountdownDisplay();
     
     countdownInterval = setInterval(() => {
         countdownSeconds--;
         if (countdownSeconds < 0) {
-            clearInterval(countdownInterval);
-            renderSignals();
+            const activeNav = document.querySelector('.nav-item.active');
+            const activeMobileNav = document.querySelector('.mobile-nav-item.active');
+            const currentView = activeNav?.dataset.view || activeMobileNav?.dataset.view;
+            const isOverlayOpen = !document.getElementById('detail-overlay').classList.contains('hidden') || 
+                                 !document.getElementById('ai-modal').classList.contains('hidden');
+            
+            if (currentView === 'signals' && !isOverlayOpen) {
+                clearInterval(countdownInterval);
+                renderSignals();
+            } else {
+                countdownSeconds = 10; // Reset timer silently in background
+            }
             return;
         }
         updateCountdownDisplay();
@@ -1529,6 +1539,7 @@ async function renderMindshare() {
                 <div class="zone zone-alpha"><span>Alpha Quadrant</span>High Narrative, High Engineering</div>
                 <div class="zone zone-hype"><span>Hype Quadrant</span>High Narrative, Low Engineering</div>
                 <div class="zone zone-under"><span>Underlying Quadrant</span>Low Narrative, High Engineering</div>
+                <div class="zone zone-zombie"><span>Developing Zone</span>Low Narrative, Low Engineering</div>
             </div>
         </div>
         <div class="mindshare-guide">
@@ -1546,6 +1557,7 @@ async function renderMindshare() {
                     <div class="inter-item"><strong>ALPHA:</strong> Leading protocols with both social dominance and technical vigor. The "Gold Standard" for institutional portfolios.</div>
                     <div class="inter-item"><strong>HYPE:</strong> Potential "Retail Traps" where mindshare exceeds technical merit. High risk of mean reversion.</div>
                     <div class="inter-item"><strong>UNDERLYING:</strong> Hidden gems. Technical infrastructure is growing silently while price/narrative remains depressed. <i>Prime Alpha Opportunity.</i></div>
+                    <div class="inter-item"><strong>DEVELOPING:</strong> Early-stage or "Zombie" assets with both low engagement and minimal build-out. <i>High Risk / Monitoring required.</i></div>
                 </div>
             </div>
         </div>`;
@@ -1586,6 +1598,9 @@ async function renderMindshare() {
                 // Underlying Quadrant (Bottom Right)
                 ctx.fillStyle = 'rgba(255, 159, 0, 0.05)';
                 ctx.fillRect(midX, midY, right - midX, bottom - midY);
+                // Developing Quadrant (Bottom Left)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+                ctx.fillRect(left, midY, midX - left, bottom - midY);
                 ctx.restore();
             }
         }],
@@ -3616,7 +3631,7 @@ async function renderLiquidityView() {
                             <div class="price-label ${c.side === 'LONG' ? 'ask' : 'bid'}" style="width:100px">${formatPrice(c.price)}</div>
                             <div class="liq-flux-bar">
                                 <div class="liq-intensity ${c.side}" style="width:${c.intensity * 100}%"></div>
-                                <span class="liq-val">${c.magnitude} <small>LIQ. VELOCITY</small></span>
+                                <span class="liq-val">${c.notional} <small>LIQ. VELOCITY</small></span>
                             </div>
                         </div>
                     `).join('')}
