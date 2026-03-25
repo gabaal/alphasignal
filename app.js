@@ -2242,7 +2242,7 @@ function shareStrategyResult(ticker, returns) {
 
 // ============= Newsroom View =============
 let currentNewsPage = 1;
-const newsPerPage = 12;
+const newsPerPage = 5;
 
 async function renderNewsroom() {
     appEl.innerHTML = skeleton(4);
