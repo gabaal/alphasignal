@@ -3659,13 +3659,22 @@ async function renderLiquidityView() {
 
     const display = document.getElementById('gomm-main-display');
 
+    let currentPage = 1;
+    const itemsPerPage = 12;
+
     function renderWallsMode() {
+        const totalPages = Math.ceil(data.walls.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const currentWalls = data.walls.slice(startIndex, startIndex + itemsPerPage);
+        
+        // Compute max depth across all walls to keep the scale consistent across pages
+        const maxSideDepth = Math.max(...data.walls.map(wall => wall.size));
+
         display.innerHTML = `
-            <div class="card" style="height:100%; border:none; background:transparent">
+            <div class="card" style="height:100%; border:none; background:transparent; display:flex; flex-direction:column">
                 <h3 class="card-title">Global Liquidity Walls (Cross-Exchange)</h3>
-                <div class="liquidity-chart">
-                    ${data.walls.map(w => {
-                        const maxSideDepth = Math.max(...data.walls.map(wall => wall.size));
+                <div class="liquidity-chart" style="flex:1">
+                    ${currentWalls.map(w => {
                         const width = (w.size / maxSideDepth) * 100;
                         const exchClass = (w.exchange || 'Binance').toLowerCase();
                         return `
@@ -3680,7 +3689,20 @@ async function renderLiquidityView() {
                     }).join('')}
                     <div class="mid-price-line">GLOBAL MID PRICE: ${formatPrice(data.current_price)}</div>
                 </div>
+                
+                <!-- Pagination Controls -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:15px; border-top:1px solid rgba(255,255,255,0.05); margin-top:10px">
+                    <button class="filter-btn" id="btn-prev-page" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Previous</button>
+                    <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
+                    <button class="filter-btn" id="btn-next-page" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
+                </div>
             </div>`;
+
+        // Attach listeners dynamically
+        const btnPrev = document.getElementById('btn-prev-page');
+        const btnNext = document.getElementById('btn-next-page');
+        if(btnPrev) btnPrev.addEventListener('click', () => { if(currentPage > 1) { currentPage--; renderWallsMode(); }});
+        if(btnNext) btnNext.addEventListener('click', () => { if(currentPage < totalPages) { currentPage++; renderWallsMode(); }});
     }
 
     function renderHeatmapMode() {
