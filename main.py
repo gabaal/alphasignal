@@ -1326,6 +1326,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path.startswith('/api/ssr'): self.handle_ssr()
             elif path.startswith('/api/tvl'): self.handle_tvl()
             elif path.startswith('/api/monte-carlo'): self.handle_monte_carlo()
+            elif path.startswith('/api/sectors'): self.handle_sectors()
             elif path.startswith('/api/macro'): self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
             elif path.startswith('/api/portfolio-sim') or path == '/api/portfolio-performance': 
@@ -1611,6 +1612,28 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"TVL Error: {e}")
             self.send_json({"error": "Failed to sync TVL"})
+
+    def handle_sectors(self):
+        try:
+            sectors = {
+                "Layer-1s": {"weight": 55, "perf": 1.2},
+                "DeFi": {"weight": 14, "perf": -0.8},
+                "AI/Compute": {"weight": 12, "perf": 5.4},
+                "Memecoins": {"weight": 9, "perf": 12.1},
+                "Gaming": {"weight": 6, "perf": -2.3},
+                "RWA/Tokens": {"weight": 4, "perf": 0.5}
+            }
+            random.seed(int(time.time() / 3600))
+            payload = []
+            for name, metrics in sectors.items():
+                w = max(1, metrics['weight'] + random.uniform(-2, 2))
+                p = metrics['perf'] + random.uniform(-1, 1)
+                payload.append({"name": name, "value": round(w, 2), "perf": round(p, 2)})
+                
+            self.send_json({"name": "root", "children": payload})
+        except Exception as e:
+            print(f"Sectors Error: {e}")
+            self.send_json({"error": "Failed to sync sectors"})
 
     # ============================================================
     # Pack G2: Mindshare Analysis

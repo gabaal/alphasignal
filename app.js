@@ -2069,7 +2069,7 @@ async function renderMarketPulse() {
 // ============= Pack G Rotation & Macro Sync =============
 async function renderMacroSync() {
     appEl.innerHTML = skeleton(2);
-    const data = await fetchAPI('/macro');
+    const [data, sectors] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors')]);
     if (!data) return;
 
     appEl.innerHTML = `
@@ -2102,6 +2102,16 @@ async function renderMacroSync() {
                 </div>
                 <div class="chart-container" style="height:350px;">
                     <canvas id="dominanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:2rem">
+                <div class="card-header" style="margin-bottom:15px">
+                    <h3>Sector Hierarchy Treemap <span style="font-size:0.8rem; color:var(--text-dim)">(Rotational Dominance Matrix)</span></h3>
+                </div>
+                <div id="sector-treemap" style="height:350px; width:100%; border-radius:8px; overflow:hidden; position:relative; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05);"></div>
+                <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
+                    Box size represents aggregate Sector Market Capitalization. Color intensity maps 24H directional momentum.
                 </div>
             </div>
             <div class="card" style="margin-top:2rem">
@@ -2221,10 +2231,74 @@ async function renderMacroSync() {
                     }
                 });
             }
+
+            if (sectors) renderSectorTreemap(sectors);
+
         } catch (e) {
             console.error("Macro sync charts failed:", e);
         }
     }, 50);
+}
+
+function renderSectorTreemap(data) {
+    const container = document.getElementById('sector-treemap');
+    if (!container || !data || !data.children) return;
+    container.innerHTML = '';
+    
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 350;
+    
+    const root = d3.hierarchy(data)
+        .sum(d => d.value)
+        .sort((a, b) => b.value - a.value);
+        
+    d3.treemap()
+        .size([width, height])
+        .padding(2)
+        (root);
+        
+    const svg = d3.select(container).append("svg")
+        .attr("width", '100%')
+        .attr("height", '100%')
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .style("font-family", "JetBrains Mono");
+        
+    const leaf = svg.selectAll("g")
+        .data(root.leaves())
+        .join("g")
+        .attr("transform", d => `translate(${d.x0},${d.y0})`);
+        
+    leaf.append("rect")
+        .attr("width", d => Math.max(0, d.x1 - d.x0 - 2))
+        .attr("height", d => Math.max(0, d.y1 - d.y0 - 2))
+        .attr("fill", d => {
+            const p = d.data.perf;
+            if (p >= 5) return 'rgba(34, 197, 94, 0.8)';
+            if (p > 0) return 'rgba(34, 197, 94, 0.4)';
+            if (p <= -5) return 'rgba(239, 68, 68, 0.8)';
+            return 'rgba(239, 68, 68, 0.4)';
+        })
+        .attr("rx", 4)
+        .attr("ry", 4)
+        .style("cursor", "crosshair");
+        
+    leaf.append("text")
+        .attr("x", 8)
+        .attr("y", 20)
+        .attr("fill", "white")
+        .attr("font-size", d => Math.max(10, Math.min(16, (d.x1 - d.x0) / 6)) + "px")
+        .attr("font-weight", 900)
+        .style("pointer-events", "none")
+        .text(d => d.data.name);
+        
+    leaf.append("text")
+        .attr("x", 8)
+        .attr("y", 35)
+        .attr("fill", "rgba(255,255,255,0.9)")
+        .attr("font-size", "11px")
+        .attr("font-weight", 700)
+        .style("pointer-events", "none")
+        .text(d => (d.data.perf > 0 ? '+' : '') + d.data.perf.toFixed(2) + '%');
 }
 
 async function renderRotation() {
@@ -4028,48 +4102,65 @@ async function renderLiquidityView() {
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-shrink:0">
                     <h3 class="card-title" style="margin:0">Institutional Depth Profile <span style="font-size:0.8rem; color:var(--text-dim)">(Aggregated Orderbook)</span></h3>
                 </div>
-                
-                <div class="liquidity-chart" style="flex:1; max-height:70vh; overflow-y:auto; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding-right:10px">
-                    <div style="height:1500px; width:100%; position:relative;">
+                <div class="liquidity-chart" style="flex:1; width:100%; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding-right:10px; margin-bottom:20px;">
+                    <div style="height:400px; width:100%; position:relative; padding:10px">
                         <canvas id="depthWallsChart"></canvas>
                     </div>
                 </div>
             </div>`;
 
         setTimeout(() => {
-            const ctx = document.getElementById('depthWallsChart').getContext('2d');
+            const ctx = document.getElementById('depthWallsChart');
+            if (!ctx) return;
             
-            const sortedWalls = [...data.walls].sort((a,b) => b.price - a.price);
-            const labels = sortedWalls.map(w => w.price);
+            // 1. Separate Bids and Asks
+            const bids = data.walls.filter(w => w.side === 'bid').sort((a, b) => b.price - a.price); // Highest bid first
+            const asks = data.walls.filter(w => w.side === 'ask').sort((a, b) => a.price - b.price); // Lowest ask first
             
-            const askSizes = sortedWalls.map(w => w.side === 'ask' ? w.size : 0);
-            const bidSizes = sortedWalls.map(w => w.side === 'bid' ? w.size : 0);
+            // 2. Compute Cumulative Volume
+            let cumBid = 0;
+            const bidData = bids.map(w => { cumBid += w.size; return { x: w.price, y: cumBid }; });
+            bidData.reverse(); // Reverse for charting left-to-right
             
-            new Chart(ctx, {
-                type: 'bar',
+            let cumAsk = 0;
+            const askData = asks.map(w => { cumAsk += w.size; return { x: w.price, y: cumAsk }; });
+            
+            new Chart(ctx.getContext('2d'), {
+                type: 'scatter',
                 data: {
-                    labels: labels,
                     datasets: [
-                        { label: 'Ask Walls (Resistance)', data: askSizes, backgroundColor: 'rgba(239, 68, 68, 0.8)', barPercentage: 1.0, categoryPercentage: 1.0, borderRadius: 2 },
-                        { label: 'Bid Walls (Support)', data: bidSizes, backgroundColor: 'rgba(34, 197, 94, 0.8)', barPercentage: 1.0, categoryPercentage: 1.0, borderRadius: 2 }
+                        {
+                            label: 'Bids (Support)',
+                            data: bidData,
+                            borderColor: 'rgba(34, 197, 94, 0.8)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                            fill: true,
+                            showLine: true,
+                            pointRadius: 0,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Asks (Resistance)',
+                            data: askData,
+                            borderColor: 'rgba(239, 68, 68, 0.8)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            fill: true,
+                            showLine: true,
+                            pointRadius: 0,
+                            tension: 0.1
+                        }
                     ]
                 },
                 options: {
-                    indexAxis: 'y',
                     responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
-                    plugins: { tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.x.toFixed(2)} BTC` } } },
+                    plugins: { 
+                        tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${c.raw.y.toFixed(2)} BTC Vol @ $${c.raw.x.toLocaleString()}` } },
+                        datalabels: { display: false }
+                    },
                     scales: {
-                        x: { 
-                            grid: { color: 'rgba(255,255,255,0.05)' }, 
-                            title: { display:true, text: 'Limit Order Depth Volume (BTC)' },
-                            position: 'top'
-                        },
-                        y: { 
-                            grid: { display:false }, 
-                            ticks: { callback: (val, index) => formatPrice(labels[index]), color: (context) => askSizes[context.index] > 0 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(34, 197, 94, 0.8)' },
-                            position: 'right'
-                        }
+                        x: { type: 'linear', title: { display:true, text: 'Limit Price ($)' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', callback: function(val) { return '$' + val.toLocaleString(); } } },
+                        y: { title: { display:true, text: 'Cumulative Volume (BTC)' }, grid: { color: 'rgba(255,255,255,0.05)' }, position: 'right', ticks: { color: '#8b949e' } }
                     }
                 }
             });
