@@ -1677,15 +1677,15 @@ async function renderMindshare() {
         </div>`;
     const ctx = document.getElementById('mindshareChart').getContext('2d');
     new Chart(ctx, {
-        type: 'scatter',
+        type: 'bubble',
         data: {
             datasets: [{
                 label: 'Asset Mindshare',
-                data: data.map(d => ({ x: d.engineer, y: d.narrative, label: d.ticker })),
-                backgroundColor: '#00f2ff',
+                data: data.map(d => ({ x: d.engineer, y: d.narrative, r: d.volume, label: d.ticker })),
+                backgroundColor: 'rgba(0, 242, 255, 0.5)',
                 borderColor: '#00f2ff',
-                pointRadius: 6,
-                pointHoverRadius: 10,
+                borderWidth: 1,
+                hoverBackgroundColor: 'rgba(0, 242, 255, 0.8)',
                 datalabels: {
                     align: 'top',
                     offset: 5,
@@ -1738,7 +1738,7 @@ async function renderMindshare() {
                     titleColor: '#00f2ff',
                     borderColor: 'rgba(0, 242, 255, 0.2)',
                     borderWidth: 1,
-                    callbacks: { label: ct => ` ${ct.raw.label}: Eng ${ct.raw.x} / Narr ${ct.raw.y}` } 
+                    callbacks: { label: ct => ` ${ct.raw.label}: Eng ${ct.raw.x} / Narr ${ct.raw.y} / Vol ${ct.raw.r}` } 
                 },
                 legend: { display: false },
                 datalabels: { display: true }

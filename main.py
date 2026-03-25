@@ -1652,12 +1652,18 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             narrative = max(min(narrative, 99.0), 10.0)
             engineer = max(min(engineer, 99.0), 10.0)
 
+            # Simulated absolute volume proxy for Bubble Radius
+            base_vol = random.uniform(4, 15)
+            if ticker in ["BTC-USD", "ETH-USD", "SOL-USD", "DOGE-USD"]:
+                base_vol = random.uniform(15, 30) # Majors maintain structurally massive volume weight
+
             results.append({
                 "ticker": ticker,
                 "label": ticker,
                 "narrative": round(narrative, 1),
                 "engineer": round(engineer, 1),
-                "sentiment": round(sentiment, 2)
+                "sentiment": round(sentiment, 2),
+                "volume": round(base_vol, 1)
             })
         self.send_json(results)
 
