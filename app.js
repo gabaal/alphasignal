@@ -2029,7 +2029,7 @@ async function renderMacroSync() {
             const domData = await fetchAPI('/dominance');
             if (domData && domData.labels) {
                 const ctx = document.getElementById('dominanceChart').getContext('2d');
-                registerChart(new Chart(ctx, {
+                new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: domData.labels,
@@ -2052,7 +2052,7 @@ async function renderMacroSync() {
                         },
                         elements: { point: { radius: 0 } }
                     }
-                }));
+                });
             }
         } catch (e) {
             console.error("Dominance chart failed:", e);
@@ -3961,7 +3961,7 @@ async function renderLiquidityView() {
             const shortData = sorted.map(c => c.side === 'SHORT' ? c.intensity * 10 : 0);
             const oiData = sorted.map((c, i) => 50 + Math.sin(i / 2) * 20 + (c.intensity * 5));
 
-            registerChart(new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
@@ -3980,7 +3980,7 @@ async function renderLiquidityView() {
                         y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display:true, text: 'Open Interest' } }
                     }
                 }
-            }));
+            });
         }, 50);
     }
 
