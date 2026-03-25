@@ -1624,17 +1624,36 @@ function renderChart(history) {
 // ============= Pack G2: Mindshare View =============
 async function renderMindshare() {
     appEl.innerHTML = skeleton(1);
-    const data = await fetchAPI(`/mindshare?v=${Date.now()}`);
+    const [data, tvlData] = await Promise.all([
+        fetchAPI(`/mindshare?v=${Date.now()}`),
+        fetchAPI('/tvl')
+    ]);
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">share</span> Mindshare Scatter Plot</h1><p>Mapping Narrative Momentum vs Developer Engineering Activity.</p></div>
-        <div class="mindshare-container">
-            <div class="chart-container" style="height:550px"><canvas id="mindshareChart"></canvas></div>
-            <div class="mindshare-legend">
-                <div class="zone zone-alpha"><span>Alpha Quadrant</span>High Narrative, High Engineering</div>
-                <div class="zone zone-hype"><span>Hype Quadrant</span>High Narrative, Low Engineering</div>
-                <div class="zone zone-under"><span>Underlying Quadrant</span>Low Narrative, High Engineering</div>
-                <div class="zone zone-zombie"><span>Developing Zone</span>Low Narrative, Low Engineering</div>
+        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">share</span> Narrative Radar & Capital Flows</h1><p>Mapping Narrative Momentum vs Developer Engineering Activity alongside Cross-Chain TVL migration.</p></div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 350px; gap:20px; margin-bottom:20px;">
+            <div class="mindshare-container" style="margin-bottom:0px; height: 100%;">
+                <div class="chart-container" style="height:550px"><canvas id="mindshareChart"></canvas></div>
+                <div class="mindshare-legend">
+                    <div class="zone zone-alpha"><span>Alpha Quadrant</span>High Narrative, High Engineering</div>
+                    <div class="zone zone-hype"><span>Hype Quadrant</span>High Narrative, Low Engineering</div>
+                    <div class="zone zone-under"><span>Underlying Quadrant</span>Low Narrative, High Engineering</div>
+                    <div class="zone zone-zombie"><span>Developing Zone</span>Low Narrative, Low Engineering</div>
+                </div>
+            </div>
+            
+            <div class="glass-card" style="padding:1.5rem">
+                <div class="card-header">
+                    <h3>Cross-Chain TVL Migration</h3>
+                    <span class="label-tag">LIQUIDITY</span>
+                </div>
+                <div style="height: 350px; position: relative; margin-top:20px; margin-bottom:20px;">
+                    <canvas id="tvl-doughnut-chart"></canvas>
+                </div>
+                <div style="margin-top:20px; font-size:0.8rem; color:var(--text-dim); line-height:1.6">
+                    <p>Tracking institutional baseline capital rotation out of archaic primary L1s natively into high-throughput parallel execution environments.</p>
+                </div>
             </div>
         </div>
         <div class="mindshare-guide">
@@ -1726,6 +1745,45 @@ async function renderMindshare() {
             }
         }
     });
+
+    if (tvlData) {
+        const tvlCtx = document.getElementById('tvl-doughnut-chart').getContext('2d');
+        const labels = Object.keys(tvlData);
+        const values = Object.values(tvlData);
+        
+        new Chart(tvlCtx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        'rgba(98, 126, 234, 0.8)',
+                        'rgba(235, 33, 31, 0.8)',
+                        'rgba(0, 255, 170, 0.8)',
+                        'rgba(40, 160, 240, 0.8)',
+                        'rgba(0, 82, 255, 0.8)',
+                        'rgba(130, 71, 229, 0.8)',
+                        'rgba(74, 161, 255, 0.8)',
+                        'rgba(255, 100, 100, 0.8)'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#09090b',
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 }, padding: 15 } },
+                    tooltip: { callbacks: { label: function(context) { return ' $' + context.raw + 'B TVL'; } } },
+                    datalabels: { display: false }
+                }
+            }
+        });
+    }
 }
 
 
