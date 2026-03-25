@@ -1352,9 +1352,67 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path.startswith('/api/benchmark'): self.handle_benchmark()
             elif path.startswith('/api/backtest'): self.handle_backtest()
             elif path.startswith('/api/onchain'): self.handle_onchain()
+            elif path.startswith('/api/portfolio_optimize'): self.handle_portfolio_optimize()
             else: super().do_GET()
         except Exception as e:
             print(f"[{datetime.now()}] Global do_GET error: {e}")
+
+    def handle_portfolio_optimize(self):
+        try:
+            assets = ['BTC-USD', 'ETH-USD', 'SOL-USD']
+            stats = []
+            
+            for ticker in assets:
+                df = yf.download(ticker, period='60d', interval='1d', progress=False)
+                if df.empty: continue
+                closes = df['Close'].squeeze()
+                
+                returns = closes.pct_change().dropna()
+                volatility = returns.std() * math.sqrt(365)
+                momentum = (closes.iloc[-1] / closes.iloc[0]) - 1
+                
+                # Risk-Adjusted Momentum Score (Proxy for Sortino/Sharpe)
+                score = momentum / (volatility + 1e-5)
+                stats.append({"ticker": ticker.replace("-USD", ""), "score": max(0.1, score), "vol": volatility})
+                
+            # Normalize scores to 100% weight allocation
+            total_score = sum([s["score"] for s in stats])
+            
+            allocations = []
+            for s in stats:
+                weight = (s["score"] / total_score) if total_score > 0 else (1.0 / len(stats))
+                
+                # Add a risk-averse cap: no single asset above 50% except BTC.
+                if s["ticker"] != 'BTC' and weight > 0.5:
+                    weight = 0.5
+                    
+                allocations.append({
+                    "asset": s["ticker"],
+                    "target_weight": float(weight),
+                    "volatility_score": float(s["vol"])
+                })
+                
+            # Rebalance to exactly 1.0 (100%) after any capping
+            reb_total = sum([a["target_weight"] for a in allocations])
+            for a in allocations:
+                a["target_weight"] = a["target_weight"] / reb_total
+                
+            payload = {
+                "timestamp": int(time.time()),
+                "model": "Markowitz-Sharpe Optimization",
+                "allocations": allocations
+            }
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(payload).encode())
+        except Exception as e:
+            print(f"[{datetime.now()}] Portfolio Optimizer Error: {e}")
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     def handle_onchain(self):
         try:

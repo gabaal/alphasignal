@@ -223,6 +223,39 @@ document.addEventListener('click', (e) => {
 });
 
 
+// ============= Global Memory Management (FPS Optimization) =============
+window.AppChartsTracker = [];
+if (window.LightweightCharts) {
+    const originalCreateChart = LightweightCharts.createChart;
+    LightweightCharts.createChart = function(container, options) {
+        const chart = originalCreateChart(container, options);
+        window.AppChartsTracker.push(chart);
+        return chart;
+    };
+}
+
+window.globalUIWipe = function() {
+    // 1. Wipe Lightweight Charts Canvases to prevent WebGL memory leaks
+    if (window.AppChartsTracker) {
+        window.AppChartsTracker.forEach(c => { try { c.remove(); } catch(e) {} });
+        window.AppChartsTracker = [];
+    }
+    
+    // 2. Wipe Chart.js Instances
+    if (window.Chart) {
+        for (let id in Chart.instances) {
+            Chart.instances[id].destroy();
+        }
+    }
+    
+    // 3. Wipe Stray Open WebSockets
+    if (window.activeBinanceWS) { window.activeBinanceWS.close(); window.activeBinanceWS = null; }
+    if (window.orderBookWS) { window.orderBookWS.close(); window.orderBookWS = null; }
+    
+    // 4. Clear Interval Pollers
+    if (window.activeDataPoller) { clearInterval(window.activeDataPoller); window.activeDataPoller = null; }
+};
+
 // ============= Visualization Utilities =============
 
 
@@ -2551,6 +2584,70 @@ async function renderChainVelocity() {
     });
 }
 
+async function renderPortfolioOptimizer() {
+    appEl.innerHTML = skeleton(1);
+    const data = await fetchAPI('/portfolio_optimize');
+    if(!data) {
+        appEl.innerHTML = `<div class="empty-state">
+            <span class="material-symbols-outlined" style="font-size:3rem; color:var(--accent); margin-bottom:1rem">lock</span>
+            <p>Authentication Required.</p>
+        </div>`;
+        return;
+    }
+
+    const allocHTML = data.allocations.map(a => `
+        <div style="display:flex; justify-content:space-between; padding:1rem; border-bottom:1px solid rgba(255,255,255,0.05)">
+            <strong style="color:var(--text)">${a.asset}</strong>
+            <span style="color:var(--accent); font-weight:bold">${(a.target_weight * 100).toFixed(1)}%</span>
+        </div>
+    `).join('');
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">donut_large</span> AI Portfolio Rebalancer</h1>
+            <p>Risk-adjusted target allocations generated dynamically using Markowitz Efficient Frontier models.</p>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr); gap:2rem; flex-wrap:wrap;">
+            <div class="card" style="padding:2rem">
+                <h3 style="margin-bottom:1rem; color:var(--text-dim)">OPTIMAL ASSET WEIGHTS</h3>
+                ${allocHTML}
+                <div style="margin-top:2rem; padding:1rem; background:rgba(0,0,0,0.3); border-radius:8px">
+                    <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.5"><span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle">info</span> <strong>Model Logic:</strong> Simulated 60D forward-projection optimized for Sortino/Sharpe ratios. Single asset allocations are strictly capped at 50% for risk aversion.</p>
+                </div>
+            </div>
+            
+            <div class="card" style="padding:2rem; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:400px">
+                <div style="position:relative; width:100%; max-width:300px; height:300px">
+                    <canvas id="optimizer-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const ctx = document.getElementById('optimizer-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.allocations.map(a => a.asset),
+            datasets: [{
+                data: data.allocations.map(a => parseFloat((a.target_weight * 100).toFixed(1))),
+                backgroundColor: ['#facc15', '#60a5fa', '#22c55e', '#ef5350', '#8b5cf6'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#d1d5db', font: { family: 'JetBrains Mono' }, padding: 20 } }
+            }
+        }
+    });
+}
+
 async function renderPortfolioLab(customBasket = null) {
     appEl.innerHTML = skeleton(1);
     const endpoint = customBasket ? `/portfolio-sim?basket=${customBasket}` : '/portfolio-sim';
@@ -4538,6 +4635,7 @@ const viewMap = {
     rotation: renderRotation,
     velocity: renderChainVelocity,
     portfolio: renderPortfolioLab,
+    'portfolio-optimizer': renderPortfolioOptimizer,
     'strategy-lab': renderStrategyLab,
     risk: renderRiskMatrix,
     stress: renderStressHub,
@@ -5531,6 +5629,11 @@ function updateSEOMeta(view) {
 }
 
 function switchView(view) {
+    // Global Memory Wipe for 60FPS Optimization
+    if (typeof window.globalUIWipe === 'function') {
+        window.globalUIWipe();
+    }
+
     // 1. Check Access Rights
     const isFreeView = (view === 'signals' || view === 'help' || view === 'home' || view?.startsWith('explain-'));
     
