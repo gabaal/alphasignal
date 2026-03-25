@@ -2241,33 +2241,60 @@ function shareStrategyResult(ticker, returns) {
 }
 
 // ============= Newsroom View =============
+let currentNewsPage = 1;
+const newsPerPage = 12;
+
 async function renderNewsroom() {
     appEl.innerHTML = skeleton(4);
     const data = await fetchAPI('/news');
     if (!data) return;
     window.lastNewsData = data;
     
-    appEl.innerHTML = `
-        <div class="view-header">
-            <div style="display:flex; align-items:center; gap:10px">
-                <div class="live-indicator"></div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1>
-            </div>
-            <p>Real-time institutional narrative stream correlated with AlphaSignal intensity.</p>
-        </div>
-        <div class="news-feed">
-            ${data.map((n, i) => `
-                <div class="news-card" onclick="openNewsArticle(${i})">
-                    <div class="news-header">
-                        <div class="news-time">${n.time}</div>
-                        <div class="news-tag tag-${n.sentiment.toLowerCase()}">${n.sentiment}</div>
-                    </div>
-                    <div class="news-headline">${n.headline}</div>
-                    <div class="news-summary">${n.summary}</div>
-                    <div class="news-source">Source: AlphaSignal Institutional Feed // ${n.ticker}</div>
+    function drawNewsPage() {
+        const totalPages = Math.ceil(data.length / newsPerPage);
+        const startIndex = (currentNewsPage - 1) * newsPerPage;
+        const currentData = data.slice(startIndex, startIndex + newsPerPage);
+        
+        appEl.innerHTML = `
+            <div class="view-header">
+                <div style="display:flex; align-items:center; gap:10px">
+                    <div class="live-indicator"></div>
+                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1>
                 </div>
-            `).join('')}
-        </div>`;
+                <p>Real-time institutional narrative stream correlated with AlphaSignal intensity.</p>
+            </div>
+            <div class="news-feed">
+                ${currentData.map((n, idx) => {
+                    const originalIndex = startIndex + idx;
+                    return \`
+                    <div class="news-card" onclick="openNewsArticle(\${originalIndex})">
+                        <div class="news-header">
+                            <div class="news-time">\${n.time}</div>
+                            <div class="news-tag tag-\${n.sentiment.toLowerCase()}">\${n.sentiment}</div>
+                        </div>
+                        <div class="news-headline">\${n.headline}</div>
+                        <div class="news-summary">\${n.summary}</div>
+                        <div class="news-source">Source: AlphaSignal Institutional Feed // \${n.ticker}</div>
+                    </div>
+                \`}).join('')}
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; margin-top:20px; border-top:1px solid rgba(255,255,255,0.05)">
+                <button class="filter-btn" id="btn-prev-news" \${currentNewsPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Previous</button>
+                <span style="font-size:0.8rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page \${currentNewsPage} of \${totalPages}</span>
+                <button class="filter-btn" id="btn-next-news" \${currentNewsPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
+            </div>
+        \`;
+
+        const btnPrev = document.getElementById('btn-prev-news');
+        const btnNext = document.getElementById('btn-next-news');
+        if(btnPrev) btnPrev.addEventListener('click', () => { if(currentNewsPage > 1) { currentNewsPage--; drawNewsPage(); window.scrollTo({top:0, behavior:'smooth'}); }});
+        if(btnNext) btnNext.addEventListener('click', () => { if(currentNewsPage < totalPages) { currentNewsPage++; drawNewsPage(); window.scrollTo({top:0, behavior:'smooth'}); }});
+    }
+    
+    currentNewsPage = 1;
+    drawNewsPage();
 }
 
 function openNewsArticle(index) {
