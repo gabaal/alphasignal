@@ -3596,46 +3596,69 @@ async function renderTradeLedger() {
         }
 
         const trades = Array.isArray(res) ? res : (res.data || []);
-        appEl.innerHTML = `
-            <div class="view-header">
-                <div>
-                    <h2>Institutional Trade Ledger</h2>
-                    <p class="subtitle">Auditable record of generated neural execution tickets.</p>
-                </div>
-                <button class="intel-action-btn mini" onclick="switchView('tradelab')">
-                    <span class="material-symbols-outlined">add</span> NEW SETUP
-                </button>
-            </div>
+        
+        let currentPage = 1;
+        const itemsPerPage = 15;
 
-            <div class="ledger-container">
-                <table class="ledger-table">
-                    <thead>
-                        <tr>
-                            <th>TIMESTAMP</th>
-                            <th>TICKER</th>
-                            <th>ACTION</th>
-                            <th>PRICE</th>
-                            <th>TARGET</th>
-                            <th>STOP</th>
-                            <th>R/R</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${trades.length ? trades.map(t => `
+        function drawLedgerPage() {
+            const totalPages = Math.ceil(trades.length / itemsPerPage) || 1;
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const currentTrades = trades.slice(startIndex, startIndex + itemsPerPage);
+
+            appEl.innerHTML = `
+                <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
+                    <div>
+                        <h2>Institutional Trade Ledger</h2>
+                        <p class="subtitle" style="margin:0">Auditable record of generated neural execution tickets.</p>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:5px">
+                        <button class="filter-btn" id="btn-prev-ledger" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
+                        <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
+                        <button class="filter-btn" id="btn-next-ledger" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
+                        <button class="intel-action-btn mini" onclick="switchView('tradelab')" style="margin-left:10px">
+                            <span class="material-symbols-outlined">add</span> NEW SETUP
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ledger-container">
+                    <table class="ledger-table">
+                        <thead>
                             <tr>
-                                <td style="color:var(--text-dim); font-size:0.7rem">${t.timestamp}</td>
-                                <td style="font-weight:900">${t.ticker}</td>
-                                <td style="color:${t.action === 'BUY' ? 'var(--risk-low)' : 'var(--risk-high)'}; font-weight:900">${t.action}</td>
-                                <td style="font-family:'JetBrains Mono'">${formatPrice(t.price)}</td>
-                                <td style="color:var(--risk-low)">${formatPrice(t.target)}</td>
-                                <td style="color:var(--risk-high)">${formatPrice(t.stop)}</td>
-                                <td style="font-weight:900; color:var(--accent)">${t.rr}:1</td>
+                                <th>TIMESTAMP</th>
+                                <th>TICKER</th>
+                                <th>ACTION</th>
+                                <th>PRICE</th>
+                                <th>TARGET</th>
+                                <th>STOP</th>
+                                <th>R/R</th>
                             </tr>
-                        `).join('') : `<tr><td colspan="7" style="text-align:center; padding:3rem; color:var(--text-dim)">No execution tickets recorded in the ledger.</td></tr>`}
-                    </tbody>
-                </table>
-            </div>
-        `;
+                        </thead>
+                        <tbody>
+                            ${currentTrades.length ? currentTrades.map(t => `
+                                <tr>
+                                    <td style="color:var(--text-dim); font-size:0.7rem">${t.timestamp}</td>
+                                    <td style="font-weight:900">${t.ticker}</td>
+                                    <td style="color:${t.action === 'BUY' ? 'var(--risk-low)' : 'var(--risk-high)'}; font-weight:900">${t.action}</td>
+                                    <td style="font-family:'JetBrains Mono'">${formatPrice(t.price)}</td>
+                                    <td style="color:var(--risk-low)">${formatPrice(t.target)}</td>
+                                    <td style="color:var(--risk-high)">${formatPrice(t.stop)}</td>
+                                    <td style="font-weight:900; color:var(--accent)">${t.rr}:1</td>
+                                </tr>
+                            `).join('') : `<tr><td colspan="7" style="text-align:center; padding:3rem; color:var(--text-dim)">No execution tickets recorded in the ledger.</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            const btnPrev = document.getElementById('btn-prev-ledger');
+            const btnNext = document.getElementById('btn-next-ledger');
+            if(btnPrev) btnPrev.addEventListener('click', () => { if(currentPage > 1) { currentPage--; drawLedgerPage(); window.scrollTo({top:0, behavior:'smooth'}); }});
+            if(btnNext) btnNext.addEventListener('click', () => { if(currentPage < totalPages) { currentPage++; drawLedgerPage(); window.scrollTo({top:0, behavior:'smooth'}); }});
+        }
+
+        currentPage = 1;
+        drawLedgerPage();
     } catch (e) {
         appEl.innerHTML = `<div class="error">Failed to load trade ledger.</div>`;
     }
