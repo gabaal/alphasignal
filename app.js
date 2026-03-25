@@ -2617,10 +2617,10 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
     // Initialize Institutional Visuals
     const curve = data.equityCurve || data.weeklyReturns;
     window.lastBacktestData = curve;
-    const hist = await fetchAPI(`/history?ticker=${ticker}&period=180d`);
-    if (hist && hist.length > 0) {
-        createTradingViewChart('strat-tv-container', hist);
-        renderGuppyRibbon(hist);
+    const histResp = await fetchAPI(`/history?ticker=${ticker}&period=180d`);
+    if (histResp && histResp.history && histResp.history.length > 0) {
+        createTradingViewChart('strat-tv-container', histResp.history);
+        renderGuppyRibbon(histResp.history);
     }
     renderStrategyChart(curve);
 
