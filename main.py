@@ -1387,11 +1387,37 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 # Hashrate steadily climbs with drops during capitulations (negative Z)
                 hashrate = 300 + (i * 0.5) + (z * 10)
                 
+                # 1. Puell Multiple: Miner Revenue vs 365d moving average
+                mean_365 = closes[max(0, i-365):i+1].mean()
+                puell = (pr / mean_365) + (z * 0.1) if mean_365 > 0 else 1.0
+                puell = max(0.3, puell)
+                
+                # 2. SOPR (Spent Output Profit Ratio): Profit/Loss ratio
+                sopr = 1.0 + (z * 0.05) + (math.sin(i / 10.0) * 0.02)
+                
+                # 3. Realized Price: Cost basis proxy
+                realized = mean_365 * 0.85 + (math.cos(i / 30.0) * (mean_365 * 0.05))
+                
+                # 4. CVD (Cumulative Volume Delta)
+                if i == 0:
+                    cvd = 0
+                else:
+                    cvd = res[-1]["cvd"] + (z * 1000) + random.uniform(-500, 500)
+                    
+                # 5. Exchange Net Position Change
+                exch_flow = (math.sin(i / 14.0) * -5000) - (z * 2000)
+                
                 res.append({
                     "time": times[i],
+                    "price": float(pr),
                     "mvrv": float(max(0.1, mvrv)),
                     "nvt": float(max(10, nvt)),
-                    "hash": float(max(100, hashrate))
+                    "hash": float(max(100, hashrate)),
+                    "puell": float(puell),
+                    "sopr": float(sopr),
+                    "realized": float(max(1, realized)),
+                    "cvd": float(cvd),
+                    "exch_flow": float(exch_flow)
                 })
             
             self.send_response(200)

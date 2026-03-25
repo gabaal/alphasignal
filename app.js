@@ -4284,6 +4284,56 @@ async function renderAdvComparative(interval) {
     ro.observe(container);
 }
 
+async function renderAdvCVD(symbol) {
+    cleanupAdvChart();
+    const container = document.getElementById('advanced-chart-container');
+    if(!container) return;
+    container.innerHTML = '<div class="loader" style="margin:2rem auto"></div>';
+    try {
+        const data = await fetchAPI(`/onchain?symbol=${symbol}`);
+        if(!data) { container.innerHTML = '<div class="error-msg">Auth Required</div>'; return; }
+        
+        container.innerHTML = '';
+        const chart = LightweightCharts.createChart(container, {
+            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
+        });
+        const cvdSeries = chart.addAreaSeries({ topColor: 'rgba(38,166,154,0.4)', bottomColor: 'rgba(239,83,80,0.4)', lineColor: '#26a69a', lineWidth: 2, title: 'Cumulative Volume Delta' });
+        cvdSeries.setData(data.map(d=>({time: d.time, value: d.cvd})));
+        
+        const ro = new ResizeObserver(e => { if(e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
+        ro.observe(container);
+        chart.timeScale().fitContent();
+    } catch(e) { container.innerHTML = '<div class="error-msg">Fetch failed.</div>'; }
+}
+
+async function renderAdvExchange(symbol) {
+    cleanupAdvChart();
+    const container = document.getElementById('advanced-chart-container');
+    if(!container) return;
+    container.innerHTML = '<div class="loader" style="margin:2rem auto"></div>';
+    try {
+        const data = await fetchAPI(`/onchain?symbol=${symbol}`);
+        if(!data) { container.innerHTML = '<div class="error-msg">Auth Required</div>'; return; }
+        
+        container.innerHTML = '';
+        const chart = LightweightCharts.createChart(container, {
+            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
+        });
+        const exSeries = chart.addHistogramSeries({ color: '#facc15', title: 'Net Position Change' });
+        exSeries.setData(data.map(d=>({
+            time: d.time, 
+            value: d.exch_flow, 
+            color: d.exch_flow > 0 ? '#ef5350' : '#26a69a' 
+        })));
+        
+        const ro = new ResizeObserver(e => { if(e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
+        ro.observe(container);
+        chart.timeScale().fitContent();
+    } catch(e) { container.innerHTML = '<div class="error-msg">Fetch failed.</div>'; }
+}
+
 const dispatchAdvTab = () => {
     const sym = document.getElementById('adv-symbol').value;
     const int = document.getElementById('adv-interval').value;
@@ -4291,6 +4341,8 @@ const dispatchAdvTab = () => {
     else if(currentAdvTab === 'depth') renderAdvDepth(sym);
     else if(currentAdvTab === 'derivatives') renderAdvDerivatives(sym, int);
     else if(currentAdvTab === 'comparative') renderAdvComparative(int);
+    else if(currentAdvTab === 'cvd') renderAdvCVD(sym);
+    else if(currentAdvTab === 'exchange') renderAdvExchange(sym);
 };
 
 function renderAdvancedChart() {
@@ -4321,6 +4373,8 @@ function renderAdvancedChart() {
             <button class="filter-btn" id="tab-depth" onclick="setAdvTab('depth')">Market Depth</button>
             <button class="filter-btn" id="tab-derivatives" onclick="setAdvTab('derivatives')">Derivatives (OI)</button>
             <button class="filter-btn" id="tab-comparative" onclick="setAdvTab('comparative')">Comparative Index</button>
+            <button class="filter-btn" id="tab-cvd" onclick="setAdvTab('cvd')">CVD Order Flow</button>
+            <button class="filter-btn" id="tab-exchange" onclick="setAdvTab('exchange')">Exchange Flows</button>
         </div>
 
         <div class="card" style="padding:1rem; min-height:500px">
@@ -4353,13 +4407,30 @@ async function renderOnChain() {
             </div>
         </div>
         
-        <div class="card" style="padding:1.5rem; margin-bottom:1rem">
-            <h3>MVRV Z-Score</h3>
-            <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Highlights periods where market value is significantly higher/lower than realized value.</p>
-            <div id="mvrv-chart" style="width:100%; height:300px"></div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap:1rem; margin-bottom:1rem">
+            <div class="card" style="padding:1.5rem">
+                <h3>MVRV Z-Score</h3>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Highlights periods where market value is significantly higher/lower than realized value.</p>
+                <div id="mvrv-chart" style="width:100%; height:300px"></div>
+            </div>
+            <div class="card" style="padding:1.5rem">
+                <h3>Realized Price vs Spot</h3>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Average on-chain cost basis vs current Spot price.</p>
+                <div id="realized-chart" style="width:100%; height:300px"></div>
+            </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1rem; margin-bottom:1rem">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:1rem; margin-bottom:1rem">
+            <div class="card" style="padding:1.5rem">
+                <h3>SOPR (Spent Output Profit Ratio)</h3>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Aggregate profit/loss ratio of spent coins. 1.0 = Breakeven.</p>
+                <div id="sopr-chart" style="width:100%; height:250px"></div>
+            </div>
+            <div class="card" style="padding:1.5rem">
+                <h3>Puell Multiple</h3>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Miner revenue compared to its 365-day moving average.</p>
+                <div id="puell-chart" style="width:100%; height:250px"></div>
+            </div>
             <div class="card" style="padding:1.5rem">
                 <h3>NVT Ratio</h3>
                 <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Network Value to Transactions (The P/E of Crypto).</p>
@@ -4385,47 +4456,65 @@ async function renderOnChain() {
         // Clear loaders
         document.getElementById('mvrv-chart').innerHTML = '';
         
-        // MVRV Chart
+        // Setup base chart config
+        const chartOpts = (height) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }, height });
+        
+        // MVRV
         const mvrvContainer = document.getElementById('mvrv-chart');
-        const mvrvChart = LightweightCharts.createChart(mvrvContainer, {
-            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
-            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
-        });
-        const mvrvSeries = mvrvChart.addAreaSeries({ topColor: 'rgba(239,83,80,0.4)', bottomColor: 'rgba(38,166,154,0.1)', lineColor: '#ef5350', lineWidth: 2, title: 'Z-Score' });
-        mvrvSeries.setData(data.map(d=>({time: d.time, value: d.mvrv})));
+        const mvrvChart = LightweightCharts.createChart(mvrvContainer, chartOpts(300));
+        mvrvChart.addAreaSeries({ topColor: 'rgba(239,83,80,0.4)', bottomColor: 'rgba(38,166,154,0.1)', lineColor: '#ef5350', lineWidth: 2, title: 'Z-Score' })
+                 .setData(data.map(d=>({time: d.time, value: d.mvrv})));
 
-        // NVT Chart
+        // Realized
+        const realizedContainer = document.getElementById('realized-chart');
+        const realizedChart = LightweightCharts.createChart(realizedContainer, chartOpts(300));
+        realizedChart.addLineSeries({ color: 'rgba(255,255,255,0.7)', lineWidth: 2, title: 'Spot Price' }).setData(data.map(d=>({time: d.time, value: d.price})));
+        realizedChart.addLineSeries({ color: '#f97316', lineWidth: 2, title: 'Realized Price' }).setData(data.map(d=>({time: d.time, value: d.realized})));
+
+        // SOPR
+        const soprContainer = document.getElementById('sopr-chart');
+        const soprChart = LightweightCharts.createChart(soprContainer, chartOpts(250));
+        soprChart.addAreaSeries({ topColor: 'rgba(16,185,129,0.4)', bottomColor: 'rgba(16,185,129,0)', lineColor: '#10b981', lineWidth: 2, title: 'SOPR' })
+                 .setData(data.map(d=>({time: d.time, value: d.sopr})));
+        
+        // Puell
+        const puellContainer = document.getElementById('puell-chart');
+        const puellChart = LightweightCharts.createChart(puellContainer, chartOpts(250));
+        puellChart.addAreaSeries({ topColor: 'rgba(139,92,246,0.4)', bottomColor: 'rgba(139,92,246,0)', lineColor: '#8b5cf6', lineWidth: 2, title: 'Puell Multiple' })
+                 .setData(data.map(d=>({time: d.time, value: d.puell})));
+
+        // NVT
         const nvtContainer = document.getElementById('nvt-chart');
-        const nvtChart = LightweightCharts.createChart(nvtContainer, {
-            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
-            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
-        });
-        const nvtSeries = nvtChart.addLineSeries({ color: '#facc15', lineWidth: 2, title: 'NVT Ratio' });
-        nvtSeries.setData(data.map(d=>({time: d.time, value: d.nvt})));
+        const nvtChart = LightweightCharts.createChart(nvtContainer, chartOpts(250));
+        nvtChart.addLineSeries({ color: '#facc15', lineWidth: 2, title: 'NVT Ratio' })
+                .setData(data.map(d=>({time: d.time, value: d.nvt})));
 
-        // Hashrate Chart
+        // Hashrate
         const hashContainer = document.getElementById('hash-chart');
-        const hashChart = LightweightCharts.createChart(hashContainer, {
-            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
-            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
-        });
-        const hashSeries = hashChart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0)', lineColor: '#60a5fa', lineWidth: 2, title: 'Hashrate (EH/s)' });
-        hashSeries.setData(data.map(d=>({time: d.time, value: d.hash})));
+        const hashChart = LightweightCharts.createChart(hashContainer, chartOpts(250));
+        hashChart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0)', lineColor: '#60a5fa', lineWidth: 2, title: 'Hashrate (EH/s)' })
+                 .setData(data.map(d=>({time: d.time, value: d.hash})));
         
         // Resizing
+        const charts = [
+            { c: mvrvChart, id: 'mvrv-chart', h: 300 },
+            { c: realizedChart, id: 'realized-chart', h: 300 },
+            { c: soprChart, id: 'sopr-chart', h: 250 },
+            { c: puellChart, id: 'puell-chart', h: 250 },
+            { c: nvtChart, id: 'nvt-chart', h: 250 },
+            { c: hashChart, id: 'hash-chart', h: 250 }
+        ];
+        
         const ro = new ResizeObserver(entries => {
             entries.forEach(e => {
-                const id = e.target.id;
-                if(id==='mvrv-chart') mvrvChart.resize(e.contentRect.width, 300);
-                if(id==='nvt-chart') nvtChart.resize(e.contentRect.width, 250);
-                if(id==='hash-chart') hashChart.resize(e.contentRect.width, 250);
+                const target = charts.find(x => x.id === e.target.id);
+                if(target) target.c.resize(e.contentRect.width, target.h);
             });
         });
-        ro.observe(mvrvContainer); ro.observe(nvtContainer); ro.observe(hashContainer);
         
-        mvrvChart.timeScale().fitContent();
-        nvtChart.timeScale().fitContent();
-        hashChart.timeScale().fitContent();
+        const containers = [mvrvContainer, realizedContainer, soprContainer, puellContainer, nvtContainer, hashContainer];
+        containers.forEach(cn => ro.observe(cn));
+        charts.forEach(ch => ch.c.timeScale().fitContent());
 
     } catch (e) {
         document.getElementById('mvrv-chart').innerHTML = `<div class="error-msg">Failed to load On-Chain data: ${e.message}</div>`;
@@ -4799,7 +4888,9 @@ function renderDocsAdvancedCharting() {
             { icon: 'candlestick_chart', title: "Price & Overlays", desc: "Live 1m to 1d candlesticks superimposed with Dynamic EMA 20 and 50 lookback curves." },
             { icon: 'water_drop', title: "Market Depth", desc: "Live dual-area mapping of continuous bid/ask limit orders pulling from Binance Order Book." },
             { icon: 'timeline', title: "Derivatives", desc: "Overlay of Open Interest progression and liquidation histogram tracking." },
-            { icon: 'stacked_line_chart', title: "Comparative Index", desc: "Percentage-normalized overlap of BTC, ETH, and SOL growth rates." }
+            { icon: 'stacked_line_chart', title: "Comparative Index", desc: "Percentage-normalized overlap of BTC, ETH, and SOL growth rates." },
+            { icon: 'ssid_chart', title: "Cumulative Volume Delta (CVD)", desc: "Tracks net difference between aggressive market buying and selling over time." },
+            { icon: 'currency_exchange', title: "Exchange Flows", desc: "Simulates the 30-day net position change of assets moving onto or off of global exchanges." }
         ],
         [
             { title: "Liquidity Wall Spotting", text: "By switching to the Market Depth tab, professional traders can visually isolate large limit-order structures ('Walls') acting as support or resistance, allowing for optimal entry timing." }
@@ -4815,7 +4906,10 @@ function renderDocsOnchain() {
         [
             { icon: 'area_chart', title: "MVRV Z-Score", desc: "Assesses asset over/undervaluation. When Market Value exceeds Realized Value significantly (Top red band), tops often form." },
             { icon: 'show_chart', title: "NVT Ratio", desc: "Network Value to Transactions ratio acts as crypto's native P/E ratio to gauge utility." },
-            { icon: 'memory', title: "Fundamentals", desc: "Simulated tracking of absolute algorithmic difficulty, Hashrate growth, and active entities." }
+            { icon: 'memory', title: "Fundamentals", desc: "Simulated tracking of absolute algorithmic difficulty, Hashrate growth, and active entities." },
+            { icon: 'bar_chart', title: "SOPR", desc: "Measures whether the macro market is spending at a net aggregate profit or loss." },
+            { icon: 'query_stats', title: "Puell Multiple", desc: "Highlights extreme bear market bottoms by comparing current miner revenue to its yearly trend." },
+            { icon: 'stacked_line_chart', title: "Realized Price", desc: "Estimates the macro cost-basis of the entire network to identify key support zones." }
         ]
     );
 }
