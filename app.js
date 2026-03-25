@@ -2013,6 +2013,14 @@ async function renderMacroSync() {
                     <canvas id="dominanceChart"></canvas>
                 </div>
             </div>
+            <div class="card" style="margin-top:2rem">
+                <div class="card-header">
+                    <h3>Leveraged Funding Divergence (Perpetuals)</h3>
+                </div>
+                <div class="chart-container" style="height:350px;">
+                    <canvas id="fundingOscillatorChart"></canvas>
+                </div>
+            </div>
             <div class="macro-education" style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid var(--border)">
                 <h4 style="color:var(--accent); margin-bottom:0.5rem">Institutional Macro Correlation Guide</h4>
                 <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.6">
@@ -2054,8 +2062,38 @@ async function renderMacroSync() {
                     }
                 });
             }
+            
+            const fundingData = await fetchAPI('/funding-rates');
+            if (fundingData && fundingData.labels) {
+                const ctx2 = document.getElementById('fundingOscillatorChart').getContext('2d');
+                
+                const colors = fundingData.funding_rates.map(r => r > 0.015 ? 'rgba(34, 197, 94, 0.7)' : (r < 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(255,255,255,0.2)'));
+                
+                new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: fundingData.labels,
+                        datasets: [
+                            {
+                                label: 'Est. 8H Funding Bracket (%)',
+                                data: fundingData.funding_rates,
+                                backgroundColor: colors,
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Funding Premium (%)' } },
+                            x: { grid: { display:false }, ticks: { maxTicksLimit: 12 } }
+                        }
+                    }
+                });
+            }
         } catch (e) {
-            console.error("Dominance chart failed:", e);
+            console.error("Macro sync charts failed:", e);
         }
     }, 50);
 }
@@ -3749,6 +3787,7 @@ async function renderLiquidityView() {
                 <button class="setup-generator-btn" id="mode-walls" style="width:100%; border-radius:8px">DEPTH WALLS</button>
                 <button class="profile-action-btn" id="mode-heatmap" style="width:100%; border-radius:8px">TEMPORAL HEATMAP</button>
                 <button class="profile-action-btn" id="mode-liquidation" style="width:100%; border-radius:8px">LIQUIDATION FLUX</button>
+                <button class="profile-action-btn" id="mode-volatility" style="width:100%; border-radius:8px; margin-top:10px;">VOLATILITY SURFACE</button>
             </div>
             
             <div class="stat-card" style="margin-top:20px; background:rgba(0, 242, 255, 0.03); border:1px solid var(--accent)">
@@ -3768,11 +3807,12 @@ async function renderLiquidityView() {
     </div>`;
 
     // Concurrent Fetches
-    const [data, tapeData, whaleData, liqData] = await Promise.all([
+    const [data, tapeData, whaleData, liqData, volData] = await Promise.all([
         fetchAPI('/liquidity?ticker=BTC-USD'),
         fetchAPI('/tape?ticker=BTC-USD'),
         fetchAPI('/whales_entity?ticker=BTC-USD'),
-        fetchAPI('/liquidations?ticker=BTC-USD')
+        fetchAPI('/liquidations?ticker=BTC-USD'),
+        fetchAPI('/volatility-surface?ticker=BTC-USD')
     ]);
     
     if (!data) return;
@@ -3789,48 +3829,57 @@ async function renderLiquidityView() {
     const itemsPerPage = 18;
 
     function renderWallsMode() {
-        const totalPages = Math.ceil(data.walls.length / itemsPerPage);
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const currentWalls = data.walls.slice(startIndex, startIndex + itemsPerPage);
-        
-        // Compute max depth across all walls to keep the scale consistent across pages
-        const maxSideDepth = Math.max(...data.walls.map(wall => wall.size));
-
         display.innerHTML = `
             <div class="card" style="height:100%; border:none; background:transparent; display:flex; flex-direction:column">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3 class="card-title" style="margin:0">Global Liquidity Walls</h3>
-                    <!-- Pagination Controls -->
-                    <div style="display:flex; align-items:center; gap:15px">
-                        <button class="filter-btn" id="btn-prev-page" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
-                        <span style="font-size:0.70rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
-                        <button class="filter-btn" id="btn-next-page" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
-                    </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-shrink:0">
+                    <h3 class="card-title" style="margin:0">Institutional Depth Profile <span style="font-size:0.8rem; color:var(--text-dim)">(Aggregated Orderbook)</span></h3>
                 </div>
                 
-                <div class="liquidity-chart" style="flex:1">
-                    ${currentWalls.map(w => {
-                        const width = (w.size / maxSideDepth) * 100;
-                        const exchClass = (w.exchange || 'Binance').toLowerCase();
-                        return `
-                        <div class="liquidity-bar-row">
-                            <div class="price-label ${w.side}">${formatPrice(w.price)}</div>
-                            <div class="bar-container">
-                                <div class="liquidity-bar ${w.side} ${exchClass}" style="width:${width}%"></div>
-                                <span class="bar-val">${w.size} <small>BTC</small></span>
-                            </div>
-                            <div class="exch-tag">${(w.exchange || 'Binance').toUpperCase()}</div>
-                        </div>`;
-                    }).join('')}
-                    <div class="mid-price-line">GLOBAL MID PRICE: ${formatPrice(data.current_price)}</div>
+                <div class="liquidity-chart" style="flex:1; overflow-y:auto; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding-right:10px">
+                    <div style="height:1500px; width:100%; position:relative;">
+                        <canvas id="depthWallsChart"></canvas>
+                    </div>
                 </div>
             </div>`;
 
-        // Attach listeners dynamically
-        const btnPrev = document.getElementById('btn-prev-page');
-        const btnNext = document.getElementById('btn-next-page');
-        if(btnPrev) btnPrev.addEventListener('click', () => { if(currentPage > 1) { currentPage--; renderWallsMode(); }});
-        if(btnNext) btnNext.addEventListener('click', () => { if(currentPage < totalPages) { currentPage++; renderWallsMode(); }});
+        setTimeout(() => {
+            const ctx = document.getElementById('depthWallsChart').getContext('2d');
+            
+            const sortedWalls = [...data.walls].sort((a,b) => b.price - a.price);
+            const labels = sortedWalls.map(w => w.price);
+            
+            const askSizes = sortedWalls.map(w => w.side === 'ask' ? w.size : 0);
+            const bidSizes = sortedWalls.map(w => w.side === 'bid' ? w.size : 0);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Ask Walls (Resistance)', data: askSizes, backgroundColor: 'rgba(239, 68, 68, 0.8)', barPercentage: 1.0, categoryPercentage: 1.0, borderRadius: 2 },
+                        { label: 'Bid Walls (Support)', data: bidSizes, backgroundColor: 'rgba(34, 197, 94, 0.8)', barPercentage: 1.0, categoryPercentage: 1.0, borderRadius: 2 }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.x.toFixed(2)} BTC` } } },
+                    scales: {
+                        x: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' }, 
+                            title: { display:true, text: 'Limit Order Depth Volume (BTC)' },
+                            position: 'top'
+                        },
+                        y: { 
+                            grid: { display:false }, 
+                            ticks: { callback: (val, index) => formatPrice(labels[index]), color: (context) => askSizes[context.index] > 0 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(34, 197, 94, 0.8)' },
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }, 50);
     }
 
     function renderHeatmapMode() {
@@ -3984,6 +4033,43 @@ async function renderLiquidityView() {
         }, 50);
     }
 
+    function renderVolatilityMode() {
+        if (!volData) {
+            display.innerHTML = `<div style="padding:2rem;color:var(--text-dim);text-align:center;">Options Volatility Array Offline</div>`;
+            return;
+        }
+        display.innerHTML = `
+            <div class="card" style="height:100%; display:flex; flex-direction:column">
+                <h2 class="card-title">Options Volatility Surface <span style="font-size:0.8rem; color:var(--text-dim)">(${volData.structure})</span></h2>
+                <div class="chart-container" style="flex:1; position:relative; min-height:400px; padding-top:10px">
+                    <canvas id="volatilitySurfaceChart"></canvas>
+                </div>
+            </div>`;
+
+        setTimeout(() => {
+            const ctx = document.getElementById('volatilitySurfaceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: volData.expiries,
+                    datasets: [
+                        { label: 'ATM Implied Volatility (%)', data: volData.atm_iv, borderColor: '#f7931a', backgroundColor: 'rgba(247, 147, 26, 0.1)', borderWidth: 3, tension: 0.3, fill: true },
+                        { label: '25-Delta Skew', data: volData.skew, borderColor: '#ff0055', borderDash: [5, 5], borderWidth: 2, tension: 0.3, type: 'line', yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Expiry Timeframe' } },
+                        y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Implied Volatility (IV)' } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display:true, text: 'Directional Skew Premium' } }
+                    }
+                }
+            });
+        }, 50);
+    }
+
     // Default Mode
     renderWallsMode();
 
@@ -3991,9 +4077,10 @@ async function renderLiquidityView() {
     const btnWalls = document.getElementById('mode-walls');
     const btnHeat = document.getElementById('mode-heatmap');
     const btnLiq = document.getElementById('mode-liquidation');
+    const btnVol = document.getElementById('mode-volatility');
 
     const updateBtns = (active) => {
-        [btnWalls, btnHeat, btnLiq].forEach(b => {
+        [btnWalls, btnHeat, btnLiq, btnVol].forEach(b => {
             b.className = 'profile-action-btn';
             b.style.background = 'rgba(255,255,255,0.05)';
         });
@@ -4004,6 +4091,7 @@ async function renderLiquidityView() {
     btnWalls.onclick = () => { renderWallsMode(); updateBtns(btnWalls); };
     btnHeat.onclick = () => { renderHeatmapMode(); updateBtns(btnHeat); };
     btnLiq.onclick = () => { renderLiquidationMode(); updateBtns(btnLiq); };
+    btnVol.onclick = () => { renderVolatilityMode(); updateBtns(btnVol); };
 
     // Whale Pulse Sidebar
     if (whaleData && whaleData.entities) {
