@@ -3125,6 +3125,46 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                         last_signal = current_signal
                     signals[i] = last_signal
                 df['Signal'] = signals
+            elif strategy == 'macd_momentum':
+                # MACD (12, 26, 9)
+                df['EMA12'] = df['Close'].ewm(span=12, adjust=False).mean()
+                df['EMA26'] = df['Close'].ewm(span=26, adjust=False).mean()
+                df['MACD'] = df['EMA12'] - df['EMA26']
+                df['Signal_Line'] = df['MACD'].ewm(span=9, adjust=False).mean()
+                
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        macd = df['MACD'].iloc[i]
+                        sig = df['Signal_Line'].iloc[i]
+                        if macd > sig: current_signal = 1
+                        elif macd < sig: current_signal = 0
+                        else: current_signal = last_signal
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+            elif strategy == 'stochastic_cross':
+                # Stochastic Oscillator %K, %D (14, 3)
+                df['L14'] = df['Close'].rolling(window=14).min()
+                df['H14'] = df['Close'].rolling(window=14).max()
+                # avoid div by zero
+                df['%K'] = 100 * ((df['Close'] - df['L14']) / (df['H14'] - df['L14'] + 1e-9))
+                df['%D'] = df['%K'].rolling(window=3).mean()
+                
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        k = df['%K'].iloc[i]
+                        d = df['%D'].iloc[i]
+                        
+                        if k > d and k < 20: current_signal = 1
+                        elif k < d and k > 80: current_signal = 0
+                        else: current_signal = last_signal
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
             else:
                 # Default Logic: EMA Crossover (Fast/Slow)
                 df['EMA_Fast'] = df['Close'].ewm(span=fast, adjust=False).mean()
