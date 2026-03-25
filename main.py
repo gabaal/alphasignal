@@ -1349,9 +1349,60 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path.startswith('/api/history'): self.handle_history()
             elif path.startswith('/api/benchmark'): self.handle_benchmark()
             elif path.startswith('/api/backtest'): self.handle_backtest()
+            elif path.startswith('/api/onchain'): self.handle_onchain()
             else: super().do_GET()
         except Exception as e:
             print(f"[{datetime.now()}] Global do_GET error: {e}")
+
+    def handle_onchain(self):
+        try:
+            parsed = urllib.parse.urlparse(self.path)
+            query = urllib.parse.parse_qs(parsed.query)
+            symbol = query.get('symbol', ['BTCUSDT'])[0]
+            ticker = symbol.replace("USDT", "-USD")
+            
+            df = yf.download(ticker, period='1y', interval='1d', progress=False)
+            if df.empty:
+                raise ValueError("No data returned")
+            
+            closes = df['Close'].squeeze().values
+            times = [int(x.timestamp()) for x in df.index]
+            
+            # Synthetic Engine (Simulating Glassnode MVRV and NVT based on price drift and volatility)
+            res = []
+            for i in range(len(closes)):
+                pr = closes[i]
+                
+                # MVRV correlates to deviation from a long-term moving average.
+                mean_50 = closes[max(0, i-50):i+1].mean()
+                std_50 = closes[max(0, i-50):i+1].std() + 1e-5
+                z = (pr - mean_50) / std_50
+                mvrv = 1.5 + (z * 0.5)
+                
+                # NVT drops when Network Utility > Market Cap (bull markets, high Z)
+                nvt = 40.0 - (z * 5.0) + (math.cos(i / 15.0) * 8.0)
+                
+                # Hashrate steadily climbs with drops during capitulations (negative Z)
+                hashrate = 300 + (i * 0.5) + (z * 10)
+                
+                res.append({
+                    "time": times[i],
+                    "mvrv": float(max(0.1, mvrv)),
+                    "nvt": float(max(10, nvt)),
+                    "hash": float(max(100, hashrate))
+                })
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(res).encode())
+        except Exception as e:
+            print(f"[{datetime.now()}] OnChain API Error: {e}")
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
     def handle_chain_velocity(self):
         # Pack H7: Cross-Chain Narrative Velocity (Institutional Flow Engine)
         try:

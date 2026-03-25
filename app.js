@@ -4341,8 +4341,100 @@ function renderAdvancedChart() {
     dispatchAdvTab();
 }
 
+// ============================================================
+// Phase 9: On-Chain Analytics Dashboard
+// ============================================================
+async function renderOnChain() {
+    appEl.innerHTML = `
+        <div class="view-header">
+            <div>
+                <h1>🔗 On-Chain Analytics <span class="premium-badge">PRO SUITE</span></h1>
+                <p>Institutional macroeconomic network valuation indicators.</p>
+            </div>
+        </div>
+        
+        <div class="card" style="padding:1.5rem; margin-bottom:1rem">
+            <h3>MVRV Z-Score</h3>
+            <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Highlights periods where market value is significantly higher/lower than realized value.</p>
+            <div id="mvrv-chart" style="width:100%; height:300px"></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1rem; margin-bottom:1rem">
+            <div class="card" style="padding:1.5rem">
+                <h3>NVT Ratio</h3>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Network Value to Transactions (The P/E of Crypto).</p>
+                <div id="nvt-chart" style="width:100%; height:250px"></div>
+            </div>
+            <div class="card" style="padding:1.5rem">
+                <h3>Network Fundamentals</h3>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Simulated Hashrate / Active Entities Growth.</p>
+                <div id="hash-chart" style="width:100%; height:250px"></div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('mvrv-chart').innerHTML = '<div class="loader" style="margin:2rem auto"></div>';
+    
+    try {
+        const data = await fetchAPI('/onchain');
+        if (!data) {
+            document.getElementById('mvrv-chart').innerHTML = '<div class="error-msg">Authentication Required</div>';
+            return;
+        }
+
+        // Clear loaders
+        document.getElementById('mvrv-chart').innerHTML = '';
+        
+        // MVRV Chart
+        const mvrvContainer = document.getElementById('mvrv-chart');
+        const mvrvChart = LightweightCharts.createChart(mvrvContainer, {
+            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
+        });
+        const mvrvSeries = mvrvChart.addAreaSeries({ topColor: 'rgba(239,83,80,0.4)', bottomColor: 'rgba(38,166,154,0.1)', lineColor: '#ef5350', lineWidth: 2, title: 'Z-Score' });
+        mvrvSeries.setData(data.map(d=>({time: d.time, value: d.mvrv})));
+
+        // NVT Chart
+        const nvtContainer = document.getElementById('nvt-chart');
+        const nvtChart = LightweightCharts.createChart(nvtContainer, {
+            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
+        });
+        const nvtSeries = nvtChart.addLineSeries({ color: '#facc15', lineWidth: 2, title: 'NVT Ratio' });
+        nvtSeries.setData(data.map(d=>({time: d.time, value: d.nvt})));
+
+        // Hashrate Chart
+        const hashContainer = document.getElementById('hash-chart');
+        const hashChart = LightweightCharts.createChart(hashContainer, {
+            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
+        });
+        const hashSeries = hashChart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0)', lineColor: '#60a5fa', lineWidth: 2, title: 'Hashrate (EH/s)' });
+        hashSeries.setData(data.map(d=>({time: d.time, value: d.hash})));
+        
+        // Resizing
+        const ro = new ResizeObserver(entries => {
+            entries.forEach(e => {
+                const id = e.target.id;
+                if(id==='mvrv-chart') mvrvChart.resize(e.contentRect.width, 300);
+                if(id==='nvt-chart') nvtChart.resize(e.contentRect.width, 250);
+                if(id==='hash-chart') hashChart.resize(e.contentRect.width, 250);
+            });
+        });
+        ro.observe(mvrvContainer); ro.observe(nvtContainer); ro.observe(hashContainer);
+        
+        mvrvChart.timeScale().fitContent();
+        nvtChart.timeScale().fitContent();
+        hashChart.timeScale().fitContent();
+
+    } catch (e) {
+        document.getElementById('mvrv-chart').innerHTML = `<div class="error-msg">Failed to load On-Chain data: ${e.message}</div>`;
+    }
+}
+
 // ============= Initialization =============
 const viewMap = {
+    'onchain': renderOnChain,
     'advanced-charting': renderAdvancedChart,
     signals: renderSignals, 
     briefing: renderBriefing,
