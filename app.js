@@ -754,67 +754,92 @@ async function renderAlphaScore() {
         scores = scores.filter(s => safeSectors.includes(s.sector) || safeSectors.includes(s.category));
     }
 
-    appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
-            <p>Composite 0–100 ranking · Updated ${data.updated} · ${scores.length} assets scored ${isSafeMode ? '<span style="color:var(--accent); font-weight:700">[SAFE MODE ACTIVE]</span>' : ''}</p>
-        </div>
-        <div class="card" style="overflow-x:auto">
-            <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
-                <thead>
-                    <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
-                        <th style="text-align:left; padding:8px 12px">#</th>
-                        <th style="text-align:left; padding:8px 12px">ASSET</th>
-                        <th style="text-align:left; padding:8px 12px">SECTOR</th>
-                        <th style="text-align:left; padding:8px 12px; width:180px">SCORE</th>
-                        <th style="text-align:center; padding:8px 12px">GRADE</th>
-                        <th style="text-align:center; padding:8px 12px">SIGNAL</th>
-                        <th style="text-align:left; padding:8px 12px">MODEL SPECS</th>
-                        <th style="text-align:left; padding:8px 12px">WHY</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${scores.map((s, i) => `
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s"
-                            onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
-                            <td style="padding:10px 12px; color:var(--text-dim)">${i + 1}</td>
-                            <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
-                            <td style="padding:10px 12px; color:var(--text-dim); font-size:0.65rem; letter-spacing:1px">${s.sector}</td>
-                            <td style="padding:10px 12px">
-                                <div style="display:flex; align-items:center; gap:8px">
-                                    <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden">
-                                        <div style="width:${s.score}%; height:100%; background:${gradeColors[s.grade] || '#60a5fa'}; border-radius:4px; transition:width 1s ease"></div>
-                                    </div>
-                                    <span style="font-weight:700; font-size:0.8rem; color:${gradeColors[s.grade]}">${s.score}</span>
-                                </div>
-                            </td>
-                            <td style="padding:10px 12px; text-align:center">
-                                <span style="background:${gradeColors[s.grade] || '#999'}33; color:${gradeColors[s.grade] || '#999'}; padding:2px 10px; border-radius:20px; font-weight:700; font-size:0.75rem">${s.grade}</span>
-                            </td>
-                            <td style="padding:10px 12px; text-align:center">
-                                <span style="color:${signalColors[s.signal] || '#60a5fa'}; font-size:0.6rem; letter-spacing:1px">${s.signal}</span>
-                            </td>
-                            <td style="padding:10px 12px; min-width:140px">
-                                <div style="display:flex; flex-direction:column; gap:4px">
-                                    <div style="display:flex; gap:6px; align-items:center">
-                                        <span style="font-size:0.55rem; color:var(--text-dim); background:rgba(255,255,255,0.05); padding:1px 4px; border-radius:3px">CONSENSUS:</span>
-                                        <span style="font-size:0.6rem; font-weight:900; color:${s.consensus === 'HIGH' ? '#22c55e' : s.consensus === 'MEDIUM' ? '#60a5fa' : '#ef4444'}">${s.consensus}</span>
-                                    </div>
-                                    <div style="display:flex; gap:6px; font-size:0.55rem; color:var(--text-dim)">
-                                        <span style="letter-spacing:1px">LSTM: <span style="color:var(--accent)">${s.lstm_conf}%</span></span>
-                                        <span style="letter-spacing:1px">XGB: <span style="color:var(--accent)">${s.xgb_conf}%</span></span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td style="padding:10px 12px; color:var(--text-dim); font-size:0.62rem; max-width:200px">
-                                ${(s.reasons || []).map(r => r.includes('ML') ? `<strong style="color:var(--accent)">${r}</strong>` : r).join(' · ') || '—'}
-                            </td>
+    let currentPage = 1;
+    const itemsPerPage = 15;
+
+    function drawAlphaPage() {
+        const totalPages = Math.ceil(scores.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const currentScores = scores.slice(startIndex, startIndex + itemsPerPage);
+
+        appEl.innerHTML = `
+            <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
+                <div>
+                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
+                    <p style="margin:0">Composite 0–100 ranking · Updated ${data.updated} · ${scores.length} assets scored ${isSafeMode ? '<span style="color:var(--accent); font-weight:700">[SAFE MODE ACTIVE]</span>' : ''}</p>
+                </div>
+                <!-- Pagination Controls -->
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:5px">
+                    <button class="filter-btn" id="btn-prev-alpha" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
+                    <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
+                    <button class="filter-btn" id="btn-next-alpha" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
+                </div>
+            </div>
+            <div class="card" style="overflow-x:auto">
+                <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
+                    <thead>
+                        <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
+                            <th style="text-align:left; padding:8px 12px">#</th>
+                            <th style="text-align:left; padding:8px 12px">ASSET</th>
+                            <th style="text-align:left; padding:8px 12px">SECTOR</th>
+                            <th style="text-align:left; padding:8px 12px; width:180px">SCORE</th>
+                            <th style="text-align:center; padding:8px 12px">GRADE</th>
+                            <th style="text-align:center; padding:8px 12px">SIGNAL</th>
+                            <th style="text-align:left; padding:8px 12px">MODEL SPECS</th>
+                            <th style="text-align:left; padding:8px 12px">WHY</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
+                    </thead>
+                    <tbody>
+                        ${currentScores.map((s, i) => `
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s"
+                                onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                                <td style="padding:10px 12px; color:var(--text-dim)">${startIndex + i + 1}</td>
+                                <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
+                                <td style="padding:10px 12px; color:var(--text-dim); font-size:0.65rem; letter-spacing:1px">${s.sector}</td>
+                                <td style="padding:10px 12px">
+                                    <div style="display:flex; align-items:center; gap:8px">
+                                        <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden">
+                                            <div style="width:${s.score}%; height:100%; background:${gradeColors[s.grade] || '#60a5fa'}; border-radius:4px; transition:width 1s ease"></div>
+                                        </div>
+                                        <span style="font-weight:700; font-size:0.8rem; color:${gradeColors[s.grade]}">${s.score}</span>
+                                    </div>
+                                </td>
+                                <td style="padding:10px 12px; text-align:center">
+                                    <span style="background:${gradeColors[s.grade] || '#999'}33; color:${gradeColors[s.grade] || '#999'}; padding:2px 10px; border-radius:20px; font-weight:700; font-size:0.75rem">${s.grade}</span>
+                                </td>
+                                <td style="padding:10px 12px; text-align:center">
+                                    <span style="color:${signalColors[s.signal] || '#60a5fa'}; font-size:0.6rem; letter-spacing:1px">${s.signal}</span>
+                                </td>
+                                <td style="padding:10px 12px; min-width:140px">
+                                    <div style="display:flex; flex-direction:column; gap:4px">
+                                        <div style="display:flex; gap:6px; align-items:center">
+                                            <span style="font-size:0.55rem; color:var(--text-dim); background:rgba(255,255,255,0.05); padding:1px 4px; border-radius:3px">CONSENSUS:</span>
+                                            <span style="font-size:0.6rem; font-weight:900; color:${s.consensus === 'HIGH' ? '#22c55e' : s.consensus === 'MEDIUM' ? '#60a5fa' : '#ef4444'}">${s.consensus}</span>
+                                        </div>
+                                        <div style="display:flex; gap:6px; font-size:0.55rem; color:var(--text-dim)">
+                                            <span style="letter-spacing:1px">LSTM: <span style="color:var(--accent)">${s.lstm_conf}%</span></span>
+                                            <span style="letter-spacing:1px">XGB: <span style="color:var(--accent)">${s.xgb_conf}%</span></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding:10px 12px; color:var(--text-dim); font-size:0.62rem; max-width:200px">
+                                    ${(s.reasons || []).map(r => r.includes('ML') ? `<strong style="color:var(--accent)">${r}</strong>` : r).join(' · ') || '—'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        const btnPrev = document.getElementById('btn-prev-alpha');
+        const btnNext = document.getElementById('btn-next-alpha');
+        if(btnPrev) btnPrev.addEventListener('click', () => { if(currentPage > 1) { currentPage--; drawAlphaPage(); window.scrollTo({top:0, behavior:'smooth'}); }});
+        if(btnNext) btnNext.addEventListener('click', () => { if(currentPage < totalPages) { currentPage++; drawAlphaPage(); window.scrollTo({top:0, behavior:'smooth'}); }});
+    }
+
+    currentPage = 1;
+    drawAlphaPage();
 }
 
 // ============================================================
