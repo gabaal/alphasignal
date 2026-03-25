@@ -6604,7 +6604,7 @@ function updateSEOMeta(view) {
     console.log(`SEO Update: Full synchronization complete for view "${view}"`);
 }
 
-function switchView(view) {
+function switchView(view, pushState = true) {
     // Global Memory Wipe for 60FPS Optimization
     if (typeof window.globalUIWipe === 'function') {
         window.globalUIWipe();
@@ -6628,6 +6628,10 @@ function switchView(view) {
     // Update SEO Meta
     updateSEOMeta(view);
 
+    if (pushState && view) {
+        window.history.pushState({ view: view }, '', `?view=${view}`);
+    }
+
     if (viewMap[view]) {
         // Sync desktop nav
         document.querySelectorAll('.nav-item').forEach(i => {
@@ -6648,6 +6652,15 @@ function switchView(view) {
         }
     }
 }
+
+window.addEventListener('popstate', (e) => {
+    if (e.state && e.state.view) {
+        switchView(e.state.view, false);
+    } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        switchView(urlParams.get('view') || 'home', false);
+    }
+});
 
 document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -6762,7 +6775,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Support deep-linking via URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const initialView = viewMap[urlParams.get('view')] ? urlParams.get('view') : 'home';
-    switchView(initialView);
+    
+    // Replace state on initial load rather than pushing
+    window.history.replaceState({ view: initialView }, '', `?view=${initialView}`);
+    switchView(initialView, false);
+    
     startCountdown(); 
     
     // Sidebar Profile Dropdown
