@@ -2525,10 +2525,12 @@ async function renderChainVelocity() {
             <p>Institutional capital rotation tracking across major L1 networks using volume acceleration and social heat.</p>
         </div>
 
-        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; margin-bottom: 2rem">
+        <div style="display:flex; flex-direction:column; gap:2rem; margin-bottom: 2rem">
             <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5); backdrop-filter:blur(10px)">
                 <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">VELOCITY RADAR (INSTITUTIONAL MOMENTUM)</h3>
-                <canvas id="velocityRadar" style="max-height:450px"></canvas>
+                <div style="position:relative; height:750px; width:100%">
+                    <canvas id="velocityRadar"></canvas>
+                </div>
             </div>
             <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">
                 <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">NARRATIVE LEADERS</h3>
