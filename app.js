@@ -2256,12 +2256,20 @@ async function renderNewsroom() {
         const currentData = data.slice(startIndex, startIndex + newsPerPage);
         
         appEl.innerHTML = `
-            <div class="view-header">
-                <div style="display:flex; align-items:center; gap:10px">
-                    <div class="live-indicator"></div>
-                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1>
+            <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
+                <div>
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <div class="live-indicator"></div>
+                        <h1 style="margin-bottom:5px"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1>
+                    </div>
+                    <p style="margin:0">Real-time institutional narrative stream correlated with AlphaSignal intensity.</p>
                 </div>
-                <p>Real-time institutional narrative stream correlated with AlphaSignal intensity.</p>
+                <!-- Pagination Controls -->
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:5px">
+                    <button class="filter-btn" id="btn-prev-news" ${currentNewsPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
+                    <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentNewsPage} of ${totalPages}</span>
+                    <button class="filter-btn" id="btn-next-news" ${currentNewsPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
+                </div>
             </div>
             <div class="news-feed">
                 ${currentData.map((n, idx) => {
@@ -2277,13 +2285,6 @@ async function renderNewsroom() {
                         <div class="news-source">Source: AlphaSignal Institutional Feed // ${n.ticker}</div>
                     </div>
                 `}).join('')}
-            </div>
-            
-            <!-- Pagination Controls -->
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; margin-top:20px; border-top:1px solid rgba(255,255,255,0.05)">
-                <button class="filter-btn" id="btn-prev-news" ${currentNewsPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Previous</button>
-                <span style="font-size:0.8rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentNewsPage} of ${totalPages}</span>
-                <button class="filter-btn" id="btn-next-news" ${currentNewsPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
             </div>
         `;
 
