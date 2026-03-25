@@ -5550,6 +5550,7 @@ const viewMap = {
     'explain-velocity': renderDocsVelocity,
     'explain-telegram': renderDocsTelegram,
     'explain-pwa': renderDocsPWA,
+    'explain-topologies': renderDocsTopologies,
     'explain-portfolio-lab': renderDocsPortfolioLab,
     'trade-ledger': renderTradeLedger,
     help: renderHelp
@@ -5871,6 +5872,11 @@ function renderHelp() {
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">model_training</span></div>
                     <h3>ML Alpha Engine</h3>
                     <p>Neural feature synthesis and predictive modeling.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-topologies')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">category</span></div>
+                    <h3>Topologies & Geometries</h3>
+                    <p>Documentation on advanced structural graphs like Sankey pipelines, Radars, and Guppy Ribbons.</p>
                 </div>
                 <div class="f-card" onclick="switchView('explain-pwa')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">install_mobile</span></div>
@@ -7084,6 +7090,22 @@ async function initFearGreedGauge() {
             }
         });
     } catch(e) {}
+}
+
+function renderDocsTopologies() {
+    renderExplainPage(
+        "Institutional Topologies & Geometries",
+        "A breakdown of the institutional charting variables and dynamic plotting mechanics integrated in Phases 19-21.",
+        "Professional traders rely on more than just candlesticks. The latest framework deployment saturated AlphaSignal with cutting-edge dimensionality, allowing instantaneous quantitative recognition through structural geometric arrays rather than raw numbers.",
+        [
+            { title: "Quantitative Factor Web (Radar Chart)", icon: "radar", desc: "Located in the Asset Deep Dive popup. It plots 6 statistical vectors (Momentum, Volatility, Network Activity, Liquidity, Social Hype, Dev Commits) on a 6-axis polygon. A glance reveals if an asset is fundamentally 'lopsided' or well-rounded." },
+            { title: "Guppy Trend Mechanics (EMA Density Ribbon)", icon: "waves", desc: "Found in the Strategy Lab, the Guppy Multiple Moving Average draws 15 overlapping Exponential Moving Averages. When the fast (cyan) and slow (red) ribbons compress, explosive volatility is imminent. When they expand, the trend is locked." },
+            { title: "Execution Time Topography (Polar Area Chart)", icon: "data_usage", desc: "Found in the Whale Pulse tracker. This 24-period radial chart maps heavy institutional on-chain volume to physical hours. If the geometry skews heavily towards 01:00-06:00 UTC, it indicates the Asian session is heavily trading the asset. A skew at 14:00+ indicates Wall Street hours." },
+            { title: "Ecosystem Capital Flow (Sankey Diagram)", icon: "moving", desc: "Found in the Cross-Chain Velocity hub. It utilizes D3 fluid mapping to literally draw pipelines of fiat entering the system, bridging into core L1 layers (Ethereum, Solana), and draining into specific DeFi products. Line thickness correlates directly to 24H volume limits." },
+            { title: "NxN Correlation Matrix (Heatmap)", icon: "grid_on", desc: "Inside Macro Sync. This is a 10x10 HTML/CSS grid visualizing Pearson's correlation coefficient. Dark cyan means two assets move in perfect tandem (+1.0), while bright red flags assets moving completely inversely (-1.0)." },
+            { title: "System Conviction Dials (Analog Gauges)", icon: "speed", desc: "Positioned on the main dashboard. They utilize 180-degree Chart.js doughnuts overlayed with programmatic text to create analog speedometers representing overall market fear, network bloat, and retail FOMO parameters." }
+        ]
+    );
 }
 
 // Global Live Alpha Ticker
