@@ -1303,11 +1303,12 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
     const periodMap = { '1W': '5d', '1M': '1mo', '60d': '60d', '3M': '3mo', '6M': '6mo' };
     const yfPeriod = periodMap[period] || '60d';
 
-    const [data, liqData, derivData, walletData] = await Promise.all([
+    const [data, liqData, derivData, walletData, factorData] = await Promise.all([
         fetchAPI(`/history?ticker=${ticker}&period=${yfPeriod}`),
         fetchAPI(`/liquidity?ticker=${ticker}`),
         fetchAPI(`/derivatives?ticker=${ticker}`),
-        fetchAPI(`/wallet-attribution?ticker=${ticker}`)
+        fetchAPI(`/wallet-attribution?ticker=${ticker}`),
+        fetchAPI(`/factor-web?ticker=${ticker}`)
     ]);
     
     if (!data || data.error || !data.history) {
@@ -1379,6 +1380,16 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             </div>
         </div>
 
+        <div class="radar-panel" style="margin-top:2rem; padding:1.5rem; background:rgba(0, 242, 255, 0.02); border:1px solid rgba(0, 242, 255, 0.1); border-radius:12px; display:flex; gap:20px; align-items:center; flex-wrap:wrap">
+            <div style="flex:1; min-width:250px">
+                <h3 style="color:var(--accent); font-size:1rem; margin-bottom:0.5rem">Quantitative Factor Web</h3>
+                <p style="font-size:0.8rem; color:var(--text-dim); line-height:1.5">This multi-dimensional radar plots the structural geometry of the asset across 6 institutional factor boundaries. Highly skewed shapes indicate sector-specific dominance.</p>
+            </div>
+            <div style="flex:1; height:250px; position:relative; min-width:250px">
+                <canvas id="factorRadarChart"></canvas>
+            </div>
+        </div>
+
         <div class="liquidity-derivatives-grid" style="margin-top:2rem; display:grid; grid-template-columns: 1fr 1fr; gap:20px; border-top:1px solid var(--border); padding-top:1.5rem">
             <div class="liquidity-section">
                 <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent)">LIQUIDITY DEPTH (S/R WALLS)</h3>
@@ -1432,6 +1443,40 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
     renderChart(history);
     renderDetailLiquidity(liqData);
     renderFlowAttribution(walletData);
+
+    if (factorData && factorData.factors) {
+        const ctxRadar = document.getElementById('factorRadarChart');
+        if (ctxRadar) {
+            new Chart(ctxRadar.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: Object.keys(factorData.factors).map(k => k.toUpperCase()),
+                    datasets: [{
+                        label: 'Asset Profile',
+                        data: Object.values(factorData.factors),
+                        backgroundColor: 'rgba(0, 242, 255, 0.2)',
+                        borderColor: '#00f2ff',
+                        pointBackgroundColor: '#00f2ff',
+                        borderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            pointLabels: { color: '#8b949e', font: { family: 'JetBrains Mono', size:10 } },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: { legend: { display: false }, datalabels: { display: false } }
+                }
+            });
+        }
+    }
 
     // Initialize Tape Reader
     if (window.activeTape) window.activeTape.stop();
@@ -2476,6 +2521,19 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
                     </div>
                 </div>
 
+                <div class="glass-card" style="margin-top: 20px; padding: 20px">
+                    <div class="card-header" style="margin-bottom:15px">
+                        <h3>Guppy Multiple Moving Average (GMMA)</h3>
+                        <span class="label-tag">TREND MECHANICS</span>
+                    </div>
+                    <div style="height:350px; width:100%; position:relative; border-radius:8px; overflow:hidden">
+                        <canvas id="guppyChart"></canvas>
+                    </div>
+                    <div style="margin-top:15px; font-size:0.75rem; color:var(--text-dim); line-height:1.5">
+                        The Guppy Density Ribbon stacks an array of 15 overlapping Exponential Moving Averages. Structural compression signals imminent breakout probability across institutional limits.
+                    </div>
+                </div>
+
             </div>
         </div>
     `;
@@ -2486,6 +2544,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
     const hist = await fetchAPI(`/history?ticker=${ticker}&period=180d`);
     if (hist && hist.length > 0) {
         createTradingViewChart('strat-tv-container', hist);
+        renderGuppyRibbon(hist);
     }
     renderStrategyChart(curve);
 

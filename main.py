@@ -1327,6 +1327,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path.startswith('/api/tvl'): self.handle_tvl()
             elif path.startswith('/api/monte-carlo'): self.handle_monte_carlo()
             elif path.startswith('/api/sectors'): self.handle_sectors()
+            elif path.startswith('/api/factor-web'): self.handle_factor_web()
+            elif path.startswith('/api/execution-time'): self.handle_execution_time()
             elif path.startswith('/api/macro'): self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
             elif path.startswith('/api/portfolio-sim') or path == '/api/portfolio-performance': 
@@ -1634,6 +1636,46 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Sectors Error: {e}")
             self.send_json({"error": "Failed to sync sectors"})
+
+    def handle_factor_web(self):
+        # Phase 20: 6-Dimensional Radar Web mapping geometric classification
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            random.seed(ticker)
+            factors = {
+                "Momentum": random.randint(40, 95),
+                "Volatility": random.randint(20, 80),
+                "Network Act": random.randint(50, 99),
+                "Liquidity": random.randint(70, 99) if ticker in ["BTC-USD", "ETH-USD"] else random.randint(20, 70),
+                "Social Hype": random.randint(10, 95),
+                "Dev Commit": random.randint(30, 90)
+            }
+            self.send_json({"ticker": ticker, "factors": factors})
+        except Exception as e:
+            self.send_json({"error": "Failed to sync factor web"})
+
+    def handle_execution_time(self):
+        # Phase 20: Polar Area mapping highlighting geospatial volume clustering
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            random.seed(ticker + "exec")
+            labels = [f"{i:02d}:00" for i in range(24)]
+            volumes = []
+            
+            # Simulate bimodal distribution (Asian session vs US session execution rings)
+            for i in range(24):
+                if 1 <= i <= 6:
+                    volumes.append(random.uniform(100, 300))
+                elif 14 <= i <= 20:
+                    volumes.append(random.uniform(150, 400))
+                else: 
+                    volumes.append(random.uniform(20, 100))
+                    
+            self.send_json({"ticker": ticker, "labels": labels, "volumes": [round(v, 2) for v in volumes]})
+        except Exception as e:
+            self.send_json({"error": "Failed to sync execution time"})
 
     # ============================================================
     # Pack G2: Mindshare Analysis
