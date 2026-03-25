@@ -5713,6 +5713,11 @@ function renderSystemGauge(canvasId, value, colorLow, colorHigh) {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '80%',
+            layout: {
+                padding: {
+                    bottom: 30
+                }
+            },
             plugins: {
                 legend: { display: false },
                 tooltip: { enabled: false },
