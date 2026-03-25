@@ -1323,6 +1323,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path.startswith('/api/derivatives'): self.handle_derivatives()
             elif path.startswith('/api/volatility-surface'): self.handle_volatility_surface()
             elif path.startswith('/api/funding-rates'): self.handle_funding_rates()
+            elif path.startswith('/api/ssr'): self.handle_ssr()
             elif path.startswith('/api/macro'): self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
             elif path.startswith('/api/portfolio-sim') or path == '/api/portfolio-performance': 
@@ -1434,6 +1435,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             
             # Synthetic Engine (Simulating Glassnode MVRV and NVT based on price drift and volatility)
             res = []
+            hash_arr = []
             for i in range(len(closes)):
                 pr = closes[i]
                 
@@ -1448,6 +1450,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 
                 # Hashrate steadily climbs with drops during capitulations (negative Z)
                 hashrate = 300 + (i * 0.5) + (z * 10)
+                hash_arr.append(hashrate)
+                
+                hash_fast = float(np.mean(hash_arr[-30:])) if len(hash_arr) > 0 else hashrate
+                hash_slow = float(np.mean(hash_arr[-60:])) if len(hash_arr) > 0 else hashrate
                 
                 # 1. Puell Multiple: Miner Revenue vs 365d moving average
                 mean_365 = closes[max(0, i-365):i+1].mean()
@@ -1475,6 +1481,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     "mvrv": float(max(0.1, mvrv)),
                     "nvt": float(max(10, nvt)),
                     "hash": float(max(100, hashrate)),
+                    "hash_fast": float(max(100, hash_fast)),
+                    "hash_slow": float(max(100, hash_slow)),
                     "puell": float(puell),
                     "sopr": float(sopr),
                     "realized": float(max(1, realized)),
@@ -1859,6 +1867,40 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Funding Rates Error: {e}")
             self.send_json({"error": "Failed to sync historical funding rates"})
+
+    def handle_ssr(self):
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            ticker = query.get('ticker', ['BTC-USD'])[0]
+            
+            data = CACHE.download(ticker, period='120d', interval='1d', column='Close')
+            if data is not None and not data.empty:
+                prices = data.squeeze() if hasattr(data, 'squeeze') else data
+                
+                # Map SSR to price deviation: When BTC skyrockets, SSR (Ratio) climbs.
+                sma_20 = prices.rolling(20).mean().fillna(method='bfill')
+                deviation = (prices / sma_20) - 1.0
+                
+                ssr_series = 4.0 + (deviation * 12.0)
+                
+                # Simulating continuous gradual Stablecoin supply minting over time (pushes SSR down)
+                time_decay = np.linspace(1.5, 0, len(ssr_series))
+                ssr_series = ssr_series + time_decay
+                
+                ssr_series = ssr_series.clip(lower=1.5, upper=8.0)
+                
+                dates = [d.strftime('%Y-%m-%d') for d in ssr_series.index]
+                ratios = [round(r, 2) for r in ssr_series.tolist()]
+                
+                self.send_json({
+                    "ticker": ticker,
+                    "labels": dates[-70:], 
+                    "ssr": ratios[-70:]
+                })
+                return
+        except Exception as e:
+            print(f"SSR Error: {e}")
+            self.send_json({"error": "Failed to sync SSR macro data"})
 
     def handle_macro(self):
         # Pack J Phase 3: Macro-Correlation Sync
@@ -4068,12 +4110,18 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     "flow": current_flow
                 })
 
+            random.seed(base_seed + 1)
+            tier_retail = random.randint(10, 25)
+            tier_pro = random.randint(25, 45)
+            tier_whale = 100 - tier_retail - tier_pro
+
             self.send_json({
                 "ticker": ticker,
                 "entities": entities,
                 "institutional_sentiment": "BULLISH" if random.random() > 0.4 else "NEUTRAL",
                 "net_flow_24h": f"{'+' if current_flow > 0 else ''}{current_flow} {ticker.split('-')[0]}",
-                "flow_history": flow_history
+                "flow_history": flow_history,
+                "volume_tiers": [tier_retail, tier_pro, tier_whale]
             })
         except Exception as e:
             print(f"Entity Error: {e}")

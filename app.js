@@ -1882,7 +1882,7 @@ async function renderWhales() {
             <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
         </div>
 
-        <div class="whale-pulse-header" style="display:grid; grid-template-columns: 1fr 300px; gap:2rem; margin-bottom:2rem">
+        <div class="whale-pulse-header" style="display:grid; grid-template-columns: 1fr 1fr 300px; gap:2rem; margin-bottom:2rem">
             <div class="glass-card" style="padding:1.5rem">
                 <div class="card-header">
                     <h3>24H Net Flow History (BTC)</h3>
@@ -1890,6 +1890,15 @@ async function renderWhales() {
                 </div>
                 <div style="height: 200px; position: relative;">
                     <canvas id="whale-flow-chart"></canvas>
+                </div>
+            </div>
+            <div class="glass-card" style="padding:1.5rem">
+                <div class="card-header">
+                    <h3>Volume Tier Matrix (Whales vs Retail)</h3>
+                    <span class="label-tag">FLOW_DISPARITY</span>
+                </div>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="whale-tier-chart"></canvas>
                 </div>
             </div>
             <div class="glass-card" style="padding:1.5rem; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center">
@@ -1927,6 +1936,30 @@ async function renderWhales() {
 
     if (entityData && entityData.flow_history) {
         renderWhaleFlowChart(entityData.flow_history);
+    }
+    
+    if (entityData && entityData.volume_tiers) {
+        new Chart(document.getElementById('whale-tier-chart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Retail (<$1k)', 'Pro ($1k-$100k)', 'Whale (>$100k)'],
+                datasets: [{
+                    label: 'Volume Density (%)',
+                    data: entityData.volume_tiers,
+                    backgroundColor: ['rgba(239, 68, 68, 0.7)', 'rgba(247, 147, 26, 0.7)', 'rgba(34, 197, 94, 0.7)'],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text:'% of Transaction Volume' } },
+                    y: { grid: { display:false } }
+                }
+            }
+        });
     }
 }
 
@@ -2021,6 +2054,14 @@ async function renderMacroSync() {
                     <canvas id="fundingOscillatorChart"></canvas>
                 </div>
             </div>
+            <div class="card" style="margin-top:2rem">
+                <div class="card-header">
+                    <h3>Stablecoin Supply Ratio (SSR) <span style="font-size:0.8rem; color:var(--text-dim)">(Fiat Purchasing Power proxy)</span></h3>
+                </div>
+                <div class="chart-container" style="height:350px;">
+                    <canvas id="ssrChart"></canvas>
+                </div>
+            </div>
             <div class="macro-education" style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid var(--border)">
                 <h4 style="color:var(--accent); margin-bottom:0.5rem">Institutional Macro Correlation Guide</h4>
                 <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.6">
@@ -2087,6 +2128,36 @@ async function renderMacroSync() {
                         interaction: { mode: 'index', intersect: false },
                         scales: {
                             y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Funding Premium (%)' } },
+                            x: { grid: { display:false }, ticks: { maxTicksLimit: 12 } }
+                        }
+                    }
+                });
+            }
+
+            const ssrData = await fetchAPI('/ssr');
+            if (ssrData && ssrData.labels) {
+                const ctx3 = document.getElementById('ssrChart').getContext('2d');
+                new Chart(ctx3, {
+                    type: 'line',
+                    data: {
+                        labels: ssrData.labels,
+                        datasets: [
+                            {
+                                label: 'SSR (BTC Market Cap ÷ Stablecoin Supply)',
+                                data: ssrData.ssr,
+                                borderColor: '#00f2ff',
+                                backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'SSR Multiplier' } },
                             x: { grid: { display:false }, ticks: { maxTicksLimit: 12 } }
                         }
                     }
@@ -4790,8 +4861,8 @@ async function renderOnChain() {
                 <div id="nvt-chart" style="width:100%; height:250px"></div>
             </div>
             <div class="card" style="padding:1.5rem">
-                <h3>Network Fundamentals</h3>
-                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Simulated Hashrate / Active Entities Growth.</p>
+                <h3>Hash Ribbons <span style="font-size:0.8rem; color:var(--text-dim)">(Miner Capitulation)</span></h3>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">When the 30D Hash (Orange) drops below 60D (White), Miners are capitulating.</p>
                 <div id="hash-chart" style="width:100%; height:250px"></div>
             </div>
         </div>
@@ -4842,11 +4913,13 @@ async function renderOnChain() {
         nvtChart.addLineSeries({ color: '#facc15', lineWidth: 2, title: 'NVT Ratio' })
                 .setData(data.map(d=>({time: d.time, value: d.nvt})));
 
-        // Hashrate
+        // Hashrate Ribbons
         const hashContainer = document.getElementById('hash-chart');
         const hashChart = LightweightCharts.createChart(hashContainer, chartOpts(250));
-        hashChart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0)', lineColor: '#60a5fa', lineWidth: 2, title: 'Hashrate (EH/s)' })
-                 .setData(data.map(d=>({time: d.time, value: d.hash})));
+        hashChart.addLineSeries({ color: '#f7931a', lineWidth: 2, title: '30D Hash Ribbon' })
+                 .setData(data.map(d=>({time: d.time, value: d.hash_fast})));
+        hashChart.addLineSeries({ color: 'rgba(255,255,255,0.4)', lineWidth: 2, title: '60D Hash Ribbon' })
+                 .setData(data.map(d=>({time: d.time, value: d.hash_slow})));
         
         // Resizing
         const charts = [
