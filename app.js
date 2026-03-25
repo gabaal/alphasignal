@@ -2005,6 +2005,14 @@ async function renderMacroSync() {
                     `;
                 }).join('')}
             </div>
+            <div class="card" style="margin-top:2rem">
+                <div class="card-header">
+                    <h3>Ecosystem Capital Dominance</h3>
+                </div>
+                <div class="chart-container" style="height:350px;">
+                    <canvas id="dominanceChart"></canvas>
+                </div>
+            </div>
             <div class="macro-education" style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid var(--border)">
                 <h4 style="color:var(--accent); margin-bottom:0.5rem">Institutional Macro Correlation Guide</h4>
                 <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.6">
@@ -2015,6 +2023,41 @@ async function renderMacroSync() {
             </div>
         </div>
     `;
+
+    setTimeout(async () => {
+        try {
+            const domData = await fetchAPI('/dominance');
+            if (domData && domData.labels) {
+                const ctx = document.getElementById('dominanceChart').getContext('2d');
+                registerChart(new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: domData.labels,
+                        datasets: [
+                            { label: 'BTC Dominance', data: domData.btc, borderColor: '#f7931a', backgroundColor: 'rgba(247, 147, 26, 0.5)', fill: true },
+                            { label: 'ETH Dominance', data: domData.eth, borderColor: '#627eea', backgroundColor: 'rgba(98, 126, 234, 0.5)', fill: '-1' },
+                            { label: 'ALT Dominance', data: domData.alts, borderColor: '#00f2ff', backgroundColor: 'rgba(0, 242, 255, 0.5)', fill: '-1' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            stacked100: { enable: true },
+                            tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } } }
+                        },
+                        scales: {
+                            y: { stacked: true, min: 0, max: 100, ticks: { callback: function(value) { return value + '%'; } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { grid: { display: false } }
+                        },
+                        elements: { point: { radius: 0 } }
+                    }
+                }));
+            }
+        } catch (e) {
+            console.error("Dominance chart failed:", e);
+        }
+    }, 50);
 }
 
 async function renderRotation() {
@@ -3902,20 +3945,43 @@ async function renderLiquidityView() {
     function renderLiquidationMode() {
         display.innerHTML = `
             <div class="card" style="height:100%; display:flex; flex-direction:column">
-                <h2 class="card-title">Liquidation Flux & Leverage Risk</h2>
-                <div class="liquidity-chart" style="flex:1">
-                    ${liqData.clusters.map(c => `
-                        <div class="liq-flux-row" title="Liquidation Cluster at ${formatPrice(c.price)}">
-                            <div class="price-label ${c.side === 'LONG' ? 'ask' : 'bid'}" style="width:100px">${formatPrice(c.price)}</div>
-                            <div class="liq-flux-bar">
-                                <div class="liq-intensity ${c.side}" style="width:${c.intensity * 100}%"></div>
-                                <span class="liq-val">${c.notional} <small>LIQ. VELOCITY</small></span>
-                            </div>
-                        </div>
-                    `).join('')}
-                    <div class="mid-price-line">CURRENT FUNDING: <span style="color:#fff">${liqData.funding_rate}</span></div>
+                <h2 class="card-title">Derivatives Topography <span style="font-size:0.8rem; color:var(--text-dim)">(Liquidations vs OI)</span></h2>
+                <div class="chart-container" style="flex:1; position:relative; min-height:400px; padding-top:10px">
+                    <canvas id="liquidationMapChart"></canvas>
                 </div>
             </div>`;
+
+        setTimeout(() => {
+            const ctx = document.getElementById('liquidationMapChart').getContext('2d');
+            
+            const sorted = [...liqData.clusters].sort((a,b) => a.price - b.price);
+            const labels = sorted.map(c => formatPrice(c.price));
+            
+            const longData = sorted.map(c => c.side === 'LONG' ? c.intensity * 10 : 0);
+            const shortData = sorted.map(c => c.side === 'SHORT' ? c.intensity * 10 : 0);
+            const oiData = sorted.map((c, i) => 50 + Math.sin(i / 2) * 20 + (c.intensity * 5));
+
+            registerChart(new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { type: 'line', label: 'Est. Open Interest', data: oiData, borderColor: '#00f2ff', borderWidth: 2, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
+                        { type: 'bar', label: 'Short Liq (Resistance)', data: shortData, backgroundColor: 'rgba(34, 197, 94, 0.7)', yAxisID: 'y' },
+                        { type: 'bar', label: 'Long Liq (Support)', data: longData, backgroundColor: 'rgba(239, 68, 68, 0.7)', yAxisID: 'y' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Liquidation Imbalance' } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display:true, text: 'Open Interest' } }
+                    }
+                }
+            }));
+        }, 50);
     }
 
     // Default Mode
@@ -6165,6 +6231,7 @@ window.toggleSafeMode = toggleSafeMode;
 document.addEventListener('DOMContentLoaded', () => {
     initLivePriceStream();
     initLiveAlphaScroller();
+    initFearGreedGauge();
     // updateInstitutionalPulse();
 });
 
@@ -6172,7 +6239,49 @@ document.addEventListener('DOMContentLoaded', () => {
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     initLivePriceStream();
     initLiveAlphaScroller();
+    initFearGreedGauge();
     // updateInstitutionalPulse();
+}
+
+async function initFearGreedGauge() {
+    const canvas = document.getElementById('fearGreedGauge');
+    const valLayer = document.getElementById('fearGreedValue');
+    if (!canvas || !valLayer) return;
+
+    try {
+        const d = await fetchAPI('/fear-greed');
+        if (!d) return;
+
+        valLayer.textContent = d.score;
+        let color = '#facc15';
+        if (d.score < 25) color = '#ef4444';
+        else if (d.score < 45) color = '#fb923c';
+        else if (d.score > 75) color = '#22c55e';
+        else if (d.score > 55) color = '#86efac';
+
+        valLayer.style.color = color;
+        valLayer.title = d.label;
+
+        new Chart(canvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [d.score, 100 - d.score],
+                    backgroundColor: [color, 'rgba(255,255,255,0.05)'],
+                    borderWidth: 0,
+                    circumference: 180,
+                    rotation: 270
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                plugins: { tooltip: { enabled: false }, legend: { display: false } },
+                animation: { animateRotate: true, animateScale: false }
+            }
+        });
+    } catch(e) {}
 }
 
 // Global Live Alpha Ticker

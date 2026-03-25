@@ -1347,6 +1347,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/rotation': self.handle_rotation()
             elif path.startswith('/api/correlation'): self.handle_correlation()
             elif path.startswith('/api/stress-test'): self.handle_risk()
+            elif path.startswith('/api/fear-greed'): self.handle_fear_greed()
+            elif path.startswith('/api/dominance'): self.handle_dominance()
             elif path.startswith('/api/regime'): self.handle_regime()
             elif path.startswith('/api/history'): self.handle_history()
             elif path.startswith('/api/benchmark'): self.handle_benchmark()
@@ -2831,7 +2833,59 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_json({"error": str(e)})
 
+    def handle_fear_greed(self):
+        try:
+            # Scale: 0 = Extreme Fear, 100 = Extreme Greed
+            data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close')
+            if data is not None and not data.empty:
+                prices = data.squeeze() if hasattr(data, 'squeeze') else data
+                current = float(prices.iloc[-1] if not hasattr(prices.iloc[-1], 'iloc') else prices.iloc[-1].iloc[0])
+                sma50 = float(prices.mean() if not hasattr(prices.mean(), 'iloc') else prices.mean().iloc[0])
+                dev = ((current - sma50) / sma50) * 100 
+                
+                rets = prices.pct_change().dropna()
+                vol = float(rets.std() if not hasattr(rets.std(), 'iloc') else rets.std().iloc[0]) * np.sqrt(365) * 100
+                
+                score = 50 + (dev * 2.5) - (vol - 40) * 0.5
+                score = max(0, min(100, int(score)))
+                
+                if score < 25: label = "EXTREME FEAR"
+                elif score < 45: label = "FEAR"
+                elif score < 55: label = "NEUTRAL"
+                elif score < 75: label = "GREED"
+                else: label = "EXTREME GREED"
+                
+                self.send_json({"score": score, "label": label})
+                return
+        except Exception as e: 
+            print(f"Fear/Greed Error: {e}")
+        self.send_json({"score": 50, "label": "NEUTRAL"})
 
+    def handle_dominance(self):
+        try:
+            tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD']
+            data = CACHE.download(tickers, period='60d', interval='1d', column='Close')
+            if data is not None and not data.empty:
+                btc_mc = data['BTC-USD'].dropna() * 19800000
+                eth_mc = data['ETH-USD'].dropna() * 120000000
+                sol_mc = data['SOL-USD'].dropna() * 450000000 * 3 
+                
+                df = pd.DataFrame({'BTC': btc_mc, 'ETH': eth_mc, 'ALTS': sol_mc}).dropna()
+                total = df.sum(axis=1)
+                df_pct = df.div(total, axis=0) * 100
+                
+                payload = {
+                    "labels": [d.strftime('%Y-%m-%d') for d in df_pct.index],
+                    "btc": df_pct['BTC'].round(2).tolist(),
+                    "eth": df_pct['ETH'].round(2).tolist(),
+                    "alts": df_pct['ALTS'].round(2).tolist()
+                }
+                self.send_json(payload)
+                return
+        except Exception as e:
+            print(f"Dominance Error: {e}")
+        self.send_json({"error": "Failed to sync dominance matrix"})
+        
     def handle_rotation(self):
         print("\n[DEBUG] handle_rotation called")
         # Pack H4: Actionable Sector Rotation
