@@ -4800,6 +4800,7 @@ const viewMap = {
     whales: renderWhales,
 
     regime: renderRegime,
+    macro: renderMacroSync,
     rotation: renderRotation,
     velocity: renderChainVelocity,
     portfolio: renderPortfolioLab,

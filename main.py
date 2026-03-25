@@ -1319,9 +1319,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path == '/api/tape': self.handle_tape()
             elif path == '/api/generate-setup': self.handle_setup_generation()
             elif path == '/api/whales': self.handle_whales()
-            elif path == '/api/liquidations': self.handle_liquidations()
-            elif path == '/api/derivatives': self.handle_derivatives()
-            elif path == '/api/macro': self.handle_macro()
+            elif path.startswith('/api/liquidations'): self.handle_liquidations()
+            elif path.startswith('/api/derivatives'): self.handle_derivatives()
+            elif path.startswith('/api/macro'): self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
             elif path.startswith('/api/portfolio-sim') or path == '/api/portfolio-performance': 
                 self.handle_portfolio_performance()
