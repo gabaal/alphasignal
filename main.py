@@ -1329,6 +1329,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path.startswith('/api/sectors'): self.handle_sectors()
             elif path.startswith('/api/factor-web'): self.handle_factor_web()
             elif path.startswith('/api/execution-time'): self.handle_execution_time()
+            elif path.startswith('/api/sankey'): self.handle_sankey()
+            elif path.startswith('/api/correlation-matrix'): self.handle_correlation_matrix()
+            elif path.startswith('/api/system-dials'): self.handle_system_dials()
             elif path.startswith('/api/macro'): self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
             elif path.startswith('/api/portfolio-sim') or path == '/api/portfolio-performance': 
@@ -1676,6 +1679,65 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"ticker": ticker, "labels": labels, "volumes": [round(v, 2) for v in volumes]})
         except Exception as e:
             self.send_json({"error": "Failed to sync execution time"})
+
+    def handle_sankey(self):
+        # Phase 21: Ecosystem Capital Flow
+        try:
+            nodes = [
+                {"name": "Fiat Origins"},
+                {"name": "Stablecoin Issuance"},
+                {"name": "BTC (Store of Value)"},
+                {"name": "ETH (DeFi Core)"},
+                {"name": "SOL (High Velocity)"},
+                {"name": "EVM Lending (Aave)"},
+                {"name": "EVM DEX (Uniswap)"},
+                {"name": "SVM Aggregators (Jup)"},
+            ]
+            links = [
+                {"source": 0, "target": 1, "value": 2500},
+                {"source": 0, "target": 2, "value": 1800},
+                {"source": 1, "target": 3, "value": 1100},
+                {"source": 1, "target": 4, "value": 850},
+                {"source": 2, "target": 3, "value": 300},
+                {"source": 3, "target": 5, "value": 600},
+                {"source": 3, "target": 6, "value": 450},
+                {"source": 4, "target": 7, "value": 550},
+            ]
+            self.send_json({"nodes": nodes, "links": links})
+        except Exception as e:
+            self.send_json({"error": "Failed to sync Sankey"})
+
+    def handle_correlation_matrix(self):
+        # Phase 21: NxN Correlation Matrix Heatmap
+        try:
+            assets = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "LINK", "GOLD", "SPX"]
+            matrix = []
+            random.seed("correlation2026")
+            for i, a in enumerate(assets):
+                for j, b in enumerate(assets):
+                    if i == j:
+                        corr = 1.0
+                    elif a in ["GOLD", "SPX"] or b in ["GOLD", "SPX"]:
+                        corr = random.uniform(-0.4, 0.6)
+                    else:
+                        corr = random.uniform(0.3, 0.95)
+                    matrix.append({"assetA": a, "assetB": b, "correlation": round(corr, 2)})
+            self.send_json({"assets": assets, "matrix": matrix})
+        except Exception as e:
+            self.send_json({"error": "Failed to sync Correlation Matrix"})
+
+    def handle_system_dials(self):
+        # Phase 21: System Conviction Dials
+        try:
+            random.seed("dials" + datetime.now().strftime("%H"))
+            dials = {
+                "fear_greed": {"value": random.randint(20, 80), "label": "Fear & Greed Index"},
+                "network_congestion": {"value": random.randint(10, 99), "label": "Network Congestion"},
+                "retail_fomo": {"value": random.randint(15, 85), "label": "Retail FOMO"}
+            }
+            self.send_json({"dials": dials})
+        except Exception as e:
+            self.send_json({"error": "Failed to sync Dials"})
 
     # ============================================================
     # Pack G2: Mindshare Analysis

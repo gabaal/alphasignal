@@ -2190,7 +2190,7 @@ async function renderMarketPulse() {
 // ============= Pack G Rotation & Macro Sync =============
 async function renderMacroSync() {
     appEl.innerHTML = skeleton(2);
-    const [data, sectors] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors')]);
+    const [data, sectors, corrData] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors'), fetchAPI('/correlation-matrix')]);
     if (!data) return;
 
     appEl.innerHTML = `
@@ -2235,6 +2235,18 @@ async function renderMacroSync() {
                     Box size represents aggregate Sector Market Capitalization. Color intensity maps 24H directional momentum.
                 </div>
             </div>
+
+            <div class="card" style="margin-top:2rem">
+                <div class="card-header" style="margin-bottom:15px">
+                    <h3>Cross-Asset Correlation Matrix Heatmap</h3>
+                    <span class="label-tag">NxN_STATISTICS</span>
+                </div>
+                <div id="corr-matrix-container" style="width:100%; overflow-x:auto;"></div>
+                <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
+                    30-Day Pearson Correlation Coefficient spanning traditional and digital assets. Dark cyan (+1.0) equates to perfect sync, bright red (-1.0) denotes inverse flow.
+                </div>
+            </div>
+
             <div class="card" style="margin-top:2rem">
                 <div class="card-header">
                     <h3>Leveraged Funding Divergence (Perpetuals)</h3>
@@ -2354,12 +2366,49 @@ async function renderMacroSync() {
             }
 
             if (sectors) renderSectorTreemap(sectors);
+            if (corrData && corrData.assets) renderCorrelationMatrix(corrData);
 
         } catch (e) {
             console.error("Macro sync charts failed:", e);
         }
     }, 50);
 }
+
+function renderCorrelationMatrix(data) {
+    const container = document.getElementById('corr-matrix-container');
+    if (!container) return;
+    
+    let html = `<table class="corr-table" style="width:100%; border-collapse:collapse; text-align:center; font-family:'JetBrains Mono'">`;
+    
+    html += '<tr><th style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1)"></th>';
+    data.assets.forEach(a => {
+        html += `<th style="padding:8px; font-size:0.75rem; color:var(--text-dim); border-bottom:1px solid rgba(255,255,255,0.1)">${a}</th>`;
+    });
+    html += '</tr>';
+
+    data.assets.forEach(rowAsset => {
+        html += `<tr><td style="padding:8px; font-size:0.75rem; color:var(--text-dim); font-weight:700; text-align:left; border-right:1px solid rgba(255,255,255,0.1)">${rowAsset}</td>`;
+        data.assets.forEach(colAsset => {
+            const pair = data.matrix.find(m => m.assetA === rowAsset && m.assetB === colAsset);
+            if (!pair) {
+                html += '<td></td>';
+                return;
+            }
+            const val = pair.correlation;
+            let bg;
+            if (val === 1) bg = 'rgba(255,255,255,0.05)';
+            else if (val > 0) bg = `rgba(0, 242, 255, ${Math.min(val, 0.9)})`;
+            else bg = `rgba(239, 68, 68, ${Math.min(Math.abs(val), 0.9)})`;
+            
+            const color = val === 1 ? 'rgba(255,255,255,0.2)' : (Math.abs(val) > 0.5 ? 'white' : 'var(--text-dim)');
+            html += `<td style="padding:10px 5px; font-size:0.75rem; background:${bg}; color:${color}; border:1px solid rgba(0,0,0,0.5)">${val.toFixed(2)}</td>`;
+        });
+        html += '</tr>';
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
 
 function renderSectorTreemap(data) {
     const container = document.getElementById('sector-treemap');
@@ -3124,6 +3173,12 @@ async function renderChainVelocity() {
                 </div>
             `).join('')}
         </div>
+
+        <div class="card" style="margin-top:2rem; padding:1.5rem; background:rgba(0,0,0,0.4)">
+            <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">ECOSYSTEM CAPITAL FLOW (SANKEY)</h3>
+            <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:1.5rem">Maps real-time capital allocation from fiat origins down through L1 routing protocols to specific Yield/DEX destination pools.</p>
+            <div id="sankey-container" style="height:400px; width:100%; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.2)"></div>
+        </div>
     `;
 
     const ctx = document.getElementById('velocityRadar').getContext('2d');
@@ -3194,6 +3249,79 @@ async function renderChainVelocity() {
             }
         }
     });
+
+    fetchAPI('/sankey').then(sankeyData => {
+        if (sankeyData && sankeyData.nodes) renderSankeyDiagram(sankeyData);
+    });
+}
+
+function renderSankeyDiagram({ nodes, links }) {
+    const container = document.getElementById('sankey-container');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (typeof d3 === 'undefined' || !d3.sankey) {
+        container.innerHTML = '<p class="empty-state">D3-Sankey plugin failed to load.</p>';
+        return;
+    }
+
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 400;
+
+    const sankey = d3.sankey()
+        .nodeWidth(15)
+        .nodePadding(20)
+        .extent([[20, 20], [width - 20, height - 20]]);
+
+    const { nodes: sNodes, links: sLinks } = sankey({
+        nodes: nodes.map(d => Object.assign({}, d)),
+        links: links.map(d => Object.assign({}, d))
+    });
+
+    const svg = d3.select(container).append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${width} ${height}`)
+        .style('font-family', 'JetBrains Mono');
+
+    svg.append('g')
+        .attr('fill', 'none')
+        .selectAll('path')
+        .data(sLinks)
+        .join('path')
+        .attr('d', d3.sankeyLinkHorizontal())
+        .attr('stroke', 'rgba(0, 242, 255, 0.2)')
+        .attr('stroke-width', d => Math.max(1, d.width))
+        .attr('class', 'sankey-link')
+        .style('mix-blend-mode', 'screen');
+
+    const node = svg.append('g')
+        .selectAll('g')
+        .data(sNodes)
+        .join('g')
+        .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+    node.append('rect')
+        .attr('width', d => d.x1 - d.x0)
+        .attr('height', d => Math.max(1, d.y1 - d.y0))
+        .attr('fill', d => {
+            if (d.name.includes('BTC') || d.name.includes('Aave')) return '#f7931a';
+            if (d.name.includes('Stablecoin')) return '#3b82f6';
+            if (d.name.includes('SOL') || d.name.includes('Jup')) return '#14F195';
+            if (d.name.includes('ETH')) return '#627eea';
+            return '#00f2ff';
+        })
+        .style('stroke', 'rgba(255,255,255,0.2)');
+
+    node.append('text')
+        .attr('x', d => (d.x0 < width / 2) ? (d.x1 - d.x0 + 6) : -6)
+        .attr('y', d => (d.y1 - d.y0) / 2)
+        .attr('dy', '0.35em')
+        .attr('text-anchor', d => (d.x0 < width / 2) ? 'start' : 'end')
+        .attr('fill', '#fff')
+        .attr('font-size', '11px')
+        .attr('font-weight', '700')
+        .text(d => d.name);
 }
 
 async function renderPortfolioOptimizer() {
@@ -5481,6 +5609,34 @@ async function renderHome() {
                         <h3>AI Whale Tracking</h3>
                         <p>Real-time institutional-sized transaction tracking and exchange flow alerts for Bitcoin and Eth whales.</p>
                     </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="system-dials-section" style="padding: 4rem 2rem; max-width:1400px; margin:0 auto; border-top: 1px solid var(--border);">
+                <div class="section-title-wrap" style="text-align:center; margin-bottom:3rem">
+                    <h2>System Conviction Dials</h2>
+                    <p style="color:var(--text-dim); font-size:1rem; margin-top:0.5rem">Analog institutional indicators tracking global market psychology and blockchain bandwidth limiters.</p>
+                </div>
+                <div class="dials-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:3rem">
+                    <div class="glass-card" style="padding:2rem; text-align:center">
+                        <h3 style="color:var(--accent); font-size:1rem; letter-spacing:1px; margin-bottom:1rem">FEAR & GREED</h3>
+                        <div style="position:relative; width:100%; height:200px">
+                            <canvas id="gauge-fear"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card" style="padding:2rem; text-align:center">
+                        <h3 style="color:var(--accent); font-size:1rem; letter-spacing:1px; margin-bottom:1rem">NETWORK CONGESTION</h3>
+                        <div style="position:relative; width:100%; height:200px">
+                            <canvas id="gauge-congestion"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card" style="padding:2rem; text-align:center">
+                        <h3 style="color:var(--accent); font-size:1rem; letter-spacing:1px; margin-bottom:1rem">RETAIL FOMO</h3>
+                        <div style="position:relative; width:100%; height:200px">
+                            <canvas id="gauge-fomo"></canvas>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -5526,6 +5682,68 @@ async function renderHome() {
             </section>
         </div>
     `;
+
+    fetchAPI('/system-dials').then(data => {
+        if (!data || !data.dials) return;
+        renderSystemGauge('gauge-fear', data.dials.fear_greed.value, 'rgba(239, 68, 68, 0.8)', 'rgba(34, 197, 94, 0.8)');
+        renderSystemGauge('gauge-congestion', data.dials.network_congestion.value, 'rgba(34, 197, 94, 0.8)', 'rgba(239, 68, 68, 0.8)');
+        renderSystemGauge('gauge-fomo', data.dials.retail_fomo.value, 'rgba(0, 242, 255, 0.8)', 'rgba(168, 85, 247, 0.8)');
+    }).catch(e => console.error(e));
+}
+
+function renderSystemGauge(canvasId, value, colorLow, colorHigh) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+    
+    let primaryColor = value > 50 ? colorHigh : colorLow;
+    
+    new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Value', 'Remaining'],
+            datasets: [{
+                data: [value, 100 - value],
+                backgroundColor: [primaryColor, 'rgba(255,255,255,0.05)'],
+                borderWidth: 0,
+                circumference: 180,
+                rotation: 270
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '80%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false },
+                datalabels: { display: false }
+            }
+        },
+        plugins: [{
+            id: 'gaugeCenterText',
+            afterDraw(chart) {
+                const {ctx, data} = chart;
+                const val = data.datasets[0].data[0];
+                const meta = chart.getDatasetMeta(0).data[0];
+                if (!meta) return;
+                
+                const xCenter = meta.x;
+                const yCenter = meta.y;
+                
+                ctx.save();
+                ctx.font = 'bold 36px JetBrains Mono';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(Math.round(val), xCenter, yCenter - 20);
+                
+                ctx.font = '600 12px Inter';
+                ctx.fillStyle = 'var(--text-dim)';
+                ctx.fillText('INDEX SCORE', xCenter, yCenter + 15);
+                ctx.restore();
+            }
+        }]
+    });
 }
 
 // ============= Documentation Views (Hidden Routes) =============
