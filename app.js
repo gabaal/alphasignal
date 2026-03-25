@@ -3699,7 +3699,16 @@ async function renderLiquidityView() {
 
         display.innerHTML = `
             <div class="card" style="height:100%; border:none; background:transparent; display:flex; flex-direction:column">
-                <h3 class="card-title">Global Liquidity Walls (Cross-Exchange)</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                    <h3 class="card-title" style="margin:0">Global Liquidity Walls</h3>
+                    <!-- Pagination Controls -->
+                    <div style="display:flex; align-items:center; gap:15px">
+                        <button class="filter-btn" id="btn-prev-page" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
+                        <span style="font-size:0.70rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
+                        <button class="filter-btn" id="btn-next-page" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
+                    </div>
+                </div>
+                
                 <div class="liquidity-chart" style="flex:1">
                     ${currentWalls.map(w => {
                         const width = (w.size / maxSideDepth) * 100;
@@ -3715,13 +3724,6 @@ async function renderLiquidityView() {
                         </div>`;
                     }).join('')}
                     <div class="mid-price-line">GLOBAL MID PRICE: ${formatPrice(data.current_price)}</div>
-                </div>
-                
-                <!-- Pagination Controls -->
-                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:5px; border-top:1px solid rgba(255,255,255,0.05); margin-top:5px">
-                    <button class="filter-btn" id="btn-prev-page" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Previous</button>
-                    <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
-                    <button class="filter-btn" id="btn-next-page" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
                 </div>
             </div>`;
 
