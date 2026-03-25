@@ -3165,6 +3165,99 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                         last_signal = current_signal
                     signals[i] = last_signal
                 df['Signal'] = signals
+            elif strategy == 'z_score':
+                # Z-Score Statistical Reversion
+                df['MA20'] = df['Close'].rolling(window=20).mean()
+                df['Std20'] = df['Close'].rolling(window=20).std()
+                df['ZScore'] = (df['Close'] - df['MA20']) / (df['Std20'] + 1e-9)
+                
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        z = df['ZScore'].iloc[i]
+                        if pd.isna(z):
+                            current_signal = last_signal
+                        elif z < -2.0: current_signal = 1
+                        elif z > 2.0: current_signal = 0
+                        else: current_signal = last_signal
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+            elif strategy == 'supertrend':
+                # Adaptive Supertrend Trailing Engine (ATR based)
+                multiplier = 3.0
+                period = 10
+                
+                df['H-L'] = df['Close'].rolling(window=2).max() - df['Close'].rolling(window=2).min()
+                df['ATR'] = df['H-L'].rolling(window=period).mean().fillna(df['Close'].rolling(window=period).std())
+                df['Mid'] = df['Close'].rolling(window=period).mean()
+                
+                signals = [0] * len(df)
+                last_signal = 0
+                upper_band = 0
+                lower_band = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        close = df['Close'].iloc[i]
+                        mid = df['Mid'].iloc[i]
+                        atr = df['ATR'].iloc[i]
+                        
+                        if pd.isna(mid) or pd.isna(atr):
+                            signals[i] = last_signal
+                            continue
+                            
+                        ub = mid + (multiplier * atr)
+                        lb = mid - (multiplier * atr)
+                        
+                        if last_signal == 1:
+                            lower_band = max(lower_band, lb) if lower_band != 0 else lb
+                        else:
+                            lower_band = lb
+                            
+                        if last_signal == 0:
+                            upper_band = min(upper_band, ub) if upper_band != 0 else ub
+                        else:
+                            upper_band = ub
+
+                        if close > upper_band:
+                            current_signal = 1
+                        elif close < lower_band:
+                            current_signal = 0
+                        else:
+                            current_signal = last_signal
+                            
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+            elif strategy == 'obv_flow':
+                # On-Balance Volume (Volume Flow Divergence)
+                df['Direction'] = np.where(df['Close'] > df['Close'].shift(1), 1, 
+                                     np.where(df['Close'] < df['Close'].shift(1), -1, 0))
+                df['OBV'] = (df['Volume'] * df['Direction']).cumsum()
+                
+                # Compare fast 10d OBV ema to slow 30d OBV ema
+                df['OBV_Fast'] = df['OBV'].ewm(span=10).mean()
+                df['OBV_Slow'] = df['OBV'].ewm(span=30).mean()
+                
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        fast_obv = df['OBV_Fast'].iloc[i]
+                        slow_obv = df['OBV_Slow'].iloc[i]
+                        
+                        if pd.isna(fast_obv):
+                            current_signal = last_signal
+                        elif fast_obv > slow_obv:
+                            current_signal = 1
+                        elif fast_obv < slow_obv:
+                            current_signal = 0
+                        else:
+                            current_signal = last_signal
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
             else:
                 # Default Logic: EMA Crossover (Fast/Slow)
                 df['EMA_Fast'] = df['Close'].ewm(span=fast, adjust=False).mean()

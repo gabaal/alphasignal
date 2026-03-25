@@ -2091,6 +2091,9 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
                         <option value="vwap_cross" ${strategy === 'vwap_cross' ? 'selected' : ''}>VWAP Crossover (EMA5 Anchor)</option>
                         <option value="macd_momentum" ${strategy === 'macd_momentum' ? 'selected' : ''}>MACD Momentum (12/26/9)</option>
                         <option value="stochastic_cross" ${strategy === 'stochastic_cross' ? 'selected' : ''}>Stochastic Oscillator Cross</option>
+                        <option value="z_score" ${strategy === 'z_score' ? 'selected' : ''}>Statistical Arbitrage (Z-Score Core)</option>
+                        <option value="supertrend" ${strategy === 'supertrend' ? 'selected' : ''}>Adaptive Supertrend Volatility System</option>
+                        <option value="obv_flow" ${strategy === 'obv_flow' ? 'selected' : ''}>Smart Money Flow Divergence (OBV/CVD)</option>
                     </select>
                 </div>
                 
