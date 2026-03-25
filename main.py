@@ -148,7 +148,9 @@ SENTIMENT_KEYWORDS = {
 # ============================================================
 # Pack G4: Persistent Intelligence (Hybrid Cache)
 # ============================================================
-DB_PATH = 'alphasignal.db'
+# Use DATA_DIR env var for Railway Volume mounting (e.g. DATA_DIR=/data)
+data_dir = os.getenv('DATA_DIR', '').rstrip('/')
+DB_PATH = f"{data_dir}/alphasignal.db" if data_dir else 'alphasignal.db'
 
 def init_db():
     # Keep local SQLite for fast L1/L2 caching, but primary intelligence moves to Cloud
