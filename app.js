@@ -5813,6 +5813,11 @@ function renderHelp() {
         <div class="doc-container" style="max-width: 900px; margin: 0 auto; padding-top: 2rem;">
             <p style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 2rem; line-height: 1.6;">Select a module below to view detailed methodology, data sources, and analytical frameworks.</p>
             <div class="f-grid">
+                <div class="f-card" onclick="switchView('explain-advanced-charting')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">candlestick_chart</span></div>
+                    <h3>Advanced Charting</h3>
+                    <p>Depth and dynamic order flow overlays.</p>
+                </div>
                 <div class="f-card" onclick="switchView('explain-briefing')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">memory</span></div>
                     <h3>AI Briefing</h3>
@@ -5848,16 +5853,6 @@ function renderHelp() {
                     <h3>Correlation Analysis</h3>
                     <p>Identifying market decoupling and rotation events.</p>
                 </div>
-                <div class="f-card" onclick="switchView('explain-onchain')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">link</span></div>
-                    <h3>On-Chain Analytics</h3>
-                    <p>Macro network metrics & MVRV modeling.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-advanced-charting')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">candlestick_chart</span></div>
-                    <h3>Advanced Charting</h3>
-                    <p>Depth and dynamic order flow overlays.</p>
-                </div>
                 <div class="f-card" onclick="switchView('explain-api')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">terminal</span></div>
                     <h3>Institutional API</h3>
@@ -5873,11 +5868,6 @@ function renderHelp() {
                     <h3>ML Alpha Engine</h3>
                     <p>Neural feature synthesis and predictive modeling.</p>
                 </div>
-                <div class="f-card" onclick="switchView('explain-topologies')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">category</span></div>
-                    <h3>Topologies & Geometries</h3>
-                    <p>Documentation on advanced structural graphs like Sankey pipelines, Radars, and Guppy Ribbons.</p>
-                </div>
                 <div class="f-card" onclick="switchView('explain-pwa')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">install_mobile</span></div>
                     <h3>Mobile Terminal</h3>
@@ -5887,6 +5877,11 @@ function renderHelp() {
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">hub</span></div>
                     <h3>Narrative Galaxy</h3>
                     <p>Using NLP-driven social cluster visualization.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-onchain')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">link</span></div>
+                    <h3>On-Chain Analytics</h3>
+                    <p>Macro network metrics & MVRV modeling.</p>
                 </div>
                 <div class="f-card" onclick="switchView('explain-liquidity')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">bar_chart</span></div>
@@ -5932,6 +5927,11 @@ function renderHelp() {
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">menu_book</span></div>
                     <h3>Terminal Glossary</h3>
                     <p>Quick reference for all institutional metrics.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-topologies')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">category</span></div>
+                    <h3>Topologies & Geometries</h3>
+                    <p>Documentation on advanced structural graphs like Sankey pipelines, Radars, and Guppy Ribbons.</p>
                 </div>
                 <div class="f-card" onclick="switchView('explain-playbook')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">auto_stories</span></div>
