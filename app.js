@@ -6164,11 +6164,39 @@ window.toggleSafeMode = toggleSafeMode;
 // Ensure Live Streams connect on load
 document.addEventListener('DOMContentLoaded', () => {
     initLivePriceStream();
+    initLiveAlphaScroller();
     // updateInstitutionalPulse();
 });
 
 // Backup call if DOMContentLoaded already fired
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     initLivePriceStream();
+    initLiveAlphaScroller();
     // updateInstitutionalPulse();
+}
+
+// Global Live Alpha Ticker
+async function initLiveAlphaScroller() {
+    const scroller = document.getElementById('alpha-scroller');
+    if (!scroller) return;
+
+    async function poll() {
+        try {
+            const d = await fetchAPI('/signals');
+            if (d && d.signals && d.signals.length > 0) {
+                const html = d.signals.map(s => {
+                    const color = s.type === 'BUY' ? 'var(--risk-low)' : 'var(--risk-high)';
+                    return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${s.type}]</span> <span style="color:var(--text-dim)">@ ${formatPrice(s.price)}</span></span>`;
+                }).join('');
+                scroller.innerHTML = html + html; 
+            } else {
+                scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
+            }
+        } catch (e) {
+            console.error("Live Alpha Feed Sync Error");
+        }
+    }
+    
+    poll();
+    setInterval(poll, 30000); // 30s refresh
 }
