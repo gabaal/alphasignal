@@ -2386,6 +2386,22 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
                 <div class="chart-container" style="height: 250px; background: rgba(0,0,0,0.1); border-radius:16px; border:1px solid var(--border); padding: 20px">
                     <canvas id="strategyChart"></canvas>
                 </div>
+
+                <div class="glass-card" style="margin-top: 20px; padding: 20px">
+                    <div class="card-header" style="margin-bottom:15px">
+                        <h3>Monte Carlo Trajectory Matrix</h3>
+                        <span class="label-tag">PROBABILITY</span>
+                    </div>
+                    <div style="height: 350px; position:relative;">
+                        <canvas id="monteCarloChart"></canvas>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 15px; display:flex; gap:20px; text-align:center">
+                        <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px"><span style="color:#00f2ff">SIMULATIONS:</span><br>20 Paths</div>
+                        <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px"><span style="color:#facc15">HORIZON:</span><br>30 Days</div>
+                        <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px" id="mc-sigma-label"><span style="color:#bc13fe">VOLATILITY:</span><br>--</div>
+                    </div>
+                </div>
+
             </div>
         </div>
     `;
@@ -2398,6 +2414,55 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
         createTradingViewChart('strat-tv-container', hist);
     }
     renderStrategyChart(curve);
+
+    try {
+        const mcData = await fetchAPI(`/monte-carlo?ticker=${ticker}`);
+        if (mcData && mcData.paths) {
+            document.getElementById('mc-sigma-label').innerHTML = `<span style="color:#bc13fe">VOLATILITY:</span><br>${mcData.sigma}% (Ann.)`;
+            renderMonteCarloChart(mcData);
+        }
+    } catch(e) {}
+}
+
+function renderMonteCarloChart(data) {
+    const ctx = document.getElementById('monteCarloChart');
+    if (!ctx) return;
+    if (window.activeMCChart) window.activeMCChart.destroy();
+    
+    const datasets = data.paths.map((p, i) => ({
+        label: `Path ${i+1}`,
+        data: p,
+        borderColor: `rgba(0, 242, 255, ${0.05 + (Math.random() * 0.15)})`,
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0.2
+    }));
+    
+    // Add baseline
+    datasets.push({
+        label: 'Current Spot',
+        data: Array(data.dates.length).fill(data.current_price),
+        borderColor: 'rgba(255, 62, 62, 0.4)',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        pointRadius: 0,
+        fill: false
+    });
+    
+    window.activeMCChart = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: { labels: data.dates, datasets: datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
+            scales: {
+                x: { grid: { display:false }, ticks: { color: '#888', font: { family: 'JetBrains Mono', size:10 }, maxRotation:0 } },
+                y: { position: 'right', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: function(val) { return '$' + val.toLocaleString(); } } }
+            }
+        }
+    });
 }
 
 window.downloadBacktestCSV = function(ticker, strategy) {

@@ -1325,6 +1325,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             elif path.startswith('/api/funding-rates'): self.handle_funding_rates()
             elif path.startswith('/api/ssr'): self.handle_ssr()
             elif path.startswith('/api/tvl'): self.handle_tvl()
+            elif path.startswith('/api/monte-carlo'): self.handle_monte_carlo()
             elif path.startswith('/api/macro'): self.handle_macro()
             elif path == '/api/wallet-attribution': self.handle_wallet_attribution()
             elif path.startswith('/api/portfolio-sim') or path == '/api/portfolio-performance': 
@@ -3188,6 +3189,51 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
     def handle_news(self):
         news = self.get_context_news()
         self.send_json(news)
+
+    def handle_monte_carlo(self):
+        # Phase 19: Geometric Brownian Motion (GBM) Monte Carlo Price Projection Array
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            hist = CACHE.download(ticker, period='180d', interval='1d', column='Close')
+            if hist is None or getattr(hist, 'empty', True):
+                self.send_json({"error": f"No data found for {ticker}"})
+                return
+            
+            prices = hist.squeeze()
+            rets = prices.pct_change().dropna()
+            
+            mu = float(rets.mean())
+            sigma = float(rets.std())
+            S0 = float(prices.iloc[-1])
+            
+            T = 30 # 30-day forward projection
+            simulations = 20 # 20 path traces for visual cone density
+            
+            paths = []
+            for _ in range(simulations):
+                path = [S0]
+                for _ in range(T):
+                    drift = mu - (0.5 * sigma**2)
+                    shock = sigma * np.random.normal()
+                    price = path[-1] * np.exp(drift + shock)
+                    path.append(float(price))
+                paths.append(path)
+            
+            last_date = prices.index[-1]
+            dates = [(last_date + pd.Timedelta(days=i)).strftime('%b %d') for i in range(T + 1)]
+            
+            self.send_json({
+                "ticker": ticker,
+                "paths": paths,
+                "dates": dates,
+                "mu": round(mu * 100, 2),
+                "sigma": round(sigma * np.sqrt(365) * 100, 2),
+                "current_price": round(S0, 2)
+            })
+        except Exception as e:
+            print(f"Monte Carlo Error: {e}")
+            self.send_json({"error": "Simulation failed"})
 
     def handle_backtest(self):
         # Pack L: Strategy Optimization Lab Engine (Real History Edition)
