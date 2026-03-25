@@ -4474,6 +4474,8 @@ const viewMap = {
     'explain-risk': renderDocsRisk,
     'explain-playbook': renderDocsPlaybook,
     'explain-regimes': renderDocsRegimes,
+    'explain-advanced-charting': renderDocsAdvancedCharting,
+    'explain-onchain': renderDocsOnchain,
     'explain-api': renderDocsAPI,
     'explain-glossary': renderDocsGlossary,
     'explain-signal-archive': renderDocsSignalArchive,
@@ -4688,6 +4690,16 @@ function renderHelp() {
                     <h3>Correlation Analysis</h3>
                     <p>Identifying market decoupling and rotation events.</p>
                 </div>
+                <div class="f-card" onclick="switchView('explain-onchain')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">link</span></div>
+                    <h3>On-Chain Analytics</h3>
+                    <p>Macro network metrics & MVRV modeling.</p>
+                </div>
+                <div class="f-card" onclick="switchView('explain-advanced-charting')">
+                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">candlestick_chart</span></div>
+                    <h3>Advanced Charting</h3>
+                    <p>Depth and dynamic order flow overlays.</p>
+                </div>
                 <div class="f-card" onclick="switchView('explain-api')">
                     <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">terminal</span></div>
                     <h3>Institutional API</h3>
@@ -4776,6 +4788,36 @@ function renderHelp() {
             </div>
         </div>
     `;
+}
+
+function renderDocsAdvancedCharting() {
+    renderExplainPage(
+        "Advanced Charting Pro Suite",
+        "The Advanced Charting module integrates professional-grade Technical Analysis, Market Depth visualization, and Real-time WebSockets.",
+        "AlphaSignal's Charting engine utilizes TradingView's Lightweight Charts library, supercharged by direct Binance WebSockets and REST pipelines. This allows ZERO-latency rendering of price, volume, and order-book liquidity without relying on intermittent intermediary proxies.",
+        [
+            { icon: 'candlestick_chart', title: "Price & Overlays", desc: "Live 1m to 1d candlesticks superimposed with Dynamic EMA 20 and 50 lookback curves." },
+            { icon: 'water_drop', title: "Market Depth", desc: "Live dual-area mapping of continuous bid/ask limit orders pulling from Binance Order Book." },
+            { icon: 'timeline', title: "Derivatives", desc: "Overlay of Open Interest progression and liquidation histogram tracking." },
+            { icon: 'stacked_line_chart', title: "Comparative Index", desc: "Percentage-normalized overlap of BTC, ETH, and SOL growth rates." }
+        ],
+        [
+            { title: "Liquidity Wall Spotting", text: "By switching to the Market Depth tab, professional traders can visually isolate large limit-order structures ('Walls') acting as support or resistance, allowing for optimal entry timing." }
+        ]
+    );
+}
+
+function renderDocsOnchain() {
+    renderExplainPage(
+        "On-Chain Analytics Dashboard",
+        "Deep quantitative modeling of blockchain fundamentals and macro valuation metrics without the need for external enterprise data subscriptions.",
+        "To provide high-fidelity macro indicators without prohibitive third-party dependencies, AlphaSignal employs an internal synthesis engine. This engine mathematically derives the MVRV Z-Score and NVT Ratio by modeling long-term volatility drift, moving-average deviation, and network utilization rates against historical price action.",
+        [
+            { icon: 'area_chart', title: "MVRV Z-Score", desc: "Assesses asset over/undervaluation. When Market Value exceeds Realized Value significantly (Top red band), tops often form." },
+            { icon: 'show_chart', title: "NVT Ratio", desc: "Network Value to Transactions ratio acts as crypto's native P/E ratio to gauge utility." },
+            { icon: 'memory', title: "Fundamentals", desc: "Simulated tracking of absolute algorithmic difficulty, Hashrate growth, and active entities." }
+        ]
+    );
 }
 
 function renderDocsSignals() {
@@ -5297,6 +5339,8 @@ function updateSEOMeta(view) {
         'explain-risk': { title: 'Documentation — Risk Management', desc: 'Institutional frameworks for protecting capital using volatility and drawdown modeling.' },
         'explain-playbook': { title: 'Documentation — Trading Playbook', desc: 'Advanced trading strategies and multi-signal institutional execution frameworks.' },
         'explain-regimes': { title: 'Documentation — Market Regimes', desc: 'Identifying market cycles through institutional flow, volatility, and sentiment analysis.' },
+        'explain-advanced-charting': { title: 'Documentation — Advanced Charting', desc: 'Full institutional suite featuring orderbook liquidity and derivatives overlays.' },
+        'explain-onchain': { title: 'Documentation — On-Chain Analytics', desc: 'Quantitative modeling of network MVRV, NVT, and internal blockchain metrics.' },
         'explain-api': { title: 'Documentation — Institutional API', desc: 'Programmatic access for real-time alpha signals, liquidity depth, and narrative intelligence.' },
         'explain-glossary': { title: 'Documentation — Terminal Glossary', desc: 'A quick-reference guide to all technical metrics used across the AlphaSignal platform.' },
         'explain-performance': { title: 'Documentation — Performance Analytics', desc: 'Track terminal win rates, return distributions, and institutional track records.' },
