@@ -1878,7 +1878,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 prices = data.squeeze() if hasattr(data, 'squeeze') else data
                 
                 # Map SSR to price deviation: When BTC skyrockets, SSR (Ratio) climbs.
-                sma_20 = prices.rolling(20).mean().fillna(method='bfill')
+                sma_20 = prices.rolling(20).mean().bfill()
                 deviation = (prices / sma_20) - 1.0
                 
                 ssr_series = 4.0 + (deviation * 12.0)
