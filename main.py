@@ -4344,11 +4344,27 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             worst = {'ticker': '-', 'return': 999}
             monthly = {}
             
+            # 1. Batch fetch current prices block the exact 100 tickers simultaneously
+            unique_tickers = list(set([row[0] for row in signals]))
+            current_prices = {}
+            if unique_tickers:
+                try:
+                    batch_data = CACHE.download(unique_tickers, period='1d', interval='1m', column='Close')
+                    if batch_data is not None and not batch_data.empty:
+                        for ticker in unique_tickers:
+                            try:
+                                series = batch_data[ticker] if len(unique_tickers) > 1 else batch_data
+                                val = series.iloc[-1]
+                                current_prices[ticker] = float(val.iloc[0] if hasattr(val, 'iloc') else val)
+                            except: pass
+                except Exception as e:
+                    print(f"Batch fetch error: {str(e)}")
+
             for ticker, entry_p, ts in signals:
                 try:
-                    data = CACHE.download(ticker, period='1d', interval='1m', column='Close')
-                    if data is None or (hasattr(data, 'empty') and data.empty): continue
-                    curr_p = float(data.iloc[-1] if not hasattr(data.iloc[-1], 'iloc') else data.iloc[-1].iloc[0])
+                    curr_p = current_prices.get(ticker)
+                    if not curr_p: continue
+                    
                     roi = round(((curr_p - entry_p) / entry_p) * 100, 2)
                     total_roi += roi
                     if roi > 0: wins += 1
