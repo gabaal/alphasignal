@@ -6183,10 +6183,13 @@ async function initLiveAlphaScroller() {
     async function poll() {
         try {
             const d = await fetchAPI('/signals');
-            if (d && d.signals && d.signals.length > 0) {
-                const html = d.signals.map(s => {
-                    const color = s.type === 'BUY' ? 'var(--risk-low)' : 'var(--risk-high)';
-                    return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${s.type}]</span> <span style="color:var(--text-dim)">@ ${formatPrice(s.price)}</span></span>`;
+            if (Array.isArray(d) && d.length > 0) {
+                // Skim the top 10 highest-alpha signals for the ticker
+                const topSignals = d.slice(0, 10);
+                const html = topSignals.map(s => {
+                    const color = s.alpha >= 0 ? 'var(--risk-low)' : 'var(--risk-high)';
+                    const dir = s.alpha >= 0 ? 'LONG' : 'SHORT';
+                    return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(s.alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(s.price)}</span></span>`;
                 }).join('');
                 scroller.innerHTML = html + html; 
             } else {
