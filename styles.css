@@ -2953,3 +2953,9 @@ input[type="range"]::-webkit-slider-thumb {
 #landing-ticker { display: flex; white-space: nowrap; animation: scroll-left-landing 60s linear infinite; }
 #landing-ticker span { display: inline-block; padding-right: 3rem; font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--text-dim); }
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* Global Scrolling Ticker Layer */
+.scroller-container { overflow: hidden; white-space: nowrap; flex: 1; display: flex; align-items: center; position: relative; margin-left: 1rem; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 1rem; }
+.scroller { display: inline-block; white-space: nowrap; animation: scroll-left-global 40s linear infinite; font-family: 'JetBrains Mono'; font-size: 0.75rem; }
+.scroller:hover { animation-play-state: paused; }
+@keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
