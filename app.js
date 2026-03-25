@@ -1973,9 +1973,10 @@ async function renderMacroCalendar() {
 
 async function renderWhales() {
     appEl.innerHTML = skeleton(5);
-    const [data, entityData] = await Promise.all([
+    const [data, entityData, execData] = await Promise.all([
         fetchAPI('/whales'),
-        fetchAPI('/whales_entity?ticker=BTC-USD')
+        fetchAPI('/whales_entity?ticker=BTC-USD'),
+        fetchAPI('/execution-time?ticker=BTC-USD')
     ]);
     if (!data) return;
 
@@ -2010,6 +2011,25 @@ async function renderWhales() {
                     ${entityData?.net_flow_24h || '0 BTC'}
                 </div>
                 <div style="font-size:0.8rem; margin-top:0.5rem; color:var(--text-dim)">Institutional Sentiment: <span class="${entityData?.institutional_sentiment === 'BULLISH' ? 'pos' : 'dim'}">${entityData?.institutional_sentiment || 'NEUTRAL'}</span></div>
+            </div>
+        </div>
+
+        <div class="execution-topography-section" style="margin-bottom:2rem">
+            <div class="glass-card" style="padding:1.5rem">
+                <div class="card-header">
+                    <h3>Execution Time Topography (Asian vs US Session)</h3>
+                    <span class="label-tag">POLAR_MATRIX</span>
+                </div>
+                <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap">
+                    <div style="flex:1; min-width:300px">
+                        <p style="font-size:0.8rem; color:var(--text-dim); line-height:1.5">
+                            This 24-period Polar Area algorithmic array aggregates on-chain transaction volume classified by hour. Skewed radials indicate geographic execution dominance (e.g. extending heavily into the 01:00-06:00 UTC zones signals Asian market manipulation, whereas 14:00-20:00 UTC denotes Wall St Open routing).
+                        </p>
+                    </div>
+                    <div style="flex:1; height: 350px; position: relative; min-width:300px">
+                        <canvas id="whale-polar-chart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -2064,6 +2084,10 @@ async function renderWhales() {
             }
         });
     }
+
+    if (execData) {
+        renderExecutionTopography(execData);
+    }
 }
 
 function renderWhaleFlowChart(history) {
@@ -2092,6 +2116,58 @@ function renderWhaleFlowChart(history) {
                 y: {
                     grid: { color: 'rgba(255,255,255,0.05)' },
                     ticks: { color: '#666', font: { size: 10 } }
+                }
+            }
+        }
+    });
+}
+
+function renderExecutionTopography(data) {
+    const ctx = document.getElementById('whale-polar-chart');
+    if (!ctx) return;
+    
+    new Chart(ctx.getContext('2d'), {
+        type: 'polarArea',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Hourly Volume',
+                data: data.volumes,
+                backgroundColor: data.labels.map((_, i) => 
+                    (i >= 1 && i <= 6) ? 'rgba(239, 68, 68, 0.4)' : 
+                    (i >= 14 && i <= 20) ? 'rgba(0, 242, 255, 0.4)' : 
+                    'rgba(255, 255, 255, 0.05)'
+                ),
+                borderColor: data.labels.map((_, i) => 
+                    (i >= 1 && i <= 6) ? 'rgba(239, 68, 68, 0.8)' : 
+                    (i >= 14 && i <= 20) ? 'rgba(0, 242, 255, 0.8)' : 
+                    'rgba(255, 255, 255, 0.2)'
+                ),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    angleLines: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { display:false },
+                    pointLabels: {
+                        display: true,
+                        centerPointLabels: true,
+                        font: { size: 9, family: 'JetBrains Mono' },
+                        color: 'rgba(255,255,255,0.4)'
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return ctx.label + ' UTC: ' + ctx.raw + ' BTC'; }
+                    }
                 }
             }
         }
@@ -2592,6 +2668,74 @@ function renderMonteCarloChart(data) {
             plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
             scales: {
                 x: { grid: { display:false }, ticks: { color: '#888', font: { family: 'JetBrains Mono', size:10 }, maxRotation:0 } },
+                y: { position: 'right', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: function(val) { return '$' + val.toLocaleString(); } } }
+            }
+        }
+    });
+}
+
+function renderGuppyRibbon(history) {
+    const ctx = document.getElementById('guppyChart');
+    if (!ctx) return;
+    if (window.activeGuppyChart) window.activeGuppyChart.destroy();
+    
+    const prices = history.map(h => h.price);
+    const dates = history.map(h => h.date);
+    
+    const calcEMA = (data, period) => {
+        const k = 2 / (period + 1);
+        let ema = data[0];
+        return data.map(val => { ema = (val * k) + (ema * (1 - k)); return ema; });
+    };
+
+    const shortPeriods = [3, 5, 8, 10, 12, 15];
+    const longPeriods = [30, 35, 40, 45, 50, 60, 70, 80, 90];
+    
+    const datasets = [];
+    
+    datasets.push({
+        label: 'Price',
+        data: prices,
+        borderColor: 'rgba(255, 255, 255, 0.8)',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0.1
+    });
+
+    shortPeriods.forEach(p => {
+        datasets.push({
+            label: `EMA ${p}`,
+            data: calcEMA(prices, p),
+            borderColor: 'rgba(0, 242, 255, 0.4)',
+            borderWidth: 1.2,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3
+        });
+    });
+
+    longPeriods.forEach(p => {
+        datasets.push({
+            label: `EMA ${p}`,
+            data: calcEMA(prices, p),
+            borderColor: 'rgba(239, 68, 68, 0.3)',
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.4
+        });
+    });
+
+    window.activeGuppyChart = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: { labels: dates, datasets: datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
+            scales: {
+                x: { grid: { display:false }, ticks: { color: '#888', maxTicksLimit: 10, font: { family: 'JetBrains Mono', size:10 } } },
                 y: { position: 'right', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: function(val) { return '$' + val.toLocaleString(); } } }
             }
         }
