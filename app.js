@@ -1660,16 +1660,16 @@ async function renderMindshare() {
 
                 ctx.save();
                 // Alpha Quadrant (Top Right)
-                ctx.fillStyle = 'rgba(0, 242, 255, 0.05)';
+                ctx.fillStyle = 'rgba(0, 242, 255, 0.15)';
                 ctx.fillRect(midX, top, right - midX, midY - top);
                 // Hype Quadrant (Top Left)
-                ctx.fillStyle = 'rgba(188, 19, 254, 0.05)';
+                ctx.fillStyle = 'rgba(188, 19, 254, 0.15)';
                 ctx.fillRect(left, top, midX - left, midY - top);
                 // Underlying Quadrant (Bottom Right)
-                ctx.fillStyle = 'rgba(255, 159, 0, 0.05)';
+                ctx.fillStyle = 'rgba(255, 159, 0, 0.15)';
                 ctx.fillRect(midX, midY, right - midX, bottom - midY);
                 // Developing Quadrant (Bottom Left)
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
                 ctx.fillRect(left, midY, midX - left, bottom - midY);
                 ctx.restore();
             }
