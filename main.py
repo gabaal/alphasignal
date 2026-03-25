@@ -22,6 +22,7 @@ import stripe
 import math
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
+import concurrent.futures
 def load_env():
     if os.path.exists('.env'):
         with open('.env', 'r') as f:
@@ -74,8 +75,19 @@ class SupabaseClient:
     @staticmethod
     def upsert(table, data):
         url = f"{SUPABASE_URL}/rest/v1/{table}"
+        headers = {**SUPABASE_HEADERS, "Prefer": "return=minimal,resolution=merge-duplicates"}
         try:
-            r = requests.post(url, headers=SUPABASE_HEADERS, json=data, timeout=5)
+            r = requests.post(url, headers=headers, json=data, timeout=5)
+            return r.status_code in [200, 201]
+        except: return False
+
+    @staticmethod
+    def upsert_batch(table, data_list):
+        if not data_list: return True
+        url = f"{SUPABASE_URL}/rest/v1/{table}"
+        headers = {**SUPABASE_HEADERS, "Prefer": "return=minimal,resolution=merge-duplicates"}
+        try:
+            r = requests.post(url, headers=headers, json=data_list, timeout=10)
             return r.status_code in [200, 201]
         except: return False
 
@@ -105,13 +117,15 @@ class SupabaseClient:
 # ============================================================
 UNIVERSE = {
     'EXCHANGE': ['COIN', 'HOOD', 'VIRT'],
-    'MINERS': ['MARA', 'RIOT', 'CLSK', 'IREN', 'WULF'],
+    'MINERS': ['MARA', 'RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT'],
     'PROXY': ['MSTR', 'GLXY.TO'],
     'ETF': ['IBIT', 'FBTC', 'ARKB', 'BITO'],
-    'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD'],
-    'L1': ['SOL-USD', 'ETH-USD', 'ADA-USD', 'AVAX-USD'],
+    'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD'],
+    'L1': ['SOL-USD', 'ETH-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'POL-USD', 'ATOM-USD', 'NEAR-USD', 'SUI-USD', 'INJ-USD'],
+    'L2': ['ARB-USD', 'OP-USD', 'IMX-USD'],
+    'AI': ['FET-USD', 'RNDR-USD', 'TAO-USD', 'AGIX-USD', 'WLD-USD'],
     'STABLES': ['USDC-USD', 'USDT-USD', 'DAI-USD'],
-    'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD']
+    'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'PEPE-USD', 'FLOKI-USD']
 }
 
 WHALE_WALLETS = {
@@ -214,12 +228,38 @@ class DataCache:
             conn.close()
         except: pass
         
-        # Sync to Cloud L3
-        SupabaseClient.upsert("cache_store", {
-            "key": key,
-            "value": json.dumps(data, default=str),
-            "expires_at": time.time() + self._ttl
-        })
+        # Sync to Cloud L3 via background thread to avoid blocking
+        def sync():
+            SupabaseClient.upsert("cache_store", {
+                "key": key,
+                "value": json.dumps(data, default=str),
+                "expires_at": time.time() + self._ttl
+            })
+        threading.Thread(target=sync, daemon=True).start()
+
+    def set_batch(self, key_data_pairs):
+        """Batch set into SQLite and Supabase."""
+        if not key_data_pairs: return
+        now = time.time()
+        payloads = []
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            for key, data in key_data_pairs.items():
+                self._cache[key] = (data, now)
+                val_str = json.dumps(data, default=str)
+                exp = now + self._ttl
+                c.execute("INSERT OR REPLACE INTO cache_store (key, value, expires_at) VALUES (?, ?, ?)", 
+                          (key, val_str, exp))
+                payloads.append({"key": key, "value": val_str, "expires_at": exp})
+            conn.commit()
+            conn.close()
+        except: pass
+        
+        if payloads:
+            def sync_batch():
+                SupabaseClient.upsert_batch("cache_store", payloads)
+            threading.Thread(target=sync_batch, daemon=True).start()
 
     def download(self, tickers, period='1y', interval='1d', column=None):
         """Standardized downloader for single and multi-asset requests."""
@@ -543,8 +583,10 @@ class HarvestService:
                     ts_c = ts_conn.cursor()
                     print(f"[{datetime.now()}] Persisting high-freq TS data for {len(all_tickers)} assets...")
                     
+                    sentiments = get_sentiment_batch(all_tickers)
+                    
                     for ticker in all_tickers:
-                        sent = get_sentiment(ticker)
+                        sent = sentiments.get(ticker, 0.0)
                         ts_c.execute("INSERT INTO sentiment_history (symbol, score, index_value, volume) VALUES (?, ?, ?, ?)", 
                                   (ticker, sent, sent*100, 0))
                         
@@ -780,35 +822,57 @@ class HarvestService:
         self.running = False
 
 def get_sentiment(ticker):
-    try:
-        # Check cache for news sentiment
+    res = get_sentiment_batch([ticker])
+    return res.get(ticker, 0.0)
+
+def get_sentiment_batch(tickers):
+    results = {}
+    missing = []
+    
+    for ticker in tickers:
         cache_key = f"sentiment:{ticker}"
         cached = CACHE.get(cache_key)
-        if cached is not None: return cached
+        if cached is not None:
+            results[ticker] = cached
+        else:
+            missing.append(ticker)
+            
+    if not missing: return results
+    
+    def fetch_one(ticker):
+        try:
+            t = yf.Ticker(ticker)
+            news = t.news
+            if not news: return ticker, 0.0
+            
+            score = 0
+            articles_to_scan = news[:8]
+            for article in articles_to_scan:
+                content = article.get('content', {})
+                text = (content.get('title', '') + " " + content.get('summary', '')).lower()
+                if not text.strip(): continue
+                p_count = sum(1 for k in SENTIMENT_KEYWORDS['positive'] if k in text)
+                n_count = sum(1 for k in SENTIMENT_KEYWORDS['negative'] if k in text)
+                if p_count > n_count: score += 1
+                elif n_count > p_count: score -= 1
+            
+            final_score = score / len(articles_to_scan) if articles_to_scan else 0
+            return ticker, max(min(final_score, 1.0), -1.0)
+        except Exception as e:
+            return ticker, 0.0
 
-        t = yf.Ticker(ticker)
-        news = t.news
-        if not news: return 0.0
+    to_cache = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_one, t): t for t in missing}
+        for future in concurrent.futures.as_completed(futures):
+            ticker, score = future.result()
+            results[ticker] = score
+            to_cache[f"sentiment:{ticker}"] = score
+            
+    if to_cache:
+        CACHE.set_batch(to_cache)
         
-        score = 0
-        articles_to_scan = news[:8]
-        for article in articles_to_scan:
-            content = article.get('content', {})
-            text = (content.get('title', '') + " " + content.get('summary', '')).lower()
-            if not text.strip(): continue
-            p_count = sum(1 for k in SENTIMENT_KEYWORDS['positive'] if k in text)
-            n_count = sum(1 for k in SENTIMENT_KEYWORDS['negative'] if k in text)
-            if p_count > n_count: score += 1
-            elif n_count > p_count: score -= 1
-        
-        final_score = score / len(articles_to_scan) if articles_to_scan else 0
-        final_score = max(min(final_score, 1.0), -1.0)
-        
-        CACHE.set(cache_key, final_score)
-        return final_score
-    except Exception as e:
-        print(f"Sentiment error for {ticker}: {e}")
-        return 0.0
+    return results
 
 def get_orderbook_imbalance(ticker):
     try:
@@ -2781,6 +2845,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
         ticker = query.get('ticker', ['BTC-USD'])[0]
         strategy = query.get('strategy', ['trend_regime'])[0]
         rebalance_days = int(query.get('rebalance', [1])[0]) # Daily check by default
+        fast = int(query.get('fast', [20])[0])
+        slow = int(query.get('slow', [50])[0])
         
         try:
             # 1. Fetch real historical data (180 days)
@@ -2923,16 +2989,16 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     signals[i] = last_signal
                 df['Signal'] = signals
             else:
-                # Default Logic: EMA Crossover (20/50)
-                df['EMA20'] = df['Close'].ewm(span=20, adjust=False).mean()
-                df['EMA50'] = df['Close'].ewm(span=50, adjust=False).mean()
+                # Default Logic: EMA Crossover (Fast/Slow)
+                df['EMA_Fast'] = df['Close'].ewm(span=fast, adjust=False).mean()
+                df['EMA_Slow'] = df['Close'].ewm(span=slow, adjust=False).mean()
                 
                 # Signal Generation with Rebalance Logic
                 signals = [0] * len(df)
                 last_signal = 0
                 for i in range(len(df)):
                     if i % rebalance_days == 0:
-                        current_signal = 1 if df['EMA20'].iloc[i] > df['EMA50'].iloc[i] else 0
+                        current_signal = 1 if df['EMA_Fast'].iloc[i] > df['EMA_Slow'].iloc[i] else 0
                         last_signal = current_signal
                     signals[i] = last_signal
                 df['Signal'] = signals
@@ -4051,8 +4117,33 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({'total_signals': 0, 'win_rate': 0, 'avg_return': 0, 'error': str(e)})
 
     def handle_export(self):
-        """Feature 5: Export a JSON snapshot of current live data."""
+        """Feature 5: Export a JSON snapshot or CSV of current live data."""
         try:
+            import csv
+            import io
+            
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            exp_type = query.get('type', ['json'])[0]
+            
+            if exp_type == 'signals':
+                conn = sqlite3.connect(DB_PATH)
+                c = conn.cursor()
+                c.execute("SELECT id, type, ticker, message, severity, price, timestamp FROM alerts_history ORDER BY timestamp DESC")
+                rows = c.fetchall()
+                conn.close()
+                
+                output = io.StringIO()
+                writer = csv.writer(output)
+                writer.writerow(['ID', 'Type', 'Ticker', 'Message', 'Severity', 'Entry_Price', 'Timestamp'])
+                writer.writerows(rows)
+                
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/csv')
+                self.send_header('Content-Disposition', f'attachment; filename="alphasignal_signals_{datetime.now().strftime("%Y%m%d")}.csv"')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(output.getvalue().encode('utf-8'))
+                return
             # Aggregate live data from multiple sources
             snapshot = {
                 'exported_at': datetime.now().isoformat(),
@@ -4123,21 +4214,34 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             f_ticker = query.get('ticker', [None])[0]
             f_type = query.get('type', [None])[0]
             f_days = int(query.get('days', [30])[0])
+            page = int(query.get('page', [1])[0])
+            limit = int(query.get('limit', [25])[0])
+            offset = (page - 1) * limit
 
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             
+            count_sql = "SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', ?)"
             sql = "SELECT id, type, ticker, message, severity, price, timestamp FROM alerts_history WHERE timestamp > datetime('now', ?)"
             params = [f"-{f_days} day"]
+            count_params = [f"-{f_days} day"]
             
             if f_ticker:
                 sql += " AND ticker = ?"
+                count_sql += " AND ticker = ?"
                 params.append(f_ticker)
+                count_params.append(f_ticker)
             if f_type:
                 sql += " AND type = ?"
+                count_sql += " AND type = ?"
                 params.append(f_type)
+                count_params.append(f_type)
                 
-            sql += " ORDER BY timestamp DESC LIMIT 100"
+            c.execute(count_sql, count_params)
+            total_count = c.fetchone()[0]
+                
+            sql += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
             
             c.execute(sql, params)
             rows = c.fetchall()
@@ -4171,7 +4275,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     "timestamp": ts
                 })
 
-            self.send_json(results)
+            self.send_json({
+                "data": results,
+                "pagination": {
+                    "page": page,
+                    "limit": limit,
+                    "total": total_count,
+                    "pages": math.ceil(total_count / limit) if limit > 0 else 1
+                }
+            })
         except Exception as e:
             print(f"Signal History Error: {e}")
             self.send_json([])
