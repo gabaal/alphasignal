@@ -2916,7 +2916,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Phase 7.4: Trade Ticket Styles */
 .trade-ticket { background: #010409; border: 1px solid var(--border); border-left: 4px solid var(--accent); padding: 1.5rem; border-radius: 8px; font-family: var(--font-mono), monospace; position: relative; overflow: hidden; margin-top: 1rem; }
-.trade-ticket::before { content: " INSTITUTIONAL EXECUTION TICKET\; position: absolute; top: 10px; right: 10px; font-size: 0.5rem; opacity: 0.2; letter-spacing: 2px; }
+.trade-ticket::before { content: " INSTITUTIONAL EXECUTION TICKET "; position: absolute; top: 10px; right: 10px; font-size: 0.5rem; opacity: 0.2; letter-spacing: 2px; }
 .ticket-id { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 1rem; }
 .ticket-main { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
 .ticket-action { font-size: 1.5rem; font-weight: 900; }
@@ -2944,8 +2944,8 @@ input[type="range"]::-webkit-slider-thumb {
 /* Trade Ledger View */
 .ledger-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 1.5rem; }
 .ledger-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text); }
-.ledger-table th { background: rgba(255, 255, 255, 0.03); padding: 1rem; text-align: left; font-size: 0.7rem; letter-spacing: 1px; color: var(--text-dim); border-bottom: 1px solid var(--border); }
-.ledger-table td { padding: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.ledger-table th { background: rgba(255, 255, 255, 0.03); padding: 1.5rem 2rem; text-align: left; font-size: 0.7rem; letter-spacing: 1px; color: var(--text-dim); border-bottom: 1px solid var(--border); }
+.ledger-table td { padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 .ledger-table tr:hover { background: rgba(255, 255, 255, 0.02); }
 
 /* Landing Ticker */
