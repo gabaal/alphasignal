@@ -3835,7 +3835,7 @@ async function renderLiquidityView() {
                     <h3 class="card-title" style="margin:0">Institutional Depth Profile <span style="font-size:0.8rem; color:var(--text-dim)">(Aggregated Orderbook)</span></h3>
                 </div>
                 
-                <div class="liquidity-chart" style="flex:1; overflow-y:auto; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding-right:10px">
+                <div class="liquidity-chart" style="flex:1; max-height:70vh; overflow-y:auto; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding-right:10px">
                     <div style="height:1500px; width:100%; position:relative;">
                         <canvas id="depthWallsChart"></canvas>
                     </div>
