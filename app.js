@@ -2266,26 +2266,26 @@ async function renderNewsroom() {
             <div class="news-feed">
                 ${currentData.map((n, idx) => {
                     const originalIndex = startIndex + idx;
-                    return \`
-                    <div class="news-card" onclick="openNewsArticle(\${originalIndex})">
+                    return `
+                    <div class="news-card" onclick="openNewsArticle(${originalIndex})">
                         <div class="news-header">
-                            <div class="news-time">\${n.time}</div>
-                            <div class="news-tag tag-\${n.sentiment.toLowerCase()}">\${n.sentiment}</div>
+                            <div class="news-time">${n.time}</div>
+                            <div class="news-tag tag-${n.sentiment.toLowerCase()}">${n.sentiment}</div>
                         </div>
-                        <div class="news-headline">\${n.headline}</div>
-                        <div class="news-summary">\${n.summary}</div>
-                        <div class="news-source">Source: AlphaSignal Institutional Feed // \${n.ticker}</div>
+                        <div class="news-headline">${n.headline}</div>
+                        <div class="news-summary">${n.summary}</div>
+                        <div class="news-source">Source: AlphaSignal Institutional Feed // ${n.ticker}</div>
                     </div>
-                \`}).join('')}
+                `}).join('')}
             </div>
             
             <!-- Pagination Controls -->
             <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; margin-top:20px; border-top:1px solid rgba(255,255,255,0.05)">
-                <button class="filter-btn" id="btn-prev-news" \${currentNewsPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Previous</button>
-                <span style="font-size:0.8rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page \${currentNewsPage} of \${totalPages}</span>
-                <button class="filter-btn" id="btn-next-news" \${currentNewsPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
+                <button class="filter-btn" id="btn-prev-news" ${currentNewsPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Previous</button>
+                <span style="font-size:0.8rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentNewsPage} of ${totalPages}</span>
+                <button class="filter-btn" id="btn-next-news" ${currentNewsPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
             </div>
-        \`;
+        `;
 
         const btnPrev = document.getElementById('btn-prev-news');
         const btnNext = document.getElementById('btn-next-news');
