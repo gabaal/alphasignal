@@ -6488,6 +6488,62 @@ function updateSEOMeta(view) {
             title: 'Macro Catalyst Compass',
             desc: 'Monitor high-impact global economic drivers, treasury yields, and volatility triggers.'
         },
+        'onchain': {
+            title: 'On-Chain Analytics',
+            desc: 'Quantitative modeling of network MVRV, NVT, and internal blockchain metrics.'
+        },
+        'advanced-charting': {
+            title: 'Advanced Charting Suite',
+            desc: 'Full institutional suite featuring orderbook liquidity and derivatives overlays.'
+        },
+        'macro': {
+            title: 'Macro Pulse & Regimes',
+            desc: 'Live market correlations, regime tracking, and macro variables.'
+        },
+        'portfolio': {
+            title: 'Institutional Portfolio Lab',
+            desc: 'Monitor simulated portfolio performance, VaR, and correlation attribution.'
+        },
+        'portfolio-optimizer': {
+            title: 'AI Portfolio Optimizer',
+            desc: 'Neural network-driven allocation rebalancing for maximum risk-adjusted metrics.'
+        },
+        'strategy-lab': {
+            title: 'Strategy & Backtest Lab',
+            desc: 'Verify quantitative indicator logic against historical backtesting algorithms.'
+        },
+        'stress': {
+            title: 'Portfolio Stress Test',
+            desc: 'Live scenario analysis assessing portfolio drawdowns against historic market crashes.'
+        },
+        'explain-signal-archive': {
+            title: 'Documentation — Signal Archive',
+            desc: 'Guide to interpreting the historical win-rate and probability engine records.'
+        },
+        'explain-topologies': {
+            title: 'Documentation — Topologies & Geometries',
+            desc: 'Guide to interpreting Ecosystem Capital Flows, Dials, and Cross-asset Sankey networks.'
+        },
+        'signal-archive': {
+            title: 'Signal Execution Archive',
+            desc: 'Immutable ledger of historical AlphaSignals, execution timestamps, and hit rate analytics.'
+        },
+        'correlation-matrix': {
+            title: 'NxN Correlation Matrix',
+            desc: 'Live statistical heatmap plotting short-term decoupling across 15+ major digital assets.'
+        },
+        'alpha-score': {
+            title: 'Alpha Score Dashboard',
+            desc: 'Live absolute momentum, neural sentiment, and statistical clustering metrics grouped by asset.'
+        },
+        'performance-dashboard': {
+            title: 'Live Performance Analytics',
+            desc: 'Institutional track record and strategy attribution tracking against the benchmark.'
+        },
+        'trade-ledger': {
+            title: 'Institutional Trade Ledger',
+            desc: 'Audited historic logs of simulated entries, trailing stops, and strategy scaling logic.'
+        },
         'home': {
             title: 'Alphasignal: Institutional Alpha & Signals Terminal',
             desc: 'Alphasignal provides real-time multi-asset market intelligence across bitcoin, equities, and forex. AI-driven alpha strategy synthesis for the modern institution.'
