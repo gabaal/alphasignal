@@ -3687,7 +3687,7 @@ async function renderLiquidityView() {
     const display = document.getElementById('gomm-main-display');
 
     let currentPage = 1;
-    const itemsPerPage = 12;
+    const itemsPerPage = 18;
 
     function renderWallsMode() {
         const totalPages = Math.ceil(data.walls.length / itemsPerPage);
@@ -3718,7 +3718,7 @@ async function renderLiquidityView() {
                 </div>
                 
                 <!-- Pagination Controls -->
-                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:15px; border-top:1px solid rgba(255,255,255,0.05); margin-top:10px">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:5px; border-top:1px solid rgba(255,255,255,0.05); margin-top:5px">
                     <button class="filter-btn" id="btn-prev-page" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Previous</button>
                     <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
                     <button class="filter-btn" id="btn-next-page" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
