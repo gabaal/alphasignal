@@ -267,9 +267,13 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
         const res = await fetch(`${API_BASE}${endpoint}`, options);
         
         if (res.status === 401) {
-            // Only redirect to auth if not on a public-friendly view or if explicitly required
-            // For now, let's keep it simple: if auth fails, show auth overlay
-            showAuth(true);
+            const params = new URLSearchParams(window.location.search);
+            const currentView = params.get('view') || 'home';
+            const isFreeView = (currentView === 'signals' || currentView === 'help' || currentView === 'home' || currentView.startsWith('explain-'));
+            
+            if (!isFreeView) {
+                showAuth(true);
+            }
             return null;
         }
 

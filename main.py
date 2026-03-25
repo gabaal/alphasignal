@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import http.server
 import socketserver
@@ -363,7 +363,7 @@ class NotificationService:
             # Telegram Dispatch
             if telegram_chat_id and os.getenv("TELEGRAM_BOT_TOKEN"):
                 bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
-                msg_text = f"🚨 *AlphaSignal Intelligence: {title}*\n\n{message}\n\n_Institutional Depth Engine_"
+                msg_text = f"ðŸš¨ *AlphaSignal Intelligence: {title}*\n\n{message}\n\n_Institutional Depth Engine_"
                 tg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                 requests.post(tg_url, json={
                     "chat_id": telegram_chat_id,
@@ -1274,7 +1274,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             auth_info = None
             if path.startswith('/api/'):
                 # ONLY these routes are accessible without an Institutional account
-                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status']
+                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed']
                 
                 if path not in public_routes:
                     auth_info = self.is_authenticated()
@@ -2535,7 +2535,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                     <div class="analysis-stats" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0">
                         <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">
                             <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">Z-SCORE (MOMENTUM)</div>
-                            <div style="font-size:1.2rem; font-weight:900; color:{'var(--risk-low)' if z_score > 0 else 'var(--risk-high)'}">{z_score:.2f}σ</div>
+                            <div style="font-size:1.2rem; font-weight:900; color:{'var(--risk-low)' if z_score > 0 else 'var(--risk-high)'}">{z_score:.2f}Ïƒ</div>
                         </div>
                         <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">
                             <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">LIQUIDITY RISK</div>
@@ -4871,11 +4871,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
 
             notifs = []
             for row_id, sig_type, ticker, message, severity, price, ts in rows:
-                icon = '🚀' if sig_type == 'SENTIMENT_SPIKE' else '📈' if sig_type == 'MOMENTUM_BREAKOUT' else '⚡'
+                icon = 'ðŸš€' if sig_type == 'SENTIMENT_SPIKE' else 'ðŸ“ˆ' if sig_type == 'MOMENTUM_BREAKOUT' else 'âš¡'
                 notifs.append({
                     "id": row_id,
                     "icon": icon,
-                    "title": f"{ticker} — {sig_type.replace('_', ' ')}",
+                    "title": f"{ticker} â€” {sig_type.replace('_', ' ')}",
                     "body": message,
                     "timestamp": ts,
                     "type": sig_type
@@ -5168,7 +5168,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
                 return
 
             # Trigger a test alert
-            msg = "🛡️ **AlphaSignal Institutional Hub**\n\nPROBE_SUCCESS: Strategic connection established. Tactical signals will now be dispatched to this node.\n\n_Systemized by Alpha Engine v4.2_"
+            msg = "ðŸ›¡ï¸ **AlphaSignal Institutional Hub**\n\nPROBE_SUCCESS: Strategic connection established. Tactical signals will now be dispatched to this node.\n\n_Systemized by Alpha Engine v4.2_"
             success = NotificationService.send_telegram_alert(msg, chat_id)
             
             if success:
@@ -5574,3 +5574,4 @@ if __name__ == "__main__":
         httpd.serve_forever()
     except Exception as e:
         print(f"CRITICAL: Server failed to start: {e}")
+
