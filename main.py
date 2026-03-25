@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import http.server
 import socketserver
@@ -4104,17 +4104,25 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
             # 2. Fetch real multi-exchange liquidity walls
             walls = []
             
-            # 2a. Real Binance Depth
-            try:
-                symbol = ticker.replace("-USD", "USDT").replace("-", "")
-                r = requests.get(f"https://fapi.binance.com/fapi/v1/depth?symbol={symbol}&limit=50", timeout=2)
-                if r.status_code == 200:
-                    data = r.json()
-                    for ask in data.get('asks', []):
-                        walls.append({"price": float(ask[0]), "size": float(ask[1]), "side": "ask", "exchange": "Binance"})
-                    for bid in data.get('bids', []):
-                        walls.append({"price": float(bid[0]), "size": float(bid[1]), "side": "bid", "exchange": "Binance"})
-            except Exception as e:
+            if ticker == 'BTC-USD' or ticker == 'BTC-USDT':
+                # Use lightning-fast 1ms WebSocket cache
+                for b in LIVE_CACHE["liquidity"].get("bids", []):
+                    walls.append({"price": float(b[0]), "size": float(b[1]), "side": "bid", "exchange": "Binance"})
+                for a in LIVE_CACHE["liquidity"].get("asks", []):
+                    walls.append({"price": float(a[0]), "size": float(a[1]), "side": "ask", "exchange": "Binance"})
+            else:
+                # 2a. Real Binance Depth for Alts
+                try:
+                    symbol = ticker.replace("-USD", "USDT").replace("-", "")
+                    r = requests.get(f"https://fapi.binance.com/fapi/v1/depth?symbol={symbol}&limit=50", timeout=2)
+                    if r.status_code == 200:
+                        data = r.json()
+                        for ask in data.get('asks', []):
+                            walls.append({"price": float(ask[0]), "size": float(ask[1]), "side": "ask", "exchange": "Binance"})
+                        for bid in data.get('bids', []):
+                            walls.append({"price": float(bid[0]), "size": float(bid[1]), "side": "bid", "exchange": "Binance"})
+                except Exception as e:
+                    print(f"Liquidity API Error: {e}")
                 print(f"Liquidity API Error (Binance): {e}")
 
             # 2b. Algorithmic Mocks for other exchanges (preserving UI visual diversity)
@@ -4541,70 +4549,42 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler):
     def handle_whales(self):
         # Pack H2: Live On-Chain Intelligence (Unified & Reality-Sync)
         results = []
-        now = datetime.now()
         try:
-            # 1. Get current prices for USD conversion
-            btc_price = 91450.0
-            try:
-                btc_data = CACHE.download('BTC-USD', period='1d', interval='1m', column='Close')
-                if btc_data is not None and not btc_data.empty:
-                    btc_price = float(btc_data.iloc[-1])
-            except: pass
-
-            # 2. Fetch real BTC transactions (Blockchain.info)
-            try:
-                import urllib.request
-                with urllib.request.urlopen("https://blockchain.info/unconfirmed-transactions?format=json", timeout=3) as r:
-                    whale_data = json.loads(r.read().decode())
-                    for tx in whale_data.get('txs', [])[:30]:
-                        btc_amount = sum(out.get('value', 0) for out in tx.get('out', [])) / 100_000_000
-                        # 1 BTC is still a lot ($90k), but common enough for 'live' feel
-                        if btc_amount > 1.0: 
-                            usd_value = btc_amount * btc_price
-                            results.append({
-                                "hash": tx.get('hash', 'N/A')[:12] + "...",
-                                "amount": round(btc_amount, 2),
-                                "usdValue": f"${usd_value/1_000_000:.1f}M" if usd_value >= 1_000_000 else f"${usd_value:,.0f}",
-                                "from": random.choice(["Institutional Cluster", "Unknown Whale", "Exchange Wallet"]), 
-                                "to": "Cold Storage" if btc_amount > 100 else "Intermediate Wallet",
-                                "type": "BLOCK_TRANSFER",
-                                "timestamp": now.strftime('%H:%M:%S'),
-                                "impact": "EXTREME" if btc_amount > 500 else ("HIGH" if btc_amount > 50 else "MEDIUM"),
-                                "asset": "BTC-USD",
-                                "flow": "INFLOW" if random.random() > 0.5 else "OUTFLOW"
-                            })
-            except Exception as e:
-                print(f"Whale BTC API Error: {e}")
-            
-            # 3. Deterministic ETH/SOL Proxies (preserving UI diversity without specific APIs)
-            assets = [
-                {"ticker": "ETH-USD", "threshold": 500, "price": 3150},
-                {"ticker": "SOL-USD", "threshold": 5000, "price": 210}
-            ]
-            
-            for a in assets:
-                # Use price hash as seed for "stable-looking" fake whale hits per hour
-                random.seed(int(time.time() / 3600) + hash(a['ticker'])) 
-                # Always show at least one per asset to prove multi-chain capability
-                amount = a['threshold'] * random.uniform(1.2, 8.0)
+            # Map the realtime Binance Socket cache into the Institutional UI format
+            for trade in list(LIVE_CACHE["whales"]):
+                p = trade["price"]
+                q = trade["qty"]
+                usd = trade["value"]
+                # Convert UNIX ms timestamp to HH:MM:SS
+                dt = datetime.fromtimestamp(trade["time"] / 1000.0)
+                
+                impact = "EXTREME" if usd > 2000000 else ("HIGH" if usd > 500000 else "MEDIUM")
+                if trade["side"] == "sell":
+                    flow_type = "OUTFLOW" 
+                    to_wallet = "Orderbook Dump"
+                    from_wallet = "Binance VIP"
+                else:
+                    flow_type = "INFLOW"
+                    to_wallet = "Binance VIP"
+                    from_wallet = "Accumulation"
+                    
                 results.append({
-                    "hash": "0x" + "".join(random.choices("0123456789abcdef", k=10)),
-                    "amount": f"{amount:,.0f}",
-                    "usdValue": f"${(amount * a['price'] / 1_000_000):,.1f}M",
-                    "from": "Institutional Entity",
-                    "to": "DEX / Liquidity Hub",
-                    "type": "ONBOARDING_FLOW",
-                    "timestamp": now.strftime('%H:%M:%S'),
-                    "impact": "HIGH",
-                    "asset": a['ticker'],
-                    "flow": "INFLOW"
+                    "hash": str(hash(trade["time"]))[:12].replace('-','C'),
+                    "amount": round(q, 2),
+                    "usdValue": f"${usd/1_000_000:.1f}M" if usd >= 1_000_000 else f"${usd:,.0f}",
+                    "from": from_wallet,
+                    "to": to_wallet,
+                    "type": "AGG_TRADE",
+                    "timestamp": dt.strftime('%H:%M:%S'),
+                    "impact": impact,
+                    "asset": "BTC-USDT",
+                    "flow": flow_type
                 })
-
-            # Sort by timestamp (though they are all 'now' for now)
-            self.send_json(results[:15])
+            
+            self.send_json({"results": results})
         except Exception as e:
-            print(f"Whale Engine Error: {e}")
-            self.send_json([])
+            print(f"Whales Endpoint Error: {e}")
+            self.send_json({"results": []})
 
     def handle_alpha_score(self):
         """Feature 2: Composite Alpha Score (0-100) for each asset in the universe."""
@@ -5544,8 +5524,64 @@ class WebSocketServer:
                 threading.Thread(target=self._handle_client, args=(conn, addr), daemon=True).start()
             except: break
 
+import websockets
+import asyncio
+
+# Global cache for live stream data
+LIVE_CACHE = {
+    "liquidity": {"bids": [], "asks": []},
+    "whales": []
+}
+
+class BinanceLiveStream:
+    def __init__(self):
+        self.ws_url = "wss://stream.binance.com:9443/ws"
+        
+    async def stream_loop(self):
+        subscribe_msg = {
+            "method": "SUBSCRIBE",
+            "params": [
+                "btcusdt@depth20@100ms",
+                "btcusdt@aggTrade"
+            ],
+            "id": 1
+        }
+        
+        while True:
+            try:
+                async with websockets.connect(self.ws_url) as websocket:
+                    await websocket.send(json.dumps(subscribe_msg))
+                    print("[Binance WS] Connected to btcusdt Orderbook and Tape.")
+                    
+                    async for message in websocket:
+                        data = json.loads(message)
+                        if 'bids' in data and 'asks' in data:
+                            LIVE_CACHE["liquidity"]["bids"] = [[float(b[0]), float(b[1])] for b in data['bids']]
+                            LIVE_CACHE["liquidity"]["asks"] = [[float(a[0]), float(a[1])] for a in data['asks']]
+                        if 'e' in data and data['e'] == 'aggTrade':
+                            p = float(data['p'])
+                            q = float(data['q'])
+                            usd = p * q
+                            if usd > 50000:
+                                LIVE_CACHE["whales"].insert(0, {
+                                    "time": data['T'], "price": p, "qty": q, "value": usd, "side": "sell" if data['m'] else "buy"
+                                })
+                                if len(LIVE_CACHE["whales"]) > 50: LIVE_CACHE["whales"].pop()
+            except Exception as e:
+                print(f"[Binance WS] Error: {e}, retrying in 5s...")
+                await asyncio.sleep(5)
+
+    def run(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.stream_loop())
+
 if __name__ == "__main__":
     print("Initializing AlphaSignal Terminal...")
+    
+    # Start Live Binance Stream
+    binance_stream = BinanceLiveStream()
+    threading.Thread(target=binance_stream.run, daemon=True).start()
     # Start WebSocket Live Price Server
     ws_server = WebSocketServer()
     ws_thread = threading.Thread(target=ws_server.run, daemon=True)
