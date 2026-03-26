@@ -7538,6 +7538,7 @@ async function initLiveAlphaScroller() {
     poll();
     setInterval(poll, 30000); // 30s refresh
 }
+}
 
 // ============= Initialization =============
 const viewMap = {
