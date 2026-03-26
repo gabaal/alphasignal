@@ -25,7 +25,15 @@ UNIVERSE = UNIVERSE = {
     'STABLES': ['USDC-USD', 'USDT-USD', 'DAI-USD'],
     'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'PEPE-USD', 'FLOKI-USD']
 }
-
+INFO_CACHE = {}
+def get_ticker_name(ticker):
+    if ticker in INFO_CACHE: return INFO_CACHE[ticker]
+    try:
+        t = CACHE.ticker_info(ticker)
+        name = t.info.get('longName', ticker)
+        INFO_CACHE[ticker] = name
+        return name
+    except: return ticker
 
 def get_sentiment(ticker):
     res = get_sentiment_batch([ticker])

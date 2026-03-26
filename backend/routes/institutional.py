@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from backend.caching import CACHE
-from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM
+from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, get_ticker_name, get_sentiment
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
 
 class InstitutionalRoutesMixin:
@@ -788,10 +788,16 @@ class InstitutionalRoutesMixin:
                             category = cat
                             break
                     results.append({'ticker': ticker, 'name': get_ticker_name(ticker), 'price': float(prices.iloc[-1]), 'change': change, 'btcCorrelation': float(corr) if not np.isnan(corr) else 0.0, 'alpha': change - (float(btc_data.iloc[-1]) - float(btc_data.iloc[-2])) / float(btc_data.iloc[-2]) * 100, 'sentiment': get_sentiment(ticker), 'category': category, 'zScore': float(z_score) if not np.isnan(z_score) else 0})
-                except:
+                except Exception as e:
+                    print(f"INNER SIGNAL ERROR for {ticker}: {e}")
+                    import traceback
+                    traceback.print_exc()
                     continue
             self.send_json(sorted(results, key=lambda x: x['alpha'], reverse=True))
-        except:
+        except Exception as e:
+            print(f'SIGNAL ERROR: {e}')
+            import traceback
+            traceback.print_exc()
             self.send_json([])
 
     def handle_miners(self):

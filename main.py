@@ -31,15 +31,6 @@ from backend.services import NotificationService, MLAlphaEngine, PortfolioSimula
 
 
 
-INFO_CACHE = {}
-def get_ticker_name(ticker):
-    if ticker in INFO_CACHE: return INFO_CACHE[ticker]
-    try:
-        t = CACHE.ticker_info(ticker)
-        name = t.info.get('longName', ticker)
-        INFO_CACHE[ticker] = name
-        return name
-    except: return ticker
 from backend.api_router import AlphaHandler, ThreadedHTTPServer
 WS_CLIENTS = set()
 WS_LOCK = threading.Lock()
