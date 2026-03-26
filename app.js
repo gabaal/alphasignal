@@ -5851,64 +5851,7 @@ async function renderOnChain() {
     }
 }
 
-// ============= Initialization =============
-const viewMap = {
-    'onchain': renderOnChain,
-    'advanced-charting': renderAdvancedChart,
-    signals: renderSignals, 
-    briefing: renderBriefing,
-    mindshare: renderMindshare, 
-    flow: renderFlows,
-    heatmap: renderHeatmap,
-    catalysts: renderCatalysts,
-    'macro-calendar': renderMacroCalendar,
-    whales: renderWhales,
-
-    regime: renderRegime,
-    macro: renderMacroSync,
-    'macro-calendar': renderMacroView,
-    home: renderHome,
-    'explain-signals': renderDocsSignals,
-    'explain-briefing': renderDocsBriefing,
-    'explain-liquidity': renderDocsLiquidity,
-    'explain-whales': renderDocsWhales,
-    'explain-ml-engine': renderDocsMLEngine,
-    'explain-mindshare': renderDocsMindshare,
-    'explain-benchmark': renderDocsBenchmark,
-    'explain-alerts': renderDocsAlerts,
-    'explain-zscore': renderDocsZScore,
-    'explain-alpha': renderDocsAlpha,
-    'explain-correlation': renderDocsCorrelation,
-    'explain-sentiment': renderDocsSentiment,
-    'explain-risk': renderDocsRisk,
-    'explain-playbook': renderDocsPlaybook,
-    'explain-regimes': renderDocsRegimes,
-    'explain-advanced-charting': renderDocsAdvancedCharting,
-    'explain-onchain': renderDocsOnchain,
-    'explain-api': renderDocsAPI,
-    'explain-glossary': renderDocsGlossary,
-    'explain-signal-archive': renderDocsSignalArchive,
-    'explain-performance': renderDocsPerformance,
-    'explain-alpha-score': renderDocsAlphaScore,
-    'signal-archive': renderSignalArchive,
-    'correlation-matrix': renderCorrelationMatrix,
-    'alpha-score': renderAlphaScore,
-    'performance-dashboard': renderPerformanceDashboard,
-    'explain-velocity': renderDocsVelocity,
-    'explain-telegram': renderDocsTelegram,
-    'explain-pwa': renderDocsPWA,
-    'explain-topologies': renderDocsTopologies,
-    'explain-portfolio-lab': renderDocsPortfolioLab,
-    'etf-flows': renderETFFlows,
-    'liquidations': renderLiquidations,
-    'cme-gaps': renderCMEGaps,
-    'oi-radar': renderOIRadar,
-    'global-hub': renderGlobalHub,
-    'macro-hub': renderMacroHub,
-    'alpha-hub': renderAlphaHub,
-    'trade-ledger': renderTradeLedger,
-    help: renderHelp
-};
+// (viewMap was here, moved to end)
 
 async function renderHome() {
     appEl.innerHTML = `
@@ -7596,6 +7539,75 @@ async function initLiveAlphaScroller() {
     setInterval(poll, 30000); // 30s refresh
 }
 
+// ============= Initialization =============
+const viewMap = {
+    'onchain': renderOnChain,
+    'advanced-charting': renderAdvancedChart,
+    signals: renderSignals, 
+    briefing: renderBriefing,
+    mindshare: renderMindshare, 
+    flow: renderFlows,
+    heatmap: renderHeatmap,
+    catalysts: renderCatalysts,
+    'macro-calendar': renderMacroView,
+    whales: renderWhales,
+    regime: renderRegime,
+    macro: renderMacroSync,
+    home: renderHome,
+    'explain-signals': renderDocsSignals,
+    'explain-briefing': renderDocsBriefing,
+    'explain-liquidity': renderDocsLiquidity,
+    'explain-whales': renderDocsWhales,
+    'explain-ml-engine': renderDocsMLEngine,
+    'explain-mindshare': renderDocsMindshare,
+    'explain-benchmark': renderDocsBenchmark,
+    'explain-alerts': renderDocsAlerts,
+    'explain-zscore': renderDocsZScore,
+    'explain-alpha': renderDocsAlpha,
+    'explain-correlation': renderDocsCorrelation,
+    'explain-sentiment': renderDocsSentiment,
+    'explain-risk': renderDocsRisk,
+    'explain-playbook': renderDocsPlaybook,
+    'explain-regimes': renderDocsRegimes,
+    'explain-advanced-charting': renderDocsAdvancedCharting,
+    'explain-onchain': renderDocsOnchain,
+    'explain-api': renderDocsAPI,
+    'explain-glossary': renderDocsGlossary,
+    'explain-signal-archive': renderDocsSignalArchive,
+    'explain-performance': renderDocsPerformance,
+    'explain-alpha-score': renderDocsAlphaScore,
+    'signal-archive': renderSignalArchive,
+    'correlation-matrix': renderCorrelationMatrix,
+    'alpha-score': renderAlphaScore,
+    'performance-dashboard': renderPerformanceDashboard,
+    'explain-velocity': renderDocsVelocity,
+    'explain-telegram': renderDocsTelegram,
+    'explain-pwa': renderDocsPWA,
+    'explain-topologies': renderDocsTopologies,
+    'explain-portfolio-lab': renderDocsPortfolioLab,
+    'etf-flows': renderETFFlows,
+    'liquidations': renderLiquidations,
+    'cme-gaps': renderCMEGaps,
+    'oi-radar': renderOIRadar,
+    'global-hub': renderGlobalHub,
+    'macro-hub': renderMacroHub,
+    'alpha-hub': renderAlphaHub,
+    'trade-ledger': renderTradeLedger,
+    'rotation': renderRotation,
+    'velocity': renderChainVelocity,
+    'portfolio': renderPortfolioLab,
+    'portfolio-optimizer': renderPortfolioOptimizer,
+    'strategy-lab': renderStrategyLab,
+    'risk': renderRiskMatrix,
+    'stress': renderStressHub,
+    'narrative': renderNarrativeGalaxy,
+    'newsroom': renderNewsroom,
+    'alerts': renderAlerts,
+    'tradelab': renderTradeLab,
+    'liquidity': renderLiquidityView,
+    'help': renderHelp
+};
+
 // Final Initialization Call
 function appInit() {
     initLivePriceStream();
@@ -7604,7 +7616,7 @@ function appInit() {
     
     // Default entry view
     const urlParams = new URLSearchParams(window.location.search);
-    const view = urlParams.get('view') || 'signals';
+    const view = urlParams.get('view') || 'home';
     switchView(view);
 }
 
