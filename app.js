@@ -690,7 +690,7 @@ async function renderSignals(category = 'ALL') {
     const cats = ['ALL', 'EXCHANGE', 'PROXY', 'MINERS', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
 
     appEl.innerHTML = `
-        <div class="view-header"><h1>Signal Intelligence Dashboard</h1></div>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><h1>Signal Intelligence Dashboard</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-signals')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button></div>
         <div class="view-actions">
             <div class="category-filters">
                 ${cats.map(c => `<button class="filter-btn ${category === c ? 'active' : ''}" onclick="renderSignals('${c}')">${c}</button>`).join('')}
@@ -737,8 +737,8 @@ async function renderMiners() {
 // ============================================================
 async function renderAlphaScore() {
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1>⚡ Alpha Score <span class="premium-badge">LIVE</span></h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1>⚡ Alpha Score <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alpha-score')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Composite 0–100 ranking across momentum, sentiment, signal engine alerts & volatility.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>
@@ -769,7 +769,7 @@ async function renderAlphaScore() {
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
                 <div>
-                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
+                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alpha-score')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                     <p style="margin:0">Composite 0–100 ranking · Updated ${data.updated} · ${scores.length} assets scored ${isSafeMode ? '<span style="color:var(--accent); font-weight:700">[SAFE MODE ACTIVE]</span>' : ''}</p>
                 </div>
                 <!-- Pagination Controls -->
@@ -851,8 +851,8 @@ async function renderAlphaScore() {
 // ============================================================
 async function renderPerformanceDashboard() {
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-performance')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Terminal signal track record — win rate, returns, and monthly breakdown.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>
@@ -866,7 +866,7 @@ async function renderPerformanceDashboard() {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Portfolio Lab <span class="premium-badge">LIVE</span></h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Portfolio Lab <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>Institutional record as of ${d.updated} · Based on ${d.total_signals} signals</p>
             </div>
             <div style="display:flex; gap:0.5rem">
@@ -1082,8 +1082,8 @@ async function exportReport() {
 
 async function renderCorrelationMatrix() {
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1>📊 Correlation Matrix <span class="premium-badge">LIVE</span></h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1>📊 Correlation Matrix <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>60-day Pearson correlation of returns across institutional asset classes.</p>
         </div>
         <div class="card" style="padding:1.5rem">
@@ -1215,8 +1215,8 @@ async function renderFlows() {
     const data = await fetchAPI('/flows');
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">flowsheet</span> Institutional Flow Monitor</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">flowsheet</span> Institutional Flow Monitor</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Tracking the velocity of capital rotating into the ecosystem via spot ETFs and major aggregates.</p>
         </div>
         <div class="pulse-grid">
@@ -1255,8 +1255,8 @@ async function renderHeatmap() {
     if (!data) return;
     
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1>Statistical Intensity Heatmap</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1>Statistical Intensity Heatmap</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Visualizing real-time Z-score deviations across the institutional universe.</p>
         </div>
         
@@ -1679,7 +1679,7 @@ async function renderMindshare() {
     ]);
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">share</span> Narrative Radar & Capital Flows</h1><p>Mapping Narrative Momentum vs Developer Engineering Activity alongside Cross-Chain TVL migration.</p></div>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">share</span> Narrative Radar & Capital Flows</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-velocity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button><p>Mapping Narrative Momentum vs Developer Engineering Activity alongside Cross-Chain TVL migration.</p></div>
         
         <div style="display:grid; grid-template-columns: 1fr 350px; gap:20px; margin-bottom:20px;">
             <div class="mindshare-container" style="margin-bottom:0px; height: 100%;">
@@ -1844,8 +1844,8 @@ let activeCatalystDate = null;
 async function renderCatalysts() {
     if (!catalystDataCache) {
         appEl.innerHTML = `
-            <div class="view-header">
-                <h1>Intelligence Catalyst Compass</h1>
+            <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <h1>Intelligence Catalyst Compass</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
             </div>
             <div class="card" style="padding:1rem">${skeleton(2)}</div>
@@ -1875,8 +1875,8 @@ async function renderCatalysts() {
         : catalystDataCache;
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">auto_awesome</span> Intelligence Catalyst Compass</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">auto_awesome</span> Intelligence Catalyst Compass</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
         </div>
 
@@ -1922,8 +1922,8 @@ async function renderMacroCalendar() {
     if (!data) return;
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">calendar_month</span> Institutional Macro Compass</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">calendar_month</span> Institutional Macro Compass</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Real-time synthesis of global economic catalysts and their projected impact on liquidity.</p>
         </div>
         
@@ -1985,8 +1985,8 @@ async function renderWhales() {
     if (!data) return;
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">waves</span> Institutional Whale Pulse</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">waves</span> Institutional Whale Pulse</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-whales')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
         </div>
 
@@ -2184,7 +2184,7 @@ async function renderMarketPulse() {
     const data = await fetchAPI('/market-pulse');
     if (!data || !data.leadLag) return;
     appEl.innerHTML = `
-        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">insights</span> Institutional Market Pulse</h1></div>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">insights</span> Institutional Market Pulse</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button></div>
         <div class="pulse-grid">
             <div class="pulse-card"><h3>Fear & Greed Index</h3><div class="big-val">${data.fgIndex}</div><p>${data.fgLabel}</p></div>
             <div class="pulse-card"><h3>Lead-Lag Signal</h3><div class="big-val" style="font-size:2rem">${data.leadLag.leader} ${data.leadLag.divergence}%</div><p>${data.leadLag.signal}</p></div>
@@ -2198,8 +2198,8 @@ async function renderMacroSync() {
     if (!data) return;
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">sync</span> Market Pulse: Macro Sync</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">sync</span> Market Pulse: Macro Sync</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Real-time correlation analytics between Bitcoin and traditional macro assets.</p>
         </div>
         <div class="macro-sync-container">
@@ -2481,8 +2481,8 @@ async function renderRotation() {
     if (!data || !data.matrix) return;
     
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">rotate_right</span> Sector Correlation Matrix</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">rotate_right</span> Sector Correlation Matrix</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>
         </div>
         
@@ -2545,8 +2545,8 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
     if (!data || !data.summary) return;
     
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">science</span> Strategy Lab <span class="premium-badge pulse">PRO</span></h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">science</span> Strategy Lab <span class="premium-badge pulse">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-playbook')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Validate quantitative alphas using high-fidelity historical simulations.</p>
         </div>
 
@@ -2895,7 +2895,7 @@ async function renderNewsroom() {
                 <div>
                     <div style="display:flex; align-items:center; gap:10px">
                         <div class="live-indicator"></div>
-                        <h1 style="margin-bottom:5px"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1>
+                        <h1 style="margin-bottom:5px"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                     </div>
                     <p style="margin:0">Real-time institutional narrative stream correlated with AlphaSignal intensity.</p>
                 </div>
@@ -2961,8 +2961,8 @@ function openNewsArticle(index) {
 
 async function renderRiskMatrix() {
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">grid_on</span> Institutional Correlation Matrix</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">grid_on</span> Institutional Correlation Matrix</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Real-time statistical synchronization across the institutional universe.</p>
         </div>
         <div class="view-actions">
@@ -3031,8 +3031,8 @@ async function loadRiskMatrix(tickers = null) {
 
 async function renderStressHub() {
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--risk-high)">warning</span> Institutional Stress Lab</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--risk-high)">warning</span> Institutional Stress Lab</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-risk')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
         </div>
         <div class="risk-top-grid" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px; margin-bottom:2rem">
@@ -3125,8 +3125,8 @@ async function renderChainVelocity() {
     if (!data || !data.velocity_data) return;
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">speed</span> Cross-Chain Narrative Velocity</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">speed</span> Cross-Chain Narrative Velocity</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-velocity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Institutional capital rotation tracking across major L1 networks using volume acceleration and social heat.</p>
         </div>
 
@@ -3347,8 +3347,8 @@ async function renderPortfolioOptimizer() {
     `).join('');
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">donut_large</span> AI Portfolio Rebalancer</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">donut_large</span> AI Portfolio Rebalancer</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Risk-adjusted target allocations generated dynamically using Markowitz Efficient Frontier models.</p>
         </div>
         
@@ -3405,8 +3405,8 @@ async function renderPortfolioLab(customBasket = null) {
     }
 
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">pie_chart</span> Institutional Portfolio Lab</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">pie_chart</span> Institutional Portfolio Lab</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores.</p>
         </div>
 
@@ -3621,7 +3621,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL') {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">hub</span> Narrative Cluster Galaxy V2 <span class="premium-badge">PRO</span></h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">hub</span> Narrative Cluster Galaxy V2 <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-mindshare')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
             </div>
             <div class="view-actions" style="margin-bottom:0">
@@ -3820,8 +3820,8 @@ async function renderBriefing() {
         }
 
         appEl.innerHTML = `
-            <div class="view-header">
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">psychology</span> Institutional Intelligence Briefing</h1>
+            <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">psychology</span> Institutional Intelligence Briefing</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.</p>
             </div>
             
@@ -3987,8 +3987,8 @@ function formatPrice(price) {
 
 async function renderTradeLab() {
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-playbook')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Synthesizing institutional flow, macro catalysts, and technical regimes into actionable setups.</p>
         </div>
         
@@ -4269,7 +4269,7 @@ async function renderTradeLedger() {
         const res = await fetchAPI('/trade-ledger');
         if (!res || res.error) {
             appEl.innerHTML = `
-                <div class="view-header">
+                <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                     <h2>Institutional Trade Ledger</h2>
                 </div>
                 <div class="paywall-feature-block">
@@ -4370,7 +4370,7 @@ async function copyTicketToClipboard(id) {
 
 async function renderLiquidityView() {
     const ticker = 'BTC-USD';
-    appEl.innerHTML = `<h1 class="view-title">Order Flow Magnitude Monitor (GOMM)</h1>${skeleton(3)}`;
+    appEl.innerHTML = `<h1 class="view-title">Order Flow Magnitude Monitor (GOMM)</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>${skeleton(3)}`;
     
     // Sidebar + Layout
     appEl.innerHTML = `
@@ -4747,8 +4747,8 @@ async function renderLiquidityView() {
 async function renderSignalArchive() {
     // 1. Initial skeleton and header
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1>📡 Signal Archive <span class="premium-badge">LIVE</span></h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1>📡 Signal Archive <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-signal-archive')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
         </div>
         <div id="archive-filters" class="glass-card" style="margin-bottom:1.5rem; padding:1.2rem; display:flex; gap:1.5rem; align-items:flex-end; flex-wrap:wrap">
@@ -4925,8 +4925,8 @@ async function renderMacroView() {
 
 async function renderDocsVelocity() {
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Narrative Velocity Methodology</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Narrative Velocity Methodology</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-velocity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Documentation on how AlphaSignal calculates institutional capital rotation and social attention.</p>
         </div>
         <div class="docs-container" style="max-width:800px; margin:0 auto; line-height:1.7; color:var(--text-dim); padding: 2rem 0">
@@ -4968,8 +4968,8 @@ async function renderAlerts() {
     const data = await fetchAPI('/alerts');
     
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1>Live Intelligence Alerts</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1>Live Intelligence Alerts</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alerts')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
         </div>
         <div class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
@@ -5014,8 +5014,8 @@ async function renderRegime() {
     const regimeClass = data.current_regime.toLowerCase().replace(/ /g, '-').replace(/\//g, '');
     
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1>Market Regime Framework</h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1>Market Regime Framework</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-regimes')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Statistical classification of market cycles using Markov-Switching approximation.</p>
         </div>
         
@@ -5322,7 +5322,7 @@ function renderAdvancedChart() {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">
             <div>
-                <h1>📊 Advanced Visualizations <span class="premium-badge">PRO SUITE</span></h1>
+                <h1>📊 Advanced Visualizations <span class="premium-badge">PRO SUITE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-advanced-charting')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>Multi-dimensional analysis powered by live Binance feeds.</p>
             </div>
             <div style="display:flex; gap:10px; padding-bottom:10px;">
@@ -5373,9 +5373,9 @@ function renderAdvancedChart() {
 // ============================================================
 async function renderOnChain() {
     appEl.innerHTML = `
-        <div class="view-header">
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
-                <h1>🔗 On-Chain Analytics <span class="premium-badge">PRO SUITE</span></h1>
+                <h1>🔗 On-Chain Analytics <span class="premium-badge">PRO SUITE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-onchain')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>Institutional macroeconomic network valuation indicators.</p>
             </div>
         </div>
