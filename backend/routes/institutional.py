@@ -766,6 +766,7 @@ class InstitutionalRoutesMixin:
         conn.close()
         universe_tickers = [t for sub in UNIVERSE.values() for t in sub]
         all_tickers = sorted(list(set(universe_tickers + tracked)))
+        print(f"DEBUG: universe size={len(universe_tickers)}, all_tickers size={len(all_tickers)}")
         results = []
         try:
             btc_data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close').squeeze()
@@ -793,6 +794,7 @@ class InstitutionalRoutesMixin:
                     import traceback
                     traceback.print_exc()
                     continue
+            print(f"DEBUG: loop completed, results size={len(results)}")
             self.send_json(sorted(results, key=lambda x: x['alpha'], reverse=True))
         except Exception as e:
             print(f'SIGNAL ERROR: {e}')
