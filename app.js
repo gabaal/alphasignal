@@ -1307,6 +1307,7 @@ async function downloadPortfolioData(format) {
     const originalText = notifyBtn ? notifyBtn.innerHTML : '';
     if (notifyBtn) notifyBtn.innerHTML = '⌛ ...';
 
+    const originalText = notifyBtn ? notifyBtn.innerHTML : '';
     try {
         const link = document.createElement('a');
         link.href = `${API_BASE}/portfolio/export?format=${format}`;
