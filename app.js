@@ -2551,7 +2551,7 @@ async function renderMacroSync(tabs = null) {
         </div>
         ${tabHTML}
         <div class="macro-sync-container">
-            <div class="macro-grid">
+            <div class="macro-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:15px">
                 ${data.map(m => {
                     const absCorr = Math.abs(m.correlation);
                     const color = m.correlation >= 0 ? `rgba(0, 242, 255, ${0.1 + absCorr * 0.5})` : `rgba(255, 62, 62, ${0.1 + absCorr * 0.5})`;
@@ -5866,18 +5866,6 @@ const viewMap = {
 
     regime: renderRegime,
     macro: renderMacroSync,
-    rotation: renderRotation,
-    velocity: renderChainVelocity,
-    portfolio: renderPortfolioLab,
-    'portfolio-optimizer': renderPortfolioOptimizer,
-    'strategy-lab': renderStrategyLab,
-    risk: renderRiskMatrix,
-    stress: renderStressHub,
-    narrative: renderNarrativeGalaxy,
-    newsroom: renderNewsroom,
-    alerts: renderAlerts,
-    tradelab: renderTradeLab,
-    liquidity: renderLiquidityView,
     'macro-calendar': renderMacroView,
     home: renderHome,
     'explain-signals': renderDocsSignals,
