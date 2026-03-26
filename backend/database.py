@@ -2,6 +2,38 @@ import os
 import sqlite3
 import requests
 import stripe
+import redis
+
+# Initialize Redis connection pointing to localhost instance
+try:
+    redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+    redis_client.ping()
+except Exception as e:
+    print(f"Redis Connection Warning: {e}. Falling back to mock redis if unavailable.")
+    # Mock Redis object for local development environments lacking a running redis-server
+    class MockRedis:
+        def __init__(self):
+            self.data = {}
+            self.lists = {}
+        def ping(self): return True
+        def set(self, k, v): self.data[k] = v
+        def get(self, k): return self.data.get(k)
+        def lpush(self, k, v):
+            if k not in self.lists: self.lists[k] = []
+            self.lists[k].insert(0, v)
+        def ltrim(self, k, start, end):
+            if k in self.lists: self.lists[k] = self.lists[k][start:end+1]
+        def lrange(self, k, start, end):
+            if k in self.lists: return self.lists[k][start:end+1]
+            return []
+        def publish(self, ch, m): pass
+        def pubsub(self):
+            class MockPubSub:
+                def subscribe(self, *args): pass
+                def listen(self): return []
+            return MockPubSub()
+    redis_client = MockRedis()
+
 def load_env():
     if os.path.exists('.env'):
         with open('.env', 'r') as f:

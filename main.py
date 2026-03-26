@@ -25,7 +25,7 @@ from sklearn.model_selection import train_test_split
 import concurrent.futures
 
 # --- INJECTED BACKEND MODULES ---
-from backend.database import load_env, PORT, SUPABASE_URL, SUPABASE_KEY, SUPABASE_HEADERS, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, SupabaseClient, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, DB_PATH, init_db
+from backend.database import load_env, PORT, SUPABASE_URL, SUPABASE_KEY, SUPABASE_HEADERS, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, SupabaseClient, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, DB_PATH, init_db, redis_client
 from backend.caching import DataCache, CACHE
 from backend.services import NotificationService, MLAlphaEngine, PortfolioSimulator, HarvestService, get_sentiment, get_sentiment_batch, get_orderbook_imbalance, NOTIFY, ML_ENGINE, PORTFOLIO_SIM
 
@@ -40,7 +40,7 @@ def get_ticker_name(ticker):
         INFO_CACHE[ticker] = name
         return name
     except: return ticker
-from backend.routes import AlphaHandler, ThreadedHTTPServer
+from backend.api_router import AlphaHandler, ThreadedHTTPServer
 WS_CLIENTS = set()
 WS_LOCK = threading.Lock()
 LIVE_PRICES = {"BTC": 0.0, "ETH": 0.0, "SOL": 0.0}
@@ -124,8 +124,16 @@ class WebSocketServer:
                 except: dead.add(c)
             for c in dead: WS_CLIENTS.discard(c)
 
-    def price_broadcast_loop(self):
-        """Fetch prices every 5 seconds and broadcast prices + signal count."""
+    def redis_subscriber_loop(self):
+        """Dedicated listener for distributed Redis events. Pushes everything to local WS_CLIENTS."""
+        pubsub = redis_client.pubsub()
+        pubsub.subscribe('alphasignal:pubsub:broadcast')
+        for message in pubsub.listen():
+            if message['type'] == 'message':
+                self.broadcast(message['data'])
+
+    def price_publisher_loop(self):
+        """Fetch prices every 5 seconds and publish to global Redis channel."""
         tickers = {'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD'}
         while self.running:
             try:
@@ -136,7 +144,6 @@ class WebSocketServer:
                         if hasattr(val, 'iloc'): val = val.iloc[0]
                         LIVE_PRICES[sym] = round(float(val), 2)
 
-                # Feature 5: Include live signal count from DB
                 try:
                     conn = sqlite3.connect(DB_PATH)
                     cur = conn.cursor()
@@ -149,14 +156,16 @@ class WebSocketServer:
                     signal_count = 0
                     new_today = 0
 
-                self.broadcast(json.dumps({
+                payload = json.dumps({
                     "type": "prices",
                     "data": LIVE_PRICES,
                     "signal_count": signal_count,
                     "new_today": new_today
-                }))
+                })
+                # Send to Redis mesh instead of local clients!
+                redis_client.publish('alphasignal:pubsub:broadcast', payload)
             except Exception as e:
-                print(f"WS Broadcast Error: {e}")
+                pass
             time.sleep(5)
 
 
@@ -170,7 +179,8 @@ class WebSocketServer:
             return
         srv.listen(10)
         print(f"[WebSocket] Live price stream on ws://127.0.0.1:{self.PORT}")
-        threading.Thread(target=self.price_broadcast_loop, daemon=True).start()
+        threading.Thread(target=self.redis_subscriber_loop, daemon=True).start()
+        threading.Thread(target=self.price_publisher_loop, daemon=True).start()
         while self.running:
             try:
                 conn, addr = srv.accept()
@@ -180,11 +190,7 @@ class WebSocketServer:
 import websockets
 import asyncio
 
-# Global cache for live stream data
-LIVE_CACHE = {
-    "liquidity": {"bids": [], "asks": []},
-    "whales": []
-}
+# Global cache legacy variable removed; transitioned to Redis instance in database.py
 
 class BinanceLiveStream:
     def __init__(self):
@@ -209,17 +215,17 @@ class BinanceLiveStream:
                     async for message in websocket:
                         data = json.loads(message)
                         if 'bids' in data and 'asks' in data:
-                            LIVE_CACHE["liquidity"]["bids"] = [[float(b[0]), float(b[1])] for b in data['bids']]
-                            LIVE_CACHE["liquidity"]["asks"] = [[float(a[0]), float(a[1])] for a in data['asks']]
+                            bids = [[float(b[0]), float(b[1])] for b in data['bids']]
+                            asks = [[float(a[0]), float(a[1])] for a in data['asks']]
+                            redis_client.set('alphasignal:liquidity', json.dumps({"bids": bids, "asks": asks}))
                         if 'e' in data and data['e'] == 'aggTrade':
                             p = float(data['p'])
                             q = float(data['q'])
                             usd = p * q
                             if usd > 50000:
-                                LIVE_CACHE["whales"].insert(0, {
-                                    "time": data['T'], "price": p, "qty": q, "value": usd, "side": "sell" if data['m'] else "buy"
-                                })
-                                if len(LIVE_CACHE["whales"]) > 50: LIVE_CACHE["whales"].pop()
+                                whale_ev = {"time": data['T'], "price": p, "qty": q, "value": usd, "side": "sell" if data['m'] else "buy"}
+                                redis_client.lpush('alphasignal:whales', json.dumps(whale_ev))
+                                redis_client.ltrim('alphasignal:whales', 0, 49)
             except Exception as e:
                 print(f"[Binance WS] Error: {e}, retrying in 5s...")
                 await asyncio.sleep(5)
