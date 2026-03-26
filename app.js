@@ -2531,7 +2531,7 @@ async function renderMacroSync() {
             }
 
             if (sectors) renderSectorTreemap(sectors);
-            if (corrData && corrData.assets) renderCorrelationMatrix(corrData);
+            if (corrData && corrData.assets) renderCorrelationTable(corrData);
 
         } catch (e) {
             console.error("Macro sync charts failed:", e);
@@ -2539,7 +2539,7 @@ async function renderMacroSync() {
     }, 50);
 }
 
-function renderCorrelationMatrix(data) {
+function renderCorrelationTable(data) {
     const container = document.getElementById('corr-matrix-container');
     if (!container) return;
     
