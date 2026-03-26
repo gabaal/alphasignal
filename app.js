@@ -7609,12 +7609,22 @@ const viewMap = {
 };
 
 // Final Initialization Call
-function appInit() {
+async function appInit() {
+    // 1. Initial State Sync
     initLivePriceStream();
     initLiveAlphaScroller();
     initFearGreedGauge();
     
-    // Default entry view
+    // 2. Auth Check & Layout Reveal
+    await checkAuthStatus();
+    
+    const layout = document.getElementById('main-layout');
+    if (layout) {
+        layout.classList.remove('hidden');
+        layout.style.filter = 'none';
+    }
+
+    // 3. Default entry view
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get('view') || 'home';
     switchView(view);
