@@ -599,7 +599,7 @@ async function renderMacroHub() {
         { id: 'correlation', label: 'CORRELATION', view: 'correlation-matrix', icon: 'grid_4x4' },
         { id: 'regime', label: 'REGIME_HUB', view: 'regime', icon: 'analytics' }
     ];
-    renderMacroPulse(tabs); // Default view
+    renderMacroSync(tabs); // Default view
 }
 
 // ============= Alpha Strategy Hub =============
@@ -2530,20 +2530,40 @@ function renderExecutionTopography(data) {
 }
 
 // ============= Market Pulse =============
-async function renderMarketPulse() {
-    appEl.innerHTML = skeleton(1);
-    const data = await fetchAPI('/market-pulse');
-    if (!data || !data.leadLag) return;
+async function renderRegime(tabs = null) {
+    const tabHTML = tabs ? renderHubTabs('regime', tabs) : '';
     appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">insights</span> Institutional Market Pulse</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button></div>
-        <div class="pulse-grid">
-            <div class="pulse-card"><h3>Fear & Greed Index</h3><div class="big-val">${data.fgIndex}</div><p>${data.fgLabel}</p></div>
-            <div class="pulse-card"><h3>Lead-Lag Signal</h3><div class="big-val" style="font-size:2rem">${data.leadLag.leader} ${data.leadLag.divergence}%</div><p>${data.leadLag.signal}</p></div>
-        </div>`;
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">analytics</span> Regime Hub <span class="premium-badge">ALPHA</span></h1>
+        </div>
+        ${tabHTML}
+        <div class="grid-2">
+            <div class="card">
+                <h3>VOLATILITY_REGIME_HEATMAP</h3>
+                <div id="regime-heatmap" style="height:200px; width:100%"></div>
+            </div>
+            <div class="card">
+                <h3>CURRENT_REGIME_ANALYSIS</h3>
+                <div id="regime-status" style="font-size:1.2rem; font-weight:900; color:var(--accent); margin-top:1rem">LOADING...</div>
+                <p style="font-size:0.75rem; color:var(--text-dim); margin-top:10px">Programmatic synthesis of historical volatility clusters and volume expansion parameters.</p>
+            </div>
+        </div>
+    `;
+    
+    try {
+        const d = await fetchAPI('/regime');
+        if (d) {
+            document.getElementById('regime-status').innerText = d.current;
+            renderRegimeHeatmap('regime-heatmap', d.history);
+        }
+    } catch(e) {
+        showToast("Error loading regime data");
+    }
 }
 
 // ============= Pack G Rotation & Macro Sync =============
-async function renderMacroSync() {
+async function renderMacroSync(tabs = null) {
+    const tabHTML = tabs ? renderHubTabs('pulse', tabs) : '';
     appEl.innerHTML = skeleton(2);
     const [data, sectors, corrData] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors'), fetchAPI('/correlation-matrix')]);
     if (!data) return;
@@ -2551,8 +2571,9 @@ async function renderMacroSync() {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">sync</span> Market Pulse: Macro Sync</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
-            <p>Real-time correlation analytics between Bitcoin and traditional macro assets.</p>
         </div>
+        ${tabHTML}
+        <p style="margin-top: -1rem; margin-bottom: 1.5rem; color: var(--text-dim); font-size: 0.8rem;">Real-time correlation analytics between Bitcoin and traditional macro assets.</p>
         <div class="macro-sync-container">
             <div class="macro-grid">
                 ${data.map(m => {
@@ -5228,7 +5249,8 @@ async function renderSignalArchive() {
     loadData(1);
 }
 
-async function renderMacroView() {
+async function renderMacroView(tabs = null) {
+    const tabHTML = tabs ? renderHubTabs('compass', tabs) : '';
     appEl.innerHTML = `<h1 class="view-title">Macro Catalyst Compass</h1>${skeleton(2)}`;
     try {
         const data = await fetchAPI('/macro-calendar');
@@ -5236,7 +5258,8 @@ async function renderMacroView() {
 
         appEl.innerHTML = `
             <h1 class="view-title">🌏 Macro Catalyst Compass</h1>
-            <p class="view-desc">Tracking high-impact economic drivers and global liquidity shifts.</p>
+            ${tabHTML}
+            <p class="view-desc" style="margin-top:0.5rem">Tracking high-impact economic drivers and global liquidity shifts.</p>
             <div class="macro-grid" style="display:grid; grid-template-columns: 1fr 350px; gap:20px">
                 <div>
                     <div class="card">
@@ -5867,9 +5890,8 @@ const viewMap = {
     flow: renderFlows,
     heatmap: renderHeatmap,
     catalysts: renderCatalysts,
-    'macro-calendar': renderMacroCalendar,
+    'macro-calendar': renderMacroView,
     whales: renderWhales,
-
     regime: renderRegime,
     macro: renderMacroSync,
     rotation: renderRotation,
@@ -5884,7 +5906,6 @@ const viewMap = {
     alerts: renderAlerts,
     tradelab: renderTradeLab,
     liquidity: renderLiquidityView,
-    'macro-calendar': renderMacroView,
     home: renderHome,
     'explain-signals': renderDocsSignals,
     'explain-briefing': renderDocsBriefing,
