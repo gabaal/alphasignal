@@ -722,6 +722,7 @@ async function renderLiquidations() {
     });
 }
 
+function generateAssetReport(ticker) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
