@@ -7852,7 +7852,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     // Support deep-linking via URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const initialView = viewMap[urlParams.get('view')] ? urlParams.get('view') : 'command-center';
+    const initialView = viewMap[urlParams.get('view')] ? urlParams.get('view') : 'home';
     
     // Replace state on initial load rather than pushing
     window.history.replaceState({ view: initialView }, '', `?view=${initialView}`);
