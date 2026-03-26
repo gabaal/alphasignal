@@ -265,6 +265,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             elif path == '/api/search':
                 self.handle_search()
             elif path == '/api/signals':
+                print(f"[{datetime.now()}] ROUTER HIT: /api/signals explicitly invoked")
                 self.handle_signals()
             elif path == '/api/btc':
                 self.handle_btc()
