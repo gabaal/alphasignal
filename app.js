@@ -2652,8 +2652,8 @@ async function renderWhales() {
             </div>
             <div class="glass-card" style="padding:1.5rem">
                 <div class="card-header">
-                    <h3>Volume Tier Matrix (Whales vs Retail)</h3>
-                    <span class="label-tag">FLOW_DISPARITY</span>
+                    <h3>Whale Conviction Scatter (Size vs Time)</h3>
+                    <span class="label-tag">BUBBLE_MATRIX</span>
                 </div>
                 <div style="height: 200px; position: relative;">
                     <canvas id="whale-tier-chart"></canvas>
@@ -2715,25 +2715,55 @@ async function renderWhales() {
         renderWhaleFlowChart(entityData.flow_history);
     }
     
-    if (entityData && entityData.volume_tiers) {
+    if (data && data.results && data.results.length > 0) {
+        const bubbleData = data.results.map((w, i) => {
+            // Rough mapping for visual effect: X=Time offset, Y=Amount, R=Bubble size derived from USD impact
+            const usdMatch = w.usdValue.replace(/[^0-9.]/g, '');
+            const usdNum = parseFloat(usdMatch) || 1000000;
+            return {
+                x: data.results.length - i, // Recent on right
+                y: parseFloat(String(w.amount).replace(/,/g,'')),
+                r: Math.max(4, Math.min(25, usdNum / 5000000)), // Scale radius based on USD val
+                rawUsd: w.usdValue,
+                type: w.flow
+            };
+        });
+
         new Chart(document.getElementById('whale-tier-chart').getContext('2d'), {
-            type: 'bar',
+            type: 'bubble',
             data: {
-                labels: ['Retail (<$1k)', 'Pro ($1k-$100k)', 'Whale (>$100k)'],
-                datasets: [{
-                    label: 'Volume Density (%)',
-                    data: entityData.volume_tiers,
-                    backgroundColor: ['rgba(239, 68, 68, 0.7)', 'rgba(247, 147, 26, 0.7)', 'rgba(34, 197, 94, 0.7)'],
-                    borderRadius: 4
-                }]
+                datasets: [
+                    {
+                        label: 'Inflow',
+                        data: bubbleData.filter(d => d.type === 'INFLOW'),
+                        backgroundColor: 'rgba(34, 197, 94, 0.4)',
+                        borderColor: 'rgba(34, 197, 94, 0.8)'
+                    },
+                    {
+                        label: 'Outflow',
+                        data: bubbleData.filter(d => d.type === 'OUTFLOW'),
+                        backgroundColor: 'rgba(239, 68, 68, 0.4)',
+                        borderColor: 'rgba(239, 68, 68, 0.8)'
+                    }
+                ]
             },
             options: {
-                indexAxis: 'y',
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display:false },
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => ` ${c.raw.type}: ${c.raw.y} BTC (${c.raw.rawUsd})`
+                        }
+                    }
+                },
                 scales: {
-                    x: { max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text:'% of Transaction Volume' } },
-                    y: { grid: { display:false } }
+                    x: { display: false },
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { color: 'var(--text-dim)' },
+                        type: 'logarithmic'
+                    }
                 }
             }
         });
@@ -4322,24 +4352,35 @@ async function renderPortfolioLab(customBasket = null) {
     try {
         const ctxAlloc = document.getElementById('allocationChart').getContext('2d');
         new Chart(ctxAlloc, {
-            type: 'doughnut',
+            type: 'radar',
             data: {
                 labels: Object.keys(data.allocation),
                 datasets: [{
+                    label: 'Allocation %',
                     data: Object.values(data.allocation),
-                    backgroundColor: [
-                        '#00f2ff', '#a855f7', '#ff3e3e', '#fffa00', '#00ff88', '#3b82f6', '#f59e0b', '#ec4899', '#10b981', '#6366f1'
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 20
+                    backgroundColor: 'rgba(0, 242, 255, 0.2)',
+                    borderColor: '#00f2ff',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#00f2ff',
+                    pointBorderColor: 'rgba(255,255,255,0.8)',
+                    pointRadius: 3,
+                    pointHoverRadius: 5
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '75%',
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        pointLabels: { color: '#8b949e', font: { size: 9, family: 'JetBrains Mono' } },
+                        ticks: { display: false, backdropColor: 'transparent' }
+                    }
+                },
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: { backgroundColor: 'rgba(10,11,30,0.9)', titleFont: { size: 13 }, bodyFont: { size: 12 } }
                 }
             }
         });
