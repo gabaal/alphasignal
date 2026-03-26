@@ -7595,4 +7595,22 @@ async function initLiveAlphaScroller() {
     poll();
     setInterval(poll, 30000); // 30s refresh
 }
+
+// Final Initialization Call
+function appInit() {
+    initLivePriceStream();
+    initLiveAlphaScroller();
+    initFearGreedGauge();
+    
+    // Default entry view
+    const urlParams = new URLSearchParams(window.location.search);
+    const view = urlParams.get('view') || 'signals';
+    switchView(view);
+}
+
+// Start the app
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    appInit();
+} else {
+    document.addEventListener('DOMContentLoaded', appInit);
 }
