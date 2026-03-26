@@ -2389,7 +2389,7 @@ async function renderWhales() {
         </div>
 
         <div class="whale-list">
-            ${data.map(w => `
+            ${(data.results || data || []).map(w => `
                 <div class="whale-row">
                     <div class="w-main">
                         <div class="w-amount">${w.amount} ${w.asset.split('-')[0]} <span class="usd-val">(${w.usdValue})</span></div>
