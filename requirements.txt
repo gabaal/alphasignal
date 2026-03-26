@@ -4,3 +4,5 @@ numpy
 requests
 stripe
 scikit-learn
+redis
+supabase
