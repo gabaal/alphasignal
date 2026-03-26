@@ -1,0 +1,147 @@
+Function: load_env (Lines 26-32)
+Assign: PORT (Line 35)
+Assign: SUPABASE_URL (Line 40)
+Assign: SUPABASE_KEY (Line 41)
+Assign: SUPABASE_HEADERS (Line 42)
+Assign: STRIPE_PUBLISHABLE_KEY (Line 52)
+Assign: STRIPE_SECRET_KEY (Line 53)
+Class: SupabaseClient (Lines 57-112)
+  Method: query
+  Method: upsert
+  Method: upsert_batch
+  Method: auth_login
+  Method: auth_signup
+Assign: UNIVERSE (Line 118)
+Assign: WHALE_WALLETS (Line 131)
+Assign: SENTIMENT_KEYWORDS (Line 143)
+Assign: data_dir (Line 152)
+Assign: DB_PATH (Line 153)
+Function: init_db (Lines 155-179)
+Class: DataCache (Lines 183-335)
+  Method: __init__
+  Method: get
+  Method: set
+  Method: set_batch
+  Method: download
+  Method: ticker_info
+Class: NotificationService (Lines 337-375)
+  Method: push_webhook
+Assign: CACHE (Line 377)
+Assign: NOTIFY (Line 378)
+Class: MLAlphaEngine (Lines 382-493)
+  Method: __init__
+  Method: _compute_features
+  Method: train_all
+  Method: run_training_loop
+  Method: predict
+Assign: ML_ENGINE (Line 495)
+Class: PortfolioSimulator (Lines 497-553)
+  Method: __init__
+  Method: run_simulation_loop
+Assign: PORTFOLIO_SIM (Line 555)
+Class: HarvestService (Lines 557-824)
+  Method: __init__
+  Method: run
+  Method: generate_alpha_alerts
+  Method: record_orderbook_snapshots
+  Method: stop
+Function: get_sentiment (Lines 826-828)
+Function: get_sentiment_batch (Lines 830-877)
+Function: get_orderbook_imbalance (Lines 879-890)
+Assign: INFO_CACHE (Line 892)
+Function: get_ticker_name (Lines 893-900)
+Class: ThreadedHTTPServer (Lines 902-903)
+Class: AlphaHandler (Lines 905-5385)
+  Method: end_headers
+  Method: do_OPTIONS
+  Method: send_json
+  Method: send_error_json
+  Method: get_auth_token
+  Method: is_authenticated
+  Method: do_POST
+  Method: do_GET
+  Method: handle_portfolio_optimize
+  Method: handle_onchain
+  Method: handle_chain_velocity
+  Method: handle_depeg
+  Method: handle_tvl
+  Method: handle_sectors
+  Method: handle_factor_web
+  Method: handle_execution_time
+  Method: handle_sankey
+  Method: handle_correlation_matrix
+  Method: handle_system_dials
+  Method: handle_mindshare
+  Method: handle_regime
+  Method: handle_derivatives
+  Method: handle_volatility_surface
+  Method: handle_funding_rates
+  Method: handle_ssr
+  Method: handle_macro
+  Method: handle_wallet_attribution
+  Method: handle_narrative_clusters
+  Method: handle_briefing
+  Method: _get_signals
+  Method: handle_search
+  Method: handle_ai_analyst
+  Method: handle_alerts
+  Method: handle_benchmark
+  Method: handle_signals
+  Method: handle_miners
+  Method: handle_flows
+  Method: handle_heatmap
+  Method: handle_catalysts
+  Method: handle_market_pulse
+  Method: handle_risk
+  Method: handle_correlation
+  Method: handle_stress_test
+  Method: handle_fear_greed
+  Method: handle_dominance
+  Method: handle_rotation
+  Method: get_context_news
+  Method: handle_news
+  Method: handle_monte_carlo
+  Method: handle_backtest
+  Method: generate_timeline
+  Method: handle_history
+  Method: handle_btc
+  Method: handle_trade_lab
+  Method: handle_leaderboard
+  Method: handle_alerts
+  Method: handle_liquidity
+  Method: handle_tape
+  Method: handle_whales_entity
+  Method: handle_liquidations
+  Method: handle_setup_generation
+  Method: handle_whales
+  Method: handle_alpha_score
+  Method: handle_performance
+  Method: handle_export
+  Method: handle_notifications
+  Method: handle_signal_history
+  Method: handle_macro_calendar
+  Method: handle_auth_status
+  Method: handle_config
+  Method: handle_user_settings
+  Method: handle_live_portfolio_sim
+  Method: handle_test_telegram
+  Method: handle_portfolio_risk
+  Method: handle_portfolio_correlations
+  Method: handle_portfolio_performance
+  Method: handle_portfolio_export
+  Method: handle_trade_ledger
+Assign: WS_CLIENTS (Line 5391)
+Assign: WS_LOCK (Line 5392)
+Assign: LIVE_PRICES (Line 5393)
+Class: WebSocketServer (Lines 5395-5525)
+  Method: __init__
+  Method: _handshake
+  Method: _encode
+  Method: _handle_client
+  Method: broadcast
+  Method: price_broadcast_loop
+  Method: run
+Assign: LIVE_CACHE (Line 5531)
+Class: BinanceLiveStream (Lines 5536-5577)
+  Method: __init__
+  Method: run

@@ -1,0 +1,158 @@
+import os
+import sqlite3
+import requests
+import stripe
+def load_env():
+    if os.path.exists('.env'):
+        with open('.env', 'r') as f:
+            for line in f:
+                if '=' in line and not line.startswith('#'):
+                    k, v = line.strip().split('=', 1)
+                    os.environ[k] = v
+
+load_env()
+PORT = 8006
+
+# ============================================================
+# Cloud Database & Auth Configuration (Supabase)
+# ============================================================
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://your-project.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "your-anon-key")
+SUPABASE_HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+}
+
+# ============================================================
+# Stripe Payment Configuration
+# ============================================================
+STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+print(f"Stripe Config: PK={'Set' if STRIPE_PUBLISHABLE_KEY else 'MISSING'}, SK={'Set' if STRIPE_SECRET_KEY else 'MISSING'}")
+stripe.api_key = STRIPE_SECRET_KEY
+
+class SupabaseClient:
+    @staticmethod
+    def query(table, filters=None, method="GET", data=None):
+        url = f"{SUPABASE_URL}/rest/v1/{table}"
+        if filters: url += f"?{filters}"
+        
+        headers = {**SUPABASE_HEADERS, "Prefer": "return=minimal,resolution=merge-duplicates"}
+        try:
+            if method == "POST":
+                r = requests.post(url, headers=headers, json=data, timeout=5)
+            else:
+                r = requests.get(url, headers=headers, timeout=5)
+            
+            if r.status_code in [200, 201, 204]:
+                return r.json() if r.text else True
+            return []
+        except: return []
+
+    @staticmethod
+    def upsert(table, data):
+        url = f"{SUPABASE_URL}/rest/v1/{table}"
+        headers = {**SUPABASE_HEADERS, "Prefer": "return=minimal,resolution=merge-duplicates"}
+        try:
+            r = requests.post(url, headers=headers, json=data, timeout=5)
+            return r.status_code in [200, 201]
+        except: return False
+
+    @staticmethod
+    def upsert_batch(table, data_list):
+        if not data_list: return True
+        url = f"{SUPABASE_URL}/rest/v1/{table}"
+        headers = {**SUPABASE_HEADERS, "Prefer": "return=minimal,resolution=merge-duplicates"}
+        try:
+            r = requests.post(url, headers=headers, json=data_list, timeout=10)
+            return r.status_code in [200, 201]
+        except: return False
+
+    @staticmethod
+    def auth_login(email, password):
+        url = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
+        try:
+            r = requests.post(url, headers=SUPABASE_HEADERS, json={"email": email, "password": password}, timeout=5)
+            data = r.json()
+            if r.status_code == 200: return data
+            return {"error": data.get("error_description") or data.get("msg") or "Login failed"}
+        except Exception as e: return {"error": f"Connection failed: {str(e)}"}
+
+    @staticmethod
+    def auth_signup(email, password):
+        url = f"{SUPABASE_URL}/auth/v1/signup"
+        try:
+            r = requests.post(url, headers=SUPABASE_HEADERS, json={"email": email, "password": password}, timeout=5)
+            data = r.json()
+            if r.status_code == 200: return data
+            return {"error": data.get("msg") or data.get("error_description") or "Signup failed"}
+        except Exception as e: return {"error": f"Connection failed: {str(e)}"}
+
+
+# ============================================================
+# Pack G1: Expanded Multi-Asset Universe
+# ============================================================
+UNIVERSE = {
+    'EXCHANGE': ['COIN', 'HOOD', 'VIRT'],
+    'MINERS': ['MARA', 'RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT'],
+    'PROXY': ['MSTR', 'GLXY.TO'],
+    'ETF': ['IBIT', 'FBTC', 'ARKB', 'BITO'],
+    'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD'],
+    'L1': ['SOL-USD', 'ETH-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'POL-USD', 'ATOM-USD', 'NEAR-USD', 'SUI-USD', 'INJ-USD'],
+    'L2': ['ARB-USD', 'OP-USD', 'IMX-USD'],
+    'AI': ['FET-USD', 'RNDR-USD', 'TAO-USD', 'AGIX-USD', 'WLD-USD'],
+    'STABLES': ['USDC-USD', 'USDT-USD', 'DAI-USD'],
+    'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'PEPE-USD', 'FLOKI-USD']
+}
+
+WHALE_WALLETS = {
+    '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo': 'Binance Cold Storage',
+    'bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97': 'Bitfinex Reserve',
+    '0x2b6ed29a95753c375764b104735cc29778c09a18': 'Jump Trading (Institutional)',
+    '0x00000000219ab540356cbb839cbe05303d7705fa': 'ETH2.0 Staking Deposit',
+    '0x1062a47ab45383506260907d39352e854b41a540': 'Wintermute Liquidity Cluster',
+    '0x71660c4cf122851df5465df8e48386377e82484a': 'DWF Labs Entity',
+    'bc1ql49ydapnjafl5t2cp9zqpjwe6pdgmxy98859v2': 'Robinhood Custody',
+    '1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF': 'Mt. Gox Recovery',
+    'bc1qazcm763858nkj2dj986etajv6wquslv8uxwczt': 'US Department of Justice'
+}
+
+SENTIMENT_KEYWORDS = {
+    'positive': ['bullish', 'buy', 'growth', 'profit', 'surged', 'adoption', 'partnership', 'expansion', 'outperform', 'upgrade', 'high', 'etf', 'halving', 'rally', 'positive', 'gain', 'support', 'record', 'new high'],
+    'negative': ['bearish', 'sell', 'lawsuit', 'sec', 'crash', 'plummets', 'losses', 'regulation', 'ban', 'hacked', 'downgrade', 'low', 'negative', 'drop', 'fell', 'fear', 'outflow', 'redemption']
+}
+
+# ============================================================
+# Pack G4: Persistent Intelligence (Hybrid Cache)
+# ============================================================
+# Use DATA_DIR env var for Railway Volume mounting (e.g. DATA_DIR=/data)
+data_dir = os.getenv('DATA_DIR', '').rstrip('/')
+DB_PATH = f"{data_dir}/alphasignal.db" if data_dir else 'alphasignal.db'
+
+def init_db():
+    # Keep local SQLite for fast L1/L2 caching, but primary intelligence moves to Cloud
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS alerts_history (id INTEGER PRIMARY KEY, type TEXT, ticker TEXT, message TEXT, severity TEXT, price REAL, timestamp DATETIME)''')
+    # Migration: Add price column if it doesn't exist
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN price REAL")
+    except: pass
+    
+    c.execute('''CREATE TABLE IF NOT EXISTS tracked_tickers (ticker TEXT PRIMARY KEY)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS price_history (ticker TEXT, date TEXT, price REAL, PRIMARY KEY (ticker, date))''')
+    c.execute('''CREATE TABLE IF NOT EXISTS cache_store (key TEXT PRIMARY KEY, value TEXT, expires_at REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS orderbook_snapshots (id INTEGER PRIMARY KEY, ticker TEXT, snapshot_data TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS user_settings (user_email TEXT PRIMARY KEY, discord_webhook TEXT, telegram_webhook TEXT, telegram_chat_id TEXT, alerts_enabled INTEGER DEFAULT 1)''')
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN telegram_chat_id TEXT")
+    except: pass
+    c.execute('''CREATE TABLE IF NOT EXISTS market_ticks (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, price REAL, volume REAL, open_interest REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS sentiment_history (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, score REAL, index_value REAL, volume REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS ml_predictions (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, predicted_return REAL, confidence REAL, features_json TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS portfolio_history (timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, equity REAL, draw_down REAL, assets_json TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS trade_ledger (id INTEGER PRIMARY KEY AUTOINCREMENT, user_email TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, ticker TEXT, action TEXT, price REAL, target REAL, stop REAL, rr REAL, slippage REAL)''')
+    conn.commit()
+    conn.close()
