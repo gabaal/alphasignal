@@ -437,10 +437,7 @@
     <div id="notifications"></div>
     <div id="toast-container"></div>
     <script src="tape.js"></script>
-    <script src="part1.js"></script>
-    <script src="part2.js"></script>
-    <script src="part3.js"></script>
-    <script src="part4.js"></script>
+    <script src="app.js?v=1.4"></script>
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
     <div id="notification-modal" class="overlay hidden">
@@ -476,7 +473,6 @@
     </div>
 
     <script>
-        /* Temporarily disabled Service Worker to force-clear broken JS cache
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
@@ -484,16 +480,6 @@
                     .catch(err => console.log('Service Worker registration failed', err));
             });
         }
-        */
-        // Force-clear any existing Service Workers
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                }
-            });
-        }
     </script>
 </body>
 </html>
-```
