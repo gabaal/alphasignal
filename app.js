@@ -562,14 +562,65 @@ function exportCSV(data, filename) {
 }
 
 // ============= ETF Flows View =============
-async function renderETFFlows() {
-    appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">account_balance</span> Spot ETF Net Flows <span class="premium-badge">LIVE</span></h1>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')">
-                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
-            </button>
+// ============= Hub Shared Logic =============
+function renderHubTabs(activeTab, tabs) {
+    return `
+        <div class="hub-tabs" style="display:flex; gap:10px; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto">
+            ${tabs.map(t => `
+                <button class="intel-action-btn mini ${activeTab === t.id ? '' : 'outline'}" 
+                        onclick="switchView('${t.view}')" 
+                        style="white-space:nowrap; padding:6px 12px; font-size:0.65rem">
+                    <span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle; margin-right:4px">${t.icon}</span> 
+                    ${t.label}
+                </button>
+            `).join('')}
         </div>
+    `;
+}
+
+// ============= Global Markets Hub =============
+async function renderGlobalHub() {
+    const tabs = [
+        { id: 'etf', label: 'ETF_FLOWS', view: 'etf-flows', icon: 'account_balance' },
+        { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
+        { id: 'oi', label: 'OI_RADAR', view: 'oi-radar', icon: 'track_changes' },
+        { id: 'gaps', label: 'CME_GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+    ];
+    
+    // Default to ETF flows if just 'global-hub' is called
+    renderETFFlows(tabs);
+}
+
+// ============= Macro Intelligence Hub =============
+async function renderMacroHub() {
+    const tabs = [
+        { id: 'compass', label: 'MACRO_COMPASS', view: 'macro-calendar', icon: 'public' },
+        { id: 'pulse', label: 'MACRO_PULSE', view: 'macro', icon: 'monitoring' },
+        { id: 'correlation', label: 'CORRELATION', view: 'correlation-matrix', icon: 'grid_4x4' },
+        { id: 'regime', label: 'REGIME_HUB', view: 'regime', icon: 'analytics' }
+    ];
+    renderMacroPulse(tabs); // Default view
+}
+
+// ============= Alpha Strategy Hub =============
+async function renderAlphaHub() {
+    const tabs = [
+        { id: 'briefing', label: 'AI_BRIEFING', view: 'briefing', icon: 'memory' },
+        { id: 'alpha', label: 'ALPHA_SCORE', view: 'alpha-score', icon: 'electric_bolt' },
+        { id: 'lab', label: 'STRATEGY_LAB', view: 'strategy-lab', icon: 'query_stats' },
+        { id: 'rebalancer', label: 'AI_REBALANCER', view: 'portfolio-optimizer', icon: 'donut_large' }
+    ];
+    renderBriefing(tabs); // Default view
+}
+
+// ============= Update existing renderers to support tabs =============
+async function renderETFFlows(tabs = null) {
+    const tabHTML = tabs ? renderHubTabs('etf', tabs) : '';
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1>
+        </div>
+        ${tabHTML}
         <div class="card" style="margin-bottom:1.5rem">
             <div style="height:450px; width:100%"><canvas id="etfFlowsChart"></canvas></div>
         </div>
@@ -585,6 +636,7 @@ async function renderETFFlows() {
             </div>
         </div>
     `;
+    // ... rest of renderETFFlows logic ...
 
     // High-fidelity simulated ETF Flow data
     const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
@@ -645,13 +697,17 @@ async function renderETFFlows() {
 
 // ============= Liquidations View =============
 async function renderLiquidations() {
+    const tabs = [
+        { id: 'etf', label: 'ETF_FLOWS', view: 'etf-flows', icon: 'account_balance' },
+        { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
+        { id: 'oi', label: 'OI_RADAR', view: 'oi-radar', icon: 'track_changes' },
+        { id: 'gaps', label: 'CME_GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+    ];
     appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">local_fire_department</span> Forced Liquidations <span class="premium-badge">LIVE</span></h1>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')">
-                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
-            </button>
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1>
         </div>
+        ${renderHubTabs('liquidations', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
             <div style="height:450px; width:100%"><canvas id="liquidationsChart"></canvas></div>
         </div>
@@ -724,13 +780,17 @@ async function renderLiquidations() {
 
 // ============= CME Gaps View =============
 async function renderCMEGaps() {
+    const tabs = [
+        { id: 'etf', label: 'ETF_FLOWS', view: 'etf-flows', icon: 'account_balance' },
+        { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
+        { id: 'oi', label: 'OI_RADAR', view: 'oi-radar', icon: 'track_changes' },
+        { id: 'gaps', label: 'CME_GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+    ];
     appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">gap_stats</span> CME Bitcoin Gaps <span class="premium-badge">LIVE</span></h1>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alerts')">
-                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
-            </button>
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1>
         </div>
+        ${renderHubTabs('gaps', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
             <h3>ACTIVE_MAGNET_LEVELS</h3>
             <div id="cme-gaps-list" style="margin-top:1rem"></div>
@@ -765,13 +825,17 @@ async function renderCMEGaps() {
 
 // ============= OI Radar View =============
 async function renderOIRadar() {
+    const tabs = [
+        { id: 'etf', label: 'ETF_FLOWS', view: 'etf-flows', icon: 'account_balance' },
+        { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
+        { id: 'oi', label: 'OI_RADAR', view: 'oi-radar', icon: 'track_changes' },
+        { id: 'gaps', label: 'CME_GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+    ];
     appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">track_changes</span> Open Interest Radar <span class="premium-badge">LIVE</span></h1>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')">
-                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
-            </button>
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1>
         </div>
+        ${renderHubTabs('oi', tabs)}
         <div class="grid-2">
             <div class="card" style="height:450px; display:flex; align-items:center; justify-content:center">
                 <canvas id="oiRadarChart"></canvas>
@@ -1366,12 +1430,13 @@ async function exportReport() {
 }
 
 
-async function renderCorrelationMatrix() {
+async function renderCorrelationMatrix(tabs = null) {
+    const tabHTML = tabs ? renderHubTabs('correlation', tabs) : '';
     appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1>📊 Correlation Matrix <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
-            <p>60-day Pearson correlation of returns across institutional asset classes.</p>
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Macro Intelligence Hub <span class="premium-badge">LIVE</span></h1>
         </div>
+        ${tabHTML}
         <div class="card" style="padding:1.5rem">
             <div style="margin-bottom:1.5rem; display:flex; gap:12px; flex-wrap:wrap; align-items:center">
                 <label style="font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">BASKET:</label>
@@ -3242,6 +3307,16 @@ function openNewsArticle(index) {
             <span>© 2026 AlphaSignal Institutional</span>
             <button class="timeframe-btn" onclick="document.getElementById('news-modal').classList.add('hidden')">CLOSE INTEL</button>
         </div>
+    `;
+}
+
+async function renderAlphaScore(tabs = null) {
+    const tabHTML = tabs ? renderHubTabs('alpha', tabs) : '';
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">electric_bolt</span> Alpha Strategy Hub <span class="premium-badge">LIVE</span></h1>
+        </div>
+        ${tabHTML}
     `;
 }
 
@@ -5846,6 +5921,9 @@ const viewMap = {
     'liquidations': renderLiquidations,
     'cme-gaps': renderCMEGaps,
     'oi-radar': renderOIRadar,
+    'global-hub': renderGlobalHub,
+    'macro-hub': renderMacroHub,
+    'alpha-hub': renderAlphaHub,
     'trade-ledger': renderTradeLedger,
     help: renderHelp
 };
@@ -6805,6 +6883,18 @@ function updateSEOMeta(view) {
         'oi-radar': {
             title: 'Derivatives Open Interest Radar',
             desc: 'Comparative analysis of Open Interest depth and acceleration across Binance, CME, and Bybit.'
+        },
+        'global-hub': {
+            title: 'Global Markets Intelligence Hub',
+            desc: 'Consolidated tracking of ETF flows, liquidations, and open interest dynamics.'
+        },
+        'macro-hub': {
+            title: 'Macro Intelligence Hub',
+            desc: 'Multidimensional analysis of global macro catalysts, correlations, and market regimes.'
+        },
+        'alpha-hub': {
+            title: 'Alpha Strategy Hub',
+            desc: 'Institutional AI synthesis, alpha scoring, and automated strategy validation.'
         },
         'portfolio': {
             title: 'Institutional Portfolio Lab',
