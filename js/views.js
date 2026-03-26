@@ -3378,7 +3378,7 @@ async function renderLiquidityView() {
         display.innerHTML = `
             <div class="card" style="height:100%; border:none; background:transparent; display:flex; flex-direction:column">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-shrink:0">
-                    <h3 class="card-title" style="margin:0">Order Book Cumulative Depth <span style="font-size:0.8rem; color:var(--text-dim)">(Stepped Area)</span></h3>
+                    <h3 class="card-title" style="margin:0">Live Order Book Depth <span style="font-size:0.8rem; color:var(--accent)">(Binance WS)</span></h3>
                 </div>
                 <div class="liquidity-chart" style="flex:1; width:100%; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding-right:10px; margin-bottom:20px;">
                     <div style="height:400px; width:100%; position:relative; padding:10px">
@@ -3391,25 +3391,13 @@ async function renderLiquidityView() {
             const ctx = document.getElementById('depthWallsChart');
             if (!ctx) return;
             
-            // 1. Separate Bids and Asks
-            const bids = data.walls.filter(w => w.side === 'bid').sort((a, b) => b.price - a.price); // Highest bid first
-            const asks = data.walls.filter(w => w.side === 'ask').sort((a, b) => a.price - b.price); // Lowest ask first
-            
-            // 2. Compute Cumulative Volume
-            let cumBid = 0;
-            const bidData = bids.map(w => { cumBid += w.size; return { x: w.price, y: cumBid }; });
-            bidData.reverse(); // Reverse for charting left-to-right
-            
-            let cumAsk = 0;
-            const askData = asks.map(w => { cumAsk += w.size; return { x: w.price, y: cumAsk }; });
-            
-            new Chart(ctx.getContext('2d'), {
+            const liveChart = new Chart(ctx.getContext('2d'), {
                 type: 'scatter',
                 data: {
                     datasets: [
                         {
                             label: 'Bids (Support)',
-                            data: bidData,
+                            data: [],
                             borderColor: 'rgba(34, 197, 94, 0.8)',
                             backgroundColor: 'rgba(34, 197, 94, 0.2)',
                             fill: true,
@@ -3419,7 +3407,7 @@ async function renderLiquidityView() {
                         },
                         {
                             label: 'Asks (Resistance)',
-                            data: askData,
+                            data: [],
                             borderColor: 'rgba(239, 68, 68, 0.8)',
                             backgroundColor: 'rgba(239, 68, 68, 0.2)',
                             fill: true,
@@ -3431,6 +3419,7 @@ async function renderLiquidityView() {
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
+                    animation: false, // Disable animation for live WS streams to save CPU
                     interaction: { mode: 'index', intersect: false },
                     plugins: { 
                         tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${c.raw.y.toFixed(2)} BTC Vol @ $${c.raw.x.toLocaleString()}` } },
@@ -3438,10 +3427,33 @@ async function renderLiquidityView() {
                     },
                     scales: {
                         x: { type: 'linear', title: { display:true, text: 'Limit Price ($)' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', callback: function(val) { return '$' + val.toLocaleString(); } } },
-                        y: { title: { display:true, text: 'Cumulative Volume (BTC)' }, grid: { color: 'rgba(255,255,255,0.05)' }, position: 'right', ticks: { color: '#8b949e' } }
+                        y: { title: { display:true, text: 'Cumulative Volume (BTC)' }, grid: { color: 'rgba(255,255,255,0.05)' }, position: 'right', display: true, ticks: { color: '#8b949e' } },
+                        y1: { display: false } // To balance right margin
                     }
                 }
             });
+            
+            let isDrawing = false;
+            
+            // Connect to Binance WebSocket directly for Order Book visualization!
+            window.BinanceSocketManager.subscribe('BTCUSDT', 'depth20@100ms', (wsData) => {
+                if(isDrawing || !wsData.bids || !wsData.asks || !document.getElementById('depthWallsChart')) return;
+                isDrawing = true;
+                
+                let cumBid = 0;
+                let bidData = [...wsData.bids].map(w => { cumBid += parseFloat(w[1]); return { x: parseFloat(w[0]), y: cumBid }; });
+                // We do NOT reverse bids here because scatter chart 'x' axis maps numerical price correctly left-to-right
+                
+                let cumAsk = 0;
+                let askData = [...wsData.asks].map(w => { cumAsk += parseFloat(w[1]); return { x: parseFloat(w[0]), y: cumAsk }; });
+                
+                liveChart.data.datasets[0].data = bidData.reverse(); // Chart.js needs X sorted ascending
+                liveChart.data.datasets[1].data = askData;
+                liveChart.update('none'); // High-performance update
+                
+                isDrawing = false;
+            });
+            
         }, 50);
     }
 
@@ -4106,11 +4118,15 @@ async function renderAdvDepth(symbol) {
     ro.observe(container);
 }
 
-// TAB 3: Derivatives (Simulated OI)
+// TAB 3: Derivatives (Live CVD & Block Trades)
 async function renderAdvDerivatives(symbol, interval) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
     if(!container) return;
+    
+    // Switch to higher frequency for better visual demo
+    interval = '1m';
+    
     const klines = await fetchBinanceKlines(symbol, interval, 100);
     container.innerHTML = '';
     
@@ -4118,20 +4134,59 @@ async function renderAdvDerivatives(symbol, interval) {
         layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
         timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true }
     });
-    const priceSeries = chart.addLineSeries({ color: 'rgba(255,255,255,0.3)', lineWidth: 1, title: 'Price' });
-    const oiSeries = chart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0)', lineColor: '#60a5fa', lineWidth: 2, priceScaleId: 'left', title: 'Open Interest' });
-    const liqSeries = chart.addHistogramSeries({ color: '#ef5350', priceScaleId: 'left_liq', scaleMargins: { top: 0.7, bottom: 0 }, title: 'Liquidations' });
+    
+    const priceSeries = chart.addLineSeries({ color: 'rgba(255,255,255,0.7)', lineWidth: 1, title: 'Price Action' });
+    const cvdSeries = chart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0)', lineColor: '#60a5fa', lineWidth: 2, priceScaleId: 'left', title: 'Cumulative Volume Delta' });
+    const blockSeries = chart.addHistogramSeries({ color: '#ef5350', priceScaleId: 'left_liq', scaleMargins: { top: 0.7, bottom: 0 }, title: 'Block Order Flux' });
     
     priceSeries.setData(klines.map(k=>({time:k.time, value:k.close})));
     
-    // Simulate UI for OI and Liq
-    oiSeries.setData(klines.map((k,i) => ({time:k.time, value: 500000 + i*1000 + (k.close - k.open)*100 + Math.random()*5000})));
-    liqSeries.setData(klines.map(k => ({time:k.time, value: (Math.abs(k.close-k.open)/k.open > 0.01) ? Math.random()*100000 : 0, color: (k.close < k.open) ? '#26a69a' : '#ef5350' })));
+    // Initialize base CVD and Empty Blocks
+    let runningCVD = 500000;
+    let cvdData = [];
+    let liqData = [];
+    
+    klines.forEach(k => {
+        let delta = (k.close - k.open) * (k.volume || 1);
+        runningCVD += delta;
+        cvdData.push({ time: k.time, value: runningCVD });
+        
+        // Pseudo blocks for past history
+        let blockVal = (Math.abs(k.close - k.open) / k.open > 0.005) ? Math.random() * 10 : 0;
+        liqData.push({ time: k.time, value: blockVal, color: k.close < k.open ? '#26a69a' : '#ef5350' });
+    });
+    
+    cvdSeries.setData(cvdData);
+    blockSeries.setData(liqData);
     
     chart.priceScale('left').applyOptions({ visible: true, borderColor: 'rgba(255,255,255,0.1)' });
     chart.priceScale('left_liq').applyOptions({ visible: false });
     
-    const ro = new ResizeObserver(e => { if(e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
+    // LIVE WEBSOCKET AGGREGATOR
+    let currentCandleStart = Math.floor(Date.now() / 60000) * 60;
+    
+    window.BinanceSocketManager.subscribe(symbol, 'aggTrade', (wsData) => {
+        // wsData.p: Price, wsData.q: Quantity, wsData.T: Timestamp, wsData.m: Buyer is Maker (Sell)
+        let ts = Math.floor(wsData.T / 1000);
+        let qty = parseFloat(wsData.q);
+        let price = parseFloat(wsData.p);
+        let isSell = wsData.m; // true = taker sell (red), false = taker buy (green)
+        
+        // Align to 1m boundary
+        let candleTime = Math.floor(ts / 60) * 60;
+        if(candleTime > currentCandleStart) currentCandleStart = candleTime;
+        
+        // 1. Update CVD (Sum of directional volume)
+        runningCVD += (isSell ? -qty : qty);
+        cvdSeries.update({ time: currentCandleStart, value: runningCVD });
+        
+        // 2. Capture large market orders (Whale Flux)
+        if(qty > 5) { // If > 5 BTC/ETH block size limit
+            blockSeries.update({ time: ts, value: qty, color: isSell ? '#ef5350' : '#26a69a' });
+        }
+    });
+    
+    const ro = new ResizeObserver(e => { if(e.length > 0 && e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
     ro.observe(container);
 }
 
