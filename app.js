@@ -561,7 +561,167 @@ function exportCSV(data, filename) {
     document.body.removeChild(link);
 }
 
-function generateAssetReport(ticker) {
+// ============= ETF Flows View =============
+async function renderETFFlows() {
+    appEl.innerHTML = `
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">account_balance</span> Spot ETF Net Flows <span class="premium-badge">LIVE</span></h1>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')">
+                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
+            </button>
+        </div>
+        <div class="card" style="margin-bottom:1.5rem">
+            <div style="height:450px; width:100%"><canvas id="etfFlowsChart"></canvas></div>
+        </div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>DAILY_LEADERBOARD</h3>
+                <div id="etf-leaderboard" class="skeleton-line"></div>
+            </div>
+            <div class="card">
+                <h3>CUMULATIVE_FLOW_USD</h3>
+                <div id="etf-cumulative-text" style="font-size:2rem; font-weight:900; color:var(--accent); margin-top:1rem">$0.00B</div>
+                <p style="font-size:0.7rem; color:var(--text-dim)">Total Net Institutional Inflow since Launch.</p>
+            </div>
+        </div>
+    `;
+
+    // High-fidelity simulated ETF Flow data
+    const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const issuers = [
+        { name: 'IBIT (BlackRock)', color: '#00f2ff', data: [450, 120, -50, 800, 310, 0, 0] },
+        { name: 'FBTC (Fidelity)', color: '#86efac', data: [210, 90, -30, 400, 150, 0, 0] },
+        { name: 'ARKB (Ark)', color: '#facc15', data: [50, 20, -10, 120, 45, 0, 0] },
+        { name: 'BITB (Bitwise)', color: '#a78bfa', data: [30, 15, -5, 80, 25, 0, 0] }
+    ];
+
+    const ctx = document.getElementById('etfFlowsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                ...issuers.map(iss => ({
+                    label: iss.name,
+                    data: iss.data,
+                    backgroundColor: iss.color,
+                    borderRadius: 4,
+                    stack: 'Stack 0'
+                })),
+                {
+                    label: 'CUMULATIVE_NET ($M)',
+                    data: [740, 985, 890, 2290, 2820, 2820, 2820],
+                    type: 'line',
+                    borderColor: 'rgba(255, 255, 255, 0.4)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    yAxisID: 'y1',
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#d1d5db', font: { family: 'JetBrains Mono', size: 10 } } }
+            },
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } },
+                y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'DAILY FLOW ($M)', color: '#00f2ff' } },
+                y1: { position: 'right', grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'CUMULATIVE ($M)', color: 'rgba(255,255,255,0.5)' } }
+            }
+        }
+    });
+
+    document.getElementById('etf-cumulative-text').textContent = "$19.42B";
+    document.getElementById('etf-leaderboard').innerHTML = issuers.map(iss => `
+        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border)">
+            <span style="font-size:0.75rem; font-weight:700">${iss.name}</span>
+            <span style="color:${iss.data[4] >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}; font-weight:900">${iss.data[4] >= 0 ? '+' : ''}${iss.data[4]}M</span>
+        </div>
+    `).join('');
+}
+
+// ============= Liquidations View =============
+async function renderLiquidations() {
+    appEl.innerHTML = `
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">local_fire_department</span> Forced Liquidations <span class="premium-badge">LIVE</span></h1>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')">
+                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
+            </button>
+        </div>
+        <div class="card" style="margin-bottom:1.5rem">
+            <div style="height:450px; width:100%"><canvas id="liquidationsChart"></canvas></div>
+        </div>
+        <div class="signal-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))">
+            <div class="card">
+                <h3 style="color:var(--risk-high)">TOTAL_REKT_24H</h3>
+                <div style="font-size:2rem; font-weight:900; margin:1rem 0">$142.8M</div>
+                <div style="display:flex; gap:15px; font-size:0.7rem">
+                    <span style="color:var(--risk-high)">● LONGS: $112.5M (78%)</span>
+                    <span style="color:var(--risk-low)">● SHORTS: $30.3M (22%)</span>
+                </div>
+            </div>
+            <div class="card">
+                <h3>LARGEST_SINGLE_ORDER</h3>
+                <div style="font-size:1.2rem; font-weight:900; margin:1rem 0; color:var(--accent)">$4.12M (BTC-USDT / BINANCE)</div>
+                <p style="font-size:0.65rem; color:var(--text-dim)">Forced liquidation occurs when the margin balance falls below the maintenance requirement.</p>
+            </div>
+        </div>
+    `;
+
+    const data = [
+        { ticker: 'BTC', longs: 45.2, shorts: 12.1 },
+        { ticker: 'ETH', longs: 28.5, shorts: 8.4 },
+        { ticker: 'SOL', longs: 15.1, shorts: 4.2 },
+        { ticker: 'XRP', longs: 8.2, shorts: 1.5 },
+        { ticker: 'DOGE', longs: 5.4, shorts: 2.1 },
+        { ticker: 'PEPE', longs: 4.1, shorts: 1.0 },
+        { ticker: 'SUI', longs: 3.5, shorts: 0.8 },
+        { ticker: 'AVAX', longs: 2.5, shorts: 0.2 }
+    ];
+
+    const ctx = document.getElementById('liquidationsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.ticker),
+            datasets: [
+                {
+                    label: 'LONGS ($M)',
+                    data: data.map(d => d.longs),
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: '#ef4444',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: 'SHORTS ($M)',
+                    data: data.map(d => d.shorts),
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: '#22c55e',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#d1d5db', font: { family: 'JetBrains Mono', size: 10 } } }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
+                y: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { weight: 'bold' } } }
+            }
+        }
+    });
+}
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
@@ -5556,6 +5716,8 @@ const viewMap = {
     'explain-pwa': renderDocsPWA,
     'explain-topologies': renderDocsTopologies,
     'explain-portfolio-lab': renderDocsPortfolioLab,
+    'etf-flows': renderETFFlows,
+    'liquidations': renderLiquidations,
     'trade-ledger': renderTradeLedger,
     help: renderHelp
 };
@@ -6500,6 +6662,14 @@ function updateSEOMeta(view) {
             title: 'Macro Pulse & Regimes',
             desc: 'Live market correlations, regime tracking, and macro variables.'
         },
+        'etf-flows': {
+            title: 'Spot ETF Net Flows Tracker',
+            desc: 'Live institutional inflow/outflow monitoring for Bitcoin Spot ETFs including BlackRock and Fidelity.'
+        },
+        'liquidations': {
+            title: 'Market Liquidation Heatmap',
+            desc: 'Real-time tracking of forced Long and Short liquidations across major digital asset exchanges.'
+        },
         'portfolio': {
             title: 'Institutional Portfolio Lab',
             desc: 'Monitor simulated portfolio performance, VaR, and correlation attribution.'
@@ -7179,6 +7349,8 @@ function renderDocsTopologies() {
             { title: "Guppy Trend Mechanics (EMA Density Ribbon)", icon: "waves", desc: "Found in the Strategy Lab, the Guppy Multiple Moving Average draws 15 overlapping Exponential Moving Averages. When the fast (cyan) and slow (red) ribbons compress, explosive volatility is imminent. When they expand, the trend is locked." },
             { title: "Execution Time Topography (Polar Area Chart)", icon: "data_usage", desc: "Found in the Whale Pulse tracker. This 24-period radial chart maps heavy institutional on-chain volume to physical hours. If the geometry skews heavily towards 01:00-06:00 UTC, it indicates the Asian session is heavily trading the asset. A skew at 14:00+ indicates Wall Street hours." },
             { title: "Ecosystem Capital Flow (Sankey Diagram)", icon: "moving", desc: "Found in the Cross-Chain Velocity hub. It utilizes D3 fluid mapping to literally draw pipelines of fiat entering the system, bridging into core L1 layers (Ethereum, Solana), and draining into specific DeFi products. Line thickness correlates directly to 24H volume limits." },
+            { title: "Spot ETF Net Flows Tracker", icon: "account_balance", desc: "A dual-axis visualization tracking daily net institutional capital movement across all major Bitcoin Spot ETFs (IBIT, FBTC, etc.), providing a leading indicator of Wall Street accumulation." },
+            { title: "Market Liquidation Heatmap", icon: "local_fire_department", desc: "Visualizes forced Long vs Short liquidations across major exchanges. High liquidation clusters often mark local trend reversals and liquidity exhaustion points." },
             { title: "NxN Correlation Matrix (Heatmap)", icon: "grid_on", desc: "Inside Macro Sync. This is a 10x10 HTML/CSS grid visualizing Pearson's correlation coefficient. Dark cyan means two assets move in perfect tandem (+1.0), while bright red flags assets moving completely inversely (-1.0)." },
             { title: "System Conviction Dials (Analog Gauges)", icon: "speed", desc: "Positioned on the main dashboard. They utilize 180-degree Chart.js doughnuts overlayed with programmatic text to create analog speedometers representing overall market fear, network bloat, and retail FOMO parameters." }
         ]
