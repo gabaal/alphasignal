@@ -722,6 +722,131 @@ async function renderLiquidations() {
     });
 }
 
+// ============= CME Gaps View =============
+async function renderCMEGaps() {
+    appEl.innerHTML = `
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">gap_stats</span> CME Bitcoin Gaps <span class="premium-badge">LIVE</span></h1>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alerts')">
+                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
+            </button>
+        </div>
+        <div class="card" style="margin-bottom:1.5rem">
+            <h3>ACTIVE_MAGNET_LEVELS</h3>
+            <div id="cme-gaps-list" style="margin-top:1rem"></div>
+        </div>
+        <p style="font-size:0.7rem; color:var(--text-dim); line-height:1.5; padding:0 10px;">
+            <span class="material-symbols-outlined" style="font-size:12px; vertical-align:middle">info</span> 
+            CME Gaps occur when the Bitcoin futures market closing price on Friday differs from the opening price on Sunday night. 
+            Institutions often trade towards these levels to "fill" the structural liquidity void.
+        </p>
+    `;
+
+    const gaps = [
+        { level: "63,450 - 64,120", type: "UPPER", status: "UNFILLED", distance: "+3.2%", color: "var(--risk-low)" },
+        { level: "58,200 - 59,100", type: "LOWER", status: "PARTIAL", distance: "-4.5%", color: "var(--accent)" },
+        { level: "53,400 - 54,000", type: "LOWER", status: "UNFILLED", distance: "-11.2%", color: "#ef4444" },
+        { level: "69,100 - 69,800", type: "UPPER", status: "FILLED", distance: "N/A", color: "var(--text-dim)" }
+    ];
+
+    document.getElementById('cme-gaps-list').innerHTML = gaps.map(g => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02); margin-bottom:8px; border-radius:4px">
+            <div>
+                <div style="font-size:0.9rem; font-weight:900; color:var(--text)">$${g.level}</div>
+                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px">${g.type} GAP</div>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:0.75rem; font-weight:900; color:${g.color}">${g.status}</div>
+                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px">${g.distance} DISTANCE</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============= OI Radar View =============
+async function renderOIRadar() {
+    appEl.innerHTML = `
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">track_changes</span> Open Interest Radar <span class="premium-badge">LIVE</span></h1>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')">
+                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
+            </button>
+        </div>
+        <div class="grid-2">
+            <div class="card" style="height:450px; display:flex; align-items:center; justify-content:center">
+                <canvas id="oiRadarChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>OI_FLOW_ATTRIBUTION</h3>
+                <div id="oi-attribution" style="margin-top:1rem"></div>
+                <div style="margin-top:2rem; padding:1rem; background:rgba(0,242,255,0.05); border-left:3px solid var(--accent); border-radius:4px">
+                    <h4 style="font-size:0.7rem; color:var(--accent)">INSTITUTIONAL_SKEW_DETECTED</h4>
+                    <p style="font-size:0.65rem; color:var(--text-dim); margin-top:5px">CME Open Interest is currently leading Binance by $2.4B in notional delta, indicating heavy spot-ETF hedge positioning.</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const exchanges = [
+        { name: 'Binance', oi: 14.5, delta: 12, funding: 0.012 },
+        { name: 'Bybit', oi: 8.2, delta: -5, funding: 0.015 },
+        { name: 'OKX', oi: 5.4, delta: 2, funding: 0.008 },
+        { name: 'CME', oi: 12.1, delta: 18, funding: 0 }
+    ];
+
+    const ctx = document.getElementById('oiRadarChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Open Interest ($B)', '24h Delta (%)', 'Funding Rate (x100)', 'Volume (Relative)'],
+            datasets: [
+                {
+                    label: 'BINANCE_PERP',
+                    data: [14.5, 12, 1.2, 85],
+                    backgroundColor: 'rgba(247, 211, 0, 0.2)',
+                    borderColor: '#f7d300',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#f7d300'
+                },
+                {
+                    label: 'CME_FUTURES',
+                    data: [12.1, 18, 0, 45],
+                    backgroundColor: 'rgba(0, 242, 255, 0.2)',
+                    borderColor: '#00f2ff',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#00f2ff'
+                }
+            ]
+        },
+        options: {
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255,255,255,0.1)' },
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    pointLabels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 10 } },
+                    ticks: { display: false, backdropColor: 'transparent' }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: '#d1d5db', font: { family: 'JetBrains Mono', size: 10 } } }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    document.getElementById('oi-attribution').innerHTML = exchanges.map(ex => `
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border)">
+            <span style="font-size:0.75rem; font-weight:700">${ex.name}</span>
+            <div style="text-align:right">
+                <div style="font-size:0.75rem; font-weight:900">$${ex.oi}B</div>
+                <div style="font-size:0.55rem; color:${ex.delta >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">${ex.delta >= 0 ? '+' : ''}${ex.delta}% DELTA</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+
 function generateAssetReport(ticker) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -5719,6 +5844,8 @@ const viewMap = {
     'explain-portfolio-lab': renderDocsPortfolioLab,
     'etf-flows': renderETFFlows,
     'liquidations': renderLiquidations,
+    'cme-gaps': renderCMEGaps,
+    'oi-radar': renderOIRadar,
     'trade-ledger': renderTradeLedger,
     help: renderHelp
 };
@@ -6671,6 +6798,14 @@ function updateSEOMeta(view) {
             title: 'Market Liquidation Heatmap',
             desc: 'Real-time tracking of forced Long and Short liquidations across major digital asset exchanges.'
         },
+        'cme-gaps': {
+            title: 'CME Bitcoin Gaps Tracker',
+            desc: 'Monitoring unfilled price gaps in Chicago Mercantile Exchange Bitcoin Futures—key institutional pivot levels.'
+        },
+        'oi-radar': {
+            title: 'Derivatives Open Interest Radar',
+            desc: 'Comparative analysis of Open Interest depth and acceleration across Binance, CME, and Bybit.'
+        },
         'portfolio': {
             title: 'Institutional Portfolio Lab',
             desc: 'Monitor simulated portfolio performance, VaR, and correlation attribution.'
@@ -7352,6 +7487,8 @@ function renderDocsTopologies() {
             { title: "Ecosystem Capital Flow (Sankey Diagram)", icon: "moving", desc: "Found in the Cross-Chain Velocity hub. It utilizes D3 fluid mapping to literally draw pipelines of fiat entering the system, bridging into core L1 layers (Ethereum, Solana), and draining into specific DeFi products. Line thickness correlates directly to 24H volume limits." },
             { title: "Spot ETF Net Flows Tracker", icon: "account_balance", desc: "A dual-axis visualization tracking daily net institutional capital movement across all major Bitcoin Spot ETFs (IBIT, FBTC, etc.), providing a leading indicator of Wall Street accumulation." },
             { title: "Market Liquidation Heatmap", icon: "local_fire_department", desc: "Visualizes forced Long vs Short liquidations across major exchanges. High liquidation clusters often mark local trend reversals and liquidity exhaustion points." },
+            { title: "CME Bitcoin Gaps Tracker", icon: "gap_stats", desc: "Identifies unfilled 'magnetic' price levels in the CME Futures market. Institutions often trade towards these gaps to fill structural liquidity voids." },
+            { title: "Open Interest Radar (Spider Chart)", icon: "track_changes", desc: "A 4-axis comparison of capital commitment across major derivatives exchanges, highlighting where leverage is building most aggressively." },
             { title: "NxN Correlation Matrix (Heatmap)", icon: "grid_on", desc: "Inside Macro Sync. This is a 10x10 HTML/CSS grid visualizing Pearson's correlation coefficient. Dark cyan means two assets move in perfect tandem (+1.0), while bright red flags assets moving completely inversely (-1.0)." },
             { title: "System Conviction Dials (Analog Gauges)", icon: "speed", desc: "Positioned on the main dashboard. They utilize 180-degree Chart.js doughnuts overlayed with programmatic text to create analog speedometers representing overall market fear, network bloat, and retail FOMO parameters." }
         ]
