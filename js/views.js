@@ -3921,16 +3921,19 @@ async function renderAlerts() {
             <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
         </div>
         <div class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
-            ${data.length ? data.map(a => `
+            ${data.length ? data.map(a => {
+                const ts = a.timestamp ? (a.timestamp.includes('T') ? a.timestamp.split('T')[1].split('.')[0] : a.timestamp) : 'SYNC';
+                return `
                 <div class="alert-card ${a.severity}" style="background:var(--bg-card); border:1px solid var(--border); border-left:4px solid ${a.severity === 'high' ? 'var(--risk-high)' : (a.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)')}; border-radius:12px; padding:1.5rem; position:relative; overflow:hidden">
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px">
                         <span style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:${a.severity === 'high' ? 'var(--risk-high)' : 'var(--accent)'}">${a.type}</span>
-                        <span style="font-size:0.7rem; color:var(--text-dim)">${new Date().toLocaleTimeString()}</span>
+                        <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono)">${ts}</span>
                     </div>
-                    <div style="font-size:1.1rem; font-weight:800; margin-bottom:8px">${a.title}</div>
-                    <div style="font-size:0.85rem; color:var(--text-dim); line-height:1.4">${a.content}</div>
+                    <div style="font-size:1.1rem; font-weight:800; margin-bottom:8px">${a.title || (a.ticker + ' SIGNAL')}</div>
+                    <div style="font-size:0.85rem; color:var(--text-dim); line-height:1.4">${a.content || a.message}</div>
                 </div>
-            `).join('') : '<p class="empty-state">No active high-severity threats detected.</p>'}
+                `;
+            }).join('') : '<p class="empty-state">No active high-severity threats detected.</p>'}
         </div>`;
     
     // Clear badge when viewing alerts

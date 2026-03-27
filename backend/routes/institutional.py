@@ -685,42 +685,9 @@ class InstitutionalRoutesMixin:
             print(f'AI Analyst Error: {e}')
             self.send_json({'summary': f'<h3>Engine Error</h3><p>Could not synthesize intelligence for {ticker}. Check server logs.</p>', 'outlook': 'NEUTRAL'})
 
-    def handle_alerts(self):
-        alerts = []
-        now = datetime.now()
-        try:
-            tickers = UNIVERSE['EXCHANGE'] + UNIVERSE['L1'] + UNIVERSE['DEFI']
-            data = CACHE.download(tickers[:15], period='30d', interval='1d', column='Close')
-            for ticker in data.columns:
-                prices = data[ticker].dropna()
-                if len(prices) > 10:
-                    rets = prices.pct_change().dropna()
-                    z = (rets.iloc[-1] - rets.mean()) / rets.std()
-                    if abs(z) > 3.0:
-                        alerts.append({'type': 'STATISTICAL', 'ticker': ticker, 'message': f'{ticker} EXHIBITING EXTREME VOLATILITY (Z={z:.2f})', 'severity': 'extreme' if abs(z) > 4.0 else 'high', 'timestamp': now.strftime('%H:%M:%S')})
-        except:
-            pass
-        try:
-            stables = UNIVERSE['STABLES']
-            data = CACHE.download(stables, period='2d', interval='1d', column='Close')
-            for ticker in stables:
-                price = float(data[ticker].iloc[-1])
-                if abs(1.0 - price) > 0.01:
-                    alerts.append({'type': 'DEPEG', 'ticker': ticker, 'message': f'STABLECOIN DE-PEG ALERT: {ticker} AT ${price:.3f}', 'severity': 'extreme' if abs(1.0 - price) > 0.05 else 'high', 'timestamp': now.strftime('%H:%M:%S')})
-        except:
-            pass
-        try:
-            import urllib.request
-            with urllib.request.urlopen('https://blockchain.info/unconfirmed-transactions?format=json', timeout=3) as r:
-                whale_data = json.loads(r.read().decode())
-                for tx in whale_data.get('txs', [])[:20]:
-                    btc = sum((out.get('value', 0) for out in tx.get('out', []))) / 100000000
-                    if btc > 300:
-                        alerts.append({'type': 'WHALE', 'ticker': 'BTC', 'message': f'INSTITUTIONAL WHALE TRANSFER: {btc:.0f} BTC DETECTED', 'severity': 'extreme' if btc > 1000 else 'high', 'timestamp': now.strftime('%H:%M:%S')})
-        except:
-            pass
         try:
             news = self.get_context_news()
+            # handle_alerts removed from here to consolidate with the database-backed version below
             for n in news:
                 if n['sentiment'] != 'NEUTRAL':
                     if 'Surge' in n['headline'] or 'Shock' in n['headline'] or 'Risk' in n['headline']:
@@ -1489,25 +1456,36 @@ class InstitutionalRoutesMixin:
             self.send_json([])
 
     def handle_alerts(self):
-        alerts = []
+        """Feature 2: Return historical alerts from the database."""
         try:
-            stables = ['USDC-USD', 'USDT-USD', 'DAI-USD']
-            for s in stables:
-                price_data = CACHE.download(s, period='1d', interval='1m', column='Close')
-                if price_data is not None and (not price_data.empty):
-                    latest_val = price_data.iloc[-1]
-                    if hasattr(latest_val, 'iloc'):
-                        latest_val = latest_val.iloc[0]
-                    curr = float(latest_val)
-                    if abs(1.0 - curr) > 0.005:
-                        alerts.append({'type': 'RISK', 'title': f'STABLE DE-PEG: {s}', 'content': f'Price diverged to ${curr:.4f}. Immediate risk mitigation advised.', 'severity': 'high'})
-            all_tickers = [t for sub in UNIVERSE.values() for t in sub]
-            for t in all_tickers[:10]:
-                sentiment = get_sentiment(t)
-                if sentiment > 0.6:
-                    alerts.append({'type': 'ALPHA', 'title': f'SENTIMENT SPIKE: {t}', 'content': f'Mindshare surged to {int(sentiment * 100)}%. Institutional interest accelerating.', 'severity': 'medium'})
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            # Fetch latest 20 alerts
+            c.execute('SELECT type, ticker, message, severity, timestamp FROM alerts_history ORDER BY timestamp DESC LIMIT 20')
+            rows = c.fetchall()
+            conn.close()
+            
+            alerts = []
+            for sig_type, ticker, message, severity, ts in rows:
+                alerts.append({
+                    'type': sig_type,
+                    'ticker': ticker,
+                    'title': f"{ticker} — {sig_type.replace('_', ' ')}",
+                    'content': message,
+                    'severity': severity or 'medium',
+                    'timestamp': ts
+                })
+            
+            # If no DB alerts, provide system status
             if not alerts:
-                alerts.append({'type': 'SYSTEM', 'title': 'TERMINAL_SYNC', 'content': 'Institutional data streams synchronized. All engines nominal.', 'severity': 'low'})
+                alerts.append({
+                    'type': 'SYSTEM',
+                    'ticker': 'STARTUP',
+                    'title': 'TERMINAL_SYNC',
+                    'content': 'Institutional data streams synchronized. Awaiting next harvest cycle.',
+                    'severity': 'low',
+                    'timestamp': datetime.now().isoformat()
+                })
             self.send_json(alerts)
         except Exception as e:
             print(f'Alerts Error: {e}')

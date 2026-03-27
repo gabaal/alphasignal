@@ -1992,14 +1992,7 @@ function initLivePriceStream() {
                             }
                         }
 
-                        // Feature 2: Bell badge from new_today
-                        if (msg.new_today !== undefined) {
-                            const bellBadge = document.getElementById('bell-badge');
-                            if (bellBadge) {
-                                bellBadge.textContent = msg.new_today;
-                                bellBadge.style.display = msg.new_today > 0 ? 'flex' : 'none';
-                            }
-                        }
+                        // Feature 2: Bell badge removed per user feedback
                     } else if (msg.type === 'alert') {
                         showToast(`📡 ${msg.data.signal_type}`, msg.data.message, 'alert');
                     } else if (msg.type === 'regime_shift') {

@@ -281,7 +281,8 @@ class PortfolioSimulator:
                         if isinstance(hist_df.columns, pd.MultiIndex):
                             hist_df.columns = [c[0] for c in hist_df.columns]
                         pred = ML_ENGINE.predict(ticker, hist_df)
-                        if pred:
+                        # PRODUCTION THRESHOLD: 2.5% predicted alpha for institutional-grade conviction
+                        if pred and pred['predicted_return'] >= 0.025:
                             predictions.append({'ticker': ticker, 'score': pred['predicted_return'], 'price': float(hist_df['Close'].iloc[-1])})
                 
                 if not predictions:
@@ -422,110 +423,98 @@ class HarvestService:
 
             time.sleep(self.interval)
     def generate_alpha_alerts(self, data):
-        """Phase 4: Predict Alpha signals using ML engine and record with entry price."""
+        """Phase 8: Predict Alpha signals using ML engine using high-efficiency batch data."""
         if data is None or data.empty: return
         
         print(f"[{datetime.now()}] MLAlphaEngine: Generating Predictive Alpha alerts...")
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
-        # Correctly identify tickers from MultiIndex if present
-        all_tickers = []
+        # Identify all tickers in the batch data
         if isinstance(data.columns, pd.MultiIndex):
-            # yfinance MultiIndex is (Metric, Ticker) by default in our CACHE.download
-            all_tickers = data.columns.levels[1] if len(data.columns.levels) > 1 else data.columns.levels[0]
+            # yfinance MultiIndex is usually (Metric, Ticker)
+            all_tickers = data.columns.get_level_values(1).unique()
         else:
-            all_tickers = data.columns
+            all_tickers = [data.name] if hasattr(data, 'name') else []
 
         for ticker in all_tickers:
             try:
-                # 1. Gather live data for inference
+                # 1. Extract ticker data from batch
                 if isinstance(data.columns, pd.MultiIndex):
-                    prices_df = data.xs(ticker, axis=1, level=1).dropna()
+                    hist_df = data.xs(ticker, axis=1, level=1).dropna()
                 else:
-                    prices_df = data[ticker].dropna()
+                    hist_df = data.dropna()
                 
-                if len(prices_df) < 30: continue
+                if len(hist_df) < 30: continue
                 
-                # Standardize columns for predictable access
-                if 'Close' not in prices_df.columns and len(prices_df.columns) > 1:
-                     # Fallback if names are somehow different
-                     pass
+                # Ensure predictable column mapping for ML features
+                curr_p = float(hist_df['Close'].iloc[-1]) if 'Close' in hist_df.columns else 0.0
                 
-                # We need O-H-L-V for compute_features
-                curr_p = float(prices_df['Close'].iloc[-1]) if 'Close' in prices_df.columns else 0.0
-                
-                # 2. Run Inference
-                # We need O-H-L-V for compute_features, we fetch recent 30d 1d
-                hist_df = yf.download(ticker, period='30d', interval='1d', progress=False)
-                if hist_df.empty: continue
-                if isinstance(hist_df.columns, pd.MultiIndex):
-                    hist_df.columns = [c[0] for c in hist_df.columns]
-                
+                # 2. Run Inference using the ML Engine
                 prediction = ML_ENGINE.predict(ticker, hist_df)
                 if not prediction: continue
                 
                 pred_return = prediction['predicted_return']
                 importance = prediction['feature_importance']
+                confidence = prediction.get('confidence', 0.75)
                 
-                # 3. Decision Logic (e.g. Predict > 3% return in 24h)
+                # 3. Decision Logic: Alert if predicted return > 0.025 (2.5% Alpha)
                 signal_type = None
-                message = ""
-                
-                if pred_return > 0.03:
+                if pred_return >= 0.025:
                     signal_type = "ML_ALPHA_PREDICTION"
                     top_driver = max(importance, key=importance.get)
                     message = f"ML Engine predicts +{pred_return*100:.1f}% alpha window. Primary driver: {top_driver.upper()} ({(importance[top_driver]*100):.1f}% confidence)."
                 
                 if signal_type:
-                    # Check if we already alerted this ticker recently (last 6h) to avoid spam
-                    c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND timestamp > datetime('now', '-6 hours')", (ticker,))
+                    # Anti-spam: Check if we alerted this ticker recently (last 4h)
+                    c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND timestamp > datetime('now', '-4 hours')", (ticker,))
                     if not c.fetchone():
+                        # Record Signal in History
                         c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
                                  (signal_type, ticker, message, "medium", curr_p, datetime.now().isoformat()))
                         
-                        # Also record the prediction metadata for audit
+                        # Record Prediction Metadata
                         c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
-                                 (ticker, pred_return, prediction['confidence'], json.dumps(importance)))
+                                 (ticker, pred_return, confidence, json.dumps(importance)))
                         
-                        print(f"[{datetime.now()}] ML ALPHA ALERT: {ticker} @ {curr_p} (Target: +{pred_return*100:.1f}%)")
+                        print(f"[{datetime.now()}] !!! ALPHA ALERT DISPATCHED: {ticker} @ {curr_p} (Target: +{pred_return*100:.1f}%)")
                         
-                        # Phase 8.3: Dispatch Institutional Alerts to Discord/Telegram
+                        # Phase 8.3: Multi-Channel Dispatch (Discord/Telegram)
                         try:
-                            alert_conn = sqlite3.connect(DB_PATH)
-                            alert_c = alert_conn.cursor()
-                            alert_c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1")
-                            notif_targets = alert_c.fetchall()
-                            alert_conn.close()
-                            
-                            for (target_email,) in notif_targets:
-                                NOTIFY.push_webhook(
-                                    target_email, 
-                                    f"ALPHA_SIGNAL: {ticker}", 
-                                    f"Institutional Engine detected a high-fidelity alpha window for **{ticker}**.\n\n" +
-                                    f"**Direction:** LONG (Predictive)\n" +
-                                    f"**Price:** ${curr_p:,.2f}\n" +
-                                    f"**Objective:** +{pred_return*100:.1f}%\n" +
-                                    f"**Intelligence:** {message}"
-                                )
+                            # Re-fetch users to ensure fresh settings
+                            with sqlite3.connect(DB_PATH) as alert_conn:
+                                alert_c = alert_conn.cursor()
+                                alert_c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1")
+                                for (target_email,) in alert_c.fetchall():
+                                    NOTIFY.push_webhook(
+                                        target_email, 
+                                        f"PREDICTIVE ALPHA: {ticker}", 
+                                        f"Institutional ML Engine detected a high-fidelity alpha window for **{ticker}**.\n\n" +
+                                        f"**Direction:** LONG (Predictive)\n" +
+                                        f"**Current Price:** ${curr_p:,.2f}\n" +
+                                        f"**Target Window:** +{pred_return*100:.1f}%\n" +
+                                        f"**Alpha Driver:** {message}"
+                                    )
                         except Exception as ne:
                             print(f"Alert Dispatch Error: {ne}")
 
-                        # Broadcast via WebSocket for real-time Frontend toast
+                        # Real-time WebSocket Broadcast to Frontend
                         if self.ws_server:
                             try:
                                 self.ws_server.broadcast(json.dumps({
                                     "type": "alert", 
                                     "data": {
                                         "ticker": ticker, 
-                                        "signal_type": "Institutional Predictive Alpha", 
+                                        "signal_type": "Institutional Alpha", 
                                         "price": curr_p, 
-                                        "message": message
+                                        "message": message,
+                                        "timestamp": datetime.now().strftime('%H:%M:%S')
                                     }
                                 }))
-                            except: pass
+                            except Exception as wse: 
+                                print(f"WS Broadcast Error: {wse}")
             except Exception as e:
-                print(f"Prediction error for {ticker}: {e}")
+                print(f"Prediction loop error for {ticker}: {e}")
                 continue
         conn.commit()
         conn.close()

@@ -248,8 +248,8 @@ if __name__ == "__main__":
     ws_thread = threading.Thread(target=ws_server.run, daemon=True)
     ws_thread.start()
 
-    # Start Harvester
-    harvester = HarvestService(CACHE, ws_server=ws_server)
+    # Start Harvester: Run every 5 minutes (300s) for Real-Time Alpha Alerts
+    harvester = HarvestService(CACHE, ws_server=ws_server, interval=300)
     h_thread = threading.Thread(target=harvester.run, daemon=True)
     print("Starting background Harvester thread...", flush=True)
     h_thread.start()
