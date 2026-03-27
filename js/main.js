@@ -13,6 +13,8 @@ const viewMap = {
     whales: renderWhales,
     regime: renderRegime,
     macro: renderMacroSync,
+    'token-unlocks': renderTokenUnlocks,
+    'yield-lab': renderYieldLab,
     rotation: renderRotation,
     velocity: renderChainVelocity,
     portfolio: renderPortfolioLab,
@@ -1512,9 +1514,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (toggleAuthLink) {
         toggleAuthLink.addEventListener('click', (e) => {
             e.preventDefault();
-            const isSignup = toggleAuthLink.textContent.includes('REQUEST_REGISTRATION');
-            toggleAuthLink.textContent = isSignup ? 'ALREADY_HAVE_ACCESS? LOGIN' : 'NEED ACCESS? REQUEST_REGISTRATION';
-            document.getElementById('login-btn').textContent = isSignup ? 'REGISTER_ACCOUNT' : 'LOGIN';
+            const isSignup = toggleAuthLink.textContent.includes('REQUEST REGISTRATION');
+            toggleAuthLink.textContent = isSignup ? 'ALREADY HAVE ACCESS? LOGIN' : 'NEED ACCESS? REQUEST REGISTRATION';
+            document.getElementById('login-btn').textContent = isSignup ? 'REGISTER' : 'LOGIN';
         });
     }
 

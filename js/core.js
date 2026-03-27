@@ -555,6 +555,12 @@ function generateAssetReport(ticker) {
 
 // ============= AI Analyst =============
 async function openAIAnalyst(ticker) {
+    if (!isAuthenticatedUser) {
+        showAuth(true);
+        showToast("AUTHENTICATION REQUIRED", "Please login to run AI research deep-dives.", "alert");
+        return;
+    }
+
     const modal = document.getElementById('ai-modal');
     const content = document.getElementById('ai-content');
     modal.classList.remove('hidden');
@@ -823,6 +829,12 @@ async function loadCorrelationMatrix(tickers) {
 
 // ============= Pack G1: Flow Monitor =============
 async function openDetail(ticker, category, correlation = 0, alpha = 0, sentiment = 0, period = '60d', isTracked = false) {
+    if (!isAuthenticatedUser) {
+        showAuth(true);
+        showToast("AUTHENTICATION REQUIRED", "Please login to access institutional intelligence.", "alert");
+        return;
+    }
+
     const overlay = document.getElementById('detail-overlay');
     const body = document.getElementById('detail-body');
     overlay.classList.remove('hidden');

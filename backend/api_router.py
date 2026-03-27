@@ -368,6 +368,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_export()
             elif path == '/api/rotation':
                 self.handle_rotation()
+            elif path == '/api/narrative/rotation':
+                self.handle_narrative_rotation()
             elif path.startswith('/api/correlation'):
                 self.handle_correlation()
             elif path.startswith('/api/stress-test'):
@@ -388,6 +390,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_onchain()
             elif path.startswith('/api/portfolio_optimize'):
                 self.handle_portfolio_optimize()
+            elif path == '/api/liquidations':
+                self.handle_liquidations()
+            elif path == '/api/unlocks':
+                self.handle_token_unlocks()
+            elif path == '/api/cohorts':
+                self.handle_cohort_waves()
+            elif path == '/api/yield-lab':
+                self.handle_yield_lab()
             else:
                 super().do_GET()
         except Exception as e:

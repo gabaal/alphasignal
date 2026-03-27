@@ -16,10 +16,10 @@ function renderHubTabs(activeTab, tabs) {
 // ============= Global Markets Hub =============
 async function renderGlobalHub() {
     const tabs = [
-        { id: 'etf', label: 'ETF_FLOWS', view: 'etf-flows', icon: 'account_balance' },
+        { id: 'etf', label: 'ETF FLOWS', view: 'etf-flows', icon: 'account_balance' },
         { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
-        { id: 'oi', label: 'OI_RADAR', view: 'oi-radar', icon: 'track_changes' },
-        { id: 'gaps', label: 'CME_GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+        { id: 'oi', label: 'OI RADAR', view: 'oi-radar', icon: 'track_changes' },
+        { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
     ];
     
     // Default to ETF flows if just 'global-hub' is called
@@ -29,10 +29,10 @@ async function renderGlobalHub() {
 // ============= Macro Intelligence Hub =============
 async function renderMacroHub() {
     const tabs = [
-        { id: 'compass', label: 'MACRO_COMPASS', view: 'macro-calendar', icon: 'public' },
-        { id: 'pulse', label: 'MACRO_PULSE', view: 'macro', icon: 'monitoring' },
+        { id: 'compass', label: 'MACRO COMPASS', view: 'macro-calendar', icon: 'public' },
+        { id: 'pulse', label: 'MACRO PULSE', view: 'macro', icon: 'monitoring' },
         { id: 'correlation', label: 'CORRELATION', view: 'correlation-matrix', icon: 'grid_4x4' },
-        { id: 'regime', label: 'REGIME_HUB', view: 'regime', icon: 'analytics' }
+        { id: 'regime', label: 'REGIME HUB', view: 'regime', icon: 'analytics' }
     ];
     renderMacroSync(tabs); // Default view
 }
@@ -40,10 +40,10 @@ async function renderMacroHub() {
 // ============= Alpha Strategy Hub =============
 async function renderAlphaHub() {
     const tabs = [
-        { id: 'briefing', label: 'AI_BRIEFING', view: 'briefing', icon: 'memory' },
-        { id: 'alpha', label: 'ALPHA_SCORE', view: 'alpha-score', icon: 'electric_bolt' },
-        { id: 'lab', label: 'STRATEGY_LAB', view: 'strategy-lab', icon: 'query_stats' },
-        { id: 'rebalancer', label: 'AI_REBALANCER', view: 'portfolio-optimizer', icon: 'donut_large' }
+        { id: 'briefing', label: 'AI BRIEFING', view: 'briefing', icon: 'memory' },
+        { id: 'alpha', label: 'ALPHA SCORE', view: 'alpha-score', icon: 'electric_bolt' },
+        { id: 'lab', label: 'STRATEGY LAB', view: 'strategy-lab', icon: 'query_stats' },
+        { id: 'rebalancer', label: 'AI REBALANCER', view: 'portfolio-optimizer', icon: 'donut_large' }
     ];
     renderBriefing(tabs); // Default view
 }
@@ -61,11 +61,11 @@ async function renderETFFlows(tabs = null) {
         </div>
         <div class="grid-2">
             <div class="card">
-                <h3>DAILY_LEADERBOARD</h3>
+                <h3>DAILY LEADERBOARD</h3>
                 <div id="etf-leaderboard" class="skeleton-line"></div>
             </div>
             <div class="card">
-                <h3>CUMULATIVE_FLOW_USD</h3>
+                <h3>CUMULATIVE FLOW USD</h3>
                 <div id="etf-cumulative-text" style="font-size:2rem; font-weight:900; color:var(--accent); margin-top:1rem">$0.00B</div>
                 <p style="font-size:0.7rem; color:var(--text-dim)">Total Net Institutional Inflow since Launch.</p>
             </div>
@@ -96,7 +96,7 @@ async function renderETFFlows(tabs = null) {
                     stack: 'Stack 0'
                 })),
                 {
-                    label: 'CUMULATIVE_NET ($M)',
+                    label: 'CUMULATIVE NET ($M)',
                     data: [740, 985, 890, 2290, 2820, 2820, 2820],
                     type: 'line',
                     borderColor: 'rgba(255, 255, 255, 0.4)',
@@ -133,10 +133,10 @@ async function renderETFFlows(tabs = null) {
 // ============= Liquidations View =============
 async function renderLiquidations() {
     const tabs = [
-        { id: 'etf', label: 'ETF_FLOWS', view: 'etf-flows', icon: 'account_balance' },
+        { id: 'etf', label: 'ETF FLOWS', view: 'etf-flows', icon: 'account_balance' },
         { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
-        { id: 'oi', label: 'OI_RADAR', view: 'oi-radar', icon: 'track_changes' },
-        { id: 'gaps', label: 'CME_GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+        { id: 'oi', label: 'OI RADAR', view: 'oi-radar', icon: 'track_changes' },
+        { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
     ];
     appEl.innerHTML = `
         <div class="view-header">
@@ -148,7 +148,7 @@ async function renderLiquidations() {
         </div>
         <div class="signal-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))">
             <div class="card">
-                <h3 style="color:var(--risk-high)">TOTAL_REKT_24H</h3>
+                <h3 style="color:var(--risk-high)">TOTAL REKT 24H</h3>
                 <div style="font-size:2rem; font-weight:900; margin:1rem 0">$142.8M</div>
                 <div style="display:flex; gap:15px; font-size:0.7rem">
                     <span style="color:var(--risk-high)">● LONGS: $112.5M (78%)</span>
@@ -156,7 +156,7 @@ async function renderLiquidations() {
                 </div>
             </div>
             <div class="card">
-                <h3>LARGEST_SINGLE_ORDER</h3>
+                <h3>LARGEST SINGLE ORDER</h3>
                 <div style="font-size:1.2rem; font-weight:900; margin:1rem 0; color:var(--accent)">$4.12M (BTC-USDT / BINANCE)</div>
                 <p style="font-size:0.65rem; color:var(--text-dim)">Forced liquidation occurs when the margin balance falls below the maintenance requirement.</p>
             </div>
@@ -216,10 +216,10 @@ async function renderLiquidations() {
 // ============= CME Gaps View =============
 async function renderCMEGaps() {
     const tabs = [
-        { id: 'etf', label: 'ETF_FLOWS', view: 'etf-flows', icon: 'account_balance' },
+        { id: 'etf', label: 'ETF FLOWS', view: 'etf-flows', icon: 'account_balance' },
         { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
-        { id: 'oi', label: 'OI_RADAR', view: 'oi-radar', icon: 'track_changes' },
-        { id: 'gaps', label: 'CME_GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+        { id: 'oi', label: 'OI RADAR', view: 'oi-radar', icon: 'track_changes' },
+        { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
     ];
     appEl.innerHTML = `
         <div class="view-header">
@@ -261,10 +261,10 @@ async function renderCMEGaps() {
 // ============= OI Radar View =============
 async function renderOIRadar() {
     const tabs = [
-        { id: 'etf', label: 'ETF_FLOWS', view: 'etf-flows', icon: 'account_balance' },
+        { id: 'etf', label: 'ETF FLOWS', view: 'etf-flows', icon: 'account_balance' },
         { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
-        { id: 'oi', label: 'OI_RADAR', view: 'oi-radar', icon: 'track_changes' },
-        { id: 'gaps', label: 'CME_GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+        { id: 'oi', label: 'OI RADAR', view: 'oi-radar', icon: 'track_changes' },
+        { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
     ];
     appEl.innerHTML = `
         <div class="view-header">
@@ -412,6 +412,133 @@ async function renderOIRadar() {
     }, 50);
 }
 
+// ============= Token Unlocks View =============
+async function renderTokenUnlocks() {
+    appEl.innerHTML = skeleton(6);
+    const data = await fetchAPI('/unlocks');
+    if (!data) return;
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">key_visualizer</span> Token Genesis Pipeline <span class="premium-badge">LIVE</span></h1>
+            <p style="color:var(--text-dim); margin-top:0.5rem">Capital flow anticipation based on structural unlock schedules.</p>
+        </div>
+        <div class="card" style="overflow-x:auto">
+            <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
+                <thead>
+                    <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
+                        <th style="text-align:left; padding:12px">TOKEN</th>
+                        <th style="text-align:center; padding:12px">DAYS REMAINING</th>
+                        <th style="text-align:right; padding:12px">NOTIONAL VALUE</th>
+                        <th style="text-align:center; padding:12px">MARKET IMPACT</th>
+                        <th style="text-align:center; padding:12px">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(u => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                            <td style="padding:15px 12px">
+                                <span style="font-weight:900; color:var(--accent); font-size:0.85rem">${u.token}</span>
+                            </td>
+                            <td style="padding:15px 12px; text-align:center">
+                                <span style="font-family:'JetBrains Mono'; font-weight:700; color:${u.days_until <= 3 ? 'var(--risk-high)' : 'var(--text)'}">${u.days_until} DAYS</span>
+                            </td>
+                            <td style="padding:15px 12px; text-align:right; font-weight:900">
+                                $${u.amount_usd >= 1000 ? (u.amount_usd / 1000).toFixed(1) + 'B' : u.amount_usd.toFixed(1) + 'M'}
+                            </td>
+                            <td style="padding:15px 12px; text-align:center">
+                                <span class="label-tag" style="background:${u.impact === 'CRITICAL' ? 'var(--risk-high)' : u.impact === 'HIGH' ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)'}; 
+                                      color:${u.impact === 'CRITICAL' ? '#fff' : u.impact === 'HIGH' ? 'var(--risk-high)' : 'var(--text-dim)'}">
+                                    ${u.impact}
+                                </span>
+                            </td>
+                            <td style="padding:15px 12px; text-align:center">
+                                <div style="display:flex; align-items:center; justify-content:center; gap:6px">
+                                    <div style="width:6px; height:6px; background:${u.days_until <= 7 ? 'var(--risk-high)' : 'var(--risk-low)'}; border-radius:50%; box-shadow:0 0 8px ${u.days_until <= 7 ? 'red' : 'green'}"></div>
+                                    <span style="font-size:0.6rem; letter-spacing:1px">${u.days_until <= 7 ? 'IMMINENT' : 'STABLE'}</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top:1.5rem; padding:1rem; background:rgba(255,255,255,0.02); border-radius:8px; display:flex; gap:12px; align-items:center">
+            <span class="material-symbols-outlined" style="color:var(--accent)">info</span>
+            <p style="font-size:0.65rem; color:var(--text-dim); line-height:1.4">
+                Structural unlocks represent major supply expansions for VCs and team cohorts. 
+                High-impact events often coincide with front-running distribution and increased hedging activity via perpetual futures.
+            </p>
+        </div>
+    `;
+}
+
+// ============= Yield Lab View =============
+async function renderYieldLab() {
+    appEl.innerHTML = skeleton(6);
+    const data = await fetchAPI('/yield-lab');
+    if (!data || !data.protocols) return;
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">account_balance_wallet</span> Institutional Yield Lab <span class="premium-badge">BETA</span></h1>
+            <p style="color:var(--text-dim); margin-top:0.5rem">Optimized capital efficiency markers across Tier-1 lending and restaking protocols.</p>
+        </div>
+        <div class="grid-2" style="margin-bottom:1.5rem">
+            <div class="card" style="padding:1.5rem; display:flex; align-items:center; gap:1.5rem">
+                <div style="width:60px; height:60px; background:rgba(0,242,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center">
+                    <span class="material-symbols-outlined" style="font-size:2rem; color:var(--accent)">trending_up</span>
+                </div>
+                <div>
+                    <h3 style="font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">AVG_STAKING_APY</h3>
+                    <div style="font-size:1.8rem; font-weight:900; color:var(--risk-low)">8.42%</div>
+                </div>
+            </div>
+            <div class="card" style="padding:1.5rem; display:flex; align-items:center; gap:1.5rem">
+                <div style="width:60px; height:60px; background:rgba(34,197,94,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center">
+                    <span class="material-symbols-outlined" style="font-size:2rem; color:var(--risk-low)">verified_user</span>
+                </div>
+                <div>
+                    <h3 style="font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">RISK_ADJUSTED_INDEX</h3>
+                    <div style="font-size:1.8rem; font-weight:900; color:var(--accent)">AA+</div>
+                </div>
+            </div>
+        </div>
+        <div class="card" style="overflow-x:auto">
+            <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
+                <thead>
+                    <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
+                        <th style="text-align:left; padding:12px">PROTOCOL</th>
+                        <th style="text-align:left; padding:12px">CHAIN</th>
+                        <th style="text-align:right; padding:12px">TVL</th>
+                        <th style="text-align:center; padding:12px">APY (%)</th>
+                        <th style="text-align:center; padding:12px">RISK SCORE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.protocols.map(p => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                            <td style="padding:15px 12px; font-weight:900; color:var(--text)">${p.name} <span style="font-size:0.55rem; color:var(--text-dim); margin-left:8px; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px">${p.category}</span></td>
+                            <td style="padding:15px 12px; color:var(--text-dim)">${p.chain}</td>
+                            <td style="padding:15px 12px; text-align:right; font-weight:700">$${(p.tvl / 1000).toFixed(1)}B</td>
+                            <td style="padding:15px 12px; text-align:center; color:var(--risk-low); font-weight:900">+${p.apy}%</td>
+                            <td style="padding:15px 12px; text-align:center">
+                                <div style="display:flex; justify-content:center; align-items:center; gap:8px">
+                                    <div style="flex:1; height:4px; max-width:60px; background:rgba(255,255,255,0.1); border-radius:2px">
+                                        <div style="width:${p.risk_score}%; height:100%; background:${p.risk_score > 80 ? 'var(--risk-low)' : 'var(--accent)'}; border-radius:2px"></div>
+                                    </div>
+                                    <span style="font-weight:700">${p.risk_score}</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+
 
 async function renderSignals(category = 'ALL') {
     currentSignalCategory = category;
@@ -442,7 +569,7 @@ async function renderSignals(category = 'ALL') {
         <div class="card" style="margin-bottom:20px;">
             <div class="card-header" style="margin-bottom:10px">
                 <h3>Strategy Firing Density (30D Histogram)</h3>
-                <span class="label-tag">VOLATILITY_CLUSTER_MAP</span>
+                <span class="label-tag">VOLATILITY CLUSTER MAP</span>
             </div>
             <div style="height:120px; width:100%; position:relative;">
                 <canvas id="signalDensityChart"></canvas>
@@ -1268,7 +1395,7 @@ async function renderCatalysts() {
     `;
 }
 
-// ============= Whale Pulse =============
+// ============= Macro Intelligence Hub =============
 async function renderMacroCalendar() {
     appEl.innerHTML = skeleton(6);
     const data = await fetchAPI('/macro-calendar');
@@ -1288,7 +1415,7 @@ async function renderMacroCalendar() {
                 </div>
             `).join('')}
             <div class="stat-card" style="background:var(--bg-card); padding:1.2rem; border:1px solid var(--border); border-radius:12px">
-                <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">ENGINE_STATUS</div>
+                <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">ENGINE STATUS</div>
                 <div style="font-size:1.5rem; font-weight:800; color:var(--risk-low)">${data.status}</div>
             </div>
         </div>
@@ -1297,7 +1424,7 @@ async function renderMacroCalendar() {
             <div class="glass-card" style="grid-column: 1 / -1">
                 <div class="card-header">
                     <h3>Economic Intelligence Calendar</h3>
-                    <span class="label-tag">WEEKLYWIDE_SYNC</span>
+                    <span class="label-tag">WEEKLYWIDE SYNC</span>
                 </div>
                 <div class="table-container">
                     <table class="data-table">
@@ -1329,7 +1456,7 @@ async function renderMacroCalendar() {
             <div class="glass-card" style="grid-column: 1 / -1; margin-top:20px">
                 <div class="card-header">
                     <h3>US Treasury Yield Curve (Inversion Monitor)</h3>
-                    <span class="label-tag">BOND_MARKET_PROXY</span>
+                    <span class="label-tag">BOND MARKET PROXY</span>
                 </div>
                 <div style="height:300px; width:100%; position:relative;">
                     <canvas id="yieldCurveChart"></canvas>
@@ -1398,7 +1525,7 @@ async function renderWhales() {
             <div class="glass-card" style="padding:1.5rem">
                 <div class="card-header">
                     <h3>24H Net Flow History (BTC)</h3>
-                    <span class="label-tag">AGGREGATED_FLOW</span>
+                    <span class="label-tag">AGGREGATED FLOW</span>
                 </div>
                 <div style="height: 200px; position: relative;">
                     <canvas id="whale-flow-chart"></canvas>
@@ -1407,7 +1534,7 @@ async function renderWhales() {
             <div class="glass-card" style="padding:1.5rem">
                 <div class="card-header">
                     <h3>Whale Conviction Scatter (Size vs Time)</h3>
-                    <span class="label-tag">BUBBLE_MATRIX</span>
+                    <span class="label-tag">BUBBLE MATRIX</span>
                 </div>
                 <div style="height: 200px; position: relative;">
                     <canvas id="whale-tier-chart"></canvas>
@@ -1426,7 +1553,7 @@ async function renderWhales() {
             <div class="glass-card" style="padding:1.5rem">
                 <div class="card-header">
                     <h3>Execution Time Topography (Asian vs US Session)</h3>
-                    <span class="label-tag">POLAR_MATRIX</span>
+                    <span class="label-tag">POLAR MATRIX</span>
                 </div>
                 <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap">
                     <div style="flex:1; min-width:300px">
@@ -1581,36 +1708,6 @@ function renderExecutionTopography(data) {
 }
 
 // ============= Market Pulse =============
-async function renderRegime(tabs = null) {
-    const tabHTML = tabs ? renderHubTabs('regime', tabs) : '';
-    appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">analytics</span> Regime Hub <span class="premium-badge">ALPHA</span></h1>
-        </div>
-        ${tabHTML}
-        <div class="grid-2">
-            <div class="card">
-                <h3>VOLATILITY_REGIME_HEATMAP</h3>
-                <div id="regime-heatmap" style="height:200px; width:100%"></div>
-            </div>
-            <div class="card">
-                <h3>CURRENT_REGIME_ANALYSIS</h3>
-                <div id="regime-status" style="font-size:1.2rem; font-weight:900; color:var(--accent); margin-top:1rem">LOADING...</div>
-                <p style="font-size:0.75rem; color:var(--text-dim); margin-top:10px">Programmatic synthesis of historical volatility clusters and volume expansion parameters.</p>
-            </div>
-        </div>
-    `;
-    
-    try {
-        const d = await fetchAPI('/regime');
-        if (d) {
-            document.getElementById('regime-status').innerText = d.current;
-            renderRegimeHeatmap('regime-heatmap', d.history);
-        }
-    } catch(e) {
-        showToast("Error loading regime data");
-    }
-}
 
 // ============= Pack G Rotation & Macro Sync =============
 async function renderMacroSync(tabs = null) {
@@ -1666,7 +1763,7 @@ async function renderMacroSync(tabs = null) {
             <div class="card" style="margin-top:2rem">
                 <div class="card-header" style="margin-bottom:15px">
                     <h3>Cross-Asset Correlation Matrix Heatmap</h3>
-                    <span class="label-tag">NxN_STATISTICS</span>
+                    <span class="label-tag">NxN STATISTICS</span>
                 </div>
                 <div id="corr-matrix-container" style="width:100%; overflow-x:auto;"></div>
                 <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
@@ -2110,15 +2207,6 @@ async function renderNewsroom() {
     drawNewsPage();
 }
 
-async function renderAlphaScore(tabs = null) {
-    const tabHTML = tabs ? renderHubTabs('alpha', tabs) : '';
-    appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">electric_bolt</span> Alpha Strategy Hub <span class="premium-badge">LIVE</span></h1>
-        </div>
-        ${tabHTML}
-    `;
-}
 
 async function renderRiskMatrix() {
     appEl.innerHTML = `
@@ -2264,7 +2352,7 @@ async function renderChainVelocity() {
                             </div>
                             <div style="text-align:right">
                                 <div style="font-size:1rem; font-weight:900; color:var(--accent)">${l.score.toFixed(1)}</div>
-                                <div style="font-size:0.5rem; color:var(--text-dim); font-weight:800">VELOCITY_SCORE</div>
+                                <div style="font-size:0.5rem; color:var(--text-dim); font-weight:800">VELOCITY SCORE</div>
                             </div>
                         </div>
                     `).join('')}
@@ -2283,7 +2371,7 @@ async function renderChainVelocity() {
                 <div class="card" style="padding:1.5rem; border-left:4px solid ${v.raw_momentum >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start">
                         <span style="font-size:0.7rem; font-weight:900; color:var(--text-dim); letter-spacing:1px">${ticker}</span>
-                        <span class="premium-badge" style="font-size:0.5rem">L1_NODE</span>
+                        <span class="premium-badge" style="font-size:0.5rem">L1 NODE</span>
                     </div>
                     <div style="font-size:1.8rem; font-weight:900; color:white; margin:10px 0">${v.raw_momentum >=0 ? '+' : ''}${v.raw_momentum.toFixed(2)}%</div>
                     <div style="display:flex; justify-content:space-between; font-size:0.6rem; font-weight:800">
@@ -2492,22 +2580,22 @@ async function renderPortfolioLab(customBasket = null) {
             <div class="card" style="padding:1.5rem; border-top: 4px solid var(--accent)">
                 <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim); margin-bottom:10px">VALUE AT RISK (95% CI)</div>
                 <div id="var-val" style="font-size:1.8rem; font-weight:900">-</div>
-                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">EST_DAIL_VAR</div>
+                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">EST DAILY VAR</div>
             </div>
             <div class="card" style="padding:1.5rem; border-top: 4px solid var(--risk-low)">
                 <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim); margin-bottom:10px">PORTFOLIO BETA</div>
                 <div id="beta-val" style="font-size:1.8rem; font-weight:900">-</div>
-                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">VS_BTC_INDEX</div>
+                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">VS BTC INDEX</div>
             </div>
             <div class="card" style="padding:1.5rem; border-top: 4px solid #f7931a">
                 <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim); margin-bottom:10px">SORTINO RATIO</div>
                 <div id="sortino-val" style="font-size:1.8rem; font-weight:900">-</div>
-                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">DOWNSIDE_ADJ</div>
+                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">DOWNSIDE ADJ</div>
             </div>
             <div class="card" style="padding:1.5rem; border-top: 4px solid white">
                 <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim); margin-bottom:10px">ANN. VOLATILITY</div>
                 <div id="vol-val" style="font-size:1.8rem; font-weight:900">-</div>
-                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">REALIZED_30D</div>
+                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">REALIZED 30D</div>
             </div>
         </div>
 
@@ -2769,10 +2857,10 @@ async function renderNarrativeGalaxy(filterChain = 'ALL') {
             <div class="view-actions" style="margin-bottom:0">
                 <select id="galaxy-chain-filter" class="tf-btn" style="background:var(--bg-card); border:1px solid var(--border); color:white; padding:0 15px; height:36px; cursor:pointer" onchange="renderNarrativeGalaxy(this.value)">
                     <option value="ALL" ${filterChain === 'ALL' ? 'selected' : ''}>ALL NETWORKS</option>
-                    <option value="SOL" ${filterChain === 'SOL' ? 'selected' : ''}>SOLANA_ECO</option>
-                    <option value="ETH" ${filterChain === 'ETH' ? 'selected' : ''}>ETHEREUM_ECO</option>
-                    <option value="ADA" ${filterChain === 'ADA' ? 'selected' : ''}>CARDANO_ECO</option>
-                    <option value="AVAX" ${filterChain === 'AVAX' ? 'selected' : ''}>AVALANCHE_ECO</option>
+                    <option value="SOL" ${filterChain === 'SOL' ? 'selected' : ''}>SOLANA ECO</option>
+                    <option value="ETH" ${filterChain === 'ETH' ? 'selected' : ''}>ETHEREUM ECO</option>
+                    <option value="ADA" ${filterChain === 'ADA' ? 'selected' : ''}>CARDANO ECO</option>
+                    <option value="AVAX" ${filterChain === 'AVAX' ? 'selected' : ''}>AVALANCHE ECO</option>
                 </select>
             </div>
         </div>
@@ -3984,13 +4072,13 @@ async function showSignalDetail(alertId, ticker) {
             content.innerHTML = `
                 <div style="padding:2rem; text-align:center; color:var(--risk-high)">
                     <span class="material-symbols-outlined" style="font-size:48px; margin-bottom:1rem">warning</span>
-                    <h3>SYNTHESIS_FAILED</h3>
+                    <h3>SYNTHESIS FAILED</h3>
                     <p style="font-size:0.9rem">The AI Engine could not establish a stable correlation for ${ticker} at this time.</p>
                 </div>
             `;
         }
     } catch (e) {
-        content.innerHTML = `<p style="padding:2rem; text-align:center; color:var(--risk-high)">ENGINE_OFFLINE: Connection to neural cluster lost.</p>`;
+        content.innerHTML = `<p style="padding:2rem; text-align:center; color:var(--risk-high)">ENGINE OFFLINE: Connection to neural cluster lost.</p>`;
     }
 }
 
