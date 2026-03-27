@@ -248,6 +248,15 @@ if __name__ == "__main__":
     ws_thread = threading.Thread(target=ws_server.run, daemon=True)
     ws_thread.start()
 
+    # SEED CACHE FOR PORTFOLIO OPTIMIZATION (Ensure data is ready for Rebalance Advisory)
+    print("Seeding Institutional Portfolio Cache...", flush=True)
+    for asset in ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD']:
+        try:
+            CACHE.download(asset, period='60d', interval='1d')
+            print(f"[{datetime.now()}] SEEDED: {asset}")
+        except Exception as e:
+            print(f"[{datetime.now()}] SEED_ERROR {asset}: {e}")
+
     # Start Harvester: Run every 5 minutes (300s) for Real-Time Alpha Alerts
     harvester = HarvestService(CACHE, ws_server=ws_server, interval=300)
     h_thread = threading.Thread(target=harvester.run, daemon=True)

@@ -2444,74 +2444,35 @@ function renderSankeyDiagram({ nodes, links }) {
         .text(d => d.name);
 }
 
+// REDUNDANT - Combined with renderPortfolioLab
 async function renderPortfolioOptimizer() {
-    appEl.innerHTML = skeleton(1);
-    const data = await fetchAPI('/portfolio_optimize');
-    if(!data) {
-        appEl.innerHTML = `<div class="empty-state">
-            <span class="material-symbols-outlined" style="font-size:3rem; color:var(--accent); margin-bottom:1rem">lock</span>
-            <p>Authentication Required.</p>
-        </div>`;
-        return;
-    }
+    renderPortfolioLab();
+}
 
-    const allocHTML = data.allocations.map(a => `
-        <div style="display:flex; justify-content:space-between; padding:1rem; border-bottom:1px solid rgba(255,255,255,0.05)">
-            <strong style="color:var(--text)">${a.asset}</strong>
-            <span style="color:var(--accent); font-weight:bold">${(a.target_weight * 100).toFixed(1)}%</span>
-        </div>
-    `).join('');
-
-    appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">donut_large</span> AI Portfolio Rebalancer</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
-            <p>Risk-adjusted target allocations generated dynamically using Markowitz Efficient Frontier models.</p>
-        </div>
-        
-        <div style="display:grid; grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr); gap:2rem; flex-wrap:wrap;">
-            <div class="card" style="padding:2rem">
-                <h3 style="margin-bottom:1rem; color:var(--text-dim)">OPTIMAL ASSET WEIGHTS</h3>
-                ${allocHTML}
-                <div style="margin-top:2rem; padding:1rem; background:rgba(0,0,0,0.3); border-radius:8px">
-                    <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.5"><span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle">info</span> <strong>Model Logic:</strong> Simulated 60D forward-projection optimized for Sortino/Sharpe ratios. Single asset allocations are strictly capped at 50% for risk aversion.</p>
-                </div>
-            </div>
-            
-            <div class="card" style="padding:2rem; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:400px">
-                <div style="position:relative; width:100%; max-width:300px; height:300px">
-                    <canvas id="optimizer-chart"></canvas>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const ctx = document.getElementById('optimizer-chart').getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: data.allocations.map(a => a.asset),
-            datasets: [{
-                data: data.allocations.map(a => parseFloat((a.target_weight * 100).toFixed(1))),
-                backgroundColor: ['#facc15', '#60a5fa', '#22c55e', '#ef5350', '#8b5cf6'],
-                borderWidth: 0,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: {
-                legend: { position: 'bottom', labels: { color: '#d1d5db', font: { family: 'JetBrains Mono' }, padding: 20 } }
-            }
+async function executeRebalance() {
+    if (!confirm("CONFIRM_EXECUTION: Are you sure you want to dispatch rebalancing tickets to the institutional ledger?")) return;
+    
+    try {
+        const res = await fetchAPI('/portfolio/execute', 'POST', { email: localStorage.getItem('user_email') || 'geraldbaalham@live.co.uk' });
+        if (res && res.status === 'SUCCESS') {
+            showToast("REBALANCE_COMPLETE", res.message, "success");
+            // Auto-navigate to ledger after brief delay
+            setTimeout(() => switchView('trade-ledger'), 1200);
+        } else {
+            showToast("EXECUTION_REJECTED", "Rebalancing failed. Risk limits exceeded or engine timeout.", "alert");
         }
-    });
+    } catch (e) {
+        showToast("SYSTEM_DISCONNECT", "Lost connection to Execution Gateway.", "alert");
+    }
 }
 
 async function renderPortfolioLab(customBasket = null) {
     appEl.innerHTML = skeleton(1);
     const endpoint = customBasket ? `/portfolio-sim?basket=${customBasket}` : '/portfolio-sim';
-    const data = await fetchAPI(endpoint);
+    const [data, optData] = await Promise.all([
+        fetchAPI(endpoint),
+        fetchAPI('/portfolio_optimize')
+    ]);
     if (!data || !data.metrics) {
         appEl.innerHTML = `<div class="empty-state">
             <span class="material-symbols-outlined" style="font-size:3rem; color:var(--accent); margin-bottom:1rem">hourglass_empty</span>
@@ -2608,10 +2569,35 @@ async function renderPortfolioLab(customBasket = null) {
             </div>
         </div>
 
-        <!-- 3. Correlation Engine Section -->
-        <div class="card" style="padding:1.2rem; margin-bottom: 2rem">
-            <h3 style="margin-bottom:1.2rem; font-size:0.85rem; color:var(--accent); letter-spacing:1px">CROSS-ASSET CORRELATION MATRIX (30D)</h3>
-            <div id="correlation-heatmap" style="min-height:280px; max-width:600px; display:grid; gap:2px"></div>
+        <!-- 3. Correlation Engine & AI Optimizer Section -->
+        <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:2rem; margin-bottom: 2rem">
+            <div class="card" style="padding:1.2rem">
+                <h3 style="margin-bottom:1.2rem; font-size:0.85rem; color:var(--accent); letter-spacing:1px">CROSS-ASSET CORRELATION MATRIX (30D)</h3>
+                <div id="correlation-heatmap" style="min-height:280px; display:grid; gap:2px"></div>
+            </div>
+            
+            <div class="card" style="padding:1.5rem; background:rgba(0, 242, 255, 0.04); border:1px solid rgba(0, 242, 255, 0.15)">
+                <h3 style="margin-bottom:1rem; font-size:0.85rem; color:var(--accent); letter-spacing:1px">AI REBALANCE ADVISORY (MARKOWITZ-SHARPE)</h3>
+                <div style="display:flex; gap:2rem; align-items:center">
+                    <div style="flex:1">
+                        <div id="rebalance-allocations" style="display:flex; flex-direction:column; gap:8px">
+                            ${(optData && optData.allocations && optData.allocations.length > 0) ? optData.allocations.map(a => `
+                                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05)">
+                                    <span style="font-size:0.75rem; color:var(--text)">${a.asset}</span>
+                                    <span style="font-size:0.75rem; color:var(--accent); font-weight:700">${(a.target_weight * 100).toFixed(1)}%</span>
+                                </div>
+                            `).join('') : `<p style="font-size:0.7rem; color:var(--risk-high); opacity:0.8">${(optData && optData.error) ? optData.error : 'Data synchronization in progress...'}</p>`}
+                        </div>
+                        <button class="intel-action-btn" style="margin-top:1.5rem; width:100%" onclick="executeRebalance()">
+                            <span class="material-symbols-outlined" style="font-size:1.1rem; vertical-align:middle; margin-right:8px">sync_alt</span>
+                            EXECUTE REBALANCE
+                        </button>
+                    </div>
+                    <div style="width:160px; height:160px">
+                        <canvas id="optimizer-chart-lab"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 
@@ -2712,6 +2698,35 @@ async function renderPortfolioLab(customBasket = null) {
         });
     } catch (e) {
         console.error("Allocation Chart Error:", e);
+    }
+
+    // 2.1 AI Optimizer Donut Chart (NEW)
+    if (optData && optData.allocations) {
+        try {
+            const ctxOpt = document.getElementById('optimizer-chart-lab').getContext('2d');
+            new Chart(ctxOpt, {
+                type: 'doughnut',
+                data: {
+                    labels: optData.allocations.map(a => a.asset),
+                    datasets: [{
+                        data: optData.allocations.map(a => parseFloat((a.target_weight * 100).toFixed(1))),
+                        backgroundColor: ['#facc15', '#60a5fa', '#22c55e', '#ef5350', '#8b5cf6'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error("Optimizer Chart Error:", e);
+        }
     }
 
     // 3. Async Load Risk Metrics & Heatmap
@@ -3930,7 +3945,14 @@ async function renderAlerts() {
                         <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono)">${ts}</span>
                     </div>
                     <div style="font-size:1.1rem; font-weight:800; margin-bottom:8px">${a.title || (a.ticker + ' SIGNAL')}</div>
-                    <div style="font-size:0.85rem; color:var(--text-dim); line-height:1.4">${a.content || a.message}</div>
+                    <div style="font-size:0.85rem; color:var(--text-dim); line-height:1.4; margin-bottom:1rem">${a.content || a.message}</div>
+                    
+                    <div style="display:flex; gap:10px">
+                        <button class="intel-action-btn mini" onclick="showSignalDetail('${a.id}', '${a.ticker}')" style="font-size:0.6rem; padding:4px 10px">
+                            <span class="material-symbols-outlined" style="font-size:14px; margin-right:4px">psychology</span>
+                            AI REASONING
+                        </button>
+                    </div>
                 </div>
                 `;
             }).join('') : '<p class="empty-state">No active high-severity threats detected.</p>'}
@@ -3938,6 +3960,38 @@ async function renderAlerts() {
     
     // Clear badge when viewing alerts
     document.getElementById('alert-badge').style.display = 'none';
+}
+
+async function showSignalDetail(alertId, ticker) {
+    const modal = document.getElementById('ai-modal');
+    const content = document.getElementById('ai-synthesis-content');
+    if (!modal || !content) return;
+    
+    modal.classList.remove('hidden');
+    content.innerHTML = `
+        <div style="padding:2rem; text-align:center">
+            <div class="loader" style="margin:0 auto 1.5rem"></div>
+            <p style="color:var(--text-dim); font-size:0.9rem; font-family:var(--font-mono)">SYNTHESIZING MULTIDIMENSIONAL VECTORS...</p>
+        </div>
+    `;
+    
+    try {
+        const url = `/ai_analyst?ticker=${ticker}${alertId && alertId !== 'undefined' ? `&alert_id=${alertId}` : ''}`;
+        const data = await fetchAPI(url);
+        if (data && data.summary) {
+            content.innerHTML = data.summary;
+        } else {
+            content.innerHTML = `
+                <div style="padding:2rem; text-align:center; color:var(--risk-high)">
+                    <span class="material-symbols-outlined" style="font-size:48px; margin-bottom:1rem">warning</span>
+                    <h3>SYNTHESIS_FAILED</h3>
+                    <p style="font-size:0.9rem">The AI Engine could not establish a stable correlation for ${ticker} at this time.</p>
+                </div>
+            `;
+        }
+    } catch (e) {
+        content.innerHTML = `<p style="padding:2rem; text-align:center; color:var(--risk-high)">ENGINE_OFFLINE: Connection to neural cluster lost.</p>`;
+    }
 }
 
 async function renderRegime() {

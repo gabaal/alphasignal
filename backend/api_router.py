@@ -212,6 +212,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_trade_ledger(post_data)
             elif path == '/api/settings/test-telegram':
                 self.handle_test_telegram(post_data)
+            elif path == '/api/portfolio/execute':
+                self.handle_portfolio_execute(post_data)
             else:
                 self.send_error(404, 'Path not found')
         except Exception as e:

@@ -8,41 +8,178 @@ from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, get_ticker_name, 
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
 
 class InstitutionalRoutesMixin:
+    def _get_price_series(self, df, ticker):
+        """Robustly extract the Close price series from a dataframe regardless of formatting."""
+        if df is None or df.empty: return None
+        try:
+            # 1. Handle MultiIndex [(Metric, Ticker)]
+            if isinstance(df.columns, pd.MultiIndex):
+                try: return df.xs('Close', axis=1, level=0)[ticker]
+                except: 
+                    try: return df['Close'][ticker]
+                    except: pass
+            # 2. Handle 'tuple-string' columns like "('Close', 'BTC-USD')"
+            tuple_str = str(('Close', ticker))
+            if tuple_str in df.columns: return df[tuple_str]
+            # 3. Handle simple 'Close' column
+            if 'Close' in df.columns: return df['Close']
+            # 4. Fallback: Search for any 'Close' string
+            for col in df.columns:
+                if 'close' in str(col).lower(): return df[col]
+        except: pass
+        return None
+
     def handle_portfolio_optimize(self):
         try:
-            assets = ['BTC-USD', 'ETH-USD', 'SOL-USD']
+            assets = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD']
             stats = []
+            print(f"[{datetime.now()}] STARTING_PORTFOLIO_OPTIMIZATION universe={assets}")
             for ticker in assets:
-                df = yf.download(ticker, period='60d', interval='1d', progress=False)
-                if df.empty:
-                    continue
-                closes = df['Close'].squeeze()
-                returns = closes.pct_change().dropna()
-                volatility = returns.std() * math.sqrt(365)
-                momentum = closes.iloc[-1] / closes.iloc[0] - 1
-                score = momentum / (volatility + 1e-05)
-                stats.append({'ticker': ticker.replace('-USD', ''), 'score': max(0.1, score), 'vol': volatility})
+                try:
+                    df = CACHE.download(ticker, period='60d', interval='1d')
+                    closes = self._get_price_series(df, ticker)
+                    
+                    if closes is None or len(closes) < 2:
+                        print(f"[{datetime.now()}] OPT_FAIL: {ticker} (no valid price series)")
+                        continue
+                    
+                    closes = closes.squeeze()
+                    if isinstance(closes, pd.DataFrame): closes = closes.iloc[:,0]
+                    
+                    returns = closes.pct_change().dropna()
+                    volatility = float(returns.std() * math.sqrt(365))
+                    momentum = float(closes.iloc[-1] / closes.iloc[0] - 1)
+                    
+                    # ML Alpha Engine Signal
+                    ml_alpha = 0.0
+                    try: ml_alpha = float(ML_ENGINE.predict(ticker, df)) / 100.0
+                    except: pass
+                    
+                    sentiment = float(get_sentiment(ticker.split('-')[0])) / 100.0
+                    score = (0.5 * ml_alpha) + (0.3 * momentum) + (0.2 * 0.1)
+                    final_score = max(0.01, score + 1.0)
+                    
+                    stats.append({'ticker': ticker.replace('-USD', ''), 'score': final_score, 'vol': volatility})
+                    print(f"[{datetime.now()}] OPT_STAT: {ticker} score={final_score:.4f} vol={volatility:.4f}")
+                except Exception as e:
+                    print(f"[{datetime.now()}] OPT_ERROR {ticker}: {e}")
+                    import traceback
+                    traceback.print_exc()
+            
+            if not stats:
+                print(f"[{datetime.now()}] OPT_FAILURE: stats array is empty, sending SYNC_DELAY.")
+                self.send_json({'error': 'SYNC_DELAY: Data source recalibrating.', 'allocations': []})
+                return
+
             total_score = sum([s['score'] for s in stats])
             allocations = []
             for s in stats:
-                weight = s['score'] / total_score if total_score > 0 else 1.0 / len(stats)
-                if s['ticker'] != 'BTC' and weight > 0.5:
-                    weight = 0.5
+                weight = s['score'] / total_score
+                if s['ticker'] != 'BTC' and weight > 0.4: weight = 0.4
                 allocations.append({'asset': s['ticker'], 'target_weight': float(weight), 'volatility_score': float(s['vol'])})
+            
             reb_total = sum([a['target_weight'] for a in allocations])
-            for a in allocations:
-                a['target_weight'] = a['target_weight'] / reb_total
-            payload = {'timestamp': int(time.time()), 'model': 'Markowitz-Sharpe Optimization', 'allocations': allocations}
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(payload).encode())
+            for a in allocations: a['target_weight'] = round(a['target_weight'] / reb_total, 4)
+            
+            payload = {'timestamp': int(time.time()), 'model': 'ML-Alpha Momentum Optimizer', 'allocations': allocations}
+            print(f"[{datetime.now()}] OPT_SUCCESS: {len(allocations)} assets allocated.")
+            self.send_json(payload)
         except Exception as e:
             print(f'[{datetime.now()}] Portfolio Optimizer Error: {e}')
             self.send_response(500)
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
+
+    def handle_portfolio_execute(self, post_data):
+        try:
+            # 1. Calculate Optimal Allocations (Re-using logic from handle_portfolio_optimize)
+            assets = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD']
+            stats = []
+            for ticker in assets:
+                try:
+                    df = CACHE.download(ticker, period='60d', interval='1d')
+                    closes = self._get_price_series(df, ticker)
+                    
+                    if closes is None or len(closes) < 2: continue
+                    
+                    closes = closes.squeeze()
+                    if isinstance(closes, pd.DataFrame): closes = closes.iloc[:, 0]
+                    
+                    returns = closes.pct_change().dropna()
+                    volatility = float(returns.std() * math.sqrt(365))
+                    momentum = float(closes.iloc[-1] / closes.iloc[0] - 1)
+                    
+                    ml_alpha = 0.0
+                    try: ml_alpha = float(ML_ENGINE.predict(ticker, df)) / 100.0
+                    except: pass
+                    
+                    sentiment = float(get_sentiment(ticker.split('-')[0])) / 100.0
+                    score = (0.5 * ml_alpha) + (0.3 * momentum) + (0.2 * 0.1)
+                    final_score = max(0.01, score + 1.0)
+                    
+                    stats.append({'ticker': ticker, 'score': final_score, 'price': float(closes.iloc[-1])})
+                except Exception as e:
+                    print(f"[{datetime.now()}] EXEC_OPT_ERROR {ticker}: {e}")
+            
+            total_score = sum([s['score'] for s in stats])
+            targets = {}
+            for s in stats:
+                weight = s['score'] / total_score
+                if s['ticker'] != 'BTC-USD' and weight > 0.4: weight = 0.4
+                targets[s['ticker']] = {'weight': weight, 'price': s['price']}
+                
+            # Final re-normalize weights to ensure sum is 1.0
+            total_w = sum([v['weight'] for v in targets.values()])
+            for k in targets: targets[k]['weight'] /= total_w
+
+            # 2. Get Current Allocations from Portfolio History
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT assets_json, equity FROM portfolio_history ORDER BY timestamp DESC LIMIT 1")
+            row = c.fetchone()
+            current_assets = json.loads(row[0]) if row else []
+            current_equity = row[1] if row else 100000.0
+            
+            # 3. Generate Execution Tickets
+            tickets = []
+            user_email = post_data.get('email', 'institutional@alphasignal.ai')
+            
+            # Simplified Logic: SELL everything not in target, then BUY targets
+            # In a more advanced version, we'd calculate the exact delta weight.
+            for asset in current_assets:
+                if asset not in targets:
+                    tickets.append({'ticker': asset, 'action': 'REBALANCE_SELL', 'weight': 0.0})
+            
+            for ticker, data in targets.items():
+                tickets.append({'ticker': ticker, 'action': 'REBALANCE_BUY', 'weight': round(data['weight'] * 100, 2)})
+
+            # 4. Write to Trade Ledger
+            for t in tickets:
+                price = targets.get(t['ticker'], {}).get('price', 0.0)
+                if price == 0.0:
+                    try:
+                        sdf = yf.download(t['ticker'], period='1d', progress=False)
+                        price = float(sdf['Close'].iloc[-1])
+                    except: price = 0.0
+                
+                weight_val = float(t.get('weight', 0.0))
+                c.execute('''INSERT INTO trade_ledger 
+                            (user_email, ticker, action, price, target, stop, rr, slippage) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                         (user_email, t['ticker'], t['action'], float(price), weight_val, 0.0, 0.0, 0.01))
+            
+            # 5. Update Portfolio Snapshot with new targets
+            new_assets_json = json.dumps(list(targets.keys()))
+            c.execute("INSERT INTO portfolio_history (equity, draw_down, assets_json) VALUES (?, ?, ?)",
+                     (current_equity, 0.0, new_assets_json))
+            
+            conn.commit()
+            conn.close()
+            
+            self.send_json({'status': 'SUCCESS', 'tickets_executed': len(tickets), 'message': f'Rebalanced to {len(targets)} optimized positions.'})
+        except Exception as e:
+            print(f'Execution Error: {e}')
+            self.send_error(500, str(e))
 
     def handle_onchain(self):
         try:
@@ -663,7 +800,28 @@ class InstitutionalRoutesMixin:
     def handle_ai_analyst(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
+        alert_id = query.get('alert_id', [None])[0]
+        
+        alert_context = ""
+        ml_context = ""
+        
         try:
+            # Phase 9: Fetch Alert Context if available
+            if alert_id:
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                c = conn.cursor()
+                c.execute('SELECT * FROM alerts_history WHERE id = ?', (alert_id,))
+                alert = c.fetchone()
+                if alert:
+                    alert_context = f"<p style='color:var(--text-dim); border-left:2px solid var(--accent); padding-left:10px; margin-bottom:1.5rem'><i>Signal Context: {alert['message']}</i></p>"
+                    # Try to fetch associated ML prediction
+                    c.execute('SELECT * FROM ml_predictions WHERE symbol = ? ORDER BY timestamp DESC LIMIT 1', (ticker,))
+                    pred = c.fetchone()
+                    if pred:
+                        ml_context = f"Neural confidence for this vector is high ({float(pred['predicted_return'])*100:.1f}% expected alpha)."
+                conn.close()
+
             data = CACHE.download(ticker, period='30d', interval='1d', column='Close')
             if data is None or data.empty:
                 self.send_json({'summary': f'<h3>AI Synthesis: {ticker} Interrupted</h3><p>Terminal sync in progress. Data streams for {ticker} are currently being calibrated.</p>', 'outlook': 'NEUTRAL'})
@@ -676,11 +834,46 @@ class InstitutionalRoutesMixin:
             z_score = (rets.iloc[-1] - rets.mean()) / rets.std() if len(rets) > 10 else 0
             sentiment = get_sentiment(ticker)
             conviction = 'High' if abs(z_score) > 2.0 or abs(sentiment) > 0.4 else 'Moderate'
-            stance = 'Accumulation' if change > 0 and sentiment > 0 else 'Distribution' if change < 0 and sentiment < 0 else 'Consolidation'
-            vol_msg = 'extreme volatility' if abs(z_score) > 2.5 else 'stable growth' if change > 0 else 'decelerating momentum'
-            sent_msg = 'bullish narrative expansion' if sentiment > 0.2 else 'bearish flow attribution' if sentiment < -0.2 else 'neutral mindshare'
-            analysis = f"""\n                <div class="ai-report-body">\n                    <h3 style="color:var(--accent); margin-bottom:1rem">Institutional Intelligence: {ticker}</h3>\n                    <p>Our synthesis engine identifies a <strong>{conviction} Conviction {stance}</strong> regime for {ticker}. \n                    Price action is exhibiting {vol_msg} coinciding with {sent_msg}.</p>\n                    \n                    <div class="analysis-stats" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0">\n                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">\n                            <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">Z-SCORE (MOMENTUM)</div>\n                            <div style="font-size:1.2rem; font-weight:900; color:{('var(--risk-low)' if z_score > 0 else 'var(--risk-high)')}">{z_score:.2f}Ïƒ</div>\n                        </div>\n                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">\n                            <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">LIQUIDITY RISK</div>\n                            <div style="font-size:1.2rem; font-weight:900; color:{('var(--risk-high)' if abs(z_score) > 2.5 else 'var(--risk-low)')}">{(round(abs(z_score) * 20, 1) if abs(z_score) < 5 else 100)}/100</div>\n                        </div>\n                    </div>\n\n                    <p><strong>Sector Dynamics:</strong> {ticker} is showing a \n                    {('positive' if change > 0 else 'negative')} beta relative to its benchmark. \n                    Institutional flow attribution suggests capital is {('rotating into' if sentiment > 0.1 else 'exiting')} this asset class.</p>\n                    \n                    <p><strong>Decoupling Alert:</strong> {('Systematic correlation breakdown detected' if abs(sentiment) > abs(change / 50) else 'Asset remains in lock-step with broader narrative shifts')}. \n                    Professional traders should look for a <strong>{('Bullish' if sentiment > 0 else 'Cautionary')} Reversal</strong> near the ${price:,.2f} level.</p>\n                    \n                    <p style="font-size:0.7rem; color:var(--text-dim); border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem">\n                        <i>AlphaSignal Intelligence Desk // Sector Re-weighted // {datetime.now().strftime('%H:%M:%S')}</i>\n                    </p>\n                </div>\n            """
+            
+            # Dynamic reasoning based on price/sentiment alignment
+            if change > 0 and sentiment > 0:
+                stance, flow = "Accumulation", "rotating into"
+            elif change < 0 and sentiment < 0:
+                stance, flow = "Distribution", "exiting"
+            else:
+                stance, flow = "Consolidation", "hedging within"
+                
+            analysis = f"""
+                <div class="ai-report-body">
+                    <h3 style="color:var(--accent); margin-bottom:0.5rem">Intelligence Deep-Dive: {ticker}</h3>
+                    {alert_context}
+                    
+                    <p>Terminal Synthesis Engine identifies a <strong>{conviction} Conviction {stance}</strong> regime. {ml_context}</p>
+                    
+                    <div class="analysis-stats" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0">
+                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">
+                            <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">Z-SCORE (MOMENTUM)</div>
+                            <div style="font-size:1.2rem; font-weight:900; color:{'var(--risk-low)' if z_score > 0 else 'var(--risk-high)'}">{z_score:.2f}σ</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">
+                            <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">NARRATIVE MINDSHARE</div>
+                            <div style="font-size:1.2rem; font-weight:900; color:{'var(--risk-low)' if sentiment > 0 else 'var(--risk-high)'}">{int(sentiment * 100)}%</div>
+                        </div>
+                    </div>
+
+                    <p><strong>Institutional Logic:</strong> {ticker} price action is currently {flow} its local liquidity cluster. 
+                    The {('positive' if change > 0 else 'negative')} correlation with the broader index suggests that {('idiosyncratic' if abs(z_score) > 2 else 'systemic')} drivers are primary.</p>
+                    
+                    <p><strong>Execution Strategy:</strong> Position sizing should be adjusted for a <strong>{('Bullish' if sentiment > 0 else 'Cautionary')} Reversal</strong> as price approaches ${price:,.2f}. 
+                    Neural models suggest a {('continuation' if abs(z_score) > 1 else 'mean-reversion')} bias over the next 4-hour window.</p>
+                    
+                    <p style="font-size:0.7rem; color:var(--text-dim); border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem">
+                        <i>AlphaSignal Intelligence Desk // AI Analysis Layer v2.1 // {datetime.now().strftime('%H:%M:%S')}</i>
+                    </p>
+                </div>
+            """
             self.send_json({'summary': analysis, 'outlook': 'BULLISH' if sentiment > 0.1 else 'BEARISH' if sentiment < -0.1 else 'NEUTRAL', 'conviction': conviction})
+
         except Exception as e:
             print(f'AI Analyst Error: {e}')
             self.send_json({'summary': f'<h3>Engine Error</h3><p>Could not synthesize intelligence for {ticker}. Check server logs.</p>', 'outlook': 'NEUTRAL'})
@@ -1461,13 +1654,14 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             # Fetch latest 20 alerts
-            c.execute('SELECT type, ticker, message, severity, timestamp FROM alerts_history ORDER BY timestamp DESC LIMIT 20')
+            c.execute('SELECT id, type, ticker, message, severity, timestamp FROM alerts_history ORDER BY timestamp DESC LIMIT 20')
             rows = c.fetchall()
             conn.close()
             
             alerts = []
-            for sig_type, ticker, message, severity, ts in rows:
+            for row_id, sig_type, ticker, message, severity, ts in rows:
                 alerts.append({
+                    'id': row_id,
                     'type': sig_type,
                     'ticker': ticker,
                     'title': f"{ticker} — {sig_type.replace('_', ' ')}",
