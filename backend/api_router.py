@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from backend.caching import CACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM
-from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
+from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
 
 from backend.routes.auth import AuthRoutesMixin
 from backend.routes.market import MarketRoutesMixin
@@ -219,7 +219,6 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             self.send_error(500, str(e))
 
     def do_GET(self):
-        print(f'[{datetime.now()}] Incoming GET: {self.path}')
         try:
             parsed = urllib.parse.urlparse(self.path)
             path = parsed.path
@@ -239,7 +238,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed']
+                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test']
                 if path not in public_routes:
                     auth_info = self.is_authenticated()
                     if not auth_info:
@@ -370,7 +369,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             elif path.startswith('/api/correlation'):
                 self.handle_correlation()
             elif path.startswith('/api/stress-test'):
-                self.handle_risk()
+                self.handle_stress_test()
             elif path.startswith('/api/fear-greed'):
                 self.handle_fear_greed()
             elif path.startswith('/api/dominance'):
@@ -391,116 +390,4 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 super().do_GET()
         except Exception as e:
             print(f'[{datetime.now()}] Global do_GET error: {e}')
-
-    def _get_signals(self):
-        try:
-            all_tickers = list(dict.fromkeys([t for sub in UNIVERSE.values() for t in sub]))
-            data = CACHE.download(all_tickers, period='2y', interval='1wk', column='Close')
-            if data is None or data.empty:
-                print('Briefing engine: No data returned from download')
-                return []
-            returns = data.pct_change().dropna(how='all')
-            if returns.empty:
-                return []
-            mean_vals = returns.mean()
-            std_vals = returns.std()
-            last_returns = returns.iloc[-1]
-            z_scores = ((last_returns - mean_vals) / std_vals.replace(0, np.nan)).fillna(0)
-            signals = []
-            for ticker in all_tickers:
-                try:
-                    if ticker not in data.columns:
-                        continue
-                    ticker_series = data[ticker].dropna()
-                    if ticker_series.empty:
-                        continue
-                    price = float(ticker_series.iloc[-1])
-                    z = float(z_scores.get(ticker, 0))
-                    if not np.isfinite(z):
-                        z = 0.0
-                    z = max(min(z, 5.0), -5.0)
-                    score = 50 + z * 10
-                    signals.append({'ticker': ticker, 'price': price, 'z_score': round(z, 2), 'score': round(score, 1), 'risk': 'LOW' if score > 70 else 'HIGH', 'mindshare': np.random.randint(1, 10)})
-                except:
-                    continue
-            return sorted(signals, key=lambda x: x['score'], reverse=True)
-        except Exception as e:
-            print(f'Internal signals error: {e}')
-            return []
-
-    def handle_stress_test(self):
-        """Phase 7: Systematic Stress Test Engine."""
-        try:
-            all_tickers = [t for sub in UNIVERSE.values() for t in sub][:15]
-            data = CACHE.download(all_tickers + ['BTC-USD'], period='180d', interval='1d', column='Close')
-            btc_rets = data['BTC-USD'].pct_change().dropna()
-            results = []
-            for ticker in all_tickers:
-                if ticker not in data.columns or ticker == 'BTC-USD':
-                    continue
-                rets = data[ticker].pct_change().dropna()
-                common = rets.index.intersection(btc_rets.index)
-                if len(common) < 30:
-                    continue
-                a_rets = rets.loc[common]
-                b_rets = btc_rets.loc[common]
-                cov = np.cov(a_rets, b_rets)[0, 1]
-                var_b = np.var(b_rets)
-                beta = cov / var_b if var_b > 0 else 1.0
-                results.append({'ticker': ticker, 'beta': round(float(beta), 2), 'impacts': {'btc_minus_5': round(float(beta * -5.0), 2), 'btc_minus_10': round(float(beta * -10.0), 2), 'btc_minus_20': round(float(beta * -20.0), 2)}})
-            self.send_json({'benchmark': 'BTC-USD', 'scenarios': results, 'timestamp': datetime.now().strftime('%H:%M')})
-        except Exception as e:
-            self.send_json({'error': str(e)})
-
-    def get_context_news(self):
-        cache_key = 'newsroom:context'
-        cached = CACHE.get(cache_key)
-        if cached is not None:
-            return cached
-        results = []
-        try:
-            news_tickers = ['BTC-USD', 'MSTR', 'ETH-USD', 'COIN', 'SOL-USD', 'MARA', 'IBIT']
-            for ticker in news_tickers:
-                try:
-                    t = yf.Ticker(ticker)
-                    news = t.news
-                    if not news:
-                        continue
-                    for article in news[:3]:
-                        content = article.get('content', {})
-                        title = content.get('title', '')
-                        summary = content.get('summary', '')
-                        pub_date = content.get('pubDate', '')
-                        if not title:
-                            continue
-                        text = (title + ' ' + summary).lower()
-                        p_count = sum((1 for k in SENTIMENT_KEYWORDS['positive'] if k in text))
-                        n_count = sum((1 for k in SENTIMENT_KEYWORDS['negative'] if k in text))
-                        if p_count > n_count:
-                            sentiment = 'BULLISH'
-                        elif n_count > p_count:
-                            sentiment = 'BEARISH'
-                        else:
-                            sentiment = 'NEUTRAL'
-                        try:
-                            dt = datetime.strptime(pub_date, '%Y-%m-%dT%H:%M:%SZ')
-                            time_str = dt.strftime('%H:%M:%S')
-                        except:
-                            time_str = datetime.now().strftime('%H:%M:%S')
-                        results.append({'ticker': ticker, 'sentiment': sentiment, 'headline': title, 'time': time_str, 'summary': summary[:200] + '...' if len(summary) > 200 else summary, 'content': f'<p><b>Institutional Intelligence Report:</b> {summary}</p><p>Technical analysis of {ticker} confirms that recent narrative shifts are aligning with order flow magnitude monitor (GOMM) clusters. Sentiment remains {sentiment.lower()} based on real-time news aggregation.</p><p><i>AlphaSignal Intelligence Desk - Terminal Segment</i></p>'})
-                except Exception as e:
-                    print(f'Error fetching news for {ticker}: {e}')
-            if not results:
-                results.append({'ticker': 'MACRO', 'sentiment': 'NEUTRAL', 'headline': 'Terminal Synchronization Active; Awaiting Volatility Catalysts', 'time': datetime.now().strftime('%H:%M:%S'), 'summary': 'AlphaSignal monitoring engine is scanning institutional data streams.', 'content': '<p>All systems operational. Narrative extraction engine is current scanning 20+ assets for institutional signals.</p>'})
-            results = sorted(results, key=lambda x: x['time'], reverse=True)
-            CACHE.set(cache_key, results)
-        except Exception as e:
-            print(f'Newsroom context error: {e}')
-        return results[:20]
-
-    def handle_config(self):
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'stripe_publishable_key': STRIPE_PUBLISHABLE_KEY}).encode('utf-8'))
 

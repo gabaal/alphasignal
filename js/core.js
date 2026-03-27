@@ -2,6 +2,16 @@ const API_BASE = '/api';
 const appEl = document.getElementById('app-view');
 let lastNeuralSetup = null;
 
+// Global State & Auth Variables
+var isPremiumUser = false;
+var isAuthenticatedUser = false;
+var hasStripeId = false;
+var isSafeMode = false;
+var currentBTCPrice = 70000;
+var alertCount = 0;
+var countdownSeconds = 300;
+var countdownInterval = null;
+
 function updateOnlineStatus() {
     if (!navigator.onLine) {
         showToast("CONNECTIVITY_LOST", "Terminal connection interrupted. Re-establishing link...", "alert");

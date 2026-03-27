@@ -6,3 +6,4 @@ stripe
 scikit-learn
 redis
 supabase
+websockets

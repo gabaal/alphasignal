@@ -1,4 +1,5 @@
 import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+import yfinance as yf
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -2222,4 +2223,155 @@ class InstitutionalRoutesMixin:
             self.send_error_json(f'Ledger Error: {e}')
         finally:
             conn.close()
+
+    def _get_signals(self):
+        try:
+            all_tickers = list(dict.fromkeys([t for sub in UNIVERSE.values() for t in sub]))
+            data = CACHE.download(all_tickers, period='2y', interval='1wk', column='Close')
+            if data is None or data.empty:
+                print('Briefing engine: No data returned from download')
+                return []
+            returns = data.pct_change().dropna(how='all')
+            if returns.empty:
+                return []
+            mean_vals = returns.mean()
+            std_vals = returns.std()
+            last_returns = returns.iloc[-1]
+            z_scores = ((last_returns - mean_vals) / std_vals.replace(0, np.nan)).fillna(0)
+            signals = []
+            for ticker in all_tickers:
+                try:
+                    if ticker not in data.columns:
+                        continue
+                    ticker_series = data[ticker].dropna()
+                    if ticker_series.empty:
+                        continue
+                    price = float(ticker_series.iloc[-1])
+                    z = float(z_scores.get(ticker, 0))
+                    if not np.isfinite(z):
+                        z = 0.0
+                    z = max(min(z, 5.0), -5.0)
+                    score = 50 + z * 10
+                    signals.append({'ticker': ticker, 'price': price, 'z_score': round(z, 2), 'score': round(score, 1), 'risk': 'LOW' if score > 70 else 'HIGH', 'mindshare': np.random.randint(1, 10)})
+                except:
+                    continue
+            return sorted(signals, key=lambda x: x['score'], reverse=True)
+        except Exception as e:
+            print(f'Internal signals error: {e}')
+            return []
+
+    def handle_stress_test(self):
+        """Phase 7: Systematic Stress Test Engine — Enhanced for UI Compatibility."""
+        try:
+            all_tickers = [t for sub in UNIVERSE.values() for t in sub][:15]
+            data = CACHE.download(all_tickers + ['BTC-USD'], period='180d', interval='1d', column='Close')
+            if data.empty:
+                self.send_json({'error': 'No data available'})
+                return
+
+            btc_rets = data['BTC-USD'].pct_change().dropna()
+            asset_risk = []
+            
+            for ticker in all_tickers:
+                if ticker not in data.columns or ticker == 'BTC-USD':
+                    continue
+                rets = data[ticker].pct_change().dropna()
+                common = rets.index.intersection(btc_rets.index)
+                if len(common) < 30:
+                    continue
+                a_rets = rets.loc[common]
+                b_rets = btc_rets.loc[common]
+                
+                # Beta Calculation
+                cov = np.cov(a_rets, b_rets)[0, 1]
+                var_b = np.var(b_rets)
+                beta = cov / var_b if var_b > 0 else 1.0
+                
+                # Mock Vol and Alpha for Phase 7 infrastructure
+                vol = np.std(a_rets) * np.sqrt(252) * 100
+                alpha = (a_rets.mean() - b_rets.mean() * beta) * 252 * 100
+                status = "STABLE" if abs(beta) < 1.2 else "VOLATILE"
+                
+                asset_risk.append({
+                    'ticker': ticker,
+                    'beta': round(float(beta), 2),
+                    'alpha': round(float(alpha), 2),
+                    'vol': round(float(vol), 2),
+                    'status': status
+                })
+
+            # Calculate Systemic Risk (Average Sector Correlation proxy)
+            systemic_risk = min(int(np.mean([a['beta'] for a in asset_risk]) * 50), 100) if asset_risk else 35
+
+            # Define Scenarios
+            scenarios = [
+                {'name': 'Black Swan (BTC -20%)', 'prob': 'Low', 'impact': round(float(np.mean([a['beta'] for a in asset_risk]) * -20.0), 2) if asset_risk else -35.0, 'outcome': 'Systemic Liquidity Contagion'},
+                {'name': 'Correction (BTC -10%)', 'prob': 'Med', 'impact': round(float(np.mean([a['beta'] for a in asset_risk]) * -10.0), 2) if asset_risk else -15.0, 'outcome': 'Institutional De-risking'},
+                {'name': 'Flash Crash (BTC -5%)', 'prob': 'High', 'impact': round(float(np.mean([a['beta'] for a in asset_risk]) * -5.0), 2) if asset_risk else -7.5, 'outcome': 'Leverage Flush Out'}
+            ]
+
+            # Define Hotspots
+            hotspots = [
+                {'sector': 'L1 DEFI', 'score': 0.82},
+                {'sector': 'MEME CLUSTER', 'score': 0.95},
+                {'sector': 'AI NARRATIVE', 'score': 0.45}
+            ]
+
+            self.send_json({
+                'systemic_risk': systemic_risk,
+                'hotspots': hotspots,
+                'scenarios': scenarios,
+                'asset_risk': asset_risk,
+                'benchmark': 'BTC-USD',
+                'timestamp': datetime.now().strftime('%H:%M')
+            })
+        except Exception as e:
+            print(f"Stress test execution failed: {e}")
+            self.send_json({'error': str(e)})
+
+    def get_context_news(self):
+        cache_key = 'newsroom:context'
+        cached = CACHE.get(cache_key)
+        if cached is not None:
+            return cached
+        results = []
+        try:
+            news_tickers = ['BTC-USD', 'MSTR', 'ETH-USD', 'COIN', 'SOL-USD', 'MARA', 'IBIT']
+            for ticker in news_tickers:
+                try:
+                    t = yf.Ticker(ticker)
+                    news = t.news
+                    if not news:
+                        continue
+                    for article in news[:3]:
+                        content = article.get('content', {})
+                        title = content.get('title', '')
+                        summary = content.get('summary', '')
+                        pub_date = content.get('pubDate', '')
+                        if not title:
+                            continue
+                        text = (title + ' ' + summary).lower()
+                        p_count = sum((1 for k in SENTIMENT_KEYWORDS['positive'] if k in text))
+                        n_count = sum((1 for k in SENTIMENT_KEYWORDS['negative'] if k in text))
+                        if p_count > n_count:
+                            sentiment = 'BULLISH'
+                        elif n_count > p_count:
+                            sentiment = 'BEARISH'
+                        else:
+                            sentiment = 'NEUTRAL'
+                        try:
+                            dt = datetime.strptime(pub_date, '%Y-%m-%dT%H:%M:%SZ')
+                            time_str = dt.strftime('%H:%M:%S')
+                        except:
+                            time_str = datetime.now().strftime('%H:%M:%S')
+                        results.append({'ticker': ticker, 'sentiment': sentiment, 'headline': title, 'time': time_str, 'summary': summary[:200] + '...' if len(summary) > 200 else summary, 'content': f'<p><b>Institutional Intelligence Report:</b> {summary}</p><p>Technical analysis of {ticker} confirms that recent narrative shifts are aligning with order flow magnitude monitor (GOMM) clusters. Sentiment remains {sentiment.lower()} based on real-time news aggregation.</p><p><i>AlphaSignal Intelligence Desk - Terminal Segment</i></p>'})
+                except Exception as e:
+                    print(f'Error fetching news for {ticker}: {e}')
+            if not results:
+                results.append({'ticker': 'MACRO', 'sentiment': 'NEUTRAL', 'headline': 'Terminal Synchronization Active; Awaiting Volatility Catalysts', 'time': datetime.now().strftime('%H:%M:%S'), 'summary': 'AlphaSignal monitoring engine is scanning institutional data streams.', 'content': '<p>All systems operational. Narrative extraction engine is current scanning 20+ assets for institutional signals.</p>'})
+            results = sorted(results, key=lambda x: x['time'], reverse=True)
+            CACHE.set(cache_key, results)
+        except Exception as e:
+            print(f'Newsroom context error: {e}')
+        return results[:20]
 

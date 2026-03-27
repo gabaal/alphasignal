@@ -227,37 +227,42 @@ class BinanceLiveStream:
         loop.run_until_complete(self.stream_loop())
 
 if __name__ == "__main__":
-    print("Initializing AlphaSignal Terminal...")
+    print("Initializing AlphaSignal Terminal...", flush=True)
     
+    # Start TCPServer FIRST to ensure API is responsive
+    print(f"Binding TCPServer to 0.0.0.0:{PORT}...", flush=True)
+    try:
+        httpd = ThreadedHTTPServer(("0.0.0.0", PORT), AlphaHandler)
+        print(f"SUCCESS: AlphaSignal serving at http://127.0.0.1:{PORT}", flush=True)
+        # We will serve_forever() at the end, but we need to start background threads first.
+    except Exception as e:
+        print(f"CRITICAL: Server failed to start: {e}", flush=True)
+        os._exit(1)
+
     # Start Live Binance Stream
     binance_stream = BinanceLiveStream()
     threading.Thread(target=binance_stream.run, daemon=True).start()
+    
     # Start WebSocket Live Price Server
     ws_server = WebSocketServer()
     ws_thread = threading.Thread(target=ws_server.run, daemon=True)
     ws_thread.start()
 
-    # Start Harvester (now with ws_server reference)
+    # Start Harvester
     harvester = HarvestService(CACHE, ws_server=ws_server)
     h_thread = threading.Thread(target=harvester.run, daemon=True)
-    print("Starting background Harvester thread...")
+    print("Starting background Harvester thread...", flush=True)
     h_thread.start()
 
     # Start ML Alpha Engine Training
     ml_thread = threading.Thread(target=ML_ENGINE.run_training_loop, daemon=True)
-    print("Starting ML Alpha Engine training loop...")
+    print("Starting ML Alpha Engine training loop...", flush=True)
     ml_thread.start()
 
     # Start Portfolio Simulator
     port_thread = threading.Thread(target=PORTFOLIO_SIM.run_simulation_loop, daemon=True)
-    print("Starting Institutional Portfolio Simulation loop...")
+    print("Starting Institutional Portfolio Simulation loop...", flush=True)
     port_thread.start()
     
-    print(f"Binding TCPServer to 0.0.0.0:{PORT}...")
-    try:
-        httpd = ThreadedHTTPServer(("0.0.0.0", PORT), AlphaHandler)
-        print(f"SUCCESS: AlphaSignal serving at http://127.0.0.1:{PORT}")
-        httpd.serve_forever()
-    except Exception as e:
-        print(f"CRITICAL: Server failed to start: {e}")
+    httpd.serve_forever()
 

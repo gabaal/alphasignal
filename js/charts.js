@@ -40,14 +40,7 @@ function createTradingViewChart(containerId, data) {
     chart.timeScale().fitContent();
     return chart;
 }
-let currentBTCPrice = 70000;
-let alertCount = 0;
-let countdownSeconds = 300;
-let countdownInterval = null;
-let isPremiumUser = false;
-let isAuthenticatedUser = false;
-let hasStripeId = false;
-let isSafeMode = false;
+// Global state variables are now centralized in js/core.js
 
 // PWA Offline Monitoring
 async function renderHeatmap() {

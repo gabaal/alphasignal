@@ -3,13 +3,13 @@ import os
 os.makedirs('backend/routes', exist_ok=True)
 open('backend/routes/__init__.py', 'w').close()
 
-with open('backend/routes.py', 'r', encoding='utf-8') as f:
+with open('backend/api_router.py', 'r', encoding='utf-8') as f:
     lines = f.readlines()
 
 # Define the mixin categorization dictionaries to route the methods accurately.
 import ast
 
-with open('backend/routes.py', 'r', encoding='utf-8') as f:
+with open('backend/api_router.py', 'r', encoding='utf-8') as f:
     source = f.read()
 
 tree = ast.parse(source)
@@ -23,7 +23,7 @@ for node in tree.body:
 
 auth_methods = ['is_authenticated', 'get_auth_token', 'handle_user_settings', 'handle_auth_status', 'handle_test_telegram']
 market_methods = ['handle_btc', 'handle_fear_greed', 'handle_system_dials', 'handle_macro_calendar', 'handle_heatmap', 'handle_sectors', 'handle_tape', 'handle_market_pulse', 'handle_news']
-institutional_methods = ['handle_portfolio_optimize', 'handle_onchain', 'handle_chain_velocity', 'handle_depeg', 'handle_tvl', 'handle_factor_web', 'handle_execution_time', 'handle_sankey', 'handle_correlation_matrix', 'handle_mindshare', 'handle_regime', 'handle_derivatives', 'handle_volatility_surface', 'handle_funding_rates', 'handle_ssr', 'handle_macro', 'handle_wallet_attribution', 'handle_narrative_clusters', 'handle_briefing', 'handle_search', 'handle_ai_analyst', 'handle_alerts', 'handle_benchmark', 'handle_signals', 'handle_miners', 'handle_flows', 'handle_catalysts', 'handle_risk', 'handle_correlation', 'handle_dominance', 'handle_rotation', 'handle_monte_carlo', 'handle_backtest', 'generate_timeline', 'handle_history', 'handle_trade_lab', 'handle_leaderboard', 'handle_liquidity', 'handle_whales_entity', 'handle_liquidations', 'handle_setup_generation', 'handle_whales', 'handle_alpha_score', 'handle_performance', 'handle_export', 'handle_notifications', 'handle_signal_history', 'handle_live_portfolio_sim', 'handle_portfolio_risk', 'handle_portfolio_correlations', 'handle_portfolio_performance', 'handle_portfolio_export', 'handle_trade_ledger']
+institutional_methods = ['handle_portfolio_optimize', 'handle_onchain', 'handle_chain_velocity', 'handle_depeg', 'handle_tvl', 'handle_factor_web', 'handle_execution_time', 'handle_sankey', 'handle_correlation_matrix', 'handle_mindshare', 'handle_regime', 'handle_derivatives', 'handle_volatility_surface', 'handle_funding_rates', 'handle_ssr', 'handle_macro', 'handle_wallet_attribution', 'handle_narrative_clusters', 'handle_briefing', 'handle_search', 'handle_ai_analyst', 'handle_alerts', 'handle_benchmark', 'handle_signals', 'handle_miners', 'handle_flows', 'handle_catalysts', 'handle_risk', 'handle_correlation', 'handle_dominance', 'handle_rotation', 'handle_monte_carlo', 'handle_backtest', 'generate_timeline', 'handle_history', 'handle_trade_lab', 'handle_leaderboard', 'handle_liquidity', 'handle_whales_entity', 'handle_liquidations', 'handle_setup_generation', 'handle_whales', 'handle_alpha_score', 'handle_performance', 'handle_export', 'handle_notifications', 'handle_signal_history', 'handle_live_portfolio_sim', 'handle_portfolio_risk', 'handle_portfolio_correlations', 'handle_portfolio_performance', 'handle_portfolio_export', 'handle_trade_ledger', 'handle_stress_test']
 
 auth_nodes = []
 market_nodes = []
@@ -64,8 +64,8 @@ write_mixin('backend/routes/auth.py', 'AuthRoutesMixin', auth_nodes)
 write_mixin('backend/routes/market.py', 'MarketRoutesMixin', market_nodes)
 write_mixin('backend/routes/institutional.py', 'InstitutionalRoutesMixin', inst_nodes)
 
-# Re-write the routes.py header and adjusted AlphaHandler
-with open('backend/routes.py', 'w', encoding='utf-8') as f:
+# Re-write the api_router.py header and adjusted AlphaHandler
+with open('backend/api_router.py', 'w', encoding='utf-8') as f:
     f.write(header)
     f.write("from backend.routes.auth import AuthRoutesMixin\n")
     f.write("from backend.routes.market import MarketRoutesMixin\n")

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from backend.caching import CACHE
-from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM
+from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, NotificationService
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
 
 class AuthRoutesMixin:

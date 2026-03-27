@@ -1,10 +1,11 @@
 import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+import yfinance as yf
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from backend.caching import CACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, get_ticker_name, get_sentiment
-from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
+from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
 
 class MarketRoutesMixin:
     def handle_sectors(self):
@@ -195,4 +196,10 @@ class MarketRoutesMixin:
         except Exception as e:
             print(f'Macro Calendar Error: {e}')
             self.send_error(500, 'Macro Intelligence Engine Offline')
+
+    def handle_config(self):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'stripe_publishable_key': STRIPE_PUBLISHABLE_KEY}).encode('utf-8'))
 

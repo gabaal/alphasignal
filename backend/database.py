@@ -5,11 +5,24 @@ import stripe
 import redis
 
 # Initialize Redis connection pointing to localhost instance
+import socket
+REDIS_UP = False
 try:
-    redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-    redis_client.ping()
-except Exception as e:
-    print(f"Redis Connection Warning: {e}. Falling back to mock redis if unavailable.")
+    with socket.create_connection(('localhost', 6379), timeout=1):
+        REDIS_UP = True
+except:
+    pass
+
+if REDIS_UP:
+    try:
+        redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True, socket_connect_timeout=1, socket_timeout=1)
+        # We don't need a ping here if the socket connect worked, or we can ping with a short timeout.
+        # But some redis versions might still hang on ping.
+    except:
+        REDIS_UP = False
+
+if not REDIS_UP:
+    print("Redis Connection Warning: Falling back to mock redis.", flush=True)
     # Mock Redis object for local development environments lacking a running redis-server
     class MockRedis:
         def __init__(self):
