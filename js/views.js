@@ -1,4 +1,5 @@
 function renderHubTabs(activeTab, tabs) {
+    if (!tabs) return '';
     return `
         <div class="hub-tabs" style="display:flex; gap:10px; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto">
             ${tabs.map(t => `
@@ -21,31 +22,71 @@ async function renderGlobalHub() {
         { id: 'oi', label: 'OI RADAR', view: 'oi-radar', icon: 'track_changes' },
         { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
     ];
-    
-    // Default to ETF flows if just 'global-hub' is called
     renderETFFlows(tabs);
 }
 
 // ============= Macro Intelligence Hub =============
 async function renderMacroHub() {
     const tabs = [
-        { id: 'compass', label: 'MACRO COMPASS', view: 'macro-calendar', icon: 'public' },
-        { id: 'pulse', label: 'MACRO PULSE', view: 'macro', icon: 'monitoring' },
-        { id: 'correlation', label: 'CORRELATION', view: 'correlation-matrix', icon: 'grid_4x4' },
-        { id: 'regime', label: 'REGIME HUB', view: 'regime', icon: 'analytics' }
+        { id: 'briefing', label: 'MARKET BRIEFING', view: 'briefing', icon: 'description' },
+        { id: 'flow', label: 'CAPITAL FLOWS', view: 'flow', icon: 'swap_horiz' },
+        { id: 'rotation', label: 'SECTOR ROTATION', view: 'rotation', icon: 'rotate_right' },
+        { id: 'macro', label: 'MACRO COMPASS', view: 'macro-hub', icon: 'public' },
+        { id: 'correlation', label: 'CORRELATION Matrix', view: 'correlation-matrix', icon: 'grid_4x4' }
     ];
-    renderMacroSync(tabs); // Default view
+    renderBriefing(tabs); 
 }
 
 // ============= Alpha Strategy Hub =============
 async function renderAlphaHub() {
     const tabs = [
-        { id: 'briefing', label: 'AI BRIEFING', view: 'briefing', icon: 'memory' },
-        { id: 'alpha', label: 'ALPHA SCORE', view: 'alpha-score', icon: 'electric_bolt' },
-        { id: 'lab', label: 'STRATEGY LAB', view: 'strategy-lab', icon: 'query_stats' },
-        { id: 'rebalancer', label: 'AI REBALANCER', view: 'portfolio-optimizer', icon: 'donut_large' }
+        { id: 'signals', label: 'LIVE SIGNALS', view: 'signals', icon: 'radar' },
+        { id: 'score', label: 'ALPHA SCORE', view: 'alpha-score', icon: 'bolt' },
+        { id: 'lab', label: 'STRATEGY LAB', view: 'strategy-lab', icon: 'science' },
+        { id: 'archive', label: 'SIGNAL ARCHIVE', view: 'signal-archive', icon: 'archive' },
+        { id: 'narrative', label: 'NARRATIVE GALAXY', view: 'narrative', icon: 'hub' }
     ];
-    renderBriefing(tabs); // Default view
+    renderSignals('ALL', tabs);
+}
+
+// ============= Institutional Hub =============
+async function renderInstitutionalHub() {
+    const tabs = [
+        { id: 'unlocks', label: 'TOKEN UNLOCKS', view: 'token-unlocks', icon: 'key' },
+        { id: 'yield', label: 'YIELD LAB', view: 'yield-lab', icon: 'biotech' },
+        { id: 'optimizer', label: 'PORTFOLIO OPTIMIZER', view: 'portfolio-optimizer', icon: 'auto_mode' },
+        { id: 'tradelab', label: 'TRADE IDEA LAB', view: 'tradelab', icon: 'experiment' }
+    ];
+    renderTokenUnlocks(tabs);
+}
+
+// ============= Analytics Hub =============
+async function renderAnalyticsHub() {
+    const tabs = [
+        { id: 'whales', label: 'WHALE PULSE', view: 'whales', icon: 'waves' },
+        { id: 'velocity', label: 'CHAIN VELOCITY', view: 'velocity', icon: 'speed' },
+        { id: 'onchain', label: 'ON-CHAIN STATS', view: 'onchain', icon: 'link' },
+        { id: 'newsroom', label: 'NEWSROOM', view: 'newsroom', icon: 'newspaper' }
+    ];
+    renderWhalePulse(tabs);
+}
+
+// ============= Audit & Performance Hub =============
+async function renderAuditHub() {
+    const tabs = [
+        { id: 'ledger', label: 'TRADE LEDGER', view: 'trade-ledger', icon: 'list_alt' },
+        { id: 'performance', label: 'PERFORMANCE', view: 'performance-dashboard', icon: 'trending_up' }
+    ];
+    renderTradeLedger(tabs);
+}
+
+// ============= Risk & Stress Lab Hub =============
+async function renderRiskHub() {
+    const tabs = [
+        { id: 'risk', label: 'RISK MATRIX', view: 'risk', icon: 'grid_on' },
+        { id: 'stress', label: 'STRESS LAB', view: 'stress', icon: 'warning_amber' }
+    ];
+    renderRiskMatrix(tabs);
 }
 
 // ============= Update existing renderers to support tabs =============
@@ -413,13 +454,14 @@ async function renderOIRadar() {
 }
 
 // ============= Token Unlocks View =============
-async function renderTokenUnlocks() {
+async function renderTokenUnlocks(tabs = null) {
     appEl.innerHTML = skeleton(6);
     const data = await fetchAPI('/unlocks');
     if (!data) return;
 
     appEl.innerHTML = `
         <div class="view-header">
+            ${renderHubTabs('unlocks', tabs)}
             <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">key_visualizer</span> Token Genesis Pipeline <span class="premium-badge">LIVE</span></h1>
             <p style="color:var(--text-dim); margin-top:0.5rem">Capital flow anticipation based on structural unlock schedules.</p>
         </div>
@@ -474,13 +516,14 @@ async function renderTokenUnlocks() {
 }
 
 // ============= Yield Lab View =============
-async function renderYieldLab() {
+async function renderYieldLab(tabs = null) {
     appEl.innerHTML = skeleton(6);
     const data = await fetchAPI('/yield-lab');
     if (!data || !data.protocols) return;
 
     appEl.innerHTML = `
         <div class="view-header">
+            ${renderHubTabs('yield', tabs)}
             <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">account_balance_wallet</span> Institutional Yield Lab <span class="premium-badge">BETA</span></h1>
             <p style="color:var(--text-dim); margin-top:0.5rem">Optimized capital efficiency markers across Tier-1 lending and restaking protocols.</p>
         </div>
@@ -540,7 +583,7 @@ async function renderYieldLab() {
 
 
 
-async function renderSignals(category = 'ALL') {
+async function renderSignals(category = 'ALL', tabs = null) {
     currentSignalCategory = category;
     appEl.innerHTML = skeleton(8);
     let signals = await fetchAPI('/signals');
@@ -563,7 +606,13 @@ async function renderSignals(category = 'ALL') {
     const cats = ['ALL', 'EXCHANGE', 'PROXY', 'MINERS', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
 
     appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><h1>Signal Intelligence Dashboard</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-signals')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button></div>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+                ${renderHubTabs('signals', tabs)}
+                <h1>Signal Intelligence Dashboard</h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-signals')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+        </div>
         
         <!-- 30D Signal Density Histogram -->
         <div class="card" style="margin-bottom:20px;">
@@ -654,7 +703,7 @@ async function renderMiners() {
 // ============================================================
 // Feature 2: Alpha Score Composite
 // ============================================================
-async function renderAlphaScore() {
+async function renderAlphaScore(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h1>⚡ Alpha Score <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alpha-score')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
@@ -688,6 +737,7 @@ async function renderAlphaScore() {
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
                 <div>
+                    ${renderHubTabs('score', tabs)}
                     <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alpha-score')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                     <p style="margin:0">Composite 0–100 ranking · Updated ${data.updated} · ${scores.length} assets scored ${isSafeMode ? '<span style="color:var(--accent); font-weight:700">[SAFE MODE ACTIVE]</span>' : ''}</p>
                 </div>
@@ -768,10 +818,14 @@ async function renderAlphaScore() {
 // ============================================================
 // Feature 4: Performance Dashboard
 // ============================================================
-async function renderPerformanceDashboard() {
+async function renderPerformanceDashboard(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-performance')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <div>
+                ${renderHubTabs('performance', tabs)}
+                <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-performance')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Terminal signal track record — win rate, returns, and monthly breakdown.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>
@@ -785,8 +839,9 @@ async function renderPerformanceDashboard() {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Portfolio Lab <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
-                <p>Institutional record as of ${d.updated} · Based on ${d.total_signals} signals</p>
+                ${renderHubTabs('performance', tabs)}
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Institutional Alpha Performance <span class="premium-badge">LIVE</span></h1>
+                <p>Track record as of ${d.updated} · Based on ${d.total_signals} signals</p>
             </div>
             <div style="display:flex; gap:0.5rem">
                 <button class="timeframe-btn" onclick="downloadPortfolioData('csv')" style="display:flex; align-items:center; gap:6px; background:rgba(0, 242, 255, 0.1); border-color:var(--accent)">
@@ -974,7 +1029,7 @@ async function renderCorrelationMatrix(tabs = null) {
     loadCorrelationMatrix('BTC-USD,ETH-USD,SOL-USD,AVAX-USD,BNB-USD');
 }
 
-async function renderFlows() {
+async function renderFlows(tabs = null) {
     appEl.innerHTML = skeleton(2);
     const data = await fetchAPI('/flows');
     if (!data) return;
@@ -1506,7 +1561,7 @@ async function renderMacroCalendar() {
     }, 50);
 }
 
-async function renderWhales() {
+async function renderWhales(tabs = null) {
     appEl.innerHTML = skeleton(5);
     const [data, entityData, execData] = await Promise.all([
         fetchAPI('/whales'),
@@ -1517,7 +1572,11 @@ async function renderWhales() {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">waves</span> Institutional Whale Pulse</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-whales')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <div>
+                ${renderHubTabs('whales', tabs)}
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">waves</span> Institutional Whale Pulse</h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-whales')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
         </div>
 
@@ -2004,14 +2063,18 @@ function renderSectorTreemap(data) {
         .text(d => (d.data.perf > 0 ? '+' : '') + d.data.perf.toFixed(2) + '%');
 }
 
-async function renderRotation() {
+async function renderRotation(tabs = null) {
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI('/rotation');
     if (!data || !data.matrix) return;
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">rotate_right</span> Sector Correlation Matrix</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <div>
+                ${renderHubTabs('rotation', tabs)}
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">rotate_right</span> Sector Correlation Matrix</h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>
         </div>
         
@@ -2064,7 +2127,7 @@ async function renderRotation() {
     }
 }
 
-async function renderStrategyLab() {
+async function renderStrategyLab(tabs = null) {
     appEl.innerHTML = skeleton(1);
     runStrategyBacktest('BTC-USD', 'trend_regime');
 }
@@ -2153,7 +2216,7 @@ window.downloadBacktestCSV = function(ticker, strategy) {
     URL.revokeObjectURL(url);
 };
 
-async function renderNewsroom() {
+async function renderNewsroom(tabs = null) {
     appEl.innerHTML = skeleton(4);
     const data = await fetchAPI('/news');
     if (!data) return;
@@ -2208,10 +2271,14 @@ async function renderNewsroom() {
 }
 
 
-async function renderRiskMatrix() {
+async function renderRiskMatrix(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">grid_on</span> Institutional Correlation Matrix</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <div>
+                ${renderHubTabs('risk', tabs)}
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">grid_on</span> Institutional Correlation Matrix</h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Real-time statistical synchronization across the institutional universe.</p>
         </div>
         <div class="view-actions">
@@ -2233,10 +2300,14 @@ async function renderRiskMatrix() {
     loadRiskMatrix();
 }
 
-async function renderStressHub() {
+async function renderStressHub(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--risk-high)">warning</span> Institutional Stress Lab</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-risk')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <div>
+                ${renderHubTabs('stress', tabs)}
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--risk-high)">warning</span> Institutional Stress Lab</h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-risk')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
         </div>
         <div class="risk-top-grid" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px; margin-bottom:2rem">
@@ -2323,7 +2394,7 @@ async function renderStressHub() {
     `;
 }
 
-async function renderChainVelocity() {
+async function renderChainVelocity(tabs = null) {
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI('/chain-velocity');
     if (!data || !data.velocity_data) return;
@@ -2533,7 +2604,7 @@ function renderSankeyDiagram({ nodes, links }) {
 }
 
 // REDUNDANT - Combined with renderPortfolioLab
-async function renderPortfolioOptimizer() {
+async function renderPortfolioOptimizer(tabs = null) {
     renderPortfolioLab();
 }
 
@@ -2843,7 +2914,7 @@ async function renderPortfolioLab(customBasket = null) {
     }, 500);
 }
 
-async function renderNarrativeGalaxy(filterChain = 'ALL') {
+async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI(`/narrative-clusters?chain=${filterChain}&v=${Date.now()}`);
     if (!data || !data.clusters) return;
@@ -2851,6 +2922,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL') {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">
             <div>
+                ${renderHubTabs('narrative', tabs)}
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">hub</span> Narrative Cluster Galaxy V2 <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-mindshare')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
             </div>
@@ -3040,7 +3112,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL') {
     draw();
 }
 
-async function renderBriefing() {
+async function renderBriefing(tabs = null) {
     appEl.innerHTML = skeleton(2);
     try {
         const data = await fetchAPI('/briefing');
@@ -3211,10 +3283,14 @@ async function renderBriefing() {
 }
 
 // Utility function for formatting prices
-async function renderTradeLab() {
+async function renderTradeLab(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-playbook')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <div>
+                ${renderHubTabs('tradelab', tabs)}
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-playbook')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Synthesizing institutional flow, macro catalysts, and technical regimes into actionable setups.</p>
         </div>
         
@@ -3327,7 +3403,7 @@ async function renderTradeLab() {
     };
 }
 
-async function renderTradeLedger() {
+async function renderTradeLedger(tabs = null) {
     appEl.innerHTML = skeleton();
     try {
         const res = await fetchAPI('/trade-ledger');
@@ -3802,7 +3878,7 @@ async function renderLiquidityView() {
     }
 }
 
-async function renderSignalArchive() {
+async function renderSignalArchive(tabs = null) {
     // 1. Initial skeleton and header
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -4426,10 +4502,11 @@ const dispatchAdvTab = () => {
     else if(currentAdvTab === 'exchange') renderAdvExchange(sym);
 };
 
-async function renderOnChain() {
+async function renderOnChain(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
+                ${renderHubTabs('onchain', tabs)}
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">link</span> On-Chain Analytics <span class="premium-badge">PRO SUITE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-onchain')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>Institutional macroeconomic network valuation indicators.</p>
             </div>
