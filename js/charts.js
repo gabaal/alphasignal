@@ -327,6 +327,11 @@ function cleanupAdvChart() {
         window.activeHeatmap.destroy();
         window.activeHeatmap = null;
     }
+    if (window.activeDepth3D) {
+        cancelAnimationFrame(window.activeDepth3D.animId);
+        window.activeDepth3D.renderer.dispose();
+        window.activeDepth3D = null;
+    }
     const c = document.getElementById('advanced-chart-container');
     if (c) c.innerHTML = '<div class="loader" style="margin:4rem auto"></div>';
 }

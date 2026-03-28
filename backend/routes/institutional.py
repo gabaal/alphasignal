@@ -107,6 +107,80 @@ class InstitutionalRoutesMixin:
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
 
+    def handle_efficient_frontier(self):
+        """Monte Carlo Markowitz Efficient Frontier — 2,000 simulations."""
+        try:
+            import urllib.parse as up
+            qs = up.urlparse(self.path).query
+            params = dict(up.parse_qsl(qs))
+            basket_str = params.get('basket', 'BTC-USD,ETH-USD,SOL-USD,LINK-USD,ADA-USD')
+            assets = [a.strip() for a in basket_str.split(',') if a.strip()][:8]
+
+            print(f"[{datetime.now()}] EFFICIENT_FRONTIER assets={assets}")
+
+            # --- Build returns matrix ---
+            returns_list = []
+            valid_assets = []
+            for ticker in assets:
+                try:
+                    df = CACHE.download(ticker, period='90d', interval='1d')
+                    closes = self._get_price_series(df, ticker)
+                    if closes is None or len(closes) < 20:
+                        continue
+                    closes = closes.squeeze()
+                    if isinstance(closes, pd.DataFrame):
+                        closes = closes.iloc[:, 0]
+                    ret = closes.pct_change().dropna()
+                    returns_list.append(ret)
+                    valid_assets.append(ticker.replace('-USD', ''))
+                except Exception as e:
+                    print(f"[{datetime.now()}] EF_SKIP {ticker}: {e}")
+
+            if len(valid_assets) < 2:
+                self.send_json({'error': 'Need at least 2 valid assets for frontier.', 'points': [], 'max_sharpe': None, 'min_vol': None})
+                return
+
+            # Align on common dates
+            df_ret = pd.concat(returns_list, axis=1)
+            df_ret.columns = valid_assets
+            df_ret = df_ret.dropna()
+
+            mean_returns = df_ret.mean() * 252  # annualized
+            cov_matrix = df_ret.cov() * 252
+            n = len(valid_assets)
+            NUM_PORTFOLIOS = 2000
+            rng = np.random.default_rng(42)
+
+            results = []
+            for _ in range(NUM_PORTFOLIOS):
+                w = rng.random(n)
+                w /= w.sum()
+                port_return = float(np.dot(w, mean_returns) * 100)
+                port_vol = float(np.sqrt(np.dot(w.T, np.dot(cov_matrix, w))) * 100)
+                sharpe = round(port_return / port_vol, 3) if port_vol > 0 else 0
+                results.append({'vol': round(port_vol, 2), 'ret': round(port_return, 2), 'sharpe': sharpe, 'weights': {valid_assets[i]: round(float(w[i]), 4) for i in range(n)}})
+
+            # Find max Sharpe and min Vol portfolios
+            max_sharpe = max(results, key=lambda x: x['sharpe'])
+            min_vol = min(results, key=lambda x: x['vol'])
+
+            # Thin to 500 scatter points for payload efficiency (keep extremes)
+            scatter = results[::4] if len(results) > 500 else results
+            # Make sure max_sharpe and min_vol are included
+            if max_sharpe not in scatter: scatter.append(max_sharpe)
+            if min_vol not in scatter: scatter.append(min_vol)
+
+            self.send_json({
+                'assets': valid_assets,
+                'points': [{'vol': p['vol'], 'ret': p['ret'], 'sharpe': p['sharpe']} for p in scatter],
+                'max_sharpe': {'weights': max_sharpe['weights'], 'ret': max_sharpe['ret'], 'vol': max_sharpe['vol'], 'sharpe': max_sharpe['sharpe']},
+                'min_vol': {'weights': min_vol['weights'], 'ret': min_vol['ret'], 'vol': min_vol['vol'], 'sharpe': min_vol['sharpe']}
+            })
+        except Exception as e:
+            print(f'[{datetime.now()}] EfficientFrontier Error: {e}')
+            traceback.print_exc()
+            self.send_json({'error': str(e), 'points': [], 'max_sharpe': None, 'min_vol': None})
+
     def handle_portfolio_execute(self, post_data):
         try:
             # 1. Calculate Optimal Allocations (Re-using logic from handle_portfolio_optimize)

@@ -2899,30 +2899,146 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
         }
     }
 
-    // 3. Async Load Risk Metrics & Heatmap
+    // 4. Efficient Frontier — load async after initial render
     setTimeout(async () => {
+        // Inject the frontier container into appEl
+        const existingFrontier = document.getElementById('efficient-frontier-section');
+        if (!existingFrontier) {
+            const efSection = document.createElement('div');
+            efSection.id = 'efficient-frontier-section';
+            efSection.innerHTML = `
+                <div class="card" style="padding:1.5rem; margin-bottom:2rem; background:rgba(5,5,30,0.7); border:1px solid rgba(0,242,255,0.15);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+                        <h3 style="font-size:0.9rem; color:var(--accent); letter-spacing:1px; margin:0;">
+                            <span class="material-symbols-outlined" style="vertical-align:middle; margin-right:6px; font-size:1.1rem;">scatter_plot</span>
+                            MARKOWITZ EFFICIENT FRONTIER
+                            <span class="premium-badge pulse" style="margin-left:8px;">PRO</span>
+                        </h3>
+                        <span style="font-size:0.55rem; color:var(--text-dim);">2,000 MONTE CARLO SIMULATIONS</span>
+                    </div>
+                    <div id="ef-loading" style="text-align:center; padding:3rem; color:var(--text-dim); font-size:0.7rem;">
+                        <div class="loader" style="margin:0 auto 1rem;"></div>
+                        Running Monte Carlo simulations...
+                    </div>
+                    <canvas id="frontierChart" style="display:none; max-height:420px;"></canvas>
+                    <div id="frontier-optimal-cards" style="display:none; display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:1.5rem;"></div>
+                </div>`;
+            appEl.appendChild(efSection);
+        }
+
         try {
-            const riskData = await fetchAPI('/portfolio/risk');
-            if (riskData && riskData.metrics) {
-                const varEl = document.getElementById('var-val');
-                const betaEl = document.getElementById('beta-val');
-                const sortinoEl = document.getElementById('sortino-val');
-                const volEl = document.getElementById('vol-val');
-                
-                if (varEl) varEl.innerText = riskData.metrics.var_95 + '%';
-                if (betaEl) betaEl.innerText = riskData.metrics.beta;
-                if (sortinoEl) sortinoEl.innerText = riskData.metrics.sortino;
-                if (volEl) volEl.innerText = riskData.metrics.volatility_ann + '%';
+            const basket = customBasket || 'BTC-USD,ETH-USD,SOL-USD,LINK-USD,ADA-USD';
+            const ef = await fetchAPI(`/efficient-frontier?basket=${encodeURIComponent(basket)}`);
+            const loadingEl = document.getElementById('ef-loading');
+            const chartEl = document.getElementById('frontierChart');
+            const cardsEl = document.getElementById('frontier-optimal-cards');
+
+            if (!ef || !ef.points || ef.points.length === 0) {
+                if (loadingEl) loadingEl.innerHTML = `<span style="color:var(--risk-high)">${ef?.error || 'Frontier calculation failed.'}</span>`;
+                return;
             }
-            
-            const corrData = await fetchAPI('/portfolio/correlations');
-            if (corrData && corrData.matrix) {
-                renderCorrelationHeatmap('correlation-heatmap', corrData);
+
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (chartEl) chartEl.style.display = 'block';
+
+            // Build scatter dataset colored by Sharpe
+            const minSharpe = Math.min(...ef.points.map(p => p.sharpe));
+            const maxSharpe = Math.max(...ef.points.map(p => p.sharpe));
+            const sharpeRange = maxSharpe - minSharpe || 1;
+
+            function sharpeColor(s) {
+                const t = (s - minSharpe) / sharpeRange;
+                const r = Math.round(239 * (1 - t));
+                const g = Math.round(80 + 166 * t);
+                return `rgba(${r},${g},80,0.7)`;
+            }
+
+            const ctx = document.getElementById('frontierChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Simulated Portfolios',
+                            data: ef.points.map(p => ({ x: p.vol, y: p.ret })),
+                            backgroundColor: ef.points.map(p => sharpeColor(p.sharpe)),
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                        },
+                        ef.max_sharpe ? {
+                            label: '★ Max Sharpe',
+                            data: [{ x: ef.max_sharpe.vol, y: ef.max_sharpe.ret }],
+                            backgroundColor: '#00f2ff',
+                            pointRadius: 12,
+                            pointStyle: 'star',
+                            pointHoverRadius: 14,
+                        } : null,
+                        ef.min_vol ? {
+                            label: '★ Min Volatility',
+                            data: [{ x: ef.min_vol.vol, y: ef.min_vol.ret }],
+                            backgroundColor: '#ffffff',
+                            pointRadius: 12,
+                            pointStyle: 'star',
+                            pointHoverRadius: 14,
+                        } : null,
+                    ].filter(Boolean)
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: 'white', font: { family: 'JetBrains Mono', size: 10 } } },
+                        tooltip: {
+                            backgroundColor: 'rgba(5,5,30,0.95)',
+                            titleColor: '#00f2ff',
+                            bodyColor: '#e6edf3',
+                            callbacks: {
+                                label: ctx => `Vol: ${ctx.parsed.x.toFixed(1)}%  Ret: ${ctx.parsed.y.toFixed(1)}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Annualised Volatility (%)', color: 'var(--text-dim)', font: { size: 10 } },
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Annualised Return (%)', color: 'var(--text-dim)', font: { size: 10 } },
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' }
+                        }
+                    }
+                }
+            });
+
+            // Optimal portfolio weight cards
+            if (cardsEl && ef.max_sharpe && ef.min_vol) {
+                cardsEl.style.display = 'grid';
+                const renderWeights = (p, label, color) => `
+                    <div style="background:rgba(0,0,0,0.3); border:1px solid ${color}33; border-radius:10px; padding:1.2rem;">
+                        <div style="font-size:0.6rem; font-weight:900; color:${color}; margin-bottom:0.8rem; letter-spacing:1px;">${label}</div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:0.8rem;">
+                            ${Object.entries(p.weights).map(([asset, w]) => `
+                                <div style="background:rgba(255,255,255,0.05); border-radius:6px; padding:6px 10px; font-size:0.65rem;">
+                                    <span style="color:white; font-weight:900;">${asset}</span>
+                                    <span style="color:${color}; margin-left:6px;">${(w * 100).toFixed(1)}%</span>
+                                </div>`).join('')}
+                        </div>
+                        <div style="display:flex; gap:1.5rem; font-size:0.65rem; color:var(--text-dim);">
+                            <span>Ret: <b style="color:white;">${p.ret.toFixed(1)}%</b></span>
+                            <span>Vol: <b style="color:white;">${p.vol.toFixed(1)}%</b></span>
+                            <span>Sharpe: <b style="color:${color};">${p.sharpe.toFixed(2)}</b></span>
+                        </div>
+                    </div>`;
+                cardsEl.innerHTML =
+                    renderWeights(ef.max_sharpe, '★ MAXIMUM SHARPE RATIO PORTFOLIO', '#00f2ff') +
+                    renderWeights(ef.min_vol, '★ MINIMUM VOLATILITY PORTFOLIO', '#ffffff');
             }
         } catch (e) {
-            console.error("Risk Load Error:", e);
+            console.error('Efficient Frontier render error:', e);
         }
-    }, 500);
+    }, 800);
 }
 
 async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
@@ -4491,78 +4607,169 @@ async function renderAdvPulse(symbol) {
 async function renderAdvDepth(symbol) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
-    if(!container) return;
-    
-    container.innerHTML = '';
-    
-    const chart = LightweightCharts.createChart(container, {
-        layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
-        grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
-        timeScale: { timeVisible: false, visible: false } // Hide time scale since it's a price distribution representation
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="position:relative; width:100%; height:520px; background:#050508; border-radius:12px; overflow:hidden;">
+            <canvas id="depth3d-canvas" style="width:100%; height:100%; display:block;"></canvas>
+            <div style="position:absolute; top:14px; left:18px; display:flex; gap:20px; align-items:center; pointer-events:none;">
+                <span style="font-size:0.6rem; font-weight:900; letter-spacing:2px; color:#00f2ff;">3D ORDERBOOK TOPOLOGY</span>
+                <span style="display:flex;align-items:center;gap:5px;font-size:0.6rem;color:#26a69a;">
+                    <span style="width:10px;height:10px;background:#26a69a;border-radius:2px;display:inline-block;"></span> BID DEPTH
+                </span>
+                <span style="display:flex;align-items:center;gap:5px;font-size:0.6rem;color:#ef5350;">
+                    <span style="width:10px;height:10px;background:#ef5350;border-radius:2px;display:inline-block;"></span> ASK DEPTH
+                </span>
+            </div>
+            <div style="position:absolute;bottom:14px;right:18px;font-size:0.55rem;color:rgba(255,255,255,0.25);pointer-events:none;">DRAG TO ROTATE • SCROLL TO ZOOM</div>
+        </div>`;
+
+    const canvas = document.getElementById('depth3d-canvas');
+    if (!canvas || typeof THREE === 'undefined') {
+        container.innerHTML = '<div class="error-msg">WebGL renderer unavailable.</div>';
+        return;
+    }
+
+    // --- Three.js Scene Setup ---
+    const W = container.clientWidth, H = 520;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x050508, 1);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 1000);
+    camera.position.set(0, 18, 30);
+    camera.lookAt(0, 0, 0);
+
+    // Lighting
+    scene.add(new THREE.AmbientLight(0x223355, 1.2));
+    const dirLight = new THREE.DirectionalLight(0x88bbff, 1.0);
+    dirLight.position.set(10, 30, 20);
+    scene.add(dirLight);
+
+    // Grid on floor
+    const grid = new THREE.GridHelper(60, 30, 0x0a1020, 0x0a1020);
+    grid.position.y = -0.1;
+    scene.add(grid);
+
+    // --- Inline OrbitControls ---
+    let isDragging = false, lastMouse = { x: 0, y: 0 };
+    let theta = 0.3, phi = 0.55, radius = 35;
+    function updateCamera() {
+        camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
+        camera.position.y = radius * Math.cos(phi);
+        camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
+        camera.lookAt(0, 2, 0);
+    }
+    updateCamera();
+
+    canvas.addEventListener('mousedown', e => { isDragging = true; lastMouse = { x: e.clientX, y: e.clientY }; });
+    canvas.addEventListener('mouseup', () => isDragging = false);
+    canvas.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        theta -= (e.clientX - lastMouse.x) * 0.008;
+        phi = Math.max(0.1, Math.min(1.5, phi - (e.clientY - lastMouse.y) * 0.008));
+        lastMouse = { x: e.clientX, y: e.clientY };
+        updateCamera();
     });
-    
-    const bidArea = chart.addAreaSeries({ topColor: 'rgba(38,166,154,0.4)', bottomColor: 'rgba(38,166,154,0.0)', lineColor: '#26a69a', lineWidth: 2 });
-    const askArea = chart.addAreaSeries({ topColor: 'rgba(239,83,80,0.4)', bottomColor: 'rgba(239,83,80,0.0)', lineColor: '#ef5350', lineWidth: 2 });
-    
-    // Throttle UI renders to avoid destroying the DOM
-    let isDrawing = false;
-    
-    // Phase 10: Unified Depth Logic (Live Binance vs Institutional Snapshots)
+    canvas.addEventListener('wheel', e => {
+        radius = Math.max(10, Math.min(80, radius + e.deltaY * 0.05));
+        updateCamera();
+    }, { passive: true });
+
+    // --- Build 3D terrain mesh from depth data ---
+    function buildDepthMesh(levels, color, side) {
+        if (!levels || levels.length < 2) return null;
+        const n = Math.min(levels.length, 40);
+        const shape = new THREE.Shape();
+        const xScale = 20 / n;
+        const yScale = 0.018;
+        const xOffset = side === 'bid' ? -n * xScale : 0;
+
+        shape.moveTo(xOffset + (side === 'bid' ? n * xScale : 0), 0);
+        for (let i = 0; i < n; i++) {
+            const x = side === 'bid' ? xOffset + (n - i) * xScale : xOffset + i * xScale;
+            const y = levels[i] * yScale;
+            if (i === 0) shape.lineTo(x, y); else shape.lineTo(x, y);
+        }
+        shape.lineTo(side === 'bid' ? xOffset : xOffset + n * xScale, 0);
+        shape.closePath();
+
+        const extrudeSettings = { depth: 1.2, bevelEnabled: false };
+        const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        const mat = new THREE.MeshPhongMaterial({
+            color: color,
+            emissive: color,
+            emissiveIntensity: 0.25,
+            transparent: true,
+            opacity: 0.82,
+            shininess: 60,
+            side: THREE.DoubleSide
+        });
+
+        // Rotate so the shape lies in the XZ plane
+        geo.rotateX(-Math.PI / 2);
+        return new THREE.Mesh(geo, mat);
+    }
+
+    let bidMesh = null, askMesh = null;
+
+    function rebuildMeshes(rawBids, rawAsksFull) {
+        if (bidMesh) { scene.remove(bidMesh); bidMesh.geometry.dispose(); }
+        if (askMesh) { scene.remove(askMesh); askMesh.geometry.dispose(); }
+
+        // Cumulative sum for depth chart
+        let bidCum = 0, askCum = 0;
+        const bidLevels = rawBids.map(b => { bidCum += parseFloat(b[1]); return bidCum; });
+        const askLevels = rawAsksFull.map(a => { askCum += parseFloat(a[1]); return askCum; });
+
+        bidMesh = buildDepthMesh(bidLevels, 0x26a69a, 'bid');
+        askMesh = buildDepthMesh(askLevels, 0xef5350, 'ask');
+        if (bidMesh) scene.add(bidMesh);
+        if (askMesh) scene.add(askMesh);
+    }
+
+    // --- Animation loop ---
+    let animId;
+    function animate() {
+        animId = requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // Store for cleanup
+    window.activeDepth3D = { animId, renderer };
+
+    // --- Data source ---
     const isEquity = ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'].includes(symbol.toUpperCase());
-    
+
     if (isEquity) {
-        // Fetch snapshot from our liquidity-history engine
         try {
             const history = await fetchAPI(`/liquidity-history?ticker=${symbol}`);
             if (history && history.data && history.data.length > 0) {
-                // Use the latest available snapshot
                 const latest = history.data[history.data.length - 1];
-                let bidSum = 0, askSum = 0;
-                let bids = [], asks = [];
-                let index = 1;
-
-                // Sort and prepare bids/asks (with safety null checks)
-                const rawBids = Object.entries(latest.bids || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a,b) => b[0]-a[0]);
-                const rawAsks = Object.entries(latest.asks || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a,b) => a[0]-b[0]);
-
-                rawBids.forEach(b => { bidSum += b[1]; bids.push({ time: index++, value: bidSum }); });
-                index += 2;
-                rawAsks.forEach(a => { askSum += a[1]; asks.push({ time: index++, value: askSum }); });
-
-                bidArea.setData(bids);
-                askArea.setData(asks);
-            } else {
-                container.innerHTML = '<div class="error-msg">Institutional Depth Offline</div>';
+                const rawBids = Object.entries(latest.bids || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a, b) => b[0] - a[0]);
+                const rawAsks = Object.entries(latest.asks || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a, b) => a[0] - b[0]);
+                rebuildMeshes(rawBids, rawAsks);
             }
-        } catch(e) { console.error("Depth Engine Error:", e); }
+        } catch (e) { console.error('3D Depth fallback error:', e); }
     } else {
-        // Standard Binance WebSocket for Crypto
         window.BinanceSocketManager.subscribe(symbol, 'depth20@100ms', (data) => {
-            if(isDrawing || !data.bids || !data.asks) return;
-            isDrawing = true;
-            
-            let bidSum=0, askSum=0;
-            let bids = [], asks = [];
-            let index = 1;
-            
-            [...data.bids].reverse().forEach(b => { 
-                bidSum+=parseFloat(b[1]); 
-                bids.push({time: index++, value: bidSum}); 
-            });
-            
-            index += 2;
-            data.asks.forEach(a => { 
-                askSum+=parseFloat(a[1]); 
-                asks.push({time: index++, value: askSum }); 
-            });
-            
-            bidArea.setData(bids);
-            askArea.setData(asks);
-            isDrawing = false;
+            if (!data.bids || !data.asks) return;
+            const rawBids = [...data.bids].reverse().map(b => [parseFloat(b[0]), parseFloat(b[1])]);
+            const rawAsks = data.asks.map(a => [parseFloat(a[0]), parseFloat(a[1])]);
+            rebuildMeshes(rawBids, rawAsks);
         });
     }
-    
-    const ro = new ResizeObserver(e => { if(e.length > 0 && e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
+
+    // Handle resize
+    const ro = new ResizeObserver(() => {
+        const w = container.clientWidth;
+        renderer.setSize(w, H);
+        camera.aspect = w / H;
+        camera.updateProjectionMatrix();
+    });
     ro.observe(container);
 }
 
