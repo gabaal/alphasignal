@@ -240,7 +240,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier']
+                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve']
                 if path not in public_routes:
                     auth_info = self.is_authenticated()
                     if not auth_info:
@@ -398,6 +398,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_portfolio_optimize()
             elif path.startswith('/api/efficient-frontier'):
                 self.handle_efficient_frontier()
+            elif path.startswith('/api/funding-rates'):
+                self.handle_funding_rates()
+            elif path.startswith('/api/signal-radar'):
+                self.handle_signal_radar()
+            elif path.startswith('/api/whale-sankey'):
+                self.handle_whale_sankey()
+            elif path.startswith('/api/yield-curve'):
+                self.handle_yield_curve()
             elif path == '/api/liquidations':
                 self.handle_liquidations()
             elif path == '/api/unlocks':

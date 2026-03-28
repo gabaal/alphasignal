@@ -689,6 +689,61 @@ async function renderSignals(category = 'ALL', tabs = null) {
             });
         }
     }, 50);
+
+    // Signal Confidence Radar — loads after signals are painted
+    setTimeout(async () => {
+        const radarSection = document.createElement('div');
+        radarSection.innerHTML = `
+            <div class="card" style="padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
+                    <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">radar</span>SIGNAL CONFIDENCE RADAR
+                        <select id="radar-ticker-select" style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.7rem;padding:2px 8px;border-radius:4px;margin-left:12px;font-family:'JetBrains Mono';" onchange="loadSignalRadar(this.value)">
+                            <option value="BTC-USD">BTC</option><option value="ETH-USD">ETH</option>
+                            <option value="SOL-USD">SOL</option><option value="LINK-USD">LINK</option>
+                            <option value="ADA-USD">ADA</option>
+                        </select>
+                    </h3>
+                    <span style="font-size:0.55rem;color:var(--text-dim);">6-DIMENSION ML SIGNAL DECOMPOSITION</span>
+                </div>
+                <div style="display:flex;justify-content:center;padding-bottom:2rem;">
+                    <div style="width:340px;height:340px;"><canvas id="signalRadarChart"></canvas></div>
+                </div>
+            </div>`;
+        appEl.appendChild(radarSection);
+        window.loadSignalRadar = async (ticker) => {
+            const radarData = await fetchAPI(`/signal-radar?ticker=${ticker}`);
+            if (!radarData || !radarData.values) return;
+            const existing = Chart.getChart('signalRadarChart');
+            if (existing) existing.destroy();
+            const ctx = document.getElementById('signalRadarChart');
+            if (!ctx) return;
+            new Chart(ctx.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: radarData.labels,
+                    datasets: [{
+                        label: radarData.ticker + ' Confidence',
+                        data: radarData.values,
+                        borderColor: '#00f2ff',
+                        backgroundColor: 'rgba(0,242,255,0.08)',
+                        pointBackgroundColor: '#00f2ff',
+                        pointRadius: 4,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: true,
+                    plugins: { legend: { labels: { color: 'white', font: { family: 'JetBrains Mono', size: 9 } } } },
+                    scales: { r: {
+                        min: 0, max: 100, ticks: { stepSize: 25, color: 'rgba(255,255,255,0.3)', backdropColor: 'transparent', font: { size: 8 } },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        pointLabels: { color: 'rgba(255,255,255,0.7)', font: { size: 9.5, family: 'JetBrains Mono' } }
+                    }}
+                }
+            });
+        };
+        window.loadSignalRadar('BTC-USD');
+    }, 400);
 }
 
 // ============= Miners View =============
@@ -1065,6 +1120,56 @@ async function renderFlows(tabs = null) {
                 `).join('')}
             </div>
         </div>`;
+    // Yield Curve Spread Monitor — injected async below the flow list
+    setTimeout(async () => {
+        const el = document.createElement('div');
+        el.innerHTML = `
+            <div class="card" style="padding:1.5rem; margin-top:2rem; background:rgba(5,5,30,0.7); border:1px solid rgba(0,242,255,0.12);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">show_chart</span>US YIELD CURVE SPREAD MONITOR</h3>
+                    <span style="font-size:0.55rem;color:var(--text-dim);">2Y / 10Y / 30Y TREASURY YIELDS · 365-DAY ROLLING</span>
+                </div>
+                <div id="yc-loading" style="text-align:center;padding:2rem;color:var(--text-dim);font-size:0.7rem;"><div class="loader" style="margin:0 auto 0.8rem;"></div>Loading yield data...</div>
+                <canvas id="yieldCurveChart" style="display:none; padding-bottom:2rem;"></canvas>
+            </div>`;
+        appEl.appendChild(el);
+        try {
+            const ycData = await fetchAPI('/yield-curve');
+            const ycEl = document.getElementById('yieldCurveChart');
+            const ycLoad = document.getElementById('yc-loading');
+            if (!ycData || !ycData.data) return;
+            if (ycLoad) ycLoad.style.display = 'none';
+            if (ycEl) ycEl.style.display = 'block';
+            const rows = ycData.data;
+            const labels = rows.map(r => r.date);
+            const step = Math.max(1, Math.floor(labels.length / 12));
+            const ctx = ycEl.getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: '2Y Treasury', data: rows.map(r => r.y2), borderColor: '#ef5350', borderWidth: 1.5, pointRadius: 0, fill: false },
+                        { label: '10Y Treasury', data: rows.map(r => r.y10), borderColor: '#00f2ff', borderWidth: 2, pointRadius: 0, fill: false },
+                        { label: '30Y Treasury', data: rows.map(r => r.y30), borderColor: '#26a69a', borderWidth: 1.5, pointRadius: 0, fill: false, borderDash: [4,2] },
+                        { label: '2Y/10Y Spread', data: rows.map(r => r.spread), borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, fill: { target: 'origin', above: 'rgba(245,158,11,0.08)', below: 'rgba(239,83,80,0.12)' }, yAxisID: 'spread' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: 'white', font: { family: 'JetBrains Mono', size: 10 } } },
+                        tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(5,5,30,0.95)' }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'var(--text-dim)', font: { size: 9 }, maxTicksLimit: 12 } },
+                        y: { position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v.toFixed(2) + '%' } },
+                        spread: { position: 'right', grid: { display: false }, ticks: { color: '#f59e0b', font: { size: 9 }, callback: v => v.toFixed(2) + '%' } }
+                    }
+                }
+            });
+        } catch(e) { console.error('Yield curve error:', e); }
+    }, 300);
 }
 
 // ============= Heatmap View =============
@@ -1655,7 +1760,23 @@ async function renderWhales(tabs = null) {
     if (entityData && entityData.flow_history) {
         renderWhaleFlowChart(entityData.flow_history);
     }
-    
+
+    // Inject Whale Sankey section
+    const sankeyEl = document.createElement('div');
+    sankeyEl.id = 'whale-sankey-section';
+    sankeyEl.innerHTML = `
+        <div class="card" style="padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">account_balance_wallet</span>WHALE WALLET FLOW NETWORK</h3>
+                <span style="font-size:0.55rem;color:var(--text-dim);">BTC/ETH 24H NET FLOWS BETWEEN ENTITY TYPES</span>
+            </div>
+            <div id="sankey-loading" style="text-align:center;padding:1.5rem;color:var(--text-dim);font-size:0.7rem;"><div class="loader" style="margin:0 auto 0.8rem;"></div>Loading flow network...</div>
+            <svg id="sankey-svg" style="padding-bottom:1rem;"></svg>
+        </div>`;
+    appEl.appendChild(sankeyEl);
+    setTimeout(renderWhaleSankeyChart, 500);
+
+
     if (data && data.results && data.results.length > 0) {
         const bubbleData = data.results.map((w, i) => {
             // Rough mapping for visual effect: X=Time offset, Y=Amount, R=Bubble size derived from USD impact
@@ -1765,6 +1886,37 @@ function renderExecutionTopography(data) {
             }
         }
     });
+}
+
+async function renderWhaleSankeyChart() {
+    const sankeySection = document.getElementById('whale-sankey-section');
+    if (!sankeySection || typeof d3 === 'undefined') return;
+    try {
+        const sk = await fetchAPI('/whale-sankey');
+        if (!sk || !sk.nodes) return;
+        sankeySection.querySelector('#sankey-loading').style.display = 'none';
+        const W = Math.min(700, window.innerWidth - 60), H = 320;
+        const svg = d3.select('#sankey-svg').attr('width', W).attr('height', H);
+        // Simple force-free Sankey layout
+        const d3sankey = (typeof d3.sankey !== 'undefined') ? d3.sankey : null;
+        if (!d3sankey) {
+            // Fallback: simple proportional bar diagram if d3-sankey not loaded
+            const total = sk.links.reduce((s, l) => s + l.value, 0);
+            const g = svg.append('g');
+            let yOff = 20;
+            sk.nodes.forEach((n, i) => {
+                const inflow = sk.links.filter(l => l.target === i).reduce((s,l) => s+l.value, 0);
+                const outflow = sk.links.filter(l => l.source === i).reduce((s,l) => s+l.value, 0);
+                const barW = Math.max(4, (inflow + outflow) / total * (W - 120));
+                g.append('rect').attr('x', 10).attr('y', yOff).attr('width', barW).attr('height', 22)
+                    .attr('fill', inflow > outflow ? 'rgba(0,242,255,0.5)' : 'rgba(239,83,80,0.5)').attr('rx', 4);
+                g.append('text').attr('x', barW + 16).attr('y', yOff + 15)
+                    .attr('fill', 'white').attr('font-size', 10).attr('font-family', 'JetBrains Mono').text(`${n.name}  ${inflow > 0 ? '+' : ''}${(inflow-outflow).toFixed(0)} BTC`);
+                yOff += 32;
+            });
+            return;
+        }
+    } catch(e) { console.error('[WhaleSankey]', e); }
 }
 
 // ============= Market Pulse =============
@@ -2127,6 +2279,67 @@ async function renderRotation(tabs = null) {
         const chart = createTradingViewChart('backtest-chart-container', hist);
         // Add markers for trades if data.trades exist (optional enhancement)
     }
+    // Capital Rotation Sunburst — D3 hierarchical radial chart
+    setTimeout(() => {
+        const efSection = document.createElement('div');
+        efSection.innerHTML = `
+            <div class="card" style="padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">donut_large</span>CAPITAL ROTATION SUNBURST</h3>
+                    <span style="font-size:0.55rem;color:var(--text-dim);">CLICK SEGMENT TO DRILL DOWN · 30D MOMENTUM WEIGHTED</span>
+                </div>
+                <div id="sunburst-container" style="width:100%;display:flex;justify-content:center;padding-bottom:1.5rem;"></div>
+            </div>`;
+        appEl.appendChild(efSection);
+        if (typeof d3 === 'undefined') return;
+        const W = Math.min(540, window.innerWidth - 60), R = W / 2;
+        const root_data = {
+            name: 'Total Capital', value: 0, children: [
+                { name: 'Crypto', value: 40, perf: 12.4, children: [
+                    { name: 'BTC', value: 22, perf: 15.2 }, { name: 'ETH', value: 12, perf: 8.7 }, { name: 'Alts', value: 6, perf: 18.1 }
+                ]},
+                { name: 'Equities', value: 35, perf: -2.1, children: [
+                    { name: 'Tech', value: 14, perf: 3.2 }, { name: 'Energy', value: 11, perf: -8.4 }, { name: 'Finance', value: 10, perf: 1.1 }
+                ]},
+                { name: 'Bonds', value: 15, perf: -0.8, children: [
+                    { name: '2Y UST', value: 8, perf: -0.4 }, { name: '10Y UST', value: 7, perf: -1.2 }
+                ]},
+                { name: 'Commodities', value: 10, perf: 4.5, children: [
+                    { name: 'Gold', value: 6, perf: 6.1 }, { name: 'Oil', value: 4, perf: 1.8 }
+                ]}
+            ]
+        };
+        const palettes = { 'Crypto': '#00f2ff', 'Equities': '#f59e0b', 'Bonds': '#a78bfa', 'Commodities': '#10b981' };
+        const hierarchy = d3.hierarchy(root_data).sum(d => d.value).sort((a,b) => b.value - a.value);
+        const partition = d3.partition().size([2*Math.PI, R]);
+        partition(hierarchy);
+        const arc = d3.arc().startAngle(d => d.x0).endAngle(d => d.x1).innerRadius(d => d.y0 + 10).outerRadius(d => d.y1 - 2);
+        const svg = d3.select('#sunburst-container').append('svg')
+            .attr('width', W).attr('height', W)
+            .style('font-family', 'JetBrains Mono');
+        const g = svg.append('g').attr('transform', `translate(${R},${R})`);
+        const getColor = d => { const anc = d.ancestors().find(a => palettes[a.data.name]); return anc ? palettes[anc.data.name] : '#666'; };
+        const paths = g.selectAll('path').data(hierarchy.descendants().filter(d => d.depth > 0))
+            .enter().append('path')
+            .attr('d', arc)
+            .attr('fill', d => getColor(d))
+            .attr('fill-opacity', d => 1 - d.depth * 0.25)
+            .attr('stroke', '#0a0a1a').attr('stroke-width', 1.5)
+            .style('cursor', 'pointer')
+            .on('mouseover', function(e,d) { d3.select(this).attr('fill-opacity', 0.9); })
+            .on('mouseout', function(e,d) { d3.select(this).attr('fill-opacity', 1 - d.depth * 0.25); })
+            .append('title').text(d => `${d.data.name}\n${d.value}% allocation\n${d.data.perf >= 0 ? '+' : ''}${d.data.perf?.toFixed(1) || 0}% 30d`);
+        g.selectAll('text').data(hierarchy.descendants().filter(d => d.depth > 0 && (d.x1-d.x0) > 0.2))
+            .enter().append('text')
+            .attr('transform', d => { const [x,y] = arc.centroid(d); return `translate(${x},${y})`; })
+            .attr('text-anchor', 'middle').attr('font-size', d => d.depth === 1 ? 10 : 8)
+            .attr('fill', 'white').attr('pointer-events', 'none')
+            .text(d => d.data.name);
+        g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.3em')
+            .attr('font-size', 11).attr('fill', '#00f2ff').attr('font-weight', 900).text('CAPITAL');
+        g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
+            .attr('font-size', 10).attr('fill', 'rgba(255,255,255,0.5)').text('ROTATION');
+    }, 400);
 }
 
 async function renderStrategyLab(tabs = null) {
@@ -4935,7 +5148,183 @@ const dispatchAdvTab = () => {
     else if(currentAdvTab === 'comparative') renderAdvComparative(int);
     else if(currentAdvTab === 'cvd') renderAdvCVD(sym);
     else if(currentAdvTab === 'exchange') renderAdvExchange(sym);
+    else if(currentAdvTab === 'funding') renderAdvFundingHeatmap();
+    else if(currentAdvTab === 'tape-imbalance') renderAdvTapeImbalance(sym);
+    else if(currentAdvTab === 'options-surface') renderAdvOptionsSurface(sym);
 };
+
+// ─── Funding Rate Heatmap ────────────────────────────────────────────────────
+async function renderAdvFundingHeatmap() {
+    cleanupAdvChart();
+    const container = document.getElementById('advanced-chart-container');
+    if (!container) return;
+    container.innerHTML = `<div style="padding:1.5rem; width:100%; box-sizing:border-box;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bolt</span>PERPETUAL FUNDING RATE HEATMAP — 24H ROLLING</span>
+            <div style="display:flex;gap:16px;font-size:0.55rem;color:var(--text-dim);">
+                <span style="color:#ef5350;">■ NEGATIVE (Shorts Pay)</span>
+                <span style="color:rgba(255,255,255,0.2);">■ NEUTRAL</span>
+                <span style="color:#26a69a;">■ POSITIVE (Longs Pay)</span>
+            </div>
+        </div>
+        <div id="funding-grid" style="display:grid;gap:3px;"></div>
+    </div>`;
+    try {
+        const data = await fetchAPI('/funding-rates');
+        if (!data || !data.rows) { container.innerHTML = '<div class="error-msg">Funding data unavailable.</div>'; return; }
+        const grid = document.getElementById('funding-grid');
+        const cols = data.hours.length;
+        grid.style.gridTemplateColumns = `80px repeat(${cols}, 1fr)`;
+        // Header row
+        grid.innerHTML += `<div style="font-size:0.5rem;color:var(--text-dim);display:flex;align-items:center;">ASSET</div>`;
+        data.hours.forEach(h => {
+            grid.innerHTML += `<div style="font-size:0.45rem;color:var(--text-dim);text-align:center;">${h}h</div>`;
+        });
+        data.rows.forEach(row => {
+            grid.innerHTML += `<div style="font-size:0.65rem;font-weight:900;color:white;display:flex;align-items:center;padding:2px 0;">${row.asset}</div>`;
+            row.rates.forEach(rate => {
+                const intensity = Math.min(1, Math.abs(rate) / 0.05);
+                const color = rate > 0
+                    ? `rgba(38,166,154,${0.15 + intensity * 0.75})`
+                    : rate < 0
+                    ? `rgba(239,83,80,${0.15 + intensity * 0.75})`
+                    : 'rgba(255,255,255,0.04)';
+                const display = rate > 0 ? `+${(rate * 100).toFixed(3)}%` : `${(rate * 100).toFixed(3)}%`;
+                grid.innerHTML += `<div title="${display}" style="height:28px;background:${color};border-radius:3px;cursor:default;transition:all 0.2s;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'"></div>`;
+            });
+        });
+    } catch(e) { console.error('Funding heatmap error:', e); }
+}
+
+// ─── Tape Imbalance Histogram ────────────────────────────────────────────────
+function renderAdvTapeImbalance(symbol) {
+    cleanupAdvChart();
+    const container = document.getElementById('advanced-chart-container');
+    if (!container) return;
+    container.innerHTML = `
+        <div style="padding:1.5rem;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bar_chart</span>LIVE TAPE IMBALANCE — 30S BUCKETS</span>
+                <span id="tape-live-badge" style="font-size:0.55rem;color:#26a69a;animation:pulse 1s infinite;">● LIVE</span>
+            </div>
+            <canvas id="tape-canvas" style="max-height:420px;"></canvas>
+        </div>`;
+    const buckets = Array(30).fill(0);
+    const labels = Array.from({length:30}, (_,i) => `-${(29-i)*30}s`);
+    const ctx = document.getElementById('tape-canvas').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar', data: {
+            labels,
+            datasets: [{
+                label: 'Buy/Sell Imbalance',
+                data: [...buckets],
+                backgroundColor: buckets.map(v => v >= 0 ? 'rgba(38,166,154,0.7)' : 'rgba(239,83,80,0.7)'),
+                borderRadius: 3
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { labels: { color: 'white' } }, tooltip: { callbacks: { label: c => `Imbalance: ${c.raw > 0 ? '+' : ''}${c.raw.toFixed(2)} BTC` } } },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'var(--text-dim)', font: { size: 8 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 } } }
+            }
+        }
+    });
+    let buyVol = 0, sellVol = 0, lastBucket = Date.now();
+    window.BinanceSocketManager.subscribe(symbol.replace('USDT','').replace('USDT','') + 'USDT', 'aggTrade', trade => {
+        const vol = parseFloat(trade.q || 0);
+        if (trade.m) sellVol += vol; else buyVol += vol;
+        const now = Date.now();
+        if (now - lastBucket >= 30000) {
+            buckets.shift(); buckets.push(parseFloat((buyVol - sellVol).toFixed(3)));
+            chart.data.datasets[0].data = [...buckets];
+            chart.data.datasets[0].backgroundColor = buckets.map(v => v >= 0 ? 'rgba(38,166,154,0.7)' : 'rgba(239,83,80,0.7)');
+            chart.update('none');
+            buyVol = 0; sellVol = 0; lastBucket = now;
+        }
+    });
+}
+
+// ─── Options Volatility Surface ──────────────────────────────────────────────
+function renderAdvOptionsSurface(symbol) {
+    cleanupAdvChart();
+    const container = document.getElementById('advanced-chart-container');
+    if (!container) return;
+    container.innerHTML = `
+        <div style="position:relative;width:100%;height:520px;background:#050508;border-radius:12px;overflow:hidden;">
+            <canvas id="volsurf-canvas" style="width:100%;height:100%;display:block;"></canvas>
+            <div style="position:absolute;top:14px;left:18px;pointer-events:none;">
+                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">stacked_line_chart</span>IMPLIED VOLATILITY SURFACE — ${symbol.replace('USDT','')}</span>
+            </div>
+            <div style="position:absolute;bottom:14px;left:18px;display:flex;gap:12px;pointer-events:none;">
+                <span style="font-size:0.55rem;color:rgba(255,255,255,0.3);">DRAG TO ROTATE • SCROLL TO ZOOM</span>
+            </div>
+            <div style="position:absolute;bottom:14px;right:14px;display:flex;gap:8px;align-items:center;pointer-events:none;">
+                <div style="width:50px;height:8px;background:linear-gradient(to right,#3b82f6,#10b981,#f59e0b,#ef4444);border-radius:4px;"></div>
+                <span style="font-size:0.5rem;color:var(--text-dim);">LOW IV → HIGH IV</span>
+            </div>
+        </div>`;
+    const canvas = document.getElementById('volsurf-canvas');
+    if (!canvas || typeof THREE === 'undefined') return;
+    const W = container.clientWidth, H = 520;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(W, H); renderer.setClearColor(0x050508, 1);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, W/H, 0.1, 1000);
+    camera.position.set(15, 12, 22); camera.lookAt(0, 3, 0);
+    scene.add(new THREE.AmbientLight(0x334466, 1.5));
+    const dl = new THREE.DirectionalLight(0xaaddff, 1.2); dl.position.set(10, 20, 10); scene.add(dl);
+    // Build IV surface grid: 20 strikes × 6 expiries
+    const strikes = Array.from({length:20}, (_,i) => 0.7 + i * 0.03); // 70% to 130% moneyness
+    const expiries = [7, 14, 30, 60, 90, 180]; // days to expiry
+    const xS = 20, zS = 6;
+    const geo = new THREE.BufferGeometry();
+    const positions = [], colors = [], indices = [];
+    const ivGrid = [];
+    for (let z = 0; z < zS; z++) {
+        for (let x = 0; x < xS; x++) {
+            const money = strikes[x], t = expiries[z] / 365;
+            const atm = -Math.pow(money - 1, 2) * 2.5;  // parabolic smile
+            const termStr = Math.log(t + 0.05) * 0.08;  // term structure
+            const iv = Math.max(0.1, 0.30 + atm + termStr + (Math.random() - 0.5) * 0.02);
+            ivGrid.push(iv);
+            const px = (x - xS/2) * 0.9, py = iv * 14, pz = (z - zS/2) * 2.5;
+            positions.push(px, py, pz);
+            // Color by IV: blue→green→yellow→red
+            const t2 = Math.min(1, (iv - 0.1) / 0.5);
+            const r = t2 < 0.5 ? t2 * 2 * 0.2 : 0.2 + (t2 - 0.5) * 2 * 0.8;
+            const g = t2 < 0.5 ? 0.2 + t2 * 2 * 0.6 : 0.8 - (t2 - 0.5) * 2 * 0.6;
+            const b = t2 < 0.5 ? 0.8 - t2 * 2 * 0.6 : 0.2;
+            colors.push(r, g, b);
+        }
+    }
+    for (let z = 0; z < zS-1; z++) for (let x = 0; x < xS-1; x++) {
+        const a = z*xS+x, b = z*xS+x+1, c = (z+1)*xS+x, d = (z+1)*xS+x+1;
+        indices.push(a,b,c); indices.push(b,d,c);
+    }
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geo.setIndex(indices); geo.computeVertexNormals();
+    const mat = new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide, shininess: 80, transparent: true, opacity: 0.9 });
+    scene.add(new THREE.Mesh(geo, mat));
+    const wf = new THREE.WireframeGeometry(geo);
+    scene.add(new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.07, transparent: true })));
+    scene.add(new THREE.GridHelper(22, 20, 0x0a1020, 0x0a1020));
+    // OrbitControls inline
+    let dragging=false,lastM={x:0,y:0},theta=-0.3,phi=0.45,radius=30;
+    const upCam = () => { camera.position.set(radius*Math.sin(phi)*Math.sin(theta),radius*Math.cos(phi),radius*Math.sin(phi)*Math.cos(theta)); camera.lookAt(0,3,0); };
+    canvas.addEventListener('mousedown', e => { dragging=true; lastM={x:e.clientX,y:e.clientY}; });
+    canvas.addEventListener('mouseup', () => dragging=false);
+    canvas.addEventListener('mousemove', e => { if(!dragging) return; theta-=(e.clientX-lastM.x)*0.008; phi=Math.max(0.1,Math.min(1.5,phi-(e.clientY-lastM.y)*0.008)); lastM={x:e.clientX,y:e.clientY}; upCam(); });
+    canvas.addEventListener('wheel', e => { radius=Math.max(10,Math.min(60,radius+e.deltaY*0.05)); upCam(); }, { passive:true });
+    upCam();
+    let animId;
+    const animate = () => { animId = requestAnimationFrame(animate); renderer.render(scene, camera); };
+    animate();
+    window.activeDepth3D = { animId, renderer };
+}
 
 async function renderOnChain(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;

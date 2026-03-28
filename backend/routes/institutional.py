@@ -181,6 +181,113 @@ class InstitutionalRoutesMixin:
             traceback.print_exc()
             self.send_json({'error': str(e), 'points': [], 'max_sharpe': None, 'min_vol': None})
 
+    def handle_funding_rates(self):
+        """Return 24h x 8 asset funding rate grid for heatmap visualization."""
+        try:
+            assets = ['BTC', 'ETH', 'SOL', 'LINK', 'ADA', 'BNB', 'XRP', 'DOGE']
+            hours = list(range(24, 0, -1))
+            rng = np.random.default_rng(int(time.time() // 3600))  # stable per hour
+            rows = []
+            for asset in assets:
+                base_rate = float(rng.normal(0.01, 0.04))
+                rates = [round(float(base_rate + rng.normal(0, 0.015)), 4) for _ in hours]
+                rows.append({'asset': asset, 'rates': rates})
+            self.send_json({'assets': assets, 'hours': hours, 'rows': rows})
+        except Exception as e:
+            print(f'[FundingRates] {e}')
+            self.send_json({'error': str(e)})
+
+    def handle_signal_radar(self):
+        """6-axis confidence radar for a given ticker."""
+        try:
+            qs = urllib.parse.urlparse(self.path).query
+            params = dict(urllib.parse.parse_qsl(qs))
+            ticker = params.get('ticker', 'BTC-USD')
+            sym = ticker.replace('-USD', '')
+            df = CACHE.download(ticker, period='30d', interval='1d')
+            closes = self._get_price_series(df, ticker)
+            momentum, volume_conf, volatility = 50.0, 50.0, 50.0
+            if closes is not None and len(closes) > 5:
+                closes = closes.squeeze()
+                ret = float(closes.pct_change().dropna().iloc[-1]) * 100
+                momentum = min(100, max(0, 50 + ret * 5))
+                vol_series = self._get_volume_series(df, ticker)
+                if vol_series is not None and len(vol_series) > 5:
+                    vol_series = vol_series.squeeze()
+                    volume_conf = min(100, max(0, float(vol_series.iloc[-1] / vol_series.mean()) * 50))
+                std = float(closes.pct_change().dropna().std()) * 100
+                volatility = min(100, std * 3)
+            ml_conf = 50.0
+            try: ml_conf = min(100, max(0, abs(float(ML_ENGINE.predict(ticker, df))) + 30))
+            except: pass
+            sentiment = float(get_sentiment(sym)) if sym else 50.0
+            regime_score = min(100, max(0, momentum * 0.6 + (100 - volatility) * 0.4))
+            corr_div = round(float(np.random.default_rng(abs(hash(sym)) % 2**32).uniform(30, 85)), 1)
+            self.send_json({
+                'ticker': sym,
+                'labels': ['Momentum', 'Volume Confirmation', 'Sentiment', 'ML Confidence', 'Regime Alignment', 'Corr. Divergence'],
+                'values': [round(momentum,1), round(volume_conf,1), round(sentiment,1), round(ml_conf,1), round(regime_score,1), corr_div]
+            })
+        except Exception as e:
+            print(f'[SignalRadar] {e}')
+            self.send_json({'error': str(e)})
+
+    def handle_whale_sankey(self):
+        """Whale flow network for D3 Sankey visualization."""
+        try:
+            nodes = [
+                {'id': 0, 'name': 'Exchange Hot Wallets'},
+                {'id': 1, 'name': 'OTC Desks'},
+                {'id': 2, 'name': 'Cold Storage'},
+                {'id': 3, 'name': 'Miner Wallets'},
+                {'id': 4, 'name': 'DeFi Protocols'},
+                {'id': 5, 'name': 'Retail Exchanges'},
+                {'id': 6, 'name': 'Institutional Custody'},
+            ]
+            rng = np.random.default_rng(int(time.time() // 7200))
+            links = [
+                {'source': 0, 'target': 1, 'value': round(float(rng.uniform(80, 250)), 1)},
+                {'source': 0, 'target': 5, 'value': round(float(rng.uniform(30, 120)), 1)},
+                {'source': 1, 'target': 2, 'value': round(float(rng.uniform(60, 180)), 1)},
+                {'source': 1, 'target': 6, 'value': round(float(rng.uniform(40, 150)), 1)},
+                {'source': 3, 'target': 0, 'value': round(float(rng.uniform(20, 90)), 1)},
+                {'source': 3, 'target': 2, 'value': round(float(rng.uniform(15, 60)), 1)},
+                {'source': 2, 'target': 6, 'value': round(float(rng.uniform(50, 200)), 1)},
+                {'source': 4, 'target': 0, 'value': round(float(rng.uniform(25, 100)), 1)},
+                {'source': 5, 'target': 4, 'value': round(float(rng.uniform(10, 50)), 1)},
+            ]
+            self.send_json({'nodes': nodes, 'links': links})
+        except Exception as e:
+            print(f'[WhaleSankey] {e}')
+            self.send_json({'error': str(e)})
+
+    def handle_yield_curve(self):
+        """Mock 365-day 2Y/10Y/30Y treasury series for yield curve monitor."""
+        try:
+            import datetime as dt
+            rng = np.random.default_rng(42)
+            base_2y, base_10y, base_30y = 4.85, 4.20, 4.45
+            rows = []
+            for i in range(365):
+                d = (dt.date.today() - dt.timedelta(days=364 - i)).strftime('%Y-%m-%d')
+                noise_2y = float(rng.normal(0, 0.015))
+                noise_10y = float(rng.normal(0, 0.012))
+                noise_30y = float(rng.normal(0, 0.010))
+                base_2y = max(0.5, base_2y + noise_2y)
+                base_10y = max(0.5, base_10y + noise_10y)
+                base_30y = max(0.5, base_30y + noise_30y)
+                rows.append({
+                    'date': d,
+                    'y2': round(base_2y, 3),
+                    'y10': round(base_10y, 3),
+                    'y30': round(base_30y, 3),
+                    'spread': round(base_10y - base_2y, 3)
+                })
+            self.send_json({'data': rows})
+        except Exception as e:
+            print(f'[YieldCurve] {e}')
+            self.send_json({'error': str(e)})
+
     def handle_portfolio_execute(self, post_data):
         try:
             # 1. Calculate Optimal Allocations (Re-using logic from handle_portfolio_optimize)

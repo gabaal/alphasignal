@@ -2959,3 +2959,33 @@ input[type="range"]::-webkit-slider-thumb {
 .scroller { display: inline-block; white-space: nowrap; animation: scroll-left-global 40s linear infinite; font-family: 'JetBrains Mono'; font-size: 0.75rem; }
 .scroller:hover { animation-play-state: paused; }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ─── Phase 14: Chart Legend Clipping Fix ───────────────────────────────────
+   Prevents Chart.js bottom legend rows being cut off by fixed-height containers.
+   Applies a minimum bottom padding to all chart card wrappers.               */
+.card canvas,
+.glass-card canvas,
+.intel-card canvas {
+    display: block;
+    padding-bottom: 1.5rem !important;
+    box-sizing: content-box;
+}
+
+/* Ensure card wrappers containing charts auto-expand rather than clip */
+.card:has(canvas),
+.glass-card:has(canvas) {
+    overflow: visible;
+    padding-bottom: 1.5rem;
+}
+
+/* Specific fix: advanced chart container must not clip 3D canvases */
+#advanced-chart-container {
+    overflow: visible !important;
+}
+
+/* New Phase 14 chart labels and legend text visibility */
+canvas + div,
+canvas ~ .chart-legend {
+    margin-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}

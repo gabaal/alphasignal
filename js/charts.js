@@ -380,11 +380,14 @@ function renderAdvancedChart() {
         <div style="display:flex; gap:1rem; margin-bottom:1rem; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem; overflow-x:auto">
             <button class="filter-btn active" id="tab-overview" onclick="setAdvTab('overview')">Price & Overlays</button>
             <button class="filter-btn" id="tab-pulse" onclick="setAdvTab('pulse')">Liquidation Pulse</button>
-            <button class="filter-btn" id="tab-depth" onclick="setAdvTab('depth')">Market Depth</button>
+            <button class="filter-btn" id="tab-depth" onclick="setAdvTab('depth')">Market Depth 3D</button>
             <button class="filter-btn" id="tab-derivatives" onclick="setAdvTab('derivatives')">Derivatives (OI)</button>
             <button class="filter-btn" id="tab-comparative" onclick="setAdvTab('comparative')">Comparative Index</button>
             <button class="filter-btn" id="tab-cvd" onclick="setAdvTab('cvd')">CVD Order Flow</button>
             <button class="filter-btn" id="tab-exchange" onclick="setAdvTab('exchange')">Exchange Flows</button>
+            <button class="filter-btn" id="tab-funding" onclick="setAdvTab('funding')">Funding Rates</button>
+            <button class="filter-btn" id="tab-tape-imbalance" onclick="setAdvTab('tape-imbalance')">Tape Imbalance</button>
+            <button class="filter-btn" id="tab-options-surface" onclick="setAdvTab('options-surface')">Vol Surface</button>
         </div>
 
         <div class="card" style="padding:1rem; min-height:500px; position:relative;">

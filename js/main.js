@@ -511,150 +511,97 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
 }
 
 function renderHelp() {
-    appEl.innerHTML = `
-        <div class="view-header"><h1>Terminal Documentation</h1></div>
-        <div class="doc-container" style="max-width: 900px; margin: 0 auto; padding-top: 2rem;">
-            <p style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 2rem; line-height: 1.6;">Select a module below to view detailed methodology, data sources, and analytical frameworks.</p>
-            <div class="f-grid">
-                <div class="f-card" onclick="switchView('explain-advanced-charting')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">candlestick_chart</span></div>
-                    <h3>Advanced Charting</h3>
-                    <p>Depth and dynamic order flow overlays.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-briefing')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">memory</span></div>
-                    <h3>AI Briefing</h3>
-                    <p>How global market trends are neutrally synthesized.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-telegram')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">notifications_active</span></div>
-                    <h3>Alert Hooks</h3>
-                    <p>Configuring Telegram & Push Intelligence (Ph. 5).</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-alpha-score')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">electric_bolt</span></div>
-                    <h3>Alpha Score</h3>
-                    <p>Composite ranking and scoring methodology.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-alpha')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">trending_up</span></div>
-                    <h3>Alpha Strategy</h3>
-                    <p>Trading relative strength and market benchmarks.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-alerts')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">event</span></div>
-                    <h3>Catalyst Monitor</h3>
-                    <p>Tracking macro variables and critical events.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-velocity')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">speed</span></div>
-                    <h3>Chain Velocity</h3>
-                    <p>Documentation on capital rotation tracking and volume acceleration.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-correlation')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">link</span></div>
-                    <h3>Correlation Analysis</h3>
-                    <p>Identifying market decoupling and rotation events.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-api')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">terminal</span></div>
-                    <h3>Institutional API</h3>
-                    <p>Programmatic data access for quant desks.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-regimes')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">layers</span></div>
-                    <h3>Market Regimes</h3>
-                    <p>Identifying institutional cycles and trends.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-ml-engine')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">model_training</span></div>
-                    <h3>ML Alpha Engine</h3>
-                    <p>Neural feature synthesis and predictive modeling.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-pwa')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">install_mobile</span></div>
-                    <h3>Mobile Terminal</h3>
-                    <p>PWA installation for iOS / Android (Ph. 5).</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-mindshare')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">hub</span></div>
-                    <h3>Narrative Galaxy</h3>
-                    <p>Using NLP-driven social cluster visualization.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-onchain')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">link</span></div>
-                    <h3>On-Chain Analytics</h3>
-                    <p>Macro network metrics & MVRV modeling.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-liquidity')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">bar_chart</span></div>
-                    <h3>Order Flow (GOMM)</h3>
-                    <p>Interpreting liquidity walls and execution tape.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-performance')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">trending_up</span></div>
-                    <h3>Performance</h3>
-                    <p>Win rate, returns, and monthly breakdowns.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-portfolio-lab')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">biotech</span></div>
-                    <h3>Portfolio Lab</h3>
-                    <p>ML rebalancing and risk-modeling engine (Ph. 6).</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-benchmark')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">science</span></div>
-                    <h3>Portfolio Simulation</h3>
-                    <p>Modeling and backtesting quant portfolios.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-risk')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">shield_with_heart</span></div>
-                    <h3>Risk Management</h3>
-                    <p>Using volatility and drawdowns for sizing.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-sentiment')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">psychology</span></div>
-                    <h3>Sentiment Synthesis</h3>
-                    <p>How we process social mindshare and news flow.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-signal-archive')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">history</span></div>
-                    <h3>Signal Archive</h3>
-                    <p>Historical signal record and PnL tracking.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-signals')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">radar</span></div>
-                    <h3>Signal Intelligence</h3>
-                    <p>Understanding Z-Score deviations and alpha generation.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-glossary')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">menu_book</span></div>
-                    <h3>Terminal Glossary</h3>
-                    <p>Quick reference for all institutional metrics.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-topologies')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">category</span></div>
-                    <h3>Topologies & Geometries</h3>
-                    <p>Documentation on advanced structural graphs like Sankey pipelines, Radars, and Guppy Ribbons.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-playbook')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">auto_stories</span></div>
-                    <h3>Trading Playbook</h3>
-                    <p>Advanced strategies and signal combinations.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-whales')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">waves</span></div>
-                    <h3>Whale Pulse</h3>
-                    <p>Detecting massive on-chain block transactions.</p>
-                </div>
-                <div class="f-card" onclick="switchView('explain-zscore')">
-                    <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px; color:var(--accent);">insights</span></div>
-                    <h3>Z-Score Interpretation</h3>
-                    <p>Decoding statistical intensity and outlier detection.</p>
-                </div>
+    const group = (label, icon, cards) => `
+        <div style="margin-bottom:2.5rem;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.6rem;border-bottom:1px solid rgba(0,242,255,0.12);">
+                <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.2rem;">${icon}</span>
+                <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;">${label}</span>
             </div>
+            <div class="f-grid">${cards}</div>
+        </div>`;
+    const card = (view, icon, title, desc) => `
+        <div class="f-card" onclick="switchView('${view}')">
+            <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px;color:var(--accent);">${icon}</span></div>
+            <h3>${title}</h3><p>${desc}</p>
+        </div>`;
+
+    appEl.innerHTML = `
+        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent);">help</span>Terminal Documentation</h1></div>
+        <div class="doc-container" style="max-width:960px;margin:0 auto;padding-top:1.5rem;">
+            <p style="font-size:1rem;color:var(--text-dim);margin-bottom:2.5rem;line-height:1.6;">Select a module below to view detailed methodology, data sources and analytical frameworks. Organised by sidebar hub.</p>
+
+            ${group('Command Center & Signals', 'dashboard', `
+                ${card('explain-signals', 'radar', 'Signal Intelligence', 'Understanding Z-Score deviations and alpha generation.')}
+                ${card('explain-ml-engine', 'model_training', 'ML Alpha Engine', 'Neural feature synthesis and predictive modelling.')}
+                ${card('explain-alpha-score', 'electric_bolt', 'Alpha Score', 'Composite ranking and scoring methodology.')}
+                ${card('explain-signal-archive', 'history', 'Signal Archive', 'Historical signal record and PnL tracking.')}
+                ${card('explain-zscore', 'insights', 'Z-Score Interpretation', 'Decoding statistical intensity and outlier detection.')}
+                ${card('explain-alerts', 'event', 'Signal Alerts & Catalysts', 'Configuring alerts and tracking macro catalyst events.')}
+                ${card('explain-telegram', 'notifications_active', 'Alert Hooks', 'Configuring Telegram & Push Intelligence.')}
+            `)}
+
+            ${group('Global Markets Hub', 'public', `
+                ${card('explain-briefing', 'memory', 'Market Briefing (AI)', 'How global market trends are neutrally synthesised.')}
+                ${card('explain-liquidity', 'bar_chart', 'Capital Flows & Order Flow', 'Interpreting liquidity walls and execution tape.')}
+                ${card('explain-correlation', 'grid_4x4', 'Sector Rotation & Correlation', 'Identifying market decoupling and rotation events.')}
+            `)}
+
+            ${group('Macro Intel Hub', 'monitoring', `
+                ${card('explain-regimes', 'layers', 'Market Regimes', 'Identifying institutional cycles and trends.')}
+                ${card('explain-benchmark', 'science', 'Portfolio Simulation', 'Modelling and backtesting quant portfolios.')}
+                ${card('explain-zscore', 'insights', 'Macro Z-Score', 'Interpreting statistical deviations across macro assets.')}
+            `)}
+
+            ${group('Alpha Strategy Hub', 'electric_bolt', `
+                ${card('explain-alpha', 'trending_up', 'Alpha Strategy', 'Trading relative strength and market benchmarks.')}
+                ${card('explain-alpha-score', 'bolt', 'Alpha Score Composite', 'Multi-factor ranking and composite scoring.')}
+                ${card('explain-playbook', 'auto_stories', 'Trading Playbook', 'Advanced strategies and signal combinations.')}
+                ${card('explain-performance', 'trending_up', 'Audit & Performance', 'Win rate, returns, and monthly breakdowns.')}
+            `)}
+
+            ${group('Institutional Hub', 'key', `
+                ${card('explain-portfolio-lab', 'biotech', 'Portfolio Optimizer', 'ML rebalancing and Markowitz Efficient Frontier.')}
+                ${card('explain-benchmark', 'science', 'Yield Lab & Token Unlocks', 'Modelling token unlock events and yield curves.')}
+            `)}
+
+            ${group('Analytics Hub', 'analytics', `
+                ${card('explain-whales', 'waves', 'Whale Pulse', 'Detecting massive on-chain block transactions.')}
+                ${card('explain-velocity', 'speed', 'Chain Velocity', 'Capital rotation tracking and volume acceleration.')}
+                ${card('explain-onchain', 'link', 'On-Chain Analytics', 'Macro network metrics & MVRV modelling.')}
+                ${card('explain-mindshare', 'hub', 'Narrative Galaxy & Mindshare', 'NLP-driven social cluster visualisation.')}
+                ${card('explain-sentiment', 'psychology', 'Sentiment Synthesis', 'How we process social mindshare and news flow.')}
+            `)}
+
+            ${group('Advanced Charting', 'candlestick_chart', `
+                ${card('explain-advanced-charting', 'candlestick_chart', 'Advanced Charting Suite', 'Depth, dynamic order flow overlays and 3D orderbook.')}
+                ${card('explain-topologies', 'category', 'Funding Rate Heatmap', 'Reading cross-asset perpetual funding rate grids.')}
+                ${card('explain-topologies', 'bar_chart', 'Tape Imbalance Histogram', 'Live 30-second buy/sell volume imbalance analysis.')}
+                ${card('explain-topologies', 'stacked_line_chart', 'Volatility Surface (3D)', 'Implied volatility smile and term structure modelling.')}
+            `)}
+
+            ${group('Risk & Stress Hub', 'grid_on', `
+                ${card('explain-risk', 'shield_with_heart', 'Risk Management', 'Using volatility and drawdowns for position sizing.')}
+                ${card('explain-zscore', 'warning_amber', 'Stress Lab', 'Macro scenario stress-testing and tail risk modelling.')}
+            `)}
+
+            ${group('Order Flow & Liquidity', 'bar_chart', `
+                ${card('explain-liquidity', 'bar_chart', 'Order Flow (GOMM)', 'Interpreting institutional liquidity walls and tape.')}
+                ${card('explain-topologies', 'account_balance_wallet', 'Whale Wallet Flow Sankey', 'On-chain entity flow network and routing analytics.')}
+                ${card('explain-topologies', 'show_chart', 'Yield Curve Spread Monitor', 'US Treasury 2Y/10Y/30Y spread and inversion signals.')}
+                ${card('explain-topologies', 'donut_large', 'Capital Rotation Sunburst', 'Hierarchical capital allocation and 30D momentum view.')}
+                ${card('explain-topologies', 'radar', 'Signal Confidence Radar', '6-axis ML signal decomposition per asset.')}
+            `)}
+
+            ${group('Reference & System', 'menu_book', `
+                ${card('explain-api', 'terminal', 'Institutional API', 'Programmatic data access for quant desks.')}
+                ${card('explain-glossary', 'menu_book', 'Terminal Glossary', 'Quick reference for all institutional metrics.')}
+                ${card('explain-pwa', 'install_mobile', 'Mobile Terminal', 'PWA installation for iOS / Android.')}
+            `)}
         </div>
     `;
 }
+
+
 
 function renderDocsAdvancedCharting() {
     renderExplainPage(
@@ -715,11 +662,11 @@ function renderDocsBriefing() {
     renderExplainPage(
         "AI Intelligence Briefing",
         "Synthesized institutional intelligence for rapid decision making.",
-        "The AI Briefing module is a neural synthesis engine that consumes and correlates news flow, social mindshare, and macro catalyst data. Unlike generic news aggregators, our LLM framework is tuned specifically for institutional finance. It identifies 'hidden' connections—such as how a specific regulatory shift in Asia might impact L2 liquidity in Europe—and presents them in a concise, actionable format. It is designed to save analysts hours of manual research by highlighting the signal within the noise.",
+        "The AI Briefing module is a neural synthesis engine that consumes and correlates news flow, social mindshare, and macro catalyst data. Unlike generic news aggregators, our LLM framework is tuned specifically for institutional finance. It identifies 'hidden' connectionsâ€”such as how a specific regulatory shift in Asia might impact L2 liquidity in Europeâ€”and presents them in a concise, actionable format. It is designed to save analysts hours of manual research by highlighting the signal within the noise.",
         [
             { icon: 'memory', title: 'Neural Synthesis', desc: 'Millions of text nodes are processed daily to identify emerging narratives and shifts in institutional sentiment before they reach mainstream media.' },
             { icon: 'auto_graph', title: 'Sector Correlation', desc: 'The briefing automatically groups assets into thematic sectors (L1, DeFi, AI, Memes) to show where rotational capital is flowing in real-time.' },
-            { icon: 'history_edu', title: 'Macro Translation', desc: 'Translating complex macro events—like FOMC minutes or CPI prints—into direct impact estimates for your tracked portfolio.' }
+            { icon: 'history_edu', title: 'Macro Translation', desc: 'Translating complex macro eventsâ€”like FOMC minutes or CPI printsâ€”into direct impact estimates for your tracked portfolio.' }
         ],
         [
             { title: 'Narrative Shift Detection', text: 'Our AI Briefing identified a sustained increase in "Institutional Staking" mentions 72 hours before a major US pension fund announced its ETH position, allowing users to position ahead of the narrative surge.' },
@@ -733,7 +680,7 @@ function renderDocsLiquidity() {
     renderExplainPage(
         "Order Flow (GOMM)",
         "Visualizing professional liquidity walls and execution tape from 15+ top-tier institutional exchanges.",
-        "The Global Orderflow Magnitude Monitor (GOMM) provides a deep-dive into the exchange limit order books. By tracking the depth and density of bids and asks across the top 100 liquidity pairs, we can identify 'Liquidity Walls'—large clusters of orders that act as natural magnets or barriers for price action. Understanding where 'deep' liquidity sits allows professional traders to predict reversal points and identify where the most significant slippage is likely to occur.",
+        "The Global Orderflow Magnitude Monitor (GOMM) provides a deep-dive into the exchange limit order books. By tracking the depth and density of bids and asks across the top 100 liquidity pairs, we can identify 'Liquidity Walls'â€”large clusters of orders that act as natural magnets or barriers for price action. Understanding where 'deep' liquidity sits allows professional traders to predict reversal points and identify where the most significant slippage is likely to occur.",
         [
             { icon: 'water_drop', title: 'Liquidity Heatmap', desc: 'A dense visual mapping of limit order resting on the books. Highlights potential support and resistance zones.' },
             { icon: 'list_alt', title: 'Execution Tape (Institutional)', desc: 'Filtering out retail noise to show only large block trades executing across fragmented exchanges.' },
@@ -843,7 +790,7 @@ function renderDocsZScore() {
         "Statistical intensity monitoring for advanced volatility arbitrage and outlier detection.",
         "The Z-Score is a measure of how many standard deviations a data point is from its mean. In the AlphaSignal terminal, we use this to highlight 'statistical outliers'. A high Z-score (above +2.0 or below -2.0) means an asset is moving in a way that is highly unusual compared to its typical volatility profile. Professional traders use Z-scores to identify extreme overextensions (reversion opportunities) or the beginning of massive, institutional-led trend breakouts.",
         [
-            { icon: 'analytics', title: 'Standard Deviation', desc: 'A Z-score of +3.0 indicates a move 3 standard deviations above the mean—a statistical rarity that often precedes a price correction or "cooling off" period.' },
+            { icon: 'analytics', title: 'Standard Deviation', desc: 'A Z-score of +3.0 indicates a move 3 standard deviations above the meanâ€”a statistical rarity that often precedes a price correction or "cooling off" period.' },
             { icon: 'trending_up', title: 'Mean Reversion', desc: 'Extreme Z-scores (+3.5 or -3.5) are historically associated with exhaustion. When combined with declining volume, these are prime signals for mean-reversion trades.' },
             { icon: 'bolt', title: 'Momentum Breakouts', desc: 'A sustained Z-score between +1.5 and +2.5 often represents an institutional "trend breakout" where the asset is successfully discovering a new higher value range.' }
         ],
@@ -859,7 +806,7 @@ function renderDocsAlpha() {
     renderExplainPage(
         "Alpha Generation Strategy",
         "Quantifying relative strength by stripping away market noise and benchmark beta.",
-        "Alpha represents the 'excess return' of an asset relative to a benchmark—in our terminal, typically Bitcoin (BTC-USD). If Bitcoin moves up 5% and an asset moves up 8%, that asset has generated 3% Alpha. Our platform prioritizes assets with high positive Alpha because they represent true idiosyncratic strength—assets that are attracting capital even when the broader market is struggling. Trading Alpha-positive assets is one of the most effective ways to outperform the benchmark index.",
+        "Alpha represents the 'excess return' of an asset relative to a benchmarkâ€”in our terminal, typically Bitcoin (BTC-USD). If Bitcoin moves up 5% and an asset moves up 8%, that asset has generated 3% Alpha. Our platform prioritizes assets with high positive Alpha because they represent true idiosyncratic strengthâ€”assets that are attracting capital even when the broader market is struggling. Trading Alpha-positive assets is one of the most effective ways to outperform the benchmark index.",
         [
             { icon: 'benchmark', title: 'Benchmark Beta', desc: 'Alpha allows you to see through the "Beta" (broad market movement) to identify assets that are truly leading the market through unique fundamental strength.' },
             { icon: 'show_chart', title: 'Institutional Strength', desc: 'Consistent positive Alpha is the hallmark of institutional accumulation. These assets often continue to climb even during broad-market pullbacks or flat periods.' },
@@ -877,7 +824,7 @@ function renderDocsCorrelation() {
     renderExplainPage(
         "Correlation & Decoupling",
         "Monitoring the mathematical relationship between Bitcoin and the broader universe.",
-        "Correlation measures the degree to which two assets move in relation to each other. A correlation of +1.0 means they move in perfect lockstep. In crypto, most assets are highly correlated to Bitcoin. However, the most profitable opportunities often occur during 'Decoupling' events—when an asset breaks its link with BTC and begins to move independently. The AlphaSignal terminal tracks these shifts to help you identify rotational capital moving into specific sectors or tokens.",
+        "Correlation measures the degree to which two assets move in relation to each other. A correlation of +1.0 means they move in perfect lockstep. In crypto, most assets are highly correlated to Bitcoin. However, the most profitable opportunities often occur during 'Decoupling' eventsâ€”when an asset breaks its link with BTC and begins to move independently. The AlphaSignal terminal tracks these shifts to help you identify rotational capital moving into specific sectors or tokens.",
         [
             { icon: 'link', title: 'High Correlation (>0.85)', desc: 'Indicates a "Risk-On" environment where all ships are rising or falling with the BTC tide. During these times, focus on the assets with the highest Beta for maximum leverage.' },
             { icon: 'link_off', title: 'Decoupling (<0.50)', desc: 'Identifies idiosyncratic strength or weakness. This is where professional traders look for unique alpha opportunities that are independent of the broader market trend.' },
@@ -895,7 +842,7 @@ function renderDocsSentiment() {
     renderExplainPage(
         "Sentiment Synthesis",
         "Quantifying market psychology through institutional NLP and social graph analysis.",
-        "Sentiment Synthesis is the bridge between social noise and actionable momentum. Our proprietary NLP models don't just 'search' for keywords; they analyze the authority of the speaker, the velocity of the discourse, and the underlying emotional valence of the market. This creates a real-time 'heat' index that highlights assets which are currently experiencing a psychological shift—often a leading indicator for institutional capital flows.",
+        "Sentiment Synthesis is the bridge between social noise and actionable momentum. Our proprietary NLP models don't just 'search' for keywords; they analyze the authority of the speaker, the velocity of the discourse, and the underlying emotional valence of the market. This creates a real-time 'heat' index that highlights assets which are currently experiencing a psychological shiftâ€”often a leading indicator for institutional capital flows.",
         [
             { icon: 'psychology', title: 'Valence Weighting', desc: 'Our AI distinguishes between "Retail FOMO" and "Institutional Accumulation" by weighting sentiment based on historical authority scores and engagement quality.' },
             { icon: 'auto_graph', title: 'Sentiment Velocity', desc: 'Tracking the rate of change in sentiment. Rapid spikes in bullish sentiment often precede local tops, while gradual climbs indicate sustainable trend development.' },
@@ -936,7 +883,7 @@ function renderDocsPlaybook() {
     renderExplainPage(
         "Advanced Trading Playbook",
         "Mastering the synthesis of multiple terminal signals for high-conviction execution.",
-        "The true power of AlphaSignal lies in the 'Synthesis'—the ability to combine uncorrelated data points to confirm an institutional setup. This playbook outlines the standard operating procedures (SOPs) used by professional quant desks to identify, validate, and execute trades using our real-time intelligence feeds.",
+        "The true power of AlphaSignal lies in the 'Synthesis'â€”the ability to combine uncorrelated data points to confirm an institutional setup. This playbook outlines the standard operating procedures (SOPs) used by professional quant desks to identify, validate, and execute trades using our real-time intelligence feeds.",
         [
             { icon: 'conveyor_belt', title: 'The Divergence Play', desc: 'When Z-Score hits -2.5 (statistical oversold) while Whale Flow shows "Strategic Accumulation". This is the highest conviction long setup in our arsenal.' },
             { icon: 'balance', title: 'Delta-Neutral Arbitrage', desc: 'Using Alpha relative strength to go long the leader while shorting the market-beta (BTC-USD) during high-correlation regimes.' },
@@ -953,7 +900,7 @@ function renderDocsPlaybook() {
 function renderDocsRegimes() {
     renderExplainPage(
         "Market Regime Framework",
-        "The structural DNA of the market—identifying the macro environment.",
+        "The structural DNA of the marketâ€”identifying the macro environment.",
         "Markets shift between structural phases. Identifying the current 'Regime' is the first step in selecting the correct trading strategy. AlphaSignal uses a multi-factor model (Volatility, Volume, Sentiment, and Flow) to classify the current market environment into one of four distinct states.",
         [
             { icon: 'downloading', title: 'Accumulation', desc: 'Characterized by low Z-score, negative Sentiment, but rising Whale Inflows. Institutional capital is quietly building positions ahead of a breakout.' },
@@ -1026,7 +973,7 @@ function renderDocsPerformance() {
 function renderDocsAlphaScore() {
     renderExplainPage(
         "Alpha Score & Boosting",
-        "The terminal's ultimate composite signal—collapsing complexity into actionable ranks.",
+        "The terminal's ultimate composite signalâ€”collapsing complexity into actionable ranks.",
         "The Alpha Score is a proprietary ranking from 0-100 that synthesizes momentum, sentiment, and on-chain flow. High scores indicate assets with a strong 'Momentum Vector' and positive institutional accumulation. The Neural Engine also provides an 'ML Boost' to assets where historical patterns suggest a high probability of short-term alpha.",
         [
             { icon: 'workspace_premium', title: 'ML Boost', desc: 'A high-conviction statistical boost applied when multiple neural nodes align on a specific asset return profile.' },
@@ -1108,7 +1055,7 @@ function renderDocsGlossaryImplementation() {
             { icon: 'analytics', title: 'Sortino Ratio', desc: 'Differentiated from Sharpe by only penalizing downside volatility, providing a clearer view of "bad" risk.' },
             { icon: 'security', title: 'VaR 95%', desc: 'Value at Risk. A statistical measure of the maximum potential 1-day loss of a portfolio at a 95% confidence level.' },
             { icon: 'waves', title: 'Whale Flow', desc: 'Proprietary filtering of the trade tape to show only significant capital commitments (>$100k) from institutional-labeled entities.' },
-            { icon: 'database', title: 'Z-Score', desc: 'Statistical distance from the mean in standard deviations. Scores > ±2.0 identify significant momentum or exhaustion outliers.' }
+            { icon: 'database', title: 'Z-Score', desc: 'Statistical distance from the mean in standard deviations. Scores > Â±2.0 identify significant momentum or exhaustion outliers.' }
         ],
         [],
         "Proprietary definitions derived from institutional trading desk standards and quantitative finance academic frameworks."
@@ -1211,7 +1158,7 @@ function updateSEOMeta(view) {
         },
         'cme-gaps': {
             title: 'CME Bitcoin Gaps Tracker',
-            desc: 'Monitoring unfilled price gaps in Chicago Mercantile Exchange Bitcoin Futures—key institutional pivot levels.'
+            desc: 'Monitoring unfilled price gaps in Chicago Mercantile Exchange Bitcoin Futuresâ€”key institutional pivot levels.'
         },
         'oi-radar': {
             title: 'Derivatives Open Interest Radar',
@@ -1246,11 +1193,11 @@ function updateSEOMeta(view) {
             desc: 'Live scenario analysis assessing portfolio drawdowns against historic market crashes.'
         },
         'explain-signal-archive': {
-            title: 'Documentation — Signal Archive',
+            title: 'Documentation â€” Signal Archive',
             desc: 'Guide to interpreting the historical win-rate and probability engine records.'
         },
         'explain-topologies': {
-            title: 'Documentation — Topologies & Geometries',
+            title: 'Documentation â€” Topologies & Geometries',
             desc: 'Guide to interpreting Ecosystem Capital Flows, Dials, and Cross-asset Sankey networks.'
         },
         'signal-archive': {
@@ -1281,31 +1228,31 @@ function updateSEOMeta(view) {
             title: 'Help & Documentation Hub',
             desc: 'Complete documentation on AlphaSignal methodologies, data sources, and analytical frameworks.'
         },
-        'explain-signals': { title: 'Documentation — Signal Intelligence', desc: 'Learn how AlphaSignal utilizes Z-Score deviations and neural sentiment for alpha generation.' },
-        'explain-briefing': { title: 'Documentation — AI Briefing', desc: 'Understand our dynamic neural synthesis and sector performance tracking.' },
-        'explain-liquidity': { title: 'Documentation — Order Flow GOMM', desc: 'Documentation on interpreting liquidity walls and institutional tape.' },
-        'explain-ml-engine': { title: 'Documentation — ML Alpha Engine', desc: 'Predictive modeling using Sentiment and Orderbook Imbalance.' },
-        'explain-whales': { title: 'Documentation — Whale Pulse', desc: 'Learn how to detect and interpret massive on-chain transactions.' },
-        'explain-mindshare': { title: 'Documentation — Narrative Galaxy', desc: 'Guide to using our NLP-driven social cluster visualization.' },
-        'explain-benchmark': { title: 'Documentation — Portfolio Simulation', desc: 'How to model and backtest institutional crypto portfolios.' },
-        'explain-alerts': { title: 'Documentation — Catalyst Monitor', desc: 'Tracking macro variables, token unlocks, and critical market events.' },
-        'explain-zscore': { title: 'Documentation — Z-Score Interpretation', desc: 'Decoding statistical intensity and outlier detection for advanced volatility arbitrage.' },
-        'explain-alpha': { title: 'Documentation — Alpha Strategy', desc: 'How to calculate and trade relative strength benchmarks vs Bitcoin to maximize institutional alpha.' },
-        'explain-correlation': { title: 'Documentation — Market Correlation', desc: 'Understanding the mathematical relationship between assets and market-wide decoupling events.' },
-        'explain-sentiment': { title: 'Documentation — Sentiment Synthesis', desc: 'How we process social mindshare and news flow using institutional-grade NLP.' },
-        'explain-risk': { title: 'Documentation — Risk Management', desc: 'Institutional frameworks for protecting capital using volatility and drawdown modeling.' },
-        'explain-playbook': { title: 'Documentation — Trading Playbook', desc: 'Advanced trading strategies and multi-signal institutional execution frameworks.' },
-        'explain-regimes': { title: 'Documentation — Market Regimes', desc: 'Identifying market cycles through institutional flow, volatility, and sentiment analysis.' },
-        'explain-advanced-charting': { title: 'Documentation — Advanced Charting', desc: 'Full institutional suite featuring orderbook liquidity and derivatives overlays.' },
-        'explain-onchain': { title: 'Documentation — On-Chain Analytics', desc: 'Quantitative modeling of network MVRV, NVT, and internal blockchain metrics.' },
-        'explain-api': { title: 'Documentation — Institutional API', desc: 'Programmatic access for real-time alpha signals, liquidity depth, and narrative intelligence.' },
-        'explain-glossary': { title: 'Documentation — Terminal Glossary', desc: 'A quick-reference guide to all technical metrics used across the AlphaSignal platform.' },
-        'explain-performance': { title: 'Documentation — Performance Analytics', desc: 'Track terminal win rates, return distributions, and institutional track records.' },
-        'explain-alpha-score': { title: 'Documentation — Alpha Score Methodology', desc: 'Understanding composite rankings, Momentum Vectors, and the Neural ML Boost engine.' },
-        'explain-telegram': { title: 'Documentation — Institutional Alert Hooks', desc: 'Setup guide for Telegram bot integration and the secure Safe Probe probe.' },
-        'explain-pwa': { title: 'Documentation — Mobile PWA Terminal', desc: 'How to install AlphaSignal as a persistent terminal on your mobile device.' },
-        'explain-portfolio-lab': { title: 'Documentation — Institutional Portfolio Lab', desc: 'Institutional methodology for ML rebalancing, VaR modeling, and correlation attribution.' },
-        'explain-velocity': { title: 'Documentation — Chain Velocity', desc: 'Guide to volume acceleration and cross-chain capital rotation tracking.' },
+        'explain-signals': { title: 'Documentation â€” Signal Intelligence', desc: 'Learn how AlphaSignal utilizes Z-Score deviations and neural sentiment for alpha generation.' },
+        'explain-briefing': { title: 'Documentation â€” AI Briefing', desc: 'Understand our dynamic neural synthesis and sector performance tracking.' },
+        'explain-liquidity': { title: 'Documentation â€” Order Flow GOMM', desc: 'Documentation on interpreting liquidity walls and institutional tape.' },
+        'explain-ml-engine': { title: 'Documentation â€” ML Alpha Engine', desc: 'Predictive modeling using Sentiment and Orderbook Imbalance.' },
+        'explain-whales': { title: 'Documentation â€” Whale Pulse', desc: 'Learn how to detect and interpret massive on-chain transactions.' },
+        'explain-mindshare': { title: 'Documentation â€” Narrative Galaxy', desc: 'Guide to using our NLP-driven social cluster visualization.' },
+        'explain-benchmark': { title: 'Documentation â€” Portfolio Simulation', desc: 'How to model and backtest institutional crypto portfolios.' },
+        'explain-alerts': { title: 'Documentation â€” Catalyst Monitor', desc: 'Tracking macro variables, token unlocks, and critical market events.' },
+        'explain-zscore': { title: 'Documentation â€” Z-Score Interpretation', desc: 'Decoding statistical intensity and outlier detection for advanced volatility arbitrage.' },
+        'explain-alpha': { title: 'Documentation â€” Alpha Strategy', desc: 'How to calculate and trade relative strength benchmarks vs Bitcoin to maximize institutional alpha.' },
+        'explain-correlation': { title: 'Documentation â€” Market Correlation', desc: 'Understanding the mathematical relationship between assets and market-wide decoupling events.' },
+        'explain-sentiment': { title: 'Documentation â€” Sentiment Synthesis', desc: 'How we process social mindshare and news flow using institutional-grade NLP.' },
+        'explain-risk': { title: 'Documentation â€” Risk Management', desc: 'Institutional frameworks for protecting capital using volatility and drawdown modeling.' },
+        'explain-playbook': { title: 'Documentation â€” Trading Playbook', desc: 'Advanced trading strategies and multi-signal institutional execution frameworks.' },
+        'explain-regimes': { title: 'Documentation â€” Market Regimes', desc: 'Identifying market cycles through institutional flow, volatility, and sentiment analysis.' },
+        'explain-advanced-charting': { title: 'Documentation â€” Advanced Charting', desc: 'Full institutional suite featuring orderbook liquidity and derivatives overlays.' },
+        'explain-onchain': { title: 'Documentation â€” On-Chain Analytics', desc: 'Quantitative modeling of network MVRV, NVT, and internal blockchain metrics.' },
+        'explain-api': { title: 'Documentation â€” Institutional API', desc: 'Programmatic access for real-time alpha signals, liquidity depth, and narrative intelligence.' },
+        'explain-glossary': { title: 'Documentation â€” Terminal Glossary', desc: 'A quick-reference guide to all technical metrics used across the AlphaSignal platform.' },
+        'explain-performance': { title: 'Documentation â€” Performance Analytics', desc: 'Track terminal win rates, return distributions, and institutional track records.' },
+        'explain-alpha-score': { title: 'Documentation â€” Alpha Score Methodology', desc: 'Understanding composite rankings, Momentum Vectors, and the Neural ML Boost engine.' },
+        'explain-telegram': { title: 'Documentation â€” Institutional Alert Hooks', desc: 'Setup guide for Telegram bot integration and the secure Safe Probe probe.' },
+        'explain-pwa': { title: 'Documentation â€” Mobile PWA Terminal', desc: 'How to install AlphaSignal as a persistent terminal on your mobile device.' },
+        'explain-portfolio-lab': { title: 'Documentation â€” Institutional Portfolio Lab', desc: 'Institutional methodology for ML rebalancing, VaR modeling, and correlation attribution.' },
+        'explain-velocity': { title: 'Documentation â€” Chain Velocity', desc: 'Guide to volume acceleration and cross-chain capital rotation tracking.' },
     };
 
     const meta = viewMetadata[view] || {
@@ -1313,7 +1260,7 @@ function updateSEOMeta(view) {
         desc: 'AlphaSignal Institutional Intelligence Terminal - Real-time signals and AI insights.'
     };
 
-    const fullTitle = `${meta.title} | AlphaSignal — Institutional Crypto Intelligence`;
+    const fullTitle = `${meta.title} | AlphaSignal â€” Institutional Crypto Intelligence`;
     const viewUrl = view === 'home' ? 'https://alphasignal.digital/' : `https://alphasignal.digital/?view=${view}`;
 
     document.title = fullTitle;
@@ -1629,10 +1576,10 @@ document.addEventListener('click', (e) => {
 
 function shareSignal(ticker, alpha, sentiment, zScore) {
     const sentimentLabel = sentiment > 0.1 ? 'BULLISH' : (sentiment < -0.1 ? 'BEARISH' : 'NEUTRAL');
-    const text = `🚨 AlphaSignal Terminal Update: $${ticker}\n\n` +
-                 `📈 Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
-                 `🧠 Sentiment Synthesis: ${sentimentLabel}\n` +
-                 `⚡ Z-Score Intensity: ${zScore.toFixed(2)}\n\n` +
+    const text = `ðŸš¨ AlphaSignal Terminal Update: $${ticker}\n\n` +
+                 `ðŸ“ˆ Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
+                 `ðŸ§  Sentiment Synthesis: ${sentimentLabel}\n` +
+                 `âš¡ Z-Score Intensity: ${zScore.toFixed(2)}\n\n` +
                  `Institutional intelligence detected. View the full terminal:\n`;
     
     // Construct sharing URL
@@ -2005,9 +1952,9 @@ function initLivePriceStream() {
 
                         // Feature 2: Bell badge removed per user feedback
                     } else if (msg.type === 'alert') {
-                        showToast(`📡 ${msg.data.signal_type}`, msg.data.message, 'alert');
+                        showToast(`ðŸ“¡ ${msg.data.signal_type}`, msg.data.message, 'alert');
                     } else if (msg.type === 'regime_shift') {
-                        showToast(`⚖️ REGIME SHIFT`, `Market has shifted from ${msg.data.old} to ${msg.data.new}.`, 'regime');
+                        showToast(`âš–ï¸ REGIME SHIFT`, `Market has shifted from ${msg.data.old} to ${msg.data.new}.`, 'regime');
                     }
                 } catch(e) {}
             };
