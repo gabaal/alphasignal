@@ -1349,7 +1349,14 @@ function switchView(view, pushState = true) {
     }
 
     // 1. Check Access Rights
-    const isFreeView = (view === 'signals' || view === 'help' || view === 'home' || view?.startsWith('explain-'));
+    const isFreeView = (
+        view === 'signals' || view === 'help' || view === 'home' || 
+        view?.startsWith('explain-') ||
+        view === 'strategy-lab' || view === 'institutional-hub' ||
+        view === 'alpha-hub' || view === 'global-hub' || view === 'macro-hub' ||
+        view === 'analytics-hub' || view === 'risk-hub' || view === 'audit-hub' ||
+        view === 'ask-terminal' || view === 'command-center'
+    );
     
     if (!isFreeView && !isPremiumUser) {
         console.warn(`Access Denied: ${view} is a premium view.`);

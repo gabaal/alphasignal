@@ -243,7 +243,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis']
+                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news']
                 if path not in public_routes:
                     auth_info = self.is_authenticated()
                     if not auth_info:
@@ -410,7 +410,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             elif path.startswith('/api/efficient-frontier'):
                 self.handle_efficient_frontier()
             elif path.startswith('/api/funding-rates'):
-                self.handle_funding_rates()
+                self.handle_funding_rate_history()
             elif path.startswith('/api/signal-radar'):
                 self.handle_signal_radar()
             elif path.startswith('/api/whale-sankey'):

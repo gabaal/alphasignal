@@ -249,7 +249,13 @@ function updatePremiumUI() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         const view = item.getAttribute('data-view');
-        const isFreeView = (view === 'signals' || view === 'help' || view === 'home' || view?.startsWith('explain-'));
+        const isFreeView = (
+            view === 'signals' || view === 'help' || view === 'home' || view?.startsWith('explain-') ||
+            view === 'strategy-lab' || view === 'institutional-hub' ||
+            view === 'alpha-hub' || view === 'global-hub' || view === 'macro-hub' ||
+            view === 'analytics-hub' || view === 'risk-hub' || view === 'audit-hub' ||
+            view === 'ask-terminal' || view === 'command-center'
+        );
         
         if (isFreeView || isPremiumUser) {
             const lock = item.querySelector('.premium-lock');

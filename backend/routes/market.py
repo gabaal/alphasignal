@@ -112,7 +112,51 @@ class MarketRoutesMixin:
             print(f'Fear/Greed Error: {e}')
         self.send_json({'score': 50, 'label': 'NEUTRAL'})
 
+    # --- Phase 15-A: CryptoPanic news cache ---
+    _news_cache = {'data': None, 'ts': 0}
+
     def handle_news(self):
+        """Fetch live crypto news from CryptoPanic public RSS — no API key required."""
+        now = time.time()
+        # 10-minute cache
+        if self._news_cache['data'] and (now - self._news_cache['ts']) < 600:
+            self.send_json(self._news_cache['data'])
+            return
+        try:
+            import xml.etree.ElementTree as ET
+            r = requests.get(
+                'https://cryptopanic.com/news/rss/',
+                timeout=6,
+                headers={'User-Agent': 'AlphaSignal/1.25 (institutional terminal)'}
+            )
+            articles = []
+            if r.status_code == 200:
+                root = ET.fromstring(r.content)
+                ns = {'dc': 'http://purl.org/dc/elements/1.1/'}
+                for item in root.findall('.//item')[:25]:
+                    title = item.findtext('title', '').strip()
+                    link  = item.findtext('link', '').strip()
+                    pubdate = item.findtext('pubDate', '').strip()
+                    source = item.findtext('dc:creator', 'CryptoPanic', ns).strip()
+                    # Basic sentiment heuristic
+                    lc = title.lower()
+                    sentiment = 'BULLISH' if any(w in lc for w in ['surge', 'rally', 'soar', 'pump', 'all-time', 'ath', 'bullish', 'gain']) \
+                               else 'BEARISH' if any(w in lc for w in ['crash', 'plunge', 'drop', 'dump', 'bear', 'sell', 'fear', 'risk', 'ban']) \
+                               else 'NEUTRAL'
+                    articles.append({
+                        'title': title, 'url': link,
+                        'source': source, 'published': pubdate,
+                        'sentiment': sentiment
+                    })
+            if articles:
+                result = {'articles': articles, 'source': 'cryptopanic_rss',
+                          'last_update': datetime.now().strftime('%Y-%m-%d %H:%M')}
+                MarketRoutesMixin._news_cache = {'data': result, 'ts': now}
+                self.send_json(result)
+                return
+        except Exception as e:
+            print(f'[News/CryptoPanic] {e}')
+        # Fallback to existing static news
         news = self.get_context_news()
         self.send_json(news)
 
