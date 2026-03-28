@@ -2989,3 +2989,45 @@ canvas ~ .chart-legend {
     margin-top: 0.5rem;
     padding-bottom: 0.5rem;
 }
+
+/* Phase 15-D placeholder */
+
+/* Phase 15-D: Mobile / PWA Polish */
+* { -webkit-overflow-scrolling: touch; }
+button, .intel-action-btn, .nav-item, .signal-card, .glass-card, .hub-tabs button { touch-action: manipulation; }
+.hub-tabs { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.hub-tabs::-webkit-scrollbar { display: none; }
+.hub-tabs button { min-height: 44px; white-space: nowrap; flex-shrink: 0; }
+
+@media (max-width: 900px) {
+    .strategy-controls { flex-direction: column !important; gap: 12px !important; }
+    .strategy-controls select, .strategy-controls input, .strategy-controls button { width: 100% !important; min-height: 44px; }
+    .card-controls { gap: 12px !important; }
+    .ai-trigger, .share-trigger { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+    #ai-memo-card { padding: 1rem !important; margin-bottom: 1.2rem !important; }
+    #ai-memo-body { font-size: 0.82rem !important; line-height: 1.6 !important; }
+    #ask-terminal-input { font-size: 16px !important; }
+    #ask-terminal-send { min-width: 64px; min-height: 44px; }
+    #ask-terminal-history { max-height: 45vh !important; }
+    .walk-forward-table, [id="walk-forward-panel"] table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+    .glass-card, .intel-card { height: auto !important; min-height: 0 !important; }
+    .view-header h1 { font-size: 1.3rem !important; }
+    .view-header p { font-size: 0.8rem !important; }
+    .brief-hero { padding: 1.5rem !important; }
+    #thesis-modal > div { border-radius: 12px !important; padding: 1.5rem !important; max-height: 90vh; overflow-y: auto; }
+    .intel-action-btn { min-height: 40px; }
+    .intel-action-btn.mini { min-height: 36px; }
+}
+
+@media (max-width: 480px) {
+    .signal-grid { overflow-x: hidden; }
+    canvas { max-height: 220px !important; }
+    .premium-badge { font-size: 0.45rem !important; padding: 1px 4px !important; }
+    .hub-tabs button { font-size: 0.55rem !important; padding: 4px 8px !important; }
+}
+
+@media (display-mode: standalone) {
+    .top-bar { padding-top: max(1rem, env(safe-area-inset-top)); }
+    .mobile-nav { padding-bottom: max(10px, env(safe-area-inset-bottom)); height: calc(70px + env(safe-area-inset-bottom)); }
+    .content { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+}

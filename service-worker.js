@@ -1,50 +1,66 @@
-const CACHE_NAME = 'alphasignal-cache-v25';
+const CACHE_NAME = 'alphasignal-cache-v26';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/styles.css',
-    '/app.js',
     '/manifest.json',
-    '/assets/pwa-icon-512.png'
+    '/tape.js',
+    '/assets/pwa-icon-192.png',
+    '/assets/pwa-icon-512.png',
+    '/js/core.js',
+    '/js/views.js',
+    '/js/main.js',
+    '/js/charts.js',
+    '/js/heatmap_engine.js'
 ];
+
+// Network-first for API calls, cache-first for static assets
+self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+
+    // API calls — always network, no caching
+    if (url.pathname.startsWith('/api/')) {
+        event.respondWith(
+            fetch(event.request).catch(() =>
+                new Response(JSON.stringify({ error: 'Offline', offline: true }), {
+                    headers: { 'Content-Type': 'application/json' }
+                })
+            )
+        );
+        return;
+    }
+
+    // Static assets — cache-first, fallback to network
+    event.respondWith(
+        caches.match(event.request).then((cached) => {
+            if (cached) return cached;
+            return fetch(event.request).then((response) => {
+                if (response && response.status === 200 && response.type === 'basic') {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+                }
+                return response;
+            });
+        }).catch(() => caches.match('/index.html'))
+    );
+});
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
     );
 });
 
 self.addEventListener('activate', (event) => {
     self.clients.claim();
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
+        caches.keys().then((cacheNames) =>
+            Promise.all(
+                cacheNames.map((name) => {
+                    if (name !== CACHE_NAME) return caches.delete(name);
                 })
-            );
-        })
-    );
-});
-
-self.addEventListener('fetch', (event) => {
-    // Network-first strategy: try network, then fallback to cache
-    event.respondWith(
-        fetch(event.request)
-            .then((response) => {
-                // If success, clone and put in cache
-                if (response.status === 200) {
-                    const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseClone);
-                    });
-                }
-                return response;
-            })
-            .catch(() => caches.match(event.request))
+            )
+        )
     );
 });
