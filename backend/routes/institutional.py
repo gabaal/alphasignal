@@ -1844,6 +1844,57 @@ class InstitutionalRoutesMixin:
             print(f'Liquidity Error: {e}')
             self.send_json({'error': 'GOMM Engine Syncing'})
 
+    def handle_liquidity_history(self):
+        """Phase 1: Serves 24h of binned orderbook depth for the Heatmap Overlay."""
+        try:
+            parsed = urllib.parse.urlparse(self.path)
+            query = urllib.parse.parse_qs(parsed.query)
+            ticker = query.get('ticker', ['BTC-USD'])[0]
+            
+            import sqlite3
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            
+            # Fetch last 24h of snapshots
+            c.execute("""
+                SELECT timestamp, snapshot_data 
+                FROM orderbook_snapshots 
+                WHERE ticker = ? AND timestamp > datetime('now', '-24 hours')
+                ORDER BY timestamp ASC
+            """, (ticker,))
+            rows = c.fetchall()
+            conn.close()
+            
+            if not rows:
+                self.send_json({"ticker": ticker, "data": [], "message": "No historical depth data available."})
+                return
+
+            # Flatten snapshots into a sparse matrix for the heatmap
+            heatmap_data = []
+            for ts_str, snap_json in rows:
+                try:
+                    snap = json.loads(snap_json)
+                    ts = int(datetime.fromisoformat(ts_str).timestamp())
+                    for wall in snap.get('walls', []):
+                        heatmap_data.append({
+                            't': ts,
+                            'p': wall['price'],
+                            's': wall['size'],
+                            'side': wall['side']
+                        })
+                except: continue
+            
+            self.send_json({
+                "ticker": ticker,
+                "data": heatmap_data,
+                "resolution": "1m",
+                "window": "24h"
+            })
+            
+        except Exception as e:
+            print(f"[{datetime.now()}] Liquidity History API Error: {e}")
+            self.send_error_json(str(e))
+
     def handle_whales_entity(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
@@ -2709,4 +2760,56 @@ class InstitutionalRoutesMixin:
             self.send_json({'protocols': protocols})
         except Exception as e:
             self.send_error_json(str(e))
+
+    def handle_equity_klines(self):
+        """Phase 5: Serves formatted kline data for equities (MSTR, etc) to mimic Binance schema."""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            symbol = query.get('symbol', ['MSTR'])[0].upper()
+            interval = query.get('interval', ['1m'])[0]
+            
+            # Map Binance intervals to yfinance intervals
+            yf_interval = '1m' if interval == '1m' else '15m' if interval == '15m' else '1h' if interval == '1h' else '1d'
+            period = '7d' if yf_interval == '1m' else '60d'
+            
+            # Use CACHE.download to fetch the data
+            hist = CACHE.download(symbol, period=period, interval=yf_interval)
+            
+            if hist is None or hist.empty:
+                self.send_json([])
+                return
+
+            # Format to Binance-like kline structure for frontend compatibility
+            klines = []
+            for ts, row in hist.iterrows():
+                try:
+                    # Robust MultiIndex or Standard Index parsing
+                    if isinstance(row.index, pd.MultiIndex):
+                        # Extract metrics for the specific symbol
+                        r_data = {
+                            'Open': float(row.get(('Open', symbol), 0)),
+                            'High': float(row.get(('High', symbol), 0)),
+                            'Low': float(row.get(('Low', symbol), 0)),
+                            'Close': float(row.get(('Close', symbol), 0)),
+                            'Volume': float(row.get(('Volume', symbol), 0))
+                        }
+                    else:
+                        r_data = row.to_dict()
+
+                    klines.append({
+                        'time': int(ts.timestamp()),
+                        'open': float(r_data.get('Open', 0)),
+                        'high': float(r_data.get('High', 0)),
+                        'low': float(r_data.get('Low', 0)),
+                        'close': float(r_data.get('Close', 0)),
+                        'value': float(r_data.get('Volume', 0)),
+                        'color': '#26a69a' if r_data.get('Close', 0) >= r_data.get('Open', 0) else '#ef5350'
+                    })
+                except Exception as row_e: continue
+            
+            self.send_json(klines)
+
+        except Exception as e:
+            print(f"[{datetime.now()}] Equity Kline Proxy Error: {e}")
+            self.send_json([])
 

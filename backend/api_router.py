@@ -240,7 +240,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test']
+                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines']
                 if path not in public_routes:
                     auth_info = self.is_authenticated()
                     if not auth_info:
@@ -290,6 +290,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_macro_calendar()
             elif path == '/api/liquidity':
                 self.handle_liquidity()
+            elif path == '/api/liquidity-history':
+                self.handle_liquidity_history()
+            elif path == '/api/equity-klines':
+                self.handle_equity_klines()
             elif path == '/api/tape':
                 self.handle_tape()
             elif path == '/api/generate-setup':

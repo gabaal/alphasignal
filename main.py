@@ -228,6 +228,7 @@ class BinanceLiveStream:
 
 if __name__ == "__main__":
     print("Initializing AlphaSignal Terminal...", flush=True)
+    init_db() # Ensure all persistent intelligence tables exist
     
     # Start TCPServer FIRST to ensure API is responsive
     print(f"Binding TCPServer to 0.0.0.0:{PORT}...", flush=True)
@@ -259,6 +260,11 @@ if __name__ == "__main__":
 
     # Start Harvester: Run every 5 minutes (300s) for Real-Time Alpha Alerts
     harvester = HarvestService(CACHE, ws_server=ws_server, interval=300)
+    
+    # Phase 6.3: Immediate Boot-Time Snapshot (Non-Blocking)
+    print("Initiating immediate institutional liquidity snapshot (Background)...", flush=True)
+    threading.Thread(target=harvester.record_orderbook_snapshots, daemon=True).start()
+    
     h_thread = threading.Thread(target=harvester.run, daemon=True)
     print("Starting background Harvester thread...", flush=True)
     h_thread.start()

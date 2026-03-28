@@ -11,21 +11,8 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 import yfinance as yf
-from .database import DB_PATH
+from .database import DB_PATH, UNIVERSE
 from .caching import CACHE
-
-UNIVERSE = UNIVERSE = {
-    'EXCHANGE': ['COIN', 'HOOD', 'VIRT'],
-    'MINERS': ['MARA', 'RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT'],
-    'PROXY': ['MSTR', 'GLXY.TO'],
-    'ETF': ['IBIT', 'FBTC', 'ARKB', 'BITO'],
-    'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD'],
-    'L1': ['SOL-USD', 'ETH-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'POL-USD', 'ATOM-USD', 'NEAR-USD', 'SUI-USD', 'INJ-USD'],
-    'L2': ['ARB-USD', 'OP-USD', 'IMX-USD'],
-    'AI': ['FET-USD', 'RNDR-USD', 'TAO-USD', 'AGIX-USD', 'WLD-USD'],
-    'STABLES': ['USDC-USD', 'USDT-USD', 'DAI-USD'],
-    'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'PEPE-USD', 'FLOKI-USD']
-}
 INFO_CACHE = {}
 def get_ticker_name(ticker):
     if ticker in INFO_CACHE: return INFO_CACHE[ticker]
@@ -521,59 +508,95 @@ class HarvestService:
         conn.close()
 
     def record_orderbook_snapshots(self):
-        """Phase 5: Record real-time depth snapshots for persistent heatmaps."""
-        print(f"[{datetime.now()}] Recording orderbook snapshots...")
+        """Phase 8: Resilient Snapshots.
+        Bypasses yfinance historical failures by using direct price discovery.
+        """
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
-        # Snapshot for core assets
-        core_assets = ['BTC-USD', 'ETH-USD', 'SOL-USD']
-        for ticker in core_assets:
-            # Re-use handle_liquidity logic to generate/fetch current walls
-            # For simplicity in this demo, we generate a fresh snapshot
-            current_price = 91450.0 # Fallback
+        # Phase 7: Prioritized Universe for the Charting Legend
+        all_institutional_tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK']
+        
+        print(f"[{datetime.now()}] Recording resilient snapshots for {len(all_institutional_tickers)} core assets...")
+
+        for ticker in all_institutional_tickers:
             try:
-                btc_data = CACHE.download(ticker, period='1d', interval='1m', column='Close')
-                if btc_data is not None and not btc_data.empty:
-                    current_price = float(btc_data.iloc[-1])
-            except: pass
-            
-            walls = []
-            try:
+                # Phase 8: Resilient Price Discovery (Weekend-Proof)
                 symbol = ticker.replace("-USD", "USDT").replace("-", "")
-                r = requests.get(f"https://api.binance.com/api/v3/depth?symbol={symbol}&limit=20", timeout=2)
-                if r.status_code == 200:
-                    data = r.json()
-                    # Process Asks
-                    for ask in data.get('asks', []):
-                        walls.append({"price": float(ask[0]), "size": float(ask[1]), "side": "ask", "exchange": "Binance"})
-                    # Process Bids
-                    for bid in data.get('bids', []):
-                        walls.append({"price": float(bid[0]), "size": float(bid[1]), "side": "bid", "exchange": "Binance"})
-            except: 
-                # Fallback to simulation if API fails
-                exchanges = [{"name": "Binance", "bias": 1.2}, {"name": "Coinbase", "bias": 0.8}, {"name": "OKX", "bias": 1.0}]
-                for exch in exchanges:
-                    for _ in range(2):
-                        # ASK Wall
-                        ask_offset = random.uniform(0.001, 0.015)
-                        walls.append({"price": round(current_price * (1 + ask_offset), 2), "size": round(random.uniform(50, 800) * exch['bias'], 1), "side": "ask", "exchange": exch['name']})
-                        # BID Wall
-                        bid_offset = random.uniform(0.001, 0.015)
-                        walls.append({"price": round(current_price * (1 - bid_offset), 2), "size": round(random.uniform(50, 800) * exch['bias'], 1), "side": "bid", "exchange": exch['name']})
-            
-            snapshot = {
-                "timestamp": datetime.now().isoformat(),
-                "time": datetime.now().strftime("%H:%M"), 
-                "price": current_price,
-                "walls": walls
-            }
-            c.execute("INSERT INTO orderbook_snapshots (ticker, snapshot_data) VALUES (?, ?)", (ticker, json.dumps(snapshot)))
+                binance_data = None
+                current_price = 0
+
+                # 1. Fetch Live Binance Depth (Primary source for price and liquidity)
+                try:
+                    r = requests.get(f"https://api.binance.com/api/v3/depth?symbol={symbol}&limit=20", timeout=1.5)
+                    if r.status_code == 200:
+                        binance_data = r.json()
+                        # Extract Mid-Price
+                        if binance_data.get('asks') and binance_data.get('bids'):
+                            best_ask = float(binance_data['asks'][0][0])
+                            best_bid = float(binance_data['bids'][0][0])
+                            current_price = (best_ask + best_bid) / 2
+                except: pass
+
+                # 2. Fallback to yfinance Fast Info (for Equities or if Binance fails)
+                if current_price <= 0:
+                    try:
+                        t = yf.Ticker(ticker)
+                        current_price = t.fast_info.get('lastPrice', 0)
+                    except: pass
+
+                if current_price <= 0 or np.isnan(current_price): continue
+
+                z_score = 0 # Adaptive resolution is secondary to data availability
+                
+                # 3. Multi-Exchange Aggregation Logic
+                walls = []
+                exchange_configs = [
+                    {"name": "Binance", "weight": 1.0, "is_live": True},
+                    {"name": "Coinbase", "weight": 0.75, "is_live": False},
+                    {"name": "OKX", "weight": 0.35, "is_live": False}
+                ]
+                
+
+                for exch in exchange_configs:
+                    if exch['is_live'] and binance_data:
+                        # Map Live Binance
+                        for ask in binance_data.get('asks', []):
+                            walls.append({"price": float(ask[0]), "size": float(ask[1]) * exch['weight'], "side": "ask", "exchange": exch['name']})
+                        for bid in binance_data.get('bids', []):
+                            walls.append({"price": float(bid[0]), "size": float(bid[1]) * exch['weight'], "side": "bid", "exchange": exch['name']})
+                    else:
+                        # Synthetic Global Liquidity Generation (Institutional Simulation)
+                        bias = exch['weight']
+                        for _ in range(3):
+                            # ASK: 0.1% to 1.5% depth
+                            a_off = random.uniform(0.001, 0.015)
+                            walls.append({"price": round(current_price * (1 + a_off), 2), "size": round(random.uniform(10, 500) * bias, 1), "side": "ask", "exchange": exch['name']})
+                            # BID: 0.1% to 1.5% depth
+                            b_off = random.uniform(0.001, 0.015)
+                            walls.append({"price": round(current_price * (1 - b_off), 2), "size": round(random.uniform(10, 500) * bias, 1), "side": "bid", "exchange": exch['name']})
+
+                # 4. Persistence Packaging
+                if not walls: continue
+                
+                snapshot = {
+                    "timestamp": datetime.now().isoformat(),
+                    "time": datetime.now().strftime("%H:%M"), 
+                    "price": current_price,
+                    "vol_z": z_score,
+                    "is_volatile": z_score > 1.5,
+                    "walls": walls
+                }
+                c.execute("INSERT INTO orderbook_snapshots (ticker, snapshot_data, timestamp) VALUES (?, ?, CURRENT_TIMESTAMP)", (ticker, json.dumps(snapshot)))
+                conn.commit()
+                print(f"[{datetime.now()}] [DB] Snapshots stored for {ticker} (Price: {current_price:.2f})")
+
+            except Exception as te:
+                # Silently fail for individual tickers to keep harvester moving
+                continue
         
-        # Prune snapshots older than 24h
+        # 5. Strategic Pruning (Keep 24h of high-fidelity snapshots)
         c.execute("DELETE FROM orderbook_snapshots WHERE timestamp < datetime('now', '-1 day')")
-        c.execute("DELETE FROM alerts_history WHERE timestamp < datetime('now', '-1 day')")
-        
         conn.commit()
         conn.close()
 

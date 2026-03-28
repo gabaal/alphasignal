@@ -4243,7 +4243,27 @@ async function renderAdvOverview(symbol, interval) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
     if(!container) return;
-    const klines = await fetchBinanceKlines(symbol, interval, 500);
+    
+    // Phase 5.2: Universal Data Dispatcher (Crypto vs Equity)
+    let klines = [];
+    const isCrypto = symbol.endsWith('USDT');
+    
+    if (isCrypto) {
+        klines = await fetchBinanceKlines(symbol, interval, 500);
+    } else {
+        // Fetch Equity Klines from our Backend Proxy
+        klines = await fetchAPI(`/equity-klines?symbol=${symbol}&interval=${interval}`);
+    }
+
+    if (!klines || klines.length === 0) {
+        container.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-dim);">
+            <span class="material-symbols-outlined" style="font-size:3rem; margin-bottom:1rem;">error_outline</span>
+            <p>Insufficient structural data for ${symbol}.</p>
+            <p style="font-size:0.7rem;">(Check network connectivity or asset availability)</p>
+        </div>`;
+        return;
+    }
+
     container.innerHTML = '';
     
     const chart = LightweightCharts.createChart(container, {
@@ -4256,37 +4276,90 @@ async function renderAdvOverview(symbol, interval) {
     const candleSeries = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
     const volumeSeries = chart.addHistogramSeries({ color: '#26a69a', priceFormat: { type: 'volume' }, priceScaleId: '', scaleMargins: { top: 0.8, bottom: 0 } });
     
-    // Compute EMA
+    // EMA overlays (Higher visibility)
+    const ema20Series = chart.addLineSeries({ color: '#facc15', lineWidth: 2, title: 'EMA20' });
+    const ema50Series = chart.addLineSeries({ color: '#3b82f6', lineWidth: 2, title: 'EMA50' });
+    
+    let lastEma20 = klines[0].close;
+    let lastEma50 = klines[0].close;
+
     const calcEMA = (data, period) => {
         let k = 2/(period+1), emaArr = [];
         let ema = data[0].close;
         for(let i=0; i<data.length; i++) {
-            ema = (data[i].close - ema)*k + ema;
+            ema = (parseFloat(data[i].close) - ema)*k + ema;
             emaArr.push({time: data[i].time, value: ema});
         }
-        return emaArr;
+        return { data: emaArr, last: ema };
     };
     
-    // EMA overlays
-    const ema20Series = chart.addLineSeries({ color: 'rgba(250, 204, 21, 0.6)', lineWidth: 1, title: 'EMA20' });
-    const ema50Series = chart.addLineSeries({ color: 'rgba(96, 165, 250, 0.6)', lineWidth: 1, title: 'EMA50' });
-    
+    const ema20 = calcEMA(klines, 20);
+    const ema50 = calcEMA(klines, 50);
+    lastEma20 = ema20.last;
+    lastEma50 = ema50.last;
+
     candleSeries.setData(klines.map(k => ({time:k.time, open:k.open, high:k.high, low:k.low, close:k.close})));
     volumeSeries.setData(klines.map(k => ({time:k.time, value:k.value, color:k.color})));
-    ema20Series.setData(calcEMA(klines, 20));
-    ema50Series.setData(calcEMA(klines, 50));
+    ema20Series.setData(ema20.data);
+    ema50Series.setData(ema50.data);
     
-    activeBinanceWS = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`);
-    activeBinanceWS.onmessage = (e) => {
-        const k = JSON.parse(e.data).k;
-        const tick = { time: Math.floor(k.t/1000), open: parseFloat(k.o), high: parseFloat(k.h), low: parseFloat(k.l), close: parseFloat(k.c) };
-        candleSeries.update(tick);
-        volumeSeries.update({ time: tick.time, value: parseFloat(k.v), color: tick.close >= tick.open ? '#26a69a' : '#ef5350' });
-    };
+    if (isCrypto) {
+        activeBinanceWS = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`);
+        activeBinanceWS.onmessage = (e) => {
+            const k = JSON.parse(e.data).k;
+            const price = parseFloat(k.c);
+            const tick = { time: Math.floor(k.t/1000), open: parseFloat(k.o), high: parseFloat(k.h), low: parseFloat(k.l), close: price };
+            
+            candleSeries.update(tick);
+            volumeSeries.update({ time: tick.time, value: parseFloat(k.v), color: tick.close >= tick.open ? '#26a69a' : '#ef5350' });
+            
+            // Live EMA Update
+            lastEma20 = (price - lastEma20) * (2/21) + lastEma20;
+            lastEma50 = (price - lastEma50) * (2/51) + lastEma50;
+            ema20Series.update({ time: tick.time, value: lastEma20 });
+            ema50Series.update({ time: tick.time, value: lastEma50 });
+        };
+    }
     
+    const heatmapData = await fetchAPI(`/liquidity-history?ticker=${symbol.replace('USDT', '-USD')}`);
+    if (heatmapData && heatmapData.data) {
+        window.activeHeatmap = new HeatmapOverlay(chart, candleSeries);
+        window.activeHeatmap.setData(heatmapData.data);
+        
+        // Initial state from UI
+        const toggle = document.getElementById('heatmap-toggle');
+        const intensity = document.getElementById('heatmap-intensity');
+        if (toggle) {
+            const legend = document.getElementById('heatmap-legend-overlay');
+            if (legend) legend.style.display = toggle.checked ? 'flex' : 'none';
+            if (!toggle.checked) window.activeHeatmap.canvas.style.display = 'none';
+        }
+        if (intensity) {
+            window.activeHeatmap.setIntensity(parseFloat(intensity.value));
+        }
+    }
+
     const ro = new ResizeObserver(e => { if(e.length>0 && e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
     ro.observe(container);
 }
+
+// Heatmap Helpers
+window.toggleHeatmapOverlay = function() {
+    const toggle = document.getElementById('heatmap-toggle');
+    const legend = document.getElementById('heatmap-legend-overlay');
+    if (window.activeHeatmap) {
+        const isVisible = toggle.checked;
+        window.activeHeatmap.canvas.style.display = isVisible ? 'block' : 'none';
+        if (legend) legend.style.display = isVisible ? 'flex' : 'none';
+        if (isVisible) window.activeHeatmap.render();
+    }
+};
+
+window.updateHeatmapIntensity = function(val) {
+    if (window.activeHeatmap) {
+        window.activeHeatmap.setIntensity(parseFloat(val));
+    }
+};
 
 // TAB 2: Market Depth (Bids vs Asks) - Live WebSocket Integration
 async function renderAdvDepth(symbol) {
