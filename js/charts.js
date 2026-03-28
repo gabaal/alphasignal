@@ -374,6 +374,7 @@ function renderAdvancedChart() {
         
         <div style="display:flex; gap:1rem; margin-bottom:1rem; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem; overflow-x:auto">
             <button class="filter-btn active" id="tab-overview" onclick="setAdvTab('overview')">Price & Overlays</button>
+            <button class="filter-btn" id="tab-pulse" onclick="setAdvTab('pulse')">Liquidation Pulse</button>
             <button class="filter-btn" id="tab-depth" onclick="setAdvTab('depth')">Market Depth</button>
             <button class="filter-btn" id="tab-derivatives" onclick="setAdvTab('derivatives')">Derivatives (OI)</button>
             <button class="filter-btn" id="tab-comparative" onclick="setAdvTab('comparative')">Comparative Index</button>

@@ -300,6 +300,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_setup_generation()
             elif path == '/api/whales':
                 self.handle_whales()
+            elif path.startswith('/api/liquidation-map'):
+                self.handle_liquidations_map()
             elif path.startswith('/api/liquidations'):
                 self.handle_liquidations()
             elif path.startswith('/api/derivatives'):

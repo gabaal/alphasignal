@@ -1026,7 +1026,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
     window.activeTape.start();
 }
 
-async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
+async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs = null) {
+    if (!tabs && typeof alphaHubTabs !== 'undefined') tabs = alphaHubTabs;
     const data = await fetchAPI(`/backtest?ticker=${ticker}&strategy=${strategy}&fast=${fast}&slow=${slow}`);
     if (!data || !data.summary) return;
     
@@ -1035,6 +1036,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50) {
             <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">science</span> Strategy Lab <span class="premium-badge pulse">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-playbook')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Validate quantitative alphas using high-fidelity historical simulations.</p>
         </div>
+        ${tabs ? renderHubTabs('lab', tabs) : ''}
 
         <div class="strategy-workspace" style="display:grid; grid-template-columns: 320px 1fr; gap:30px">
             <div class="strategy-controls">

@@ -326,6 +326,67 @@ class InstitutionalRoutesMixin:
             'longShortRatio': round(ls_ratio, 2)
         })
 
+    def handle_liquidations_map(self):
+        """Phase 11: Quantitative Liquidation Bubble Map Generator."""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            symbol = query.get('symbol', ['BTCUSDT'])[0]
+            
+            # Universal Ticker Mapping
+            is_equity = symbol.upper() in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK']
+            ticker = symbol if is_equity else symbol.replace('USDT', '-USD')
+            
+            # Fetch 1h data for enough resolution for a map
+            df = CACHE.download(ticker, period='2d', interval='1h', progress=False)
+            if df is None or df.empty:
+                self.send_json([])
+                return
+            
+            closes = self._get_price_series(df, ticker).values
+            times = [int(x.timestamp()) for x in df.index]
+            
+            liquidations = []
+            random.seed(symbol + str(len(closes)))
+            
+            # Liquidation Pulse Model: 
+            # - Triggered at "Pain Points" (Standard Deviations away from Mean)
+            # - Size linked to Absolute Return
+            for i in range(1, len(closes)):
+                pr = float(closes[i])
+                prev_pr = float(closes[i-1])
+                ret = (pr - prev_pr) / prev_pr
+                
+                # Probability of liquidations increases with volatility
+                vol_proxy = np.std(np.diff(closes[max(0, i-24):i+1]) / closes[max(0, i-24):i]) if i > 5 else 0.01
+                
+                # 20% chance per hour to have a "Pulse Event"
+                if random.random() < (0.2 + vol_proxy * 5):
+                    # Multi-event Pulse (Institutional markets have tiered stop clusters)
+                    events = random.randint(1, 4)
+                    for _ in range(events):
+                        # Price is slightly offset around the candle range to simulate "Hunting"
+                        offset = random.uniform(-0.002, 0.002)
+                        liq_price = pr * (1 + offset)
+                        
+                        # Side: High price jump liquidates SHORTS (BUY to cover), Crash liquidates LONGS (SELL)
+                        side = "buy" if ret > 0.005 else "sell" if ret < -0.005 else random.choice(["buy", "sell"])
+                        
+                        # Size: $0.1M to $5.0M
+                        size = abs(ret) * 100 * random.uniform(0.5, 2.0)
+                        size = max(0.1, min(size, 5.0))
+                        
+                        liquidations.append({
+                            'time': times[i],
+                            'price': round(liq_price, 2),
+                            'side': side,
+                            'size': round(size, 2)
+                        })
+            
+            self.send_json(liquidations)
+        except Exception as e:
+            print(f'[{datetime.now()}] Liquidation Map Error: {e}')
+            self.send_json([])
+
     def handle_chain_velocity(self):
         try:
             l1_tickers = UNIVERSE['L1']

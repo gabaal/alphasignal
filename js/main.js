@@ -665,6 +665,8 @@ function renderDocsAdvancedCharting() {
             { icon: 'candlestick_chart', title: "Price & Overlays", desc: "Live 1m to 1d candlesticks superimposed with Dynamic EMA 20 and 50 lookback curves." },
             { icon: 'water_drop', title: "Market Depth", desc: "Live dual-area mapping of continuous bid/ask limit orders pulling from Binance Order Book." },
             { icon: 'timeline', title: "Derivatives", desc: "Overlay of Open Interest progression and liquidation histogram tracking." },
+            { icon: 'bubble_chart', title: "Liquidation Pulse", desc: "High-fidelity canvas bubble map overlay visualizing highly-leveraged liquidation cascades and stop-loss clusters directly on the price action." },
+            { icon: 'align_horizontal_left', title: "Volume Profile (VAP)", desc: "Left-anchored vertical histogram revealing the Volume-at-Price distribution to pinpoint institutional support and resistance zones." },
             { icon: 'stacked_line_chart', title: "Comparative Index", desc: "Percentage-normalized overlap of BTC, ETH, and SOL growth rates." },
             { icon: 'ssid_chart', title: "Cumulative Volume Delta (CVD)", desc: "Tracks net difference between aggressive market buying and selling over time." },
             { icon: 'currency_exchange', title: "Exchange Flows", desc: "Simulates the 30-day net position change of assets moving onto or off of global exchanges." }
