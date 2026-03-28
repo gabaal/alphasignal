@@ -2,51 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaSignal â€” Institutional Crypto Intelligence</title>
-    <meta name="description" content="AlphaSignal: Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
-    <meta name="keywords" content="crypto, institutional intelligence, order flow, AI market analysis, alpha signals, trading dashboard">
-    <meta name="author" content="Gerald Baalham">
-    <meta name="robots" content="index, follow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AlphaSignal &mdash; Institutional Crypto Intelligence Terminal</title>
+    <meta name="description" content="AlphaSignal: Institutional-grade crypto intelligence terminal with real-time alpha signals, AI-powered briefings, strategy backtesting, on-chain analytics, and whale tracking across 50+ assets.">
+    <meta name="keywords" content="institutional crypto signals, bitcoin alpha, crypto AI terminal, on-chain analytics, MVRV SOPR, strategy backtester, TradingView integration, whale tracker, funding rates, order flow, Z-score signals, portfolio optimizer, crypto dashboard, real-time market intelligence">
+    <meta name="author" content="AlphaSignal">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
     <link rel="canonical" id="canonical-link" href="https://alphasignal.digital/">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="AlphaSignal">
-    <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+
+    <!-- PWA / Mobile -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
+    <meta name="theme-color" content="#05070a">
+    <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="assets/pwa-icon-512.png">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" id="og-url" content="https://alphasignal.digital/">
-    <meta property="og:title" id="og-title" content="AlphaSignal â€” Institutional Crypto Intelligence">
-    <meta property="og:description" id="og-desc" content="Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
-    <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
 
-    <!-- Twitter -->
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="AlphaSignal">
+    <meta property="og:url" id="og-url" content="https://alphasignal.digital/">
+    <meta property="og:title" id="og-title" content="AlphaSignal &mdash; Institutional Crypto Intelligence">
+    <meta property="og:description" id="og-desc" content="Real-time multi-asset institutional intelligence: alpha signals, AI briefings, on-chain analytics, strategy backtesting, and whale tracking for serious traders.">
+    <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter / X -->
     <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@alphasignalai">
     <meta property="twitter:url" id="twitter-url" content="https://alphasignal.digital/">
-    <meta property="twitter:title" id="twitter-title" content="AlphaSignal â€” Institutional Crypto Intelligence">
-    <meta property="twitter:description" id="twitter-desc" content="Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
+    <meta property="twitter:title" id="twitter-title" content="AlphaSignal &mdash; Institutional Crypto Intelligence">
+    <meta property="twitter:description" id="twitter-desc" content="Real-time institutional alpha signals, AI-powered market briefings, on-chain analytics, and strategy backtesting across 50+ assets.">
     <meta property="twitter:image" content="https://alphasignal.digital/assets/social-preview.png">
 
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      "name": "AlphaSignal",
-      "operatingSystem": "Web",
-      "applicationCategory": "FinancialApplication",
+      "name": "AlphaSignal Terminal",
+      "operatingSystem": "Web, iOS (PWA), Android (PWA)",
+      "applicationCategory": "FinanceApplication",
       "offers": {
         "@type": "Offer",
         "price": "7.99",
         "priceCurrency": "USD"
       },
-      "description": "Institutional-grade crypto intelligence terminal providing real-time signals, risk analytics, and AI-driven insights."
+      "description": "Institutional-grade crypto intelligence terminal providing real-time alpha signals, AI-powered market briefings, on-chain analytics (MVRV, SOPR, Puell Multiple), strategy backtesting with live signal history, TradingView integration, whale flow tracking, and portfolio optimization across 50+ assets.",
+      "url": "https://alphasignal.digital/",
+      "screenshot": "https://alphasignal.digital/assets/social-preview.png",
+      "featureList": "Live Alpha Signals, AI Daily Briefing, On-Chain Analytics, Signal Backtester V2, TradingView Charts, Whale Pulse, Funding Rate Heatmap, Portfolio Optimizer, Strategy Lab"
     }
     </script>
     <script type="application/ld+json">
@@ -56,23 +62,15 @@
       "name": "AlphaSignal",
       "url": "https://alphasignal.digital/",
       "logo": "https://alphasignal.digital/assets/pwa-icon-512.png",
-      "sameAs": [
-        "https://twitter.com/alphasignal"
-      ]
+      "sameAs": ["https://twitter.com/alphasignalai"]
     }
     </script>
-    <script type="application/ld+json" id="ld-json-dynamic">
-    { }
-    </script>
+    <script type="application/ld+json" id="ld-json-dynamic">{ }</script>
 
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="assets/pwa-icon-512.png">
-    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
@@ -210,7 +208,7 @@
                 </div>
                 <div class="search-container" role="search">
                     <input type="text" id="global-search" placeholder="SEARCH TICKER (e.g. AAPL, TSLA, SOL-USD)..." autocomplete="off" aria-label="Search for tickers">
-                    <span class="search-hint" aria-hidden="true">ENTER â†µ</span>
+                    <span class="search-hint" aria-hidden="true">ENTER Ã¢â€ Âµ</span>
                 </div>
                 <div class="top-bar-actions">
                     <div class="action-group" id="live-meta-group">
@@ -293,7 +291,7 @@
 
     <div id="detail-overlay" class="overlay hidden">
         <div class="overlay-content">
-            <button class="close-overlay" aria-label="Close Overlay">Ã—</button>
+            <button class="close-overlay" aria-label="Close Overlay">Ãƒâ€”</button>
             <div id="detail-body">
                 <!-- Detail content injected here -->
             </div>
@@ -303,7 +301,7 @@
     <!-- Pack G5: AI Analyst Modal -->
     <div id="ai-modal" class="overlay hidden">
         <div class="overlay-content ai-analyst-panel">
-            <button class="close-ai-modal" aria-label="Close AI Analyst Modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">Ã—</button>
+            <button class="close-ai-modal" aria-label="Close AI Analyst Modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">Ãƒâ€”</button>
             <div class="ai-header">
                 <div class="ai-orb"></div>
                 <h2>Alpha Intelligence Analyst</h2>
@@ -320,7 +318,7 @@
     <!-- News Article Modal -->
     <div id="news-modal" class="overlay hidden">
         <div class="overlay-content news-article-panel">
-            <button class="close-overlay" onclick="document.getElementById('news-modal').classList.add('hidden')">Ã—</button>
+            <button class="close-overlay" onclick="document.getElementById('news-modal').classList.add('hidden')">Ãƒâ€”</button>
             <div id="news-article-body">
                 <!-- News content injected here -->
             </div>
@@ -365,7 +363,7 @@
     <!-- Paywall Modal -->
     <div id="paywall-overlay" class="overlay hidden">
         <div class="overlay-content paywall-panel">
-            <button class="close-overlay" onclick="document.getElementById('paywall-overlay').classList.add('hidden')">Ã—</button>
+            <button class="close-overlay" onclick="document.getElementById('paywall-overlay').classList.add('hidden')">Ãƒâ€”</button>
             <div class="paywall-header">
                 <div class="premium-orb"></div>
                 <h2>PREMIUM<span>ACCESS</span></h2>
@@ -405,7 +403,7 @@
                     <div class="price">$7.99<span>/mo</span></div>
                     <button class="intel-action-btn large" onclick="handleSubscribe()">UPGRADE TO PRO</button>
                 </div>
-                <p class="paywall-footer-text">SECURE SUBSCRIPTION â€¢ 256-BIT ENCRYPTION â€¢ CANCEL ANYTIME</p>
+                <p class="paywall-footer-text">SECURE SUBSCRIPTION Ã¢â‚¬Â¢ 256-BIT ENCRYPTION Ã¢â‚¬Â¢ CANCEL ANYTIME</p>
             </div>
         </div>
     </div>
@@ -420,11 +418,11 @@
     <!-- Phase 15-C: Export libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="js/core.js?v=1.27"></script>
-    <script src="js/heatmap_engine.js?v=1.27"></script>
-    <script src="js/charts.js?v=1.27"></script>
-    <script src="js/views.js?v=1.27"></script>
-    <script src="js/main.js?v=1.27"></script>
+    <script src="js/core.js?v=1.28"></script>
+    <script src="js/heatmap_engine.js?v=1.28"></script>
+    <script src="js/charts.js?v=1.28"></script>
+    <script src="js/views.js?v=1.28"></script>
+    <script src="js/main.js?v=1.28"></script>
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
     <div id="notification-modal" class="overlay hidden">
@@ -489,7 +487,7 @@
             font-size:0.7rem; font-weight:800; cursor:pointer; flex-shrink:0;">INSTALL</button>
         <button id="pwa-dismiss-btn" style="
             background:none; border:none; color:rgba(255,255,255,0.4);
-            font-size:1.2rem; cursor:pointer; flex-shrink:0; line-height:1;">Ã—</button>
+            font-size:1.2rem; cursor:pointer; flex-shrink:0; line-height:1;">Ãƒâ€”</button>
     </div>
     <style>
         @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
@@ -533,4 +531,5 @@
     </script>
 </body>
 </html>
+
 
