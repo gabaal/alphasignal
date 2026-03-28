@@ -9,12 +9,13 @@ from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, STRIPE_
 from backend.routes.auth import AuthRoutesMixin
 from backend.routes.market import MarketRoutesMixin
 from backend.routes.institutional import InstitutionalRoutesMixin
+from backend.routes.ai_engine import AIEngineRoutesMixin
 import socketserver, http.server
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
 
-class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin):
+class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin):
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         super().end_headers()
@@ -214,6 +215,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_test_telegram(post_data)
             elif path == '/api/portfolio/execute':
                 self.handle_portfolio_execute(post_data)
+            elif path == '/api/ask-terminal':
+                self.handle_ask_terminal(post_data)
             else:
                 self.send_error(404, 'Path not found')
         except Exception as e:
@@ -240,7 +243,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve']
+                public_routes = ['/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis']
                 if path not in public_routes:
                     auth_info = self.is_authenticated()
                     if not auth_info:
@@ -392,6 +395,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_benchmark()
             elif path.startswith('/api/backtest'):
                 self.handle_backtest()
+            elif path.startswith('/api/walk-forward'):
+                self.handle_walk_forward()
+            elif path.startswith('/api/strategy-compare'):
+                self.handle_strategy_compare()
+            elif path.startswith('/api/ai-memo'):
+                self.handle_ai_memo()
+            elif path.startswith('/api/signal-thesis'):
+                self.handle_signal_thesis()
             elif path.startswith('/api/onchain'):
                 self.handle_onchain()
             elif path.startswith('/api/portfolio_optimize'):

@@ -225,42 +225,139 @@ function renderMonteCarloChart(data) {
     const ctx = document.getElementById('monteCarloChart');
     if (!ctx) return;
     if (window.activeMCChart) window.activeMCChart.destroy();
-    
-    const datasets = data.paths.map((p, i) => ({
-        label: `Path ${i+1}`,
-        data: p,
-        borderColor: `rgba(0, 242, 255, ${0.05 + (Math.random() * 0.15)})`,
-        borderWidth: 1.5,
-        pointRadius: 0,
-        fill: false,
-        tension: 0.2
-    }));
-    
-    // Add baseline
+
+    const datasets = [];
+
+    // Faint sample paths behind bands
+    (data.paths || []).forEach((p, i) => {
+        datasets.push({
+            label: `Path ${i+1}`, data: p,
+            borderColor: `rgba(0, 242, 255, 0.06)`,
+            borderWidth: 1, pointRadius: 0, fill: false, tension: 0.2
+        });
+    });
+
+    // P95 upper band (green fill to P50)
+    if (data.p95) {
+        datasets.push({
+            label: 'P95 Bull', data: data.p95,
+            borderColor: 'rgba(34,197,94,0.5)', borderWidth: 1.5,
+            backgroundColor: 'rgba(34,197,94,0.08)',
+            pointRadius: 0, fill: '+1', tension: 0.3
+        });
+    }
+
+    // P50 median (bright white line)
+    if (data.p50) {
+        datasets.push({
+            label: 'Median (P50)', data: data.p50,
+            borderColor: 'rgba(255,255,255,0.85)', borderWidth: 2.5,
+            pointRadius: 0, fill: false, tension: 0.3
+        });
+    }
+
+    // P5 lower band (red fill to P50)
+    if (data.p5) {
+        datasets.push({
+            label: 'P5 Bear', data: data.p5,
+            borderColor: 'rgba(239,68,68,0.5)', borderWidth: 1.5,
+            backgroundColor: 'rgba(239,68,68,0.08)',
+            pointRadius: 0, fill: '-1', tension: 0.3
+        });
+    }
+
+    // Current price baseline
     datasets.push({
         label: 'Current Spot',
         data: Array(data.dates.length).fill(data.current_price),
-        borderColor: 'rgba(255, 62, 62, 0.4)',
-        borderWidth: 2,
-        borderDash: [5, 5],
-        pointRadius: 0,
-        fill: false
+        borderColor: 'rgba(255,62,62,0.35)', borderWidth: 2,
+        borderDash: [5, 5], pointRadius: 0, fill: false
     });
-    
+
     window.activeMCChart = new Chart(ctx.getContext('2d'), {
         type: 'line',
         data: { labels: data.dates, datasets: datasets },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { filter: (item) => ['Median (P50)', 'P95 Bull', 'P5 Bear', 'Current Spot'].includes(item.text),
+                              color: '#888', font: { family: 'JetBrains Mono', size: 10 }, boxWidth: 12 }
+                },
+                tooltip: { enabled: false },
+                datalabels: { display: false }
+            },
             scales: {
                 x: { grid: { display:false }, ticks: { color: '#888', font: { family: 'JetBrains Mono', size:10 }, maxRotation:0 } },
-                y: { position: 'right', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: function(val) { return '$' + val.toLocaleString(); } } }
+                y: { position: 'right', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: (val) => '$' + val.toLocaleString() } }
             }
         }
     });
 }
+
+function renderWalkForwardPanel(data) {
+    const el = document.getElementById('walk-forward-panel');
+    if (!el || !data.folds) return;
+    const rows = data.folds.map(f => {
+        const decay = f.out_sample_sharpe < f.in_sample_sharpe;
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+            <td style="padding:8px 4px;color:var(--text-dim);font-size:0.72rem">Fold ${f.fold}</td>
+            <td style="padding:8px 4px;font-size:0.72rem;color:#aaa">${f.period}</td>
+            <td style="padding:8px;font-size:0.72rem;text-align:center">${f.best_fast}/${f.best_slow}</td>
+            <td style="padding:8px;font-size:0.72rem;text-align:center;color:#facc15">${f.in_sample_sharpe}</td>
+            <td style="padding:8px;font-size:0.72rem;text-align:center;color:${decay ? '#ef4444' : '#22c55e'}">${f.out_sample_sharpe}</td>
+        </tr>`;
+    }).join('');
+    el.innerHTML = `
+        <table style="width:100%;border-collapse:collapse">
+            <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1)">
+                <th style="padding:6px 4px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:left">FOLD</th>
+                <th style="padding:6px 4px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:left">PERIOD</th>
+                <th style="padding:6px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:center">FAST/SLOW</th>
+                <th style="padding:6px;font-size:0.6rem;letter-spacing:1px;color:#facc15;text-align:center">IN-SAMPLE</th>
+                <th style="padding:6px;font-size:0.6rem;letter-spacing:1px;color:#aaa;text-align:center">OUT-OF-SAMPLE</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+        <p style="font-size:0.7rem;color:var(--text-dim);margin-top:8px;line-height:1.4">
+            Walk-forward validation splits 2Y of history into 6 train/test folds. In-sample Sharpe is optimised; 
+            out-of-sample Sharpe tests decay of edge on unseen data.
+        </p>`;
+}
+
+async function runStrategyCompare(ticker) {
+    const lb = document.getElementById('strategy-leaderboard');
+    const tag = document.getElementById('leaderboard-tag');
+    if (!lb) return;
+    lb.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-dim);font-size:0.85rem"><span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:18px">sync</span>Running all 15 strategies on ${ticker}...</div>`;
+    if (tag) tag.textContent = ticker;
+    try {
+        const data = await fetchAPI(`/strategy-compare?ticker=${ticker}`);
+        if (!data || !data.strategies) { lb.textContent = 'Failed to load'; return; }
+        const rows = data.strategies.map((s, i) => {
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+            return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                <td style="padding:7px 4px;font-size:0.72rem;color:var(--text-dim)">${medal}</td>
+                <td style="padding:7px 4px;font-size:0.75rem">${s.label}</td>
+                <td style="padding:7px;font-size:0.75rem;text-align:center;color:${s.sharpe > 0 ? '#22c55e' : '#ef4444'};font-weight:600">${s.sharpe}</td>
+                <td style="padding:7px;font-size:0.75rem;text-align:center;color:${s.return > 0 ? '#22c55e' : '#ef4444'}">${s.return > 0 ? '+' : ''}${s.return}%</td>
+                <td style="padding:7px;font-size:0.75rem;text-align:center;color:#ef4444">${s.maxDD}%</td>
+            </tr>`;
+        }).join('');
+        lb.innerHTML = `<table style="width:100%;border-collapse:collapse">
+            <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1)">
+                <th style="padding:5px 4px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim)">#</th>
+                <th style="padding:5px 4px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:left">STRATEGY</th>
+                <th style="padding:5px;font-size:0.6rem;letter-spacing:1px;color:#22c55e;text-align:center">SHARPE</th>
+                <th style="padding:5px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:center">180D RTN</th>
+                <th style="padding:5px;font-size:0.6rem;letter-spacing:1px;color:#ef4444;text-align:center">MAX DD</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+    } catch(e) { lb.innerHTML = `<p style="color:#ef4444;font-size:0.8rem">Compare failed: ${e.message}</p>`; }
+}
+
 
 function renderStrategyChart(curve) {
     const ctx = document.getElementById('strategyChart').getContext('2d');

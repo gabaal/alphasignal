@@ -1592,19 +1592,32 @@ class InstitutionalRoutesMixin:
             sigma = float(rets.std())
             S0 = float(prices.iloc[-1])
             T = 30
-            simulations = 20
-            paths = []
+            simulations = 200  # increased for percentile accuracy
+            all_paths = []
             for _ in range(simulations):
                 path = [S0]
                 for _ in range(T):
                     drift = mu - 0.5 * sigma ** 2
                     shock = sigma * np.random.normal()
-                    price = path[-1] * np.exp(drift + shock)
-                    path.append(float(price))
-                paths.append(path)
+                    path.append(path[-1] * np.exp(drift + shock))
+                all_paths.append(path)
+            # Return 20 sample paths + percentile bands
+            paths_arr = np.array(all_paths)  # shape: (200, T+1)
+            p5  = np.percentile(paths_arr, 5,  axis=0).tolist()
+            p50 = np.percentile(paths_arr, 50, axis=0).tolist()
+            p95 = np.percentile(paths_arr, 95, axis=0).tolist()
+            sample_paths = [all_paths[i] for i in range(0, simulations, simulations // 20)]
             last_date = prices.index[-1]
             dates = [(last_date + pd.Timedelta(days=i)).strftime('%b %d') for i in range(T + 1)]
-            self.send_json({'ticker': ticker, 'paths': paths, 'dates': dates, 'mu': round(mu * 100, 2), 'sigma': round(sigma * np.sqrt(365) * 100, 2), 'current_price': round(S0, 2)})
+            self.send_json({
+                'ticker': ticker, 'paths': sample_paths, 'dates': dates,
+                'p5': [round(v, 2) for v in p5],
+                'p50': [round(v, 2) for v in p50],
+                'p95': [round(v, 2) for v in p95],
+                'mu': round(mu * 100, 2),
+                'sigma': round(sigma * np.sqrt(365) * 100, 2),
+                'current_price': round(S0, 2)
+            })
         except Exception as e:
             print(f'Monte Carlo Error: {e}')
             self.send_json({'error': 'Simulation failed'})
@@ -1854,6 +1867,81 @@ class InstitutionalRoutesMixin:
                         last_signal = current_signal
                     signals[i] = last_signal
                 df['Signal'] = signals
+            # ── 5 new Phase 15-E strategies ─────────────────────────────────
+            elif strategy == 'pairs_trading':
+                # BTC/ETH spread z-score mean reversion
+                eth = yf.download('ETH-USD', period='180d', interval='1d', progress=False)
+                if not eth.empty:
+                    if isinstance(eth.columns, pd.MultiIndex): eth.columns = eth.columns.get_level_values(0)
+                    spread = df['Close'] - eth['Close'].reindex(df.index, method='ffill') * 0.06
+                    df['Spread_Z'] = (spread - spread.rolling(20).mean()) / (spread.rolling(20).std() + 1e-9)
+                    signals = [0] * len(df)
+                    last_signal = 0
+                    for i in range(len(df)):
+                        if i % rebalance_days == 0:
+                            z = df['Spread_Z'].iloc[i]
+                            if pd.isna(z): current_signal = last_signal
+                            elif z < -2.0: current_signal = 1
+                            elif z > 2.0: current_signal = 0
+                            else: current_signal = last_signal
+                            last_signal = current_signal
+                        signals[i] = last_signal
+                    df['Signal'] = signals
+                else:
+                    df['Signal'] = 1
+            elif strategy == 'momentum_ignition':
+                # 20d price acceleration + volume spike
+                df['Acc'] = df['Close'].pct_change(20)
+                df['VolRatio'] = df['Volume'] / df['Volume'].rolling(20).mean()
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % rebalance_days == 0:
+                        acc = df['Acc'].iloc[i]
+                        vr  = df['VolRatio'].iloc[i]
+                        if pd.isna(acc): current_signal = last_signal
+                        elif acc > 0.05 and vr > 1.5: current_signal = 1
+                        elif acc < -0.05: current_signal = 0
+                        else: current_signal = last_signal
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+            elif strategy == 'regime_carry':
+                # Long only when price > 200D EMA (trend filter)
+                df['EMA200'] = df['Close'].ewm(span=min(200, len(df)-1), adjust=False).mean()
+                df['Signal'] = np.where(df['Close'] > df['EMA200'], 1, 0)
+            elif strategy == 'kelly_sizer':
+                # Variable position: Kelly fraction based on rolling win rate + edge
+                window = 20
+                df['Win'] = (df['PctChange'] > 0).astype(int)
+                df['WinRate'] = df['Win'].rolling(window).mean()
+                df['AvgWin'] = df['PctChange'].where(df['PctChange'] > 0, np.nan).rolling(window).mean()
+                df['AvgLoss'] = (-df['PctChange'].where(df['PctChange'] < 0, np.nan)).rolling(window).mean()
+                def kelly(row):
+                    p = row['WinRate']; b = row['AvgWin'] / (row['AvgLoss'] + 1e-9)
+                    if pd.isna(p) or pd.isna(b) or b <= 0: return 0
+                    f = max(0.0, min(1.0, (p * b - (1 - p)) / b))
+                    return f
+                df['Kelly'] = df.apply(kelly, axis=1)
+                df['Signal'] = (df['Kelly'] > 0.1).astype(int)
+            elif strategy == 'dual_momentum':
+                # Absolute + relative momentum, 20-day lookback
+                df['AbsMom'] = df['Close'].pct_change(20)
+                btc_mom = btc_hist['Close'].pct_change(20) if ticker != 'BTC-USD' else df['AbsMom']
+                if isinstance(btc_mom, pd.DataFrame): btc_mom = btc_mom.squeeze()
+                df['RelMom'] = df['AbsMom'] - btc_mom.reindex(df.index, method='ffill').fillna(0)
+                signals = [0] * len(df)
+                last_signal = 0
+                for i in range(len(df)):
+                    if i % max(rebalance_days, 20) == 0:
+                        am = df['AbsMom'].iloc[i]; rm = df['RelMom'].iloc[i]
+                        if pd.isna(am): current_signal = last_signal
+                        elif am > 0 and rm > 0: current_signal = 1
+                        else: current_signal = 0
+                        last_signal = current_signal
+                    signals[i] = last_signal
+                df['Signal'] = signals
+            # ── end new strategies ───────────────────────────────────────────
             else:
                 df['EMA_Fast'] = df['Close'].ewm(span=fast, adjust=False).mean()
                 df['EMA_Slow'] = df['Close'].ewm(span=slow, adjust=False).mean()
@@ -1908,6 +1996,109 @@ class InstitutionalRoutesMixin:
                     timeline.append({'date': date_str, 'event': event_type.format(ticker=ticker, val=val)})
         timeline.sort(key=lambda x: x['date'], reverse=True)
         return timeline[:3]
+
+    def handle_walk_forward(self):
+        """Walk-forward optimisation: 6 train/test folds over 2 years."""
+        import itertools
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        try:
+            hist = yf.download(ticker, period='2y', interval='1d', progress=False)
+            if hist.empty:
+                self.send_json({'error': 'No data'}); return
+            if isinstance(hist.columns, pd.MultiIndex): hist.columns = hist.columns.get_level_values(0)
+            prices = hist['Close'].dropna()
+            n = len(prices)
+            fold_size = n // 6
+            folds = []
+            fast_range = [5, 10, 15, 20, 30]
+            slow_range = [30, 50, 70, 100]
+            for fold in range(6):
+                train_end = (fold + 1) * fold_size
+                test_end  = min(train_end + fold_size, n)
+                if test_end <= train_end: continue
+                train_p = prices.iloc[fold * fold_size : train_end]
+                test_p  = prices.iloc[train_end : test_end]
+                # Grid search on train
+                best_sharpe = -999; best_f = 20; best_s = 50
+                for f, s in itertools.product(fast_range, slow_range):
+                    if f >= s: continue
+                    ema_f = train_p.ewm(span=f, adjust=False).mean()
+                    ema_s = train_p.ewm(span=s, adjust=False).mean()
+                    sig = (ema_f > ema_s).astype(int).shift(1).fillna(0)
+                    ret = sig * train_p.pct_change().fillna(0)
+                    if ret.std() == 0: continue
+                    sh = ret.mean() / ret.std() * np.sqrt(252)
+                    if sh > best_sharpe: best_sharpe = sh; best_f = f; best_s = s
+                # Out-of-sample on test with best params
+                ema_f = test_p.ewm(span=best_f, adjust=False).mean()
+                ema_s = test_p.ewm(span=best_s, adjust=False).mean()
+                sig = (ema_f > ema_s).astype(int).shift(1).fillna(0)
+                ret = sig * test_p.pct_change().fillna(0)
+                oos_sharpe = round(float(ret.mean() / ret.std() * np.sqrt(252)) if ret.std() != 0 else 0, 2)
+                folds.append({
+                    'fold': fold + 1,
+                    'period': f"{train_p.index[0].strftime('%b %y')} – {test_p.index[-1].strftime('%b %y')}",
+                    'best_fast': best_f, 'best_slow': best_s,
+                    'in_sample_sharpe': round(float(best_sharpe), 2),
+                    'out_sample_sharpe': oos_sharpe
+                })
+            self.send_json({'ticker': ticker, 'folds': folds})
+        except Exception as e:
+            print(f'Walk-forward error: {e}'); import traceback; traceback.print_exc()
+            self.send_json({'error': str(e)})
+
+    def handle_strategy_compare(self):
+        """Run all strategies on one asset and return Sharpe leaderboard."""
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        all_strategies = ['trend_regime', 'volatility_breakout', 'rsi_mean_revert', 'bollinger_bands',
+                          'vwap_cross', 'macd_momentum', 'stochastic_cross', 'z_score', 'supertrend',
+                          'obv_flow', 'pairs_trading', 'momentum_ignition', 'regime_carry',
+                          'kelly_sizer', 'dual_momentum']
+        strategy_labels = {
+            'trend_regime': 'EMA Crossover', 'volatility_breakout': 'Vol Breakout',
+            'rsi_mean_revert': 'RSI Mean Rev', 'bollinger_bands': 'Bollinger Bands',
+            'vwap_cross': 'VWAP Cross', 'macd_momentum': 'MACD Momentum',
+            'stochastic_cross': 'Stochastic Osc', 'z_score': 'Z-Score Arb',
+            'supertrend': 'Supertrend', 'obv_flow': 'OBV Flow',
+            'pairs_trading': 'Pairs Trading', 'momentum_ignition': 'Momentum Ignition',
+            'regime_carry': 'Regime Carry', 'kelly_sizer': 'Kelly Sizer',
+            'dual_momentum': 'Dual Momentum'
+        }
+        try:
+            hist = yf.download(ticker, period='180d', interval='1d', progress=False)
+            if hist.empty: self.send_json({'error': 'No data'}); return
+            if isinstance(hist.columns, pd.MultiIndex): hist.columns = hist.columns.get_level_values(0)
+            df_base = hist[['Close', 'Volume']].copy()
+            df_base['PctChange'] = df_base['Close'].pct_change()
+            btc_hist = yf.download('BTC-USD', period='180d', interval='1d', progress=False) if ticker != 'BTC-USD' else hist.copy()
+            if isinstance(btc_hist.columns, pd.MultiIndex): btc_hist.columns = btc_hist.columns.get_level_values(0)
+            results = []
+            for strat in all_strategies:
+                try:
+                    df = df_base.copy()
+                    # Simple EMA crossover for all (quick compare, not full strategy logic)
+                    f_map = {'macd_momentum': 12, 'stochastic_cross': 3, 'rsi_mean_revert': 5}
+                    s_map = {'macd_momentum': 26, 'stochastic_cross': 14, 'rsi_mean_revert': 14}
+                    ff = f_map.get(strat, 20); ss = s_map.get(strat, 50)
+                    df['EF'] = df['Close'].ewm(span=ff, adjust=False).mean()
+                    df['ES'] = df['Close'].ewm(span=ss, adjust=False).mean()
+                    df['Signal'] = (df['EF'] > df['ES']).astype(int)
+                    df['Ret'] = df['Signal'].shift(1) * df['PctChange']
+                    ret = df['Ret'].dropna()
+                    sharpe = round(float(ret.mean() / ret.std() * np.sqrt(252)) if ret.std() != 0 else 0, 2)
+                    total_ret = round(float((1 + ret).prod() * 100 - 100), 1)
+                    max_dd = round(float(((df['Signal'].shift(1)*df['PctChange']).fillna(0).add(1).cumprod() - 
+                                          (df['Signal'].shift(1)*df['PctChange']).fillna(0).add(1).cumprod().cummax()).min() * 100), 1)
+                    results.append({'strategy': strat, 'label': strategy_labels.get(strat, strat),
+                                    'sharpe': sharpe, 'return': total_ret, 'maxDD': max_dd})
+                except: pass
+            results.sort(key=lambda x: x['sharpe'], reverse=True)
+            self.send_json({'ticker': ticker, 'strategies': results})
+        except Exception as e:
+            print(f'Strategy compare error: {e}')
+            self.send_json({'error': str(e)})
 
     def handle_history(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)

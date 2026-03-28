@@ -1,5 +1,10 @@
 import json
 import os
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 import http.server
 import socketserver
 import yfinance as yf

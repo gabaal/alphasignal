@@ -1055,6 +1055,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <div class="control-box">
                     <label>QUANT STRATEGY</label>
                     <select id="strat-type" class="strat-select" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, this.value, document.getElementById('strat-fast')?.value || 20, document.getElementById('strat-slow')?.value || 50)">
+                        <optgroup label="── Classic Technicals ──">
                         <option value="trend_regime" ${strategy === 'trend_regime' ? 'selected' : ''}>EMA Crossover (Custom)</option>
                         <option value="volatility_breakout" ${strategy === 'volatility_breakout' ? 'selected' : ''}>Volatility Breakout (Keltner)</option>
                         <option value="rsi_mean_revert" ${strategy === 'rsi_mean_revert' ? 'selected' : ''}>RSI Mean Reversion (Trend-Filtered)</option>
@@ -1065,6 +1066,14 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         <option value="z_score" ${strategy === 'z_score' ? 'selected' : ''}>Statistical Arbitrage (Z-Score Core)</option>
                         <option value="supertrend" ${strategy === 'supertrend' ? 'selected' : ''}>Adaptive Supertrend Volatility System</option>
                         <option value="obv_flow" ${strategy === 'obv_flow' ? 'selected' : ''}>Smart Money Flow Divergence (OBV/CVD)</option>
+                        </optgroup>
+                        <optgroup label="── Phase 15 Quant ──">
+                        <option value="pairs_trading" ${strategy === 'pairs_trading' ? 'selected' : ''}>Pairs Trading (BTC/ETH Spread Z-Score)</option>
+                        <option value="momentum_ignition" ${strategy === 'momentum_ignition' ? 'selected' : ''}>Momentum Ignition (20D Accel + Vol Spike)</option>
+                        <option value="regime_carry" ${strategy === 'regime_carry' ? 'selected' : ''}>Regime-Filtered Carry (200D EMA)</option>
+                        <option value="kelly_sizer" ${strategy === 'kelly_sizer' ? 'selected' : ''}>Kelly Criterion Position Sizer</option>
+                        <option value="dual_momentum" ${strategy === 'dual_momentum' ? 'selected' : ''}>Dual Momentum (Abs + Rel, Monthly)</option>
+                        </optgroup>
                     </select>
                 </div>
                 
@@ -1079,7 +1088,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                     </div>
                 </div>
                 
-                <div class="lab-metrics-grid" style="margin-top:2rem">
+                <div class="lab-metrics-grid" style="margin-top:2rem;display:grid;grid-template-columns:1fr 1fr;gap:10px">
                     <div class="mini-stat">
                         <label>SHARPE RATIO</label>
                         <div class="val">${data.summary.sharpe}</div>
@@ -1092,6 +1101,10 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         <label>WIN RATE</label>
                         <div class="val">${data.summary.winRate}%</div>
                     </div>
+                    <div class="mini-stat">
+                        <label>EXCESS ALPHA</label>
+                        <div class="val ${data.summary.alpha >= 0 ? 'pos' : 'neg'}">${data.summary.alpha >= 0 ? '+' : ''}${data.summary.alpha}%</div>
+                    </div>
                 </div>
 
                 <button class="intel-action-btn" style="margin-top: 2rem; width: 100%" onclick="shareStrategyResult('${ticker}', ${data.summary.totalReturn})">
@@ -1099,6 +1112,9 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 </button>
                 <button class="intel-action-btn" style="margin-top: 10px; width: 100%; background:rgba(0, 242, 255, 0.05); border-color:var(--accent); color:var(--accent)" onclick="window.downloadBacktestCSV('${ticker}', '${strategy}')">
                     <span class="material-symbols-outlined" style="font-size:16px">download</span> EXPORT CSV
+                </button>
+                <button class="intel-action-btn" style="margin-top: 10px; width: 100%; background:rgba(188,19,254,0.08); border-color:#bc13fe; color:#bc13fe" onclick="runStrategyCompare('${ticker}')">
+                    <span class="material-symbols-outlined" style="font-size:16px">leaderboard</span> COMPARE ALL STRATEGIES
                 </button>
             </div>
 
@@ -1126,15 +1142,37 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <div class="glass-card" style="margin-top: 20px; padding: 20px">
                     <div class="card-header" style="margin-bottom:15px">
                         <h3>Monte Carlo Trajectory Matrix</h3>
-                        <span class="label-tag">PROBABILITY</span>
+                        <span class="label-tag">200 SIM · P5/P50/P95 BANDS</span>
                     </div>
                     <div style="height: 350px; position:relative;">
                         <canvas id="monteCarloChart"></canvas>
                     </div>
                     <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 15px; display:flex; gap:20px; text-align:center">
-                        <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px"><span style="color:#00f2ff">SIMULATIONS:</span><br>20 Paths</div>
+                        <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px"><span style="color:#00f2ff">SIMULATIONS:</span><br>200 Paths</div>
                         <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px"><span style="color:#facc15">HORIZON:</span><br>30 Days</div>
                         <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px" id="mc-sigma-label"><span style="color:#bc13fe">VOLATILITY:</span><br>--</div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-top: 20px; padding: 20px">
+                    <div class="card-header" style="margin-bottom:15px">
+                        <h3>Walk-Forward Optimisation</h3>
+                        <span class="label-tag">6 FOLDS · 2Y HISTORY</span>
+                    </div>
+                    <div id="walk-forward-panel" style="min-height:120px">
+                        <div style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--text-dim);font-size:0.85rem">
+                            <span class="material-symbols-outlined" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite">sync</span> Loading walk-forward analysis...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-top: 20px; padding: 20px">
+                    <div class="card-header" style="margin-bottom:15px">
+                        <h3><span class="material-symbols-outlined" style="vertical-align:middle;font-size:1.1rem;margin-right:6px">leaderboard</span>Strategy Leaderboard</h3>
+                        <span class="label-tag" id="leaderboard-tag">SELECT ASSET</span>
+                    </div>
+                    <div id="strategy-leaderboard" style="min-height:80px;color:var(--text-dim);font-size:0.85rem;display:flex;align-items:center;justify-content:center">
+                        Click COMPARE ALL STRATEGIES to rank all 15 strategies on this asset.
                     </div>
                 </div>
 
@@ -1165,6 +1203,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
     }
     renderStrategyChart(curve);
 
+    // Monte Carlo with percentile bands
     try {
         const mcData = await fetchAPI(`/monte-carlo?ticker=${ticker}`);
         if (mcData && mcData.paths) {
@@ -1172,6 +1211,17 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
             renderMonteCarloChart(mcData);
         }
     } catch(e) {}
+
+    // Walk-forward (deferred so UI renders first)
+    setTimeout(async () => {
+        try {
+            const wfData = await fetchAPI(`/walk-forward?ticker=${ticker}`);
+            if (wfData && wfData.folds) renderWalkForwardPanel(wfData);
+        } catch(e) {
+            const el = document.getElementById('walk-forward-panel');
+            if (el) el.innerHTML = '<p style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:1rem">Walk-forward unavailable — requires 2y of data.</p>';
+        }
+    }, 800);
 }
 
 function shareStrategyResult(ticker, returns) {

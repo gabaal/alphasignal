@@ -7,3 +7,5 @@ scikit-learn
 redis
 supabase
 websockets
+openai
+python-dotenv

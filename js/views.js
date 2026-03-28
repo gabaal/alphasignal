@@ -632,6 +632,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                 <div class="signal-card ${Math.abs(s.zScore) > 2 ? 'z-outlier' : ''}" onclick="openDetail('${s.ticker}', '${s.category}', ${s.btcCorrelation}, ${s.alpha}, ${s.sentiment}, '60d', ${s.category === 'TRACKED'})">
                     <div class="card-controls" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10">
                         <div class="ai-trigger" onclick="event.stopPropagation(); openAIAnalyst('${s.ticker}')" title="Run AI Deep-Dive"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
+                        <div class="ai-trigger" onclick="event.stopPropagation(); openSignalThesisModal('${s.ticker}', '${s.alpha >= 0 ? 'LONG' : 'SHORT'}', ${Math.abs(s.zScore).toFixed(1)})" title="AI Trade Thesis" style="background:rgba(188,19,254,0.15);border-color:rgba(188,19,254,0.3)"><span class="material-symbols-outlined" style="font-size: 18px;color:#bc13fe">psychology</span></div>
                         <div class="share-trigger" onclick="event.stopPropagation(); shareSignal('${s.ticker}', ${s.alpha}, ${s.sentiment}, ${s.zScore})" title="Share to X (Twitter)"><span class="material-symbols-outlined" style="font-size: 18px;">share</span></div>
                     </div>
                     <div class="card-header">
@@ -3470,6 +3471,23 @@ async function renderBriefing(tabs = null) {
             </div>
             
             <div class="briefing-container" style="max-width:900px; margin:0 auto">
+
+                <!-- AI Daily Memo -->
+                <div class="glass-card" id="ai-memo-card" style="margin-bottom:2rem;padding:1.5rem;border:1px solid rgba(188,19,254,0.3);background:linear-gradient(135deg,rgba(188,19,254,0.06),rgba(0,0,0,0.4))">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <span class="material-symbols-outlined" style="color:#bc13fe">smart_toy</span>
+                            <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:#bc13fe">AI INSTITUTIONAL MEMO</span>
+                        </div>
+                        <button onclick="refreshAIMemo()" style="background:none;border:1px solid rgba(188,19,254,0.3);color:#bc13fe;padding:4px 10px;border-radius:6px;font-size:0.6rem;cursor:pointer;letter-spacing:1px">REFRESH</button>
+                    </div>
+                    <div id="ai-memo-body" style="font-size:0.9rem;line-height:1.7;color:var(--text);min-height:60px">
+                        <div style="display:flex;align-items:center;gap:8px;color:var(--text-dim);font-size:0.85rem">
+                            <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:18px">sync</span>Generating institutional memo...
+                        </div>
+                    </div>
+                    <div id="ai-memo-meta" style="font-size:0.62rem;color:var(--text-dim);margin-top:10px;text-align:right"></div>
+                </div>
                 <div class="brief-hero" style="background:linear-gradient(135deg, rgba(0, 242, 255, 0.1) 0%, rgba(0, 0, 0, 0.5) 100%); border:1px solid var(--accent); border-radius:16px; padding:2.5rem; margin-bottom:2rem; position:relative; overflow:hidden">
                     <div style="position:absolute; top:-50px; right:-50px; font-size:10rem; opacity:0.05; pointer-events:none; color:var(--accent)"><span class="material-symbols-outlined" style="font-size:12rem">psychology</span></div>
                     <div class="brief-sentiment-tag" style="background:var(--risk-low); color:black; font-weight:900; font-size:0.6rem; padding:4px 12px; border-radius:100px; width:fit-content; margin-bottom:1.5rem">
@@ -3560,6 +3578,9 @@ async function renderBriefing(tabs = null) {
                 </div>
             </div>
         `;
+
+        // Load AI Memo async
+        loadAIMemo();
 
         // Initialize Regime Chart
         if (data.regime_timeline && data.regime_timeline.length) {

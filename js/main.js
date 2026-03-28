@@ -75,6 +75,8 @@ const viewMap = {
     'macro-hub': renderMacroHub,
     'alpha-hub': renderAlphaHub,
     'trade-ledger': renderTradeLedger,
+    'ask-terminal': renderAskTerminal,
+    'explain-ai-engine': renderDocsAIEngine,
     help: renderHelp
 };
 
@@ -1980,4 +1982,195 @@ function toggleOverlay(type) {
     const btn = event.target;
     btn.classList.toggle('active');
     renderChart(window.currentHistory);
+}
+
+// ============= Phase 15-B: AI Engine =============
+
+function formatMemoMarkdown(text) {
+    // Convert **bold** headers and newlines to HTML
+    return text
+        .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#bc13fe;letter-spacing:0.5px">$1</strong>')
+        .replace(/\n\n/g, '</p><p style="margin-top:0.8rem">')
+        .replace(/\n/g, '<br>');
+}
+
+async function loadAIMemo() {
+    const body = document.getElementById('ai-memo-body');
+    const meta = document.getElementById('ai-memo-meta');
+    if (!body) return;
+    try {
+        const data = await fetchAPI('/ai-memo');
+        if (data && data.memo) {
+            const html = formatMemoMarkdown(data.memo);
+            body.innerHTML = `<p>${html}</p>`;
+            if (meta) meta.innerHTML = `Generated ${data.generated_at} &bull; <span style="color:${data.source === 'gpt-4o-mini' ? '#bc13fe' : '#888'}">${data.source === 'gpt-4o-mini' ? 'GPT-4o-mini' : 'Static Template'}</span>`;
+        } else {
+            body.innerHTML = '<p style="color:var(--text-dim)">Memo unavailable — check API key configuration.</p>';
+        }
+    } catch(e) {
+        body.innerHTML = '<p style="color:var(--text-dim)">Failed to load AI memo.</p>';
+    }
+}
+
+async function refreshAIMemo() {
+    const body = document.getElementById('ai-memo-body');
+    if (!body) return;
+    body.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-dim)"><span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:18px">sync</span>Refreshing...</div>`;
+    await loadAIMemo();
+}
+
+async function renderAskTerminal() {
+    appEl.innerHTML = `
+        <div class="view-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <div>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#bc13fe">smart_toy</span>Ask the Terminal <span class="premium-badge" style="background:#bc13fe;color:black">AI</span></h1>
+                <p>Natural language queries answered with institutional terminal context. Powered by GPT-4o-mini.</p>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 8px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-ai-engine')">
+                <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS
+            </button>
+        </div>
+
+        <div style="max-width:780px;margin:0 auto">
+            <!-- Suggested queries -->
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem">
+                ${['What is the current Bitcoin regime?','Which strategy has the best Sharpe ratio?','Explain funding rate heatmap signals','What does a negative Z-Score mean?','Compare BTC vs ETH momentum'].map(q => `
+                    <button onclick="submitAIQuery('${q}')" style="background:rgba(188,19,254,0.08);border:1px solid rgba(188,19,254,0.2);color:#bc13fe;padding:6px 14px;border-radius:20px;font-size:0.7rem;cursor:pointer;transition:all 0.2s ease" onmouseover="this.style.background='rgba(188,19,254,0.18)'" onmouseout="this.style.background='rgba(188,19,254,0.08)'">${q}</button>
+                `).join('')}
+            </div>
+
+            <!-- Chat history -->
+            <div id="ask-terminal-history" style="min-height:200px;max-height:60vh;overflow-y:auto;margin-bottom:1.5rem;display:flex;flex-direction:column;gap:1rem"></div>
+
+            <!-- Input bar -->
+            <div style="display:flex;gap:12px;align-items:flex-end;background:rgba(0,0,0,0.4);border:1px solid rgba(188,19,254,0.4);border-radius:12px;padding:12px;position:sticky;bottom:0">
+                <span class="material-symbols-outlined" style="color:#bc13fe;font-size:22px;padding-top:2px">terminal</span>
+                <textarea id="ask-terminal-input" placeholder="Ask anything about markets, strategies, signals, or on-chain data..." 
+                    style="flex:1;min-height:44px;max-height:120px;background:none;border:none;color:white;font-family:'Outfit';font-size:0.9rem;resize:none;outline:none;line-height:1.5"
+                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitAIQuery()}"></textarea>
+                <button id="ask-terminal-send" onclick="submitAIQuery()" style="background:#bc13fe;border:none;color:white;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700;letter-spacing:1px;white-space:nowrap">
+                    ASK →
+                </button>
+            </div>
+            <div style="font-size:0.65rem;color:var(--text-dim);margin-top:8px;text-align:center">Press Enter to send &bull; Shift+Enter for new line &bull; Powered by GPT-4o-mini</div>
+        </div>
+    `;
+}
+
+async function submitAIQuery(prefill) {
+    const input = document.getElementById('ask-terminal-input');
+    const history = document.getElementById('ask-terminal-history');
+    const btn = document.getElementById('ask-terminal-send');
+    if (!input || !history) return;
+
+    const query = prefill || input.value.trim();
+    if (!query) return;
+
+    // Add user message
+    history.innerHTML += `
+        <div style="display:flex;gap:12px;justify-content:flex-end">
+            <div style="max-width:75%;background:rgba(188,19,254,0.15);border:1px solid rgba(188,19,254,0.2);border-radius:12px 12px 4px 12px;padding:12px 16px;font-size:0.85rem;line-height:1.6">${query}</div>
+        </div>`;
+    history.scrollTop = history.scrollHeight;
+    input.value = '';
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+    // Add loading AI response
+    const respId = `ai-resp-${Date.now()}`;
+    history.innerHTML += `
+        <div style="display:flex;gap:12px" id="${respId}-wrap">
+            <div style="width:32px;height:32px;border-radius:50%;background:rgba(188,19,254,0.2);border:1px solid rgba(188,19,254,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <span class="material-symbols-outlined" style="font-size:16px;color:#bc13fe">smart_toy</span>
+            </div>
+            <div style="max-width:85%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px 12px 12px 4px;padding:12px 16px;font-size:0.85rem;line-height:1.6" id="${respId}">
+                <span style="animation:pulse 1s infinite;color:var(--text-dim)">Thinking...</span>
+            </div>
+        </div>`;
+    history.scrollTop = history.scrollHeight;
+
+    try {
+        const resp = await fetch('/api/ask-terminal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+        });
+        const data = await resp.json();
+        const el = document.getElementById(respId);
+        if (el && data.answer) {
+            el.innerHTML = formatMemoMarkdown(data.answer);
+        } else if (el) {
+            el.innerHTML = '<span style="color:#ef4444">No response</span>';
+        }
+    } catch(e) {
+        const el = document.getElementById(respId);
+        if (el) el.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'ASK →'; }
+        history.scrollTop = history.scrollHeight;
+    }
+}
+
+async function openSignalThesisModal(ticker, signal, zscore) {
+    // Create modal if not exists
+    let modal = document.getElementById('thesis-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'thesis-modal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+        modal.innerHTML = `
+            <div style="background:var(--bg-card);border:1px solid rgba(188,19,254,0.4);border-radius:16px;padding:2rem;max-width:520px;width:100%;position:relative">
+                <button onclick="document.getElementById('thesis-modal').remove()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem">&times;</button>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem">
+                    <span class="material-symbols-outlined" style="color:#bc13fe">psychology</span>
+                    <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:#bc13fe">AI TRADE THESIS</span>
+                </div>
+                <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">${ticker} &bull; <span style="color:${signal === 'LONG' ? '#22c55e' : signal === 'SHORT' ? '#ef4444' : '#facc15'}">${signal}</span> &bull; Z-Score: ${zscore}σ</div>
+                <div id="thesis-body" style="font-size:0.9rem;line-height:1.7;color:var(--text);min-height:80px;margin-top:1rem">
+                    <div style="display:flex;align-items:center;gap:8px;color:var(--text-dim)">
+                        <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:18px">sync</span>Generating thesis...
+                    </div>
+                </div>
+                <div id="thesis-meta" style="font-size:0.6rem;color:var(--text-dim);margin-top:1rem;text-align:right"></div>
+            </div>`;
+        document.body.appendChild(modal);
+    }
+
+    try {
+        const data = await fetchAPI(`/signal-thesis?ticker=${ticker}&signal=${signal}&zscore=${zscore}`);
+        const el = document.getElementById('thesis-body');
+        const meta = document.getElementById('thesis-meta');
+        if (el && data.thesis) {
+            el.innerHTML = `<p>${formatMemoMarkdown(data.thesis)}</p>`;
+            if (meta) meta.textContent = `Source: ${data.source === 'gpt-4o-mini' ? 'GPT-4o-mini' : 'Template'}`;
+        }
+    } catch(e) {
+        const el = document.getElementById('thesis-body');
+        if (el) el.innerHTML = `<span style="color:#ef4444">Failed: ${e.message}</span>`;
+    }
+}
+
+function renderDocsAIEngine() {
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#bc13fe">smart_toy</span>AI Narrative Engine</h1>
+            <p>Phase 15-B documentation — GPT-4o-mini powered institutional intelligence layer.</p>
+        </div>
+        <div style="max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem">
+            <div class="glass-card" style="padding:1.5rem">
+                <h3 style="color:#bc13fe;margin-bottom:1rem">AI Daily Memo</h3>
+                <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">The AI Institutional Memo appears at the top of the Alpha Strategy Briefing. It is generated by GPT-4o-mini with live market context (BTC price, regime, fear/greed) and structured as three paragraphs: <strong>Macro Context</strong>, <strong>Key Opportunities</strong>, and <strong>Risk Warnings</strong>. Cached for 15 minutes to reduce API usage.</p>
+            </div>
+            <div class="glass-card" style="padding:1.5rem">
+                <h3 style="color:#bc13fe;margin-bottom:1rem">Ask the Terminal</h3>
+                <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">Natural language query interface. Ask anything about markets, strategies, signals, or analytical concepts. The AI has context about AlphaSignal's capabilities and uses GPT-4o-mini for concise, actionable responses. Accessible via the <strong>Command Center</strong> sidebar item.</p>
+            </div>
+            <div class="glass-card" style="padding:1.5rem">
+                <h3 style="color:#bc13fe;margin-bottom:1rem">Signal Thesis Generator</h3>
+                <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">Each signal card has a <strong>THESIS</strong> button that generates a 2-sentence GPT-powered trade rationale specific to that ticker, signal direction, and Z-Score deviation. Used to rapidly synthesise the technical and fundamental case for entering or avoiding a trade.</p>
+            </div>
+            <div class="glass-card" style="padding:1.5rem;border-color:rgba(188,19,254,0.3)">
+                <h3 style="margin-bottom:0.5rem">Configuration</h3>
+                <p style="color:var(--text-dim);font-size:0.85rem;line-height:1.6">The AI engine reads <code>OPENAI_API_KEY</code> from the environment. On Railway, add it as a service variable. Locally, add it to your <code>.env</code> file. If absent, all AI endpoints fall back gracefully to static template responses.</p>
+            </div>
+        </div>`;
 }
