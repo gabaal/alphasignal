@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alphasignal-cache-v12';
+const CACHE_NAME = 'alphasignal-cache-v14';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -9,6 +9,7 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => cache.addAll(ASSETS_TO_CACHE))
@@ -16,6 +17,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+    self.clients.claim();
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(

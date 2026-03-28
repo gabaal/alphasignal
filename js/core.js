@@ -1534,14 +1534,37 @@ async function syncAlerts() {
 
 async function fetchBinanceKlines(symbol, interval, limit=500) {
     try {
-        const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
-        const data = await res.json();
-        return data.map(d => ({
-            time: d[0] / 1000, open: parseFloat(d[1]), high: parseFloat(d[2]),
-            low: parseFloat(d[3]), close: parseFloat(d[4]), value: parseFloat(d[5]),
-            color: parseFloat(d[4]) >= parseFloat(d[1]) ? '#26a69a' : '#ef5350'
-        }));
-    } catch (e) { return []; }
+        // Phase 10: Robust Institutional vs Crypto Detection
+        const sym = (symbol || 'BTC-USD').toUpperCase().replace('-USD', '').replace('USDT', '');
+        const institutionalProxies = ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'];
+        const isEquity = institutionalProxies.includes(sym);
+        
+        if (isEquity) {
+            // Institutional Hub Proxy (Local Backend -> yfinance)
+            const res = await fetch(`/api/equity-klines?symbol=${sym}&interval=${interval}&limit=${limit}`);
+            return await res.json();
+        } else {
+            // Standard Binance Crypto Feed (External -> Binance API)
+            // Normalize: BTC-USD or BTC -> BTCUSDT
+            const binanceSym = sym.endsWith('USDT') ? sym : (sym + 'USDT');
+            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${binanceSym}&interval=${interval}&limit=${limit}`);
+            if (!res.ok) throw new Error(`Binance API ${res.status}`);
+            
+            const data = await res.json();
+            return data.map(d => ({
+                time: d[0] / 1000, 
+                open: parseFloat(d[1]), 
+                high: parseFloat(d[2]),
+                low: parseFloat(d[3]), 
+                close: parseFloat(d[4]), 
+                value: parseFloat(d[5]),
+                color: parseFloat(d[4]) >= parseFloat(d[1]) ? '#26a69a' : '#ef5350'
+            }));
+        }
+    } catch (e) { 
+        console.error(`Kline Universal Fetch Error (${symbol}):`, e);
+        return []; 
+    }
 }
 
 // TAB 1: Overview (Price + Volume + EMA 20/50 + RSI Placeholder)

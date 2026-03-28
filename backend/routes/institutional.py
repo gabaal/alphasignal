@@ -199,50 +199,132 @@ class InstitutionalRoutesMixin:
             self.send_error(500, str(e))
 
     def handle_onchain(self):
+        """Unified Phase 10: On-Chain/CVD Logic for Crypto & Institutional Proxies."""
         try:
             parsed = urllib.parse.urlparse(self.path)
             query = urllib.parse.parse_qs(parsed.query)
             symbol = query.get('symbol', ['BTCUSDT'])[0]
-            ticker = symbol.replace('USDT', '-USD')
-            df = yf.download(ticker, period='1y', interval='1d', progress=False)
-            if df.empty:
-                raise ValueError('No data returned')
-            closes = df['Close'].squeeze().values
+            
+            # Phase 10: Ticker Mapping Logic
+            is_equity = symbol.upper() in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK']
+            ticker = symbol if is_equity else symbol.replace('USDT', '-USD')
+            
+            # Fetch historical data (1d interval for on-chain metrics simulation)
+            df = CACHE.download(ticker, period='1y', interval='1d', progress=False)
+            if df is None or df.empty:
+                self.send_json([])
+                return
+            
+            closes = self._get_price_series(df, ticker).values
             times = [int(x.timestamp()) for x in df.index]
             res = []
             hash_arr = []
+            
             for i in range(len(closes)):
-                pr = closes[i]
-                mean_50 = closes[max(0, i - 50):i + 1].mean()
-                std_50 = closes[max(0, i - 50):i + 1].std() + 1e-05
+                pr = float(closes[i])
+                mean_50 = closes[max(0, i-50):i+1].mean()
+                std_50 = closes[max(0, i-50):i+1].std() + 1e-5
                 z = (pr - mean_50) / std_50
+                
+                # Synthetic Metrics based on price momentum z-score
                 mvrv = 1.5 + z * 0.5
-                nvt = 40.0 - z * 5.0 + math.cos(i / 15.0) * 8.0
-                hashrate = 300 + i * 0.5 + z * 10
+                nvt = 40.0 - z * 5.0 + math.cos(i/15.0) * 8.0
+                
+                # Digital Gold Hashrate vs Equity Volume Velocity
+                hashrate = 300 + i*0.5 + z*10
                 hash_arr.append(hashrate)
                 hash_fast = float(np.mean(hash_arr[-30:])) if len(hash_arr) > 0 else hashrate
                 hash_slow = float(np.mean(hash_arr[-60:])) if len(hash_arr) > 0 else hashrate
-                mean_365 = closes[max(0, i - 365):i + 1].mean()
+                
+                mean_365 = closes[max(0, i-365):i+1].mean()
                 puell = pr / mean_365 + z * 0.1 if mean_365 > 0 else 1.0
-                puell = max(0.3, puell)
-                sopr = 1.0 + z * 0.05 + math.sin(i / 10.0) * 0.02
-                realized = mean_365 * 0.85 + math.cos(i / 30.0) * (mean_365 * 0.05)
+                sopr = 1.0 + z * 0.05 + math.sin(i/10.0) * 0.02
+                realized = mean_365 * 0.85 + math.cos(i/30.0) * (mean_365 * 0.05)
+                
+                # Phase 10: Synthetic CVD (Cumulative Volume Delta)
                 if i == 0:
                     cvd = 0
                 else:
-                    cvd = res[-1]['cvd'] + z * 1000 + random.uniform(-500, 500)
-                exch_flow = math.sin(i / 14.0) * -5000 - z * 2000
-                res.append({'time': times[i], 'price': float(pr), 'mvrv': float(max(0.1, mvrv)), 'nvt': float(max(10, nvt)), 'hash': float(max(100, hashrate)), 'hash_fast': float(max(100, hash_fast)), 'hash_slow': float(max(100, hash_slow)), 'puell': float(puell), 'sopr': float(sopr), 'realized': float(max(1, realized)), 'cvd': float(cvd), 'exch_flow': float(exch_flow)})
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(res).encode())
+                    # Institutions drive delta in proxies; Retail drives delta in spot BTC
+                    vol_factor = 1000 if not is_equity else 5000 
+                    cvd = res[-1]['cvd'] + z * vol_factor + random.uniform(-vol_factor/2, vol_factor/2)
+                
+                exch_flow = math.sin(i/14.0) * -5000 - z * 2000
+                
+                res.append({
+                    'time': times[i],
+                    'price': pr,
+                    'mvrv': float(max(0.1, mvrv)),
+                    'nvt': float(max(10, nvt)),
+                    'hash': float(max(100, hashrate)),
+                    'hash_fast': float(max(100, hash_fast)),
+                    'hash_slow': float(max(100, hash_slow)),
+                    'puell': float(max(0.3, puell)),
+                    'sopr': float(sopr),
+                    'realized': float(max(1, realized)),
+                    'cvd': float(cvd),
+                    'exch_flow': float(exch_flow)
+                })
+            
+            self.send_json(res)
         except Exception as e:
             print(f'[{datetime.now()}] OnChain API Error: {e}')
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}).encode())
+            self.send_json([])
+
+    def handle_derivatives(self):
+        """Phase 10: Unified Derivatives Engine (CEX vs Synthetic Institutional)."""
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0].upper()
+        symbol = ticker.replace('-USD', 'USDT').replace('-', '')
+        is_equity = any(x in ticker for x in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'])
+        
+        # Defaults
+        funding = 0.01; oi = '100M'; oi_change = 0.0; ls_ratio = 1.0; liquidations = '0M'
+        
+        if is_equity:
+            # Phase 10: Synthetic Equity Derivatives (Options-based Sentiment Model)
+            try:
+                hist = CACHE.download(ticker, period='30d', interval='1d')
+                if hist is not None and not hist.empty:
+                    close = self._get_price_series(hist, ticker).iloc[-1]
+                    vol = hist.pct_change().std().iloc[0] if hasattr(hist.pct_change(), 'std') else 0.02
+                    
+                    # Open Interest based on Market Cap approximation
+                    m_cap = 1000000000 if 'MSTR' in ticker else 500000000
+                    oi_val = m_cap * 0.05 * (1 + vol*10)
+                    oi = f'${oi_val/1000000:.1f}M'
+                    
+                    # Synthetic Funding (Relative to Risk-Free Rate / Lending)
+                    funding = 0.005 + vol * 0.1
+                    ls_ratio = 1.0 + random.uniform(-0.15, 0.45) # Skewed bullish for proxies
+                    liquidations = f'${oi_val * vol / 20:.1f}M'
+            except: pass
+        else:
+            # Standard Binance Crypto Derivatives Feed
+            try:
+                # Funding
+                r = requests.get(f'https://fapi.binance.com/fapi/v1/premiumIndex?symbol={symbol}', timeout=1.5)
+                if r.status_code == 200: funding = float(r.json().get('lastFundingRate', 0.0001)) * 100
+                
+                # OI
+                r = requests.get(f'https://fapi.binance.com/fapi/v1/openInterest?symbol={symbol}', timeout=1.5)
+                if r.status_code == 200:
+                    val = float(r.json().get('openInterest', 100000000))
+                    oi = f'{val/1000000:.1f}M'
+                
+                # L/S Ratio
+                r = requests.get(f'https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol={symbol}&period=5m&limit=1', timeout=1.5)
+                if r.status_code == 200 and r.json(): ls_ratio = float(r.json()[0].get('longShortRatio', 1.0))
+            except: pass
+
+        self.send_json({
+            'ticker': ticker,
+            'fundingRate': round(funding, 4),
+            'openInterest': oi,
+            'oiChange': round(oi_change, 2),
+            'liquidations24h': liquidations,
+            'longShortRatio': round(ls_ratio, 2)
+        })
 
     def handle_chain_velocity(self):
         try:

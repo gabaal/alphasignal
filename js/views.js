@@ -4246,7 +4246,7 @@ async function renderAdvOverview(symbol, interval) {
     
     // Phase 5.2: Universal Data Dispatcher (Crypto vs Equity)
     let klines = [];
-    const isCrypto = symbol.endsWith('USDT');
+    const isCrypto = symbol.toUpperCase().includes('USDT') || symbol.toUpperCase().includes('BTC') || symbol.toUpperCase().includes('ETH');
     
     if (isCrypto) {
         klines = await fetchBinanceKlines(symbol, interval, 500);
@@ -4381,32 +4381,60 @@ async function renderAdvDepth(symbol) {
     // Throttle UI renders to avoid destroying the DOM
     let isDrawing = false;
     
-    window.BinanceSocketManager.subscribe(symbol, 'depth20@100ms', (data) => {
-        if(isDrawing || !data.bids || !data.asks) return;
-        isDrawing = true;
-        
-        let bidSum=0, askSum=0;
-        let bids = [], asks = [];
-        let index = 1;
-        
-        [...data.bids].reverse().forEach(b => { 
-            bidSum+=parseFloat(b[1]); 
-            // We use 'index' as fake monotonically increasing X-axis
-            bids.push({time: index++, value: bidSum}); 
+    // Phase 10: Unified Depth Logic (Live Binance vs Institutional Snapshots)
+    const isEquity = ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'].includes(symbol.toUpperCase());
+    
+    if (isEquity) {
+        // Fetch snapshot from our liquidity-history engine
+        try {
+            const history = await fetchAPI(`/liquidity-history?ticker=${symbol}`);
+            if (history && history.data && history.data.length > 0) {
+                // Use the latest available snapshot
+                const latest = history.data[history.data.length - 1];
+                let bidSum = 0, askSum = 0;
+                let bids = [], asks = [];
+                let index = 1;
+
+                // Sort and prepare bids/asks (with safety null checks)
+                const rawBids = Object.entries(latest.bids || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a,b) => b[0]-a[0]);
+                const rawAsks = Object.entries(latest.asks || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a,b) => a[0]-b[0]);
+
+                rawBids.forEach(b => { bidSum += b[1]; bids.push({ time: index++, value: bidSum }); });
+                index += 2;
+                rawAsks.forEach(a => { askSum += a[1]; asks.push({ time: index++, value: askSum }); });
+
+                bidArea.setData(bids);
+                askArea.setData(asks);
+            } else {
+                container.innerHTML = '<div class="error-msg">Institutional Depth Offline</div>';
+            }
+        } catch(e) { console.error("Depth Engine Error:", e); }
+    } else {
+        // Standard Binance WebSocket for Crypto
+        window.BinanceSocketManager.subscribe(symbol, 'depth20@100ms', (data) => {
+            if(isDrawing || !data.bids || !data.asks) return;
+            isDrawing = true;
+            
+            let bidSum=0, askSum=0;
+            let bids = [], asks = [];
+            let index = 1;
+            
+            [...data.bids].reverse().forEach(b => { 
+                bidSum+=parseFloat(b[1]); 
+                bids.push({time: index++, value: bidSum}); 
+            });
+            
+            index += 2;
+            data.asks.forEach(a => { 
+                askSum+=parseFloat(a[1]); 
+                asks.push({time: index++, value: askSum }); 
+            });
+            
+            bidArea.setData(bids);
+            askArea.setData(asks);
+            isDrawing = false;
         });
-        
-        index += 2; // visual gap between spread
-        
-        data.asks.forEach(a => { 
-            askSum+=parseFloat(a[1]); 
-            asks.push({time: index++, value: askSum }); 
-        });
-        
-        bidArea.setData(bids);
-        askArea.setData(asks);
-        
-        isDrawing = false;
-    });
+    }
     
     const ro = new ResizeObserver(e => { if(e.length > 0 && e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
     ro.observe(container);
@@ -4418,9 +4446,7 @@ async function renderAdvDerivatives(symbol, interval) {
     const container = document.getElementById('advanced-chart-container');
     if(!container) return;
     
-    // Switch to higher frequency for better visual demo
     interval = '1m';
-    
     const klines = await fetchBinanceKlines(symbol, interval, 100);
     container.innerHTML = '';
     
@@ -4489,10 +4515,13 @@ async function renderAdvComparative(interval) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
     if(!container) return;
-    const [btc, eth, sol] = await Promise.all([
-        fetchBinanceKlines('BTCUSDT', interval, 100),
-        fetchBinanceKlines('ETHUSDT', interval, 100),
-        fetchBinanceKlines('SOLUSDT', interval, 100)
+
+    const sym = document.getElementById('adv-symbol').value;
+    
+    // Phase 10: Dynamic Benchmarking (Active Asset vs BTC)
+    const [activeData, btcData] = await Promise.all([
+        fetchBinanceKlines(sym, interval, 100),
+        fetchBinanceKlines('BTCUSDT', interval, 100)
     ]);
     container.innerHTML = '';
     
@@ -4505,9 +4534,8 @@ async function renderAdvComparative(interval) {
         let start = data[0].close;
         return data.map(d => ({time: d.time, value: ((d.close - start)/start)*100}));
     };
-    chart.addLineSeries({color:'#facc15', lineWidth:2, title: 'BTC'}).setData(norm(btc));
-    chart.addLineSeries({color:'#60a5fa', lineWidth:2, title: 'ETH'}).setData(norm(eth));
-    chart.addLineSeries({color:'#22c55e', lineWidth:2, title: 'SOL'}).setData(norm(sol));
+    chart.addLineSeries({color:'#facc15', lineWidth:2, title: sym}).setData(norm(activeData));
+    chart.addLineSeries({color:'rgba(255,255,255,0.4)', lineWidth:1, title: 'BTC Benchmark'}).setData(norm(btcData));
     
     chart.applyOptions({ localization: { priceFormatter: p => p.toFixed(2) + '%' } });
     const ro = new ResizeObserver(e => { if(e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
