@@ -393,6 +393,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_history()
             elif path.startswith('/api/benchmark'):
                 self.handle_benchmark()
+            elif path.startswith('/api/backtest-v2'):
+                self.handle_backtest_v2()
             elif path.startswith('/api/backtest'):
                 self.handle_backtest()
             elif path.startswith('/api/walk-forward'):

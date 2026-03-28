@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaSignal — Institutional Crypto Intelligence</title>
+    <title>AlphaSignal â€” Institutional Crypto Intelligence</title>
     <meta name="description" content="AlphaSignal: Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
     <meta name="keywords" content="crypto, institutional intelligence, order flow, AI market analysis, alpha signals, trading dashboard">
     <meta name="author" content="Gerald Baalham">
@@ -23,14 +23,14 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" id="og-url" content="https://alphasignal.digital/">
-    <meta property="og:title" id="og-title" content="AlphaSignal — Institutional Crypto Intelligence">
+    <meta property="og:title" id="og-title" content="AlphaSignal â€” Institutional Crypto Intelligence">
     <meta property="og:description" id="og-desc" content="Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
     <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" id="twitter-url" content="https://alphasignal.digital/">
-    <meta property="twitter:title" id="twitter-title" content="AlphaSignal — Institutional Crypto Intelligence">
+    <meta property="twitter:title" id="twitter-title" content="AlphaSignal â€” Institutional Crypto Intelligence">
     <meta property="twitter:description" id="twitter-desc" content="Real-time multi-asset intelligence dashboard with risk analytics, mindshare tracking, and AI-driven alpha insights.">
     <meta property="twitter:image" content="https://alphasignal.digital/assets/social-preview.png">
 
@@ -210,7 +210,7 @@
                 </div>
                 <div class="search-container" role="search">
                     <input type="text" id="global-search" placeholder="SEARCH TICKER (e.g. AAPL, TSLA, SOL-USD)..." autocomplete="off" aria-label="Search for tickers">
-                    <span class="search-hint" aria-hidden="true">ENTER ↵</span>
+                    <span class="search-hint" aria-hidden="true">ENTER â†µ</span>
                 </div>
                 <div class="top-bar-actions">
                     <div class="action-group" id="live-meta-group">
@@ -293,7 +293,7 @@
 
     <div id="detail-overlay" class="overlay hidden">
         <div class="overlay-content">
-            <button class="close-overlay" aria-label="Close Overlay">×</button>
+            <button class="close-overlay" aria-label="Close Overlay">Ã—</button>
             <div id="detail-body">
                 <!-- Detail content injected here -->
             </div>
@@ -303,7 +303,7 @@
     <!-- Pack G5: AI Analyst Modal -->
     <div id="ai-modal" class="overlay hidden">
         <div class="overlay-content ai-analyst-panel">
-            <button class="close-ai-modal" aria-label="Close AI Analyst Modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">×</button>
+            <button class="close-ai-modal" aria-label="Close AI Analyst Modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">Ã—</button>
             <div class="ai-header">
                 <div class="ai-orb"></div>
                 <h2>Alpha Intelligence Analyst</h2>
@@ -320,7 +320,7 @@
     <!-- News Article Modal -->
     <div id="news-modal" class="overlay hidden">
         <div class="overlay-content news-article-panel">
-            <button class="close-overlay" onclick="document.getElementById('news-modal').classList.add('hidden')">×</button>
+            <button class="close-overlay" onclick="document.getElementById('news-modal').classList.add('hidden')">Ã—</button>
             <div id="news-article-body">
                 <!-- News content injected here -->
             </div>
@@ -365,7 +365,7 @@
     <!-- Paywall Modal -->
     <div id="paywall-overlay" class="overlay hidden">
         <div class="overlay-content paywall-panel">
-            <button class="close-overlay" onclick="document.getElementById('paywall-overlay').classList.add('hidden')">×</button>
+            <button class="close-overlay" onclick="document.getElementById('paywall-overlay').classList.add('hidden')">Ã—</button>
             <div class="paywall-header">
                 <div class="premium-orb"></div>
                 <h2>PREMIUM<span>ACCESS</span></h2>
@@ -405,7 +405,7 @@
                     <div class="price">$7.99<span>/mo</span></div>
                     <button class="intel-action-btn large" onclick="handleSubscribe()">UPGRADE TO PRO</button>
                 </div>
-                <p class="paywall-footer-text">SECURE SUBSCRIPTION • 256-BIT ENCRYPTION • CANCEL ANYTIME</p>
+                <p class="paywall-footer-text">SECURE SUBSCRIPTION â€¢ 256-BIT ENCRYPTION â€¢ CANCEL ANYTIME</p>
             </div>
         </div>
     </div>
@@ -415,14 +415,16 @@
     <script src="tape.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <!-- Phase 16-C: TradingView Advanced Chart Widget -->
+    <script src="https://s3.tradingview.com/tv.js" async></script>
     <!-- Phase 15-C: Export libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="js/core.js?v=1.26"></script>
-    <script src="js/heatmap_engine.js?v=1.26"></script>
-    <script src="js/charts.js?v=1.26"></script>
-    <script src="js/views.js?v=1.26"></script>
-    <script src="js/main.js?v=1.26"></script>
+    <script src="js/core.js?v=1.27"></script>
+    <script src="js/heatmap_engine.js?v=1.27"></script>
+    <script src="js/charts.js?v=1.27"></script>
+    <script src="js/views.js?v=1.27"></script>
+    <script src="js/main.js?v=1.27"></script>
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
     <div id="notification-modal" class="overlay hidden">
@@ -487,7 +489,7 @@
             font-size:0.7rem; font-weight:800; cursor:pointer; flex-shrink:0;">INSTALL</button>
         <button id="pwa-dismiss-btn" style="
             background:none; border:none; color:rgba(255,255,255,0.4);
-            font-size:1.2rem; cursor:pointer; flex-shrink:0; line-height:1;">×</button>
+            font-size:1.2rem; cursor:pointer; flex-shrink:0; line-height:1;">Ã—</button>
     </div>
     <style>
         @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
@@ -531,3 +533,4 @@
     </script>
 </body>
 </html>
+

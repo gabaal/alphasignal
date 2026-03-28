@@ -485,6 +485,9 @@ function renderAdvancedChart() {
             <button class="filter-btn" id="tab-funding" onclick="setAdvTab('funding')">Funding Rates</button>
             <button class="filter-btn" id="tab-tape-imbalance" onclick="setAdvTab('tape-imbalance')">Tape Imbalance</button>
             <button class="filter-btn" id="tab-options-surface" onclick="setAdvTab('options-surface')">Vol Surface</button>
+            <button class="filter-btn" id="tab-tradingview" onclick="setAdvTab('tradingview')" style="color:#2196f3;border-color:rgba(33,150,243,0.3)">
+                <span style="font-size:0.65rem">&#xE7E4;</span> TRADINGVIEW
+            </button>
         </div>
 
         <div class="card" style="padding:1rem; min-height:500px; position:relative;">
@@ -515,8 +518,14 @@ function renderAdvancedChart() {
     window.setAdvTab = (tab) => {
         currentAdvTab = tab;
         document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.remove('active'));
-        document.getElementById(`tab-${tab}`).classList.add('active');
-        dispatchAdvTab();
+        document.getElementById(`tab-${tab}`)?.classList.add('active');
+        if (tab === 'tradingview') {
+            const sym = document.getElementById('adv-symbol')?.value || 'BTCUSDT';
+            const interval = document.getElementById('adv-interval')?.value || '1h';
+            renderTradingViewWidget(sym, interval);
+        } else {
+            dispatchAdvTab();
+        }
     };
 
     dispatchAdvTab();
@@ -525,3 +534,87 @@ function renderAdvancedChart() {
 // ============================================================
 // Phase 9: On-Chain Analytics Dashboard
 // ============================================================
+// ============================================================
+// Phase 16-C: TradingView Advanced Chart Widget
+// ============================================================
+
+/** Map internal symbol codes to TradingView format */
+function toTVSymbol(sym) {
+    const map = {
+        'BTCUSDT':  'BINANCE:BTCUSDT',
+        'ETHUSDT':  'BINANCE:ETHUSDT',
+        'SOLUSDT':  'BINANCE:SOLUSDT',
+        'DOGEUSDT': 'BINANCE:DOGEUSDT',
+        'PEPEUSDT': 'BINANCE:PEPEUSDT',
+        'MSTR':     'NASDAQ:MSTR',
+        'COIN':     'NASDAQ:COIN',
+        'MARA':     'NASDAQ:MARA',
+    };
+    return map[sym] || 'BINANCE:BTCUSDT';
+}
+
+/** Map adv-interval values to TradingView interval codes */
+function toTVInterval(iv) {
+    return { '1m': '1', '5m': '5', '15m': '15', '1h': '60', '4h': '240', '1d': 'D' }[iv] || '60';
+}
+
+/**
+ * Render the TradingView Advanced Chart widget inside #advanced-chart-container.
+ * Called when the user clicks the TRADINGVIEW tab.
+ */
+function renderTradingViewWidget(sym, interval) {
+    const container = document.getElementById('advanced-chart-container');
+    if (!container) return;
+
+    // Clear previous content
+    container.innerHTML = '';
+    container.style.height = '600px';
+
+    // Ensure the heatmap legend overlay is hidden
+    const legend = document.getElementById('heatmap-legend-overlay');
+    if (legend) legend.style.display = 'none';
+
+    if (typeof TradingView === 'undefined') {
+        container.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--text-dim)">
+                <span class="material-symbols-outlined" style="font-size:48px;color:#2196f3">show_chart</span>
+                <div style="font-size:0.9rem">TradingView widget loading...</div>
+                <div style="font-size:0.7rem;opacity:0.5">Requires internet connection</div>
+            </div>`;
+        // Retry after library loads
+        setTimeout(() => renderTradingViewWidget(sym, interval), 1500);
+        return;
+    }
+
+    new TradingView.widget({
+        container_id: 'advanced-chart-container',
+        symbol: toTVSymbol(sym),
+        interval: toTVInterval(interval),
+        timezone: 'Etc/UTC',
+        theme: 'dark',
+        style: '1',             // Candlestick
+        locale: 'en',
+        toolbar_bg: '#05070a',
+        enable_publishing: false,
+        hide_top_toolbar: false,
+        hide_legend: false,
+        save_image: true,
+        height: 600,
+        width: '100%',
+        studies: [
+            'MASimple@tv-basicstudies',
+            'RSI@tv-basicstudies',
+            'MACD@tv-basicstudies',
+            'BB@tv-basicstudies'
+        ],
+        show_popup_button: true,
+        popup_width: '1200',
+        popup_height: '700',
+        backgroundColor: 'rgba(5, 7, 10, 1)',
+        gridColor: 'rgba(255, 255, 255, 0.04)',
+        overrides: {
+            'paneProperties.background': '#05070a',
+            'paneProperties.backgroundType': 'solid',
+        }
+    });
+}

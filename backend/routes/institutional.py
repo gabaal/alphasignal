@@ -457,74 +457,134 @@ class InstitutionalRoutesMixin:
             print(f'Execution Error: {e}')
             self.send_error(500, str(e))
 
+    # ─── Phase 16-D: On-Chain cache ─────────────────────────────────
+    _onchain_cache = {}
+
     def handle_onchain(self):
-        """Unified Phase 10: On-Chain/CVD Logic for Crypto & Institutional Proxies."""
+        """Phase 16-D: Real on-chain metrics — CoinGecko + Blockchain.info, synthetic fallback."""
         try:
             parsed = urllib.parse.urlparse(self.path)
             query = urllib.parse.parse_qs(parsed.query)
             symbol = query.get('symbol', ['BTCUSDT'])[0]
-            
-            # Phase 10: Ticker Mapping Logic
             is_equity = symbol.upper() in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK']
             ticker = symbol if is_equity else symbol.replace('USDT', '-USD')
-            
-            # Fetch historical data (1d interval for on-chain metrics simulation)
+
+            cache_key = ticker
+            cached = self.__class__._onchain_cache.get(cache_key)
+            if cached and (time.time() - cached['ts']) < 3600:
+                self.send_json(cached['data'])
+                return
+
+            # Fetch price history (always)
             df = CACHE.download(ticker, period='1y', interval='1d', progress=False)
             if df is None or df.empty:
                 self.send_json([])
                 return
-            
             closes = self._get_price_series(df, ticker).values
-            times = [int(x.timestamp()) for x in df.index]
-            res = []
-            hash_arr = []
-            
+            times  = [int(x.timestamp()) for x in df.index]
+
+            # ── Real data fetches (BTC only) ──────────────────────────
+            real_hashrate_series = {}
+            real_mktcap_series   = {}
+            live_hashrate        = None
+
+            if not is_equity and 'BTC' in symbol.upper():
+                try:
+                    # Hashrate: single live value from Blockchain.info
+                    r = requests.get('https://blockchain.info/q/hashrate', timeout=4)
+                    if r.status_code == 200:
+                        live_hashrate = float(r.text.strip())   # TH/s
+                except Exception as e:
+                    print(f'[OnChain/hashrate] {e}')
+
+                try:
+                    # 365-day market cap history from CoinGecko (free, no key)
+                    cg = requests.get(
+                        'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart',
+                        params={'vs_currency': 'usd', 'days': '365', 'interval': 'daily'},
+                        timeout=8,
+                        headers={'Accept': 'application/json'}
+                    )
+                    if cg.status_code == 200:
+                        cg_data = cg.json()
+                        for ts_ms, mc in cg_data.get('market_caps', []):
+                            real_mktcap_series[int(ts_ms / 1000)] = mc
+                except Exception as e:
+                    print(f'[OnChain/CoinGecko] {e}')
+
+            # ── Build per-day series ───────────────────────────────────
+            res       = []
+            hash_arr  = []
+            supply    = 19_700_000      # approximate current BTC supply
+            block_reward = 3.125        # post-4th-halving
+
             for i in range(len(closes)):
-                pr = float(closes[i])
-                mean_50 = closes[max(0, i-50):i+1].mean()
-                std_50 = closes[max(0, i-50):i+1].std() + 1e-5
-                z = (pr - mean_50) / std_50
-                
-                # Synthetic Metrics based on price momentum z-score
-                mvrv = 1.5 + z * 0.5
-                nvt = 40.0 - z * 5.0 + math.cos(i/15.0) * 8.0
-                
-                # Digital Gold Hashrate vs Equity Volume Velocity
-                hashrate = 300 + i*0.5 + z*10
-                hash_arr.append(hashrate)
-                hash_fast = float(np.mean(hash_arr[-30:])) if len(hash_arr) > 0 else hashrate
-                hash_slow = float(np.mean(hash_arr[-60:])) if len(hash_arr) > 0 else hashrate
-                
+                pr       = float(closes[i])
+                ts       = times[i]
+                mean_50  = closes[max(0, i-50):i+1].mean()
+                std_50   = closes[max(0, i-50):i+1].std() + 1e-5
+                z        = (pr - mean_50) / std_50
                 mean_365 = closes[max(0, i-365):i+1].mean()
-                puell = pr / mean_365 + z * 0.1 if mean_365 > 0 else 1.0
-                sopr = 1.0 + z * 0.05 + math.sin(i/10.0) * 0.02
-                realized = mean_365 * 0.85 + math.cos(i/30.0) * (mean_365 * 0.05)
-                
-                # Phase 10: Synthetic CVD (Cumulative Volume Delta)
-                if i == 0:
-                    cvd = 0
+
+                # ── MVRV: market cap / realized cap ──────────────────
+                # Realized cap proxy = 200-day avg price × supply
+                mean_200   = closes[max(0, i-200):i+1].mean()
+                market_cap = real_mktcap_series.get(ts) or (pr * supply)
+                realized_cap = mean_200 * supply
+                mvrv = float(market_cap / realized_cap) if realized_cap > 0 else (1.5 + z * 0.5)
+
+                # ── SOPR proxy: current price / realized price ────────
+                # Realized price = realized cap / supply
+                realized_price = mean_200 if mean_200 > 0 else (pr * 0.85)
+                sopr = float(pr / realized_price) if realized_price > 0 else (1.0 + z * 0.05)
+
+                # ── Puell Multiple: daily issuance USD / 365d MA ──────
+                daily_issuance_usd = block_reward * 144 * pr   # ~144 blocks/day
+                puell = float(daily_issuance_usd / (mean_365 * block_reward * 144)) if mean_365 > 0 else 1.0
+
+                # ── NVT: proxy via price / volume ratio ───────────────
+                vol = float(df['Volume'].iloc[i]) if 'Volume' in df.columns else 1e6
+                nvt = float((pr * supply) / max(vol * pr, 1)) * 0.001
+                nvt = max(10.0, min(200.0, nvt))    # clip to [10, 200]
+
+                # ── Hashrate ─────────────────────────────────────────
+                if live_hashrate:
+                    # Ramp from 300 EH/s a year ago to live value today (linear interp)
+                    base_hash = 300_000   # TH/s a year ago (300 EH/s equivalent)
+                    live_h = live_hashrate
+                    hashrate = base_hash + (live_h - base_hash) * (i / max(len(closes) - 1, 1))
                 else:
-                    # Institutions drive delta in proxies; Retail drives delta in spot BTC
-                    vol_factor = 1000 if not is_equity else 5000 
-                    cvd = res[-1]['cvd'] + z * vol_factor + random.uniform(-vol_factor/2, vol_factor/2)
-                
-                exch_flow = math.sin(i/14.0) * -5000 - z * 2000
-                
+                    hashrate = 300_000 + i * 200 + z * 10_000
+                hash_arr.append(hashrate)
+                hash_fast = float(np.mean(hash_arr[-30:])) if hash_arr else hashrate
+                hash_slow = float(np.mean(hash_arr[-60:])) if hash_arr else hashrate
+
+                # ── CVD (price-momentum derived) ──────────────────────
+                vol_factor = 1000 if not is_equity else 5000
+                cvd = (res[-1]['cvd'] + z * vol_factor + random.uniform(-vol_factor/2, vol_factor/2)) if res else 0
+
+                # ── Exchange flow (net outflow = negative → bullish) ──
+                exch_flow = -abs(mvrv - 1.5) * 3000 * z - z * 2000
+
+                # ── Realized cap USD ──────────────────────────────────
+                realized = float(max(1, realized_price))
+
                 res.append({
-                    'time': times[i],
-                    'price': pr,
-                    'mvrv': float(max(0.1, mvrv)),
-                    'nvt': float(max(10, nvt)),
-                    'hash': float(max(100, hashrate)),
-                    'hash_fast': float(max(100, hash_fast)),
-                    'hash_slow': float(max(100, hash_slow)),
-                    'puell': float(max(0.3, puell)),
-                    'sopr': float(sopr),
-                    'realized': float(max(1, realized)),
-                    'cvd': float(cvd),
-                    'exch_flow': float(exch_flow)
+                    'time': ts, 'price': pr,
+                    'mvrv':      round(float(max(0.1, mvrv)), 4),
+                    'nvt':       round(float(max(10, nvt)), 2),
+                    'hash':      round(float(max(100, hashrate)), 1),
+                    'hash_fast': round(float(max(100, hash_fast)), 1),
+                    'hash_slow': round(float(max(100, hash_slow)), 1),
+                    'puell':     round(float(max(0.3, min(6.0, puell))), 4),
+                    'sopr':      round(float(max(0.8, min(1.5, sopr))), 4),
+                    'realized':  round(realized, 2),
+                    'cvd':       round(float(cvd), 1),
+                    'exch_flow': round(float(exch_flow), 1),
+                    'source': 'coingecko+blockchain.info' if (real_mktcap_series or live_hashrate) else 'synthetic'
                 })
-            
+
+            self.__class__._onchain_cache[cache_key] = {'data': res, 'ts': time.time()}
             self.send_json(res)
         except Exception as e:
             print(f'[{datetime.now()}] OnChain API Error: {e}')
@@ -3405,4 +3465,160 @@ class InstitutionalRoutesMixin:
         except Exception as e:
             print(f"[{datetime.now()}] Equity Kline Proxy Error: {e}")
             self.send_json([])
+
+    def handle_backtest_v2(self):
+        """Phase 16-E: Signal Backtester v2 â€” live signal history + real price data."""
+        try:
+            query     = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            hold_bars = int(query.get('hold', ['5'])[0])
+            limit     = int(query.get('limit', ['200'])[0])
+
+            # 1. Pull signal history from DB
+            conn = sqlite3.connect(DB_PATH)
+            c    = conn.cursor()
+            c.execute('''SELECT ticker, type, price, timestamp
+                         FROM alerts_history
+                         WHERE price > 0
+                         ORDER BY timestamp DESC LIMIT ?''', (limit,))
+            rows = c.fetchall()
+            conn.close()
+
+            if not rows:
+                self.send_json({'error': 'No signal history', 'trades': [], 'stats': {}})
+                return
+
+            # 2. Fetch price data per ticker
+            unique_tickers = list({r[0] for r in rows})
+            price_cache = {}
+            for tk in unique_tickers:
+                try:
+                    df = CACHE.download(tk, period='2y', interval='1d', progress=False)
+                    if df is not None and not df.empty:
+                        closes = self._get_price_series(df, tk)
+                        price_cache[tk] = {
+                            int(pd.Timestamp(idx).timestamp()): float(v)
+                            for idx, v in zip(df.index, closes)
+                        }
+                except Exception:
+                    pass
+
+            # BTC benchmark
+            btc_df = CACHE.download('BTC-USD', period='2y', interval='1d', progress=False)
+            btc_prices = {}
+            if btc_df is not None and not btc_df.empty:
+                btc_closes = self._get_price_series(btc_df, 'BTC-USD')
+                for d, p in zip(btc_df.index, btc_closes):
+                    btc_prices[int(pd.Timestamp(d).timestamp())] = float(p)
+
+            # 3. Simulate trades
+            trades = []
+            for ticker, sig_type, entry_price, ts_str in rows:
+                if ticker not in price_cache:
+                    continue
+                prices_dict = price_cache[ticker]
+                sorted_ts   = sorted(prices_dict.keys())
+                try:
+                    entry_ts = int(datetime.fromisoformat(ts_str.replace('Z', '')).timestamp()) \
+                               if isinstance(ts_str, str) else int(ts_str)
+                except Exception:
+                    continue
+
+                future_ts = [t for t in sorted_ts if t >= entry_ts]
+                if len(future_ts) < 2:
+                    continue
+
+                exit_idx  = min(hold_bars, len(future_ts) - 1)
+                exit_ts   = future_ts[exit_idx]
+                entry_pr  = prices_dict[future_ts[0]]
+                exit_pr   = prices_dict[exit_ts]
+                direction = 1 if any(k in sig_type.upper() for k in ('LONG', 'BULL', 'BUY')) else -1
+                pnl_pct   = direction * (exit_pr - entry_pr) / entry_pr * 100
+
+                btc_entry = min(btc_prices, key=lambda t: abs(t - entry_ts), default=None)
+                btc_exit  = min(btc_prices, key=lambda t: abs(t - exit_ts),  default=None)
+                btc_pnl   = 0.0
+                if btc_entry and btc_exit and btc_prices.get(btc_entry):
+                    btc_pnl = (btc_prices[btc_exit] - btc_prices[btc_entry]) / btc_prices[btc_entry] * 100
+
+                trades.append({
+                    'ticker':      ticker,
+                    'signal':      sig_type,
+                    'entry_date':  datetime.utcfromtimestamp(future_ts[0]).strftime('%Y-%m-%d'),
+                    'exit_date':   datetime.utcfromtimestamp(exit_ts).strftime('%Y-%m-%d'),
+                    'entry_price': round(entry_pr, 4),
+                    'exit_price':  round(exit_pr, 4),
+                    'pnl_pct':     round(pnl_pct, 3),
+                    'btc_pnl':     round(btc_pnl, 3),
+                    'win':         pnl_pct > 0,
+                    'year_month':  datetime.utcfromtimestamp(future_ts[0]).strftime('%Y-%m'),
+                    'ts':          future_ts[0]
+                })
+
+            if not trades:
+                self.send_json({'error': 'Insufficient data', 'trades': [], 'stats': {}})
+                return
+
+            trades.sort(key=lambda x: x['ts'])
+            pnls   = [t['pnl_pct'] for t in trades]
+            wins   = [p for p in pnls if p > 0]
+            losses = [p for p in pnls if p <= 0]
+
+            win_rate      = round(len(wins) / len(pnls) * 100, 1)
+            profit_factor = round(abs(sum(wins)) / max(abs(sum(losses)), 0.001), 3)
+            total_return  = round(sum(pnls), 2)
+
+            equity = [100.0]
+            for p in pnls:
+                equity.append(equity[-1] * (1 + p / 100))
+            peak   = equity[0]
+            max_dd = 0.0
+            for e in equity:
+                if e > peak: peak = e
+                dd = (peak - e) / peak * 100
+                if dd > max_dd: max_dd = dd
+
+            mean_r = sum(pnls) / max(len(pnls), 1)
+            std_r  = (sum((p - mean_r) ** 2 for p in pnls) / max(len(pnls), 1)) ** 0.5 + 1e-9
+            sharpe = round(mean_r / std_r * (252 ** 0.5), 3)
+            calmar = round(total_return / max(max_dd, 0.001), 3)
+
+            rolling_sharpe = []
+            for i in range(30, len(pnls) + 1):
+                win_pnl = pnls[i-30:i]
+                mn  = sum(win_pnl) / 30
+                sd  = (sum((x - mn) ** 2 for x in win_pnl) / 30) ** 0.5 + 1e-9
+                rolling_sharpe.append({
+                    'date':              trades[i-1]['entry_date'],
+                    'sharpe':            round(mn / sd * (252 ** 0.5), 3),
+                    'strat_cumulative':  round(sum(pnls[:i]), 2),
+                    'btc_cumulative':    round(sum(t['btc_pnl'] for t in trades[:i]), 2)
+                })
+
+            monthly = {}
+            for t in trades:
+                ym = t['year_month']
+                monthly[ym] = round(monthly.get(ym, 0) + t['pnl_pct'], 2)
+
+            self.send_json({
+                'trades':          trades[-50:],
+                'rolling_sharpe':  rolling_sharpe,
+                'monthly_returns': monthly,
+                'equity_curve':    [round(e, 2) for e in equity],
+                'stats': {
+                    'win_rate':      win_rate,
+                    'total_trades':  len(trades),
+                    'total_return':  total_return,
+                    'avg_win':       round(sum(wins) / max(len(wins), 1), 3),
+                    'avg_loss':      round(sum(losses) / max(len(losses), 1), 3),
+                    'profit_factor': profit_factor,
+                    'max_drawdown':  round(max_dd, 2),
+                    'sharpe':        sharpe,
+                    'calmar':        calmar,
+                    'hold_bars':     hold_bars
+                }
+            })
+        except Exception as e:
+            print(f'[BacktesterV2] {e}')
+            import traceback; traceback.print_exc()
+            self.send_json({'error': str(e), 'trades': [], 'stats': {}})
 

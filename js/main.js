@@ -27,6 +27,7 @@ const viewMap = {
     portfolio: renderPortfolioLab,
     'portfolio-optimizer': renderPortfolioOptimizer,
     'strategy-lab': renderStrategyLab,
+    'backtester-v2': renderBacktesterV2,
     risk: renderRiskMatrix,
     stress: renderStressHub,
     narrative: renderNarrativeGalaxy,
