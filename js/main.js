@@ -2012,7 +2012,7 @@ async function loadAIMemo() {
             body.innerHTML = `<p>${html}</p>`;
             if (meta) meta.innerHTML = `Generated ${data.generated_at} &bull; <span style="color:${data.source === 'gpt-4o-mini' ? '#bc13fe' : '#888'}">${data.source === 'gpt-4o-mini' ? 'GPT-4o-mini' : 'Static Template'}</span>`;
         } else {
-            body.innerHTML = '<p style="color:var(--text-dim)">Memo unavailable — check API key configuration.</p>';
+            body.innerHTML = '<p style="color:var(--text-dim)">Memo unavailable -- check API key configuration.</p>';
         }
     } catch(e) {
         body.innerHTML = '<p style="color:var(--text-dim)">Failed to load AI memo.</p>';
@@ -2160,7 +2160,7 @@ function renderDocsAIEngine() {
     appEl.innerHTML = `
         <div class="view-header">
             <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#bc13fe">smart_toy</span>AI Narrative Engine</h1>
-            <p>Phase 15-B documentation — GPT-4o-mini powered institutional intelligence layer.</p>
+            <p>Phase 15-B documentation -- GPT-4o-mini powered institutional intelligence layer.</p>
         </div>
         <div style="max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem">
             <div class="glass-card" style="padding:1.5rem">
@@ -2175,9 +2175,195 @@ function renderDocsAIEngine() {
                 <h3 style="color:#bc13fe;margin-bottom:1rem">Signal Thesis Generator</h3>
                 <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">Each signal card has a <strong>THESIS</strong> button that generates a 2-sentence GPT-powered trade rationale specific to that ticker, signal direction, and Z-Score deviation. Used to rapidly synthesise the technical and fundamental case for entering or avoiding a trade.</p>
             </div>
-            <div class="glass-card" style="padding:1.5rem;border-color:rgba(188,19,254,0.3)">
-                <h3 style="margin-bottom:0.5rem">Configuration</h3>
-                <p style="color:var(--text-dim);font-size:0.85rem;line-height:1.6">The AI engine reads <code>OPENAI_API_KEY</code> from the environment. On Railway, add it as a service variable. Locally, add it to your <code>.env</code> file. If absent, all AI endpoints fall back gracefully to static template responses.</p>
-            </div>
         </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Phase 15-C: Export / Sharing Engine
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Export any canvas element as a timestamped PNG download.
+ * @param {HTMLCanvasElement|string} canvasOrId - Canvas element or its ID
+ * @param {string} filename - Base filename (timestamp appended automatically)
+ */
+async function exportChartPNG(canvasOrId, filename = 'alphasignal-chart') {
+    if (typeof html2canvas === 'undefined') {
+        showToast('EXPORT', 'Export library loading, please try again in a moment.', 'info');
+        return;
+    }
+    try {
+        showToast('EXPORTING', 'Capturing chart…', 'info');
+        const el = typeof canvasOrId === 'string' ? document.getElementById(canvasOrId) : canvasOrId;
+        if (!el) { showToast('ERROR', 'Chart element not found.', 'alert'); return; }
+        const canvas = await html2canvas(el, {
+            backgroundColor: '#05070a',
+            scale: 2,
+            logging: false,
+            useCORS: true
+        });
+        const ts = new Date().toISOString().slice(0, 10);
+        const link = document.createElement('a');
+        link.download = `${filename}-${ts}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('EXPORTED', 'Chart saved as PNG (OK)', 'success');
+    } catch (e) {
+        console.error('[ExportPNG]', e);
+        showToast('ERROR', 'PNG export failed: ' + e.message, 'alert');
+    }
+}
+
+/**
+ * Export the current view as an institutional PDF report.
+ * @param {string} title - Report title shown in the header
+ * @param {string} containerId - ID of the DOM element to capture (defaults to 'main-content')
+ */
+async function exportViewPDF(title = 'AlphaSignal Report', containerId = 'main-content') {
+    if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+        showToast('EXPORT', 'Export library loading, please try again in a moment.', 'info');
+        return;
+    }
+    try {
+        showToast('EXPORTING', 'Building PDF report…', 'info');
+        const el = document.getElementById(containerId) || document.querySelector('.content');
+        if (!el) { showToast('ERROR', 'Content element not found.', 'alert'); return; }
+
+        const canvas = await html2canvas(el, {
+            backgroundColor: '#05070a',
+            scale: 1.5,
+            logging: false,
+            useCORS: true,
+            windowWidth: el.scrollWidth,
+            windowHeight: el.scrollHeight
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+
+        // Header bar
+        pdf.setFillColor(5, 7, 10);
+        pdf.rect(0, 0, pageW, pageH, 'F');
+        pdf.setFillColor(0, 212, 170);
+        pdf.rect(0, 0, pageW, 12, 'F');
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('ALPHASIGNAL TERMINAL', margin, 8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(new Date().toUTCString(), pageW - margin, 8, { align: 'right' });
+
+        // Title
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(title, margin, 22);
+
+        // Chart image
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        const imgW = pageW - margin * 2;
+        const imgH = (canvas.height / canvas.width) * imgW;
+        let yPos = 28;
+        let remainH = imgH;
+        let srcY = 0;
+
+        while (remainH > 0) {
+            const sliceH = Math.min(remainH, pageH - yPos - margin);
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = (sliceH / imgW) * canvas.width;
+            const ctx = sliceCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, srcY * (canvas.height / imgH), canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+            pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, yPos, imgW, sliceH);
+            remainH -= sliceH;
+            srcY += sliceH;
+            if (remainH > 0) { pdf.addPage(); yPos = margin; }
+        }
+
+        // Footer
+        const pageCount = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            pdf.setPage(i);
+            pdf.setFillColor(0, 212, 170, 0.15);
+            pdf.setTextColor(100, 100, 100);
+            pdf.setFontSize(7);
+            pdf.text(`CONFIDENTIAL -- INSTITUTIONAL USE ONLY -- alphasignal.io -- Page ${i}/${pageCount}`, pageW / 2, pageH - 4, { align: 'center' });
+        }
+
+        const ts = new Date().toISOString().slice(0, 10);
+        pdf.save(`alphasignal-${title.toLowerCase().replace(/\s+/g, '-')}-${ts}.pdf`);
+        showToast('EXPORTED', 'PDF report saved (OK)', 'success');
+    } catch (e) {
+        console.error('[ExportPDF]', e);
+        showToast('ERROR', 'PDF export failed: ' + e.message, 'alert');
+    }
+}
+
+/**
+ * Show a floating export action sheet anchored to a trigger element.
+ * @param {Event} event - Click event from the export button
+ * @param {string} chartId - ID of the canvas/chart to export as PNG
+ * @param {string} viewTitle - Title for PDF export
+ */
+function showExportMenu(event, chartId, viewTitle) {
+    event.stopPropagation();
+    // Remove any existing menu
+    const existing = document.getElementById('export-action-sheet');
+    if (existing) { existing.remove(); return; }
+
+    const btn = event.currentTarget || event.target;
+    const rect = btn.getBoundingClientRect();
+
+    const menu = document.createElement('div');
+    menu.id = 'export-action-sheet';
+    menu.style.cssText = `
+        position: fixed;
+        top: ${rect.bottom + 8}px;
+        left: ${rect.left}px;
+        background: rgba(13,17,23,0.97);
+        border: 1px solid rgba(0,212,170,0.25);
+        border-radius: 12px;
+        padding: 8px;
+        z-index: 9998;
+        min-width: 200px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        animation: fadeInDown 0.15s ease;
+    `;
+    menu.innerHTML = `
+        <button onclick="exportChartPNG('${chartId}', '${viewTitle.toLowerCase().replace(/\s+/g,'-')}');document.getElementById('export-action-sheet')?.remove();"
+            style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"
+            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#00d4aa">image</span>
+            Export Chart PNG
+        </button>
+        <button onclick="exportViewPDF('${viewTitle}');document.getElementById('export-action-sheet')?.remove();"
+            style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"
+            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#bc13fe">picture_as_pdf</span>
+            Export View as PDF
+        </button>
+        <div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0"></div>
+        <button onclick="if(typeof lastSignalsData!='undefined')exportCSV(lastSignalsData,'signals');document.getElementById('export-action-sheet')?.remove();"
+            style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"
+            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#ffd700">table_chart</span>
+            Export Data CSV
+        </button>
+    `;
+
+    document.body.appendChild(menu);
+
+    // Reposition if off-screen right
+    const mr = menu.getBoundingClientRect();
+    if (mr.right > window.innerWidth - 16) {
+        menu.style.left = `${window.innerWidth - mr.width - 16}px`;
+    }
+
+    // Auto-dismiss on outside click
+    setTimeout(() => {
+        document.addEventListener('click', () => document.getElementById('export-action-sheet')?.remove(), { once: true });
+    }, 50);
 }

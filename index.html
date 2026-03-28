@@ -222,7 +222,7 @@
                     </div>
 
                     <div class="action-group" id="system-actions-group">
-                        <button id="export-btn" onclick="exportReport()" aria-label="Export Report" class="action-btn-styled outline">
+                        <button id="export-btn" onclick="showExportMenu(event, 'main-content', document.querySelector('h1')?.textContent?.trim() || 'AlphaSignal View')" aria-label="Export" class="action-btn-styled outline" title="Export chart, PDF or CSV">
                             <span class="material-symbols-outlined" style="font-size: 1rem;">ios_share</span> EXPORT
                         </button>
                         <button id="refresh-btn" aria-label="Recalculate Signals" class="action-btn-styled primary">
@@ -415,6 +415,9 @@
     <script src="tape.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <!-- Phase 15-C: Export libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="js/core.js?v=1.26"></script>
     <script src="js/heatmap_engine.js?v=1.26"></script>
     <script src="js/charts.js?v=1.26"></script>
