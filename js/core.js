@@ -598,15 +598,20 @@ async function openAIAnalyst(ticker) {
     }
 
     const modal = document.getElementById('ai-modal');
-    const content = document.getElementById('ai-content');
+    const content = document.getElementById('ai-synthesis-content');  // correct ID
+    if (!content) return;
+
     modal.classList.remove('hidden');
-    content.innerHTML = '<div class="loader"></div><p style="text-align:center">Synthesizing multidimensional intelligence...</p>';
+    content.innerHTML = '<div class="loader"></div><p style="text-align:center">Synthesizing multidimensional intelligence for <strong>' + ticker + '</strong>...</p>';
     
     const data = await fetchAPI(`/ai_analyst?ticker=${ticker}`);
     if (data) {
         content.innerHTML = `<div class="ai-report-box">${data.summary.replace(/\n/g, '<br>')}</div>`;
+    } else {
+        content.innerHTML = `<p style="color:var(--risk-high);text-align:center">Synthesis failed for ${ticker}. Try again.</p>`;
     }
 }
+
 
 // ============= Global Search Logic =============
 async function executeSearch() {
