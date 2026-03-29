@@ -1546,7 +1546,7 @@ function updateSEOMeta(view) {
         desc: 'AlphaSignal Institutional Intelligence Terminal - Real-time signals and AI insights.'
     };
 
-    const fullTitle = `${meta.title} | AlphaSignal -- Institutional Crypto Intelligence`;
+    const fullTitle = `${meta.title} | AlphaSignal -- Bitcoin & Crypto Trading Signals`;
     const viewUrl = view === 'home' ? 'https://alphasignal.digital/' : `https://alphasignal.digital/?view=${view}`;
 
     document.title = fullTitle;
