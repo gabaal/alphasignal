@@ -847,11 +847,11 @@ function renderDocsBriefing() {
     renderExplainPage(
         "AI Intelligence Briefing",
         "Synthesized institutional intelligence for rapid decision making.",
-        "The AI Briefing module is a neural synthesis engine that consumes and correlates news flow, social mindshare, and macro catalyst data. Unlike generic news aggregators, our LLM framework is tuned specifically for institutional finance. It identifies 'hidden' connectionsÃ¢â‚¬â€such as how a specific regulatory shift in Asia might impact L2 liquidity in EuropeÃ¢â‚¬â€and presents them in a concise, actionable format. It is designed to save analysts hours of manual research by highlighting the signal within the noise.",
+        "The AI Briefing module is a neural synthesis engine that consumes and correlates news flow, social mindshare, and macro catalyst data. Unlike generic news aggregators, our LLM framework is tuned specifically for institutional finance. It identifies 'hidden' connections--such as how a specific regulatory shift in Asia might impact L2 liquidity in Europe--and presents them in a concise, actionable format. It is designed to save analysts hours of manual research by highlighting the signal within the noise.",
         [
             { icon: 'memory', title: 'Neural Synthesis', desc: 'Millions of text nodes are processed daily to identify emerging narratives and shifts in institutional sentiment before they reach mainstream media.' },
             { icon: 'auto_graph', title: 'Sector Correlation', desc: 'The briefing automatically groups assets into thematic sectors (L1, DeFi, AI, Memes) to show where rotational capital is flowing in real-time.' },
-            { icon: 'history_edu', title: 'Macro Translation', desc: 'Translating complex macro eventsÃ¢â‚¬â€like FOMC minutes or CPI printsÃ¢â‚¬â€into direct impact estimates for your tracked portfolio.' }
+            { icon: 'history_edu', title: 'Macro Translation', desc: 'Translating complex macro events--like FOMC minutes or CPI prints--into direct impact estimates for your tracked portfolio.' }
         ],
         [
             { title: 'Narrative Shift Detection', text: 'Our AI Briefing identified a sustained increase in "Institutional Staking" mentions 72 hours before a major US pension fund announced its ETH position, allowing users to position ahead of the narrative surge.' },
@@ -866,7 +866,7 @@ function renderDocsLiquidity() {
     renderExplainPage(
         "Order Flow (GOMM)",
         "Visualizing professional liquidity walls and execution tape from 15+ top-tier institutional exchanges.",
-        "The Global Orderflow Magnitude Monitor (GOMM) provides a deep-dive into the exchange limit order books. By tracking the depth and density of bids and asks across the top 100 liquidity pairs, we can identify 'Liquidity Walls'Ã¢â‚¬â€large clusters of orders that act as natural magnets or barriers for price action. Understanding where 'deep' liquidity sits allows professional traders to predict reversal points and identify where the most significant slippage is likely to occur.",
+        "The Global Orderflow Magnitude Monitor (GOMM) provides a deep-dive into the exchange limit order books. By tracking the depth and density of bids and asks across the top 100 liquidity pairs, we can identify 'Liquidity Walls'--large clusters of orders that act as natural magnets or barriers for price action. Understanding where 'deep' liquidity sits allows professional traders to predict reversal points and identify where the most significant slippage is likely to occur.",
         [
             { icon: 'water_drop', title: 'Liquidity Heatmap', desc: 'A dense visual mapping of limit order resting on the books. Highlights potential support and resistance zones.' },
             { icon: 'list_alt', title: 'Execution Tape (Institutional)', desc: 'Filtering out retail noise to show only large block trades executing across fragmented exchanges.' },
@@ -982,7 +982,7 @@ function renderDocsZScore() {
         "Statistical intensity monitoring for advanced volatility arbitrage and outlier detection.",
         "The Z-Score is a measure of how many standard deviations a data point is from its mean. In the AlphaSignal terminal, we use this to highlight 'statistical outliers'. A high Z-score (above +2.0 or below -2.0) means an asset is moving in a way that is highly unusual compared to its typical volatility profile. Professional traders use Z-scores to identify extreme overextensions (reversion opportunities) or the beginning of massive, institutional-led trend breakouts.",
         [
-            { icon: 'analytics', title: 'Standard Deviation', desc: 'A Z-score of +3.0 indicates a move 3 standard deviations above the meanÃ¢â‚¬â€a statistical rarity that often precedes a price correction or "cooling off" period.' },
+            { icon: 'analytics', title: 'Standard Deviation', desc: 'A Z-score of +3.0 indicates a move 3 standard deviations above the mean--a statistical rarity that often precedes a price correction or "cooling off" period.' },
             { icon: 'trending_up', title: 'Mean Reversion', desc: 'Extreme Z-scores (+3.5 or -3.5) are historically associated with exhaustion. When combined with declining volume, these are prime signals for mean-reversion trades.' },
             { icon: 'bolt', title: 'Momentum Breakouts', desc: 'A sustained Z-score between +1.5 and +2.5 often represents an institutional "trend breakout" where the asset is successfully discovering a new higher value range.' }
         ],
@@ -999,7 +999,7 @@ function renderDocsAlpha() {
     renderExplainPage(
         "Alpha Generation Strategy",
         "Quantifying relative strength by stripping away market noise and benchmark beta.",
-        "Alpha represents the 'excess return' of an asset relative to a benchmarkÃ¢â‚¬â€in our terminal, typically Bitcoin (BTC-USD). If Bitcoin moves up 5% and an asset moves up 8%, that asset has generated 3% Alpha. Our platform prioritizes assets with high positive Alpha because they represent true idiosyncratic strengthÃ¢â‚¬â€assets that are attracting capital even when the broader market is struggling. Trading Alpha-positive assets is one of the most effective ways to outperform the benchmark index.",
+        "Alpha represents the 'excess return' of an asset relative to a benchmark--in our terminal, typically Bitcoin (BTC-USD). If Bitcoin moves up 5% and an asset moves up 8%, that asset has generated 3% Alpha. Our platform prioritizes assets with high positive Alpha because they represent true idiosyncratic strength--assets that are attracting capital even when the broader market is struggling. Trading Alpha-positive assets is one of the most effective ways to outperform the benchmark index.",
         [
             { icon: 'benchmark', title: 'Benchmark Beta', desc: 'Alpha allows you to see through the "Beta" (broad market movement) to identify assets that are truly leading the market through unique fundamental strength.' },
             { icon: 'show_chart', title: 'Institutional Strength', desc: 'Consistent positive Alpha is the hallmark of institutional accumulation. These assets often continue to climb even during broad-market pullbacks or flat periods.' },
@@ -1018,7 +1018,7 @@ function renderDocsCorrelation() {
     renderExplainPage(
         "Correlation & Decoupling",
         "Monitoring the mathematical relationship between Bitcoin and the broader universe.",
-        "Correlation measures the degree to which two assets move in relation to each other. A correlation of +1.0 means they move in perfect lockstep. In crypto, most assets are highly correlated to Bitcoin. However, the most profitable opportunities often occur during 'Decoupling' eventsÃ¢â‚¬â€when an asset breaks its link with BTC and begins to move independently. The AlphaSignal terminal tracks these shifts to help you identify rotational capital moving into specific sectors or tokens.",
+        "Correlation measures the degree to which two assets move in relation to each other. A correlation of +1.0 means they move in perfect lockstep. In crypto, most assets are highly correlated to Bitcoin. However, the most profitable opportunities often occur during 'Decoupling' events--when an asset breaks its link with BTC and begins to move independently. The AlphaSignal terminal tracks these shifts to help you identify rotational capital moving into specific sectors or tokens.",
         [
             { icon: 'link', title: 'High Correlation (>0.85)', desc: 'Indicates a "Risk-On" environment where all ships are rising or falling with the BTC tide. During these times, focus on the assets with the highest Beta for maximum leverage.' },
             { icon: 'link_off', title: 'Decoupling (<0.50)', desc: 'Identifies idiosyncratic strength or weakness. This is where professional traders look for unique alpha opportunities that are independent of the broader market trend.' },
@@ -1037,7 +1037,7 @@ function renderDocsSentiment() {
     renderExplainPage(
         "Sentiment Synthesis",
         "Quantifying market psychology through institutional NLP and social graph analysis.",
-        "Sentiment Synthesis is the bridge between social noise and actionable momentum. Our proprietary NLP models don't just 'search' for keywords; they analyze the authority of the speaker, the velocity of the discourse, and the underlying emotional valence of the market. This creates a real-time 'heat' index that highlights assets which are currently experiencing a psychological shiftÃ¢â‚¬â€often a leading indicator for institutional capital flows.",
+        "Sentiment Synthesis is the bridge between social noise and actionable momentum. Our proprietary NLP models don't just 'search' for keywords; they analyze the authority of the speaker, the velocity of the discourse, and the underlying emotional valence of the market. This creates a real-time 'heat' index that highlights assets which are currently experiencing a psychological shift--often a leading indicator for institutional capital flows.",
         [
             { icon: 'psychology', title: 'Valence Weighting', desc: 'Our AI distinguishes between "Retail FOMO" and "Institutional Accumulation" by weighting sentiment based on historical authority scores and engagement quality.' },
             { icon: 'auto_graph', title: 'Sentiment Velocity', desc: 'Tracking the rate of change in sentiment. Rapid spikes in bullish sentiment often precede local tops, while gradual climbs indicate sustainable trend development.' },
@@ -1080,7 +1080,7 @@ function renderDocsPlaybook() {
     renderExplainPage(
         "Advanced Trading Playbook",
         "Mastering the synthesis of multiple terminal signals for high-conviction execution.",
-        "The true power of AlphaSignal lies in the 'Synthesis'Ã¢â‚¬â€the ability to combine uncorrelated data points to confirm an institutional setup. This playbook outlines the standard operating procedures (SOPs) used by professional quant desks to identify, validate, and execute trades using our real-time intelligence feeds.",
+        "The true power of AlphaSignal lies in the 'Synthesis'--the ability to combine uncorrelated data points to confirm an institutional setup. This playbook outlines the standard operating procedures (SOPs) used by professional quant desks to identify, validate, and execute trades using our real-time intelligence feeds.",
         [
             { icon: 'conveyor_belt', title: 'The Divergence Play', desc: 'When Z-Score hits -2.5 (statistical oversold) while Whale Flow shows "Strategic Accumulation". This is the highest conviction long setup in our arsenal.' },
             { icon: 'balance', title: 'Delta-Neutral Arbitrage', desc: 'Using Alpha relative strength to go long the leader while shorting the market-beta (BTC-USD) during high-correlation regimes.' },
@@ -1098,7 +1098,7 @@ function renderDocsPlaybook() {
 function renderDocsRegimes() {
     renderExplainPage(
         "Market Regime Framework",
-        "The structural DNA of the marketÃ¢â‚¬â€identifying the macro environment.",
+        "The structural DNA of the market--identifying the macro environment.",
         "Markets shift between structural phases. Identifying the current 'Regime' is the first step in selecting the correct trading strategy. AlphaSignal uses a multi-factor model (Volatility, Volume, Sentiment, and Flow) to classify the current market environment into one of four distinct states.",
         [
             { icon: 'downloading', title: 'Accumulation', desc: 'Characterized by low Z-score, negative Sentiment, but rising Whale Inflows. Institutional capital is quietly building positions ahead of a breakout.' },
@@ -1175,7 +1175,7 @@ function renderDocsPerformance() {
 function renderDocsAlphaScore() {
     renderExplainPage(
         "Alpha Score & Boosting",
-        "The terminal's ultimate composite signalÃ¢â‚¬â€collapsing complexity into actionable ranks.",
+        "The terminal's ultimate composite signal--collapsing complexity into actionable ranks.",
         "The Alpha Score is a proprietary ranking from 0-100 that synthesizes momentum, sentiment, and on-chain flow. High scores indicate assets with a strong 'Momentum Vector' and positive institutional accumulation. The Neural Engine also provides an 'ML Boost' to assets where historical patterns suggest a high probability of short-term alpha.",
         [
             { icon: 'workspace_premium', title: 'ML Boost', desc: 'A high-conviction statistical boost applied when multiple neural nodes align on a specific asset return profile.' },
@@ -1270,195 +1270,275 @@ function renderDocsGlossaryImplementation() {
 
 function updateSEOMeta(view) {
     const viewMetadata = {
-        'signals': {
-            title: 'Alpha Signals & Market Intelligence',
-            desc: 'Real-time multi-asset alpha signals across bitcoin, equities, and forex. Alphasignal provides high-fidelity signals derived from institutional data.'
+        // === ROOT / HOME ===
+        'home': {
+            title: 'AlphaSignal — Institutional Crypto Intelligence Terminal',
+            desc: 'AlphaSignal is a real-time institutional intelligence terminal for Bitcoin, crypto, and macro markets. AI-powered signals, options flow, whale tracking, portfolio optimiser, macro calendar, and 60+ analytical views.'
         },
-        'briefing': {
-            title: 'AI Intelligence Briefing',
-            desc: 'Daily neural synthesis of global market trends, sentiment shifts, and high-conviction institutional alpha.'
+
+        // === COMMAND CENTER ===
+        'command-center': {
+            title: 'Institutional Command Center',
+            desc: 'Consolidated real-time intelligence dashboard aggregating key signals from all AlphaSignal hubs — ETF flows, macro correlation, top alpha signals, and system conviction dials.'
         },
-        'mindshare': {
-            title: 'Social Mindshare Analytics',
-            desc: 'Track real-time social sentiment, narrative dominance, and crowd positioning across major crypto assets.'
+        'ask-terminal': {
+            title: 'Ask Terminal — AI Research Assistant',
+            desc: 'Conversational AI research assistant with full AlphaSignal terminal context. Ask about signals, market regimes, options flow, or any institutional metric and receive GPT-4 powered analysis instantly.'
         },
-        'flow': {
-            title: 'Institutional Flow Monitor',
-            desc: 'Monitor whale moves, exchange inflows, and institutional positioning to identify market rotation early.'
-        },
-        'heatmap': {
-            title: 'Market Heatmap',
-            desc: 'Visual cross-asset correlation and performance heatmap for rapid portfolio assessment.'
-        },
-        'catalysts': {
-            title: 'Earnings & Events Catalysts',
-            desc: 'Comprehensive calendar of institutional-grade volatility events, earnings releases, and macro triggers.'
-        },
-        'whales': {
-            title: 'AI Whale Pulse Monitor',
-            desc: 'Institutional AI whale tracking and exchange flow alerts for rapid market insight into large Bitcoin and altcoin moves.'
-        },
-        'regime': {
-            title: 'Market Regime Hub',
-            desc: 'Real-time statistical detection of market regimes including Accumulation, Distribution, and Trending states.'
-        },
-        'rotation': {
-            title: 'Sector Rotation Matrix',
-            desc: 'Advanced analysis of capital flows between asset classes and sectors to identify the next trend.'
-        },
-        'backtest': {
-            title: 'Strategy & Performance Lab',
-            desc: 'Quant-grade strategy backtesting and performance validation against historical institutional market data.'
-        },
-        'risk': {
-            title: 'Market Risk & Stress Hub',
-            desc: 'Real-time market risk monitoring, stress-test simulations, correlation spikes, and volatility regime detection.'
-        },
-        'narrative': {
-            title: 'Narrative Galaxy Search',
-            desc: 'Explore emerging market narratives and cluster shifts using NLP-driven trend analysis.'
-        },
-        'velocity': {
-            title: 'Cross-Chain Narrative Velocity',
-            desc: 'Institutional capital rotation tracking using volume acceleration and social heat.'
-        },
-        'tradelab': {
-            title: 'Trade Idea Lab',
-            desc: 'Generate and validate institutional-grade trade setups with defined risk-reward parameters.'
-        },
-        'liquidity': {
-            title: 'Order Flow Magnitude',
-            desc: 'Visualize professional liquidity walls, order book depth, and institutional execution tape.'
-        },
-        'newsroom': {
-            title: 'Institutional Newsroom',
-            desc: 'Curation of the highest-impact financial news and regulatory developments effecting global markets.'
-        },
-        'alerts': {
-            title: 'Real-time Signal Alerts',
-            desc: 'Configure and monitor high-fidelity institutional alerts for your specific asset portfolio.'
-        },
-        'macro-calendar': {
-            title: 'Macro Catalyst Compass',
-            desc: 'Monitor high-impact global economic drivers, treasury yields, and volatility triggers.'
-        },
-        'onchain': {
-            title: 'On-Chain Analytics',
-            desc: 'Quantitative modeling of network MVRV, NVT, and internal blockchain metrics.'
-        },
-        'advanced-charting': {
-            title: 'Advanced Charting Suite',
-            desc: 'Full institutional suite featuring orderbook liquidity and derivatives overlays.'
-        },
-        'macro': {
-            title: 'Macro Pulse & Regimes',
-            desc: 'Live market correlations, regime tracking, and macro variables.'
-        },
-        'etf-flows': {
-            title: 'Spot ETF Net Flows Tracker',
-            desc: 'Live institutional inflow/outflow monitoring for Bitcoin Spot ETFs including BlackRock and Fidelity.'
-        },
-        'liquidations': {
-            title: 'Market Liquidation Heatmap',
-            desc: 'Real-time tracking of forced Long and Short liquidations across major digital asset exchanges.'
-        },
-        'cme-gaps': {
-            title: 'CME Bitcoin Gaps Tracker',
-            desc: 'Monitoring unfilled price gaps in Chicago Mercantile Exchange Bitcoin FuturesÃ¢â‚¬â€key institutional pivot levels.'
-        },
-        'oi-radar': {
-            title: 'Derivatives Open Interest Radar',
-            desc: 'Comparative analysis of Open Interest depth and acceleration across Binance, CME, and Bybit.'
-        },
+
+        // === GLOBAL MARKETS HUB ===
         'global-hub': {
             title: 'Global Markets Intelligence Hub',
-            desc: 'Consolidated tracking of ETF flows, liquidations, and open interest dynamics.'
+            desc: 'Consolidated institutional view of Bitcoin spot ETF flows, leveraged liquidation cascades, open interest radar, and CME futures gap analysis.'
         },
+        'etf-flows': {
+            title: 'Bitcoin Spot ETF Flows — Live Institutional Capital Tracker',
+            desc: 'Real-time daily net flows across all regulated Bitcoin spot ETFs including BlackRock IBIT, Fidelity FBTC, and ARK ARKB. Track institutional accumulation and distribution cycles.'
+        },
+        'liquidations': {
+            title: 'Crypto Liquidation Cascade Scanner — Live Leverage Wipeouts',
+            desc: 'Real-time monitoring of long and short liquidations across Binance, OKX, Bybit, and Deribit. Detect liquidation clusters and cascade alerts before they impact spot price.'
+        },
+        'oi-radar': {
+            title: 'Open Interest Radar — Derivatives Leverage Monitor',
+            desc: 'Cross-asset perpetual futures open interest tracking with funding rate overlay. Identify over-leveraged conditions and OI vs price divergences across 20+ assets.'
+        },
+        'cme-gaps': {
+            title: 'CME Bitcoin Gap Tracker — Unfilled Price Gaps',
+            desc: 'Track all unfilled CME Bitcoin futures price gaps with historical fill probability scoring. 77% of CME gaps fill within 90 days — a key institutional pricing tool.'
+        },
+
+        // === MACRO INTEL HUB ===
         'macro-hub': {
             title: 'Macro Intelligence Hub',
-            desc: 'Multidimensional analysis of global macro catalysts, correlations, and market regimes.'
+            desc: 'Multi-dimensional analysis of global macro catalysts, capital flows, sector rotation, correlation matrices, and market regime classification — all in one institutional hub.'
         },
-        'alpha-hub': {
-            title: 'Alpha Strategy Hub',
-            desc: 'Institutional AI synthesis, alpha scoring, and automated strategy validation.'
+        'briefing': {
+            title: 'AI Market Intelligence Briefing',
+            desc: 'Daily GPT-powered synthesis of global market trends, institutional sentiment, and narrative shifts across Bitcoin, macro, and crypto ecosystem data streams.'
         },
-        'portfolio': {
-            title: 'Institutional Portfolio Lab',
-            desc: 'Monitor simulated portfolio performance, VaR, and correlation attribution.'
+        'flow': {
+            title: 'Institutional Capital Flows Monitor',
+            desc: 'Track the velocity and direction of institutional capital via ETF flows, exchange reserve changes, and stablecoin minting velocity — the definitive macro bull/bear signal.'
         },
-        'portfolio-optimizer': {
-            title: 'AI Portfolio Optimizer',
-            desc: 'Neural network-driven allocation rebalancing for maximum risk-adjusted metrics.'
+        'rotation': {
+            title: 'Crypto Sector Rotation Tracker',
+            desc: 'Weighted treemap and momentum matrix showing capital rotation across L1, DeFi, AI, Memes, Gaming, and RWA sectors. Identify the next sector rotation before the crowd.'
         },
-        'strategy-lab': {
-            title: 'Strategy & Backtest Lab',
-            desc: 'Verify quantitative indicator logic against historical backtesting algorithms.'
-        },
-        'stress': {
-            title: 'Portfolio Stress Test',
-            desc: 'Live scenario analysis assessing portfolio drawdowns against historic market crashes.'
-        },
-        'explain-signal-archive': {
-            title: 'Documentation Ã¢â‚¬â€ Signal Archive',
-            desc: 'Guide to interpreting the historical win-rate and probability engine records.'
-        },
-        'explain-topologies': {
-            title: 'Documentation Ã¢â‚¬â€ Topologies & Geometries',
-            desc: 'Guide to interpreting Ecosystem Capital Flows, Dials, and Cross-asset Sankey networks.'
-        },
-        'signal-archive': {
-            title: 'Signal Execution Archive',
-            desc: 'Immutable ledger of historical AlphaSignals, execution timestamps, and hit rate analytics.'
+        'macro': {
+            title: 'Macro Compass — Global Economic Impact Dashboard',
+            desc: 'Synthesised macro intelligence covering DXY strength, yield curve shape, equity correlation, and risk regime classification and their real-time impact on crypto markets.'
         },
         'correlation-matrix': {
-            title: 'NxN Correlation Matrix',
-            desc: 'Live statistical heatmap plotting short-term decoupling across 15+ major digital assets.'
+            title: 'Cross-Asset Correlation Matrix',
+            desc: 'Live statistical heatmap of rolling 30-day correlations across BTC, ETH, SPX, DXY, Gold, and 10Y Treasury yields. Identify decoupling events and rotation signals.'
+        },
+        'macro-calendar': {
+            title: 'Macro Event Calendar — FOMC, CPI, NFP, PCE Impact Scorer',
+            desc: '90-day forward calendar of institutional macro events scored by historical Bitcoin price impact. FOMC, CPI, NFP, and PCE dates with median BTC move and volatility data.'
+        },
+        'regime': {
+            title: 'Market Regime Framework — Markov Cycle Classification',
+            desc: 'Statistical classification of Bitcoin market cycles using Markov-Switching approximation. Identifies Accumulation, Distribution, Trending Bull, and Trending Bear regimes in real-time.'
+        },
+
+        // === ALPHA STRATEGY HUB ===
+        'alpha-hub': {
+            title: 'Alpha Strategy Hub — Institutional Signal Intelligence',
+            desc: 'Institutional AI alpha synthesis, Z-score signal generation, ML alpha scoring, strategy lab, signal backtester, archive, and narrative galaxy — all in one strategy hub.'
+        },
+        'signals': {
+            title: 'Live Alpha Signals — Z-Score Market Intelligence',
+            desc: 'Real-time Z-score deviation signals across 50+ institutional crypto assets. High-conviction alpha signals powered by ML neural features, orderflow magnitude, and on-chain data.'
         },
         'alpha-score': {
-            title: 'Alpha Score Dashboard',
-            desc: 'Live absolute momentum, neural sentiment, and statistical clustering metrics grouped by asset.'
+            title: 'Alpha Score Dashboard — Multi-Factor Asset Ranking',
+            desc: 'Composite multi-factor alpha score ranking across 50+ assets combining Z-score signal strength, ML prediction confidence, on-chain momentum, and neural sentiment.'
         },
-        'performance-dashboard': {
-            title: 'Live Performance Analytics',
-            desc: 'Institutional track record and strategy attribution tracking against the benchmark.'
+        'strategy-lab': {
+            title: 'Strategy Lab — Pairs Trading, Momentum & Kelly Sizer',
+            desc: 'Institutional strategy laboratory with Pairs Trading, Momentum Ignition, Regime Carry, Kelly Position Sizer, Dual Momentum, and walk-forward validation.'
+        },
+        'backtester-v2': {
+            title: 'Signal Backtester V2 — Historical Performance Simulator',
+            desc: 'Backtest live AlphaSignal Z-score signals against real historical data. Rolling Sharpe ratio, monthly P&L calendar, maximum drawdown, and BTC benchmark comparison.'
+        },
+        'signal-archive': {
+            title: 'Signal Execution Archive — Historical Alpha Record',
+            desc: 'Immutable audit trail of all historical AlphaSignal Z-score signals with execution timestamps, outcome tracking, and institutional win-rate analytics.'
+        },
+        'narrative': {
+            title: 'Narrative Galaxy — Crypto Mindshare Cluster Map',
+            desc: 'Force-directed graph visualization of crypto market narratives. Track narrative velocity, sentiment polarity, crowded trades, and emerging thesis clusters across social media.'
+        },
+
+        // === INSTITUTIONAL HUB ===
+        'institutional-hub': {
+            title: 'Institutional Hub — Portfolio, Unlocks & Yield Intelligence',
+            desc: 'Institutional-grade intelligence for token unlock schedules, DeFi yield comparison, AI portfolio optimisation, and structured trade idea generation with execution ledger integration.'
+        },
+        'token-unlocks': {
+            title: 'Token Unlock Schedule — Supply Shock & Sell Pressure Tracker',
+            desc: 'Forward-looking 90-day calendar of major token vesting unlocks scored by supply shock severity. Track investor and team unlock events before they create sell pressure.'
+        },
+        'yield-lab': {
+            title: 'DeFi Yield Lab — Protocol Rate Comparison Engine',
+            desc: 'Multi-protocol DeFi yield aggregator comparing Aave, Compound, Lido, Rocket Pool APY rates with risk-adjusted scoring and DeFi vs TradFi spread tracking.'
+        },
+        'portfolio-optimizer': {
+            title: 'AI Portfolio Optimizer — Monte Carlo & Markowitz Rebalancer',
+            desc: 'AI-powered portfolio optimiser using Monte Carlo simulation and Markowitz Efficient Frontier. GPT-4 generates a rebalancing memo with execution tickets for full audit trail.'
+        },
+        'portfolio': {
+            title: 'Portfolio Simulation Lab — VaR & Attribution Modelling',
+            desc: 'Simulate institutional portfolio performance, Value-at-Risk modelling, drawdown analysis, and correlation attribution across your custom asset basket.'
+        },
+        'tradelab': {
+            title: 'Trade Idea Lab — AI-Assisted Execution Workspace',
+            desc: 'Build structured institutional trade ideas with AI-generated thesis memos, risk/reward calculation, and one-click conversion to the institutional trade ledger.'
+        },
+
+        // === ANALYTICS HUB ===
+        'analytics-hub': {
+            title: 'Analytics Hub — Whale, On-Chain, Options & Newsroom Intelligence',
+            desc: 'Full institutional analytics suite: whale pulse tracking, cross-chain velocity, real MVRV/SOPR on-chain data, Deribit options flow scanner, and AI-tagged crypto newsroom.'
+        },
+        'whales': {
+            title: 'AI Whale Pulse Monitor — Institutional Transaction Tracker',
+            desc: 'Real-time detection of institutional-sized Bitcoin, Ethereum, and Solana on-chain transactions. Entity clustering distinguishes true accumulation from exchange cold wallet shifts.'
+        },
+        'velocity': {
+            title: 'Cross-Chain Capital Velocity — Volume Acceleration Tracker',
+            desc: 'Track capital rotation velocity and volume acceleration across Ethereum, Solana, Avalanche, and Cardano. Identify which chain is attracting institutional attention next.'
+        },
+        'onchain': {
+            title: 'On-Chain Analytics — MVRV, SOPR & Puell Multiple',
+            desc: 'Real on-chain intelligence: MVRV ratio, SOPR, Puell Multiple, and hashrate data sourced live from CoinGecko and Blockchain.info. Institutional-grade blockchain fundamentals.'
+        },
+        'options-flow': {
+            title: 'Deribit Options Flow Scanner — PCR, Max Pain & IV Smile',
+            desc: 'Live BTC and ETH options market intelligence from Deribit: Put/Call ratio, Max Pain strike, ATM implied volatility, IV smile chart, and top open-interest strikes.'
+        },
+        'newsroom': {
+            title: 'Institutional Crypto Newsroom — AI Sentiment Tagged News Feed',
+            desc: 'Real-time institutional crypto news with AI BULLISH/BEARISH/NEUTRAL sentiment tagging. Filtered for regulatory developments, ETF news, protocol announcements, and macro policy shifts.'
+        },
+
+        // === AUDIT & PERFORMANCE HUB ===
+        'audit-hub': {
+            title: 'Audit & Performance Hub — Trade Ledger & Analytics',
+            desc: 'Institutional audit and performance tracking hub with persistent trade ledger, AI thesis archive, monthly P&L calendar, and BTC benchmark comparison.'
         },
         'trade-ledger': {
-            title: 'Institutional Trade Ledger',
-            desc: 'Audited historic logs of simulated entries, trailing stops, and strategy scaling logic.'
+            title: 'Institutional Trade Ledger — Auditable Execution Record',
+            desc: 'Persistent, auditable log of all AI-generated and manual execution tickets with status tracking, AI thesis archive, PnL attribution, and CSV export for compliance.'
         },
-        'home': {
-            title: 'Alphasignal: Institutional Alpha & Signals Terminal',
-            desc: 'Alphasignal provides real-time multi-asset market intelligence across bitcoin, equities, and forex. AI-driven alpha strategy synthesis for the modern institution.'
+        'performance-dashboard': {
+            title: 'Performance Analytics Dashboard — Track Record & Attribution',
+            desc: 'Institutional performance analytics with win rate, monthly P&L calendar, rolling Sharpe ratio, maximum drawdown tracking, and BTC benchmark comparison.'
+        },
+
+        // === RISK & STRESS HUB ===
+        'risk-hub': {
+            title: 'Risk & Stress Hub — Portfolio Protection Intelligence',
+            desc: 'Institutional risk management hub with real-time risk matrix for position sizing, tail-risk stress testing, volatility regime detection, and macro scenario modelling.'
+        },
+        'risk': {
+            title: 'Risk Matrix — Institutional Position Sizing & VaR',
+            desc: 'Real-time institutional risk matrix combining volatility, drawdown, and Value-at-Risk for disciplined position sizing. Protect capital across all market regimes.'
+        },
+        'stress': {
+            title: 'Stress Lab — Macro Scenario & Tail Risk Analysis',
+            desc: 'Macro stress-testing your portfolio against historic crash scenarios. Quantify tail-risk exposure, correlation spikes, and maximum drawdown under extreme market conditions.'
+        },
+
+        // === ADVANCED CHARTING ===
+        'advanced-charting': {
+            title: 'Advanced Charting Suite — Professional Institutional Charts',
+            desc: 'Professional institutional charting with TradingView integration, funding rate heatmap, 3D volatility surface, tape imbalance histogram, CVD chart, and multi-asset overlays.'
+        },
+
+        // === STANDALONE ===
+        'mindshare': {
+            title: 'Social Mindshare Analytics — Narrative Dominance Tracker',
+            desc: 'NLP-driven social sentiment and narrative dominance tracking across Bitcoin, Ethereum, and 50+ crypto assets. Real-time crowd positioning and mindshare shift detection.'
+        },
+        'liquidity': {
+            title: 'Order Flow Magnitude Monitor (GOMM) — Institutional Tape',
+            desc: 'Visualise professional liquidity walls, order book depth, CVD divergence, and institutional execution tape. Identify large block order flow before price discovery completes.'
+        },
+        'heatmap': {
+            title: 'Market Heatmap — Z-Score Signal Intensity Grid',
+            desc: 'Colour-coded Z-score heatmap across the full 50+ asset universe. Instantly identify where statistical alpha is concentrated by sector and asset class.'
+        },
+        'alerts': {
+            title: 'Real-Time Signal Alerts — Discord & Telegram Webhooks',
+            desc: 'Configure Z-score alert thresholds and receive institutional signal alerts via Discord or Telegram webhooks. Customisable sensitivity with test-fire capability.'
         },
         'help': {
-            title: 'Help & Documentation Hub',
-            desc: 'Complete documentation on AlphaSignal methodologies, data sources, and analytical frameworks.'
+            title: 'Help & Documentation Hub — AlphaSignal Terminal Guides',
+            desc: 'Complete documentation for all 60+ AlphaSignal views organised by hub. Covers methodology, data sources, analytical frameworks, and institutional best practices.'
         },
-        'explain-signals': { title: 'Documentation Ã¢â‚¬â€ Signal Intelligence', desc: 'Learn how AlphaSignal utilizes Z-Score deviations and neural sentiment for alpha generation.' },
-        'explain-briefing': { title: 'Documentation Ã¢â‚¬â€ AI Briefing', desc: 'Understand our dynamic neural synthesis and sector performance tracking.' },
-        'explain-liquidity': { title: 'Documentation Ã¢â‚¬â€ Order Flow GOMM', desc: 'Documentation on interpreting liquidity walls and institutional tape.' },
-        'explain-ml-engine': { title: 'Documentation Ã¢â‚¬â€ ML Alpha Engine', desc: 'Predictive modeling using Sentiment and Orderbook Imbalance.' },
-        'explain-whales': { title: 'Documentation Ã¢â‚¬â€ Whale Pulse', desc: 'Learn how to detect and interpret massive on-chain transactions.' },
-        'explain-mindshare': { title: 'Documentation Ã¢â‚¬â€ Narrative Galaxy', desc: 'Guide to using our NLP-driven social cluster visualization.' },
-        'explain-benchmark': { title: 'Documentation Ã¢â‚¬â€ Portfolio Simulation', desc: 'How to model and backtest institutional crypto portfolios.' },
-        'explain-alerts': { title: 'Documentation Ã¢â‚¬â€ Catalyst Monitor', desc: 'Tracking macro variables, token unlocks, and critical market events.' },
-        'explain-zscore': { title: 'Documentation Ã¢â‚¬â€ Z-Score Interpretation', desc: 'Decoding statistical intensity and outlier detection for advanced volatility arbitrage.' },
-        'explain-alpha': { title: 'Documentation Ã¢â‚¬â€ Alpha Strategy', desc: 'How to calculate and trade relative strength benchmarks vs Bitcoin to maximize institutional alpha.' },
-        'explain-correlation': { title: 'Documentation Ã¢â‚¬â€ Market Correlation', desc: 'Understanding the mathematical relationship between assets and market-wide decoupling events.' },
-        'explain-sentiment': { title: 'Documentation Ã¢â‚¬â€ Sentiment Synthesis', desc: 'How we process social mindshare and news flow using institutional-grade NLP.' },
-        'explain-risk': { title: 'Documentation Ã¢â‚¬â€ Risk Management', desc: 'Institutional frameworks for protecting capital using volatility and drawdown modeling.' },
-        'explain-playbook': { title: 'Documentation Ã¢â‚¬â€ Trading Playbook', desc: 'Advanced trading strategies and multi-signal institutional execution frameworks.' },
-        'explain-regimes': { title: 'Documentation Ã¢â‚¬â€ Market Regimes', desc: 'Identifying market cycles through institutional flow, volatility, and sentiment analysis.' },
-        'explain-advanced-charting': { title: 'Documentation Ã¢â‚¬â€ Advanced Charting', desc: 'Full institutional suite featuring orderbook liquidity and derivatives overlays.' },
-        'explain-onchain': { title: 'Documentation Ã¢â‚¬â€ On-Chain Analytics', desc: 'Quantitative modeling of network MVRV, NVT, and internal blockchain metrics.' },
-        'explain-api': { title: 'Documentation Ã¢â‚¬â€ Institutional API', desc: 'Programmatic access for real-time alpha signals, liquidity depth, and narrative intelligence.' },
-        'explain-glossary': { title: 'Documentation Ã¢â‚¬â€ Terminal Glossary', desc: 'A quick-reference guide to all technical metrics used across the AlphaSignal platform.' },
-        'explain-performance': { title: 'Documentation Ã¢â‚¬â€ Performance Analytics', desc: 'Track terminal win rates, return distributions, and institutional track records.' },
-        'explain-alpha-score': { title: 'Documentation Ã¢â‚¬â€ Alpha Score Methodology', desc: 'Understanding composite rankings, Momentum Vectors, and the Neural ML Boost engine.' },
-        'explain-telegram': { title: 'Documentation Ã¢â‚¬â€ Institutional Alert Hooks', desc: 'Setup guide for Telegram bot integration and the secure Safe Probe probe.' },
-        'explain-pwa': { title: 'Documentation Ã¢â‚¬â€ Mobile PWA Terminal', desc: 'How to install AlphaSignal as a persistent terminal on your mobile device.' },
-        'explain-portfolio-lab': { title: 'Documentation Ã¢â‚¬â€ Institutional Portfolio Lab', desc: 'Institutional methodology for ML rebalancing, VaR modeling, and correlation attribution.' },
-        'explain-velocity': { title: 'Documentation Ã¢â‚¬â€ Chain Velocity', desc: 'Guide to volume acceleration and cross-chain capital rotation tracking.' },
+        'backtest': {
+            title: 'Signal Backtester — Historical Strategy Validation',
+            desc: 'Quantitative backtesting of institutional signals against historical market data for performance validation.'
+        },
+        'catalysts': {
+            title: 'Market Catalysts Calendar',
+            desc: 'Comprehensive calendar of institutional-grade volatility events, macro releases, and regulatory triggers affecting crypto markets.'
+        },
+
+        // === DOCUMENTATION PAGES ===
+        'explain-signals': { title: 'Docs — Signal Intelligence Methodology', desc: 'How AlphaSignal generates Z-score deviations, ML neural features, and high-conviction alpha signals across 50+ crypto assets.' },
+        'explain-briefing': { title: 'Docs — AI Market Briefing Methodology', desc: 'How the AlphaSignal AI synthesises global market trends, sentiment data, and institutional narratives into a daily institutional memo.' },
+        'explain-liquidity': { title: 'Docs — Order Flow GOMM Methodology', desc: 'Interpreting institutional liquidity walls, tape imbalance, CVD divergence, and orderbook depth analysis.' },
+        'explain-ml-engine': { title: 'Docs — ML Alpha Engine Architecture', desc: 'LSTM-based predictive modelling using sentiment vectors, orderbook imbalance, and on-chain features to generate forward return predictions.' },
+        'explain-whales': { title: 'Docs — Whale Pulse Tracker Methodology', desc: 'How AlphaSignal detects and clusters institutional-sized on-chain transactions to distinguish accumulation from exchange shuffling.' },
+        'explain-mindshare': { title: 'Docs — Narrative Galaxy & Mindshare Engine', desc: 'NLP processing pipeline for social cluster visualisation, narrative velocity scoring, and crowded trade detection.' },
+        'explain-benchmark': { title: 'Docs — Portfolio Simulation Methodology', desc: 'How to model and benchmark quant crypto portfolios using the AlphaSignal Monte Carlo and attribution engine.' },
+        'explain-alerts': { title: 'Docs — Signal Alerts Configuration Guide', desc: 'Setting up Z-score alert thresholds, Discord and Telegram webhook integration, and sensitivity calibration.' },
+        'explain-zscore': { title: 'Docs — Z-Score Interpretation & Stress Lab', desc: 'Decoding statistical signal intensity, outlier detection, and macro scenario stress testing methodology.' },
+        'explain-alpha': { title: 'Docs — Alpha Strategy Methodology', desc: 'Trading relative strength benchmarks vs Bitcoin and calculating risk-adjusted alpha using institutional signals.' },
+        'explain-correlation': { title: 'Docs — Correlation Matrix Methodology', desc: 'Understanding rolling cross-asset correlations, decoupling events, and sector rotation signals.' },
+        'explain-sentiment': { title: 'Docs — Sentiment Synthesis Engine', desc: 'How social mindshare, NLP polarity scores, and news flow are synthesised into actionable sentiment intelligence.' },
+        'explain-risk': { title: 'Docs — Risk Management Framework', desc: 'Institutional position sizing, Value-at-Risk modelling, and drawdown protection frameworks.' },
+        'explain-playbook': { title: 'Docs — Institutional Trading Playbook', desc: 'Advanced strategies, signal combinations, and institutional decision frameworks for systematic trading.' },
+        'explain-regimes': { title: 'Docs — Market Regime Classification', desc: 'Markov-Switching regime detection methodology for identifying Accumulation, Distribution, and Trending market cycles.' },
+        'explain-advanced-charting': { title: 'Docs — Advanced Charting Suite Guide', desc: 'Professional charting with TradingView, funding heatmap, 3D volatility surface, and orderbook overlay methodology.' },
+        'explain-onchain': { title: 'Docs — On-Chain Analytics Methodology', desc: 'Real MVRV, SOPR, Puell Multiple, and hashrate data sourcing from CoinGecko and Blockchain.info.' },
+        'explain-api': { title: 'Docs — Institutional API Reference', desc: 'Programmatic access to AlphaSignal real-time signals, liquidity depth, and narrative intelligence for quant desks.' },
+        'explain-glossary': { title: 'Docs — Terminal Glossary & Metric Reference', desc: 'Quick-reference guide to all technical metrics, signals, and institutional terminology used across the AlphaSignal platform.' },
+        'explain-performance': { title: 'Docs — Performance Analytics Methodology', desc: 'Institutional win rate, return distribution, monthly P&L attribution, and benchmark comparison methodology.' },
+        'explain-alpha-score': { title: 'Docs — Alpha Score Composite Methodology', desc: 'Multi-factor alpha score: Z-score signal strength, ML confidence, on-chain momentum, and neural sentiment weighting.' },
+        'explain-telegram': { title: 'Docs — Alert Hooks Setup Guide', desc: 'Complete setup guide for Discord and Telegram webhook integration with Z-score sensitivity thresholds.' },
+        'explain-pwa': { title: 'Docs — Mobile PWA Installation Guide', desc: 'Install AlphaSignal as a Progressive Web App on iOS and Android for full native terminal access.' },
+        'explain-portfolio-lab': { title: 'Docs — Portfolio Optimizer Methodology', desc: 'Monte Carlo simulation, Markowitz Efficient Frontier, ML-constrained rebalancing, and GPT-4 memo generation.' },
+        'explain-velocity': { title: 'Docs — Chain Velocity & Capital Rotation', desc: 'Cross-chain volume acceleration tracking and capital rotation methodology across L1 networks.' },
+        'explain-signal-archive': { title: 'Docs — Signal Archive Methodology', desc: 'How the AlphaSignal immutable signal archive records, tracks, and attributes historical signal performance.' },
+        'explain-topologies': { title: 'Docs — Charting Topologies & Geometries', desc: 'Ecosystem capital flows, whale wallet Sankey, yield curve spread monitor, and signal confidence radar methodology.' },
+        'explain-ai-engine': { title: 'Docs — AI Narrative Engine & Ask Terminal', desc: 'GPT-4o-mini memo generation, Ask Terminal conversational AI, and Signal Thesis Generator methodology.' },
+        'explain-strategy-lab': { title: 'Docs — Strategy Lab Methodology', desc: 'Pairs Trading, Momentum Ignition, Regime Carry, Kelly Sizer, and Dual Momentum walk-forward validation methodology.' },
+        'explain-backtester-v2': { title: 'Docs — Signal Backtester V2 Guide', desc: 'Historical signal simulation with rolling Sharpe, monthly P&L calendar, and BTC benchmark comparison methodology.' },
+        'explain-tradingview': { title: 'Docs — TradingView Integration Guide', desc: 'Professional TradingView chart integration with pre-loaded MA/RSI/MACD/BB studies and all crypto and equity symbols.' },
+        // Phase 17 and new doc pages
+        'explain-etf-flows': { title: 'Docs — Bitcoin Spot ETF Flows Methodology', desc: 'Daily institutional ETF flow tracking across BlackRock IBIT, Fidelity FBTC, ARK ARKB and more — data sourcing and interpretation guide.' },
+        'explain-liquidations': { title: 'Docs — Liquidation Cascade Scanner Guide', desc: 'Real-time leverage wipeout detection across Binance, OKX, Bybit, and Deribit — interpretation and cascade alert methodology.' },
+        'explain-oi-radar': { title: 'Docs — Open Interest Radar Methodology', desc: 'Cross-asset perpetual futures OI tracking with funding rate overlay — identifying over-leveraged conditions and divergence signals.' },
+        'explain-cme-gaps': { title: 'Docs — CME Bitcoin Gap Analysis Guide', desc: 'CME futures gap detection, historical fill probability scoring, and gap trading methodology for institutional traders.' },
+        'explain-flow': { title: 'Docs — Capital Flows Monitor Methodology', desc: 'ETF flow aggregation, stablecoin velocity tracking, and exchange net position change methodology.' },
+        'explain-rotation': { title: 'Docs — Sector Rotation Tracker Methodology', desc: 'Weighted sector treemap, momentum matrix, and beta expansion alert methodology for crypto capital rotation analysis.' },
+        'explain-macro-compass': { title: 'Docs — Macro Compass Methodology', desc: 'DXY inverse correlation, yield curve monitoring, and macro risk regime classification methodology.' },
+        'explain-macro-calendar': { title: 'Docs — Macro Event Calendar Guide', desc: 'FOMC/CPI/NFP/PCE event impact scoring methodology using 2-year historical BTC price data.' },
+        'explain-narrative': { title: 'Docs — Narrative Galaxy Methodology', desc: 'Force-directed NLP cluster mapping, narrative velocity scoring, and crowded trade saturation detection.' },
+        'explain-token-unlocks': { title: 'Docs — Token Unlock Schedule Guide', desc: 'Supply shock scoring, unlock calendar data sourcing, and historical price impact methodology for token unlock events.' },
+        'explain-yield-lab': { title: 'Docs — DeFi Yield Lab Methodology', desc: 'Multi-protocol APY comparison, risk-adjusted yield scoring, and DeFi vs TradFi spread tracking methodology.' },
+        'explain-tradelab': { title: 'Docs — Trade Idea Lab Guide', desc: 'AI-assisted trade thesis generation, risk/reward calculation, and trade ledger integration workflow.' },
+        'explain-options-flow': { title: 'Docs — Options Flow Scanner Methodology', desc: 'Deribit PCR, Max Pain, IV smile, and OI strike data sourcing and institutional interpretation guide.' },
+        'explain-newsroom': { title: 'Docs — Institutional Newsroom Guide', desc: 'AI sentiment tagging, news filtering methodology, and breaking news alert threshold configuration.' },
+        'explain-trade-ledger': { title: 'Docs — Institutional Trade Ledger Guide', desc: 'Execution ticket lifecycle, PnL attribution, AI thesis archive, and compliance export methodology.' },
+        'explain-heatmap': { title: 'Docs — Market Heatmap Guide', desc: 'Z-score heatmap computation, sector grouping, and colour scale interpretation for the 50+ asset universe.' },
+        'explain-command-center': { title: 'Docs — Command Center Guide', desc: 'Consolidated master view architecture, data aggregation sources, and hub-level intelligence summary methodology.' },
+        'explain-ask-terminal': { title: 'Docs — Ask Terminal AI Guide', desc: 'GPT-4o-mini conversational AI, terminal context injection, and on-demand research memo generation methodology.' },
     };
 
     const meta = viewMetadata[view] || {
@@ -1466,7 +1546,7 @@ function updateSEOMeta(view) {
         desc: 'AlphaSignal Institutional Intelligence Terminal - Real-time signals and AI insights.'
     };
 
-    const fullTitle = `${meta.title} | AlphaSignal Ã¢â‚¬â€ Institutional Crypto Intelligence`;
+    const fullTitle = `${meta.title} | AlphaSignal -- Institutional Crypto Intelligence`;
     const viewUrl = view === 'home' ? 'https://alphasignal.digital/' : `https://alphasignal.digital/?view=${view}`;
 
     document.title = fullTitle;
@@ -1520,22 +1600,12 @@ function updateSEOMeta(view) {
                 "@context": "https://schema.org",
                 "@type": "FAQPage",
                 "mainEntity": [
-                    {
-                        "@type": "Question",
-                        "name": "How does Alphasignal calculate Alpha?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude."
-                        }
-                    },
-                    {
-                        "@type": "Question",
-                        "name": "What makes your AI Whale Tracking different?",
-                        "acceptedAnswer": {
-                            "@type": "Answer",
-                            "text": "Unlike basic transaction scanners, our AI Whale pulse utilizes cluster analysis to identify entity-linked movement, distinguishing between exchange cold storage shifts and true institutional accumulation."
-                        }
-                    }
+                    { "@type": "Question", "name": "How does AlphaSignal calculate Alpha?", "acceptedAnswer": { "@type": "Answer", "text": "Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude. A Z-score above +2.0 indicates a statistically significant positive deviation -- the core of our signal generation logic." } },
+                    { "@type": "Question", "name": "What makes the Options Flow Scanner different?", "acceptedAnswer": { "@type": "Answer", "text": "AlphaSignal sources live data directly from the Deribit API -- the world's largest crypto options exchange by volume. We compute Put/Call ratio, Max Pain strike, ATM Implied Volatility, and the full IV smile across all strikes in real time." } },
+                    { "@type": "Question", "name": "How does the AI Portfolio Rebalancer work?", "acceptedAnswer": { "@type": "Answer", "text": "The AI Rebalancer uses Monte Carlo simulation to model 10,000 portfolio scenarios. It applies Markowitz Efficient Frontier optimisation constrained by ML signal confidence scores, then generates a GPT-4 rebalancing memo. All recommended trades convert to execution tickets in the Trade Ledger." } },
+                    { "@type": "Question", "name": "What data sources power the Macro Event Calendar?", "acceptedAnswer": { "@type": "Answer", "text": "The calendar aggregates FOMC, CPI, NFP, and PCE schedules from the Federal Reserve and BLS. Each event is scored for historical BTC impact using 2 years of real price data via yfinance, showing median move and directional bias." } },
+                    { "@type": "Question", "name": "Is this terminal suitable for automated strategies?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The Signal Archive and Backtester V2 allow historical performance validation across market regimes. The Trade Idea Lab and Trade Ledger support structured execution, and the institutional API provides programmatic data access for quant desks." } },
+                    { "@type": "Question", "name": "Can I use AlphaSignal on mobile?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. AlphaSignal is a Progressive Web App (PWA) installable on iOS and Android. Navigate to the terminal on your mobile browser and select Add to Home Screen for a full native-app experience." } }
                 ]
             });
         }
