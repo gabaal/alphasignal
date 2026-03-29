@@ -229,28 +229,30 @@ async function initBTCSparkline() {
     if (!canvas) return;
 
     try {
-        // Try history first, fall back to /api/btc which is always public
-        let prices = null;
-        let latest = null;
-        let prev = null;
+        // Use raw fetch (not fetchAPI) so 401/402 never triggers showPaywall/showAuth
+        let prices = null, latest = null, prev = null;
 
+        // Try premium history for a real sparkline shape
         try {
-            const histData = await fetchAPI('/history?ticker=BTC-USD&period=5d');
-            if (histData && histData.history && histData.history.length >= 2) {
-                prices = histData.history.map(p => p.close);
-                latest = prices[prices.length - 1];
-                prev = prices[0];
+            const hr = await fetch('/api/history?ticker=BTC-USD&period=5d');
+            if (hr.ok) {
+                const hd = await hr.json();
+                if (hd && hd.history && hd.history.length >= 2) {
+                    prices = hd.history.map(p => p.close);
+                    latest = prices[prices.length - 1];
+                    prev = prices[0];
+                }
             }
-        } catch(e) {}
+        } catch(e) { /* silent */ }
 
-        // Fall back to /api/btc + synthetic walk
-        if (!prices) {
-            const btcData = await fetchAPI('/btc');
-            if (!btcData) return;
-            latest = btcData.price || btcData.btc_price || 70000;
-            const pct24h = btcData.change_24h || btcData.change || 0;
-            prev = latest / (1 + pct24h / 100);
-            // Build a 48-point synthetic walk anchored to latest
+        // Always fall back to /api/btc (public) + synthetic 48-pt seeded walk
+        if (!prices || !latest) {
+            const br = await fetch('/api/btc');
+            if (!br.ok) return;
+            const bd = await br.json();
+            latest = bd.price || 70000;
+            const chg = bd.change || 0;
+            prev = latest / (1 + chg / 100);
             let seed = Math.floor(latest) % 9999;
             const rng = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
             prices = [];
@@ -268,34 +270,18 @@ async function initBTCSparkline() {
         const color = isUp ? '#22c55e' : '#ef4444';
 
         if (priceEl) priceEl.textContent = '$' + Math.round(latest).toLocaleString('en-US');
-        if (changeEl) {
-            changeEl.textContent = (isUp ? '+' : '') + pct + '%';
-            changeEl.style.color = color;
-        }
+        if (changeEl) { changeEl.textContent = (isUp ? '+' : '') + pct + '%'; changeEl.style.color = color; }
 
         if (_btcSparkChartInst) { try { _btcSparkChartInst.destroy(); } catch(e) {} }
-
         _btcSparkChartInst = new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: {
                 labels: prices.map((_, i) => i),
-                datasets: [{
-                    data: prices,
-                    borderColor: color,
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    fill: true,
-                    backgroundColor: isUp ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                    tension: 0.35
-                }]
+                datasets: [{ data: prices, borderColor: color, borderWidth: 1.5, pointRadius: 0, fill: true, backgroundColor: isUp ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', tension: 0.35 }]
             },
-            options: {
-                responsive: true, maintainAspectRatio: false, animation: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                scales: { x: { display: false }, y: { display: false } }
-            }
+            options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
         });
-    } catch(e) { console.warn('BTC Sparkline failed:', e); }
+    } catch(e) { console.warn('BTC Sparkline:', e); }
 }
 
 function initCommandGauges(macro, regime) {
