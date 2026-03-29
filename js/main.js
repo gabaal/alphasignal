@@ -104,7 +104,7 @@ const viewMap = {
 async function renderCommandCenter() {
     appEl.innerHTML = `
         <div class="view-header" style="margin-bottom:2rem">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">dashboard</span> Institutional Command Center <span class="premium-badge">MASTER VIEW</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">dashboard</span> Institutional Command Center <span class="premium-badge">MASTER VIEW</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p style="color:var(--text-dim); margin-top:0.5rem">Consolidated real-time intelligence across Macro, Global, and Alpha hubs.</p>
         </div>
         
@@ -288,7 +288,7 @@ async function renderHome() {
             <div class="landing-bg-overlay" style="background-image: url('landing_hero_abstract.png')"></div>
             <section class="hero-section">
                 <div class="hero-content">
-                    <h1>Institutional Intelligence Terminal. <span>Live.</span></h1>
+                    <h1>Institutional Intelligence Terminal. <span>Live.</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                     <p class="hero-subtitle">
                         AlphaSignal provides real-time multi-asset intelligence across bitcoin, equities, and forex. 
                         Synthesized by AI. Verified by institutional order flow. Alphasignal: The definitive alpha and signal terminal.
@@ -2101,7 +2101,7 @@ async function renderAskTerminal() {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#bc13fe">smart_toy</span>Ask the Terminal <span class="premium-badge" style="background:#bc13fe;color:black">AI</span></h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#bc13fe">smart_toy</span>Ask the Terminal <span class="premium-badge" style="background:#bc13fe;color:black">AI</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-ask-terminal')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>Natural language queries answered with institutional terminal context. Powered by GPT-4o-mini.</p>
             </div>
             <button class="intel-action-btn mini outline" style="width:auto;padding:4px 8px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-ai-engine')">

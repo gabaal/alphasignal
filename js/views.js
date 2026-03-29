@@ -1,4 +1,4 @@
-function renderHubTabs(activeTab, tabs) {
+﻿function renderHubTabs(activeTab, tabs) {
     if (!tabs) return '';
     return `
         <div class="hub-tabs" style="display:flex; gap:10px; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto">
@@ -107,7 +107,7 @@ async function renderETFFlows(tabs = null) {
     const tabHTML = tabs ? renderHubTabs('etf', tabs) : '';
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets <span class="premium-badge">LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-macro-compass')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-etf-flows')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-risk')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-trade-ledger')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-whales')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-alpha')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-etf-flows')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${tabHTML}
         <div class="card" style="margin-bottom:1.5rem">
@@ -189,7 +189,7 @@ async function renderLiquidations(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-liquidations')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('liquidations', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
@@ -267,7 +267,7 @@ async function renderCMEGaps(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-cme-gaps')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('gaps', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
@@ -307,7 +307,7 @@ async function renderOIRadar(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Global Markets Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-oi-radar')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('oi', tabs)}
         <div class="grid-2">
@@ -461,7 +461,7 @@ async function renderTokenUnlocks(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header">
             ${renderHubTabs('unlocks', tabs)}
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">key_visualizer</span> Token Genesis Pipeline <span class="premium-badge">LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">key_visualizer</span> Token Genesis Pipeline <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-token-unlocks')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p style="color:var(--text-dim); margin-top:0.5rem">Capital flow anticipation based on structural unlock schedules.</p>
         </div>
         <div class="card" style="overflow-x:auto">
@@ -524,7 +524,7 @@ async function renderYieldLab(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header">
             ${renderHubTabs('yield', tabs)}
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">account_balance_wallet</span> Institutional Yield Lab <span class="premium-badge">BETA</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">account_balance_wallet</span> Institutional Yield Lab <span class="premium-badge">BETA</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-yield-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p style="color:var(--text-dim); margin-top:0.5rem">Optimized capital efficiency markers across Tier-1 lending and restaking protocols.</p>
         </div>
         <div class="grid-2" style="margin-bottom:1.5rem">
@@ -610,9 +610,9 @@ async function renderSignals(category = 'ALL', tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('signals', tabs)}
-                <h1>Signal Intelligence Dashboard</h1>
+                <h1>Signal Intelligence Dashboard</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-signals')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+           
         </div>
         
         <!-- 30D Signal Density Histogram -->
@@ -764,7 +764,7 @@ async function renderAlphaScore(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1>⚡ Alpha Score <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alpha-score')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1>⚡ Alpha Score <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Composite 0–100 ranking across momentum, sentiment, signal engine alerts & volatility.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>
@@ -796,7 +796,7 @@ async function renderAlphaScore(tabs = null) {
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
                 <div>
                     ${renderHubTabs('score', tabs)}
-                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alpha-score')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
                     <p style="margin:0">Composite 0–100 ranking · Updated ${data.updated} · ${scores.length} assets scored ${isSafeMode ? '<span style="color:var(--accent); font-weight:700">[SAFE MODE ACTIVE]</span>' : ''}</p>
                 </div>
                 <!-- Pagination Controls -->
@@ -882,9 +882,9 @@ async function renderPerformanceDashboard(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('performance', tabs)}
-                <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1>
+                <h1>📈 Performance Dashboard <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-performance')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-performance')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+           
             <p>Terminal signal track record — win rate, returns, and monthly breakdown.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>
@@ -1064,7 +1064,7 @@ async function renderCorrelationMatrix(tabs = null) {
     const tabHTML = tabs ? renderHubTabs('correlation', tabs) : '';
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Macro Intelligence Hub <span class="premium-badge">LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">public</span> Macro Intelligence Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${tabHTML}
         <div class="card" style="padding:1.5rem">
@@ -1096,7 +1096,7 @@ async function renderFlows(tabs = null) {
     if (!data) return;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">flowsheet</span> Institutional Flow Monitor</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-flow')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">flowsheet</span> Institutional Flow Monitor</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Tracking the velocity of capital rotating into the ecosystem via spot ETFs and major aggregates.</p>
         </div>
         ${tabs ? renderHubTabs('flow', tabs) : ''}
@@ -1326,7 +1326,7 @@ async function renderMindshare() {
     ]);
     if (!data) return;
     appEl.innerHTML = `
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">share</span> Narrative Radar & Capital Flows</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-velocity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button><p>Mapping Narrative Momentum vs Developer Engineering Activity alongside Cross-Chain TVL migration.</p></div>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">share</span> Narrative Radar & Capital Flows</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-mindshare')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button><p>Mapping Narrative Momentum vs Developer Engineering Activity alongside Cross-Chain TVL migration.</p></div>
         
         <div style="display:grid; grid-template-columns: 1fr 350px; gap:20px; margin-bottom:20px;">
             <div class="mindshare-container" style="margin-bottom:0px; height: 100%;">
@@ -1492,7 +1492,7 @@ async function renderCatalysts() {
     if (!catalystDataCache) {
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <h1>Intelligence Catalyst Compass</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+                <h1>Intelligence Catalyst Compass</h1>
                 <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
             </div>
             <div class="card" style="padding:1rem">${skeleton(2)}</div>
@@ -1523,7 +1523,7 @@ async function renderCatalysts() {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">auto_awesome</span> Intelligence Catalyst Compass</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">auto_awesome</span> Intelligence Catalyst Compass</h1>
             <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
         </div>
 
@@ -1571,7 +1571,7 @@ async function renderMacroCalendar(tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">event</span> Macro Event Calendar <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-macro-calendar')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">event</span> Macro Event Calendar <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-macro-calendar')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
         </div>
         ${tabs ? renderHubTabs('calendar', tabs) : ''}
@@ -1689,9 +1689,9 @@ async function renderWhales(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">waves</span> Institutional Whale Pulse</h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">waves</span> Institutional Whale Pulse</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-whales')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-whales')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+           
             <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
         </div>
         ${tabs ? renderHubTabs('whales', tabs) : ''}
@@ -1940,7 +1940,7 @@ async function renderMacroSync(tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">monitoring</span> Macro Intel</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">monitoring</span> Macro Intel</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-macro-compass')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${tabHTML}
         <p style="margin-top: -1rem; margin-bottom: 1.5rem; color: var(--text-dim); font-size: 0.8rem;">Real-time correlation analytics between Bitcoin and traditional macro assets.</p>
@@ -2236,9 +2236,9 @@ async function renderRotation(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('rotation', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">rotate_right</span> Sector Correlation Matrix</h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">rotate_right</span> Sector Correlation Matrix</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-rotation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+           
             <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>
         </div>
         
@@ -2459,7 +2459,7 @@ async function renderNewsroom(tabs = null) {
                 <div>
                     <div style="display:flex; align-items:center; gap:10px">
                         <div class="live-indicator"></div>
-                        <h1 style="margin-bottom:5px"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+                        <h1 style="margin-bottom:5px"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">newspaper</span> Live Intelligence Newsroom</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-strategy-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-newsroom')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                     </div>
                     <p style="margin:0">Real-time institutional narrative stream correlated with AlphaSignal intensity.</p>
                 </div>
@@ -2505,9 +2505,9 @@ async function renderRiskMatrix(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('risk', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">grid_on</span> Institutional Correlation Matrix</h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">grid_on</span> Institutional Correlation Matrix</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-risk')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-correlation')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+           
             <p>Real-time statistical synchronization across the institutional universe.</p>
         </div>
         <div class="view-actions">
@@ -2535,9 +2535,9 @@ async function renderStressHub(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('stress', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--risk-high)">warning</span> Institutional Stress Lab</h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--risk-high)">warning</span> Institutional Stress Lab</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-zscore')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-risk')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+           
             <p>Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
         </div>
         <div class="risk-top-grid" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px; margin-bottom:2rem">
@@ -2632,7 +2632,7 @@ async function renderChainVelocity(tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">speed</span> Cross-Chain Narrative Velocity</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-velocity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">speed</span> Cross-Chain Narrative Velocity</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-velocity')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Institutional capital rotation tracking across major L1 networks using volume acceleration and social heat.</p>
         </div>
         ${tabs ? renderHubTabs('velocity', tabs) : ''}
@@ -2875,7 +2875,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">pie_chart</span> Institutional Portfolio Lab</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">pie_chart</span> Institutional Portfolio Lab</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores.</p>
         </div>
         ${tabs ? renderHubTabs('optimizer', tabs) : ''}
@@ -3278,7 +3278,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">
             <div>
                 ${renderHubTabs('narrative', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">hub</span> Narrative Cluster Galaxy V2 <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-mindshare')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">hub</span> Narrative Cluster Galaxy V2 <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-narrative')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
             </div>
             <div class="view-actions" style="margin-bottom:0">
@@ -3479,7 +3479,7 @@ async function renderBriefing(tabs = null) {
 
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Market Intelligence Briefing</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Market Intelligence Briefing</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.</p>
             </div>
             ${tabs ? renderHubTabs('briefing', tabs) : ''}
@@ -3667,9 +3667,9 @@ async function renderTradeLab(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('tradelab', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Trade Intelligence Lab <span class="premium-badge pulse">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-tradelab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-playbook')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+           
             <p>Synthesizing institutional flow, macro catalysts, and technical regimes into actionable setups.</p>
         </div>
         
@@ -3872,7 +3872,7 @@ async function renderTradeLedger(tabs = null) {
 
 async function renderLiquidityView() {
     const ticker = 'BTC-USD';
-    appEl.innerHTML = `<h1 class="view-title">Order Flow Magnitude Monitor (GOMM)</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>${skeleton(3)}`;
+    appEl.innerHTML = `<h1 class="view-title">Order Flow Magnitude Monitor (GOMM)</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-trade-ledger')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-liquidity')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>${skeleton(3)}`;
     
     // Sidebar + Layout
     appEl.innerHTML = `
@@ -4263,7 +4263,7 @@ async function renderSignalArchive(tabs = null) {
     // 1. Initial skeleton and header
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1>📡 Signal Archive <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-signal-archive')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1>📡 Signal Archive <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-signal-archive')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
         </div>
         ${tabs ? renderHubTabs('archive', tabs) : ''}
@@ -4445,7 +4445,7 @@ async function renderMacroView(tabs = null) {
 async function renderDocsVelocity() {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Narrative Velocity Methodology</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-velocity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Narrative Velocity Methodology</h1>
             <p>Documentation on how AlphaSignal calculates institutional capital rotation and social attention.</p>
         </div>
         <div class="docs-container" style="max-width:800px; margin:0 auto; line-height:1.7; color:var(--text-dim); padding: 2rem 0">
@@ -4479,7 +4479,7 @@ async function renderAlerts() {
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1>Live Intelligence Alerts</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-alerts')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1>Live Intelligence Alerts</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
         </div>
         <div class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
@@ -4543,7 +4543,7 @@ async function showSignalDetail(alertId, ticker) {
 
 async function renderRegime(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
-    appEl.innerHTML = `<h1 class="view-title">Market Regime Hub</h1>${skeleton(1)}`;
+    appEl.innerHTML = `<h1 class="view-title">Market Regime Hub</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-regimes')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>${skeleton(1)}`;
     const data = await fetchAPI('/regime?ticker=BTC-USD');
     if (!data) return;
 
@@ -4551,7 +4551,7 @@ async function renderRegime(tabs = null) {
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">layers</span> Market Regime Framework</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-regimes')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">layers</span> Market Regime Framework</h1>
             <p>Statistical classification of market cycles using Markov-Switching approximation.</p>
         </div>
         ${tabs ? renderHubTabs('regime', tabs) : ''}
@@ -5369,7 +5369,7 @@ async function renderOnChain(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">link</span> On-Chain Analytics <span class="premium-badge">PRO SUITE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-onchain')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">link</span> On-Chain Analytics <span class="premium-badge">PRO SUITE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-onchain')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>Institutional macroeconomic network valuation indicators.</p>
             </div>
         </div>
@@ -5501,7 +5501,7 @@ async function renderBacktesterV2(tabs = null) {
         ${renderHubTabs('backtester', tabs)}
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#00d4aa">analytics</span>Signal Backtester <span class="premium-badge">V2</span></h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#00d4aa">analytics</span>Signal Backtester <span class="premium-badge">V2</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-backtester-v2')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>Walk-forward simulation on live institutional signals with real price data, rolling Sharpe, and BTC benchmark.</p>
             </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -5652,7 +5652,7 @@ async function renderOptionsFlow(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">ssid_chart</span>Options Flow Scanner <span class="premium-badge">DERIBIT LIVE</span></h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">ssid_chart</span>Options Flow Scanner <span class="premium-badge">DERIBIT LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Real-time BTC & ETH Deribit options data — Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
         </div>
         ${renderHubTabs('options', tabs)}
