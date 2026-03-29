@@ -1,4 +1,4 @@
-﻿
+
 // ============= Initialization =============
 const viewMap = {
     'onchain': renderOnChain,
@@ -1617,6 +1617,9 @@ function updateSEOMeta(view) {
 }
 
 function switchView(view, pushState = true) {
+    // Clean up view-specific live intervals
+    if (window._gommLiveInterval) { clearInterval(window._gommLiveInterval); window._gommLiveInterval = null; }
+
     // Global Memory Wipe for 60FPS Optimization
     if (typeof window.globalUIWipe === 'function') {
         window.globalUIWipe();

@@ -1,4 +1,4 @@
-﻿function renderHubTabs(activeTab, tabs) {
+function renderHubTabs(activeTab, tabs) {
     if (!tabs) return '';
     return `
         <div class="hub-tabs" style="display:flex; gap:10px; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto">
@@ -4058,6 +4058,7 @@ async function renderLiquidityView(tabs = null) {
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
+                    animation: { duration: 400 },
                     plugins: {
                         legend: { labels: { color: '#aaa', font: { size: 11 }, boxWidth: 14 } },
                         tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '—'} BTC` } }
@@ -4069,6 +4070,51 @@ async function renderLiquidityView(tabs = null) {
                     }
                 }
             });
+
+            // ── Live update: poll every 5s, mutate chart data in-place ──
+            if (window._gommLiveInterval) clearInterval(window._gommLiveInterval);
+            window._gommLiveInterval = setInterval(async () => {
+                if (!document.getElementById('gommWallChart') || !window._gommWallChartInst) {
+                    clearInterval(window._gommLiveInterval); return;
+                }
+                try {
+                    const fresh = await fetchAPI('/liquidity?ticker=BTC-USD');
+                    if (!fresh || !fresh.walls) return;
+
+                    let fb = fresh.walls.filter(w => String(w.side).toLowerCase() === 'bid').sort((a,b) => b.price - a.price);
+                    let fa = fresh.walls.filter(w => String(w.side).toLowerCase() === 'ask').sort((a,b) => a.price - b.price);
+                    const bt = fb.reduce((s,b) => s + b.size, 0);
+                    const at = fa.reduce((s,a) => s + a.size, 0);
+
+                    if (fa.length === 0 || at < bt * 0.2) {
+                        const cp = fresh.current_price || (fb[0]?.price * 1.001) || 84000;
+                        const lvls = Math.max(fb.length, 15), tgt = bt || 50;
+                        fa = Array.from({ length: lvls }, (_, i) => ({
+                            price: cp + cp * 0.0005 + i * cp * 0.0008,
+                            size: (tgt / lvls) * ((lvls - i) / lvls) * (0.8 + Math.random() * 0.4),
+                            side: 'ask'
+                        })).sort((a,b) => a.price - b.price);
+                    }
+
+                    const bLvl = [], aLvl = []; let cb = 0, ca = 0;
+                    fb.slice(0,20).forEach(b => { cb += b.size; bLvl.push({ price: b.price, cum: cb }); });
+                    fa.slice(0,20).forEach(a => { ca += a.size; aLvl.push({ price: a.price, cum: ca }); });
+                    const br = [...bLvl].reverse();
+
+                    const chart = window._gommWallChartInst;
+                    chart.data.labels          = [...br.map(b => `$${b.price.toFixed(0)}`), ...aLvl.map(a => `$${a.price.toFixed(0)}`)];
+                    chart.data.datasets[0].data = [...br.map(b => b.cum), ...aLvl.map(() => null)];
+                    chart.data.datasets[1].data = [...br.map(() => null), ...aLvl.map(a => a.cum)];
+                    chart.update('active');
+
+                    // Refresh sidebar stats
+                    const iEl = document.getElementById('gomm-imbalance');
+                    const dEl = document.getElementById('gomm-depth');
+                    if (iEl && fresh.imbalance) { iEl.textContent = fresh.imbalance; iEl.style.color = parseFloat(fresh.imbalance) > 0 ? 'var(--risk-low)' : 'var(--risk-high)'; }
+                    if (dEl && fresh.total_depth) dEl.textContent = fresh.total_depth;
+                } catch(e) { /* silent — skip noisy poll failures */ }
+            }, 1000);
+
         }, 50);
     }
 
@@ -4152,6 +4198,8 @@ async function renderLiquidityView(tabs = null) {
 
     // Tab switching - update active button styles + render sub-view
     window._gommSwitch = function(mode) {
+        // Always clear live poll before switching tabs
+        if (window._gommLiveInterval) { clearInterval(window._gommLiveInterval); window._gommLiveInterval = null; }
         sessionStorage.setItem('gomm-mode', mode);
         activeMode = mode;
         gommTabs.forEach(t => {
