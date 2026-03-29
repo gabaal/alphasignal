@@ -3962,7 +3962,7 @@ async function renderLiquidityView(tabs = null) {
         fetchAPI('/tape?ticker=BTC-USD'),
         fetchAPI('/whales_entity?ticker=BTC-USD'),
         fetchAPI('/liquidations?ticker=BTC-USD'),
-        fetchAPI('/volatility?ticker=BTC-USD').catch(() => null)
+        fetch('/api/volatility-surface?ticker=BTC-USD').then(r => r.ok ? r.json() : null).catch(() => null)
     ]);
 
     // Update stats
