@@ -176,6 +176,7 @@ async function renderETFFlows(tabs = null) {
         }
     });
 
+
     document.getElementById('etf-cumulative-text').textContent = "$19.42B";
     document.getElementById('etf-leaderboard').innerHTML = issuers.map(iss => `
         <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border)">
@@ -183,7 +184,98 @@ async function renderETFFlows(tabs = null) {
             <span style="color:${iss.data[4] >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}; font-weight:900">${iss.data[4] >= 0 ? '+' : ''}${iss.data[4]}M</span>
         </div>
     `).join('');
+
+    // Waterfall Chart — Cumulative net flow with floating bars
+    const waterfallEl = document.createElement('div');
+    waterfallEl.className = 'card';
+    waterfallEl.style.cssText = 'margin-top:1.5rem;';
+    waterfallEl.innerHTML = `
+        <div class="card-header" style="margin-bottom:15px">
+            <h3>Cumulative Net Flow Waterfall <span style="font-size:0.8rem;color:var(--text-dim)">(Week-over-Week)</span></h3>
+            <span class="label-tag">INSTITUTIONAL WATERFALL</span>
+        </div>
+        <div style="height:280px;width:100%;position:relative;"><canvas id="etfWaterfallChart"></canvas></div>
+        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:8px">
+            Each bar represents a day's net inflow/outflow. Green = net positive. Running total line shows cumulative institutional positioning.
+        </div>
+    `;
+    appEl.appendChild(waterfallEl);
+
+    setTimeout(() => {
+        const wCtx = document.getElementById('etfWaterfallChart');
+        if (!wCtx) return;
+
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+        // Total net flows per day ($M)
+        const netFlows = [740, 245, -95, 1400, 530, -220, 380, 850, -140, 920];
+        // Compute waterfall start/end (floating bars)
+        let running = 0;
+        const floatBases = [];
+        const floatTops = [];
+        const colors = [];
+        const total = [];
+        netFlows.forEach(v => {
+            floatBases.push(running < running + v ? running : running + v);
+            floatTops.push(Math.abs(v));
+            colors.push(v >= 0 ? 'rgba(34,197,94,0.75)' : 'rgba(239,68,68,0.75)');
+            running += v;
+            total.push(running);
+        });
+
+        new Chart(wCtx.getContext('2d'), {
+            data: {
+                labels: days,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Daily Net Flow ($M)',
+                        data: floatTops.map((h, i) => ({ x: days[i], y: h, base: floatBases[i] })),
+                        backgroundColor: colors,
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        yAxisID: 'y'
+                    },
+                    {
+                        type: 'line',
+                        label: 'Running Total ($M)',
+                        data: total,
+                        borderColor: 'rgba(0,242,255,0.9)',
+                        borderWidth: 2,
+                        borderDash: [4, 4],
+                        pointRadius: 4,
+                        pointBackgroundColor: '#00f2ff',
+                        fill: false,
+                        tension: 0.3,
+                        yAxisID: 'y'
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 } } },
+                    tooltip: {
+                        backgroundColor: 'rgba(13,17,23,0.95)',
+                        callbacks: {
+                            label: c => c.datasetIndex === 0
+                                ? `Daily: ${netFlows[c.dataIndex] >= 0 ? '+' : ''}${netFlows[c.dataIndex]}M`
+                                : `Total: $${c.raw.toLocaleString()}M`
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#8b949e' } },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#8b949e', callback: v => '$' + v + 'M' }
+                    }
+                }
+            }
+        });
+    }, 100);
 }
+
 
 // ============= Liquidations View =============
 async function renderLiquidations(tabs = null) {
@@ -450,6 +542,66 @@ async function renderOIRadar(tabs = null) {
             });
         }
     }, 50);
+
+    // OI Bubble Scatter — price delta vs OI delta, sized by absolute OI
+    const oiBubbleEl = document.createElement('div');
+    oiBubbleEl.className = 'card';
+    oiBubbleEl.style.marginTop = '2rem';
+    oiBubbleEl.innerHTML = `
+        <div class="card-header" style="margin-bottom:15px">
+            <h3>OI Divergence Bubble Map <span style="font-size:0.8rem;color:var(--text-dim)">(Price &Delta; vs OI &Delta;)</span></h3>
+            <span class="label-tag">SQUEEZE DETECTOR</span>
+        </div>
+        <div style="height:300px;width:100%;position:relative;"><canvas id="oiBubbleChart"></canvas></div>
+        <div style="margin-top:8px;font-size:0.6rem;color:var(--text-dim)">Bubble size = absolute OI ($B). Orange = long squeeze risk. Red = short trap. Yellow = long unwind.</div>
+    `;
+    appEl.appendChild(oiBubbleEl);
+
+    setTimeout(() => {
+        const bCtx = document.getElementById('oiBubbleChart');
+        if (!bCtx) return;
+        const assets = [
+            { label:'BTC', priceD:2.1, oiD:3.4, oi:14.5 },
+            { label:'ETH', priceD:-1.2, oiD:5.8, oi:9.2 },
+            { label:'SOL', priceD:4.5, oiD:-2.1, oi:3.8 },
+            { label:'BNB', priceD:-3.1, oiD:-1.8, oi:2.4 },
+            { label:'DOGE', priceD:8.2, oiD:12.5, oi:1.2 },
+            { label:'PEPE', priceD:-5.4, oiD:9.1, oi:0.8 },
+            { label:'ARB', priceD:1.8, oiD:-4.2, oi:1.5 },
+            { label:'AVAX', priceD:3.2, oiD:2.8, oi:2.1 }
+        ];
+        const qc = a => a.priceD > 0 && a.oiD > 0 ? 'rgba(251,146,60,0.75)'
+                      : a.priceD < 0 && a.oiD > 0 ? 'rgba(239,68,68,0.75)'
+                      : a.priceD > 0 && a.oiD < 0 ? 'rgba(250,204,21,0.65)'
+                      : 'rgba(100,116,139,0.6)';
+
+        new Chart(bCtx.getContext('2d'), {
+            type: 'bubble',
+            data: { datasets: assets.map(a => ({
+                label: a.label,
+                data: [{ x: a.priceD, y: a.oiD, r: Math.max(6, a.oi * 2.5) }],
+                backgroundColor: qc(a),
+                borderColor: qc(a).replace('0.75','1').replace('0.65','1').replace('0.6','1'),
+                borderWidth: 1
+            }))},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor:'rgba(13,17,23,0.95)',
+                        callbacks: { label: c => {
+                            const a = assets[c.datasetIndex];
+                            return `${a.label}: Px ${a.priceD>0?'+':''}${a.priceD}% | OI ${a.oiD>0?'+':''}${a.oiD}% | $${a.oi}B`;
+                        }}
+                    }
+                },
+                scales: {
+                    x: { title:{display:true,text:'24h Price Change (%)',color:'#8b949e'}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#8b949e',callback:v=>v+'%'} },
+                    y: { title:{display:true,text:'24h OI Change (%)',color:'#8b949e'}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#8b949e',callback:v=>v+'%'} }
+                }
+            }
+        });
+    }, 150);
 }
 
 // ============= Token Unlocks View =============
@@ -614,14 +766,25 @@ async function renderSignals(category = 'ALL', tabs = null) {
            
         </div>
         
-        <!-- 30D Signal Density Histogram -->
-        <div class="card" style="margin-bottom:20px;">
-            <div class="card-header" style="margin-bottom:10px">
-                <h2>Strategy Firing Density (30D Histogram)</h2>
-                <span class="label-tag">VOLATILITY CLUSTER MAP</span>
+        <!-- Signal Analytics Row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div class="card">
+                <div class="card-header" style="margin-bottom:10px">
+                    <h2>Strategy Firing Density (30D)</h2>
+                    <span class="label-tag">VOLATILITY CLUSTER MAP</span>
+                </div>
+                <div style="height:120px; width:100%; position:relative;">
+                    <canvas id="signalDensityChart"></canvas>
+                </div>
             </div>
-            <div style="height:120px; width:100%; position:relative;">
-                <canvas id="signalDensityChart"></canvas>
+            <div class="card">
+                <div class="card-header" style="margin-bottom:10px">
+                    <h2>Z-Score Distribution</h2>
+                    <span class="label-tag">GAUSSIAN CURVE</span>
+                </div>
+                <div style="height:120px; width:100%; position:relative;">
+                    <canvas id="zscoreBellChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -693,6 +856,79 @@ async function renderSignals(category = 'ALL', tabs = null) {
                 }
             });
         }
+    }, 50);
+
+    // Z-Score Bell Curve — built from live signal Z-scores
+    setTimeout(() => {
+        const bellCtx = document.getElementById('zscoreBellChart');
+        if (!bellCtx || !signals || !signals.length) return;
+
+        // Bin the actual signal Z-scores into buckets from -4 to +4
+        const buckets = [-4,-3,-2,-1,0,1,2,3,4];
+        const bucketLabels = buckets.map(b => b.toFixed(0));
+        const counts = new Array(buckets.length).fill(0);
+        signals.forEach(s => {
+            const z = Math.max(-4, Math.min(4, s.zScore || 0));
+            const idx = Math.round(z + 4); // shift to 0-8 range
+            if (idx >= 0 && idx < counts.length) counts[idx]++;
+        });
+
+        // Compute Gaussian PDF for overlay (scaled to match histogram)
+        const maxCount = Math.max(...counts, 1);
+        const mean = signals.reduce((a, s) => a + (s.zScore || 0), 0) / signals.length;
+        const variance = signals.reduce((a, s) => a + Math.pow((s.zScore || 0) - mean, 2), 0) / signals.length;
+        const std = Math.sqrt(variance) || 1;
+        const gaussian = buckets.map(x => {
+            const exp = Math.exp(-0.5 * Math.pow((x - mean) / std, 2));
+            return (exp / (std * Math.sqrt(2 * Math.PI))) * signals.length * 0.9;
+        });
+
+        new Chart(bellCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: bucketLabels,
+                datasets: [
+                    {
+                        label: 'Signal Count',
+                        data: counts,
+                        backgroundColor: counts.map((_, i) => {
+                            const z = buckets[i];
+                            if (Math.abs(z) >= 3) return 'rgba(239,68,68,0.75)';
+                            if (Math.abs(z) >= 2) return 'rgba(251,146,60,0.65)';
+                            if (Math.abs(z) >= 1) return 'rgba(0,242,255,0.5)';
+                            return 'rgba(255,255,255,0.2)';
+                        }),
+                        borderRadius: 3,
+                        order: 2
+                    },
+                    {
+                        label: 'Gaussian Fit',
+                        data: gaussian,
+                        type: 'line',
+                        borderColor: 'rgba(188,19,254,0.8)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: false,
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(13,17,23,0.95)',
+                        callbacks: { label: c => c.datasetIndex === 0 ? `${c.raw} signals` : `Fit: ${c.raw.toFixed(1)}` }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 9 } } },
+                    y: { display: false, grid: { display: false } }
+                }
+            }
+        });
     }, 50);
 
     // Signal Confidence Radar — loads after signals are painted
@@ -1020,32 +1256,75 @@ async function renderPerformanceDashboard(tabs = null) {
 
             const labels = curve.map((_, i) => `T-${dataPoints - i}d`);
 
+            // Compute drawdown from running high watermark
+            let peak = curve[0];
+            const drawdown = curve.map(v => {
+                if (v > peak) peak = v;
+                return v - peak; // negative number = drawdown depth
+            });
+            const maxDD = Math.min(...drawdown).toFixed(2);
+
+            // Inject max drawdown stat below the chart title
+            const chartCard = eqCtx.closest ? eqCtx.closest('.card') : null;
+            if (chartCard) {
+                const ddLabel = document.createElement('div');
+                ddLabel.style.cssText = 'display:flex;gap:2rem;margin-top:10px;font-size:0.65rem;';
+                ddLabel.innerHTML = `
+                    <span style="color:var(--text-dim)">MAX DRAWDOWN: <span style="color:#ef4444;font-weight:900">${maxDD}%</span></span>
+                    <span style="color:var(--text-dim)">TOTAL RETURN: <span style="color:${winColor};font-weight:900">${totalRet >= 0 ? '+' : ''}${totalRet}%</span></span>
+                    <span style="color:var(--text-dim)">CALMAR RATIO: <span style="color:var(--accent);font-weight:900">${maxDD != 0 ? (totalRet / Math.abs(maxDD)).toFixed(2) : 'N/A'}</span></span>
+                `;
+                chartCard.appendChild(ddLabel);
+            }
+
             new Chart(eqCtx.getContext('2d'), {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Cumulative PnL (%)',
-                        data: curve,
-                        borderColor: winColor,
-                        backgroundColor: winColor === '#22c55e' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.1,
-                        pointRadius: 0
-                    }]
+                    datasets: [
+                        {
+                            label: 'Cumulative PnL (%)',
+                            data: curve,
+                            borderColor: winColor,
+                            backgroundColor: winColor === '#22c55e' ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.15,
+                            pointRadius: 0,
+                            order: 1
+                        },
+                        {
+                            label: 'Drawdown (%)',
+                            data: drawdown,
+                            borderColor: 'rgba(239,68,68,0.6)',
+                            backgroundColor: 'rgba(239,68,68,0.15)',
+                            borderWidth: 1,
+                            fill: true,
+                            tension: 0.15,
+                            pointRadius: 0,
+                            yAxisID: 'yDD',
+                            order: 2
+                        }
+                    ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(13, 17, 23, 0.95)', callbacks: { label: c => `${c.raw.toFixed(2)}%` } }
+                        legend: { labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 }, filter: i => i.text !== 'Drawdown (%)' } },
+                        tooltip: {
+                            backgroundColor: 'rgba(13,17,23,0.95)',
+                            callbacks: {
+                                label: c => c.datasetIndex === 0
+                                    ? `PnL: ${c.raw.toFixed(2)}%`
+                                    : `Drawdown: ${c.raw.toFixed(2)}%`
+                            }
+                        }
                     },
                     scales: {
                         x: { display: false },
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v + '%' } }
+                        y: { position:'left', grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#8b949e',font:{family:'JetBrains Mono',size:10},callback:v=>v+'%'} },
+                        yDD: { position:'right', display:false, min: Math.min(...drawdown) * 1.2, max: 0 }
                     }
                 }
             });

@@ -220,6 +220,57 @@ async function renderCommandCenter() {
     }
 }
 
+// ============= BTC Top-Bar Sparkline =============
+let _btcSparkChartInst = null;
+async function initBTCSparkline() {
+    const canvas = document.getElementById('btcSparklineChart');
+    const priceEl = document.getElementById('btc-spark-price');
+    const changeEl = document.getElementById('btc-spark-change');
+    if (!canvas) return;
+
+    try {
+        const data = await fetchAPI('/history?ticker=BTC-USD&period=5d');
+        if (!data || !data.history || data.history.length < 2) return;
+
+        const prices = data.history.map(p => p.close);
+        const labels = data.history.map(p => p.date);
+        const latest = prices[prices.length - 1];
+        const prev = prices[0];
+        const pct = ((latest - prev) / prev * 100).toFixed(2);
+        const isUp = latest >= prev;
+        const color = isUp ? '#22c55e' : '#ef4444';
+
+        if (priceEl) priceEl.textContent = '$' + latest.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        if (changeEl) {
+            changeEl.textContent = (isUp ? '+' : '') + pct + '%';
+            changeEl.style.color = color;
+        }
+
+        if (_btcSparkChartInst) { _btcSparkChartInst.destroy(); }
+
+        _btcSparkChartInst = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: prices,
+                    borderColor: color,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    fill: true,
+                    backgroundColor: isUp ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, animation: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+    } catch(e) { console.warn('BTC Sparkline failed:', e); }
+}
+
 function initCommandGauges(macro, regime) {
     const fgValue = document.getElementById('cmd-fear-val');
     const fgCanvas = document.getElementById('cmd-gauge-fear');
@@ -2069,6 +2120,8 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
     initLivePriceStream();
     initLiveAlphaScroller();
     initFearGreedGauge();
+    initBTCSparkline();
+    setInterval(initBTCSparkline, 5 * 60 * 1000); // refresh every 5 min
     // updateInstitutionalPulse();
 }
 
