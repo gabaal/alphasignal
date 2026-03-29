@@ -1734,7 +1734,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const loginBtn = document.getElementById('login-btn');
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
-            const isSignup = document.getElementById('toggle-auth').textContent.includes('ALREADY_HAVE_ACCESS');
+            const isSignup = document.getElementById('login-btn').textContent.trim() === 'REGISTER';
             handleAuth(isSignup);
         });
     }
@@ -1746,7 +1746,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (el) {
             el.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    const isSignup = document.getElementById('toggle-auth').textContent.includes('ALREADY_HAVE_ACCESS');
+                    const isSignup = document.getElementById('login-btn').textContent.trim() === 'REGISTER';
                     handleAuth(isSignup);
                 }
             });
