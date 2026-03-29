@@ -2021,69 +2021,13 @@ async function renderWhales(tabs = null) {
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="whale-list">
-            ${(data.results || data || []).slice(0, 10).map(w => `
-                <div class="whale-row">
-                    <div class="w-main">
-                        <div class="w-amount">${w.amount} ${w.asset.split('-')[0]} <span class="usd-val">(${w.usdValue})</span></div>
-                        <div class="w-meta">
-                            <span class="w-hash">${w.hash}</span>
-                            <span class="w-time">${w.timestamp}</span>
-                            <span class="asset-badge">${w.asset}</span>
-                        </div>
-                    </div>
-                    <div class="w-paths">
-                        <div><label class="label-tag">FROM</label> <span>${w.from}</span></div>
-                        <div><label class="label-tag">TO</label> <span>${w.to}</span></div>
-                    </div>
-                    <div class="w-actions">
-                        <div class="flow-badge flow-${w.flow.toLowerCase()}">${w.flow}</div>
-                        <div class="impact-badge impact-${w.impact.toLowerCase()}">${w.impact} IMPACT</div>
-                        <button class="timeframe-btn" onclick="openDetail('${w.asset}')">VIEW CHART</button>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-        ${(data.results || data || []).length > 10 ? `
-        <div id="whale-extra-rows" style="display:none">
-            <div class="whale-list">
-            ${(data.results || data || []).slice(10).map(w => `
-                <div class="whale-row">
-                    <div class="w-main">
-                        <div class="w-amount">${w.amount} ${w.asset.split('-')[0]} <span class="usd-val">(${w.usdValue})</span></div>
-                        <div class="w-meta">
-                            <span class="w-hash">${w.hash}</span>
-                            <span class="w-time">${w.timestamp}</span>
-                            <span class="asset-badge">${w.asset}</span>
-                        </div>
-                    </div>
-                    <div class="w-paths">
-                        <div><label class="label-tag">FROM</label> <span>${w.from}</span></div>
-                        <div><label class="label-tag">TO</label> <span>${w.to}</span></div>
-                    </div>
-                    <div class="w-actions">
-                        <div class="flow-badge flow-${w.flow.toLowerCase()}">${w.flow}</div>
-                        <div class="impact-badge impact-${w.impact.toLowerCase()}">${w.impact} IMPACT</div>
-                        <button class="timeframe-btn" onclick="openDetail('${w.asset}')">VIEW CHART</button>
-                    </div>
-                </div>
-            `).join('')}
-            </div>
-        </div>
-        <div style="text-align:center;margin:1rem 0 0.5rem">
-            <button id="whale-toggle-btn" class="timeframe-btn" style="font-size:0.65rem;padding:6px 20px"
-                onclick="const x=document.getElementById('whale-extra-rows');const b=document.getElementById('whale-toggle-btn');if(x.style.display==='none'){x.style.display='block';b.textContent='SHOW LESS';}else{x.style.display='none';b.textContent='SHOW ALL (${(data.results || data || []).length - 10} MORE)';}">
-                SHOW ALL (${(data.results || data || []).length - 10} MORE)
-            </button>
-        </div>` : ''}`
+        </div>`; // ← end of main innerHTML (after polar chart section)
 
     if (entityData && entityData.flow_history) {
         renderWhaleFlowChart(entityData.flow_history);
     }
 
-    // Whale Wallet Flow Network — Chart.js horizontal flow bars (no D3 dependency)
+    // ── 1. Whale Wallet Flow Network chart (appears first) ──────────────
     const sankeyEl = document.createElement('div');
     sankeyEl.className = 'card';
     sankeyEl.style.cssText = 'padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);';
@@ -2133,6 +2077,47 @@ async function renderWhales(tabs = null) {
         });
     }, 200);
 
+    // ── 2. Whale Transaction List (at the bottom) ───────────────────────
+    const txListEl = document.createElement('div');
+    txListEl.style.marginTop = '2rem';
+    const whaleRows = data.results || data || [];
+    const first10 = whaleRows.slice(0, 10);
+    const rest = whaleRows.slice(10);
+    const renderRow = w => `
+        <div class="whale-row">
+            <div class="w-main">
+                <div class="w-amount">${w.amount} ${w.asset.split('-')[0]} <span class="usd-val">(${w.usdValue})</span></div>
+                <div class="w-meta">
+                    <span class="w-hash">${w.hash}</span>
+                    <span class="w-time">${w.timestamp}</span>
+                    <span class="asset-badge">${w.asset}</span>
+                </div>
+            </div>
+            <div class="w-paths">
+                <div><label class="label-tag">FROM</label> <span>${w.from}</span></div>
+                <div><label class="label-tag">TO</label> <span>${w.to}</span></div>
+            </div>
+            <div class="w-actions">
+                <div class="flow-badge flow-${w.flow.toLowerCase()}">${w.flow}</div>
+                <div class="impact-badge impact-${w.impact.toLowerCase()}">${w.impact} IMPACT</div>
+                <button class="timeframe-btn" onclick="openDetail('${w.asset}')">VIEW CHART</button>
+            </div>
+        </div>`;
+    txListEl.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">swap_vert</span>LIVE TRANSACTION FEED</h3>
+            <span class="label-tag">LAST ${whaleRows.length} TXS</span>
+        </div>
+        <div class="whale-list">${first10.map(renderRow).join('')}</div>
+        ${rest.length > 0 ? `
+            <div id="whale-extra-rows" style="display:none"><div class="whale-list">${rest.map(renderRow).join('')}</div></div>
+            <div style="text-align:center;margin:1rem 0 0.5rem">
+                <button id="whale-toggle-btn" class="timeframe-btn" style="font-size:0.65rem;padding:6px 20px"
+                    onclick="const x=document.getElementById('whale-extra-rows');const b=document.getElementById('whale-toggle-btn');if(x.style.display==='none'){x.style.display='block';b.textContent='SHOW LESS';}else{x.style.display='none';b.textContent='SHOW ALL (${rest.length} MORE)';}">
+                    SHOW ALL (${rest.length} MORE)
+                </button>
+            </div>` : ''}`;
+    appEl.appendChild(txListEl);
 
     if (data && data.results && data.results.length > 0) {
         const bubbleData = data.results.map((w, i) => {
