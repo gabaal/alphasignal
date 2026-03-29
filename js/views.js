@@ -4728,6 +4728,28 @@ async function renderSignalArchive(tabs = null) {
         };
         const stateIcons = { 'HIT_TP2': '🎯', 'HIT_TP1': '✅', 'ACTIVE': '⚡', 'STOPPED': '🛑' };
 
+        // ── Win-Rate Summary Strip ──────────────────────────────
+        const wins = data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
+        const losses = data.filter(s => s.state === 'STOPPED').length;
+        const active = data.filter(s => s.state === 'ACTIVE').length;
+        const hitRate = wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(0) : '--';
+        const avgRet = data.length > 0 ? (data.reduce((sum, s) => sum + parseFloat(s.return || 0), 0) / data.length).toFixed(2) : '--';
+        const summaryEl = document.createElement('div');
+        summaryEl.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.5rem';
+        summaryEl.innerHTML = [
+            ['WIN RATE', hitRate + (hitRate !== '--' ? '%' : ''), hitRate >= 50 ? '#22c55e' : '#ef4444'],
+            ['WINS', wins, '#22c55e'],
+            ['LOSSES', losses, '#ef4444'],
+            ['ACTIVE', active, '#60a5fa'],
+            ['AVG RETURN', (avgRet >= 0 ? '+' : '') + avgRet + '%', avgRet >= 0 ? '#22c55e' : '#ef4444']
+        ].map(([label, val, color]) =>
+            `<div class="glass-card" style="padding:0.75rem 1rem;text-align:center">
+                <div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${label}</div>
+                <div style="font-size:1.2rem;font-weight:800;color:${color}">${val}</div>
+            </div>`
+        ).join('');
+        container.prepend(summaryEl);
+
         container.innerHTML = `
             <div class="card" style="overflow-x:auto">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:15px">
@@ -4736,7 +4758,6 @@ async function renderSignalArchive(tabs = null) {
                         <button class="setup-generator-btn" style="width:85px; padding:0; font-size:0.65rem; height:24px; line-height:24px; text-align:center" onclick="window.loadArchiveData(${currentPage - 1 > 0 ? currentPage - 1 : 1})" ${currentPage === 1 ? 'disabled style="opacity:0.5"' : ''}>PREVIOUS</button>
                         <div style="font-size:0.75rem; color:var(--text-dim)">PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1}</div>
                         <button class="setup-generator-btn" style="width:85px; padding:0; font-size:0.65rem; height:24px; line-height:24px; text-align:center" onclick="window.loadArchiveData(${currentPage + 1})" ${(pageInfo && currentPage >= pageInfo.pages) ? 'disabled style="opacity:0.5"' : ''}>NEXT</button>
-                        <span style="font-size:0.6rem; color:var(--accent); letter-spacing:1px; display:none title='Desktop PnL tracking'">REAL-TIME PnL TRACKING ACTIVE</span>
                         <a href="/api/export?type=signals" download class="setup-generator-btn" style="width:auto; padding:4px 12px; font-size:0.6rem; height:24px; line-height:16px; text-decoration:none; display:flex; align-items:center; gap:5px"><span class="material-symbols-outlined" style="font-size:12px">download</span> EXPORT ALL (CSV)</a>
                     </div>
                 </div>
@@ -4749,7 +4770,8 @@ async function renderSignalArchive(tabs = null) {
                             <th style="text-align:right; padding:8px 12px">CURRENT</th>
                             <th style="text-align:right; padding:8px 12px">RETURN</th>
                             <th style="text-align:center; padding:8px 12px">STATE</th>
-                            <th style="text-align:left; padding:8px 12px">TIMESTAMP</th>
+                            <th style="text-align:left; padding:8px 12px">DATE</th>
+                            <th style="text-align:center; padding:8px 12px">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4766,6 +4788,10 @@ async function renderSignalArchive(tabs = null) {
                                     </span>
                                 </td>
                                 <td style="padding:10px 12px; color:var(--text-dim)">${s.timestamp ? s.timestamp.split(' ')[0] : '-'}</td>
+                                <td style="padding:8px 12px; text-align:center; white-space:nowrap">
+                                    <button onclick="openDetail('${s.ticker}','CRYPTO')" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
+                                    <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);color:#bc13fe;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="AI Analysis">AI</button>
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -4948,7 +4974,8 @@ async function renderAlerts() {
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">notifications_active</span>Live Intelligence Alerts <span class="premium-badge">LIVE</span></h1>
                 <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <span id="alerts-live-pulse" style="font-size:0.55rem;color:var(--accent);letter-spacing:1px;font-weight:700;opacity:0.5;transition:opacity 0.5s">LIVE • Auto-sync every 60s</span>
                 <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <button class="intel-action-btn mini" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="renderAlerts()"><span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH</button>
             </div>
@@ -6021,8 +6048,8 @@ async function renderBacktesterV2(tabs = null) {
             </div>
         </div>
         <div id="btv2-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem">
-            ${['Win Rate','Total Trades','Total Return','Sharpe','Max Drawdown','Profit Factor','Calmar'].map(s =>
-                '<div class="glass-card" style="padding:1rem;text-align:center"><div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">' + s.toUpperCase() + '</div><div class="btv2-stat" id="btv2-' + s.toLowerCase().replace(/\s+/g,'-') + '" style="font-size:1.3rem;font-weight:800;color:#00d4aa">--</div></div>'
+            ${['Win Rate','Total Trades','Total Return','Sharpe','Max Drawdown','Profit Factor','Calmar','Consec. Wins','Consec. Losses'].map(s =>
+                '<div class="glass-card" style="padding:1rem;text-align:center"><div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">' + s.toUpperCase() + '</div><div class="btv2-stat" id="btv2-' + s.toLowerCase().replace(/[\s.]+/g,'-').replace(/-+/g,'-') + '" style="font-size:1.3rem;font-weight:800;color:#00d4aa">--</div></div>'
             ).join('')}
         </div>
         <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
@@ -6079,7 +6106,20 @@ async function loadBacktesterV2() {
         });
         if (data.rolling_sharpe && data.rolling_sharpe.length) renderBtv2Chart(data.rolling_sharpe);
         if (data.monthly_returns) renderBtv2Calendar(data.monthly_returns);
-        if (data.trades && data.trades.length) renderBtv2Table(data.trades.slice().reverse());
+        if (data.trades && data.trades.length) {
+            // Compute consecutive wins/losses from sorted trades
+            const sorted = data.trades.slice().sort((a,b) => a.entry_date.localeCompare(b.entry_date));
+            let maxWins = 0, maxLoss = 0, curWin = 0, curLoss = 0;
+            sorted.forEach(t => {
+                if (t.pnl_pct >= 0) { curWin++; curLoss = 0; maxWins = Math.max(maxWins, curWin); }
+                else { curLoss++; curWin = 0; maxLoss = Math.max(maxLoss, curLoss); }
+            });
+            const elW = document.getElementById('btv2-consec--wins');
+            const elL = document.getElementById('btv2-consec--losses');
+            if (elW) { elW.textContent = maxWins; elW.style.color = '#22c55e'; }
+            if (elL) { elL.textContent = maxLoss; elL.style.color = '#ef4444'; }
+            renderBtv2Table(data.trades.slice().reverse());
+        }
     } catch(e) {
         showToast('BACKTESTER', 'Failed: ' + e.message, 'alert');
     }

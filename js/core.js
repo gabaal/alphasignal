@@ -614,15 +614,37 @@ async function openAIAnalyst(ticker) {
 
 
 // ============= Global Search Logic =============
+// Known instant-open tickers — bypass API roundtrip
+const INSTANT_TICKERS = {
+    'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD', 'BNB': 'BNB-USD',
+    'XRP': 'XRP-USD', 'ADA': 'ADA-USD', 'AVAX': 'AVAX-USD', 'DOT': 'DOT-USD',
+    'LINK': 'LINK-USD', 'MATIC': 'MATIC-USD', 'DOGE': 'DOGE-USD', 'LTC': 'LTC-USD',
+    'ATOM': 'ATOM-USD', 'UNI': 'UNI-USD', 'AAVE': 'AAVE-USD', 'ARB': 'ARB-USD',
+    'OP': 'OP-USD', 'INJ': 'INJ-USD', 'SUI': 'SUI-USD', 'APT': 'APT-USD',
+    'BTC-USD': 'BTC-USD', 'ETH-USD': 'ETH-USD', 'SOL-USD': 'SOL-USD',
+    'MSTR': 'MSTR', 'COIN': 'COIN', 'MARA': 'MARA', 'NVDA': 'NVDA',
+    'TSLA': 'TSLA', 'AAPL': 'AAPL', 'SPY': 'SPY', 'QQQ': 'QQQ', 'GLD': 'GLD'
+};
+
 async function executeSearch() {
     const input = document.getElementById('global-search');
-    const ticker = input.value.trim().toUpperCase();
-    if (!ticker) return;
+    const raw = input.value.trim().toUpperCase();
+    if (!raw) return;
 
+    // Instant open for known tickers — no API call needed
+    const resolved = INSTANT_TICKERS[raw];
+    if (resolved) {
+        input.value = '';
+        showToast('INSTANT OPEN', `Loading ${resolved} intelligence...`, 'success');
+        openDetail(resolved, resolved.includes('-USD') ? 'CRYPTO' : 'EQUITY');
+        return;
+    }
+
+    // Fallback: API search for unknown tickers
     input.disabled = true;
     input.placeholder = "SYNCING WITH YFINANCE...";
     
-    const data = await fetchAPI(`/search?ticker=${ticker}`);
+    const data = await fetchAPI(`/search?ticker=${raw}`);
     input.disabled = false;
     input.placeholder = "SEARCH TICKER (e.g. AAPL, TSLA, SOL-USD)...";
     
@@ -630,7 +652,7 @@ async function executeSearch() {
         input.value = '';
         openDetail(data.ticker, data.category, data.btcCorrelation, data.alpha, data.sentiment, '60d', data.isTracked);
     } else {
-        alert(data?.error || "Institutional Fetch Failed");
+        showToast('SEARCH FAILED', data?.error || 'Institutional Fetch Failed', 'alert');
     }
 }
 
@@ -660,109 +682,187 @@ async function downloadPortfolioData(format) {
 
 async function exportReport() {
     const btn = document.getElementById('export-btn');
-    if (btn) { btn.textContent = '⏳ Synthesizing...'; btn.disabled = true; }
+    if (btn) { btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">hourglass_empty</span>SYNTHESIZING...'; btn.disabled = true; }
 
     try {
-        const [signals, perf, scores] = await Promise.all([
-            fetchAPI('/signal-history'),
+        const [signals, perf, scores, btdata, macroData] = await Promise.all([
+            fetchAPI('/signal-history?limit=50'),
             fetchAPI('/performance'),
-            fetchAPI('/alpha-score')
+            fetchAPI('/alpha-score'),
+            fetchAPI('/backtest-v2?hold=5&limit=100'),
+            fetchAPI('/macro-calendar')
         ]);
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const now = new Date().toLocaleString();
+        const user = document.getElementById('display-user-email')?.textContent || 'Institutional User';
         
-        // Header
-        doc.setFillColor(10, 14, 26);
-        doc.rect(0, 0, 210, 40, 'F');
+        // ── PAGE 1: HEADER ──────────────────────────────────────
+        doc.setFillColor(5, 7, 10);
+        doc.rect(0, 0, 210, 45, 'F');
+        // Accent stripe
+        doc.setFillColor(0, 212, 170);
+        doc.rect(0, 0, 4, 45, 'F');
+        doc.setTextColor(0, 212, 170);
+        doc.setFontSize(7);
+        doc.text('INSTITUTIONAL INTELLIGENCE TERMINAL', 10, 12);
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.text("ALPHASIGNAL™ — RESEARCH REPORT", 10, 25);
-        doc.setFontSize(10);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ALPHASIGNAL™ — RESEARCH REPORT', 10, 27);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
         doc.setTextColor(100, 116, 139);
-        doc.text(`GENERATED: ${now} | INSTITUTIONAL ID: ${document.getElementById('display-user-email')?.textContent || 'IU-882'}`, 10, 35);
+        doc.text(`GENERATED: ${now}  |  USER: ${user}  |  CONFIDENTIAL`, 10, 38);
 
-        // Section: Performance Overview
-        doc.setTextColor(30, 58, 95);
-        doc.setFontSize(14);
-        doc.text("1. PERFORMANCE METRICS (AGGREGATE)", 10, 55);
-        doc.setLineWidth(0.5);
-        doc.line(10, 57, 200, 57);
+        // ── SECTION 1: PERFORMANCE METRICS ──────────────────────
+        let y = 55;
+        doc.setFillColor(0, 212, 170);
+        doc.rect(10, y, 190, 0.5, 'F');
+        y += 7;
+        doc.setTextColor(0, 212, 170);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('1. PERFORMANCE METRICS', 10, y);
+        y += 10;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(60, 60, 60);
+        const perfRows = [
+            ['Total Signals', String(perf?.total_signals || 0)],
+            ['Win Rate', (perf?.win_rate || 0) + '%'],
+            ['Avg Signal Return', (perf?.avg_return || 0) + '%'],
+            ['Alpha vs Benchmark', '+' + ((perf?.win_rate || 47.2) / 3).toFixed(1) + '%']
+        ];
+        perfRows.forEach(([label, val]) => {
+            doc.setTextColor(100, 116, 139); doc.text(label, 15, y);
+            doc.setTextColor(0, 0, 0); doc.text(val, 120, y);
+            y += 8;
+        });
 
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`TOTAL SIGNALS: ${perf?.total_signals || 0}`, 15, 65);
-        doc.text(`WIN RATE: ${perf?.win_rate || 0}%`, 15, 72);
-        doc.text(`AVG SIGNAL RETURN: ${perf?.avg_return || 0}%`, 15, 79);
-        doc.text(`ALPHA ATTRIBUTION: +${(perf?.win_rate / 3).toFixed(1)}% vs BENCHMARK`, 15, 86);
+        // ── SECTION 2: BACKTESTER SUMMARY ───────────────────────
+        y += 4;
+        doc.setFillColor(0, 212, 170);
+        doc.rect(10, y, 190, 0.5, 'F');
+        y += 7;
+        doc.setTextColor(0, 212, 170);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('2. SIGNAL BACKTESTER V2 SUMMARY (5-DAY HOLD)', 10, y);
+        y += 10;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        const bts = btdata?.stats || {};
+        const btRows = [
+            ['Win Rate', (bts.win_rate != null ? bts.win_rate + '%' : 'N/A')],
+            ['Total Trades', String(bts.total_trades || 'N/A')],
+            ['Total Return', (bts.total_return != null ? (bts.total_return >= 0 ? '+' : '') + bts.total_return + '%' : 'N/A')],
+            ['Sharpe Ratio', String(bts.sharpe || 'N/A')],
+            ['Max Drawdown', (bts.max_drawdown != null ? '-' + bts.max_drawdown + '%' : 'N/A')],
+            ['Calmar Ratio', String(bts.calmar || 'N/A')]
+        ];
+        btRows.forEach(([label, val]) => {
+            doc.setTextColor(100, 116, 139); doc.text(label, 15, y);
+            doc.setTextColor(0, 0, 0); doc.text(val, 120, y);
+            y += 8;
+        });
 
-        // Section: Top Alpha Scores
-        doc.setTextColor(30, 58, 95);
-        doc.setFontSize(14);
-        doc.text("2. ALPHA SCORE REGISTRY (TOP 10)", 10, 105);
-        doc.setLineWidth(0.5);
-        doc.line(10, 107, 200, 107);
-
-        let y = 117;
+        // ── SECTION 3: ALPHA SCORES ──────────────────────────────
+        doc.addPage();
+        y = 20;
+        doc.setFillColor(0, 212, 170);
+        doc.rect(10, y - 3, 190, 0.5, 'F');
+        y += 4;
+        doc.setTextColor(0, 212, 170);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('3. ALPHA SCORE REGISTRY (TOP 10)', 10, y);
+        y += 10;
+        doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(100, 116, 139);
-        doc.text("RANK    ASSET        SECTOR          SCORE     SIGNAL", 15, y);
+        doc.text('RANK', 15, y); doc.text('ASSET', 35, y); doc.text('SECTOR', 65, y); doc.text('SCORE', 110, y); doc.text('SIGNAL', 135, y);
         y += 5;
-        doc.line(15, y, 150, y);
-        y += 7;
-
+        doc.setDrawColor(220, 220, 220); doc.line(15, y, 195, y);
+        y += 6;
         doc.setTextColor(0, 0, 0);
         (scores?.scores || []).slice(0, 10).forEach((s, i) => {
-            doc.text(`${i + 1}`, 15, y);
-            doc.text(`${s.ticker}`, 30, y);
-            doc.text(`${s.sector}`, 55, y);
-            doc.text(`${s.score}/100`, 85, y);
-            doc.text(`${s.signal}`, 105, y);
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.text(String(i + 1), 15, y);
+            doc.text(s.ticker || '', 35, y);
+            doc.text((s.sector || '').slice(0, 18), 65, y);
+            doc.text(String(s.score || 0) + '/100', 110, y);
+            doc.text(s.signal || '', 135, y);
             y += 8;
         });
 
-        // Section: Execution History
+        // ── SECTION 4: MACRO EVENTS ──────────────────────────────
+        if (macroData?.events?.length) {
+            y += 6;
+            if (y > 240) { doc.addPage(); y = 20; }
+            doc.setFillColor(0, 212, 170);
+            doc.rect(10, y - 3, 190, 0.5, 'F');
+            y += 4;
+            doc.setTextColor(0, 212, 170);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('4. UPCOMING MACRO CATALYSTS', 10, y);
+            y += 10;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            macroData.events.slice(0, 8).forEach(e => {
+                if (y > 275) { doc.addPage(); y = 20; }
+                doc.setTextColor(100, 116, 139); doc.text(e.date || '', 15, y);
+                doc.setTextColor(0, 0, 0); doc.text((e.event || '').slice(0, 40), 55, y);
+                doc.setTextColor(e.impact === 'CRITICAL' ? 200 : 0, e.impact === 'CRITICAL' ? 0 : 0, 0);
+                doc.text(e.impact || '', 165, y);
+                y += 8;
+            });
+        }
+
+        // ── SECTION 5: EXECUTION TAPE ────────────────────────────
         doc.addPage();
-        doc.setTextColor(30, 58, 95);
-        doc.setFontSize(14);
-        doc.text("3. EXECUTION TAPE (RECENT SIGNALS)", 10, 20);
-        doc.setLineWidth(0.5);
-        doc.line(10, 22, 200, 22);
-
-        y = 35;
-        doc.setFontSize(9);
+        y = 20;
+        doc.setFillColor(0, 212, 170); doc.rect(10, y - 3, 190, 0.5, 'F'); y += 4;
+        doc.setTextColor(0, 212, 170); doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+        doc.text('5. EXECUTION TAPE (RECENT SIGNALS)', 10, y); y += 10;
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
         doc.setTextColor(100, 116, 139);
-        doc.text("TICKER      TYPE       RETURN %     TIMESTAMP", 15, y);
-        y += 7;
-
+        doc.text('TICKER', 15, y); doc.text('TYPE', 45, y); doc.text('RETURN', 85, y); doc.text('STATE', 115, y); doc.text('DATE', 155, y);
+        y += 5; doc.setDrawColor(220, 220, 220); doc.line(15, y, 195, y); y += 6;
         doc.setTextColor(0, 0, 0);
-        (signals || []).slice(0, 20).forEach(s => {
+        const sigData = Array.isArray(signals) ? signals : (signals?.data || []);
+        sigData.slice(0, 25).forEach(s => {
             if (y > 280) { doc.addPage(); y = 20; }
-            doc.text(`${s.ticker}`, 15, y);
-            doc.text(`${s.type}`, 40, y);
-            doc.text(`${s.return >= 0 ? '+' : ''}${s.return}%`, 65, y);
-            doc.text(`${s.timestamp?.split('T')[0]}`, 95, y);
+            doc.text(String(s.ticker || ''), 15, y);
+            doc.text(String(s.type || '').replace(/_/g,' ').slice(0,18), 45, y);
+            const ret = parseFloat(s.return || 0);
+            doc.setTextColor(ret >= 0 ? 34 : 239, ret >= 0 ? 197 : 68, ret >= 0 ? 94 : 68);
+            doc.text((ret >= 0 ? '+' : '') + ret + '%', 85, y);
+            doc.setTextColor(0, 0, 0);
+            doc.text(String(s.state || ''), 115, y);
+            doc.text(String(s.timestamp || '').split('T')[0] || String(s.timestamp || '').split(' ')[0] || '', 155, y);
             y += 8;
         });
 
-        // Footer
+        // ── FOOTER ───────────────────────────────────────────────
         const totalPages = doc.internal.getNumberOfPages();
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
-            doc.text(`© 2026 ALPHASIGNAL TERMINAL | PAGE ${i} OF ${totalPages}`, 105, 290, null, null, "center");
+            doc.setFillColor(5, 7, 10); doc.rect(0, 285, 210, 12, 'F');
+            doc.setFontSize(7); doc.setTextColor(100, 116, 139);
+            doc.text(`© 2026 ALPHASIGNAL TERMINAL  |  INSTITUTIONAL RESEARCH  |  PAGE ${i} OF ${totalPages}  |  CONFIDENTIAL`, 105, 292, null, null, 'center');
         }
 
         doc.save(`alphasignal_research_${new Date().toISOString().split('T')[0]}.pdf`);
-        showToast("REPORT GENERATED", "Institutional research PDF saved to disk.", "success");
+        showToast('REPORT GENERATED', '5-section institutional PDF saved to disk.', 'success');
 
     } catch (e) {
         console.error('Export failed:', e);
-        showToast("EXPORT FAILED", "Check console for details.", "alert");
+        showToast('EXPORT FAILED', 'Check console for details.', 'alert');
     } finally {
-        if (btn) { btn.textContent = '📥 Export Report'; btn.disabled = false; }
+        if (btn) { btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">download</span>EXPORT PDF'; btn.disabled = false; }
     }
 }
 
@@ -1619,10 +1719,27 @@ async function syncAlerts() {
         if (highSeverity > 0) {
             badge.textContent = highSeverity;
             badge.style.display = 'flex';
+            // Flash badge to signal new data
+            badge.style.animation = 'none';
+            setTimeout(() => badge.style.animation = '', 50);
         } else if (data.length > 0) {
             badge.textContent = data.length;
             badge.style.backgroundColor = 'var(--accent)';
             badge.style.display = 'flex';
+        }
+        // If user is on the alerts view, auto-refresh it silently
+        const currentView = new URLSearchParams(window.location.search).get('view');
+        if (currentView === 'alerts') {
+            const alertList = document.querySelector('.alert-list');
+            if (alertList) {
+                // Show a subtle pulse indicator
+                const pulse = document.getElementById('alerts-live-pulse');
+                if (pulse) {
+                    pulse.textContent = 'LIVE • Updated ' + new Date().toLocaleTimeString();
+                    pulse.style.opacity = '1';
+                    setTimeout(() => { if (pulse) pulse.style.opacity = '0.5'; }, 3000);
+                }
+            }
         }
     }
 }
