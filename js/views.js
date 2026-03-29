@@ -83,12 +83,12 @@ async function renderAnalyticsHub() {
 
 // ============= Audit & Performance Hub =============
 const auditHubTabs = [
-    { id: 'ledger', label: 'TRADE LEDGER', view: 'trade-ledger', icon: 'list_alt' },
-    { id: 'performance', label: 'PERFORMANCE', view: 'performance-dashboard', icon: 'trending_up' }
+    { id: 'performance', label: 'PERFORMANCE', view: 'performance-dashboard', icon: 'trending_up' },
+    { id: 'ledger', label: 'TRADE LEDGER', view: 'trade-ledger', icon: 'list_alt' }
 ];
 
 async function renderAuditHub() {
-    renderTradeLedger(auditHubTabs);
+    renderPerformanceDashboard(auditHubTabs);
 }
 
 // ============= Risk & Stress Lab Hub =============
