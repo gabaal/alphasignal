@@ -301,7 +301,7 @@ async function renderHome() {
                 <div class="hero-content">
                     <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1.5rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">
                         <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
-                        LIVE INSTITUTIONAL TERMINAL &mdash; v1.35
+                        LIVE INSTITUTIONAL TERMINAL &mdash; v1.50
                     </div>
                     <h1>Institutional Intelligence Terminal. <span>Live.</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                     <p class="hero-subtitle">
@@ -430,16 +430,16 @@ async function renderHome() {
             <section style="padding:4rem 2rem;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(188,19,254,0.04),rgba(0,0,0,0.4))">
                 <div style="max-width:1200px;margin:0 auto">
                     <div style="text-align:center;margin-bottom:3rem">
-                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 17 — LATEST INSTITUTIONAL ADDITIONS</span>
+                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 18 — LATEST INSTITUTIONAL ADDITIONS</span>
                         <h2 style="margin-top:1.5rem">Freshly Deployed Intelligence</h2>
-                        <p style="color:var(--text-dim)">The most recent feature additions across AI, options, portfolio, and macro intelligence.</p>
+                        <p style="color:var(--text-dim)">The most recent upgrades across institutional order flow, AI rebalancing, macro intelligence, and options analytics.</p>
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
                         ${[
-                            { icon: 'notifications_active', view: 'alerts', color: '#00f2ff', title: 'AI Signal Push Alerts', desc: 'Discord & Telegram webhook integration with per-user Z-score sensitivity thresholds and a one-click test-fire button.' },
-                            { icon: 'ssid_chart', view: 'options-flow', color: '#bc13fe', title: 'Deribit Options Flow', desc: 'Live BTC & ETH Put/Call ratio, Max Pain strike, ATM IV, IV smile chart, and top open-interest strikes.' },
+                        { icon: 'bar_chart', view: 'liquidity', color: '#00f2ff', title: 'GOMM Order Flow (v1.50)', desc: 'Institutional Tape as a full-width horizontal strip. Heatmap shows live price/candle chart. Liquidation Flux fixed. Bid depth now updates in real-time every poll.' },
                             { icon: 'auto_mode', view: 'portfolio-optimizer', color: '#22c55e', title: 'AI Portfolio Rebalancer', desc: 'Monte Carlo optimiser with GPT-4 rebalancing memo and execution ledger integration for full audit trail.' },
-                            { icon: 'event', view: 'macro-calendar', color: '#f59e0b', title: 'Live Macro Calendar', desc: '90-day FOMC/CPI/NFP/PCE calendar with historical BTC impact scoring and volatility analysis from real price data.' }
+                            { icon: 'event', view: 'macro-calendar', color: '#f59e0b', title: 'Live Macro Calendar', desc: '90-day FOMC/CPI/NFP/PCE calendar with historical BTC impact scoring and volatility analysis from real price data.' },
+                            { icon: 'ssid_chart', view: 'options-flow', color: '#bc13fe', title: 'Deribit Options Flow', desc: 'Live BTC & ETH Put/Call ratio, Max Pain strike, ATM IV, IV smile chart, and top open-interest strikes.' }
                         ].map(f => `
                             <div class="glass-card" onclick="switchView('${f.view}')" style="cursor:pointer;padding:1.5rem;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s"
                                  onmouseover="this.style.borderColor='${f.color}';this.style.background='rgba(255,255,255,0.02)'"
