@@ -2055,42 +2055,6 @@ function renderCorrelationHeatmap(containerId, data) {
         </div>`;
     }).join('');
 }
-function toggleSafeMode() {
-    isSafeMode = !isSafeMode;
-    const trigger = document.getElementById('safe-mode-trigger');
-    const status = document.getElementById('safe-mode-status');
-    const icon = document.getElementById('safe-mode-icon');
-    const indicator = document.getElementById('safe-mode-indicator');
-    
-    if (isSafeMode) {
-        trigger.style.background = 'rgba(0, 242, 255, 0.1)';
-        trigger.style.borderColor = 'var(--accent)';
-        status.innerText = 'ACTIVE';
-        status.style.color = 'var(--accent)';
-        icon.style.color = 'var(--accent)';
-        indicator.style.background = 'var(--accent)';
-        indicator.style.boxShadow = '0 0 10px var(--accent)';
-        showToast('Safe Mode Active', 'Low-liquidity and high-risk assets filtered out.', 'success');
-    } else {
-        trigger.style.background = 'rgba(255, 255, 255, 0.03)';
-        trigger.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-        status.innerText = 'INACTIVE';
-        status.style.color = 'rgba(255,255,255,0.3)';
-        icon.style.color = 'var(--text-dim)';
-        indicator.style.background = 'rgba(255,255,255,0.1)';
-        indicator.style.boxShadow = 'none';
-        showToast('Safe Mode Inactive', 'All assets in the universe are now visible.', 'alert');
-    }
-    
-    // Refresh current view if it's one of the filtered ones
-    const currentView = document.querySelector('.nav-item.active')?.dataset.view;
-    if (['signals', 'alpha-score', 'narrative'].includes(currentView)) {
-        if (currentView === 'signals') renderSignals();
-        else if (currentView === 'alpha-score') renderAlphaScore();
-        else if (currentView === 'narrative') renderNarrativeGalaxy();
-    }
-}
-window.toggleSafeMode = toggleSafeMode;
 
 // Ensure Live Streams connect on load
 document.addEventListener('DOMContentLoaded', () => {
@@ -2483,7 +2447,7 @@ async function exportChartPNG(canvasOrId, filename = 'alphasignal-chart') {
         return;
     }
     try {
-        showToast('EXPORTING', 'Capturing chartâ€¦', 'info');
+        showToast('EXPORTING', 'Capturing chart…', 'info');
         const el = typeof canvasOrId === 'string' ? document.getElementById(canvasOrId) : canvasOrId;
         if (!el) { showToast('ERROR', 'Chart element not found.', 'alert'); return; }
         const canvas = await html2canvas(el, {
@@ -2515,7 +2479,7 @@ async function exportViewPDF(title = 'AlphaSignal Report', containerId = 'main-c
         return;
     }
     try {
-        showToast('EXPORTING', 'Building PDF reportâ€¦', 'info');
+        showToast('EXPORTING', 'Building PDF report…', 'info');
         const el = document.getElementById(containerId) || document.querySelector('.content');
         if (!el) { showToast('ERROR', 'Content element not found.', 'alert'); return; }
 

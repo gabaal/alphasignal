@@ -6,7 +6,7 @@ let lastNeuralSetup = null;
 var isPremiumUser = false;
 var isAuthenticatedUser = false;
 var hasStripeId = false;
-var isSafeMode = false;
+
 var currentBTCPrice = 70000;
 var alertCount = 0;
 var countdownSeconds = 300;

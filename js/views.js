@@ -596,11 +596,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         return;
     }
     
-    // Phase 7.3: Institutional Safe Mode Filtering – Filter out high-vol memes and small-caps
-    if (isSafeMode) {
-        const safeCategories = ['L1', 'EXCHANGE', 'DEFI', 'INFRA', 'EQUITIES', 'MACRO', 'ETF', 'PROXY'];
-        signals = signals.filter(s => safeCategories.includes(s.category));
-    }
+
 
     lastSignalsData = signals;
     updateScroller(signals);
@@ -782,10 +778,7 @@ async function renderAlphaScore(tabs = null) {
     const signalColors = { 'STRONG BUY': '#22c55e', 'BUY': '#86efac', 'NEUTRAL': '#60a5fa', 'CAUTION': '#ef4444' };
 
     let scores = data.scores || [];
-    if (isSafeMode) {
-        const safeSectors = ['L1', 'EXCHANGE', 'DEFI', 'MACRO', 'EQUITIES', 'INFRA', 'ETF', 'PROXY'];
-        scores = scores.filter(s => safeSectors.includes(s.sector) || safeSectors.includes(s.category));
-    }
+
 
     let currentPage = 1;
     const itemsPerPage = 15;
@@ -3346,11 +3339,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
 
     let clusters = data.clusters || [];
     
-    // Phase 7.3: Institutional Safe Mode Filtering
-    if (isSafeMode) {
-        const safeCats = ['L1', 'EXCHANGE', 'DEFI', 'INFRA', 'EQUITIES'];
-        clusters = clusters.filter(c => safeCats.includes(c.category));
-    }
+
 
     const scaleX = rect.width / 800;
     const scaleY = rect.height / 600;
