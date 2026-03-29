@@ -2341,7 +2341,7 @@ async function renderAskTerminal() {
                     style="flex:1;min-height:44px;max-height:120px;background:none;border:none;color:white;font-family:'Outfit';font-size:0.9rem;resize:none;outline:none;line-height:1.5"
                     onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitAIQuery()}"></textarea>
                 <button id="ask-terminal-send" onclick="submitAIQuery()" style="background:#bc13fe;border:none;color:white;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700;letter-spacing:1px;white-space:nowrap">
-                    ASK â†’
+                    ASK →
                 </button>
             </div>
             <div style="font-size:0.65rem;color:var(--text-dim);margin-top:8px;text-align:center">Press Enter to send &bull; Shift+Enter for new line &bull; Powered by GPT-4o-mini</div>
@@ -2397,7 +2397,7 @@ async function submitAIQuery(prefill) {
         const el = document.getElementById(respId);
         if (el) el.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
     } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'ASK â†’'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'ASK →'; }
         history.scrollTop = history.scrollHeight;
     }
 }
