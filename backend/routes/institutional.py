@@ -2420,6 +2420,7 @@ class InstitutionalRoutesMixin:
                 print(f'Liquidity Price Fetch Error: {e}')
                 pass
             walls = []
+            redis_bid_count = 0
             if ticker == 'BTC-USD' or ticker == 'BTC-USDT':
                 from backend.database import redis_client
                 try:
@@ -2428,6 +2429,7 @@ class InstitutionalRoutesMixin:
                         li = json.loads(li_data)
                         for b in li.get('bids', []):
                             walls.append({'price': float(b[0]), 'size': float(b[1]), 'side': 'bid', 'exchange': 'Binance'})
+                            redis_bid_count += 1
                         for a in li.get('asks', []):
                             walls.append({'price': float(a[0]), 'size': float(a[1]), 'side': 'ask', 'exchange': 'Binance'})
                 except:
@@ -2442,17 +2444,31 @@ class InstitutionalRoutesMixin:
                             walls.append({'price': float(ask[0]), 'size': float(ask[1]), 'side': 'ask', 'exchange': 'Binance'})
                         for bid in data.get('bids', []):
                             walls.append({'price': float(bid[0]), 'size': float(bid[1]), 'side': 'bid', 'exchange': 'Binance'})
+                            redis_bid_count += 1
                 except Exception as e:
-                    print(f'Liquidity API Error: {e}')
-                print(f'Liquidity API Error (Binance): {e}')
+                    print(f'Liquidity API Error (Binance): {e}')
+
+            # Always generate fresh synthetic walls from all exchanges.
+            # For bid side: only synthesise if Redis/API returned no real bids
+            # (so when Redis is mocked, bids update every poll just like asks).
+            rng_seed = int(time.time() / 5)  # changes every 5s → live-feeling updates
+            rng = np.random.default_rng(rng_seed)
             exchanges = [{'name': 'Coinbase', 'bias': 0.8}, {'name': 'OKX', 'bias': 1.0}]
-            random.seed(int(current_price))
             for exch in exchanges:
-                for _ in range(3):
-                    ask_offset = 0.002 + random.random() * 0.015
-                    walls.append({'exchange': exch['name'], 'price': round(current_price * (1 + ask_offset), 2), 'size': round((random.random() * 500 + 50) * exch['bias'], 1), 'side': 'ask', 'type': 'Institutional Ask' if random.random() > 0.5 else 'Retail Sell Wall'})
-                    bid_offset = 0.002 + random.random() * 0.015
-                    walls.append({'exchange': exch['name'], 'price': round(current_price * (1 - bid_offset), 2), 'size': round((random.random() * 500 + 50) * exch['bias'], 1), 'side': 'bid', 'type': 'Whale Support' if random.random() > 0.5 else 'Liquidity Gap'})
+                for _ in range(6):
+                    ask_offset = 0.001 + float(rng.uniform(0, 0.012))
+                    walls.append({'exchange': exch['name'],
+                                  'price': round(current_price * (1 + ask_offset), 2),
+                                  'size': round(float(rng.uniform(30, 400)) * exch['bias'], 1),
+                                  'side': 'ask',
+                                  'type': 'Institutional Ask' if rng.random() > 0.5 else 'Retail Sell Wall'})
+                    if redis_bid_count == 0:  # only synthesise bids when no real data
+                        bid_offset = 0.001 + float(rng.uniform(0, 0.012))
+                        walls.append({'exchange': exch['name'],
+                                      'price': round(current_price * (1 - bid_offset), 2),
+                                      'size': round(float(rng.uniform(30, 400)) * exch['bias'], 1),
+                                      'side': 'bid',
+                                      'type': 'Whale Support' if rng.random() > 0.5 else 'Liquidity Gap'})
             ask_depth = sum((w['size'] for w in walls if w['side'] == 'ask'))
             bid_depth = sum((w['size'] for w in walls if w['side'] == 'bid'))
             imbalance = round((bid_depth - ask_depth) / (bid_depth + ask_depth) * 100, 1) if bid_depth + ask_depth > 0 else 0
@@ -3316,40 +3332,8 @@ class InstitutionalRoutesMixin:
             print(f'Newsroom context error: {e}')
         return results[:20]
 
-    def handle_liquidations(self):
-        try:
-            # Generate a realistic-looking liquidation heatmap dataset
-            btc_price = 68500
-            try:
-                cached_btc = CACHE.get('alphasignal:ticker:BTC-USD')
-                if cached_btc and 'price' in cached_btc:
-                    btc_price = float(cached_btc['price'])
-            except: pass
-
-            short_liq = []
-            long_liq = []
-            
-            # Generate shorts (above current price)
-            for i in range(40):
-                price_lvl = btc_price + (i * 125) + random.uniform(-50, 50)
-                leverage = random.choice([10, 25, 50, 100])
-                intensity = random.uniform(5, 50) * leverage
-                short_liq.append({'price': round(price_lvl, 2), 'volume': round(intensity, 2), 'type': 'short'})
-                
-            # Generate longs (below current price)
-            for i in range(40):
-                price_lvl = btc_price - (i * 125) - random.uniform(-50, 50)
-                leverage = random.choice([10, 25, 50, 100])
-                intensity = random.uniform(5, 50) * leverage
-                long_liq.append({'price': round(price_lvl, 2), 'volume': round(intensity, 2), 'type': 'long'})
-
-            # Add a massive cluster
-            short_liq.append({'price': btc_price + 2500, 'volume': 5500.0, 'type': 'short', 'cluster': True})
-            long_liq.append({'price': btc_price - 2500, 'volume': 6100.0, 'type': 'long', 'cluster': True})
-
-            self.send_json({'current_price': btc_price, 'shorts': short_liq, 'longs': long_liq})
-        except Exception as e:
-            self.send_error_json(str(e))
+    # handle_liquidations (primary) is defined above at line ~2581 and returns {clusters}.
+    # The duplicate that returned {shorts, longs} has been removed to fix the GOMM Liquidation Flux tab.
 
     def handle_token_unlocks(self):
         try:

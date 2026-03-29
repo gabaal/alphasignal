@@ -3919,13 +3919,13 @@ async function renderLiquidityView(tabs = null) {
         ${tabBarHTML}
         <h2 id="gomm-section-title" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem"></h2>
 
-        <div style="display:grid;grid-template-columns:1fr 200px;gap:1.5rem;align-items:start">
+        <div style="display:grid;grid-template-columns:1fr 220px;gap:1.5rem;align-items:start">
             <!-- Main chart area -->
             <div id="gomm-main-display">
                 <div class="skeleton-card"></div>
             </div>
 
-            <!-- Right sidebar: stats + live tape -->
+            <!-- Right sidebar: stats + whale watch only -->
             <div style="display:flex;flex-direction:column;gap:1rem">
                 <div class="glass-card" style="padding:1rem">
                     <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:0.75rem">ORDER BOOK STATS</div>
@@ -3946,10 +3946,14 @@ async function renderLiquidityView(tabs = null) {
                         <div style="font-size:0.6rem;color:var(--text-dim);text-align:center;padding:10px">Scanning entities...</div>
                     </div>
                 </div>
-                <div class="glass-card" style="padding:1rem">
-                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:0.75rem">INSTITUTIONAL TAPE</div>
-                    <div id="tape-content" class="tape-list"></div>
-                </div>
+            </div>
+        </div>
+
+        <!-- Full-width Institutional Tape strip -->
+        <div class="glass-card" style="margin-top:1rem;padding:0.6rem 1rem">
+            <div style="display:flex;align-items:center;gap:1rem;overflow:hidden">
+                <div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);white-space:nowrap;flex-shrink:0">⚡ INST. TAPE</div>
+                <div id="tape-content" style="display:flex;gap:0.5rem;overflow-x:auto;flex:1;scrollbar-width:none;padding-bottom:2px"></div>
             </div>
         </div>`;
 
@@ -4119,23 +4123,55 @@ async function renderLiquidityView(tabs = null) {
     }
 
     function renderHeatmapMode() {
-        sectionTitle.textContent = 'Temporal Heatmap — Price & Volume Over Time';
-        if (!data || !data.history) {
-            display.innerHTML = `<div class="empty-state">Heatmap data unavailable</div>`;
+        sectionTitle.textContent = 'Price History — 5-Minute Candle Overview (48h)';
+        if (!data || !data.history || data.history.length === 0) {
+            display.innerHTML = `<div class="empty-state">Price history unavailable</div>`;
             return;
         }
-        const history = data.history.slice(-50);
-        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommHeatChart"></canvas></div></div>`;
+        const history = data.history.slice(-60);
+        const prices  = history.map(h => h.close || h.price || 0);
+        const opens   = history.map(h => h.open  || h.price || 0);
+        const labels  = history.map(h => h.time  || h.date  || '');
+        const changes = prices.map((c, i) => Math.abs(c - opens[i]));
+        const colors  = prices.map((c, i) => c >= opens[i] ? 'rgba(34,197,94,0.75)' : 'rgba(239,68,68,0.75)');
+        display.innerHTML = `
+            <div class="card">
+                <div style="display:flex;gap:1.5rem;padding:0.75rem 0 0.5rem;font-size:0.6rem">
+                    <span style="color:var(--text-dim)">CURRENT</span>
+                    <span style="color:var(--accent);font-weight:900">$${(prices[prices.length-1]||0).toLocaleString(undefined,{maximumFractionDigits:0})}</span>
+                    <span style="color:var(--text-dim);margin-left:auto">${history.length} candles · 5m interval</span>
+                </div>
+                <div style="height:360px"><canvas id="gommHeatChart"></canvas></div>
+                <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.6rem">
+                    <span style="color:rgba(34,197,94,0.9)">■ Bullish candle</span>
+                    <span style="color:rgba(239,68,68,0.9)">■ Bearish candle</span>
+                    <span style="color:var(--text-dim);margin-left:auto">Bar height = candle body</span>
+                </div>
+            </div>`;
         setTimeout(() => {
             const ctx = document.getElementById('gommHeatChart')?.getContext('2d');
             if (!ctx) return;
             new Chart(ctx, {
                 type: 'bar',
-                data: { labels: history.map(h => h.date || h.time || ''),
-                    datasets: [{ label: 'Volume', data: history.map(h => h.volume || 0), backgroundColor: history.map(h => (h.close || 0) >= (h.open || 0) ? 'rgba(34,197,94,0.6)' : 'rgba(239,68,68,0.6)') }]
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Price (Close)', data: prices, type: 'line', borderColor: 'rgba(0,242,255,0.9)', backgroundColor: 'rgba(0,242,255,0.05)', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true, yAxisID: 'y' },
+                        { label: 'Candle Body', data: changes, backgroundColor: colors, borderWidth: 0, yAxisID: 'y1', barPercentage: 0.9 }
+                    ]
                 },
-                options: { responsive: true, maintainAspectRatio: false,
-                    scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa', maxTicksLimit: 10 } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } } }
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { labels: { color: '#aaa', font: { size: 10 }, boxWidth: 12 } },
+                        tooltip: { callbacks: { label: c => c.datasetIndex === 0 ? `Price: $${(c.parsed.y||0).toLocaleString(undefined,{maximumFractionDigits:0})}` : `Body: $${(c.parsed.y||0).toFixed(0)}` } }
+                    },
+                    scales: {
+                        x:  { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888', maxTicksLimit: 12, font: { size: 9 } } },
+                        y:  { position: 'left',  grid: { color: 'rgba(0,242,255,0.05)' }, ticks: { color: 'rgba(0,242,255,0.7)', callback: v => '$'+(v/1000).toFixed(0)+'K' } },
+                        y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#666', font: { size: 9 } }, title: { display: true, text: 'Body ($)', color: '#555' } }
+                    }
                 }
             });
         }, 100);
@@ -4223,15 +4259,22 @@ async function renderLiquidityView(tabs = null) {
             </div>`).join('');
     }
 
-    // Populate tape
+    // Populate tape — compact horizontal pills
     if (tapeData && tapeData.trades) {
         const el = document.getElementById('tape-content');
-        if (el) el.innerHTML = tapeData.trades.map(t => `
-            <div class="tape-item ${t.institutional ? 'institutional' : ''}">
-                <div style="font-size:0.6rem;color:var(--text-dim)">${(t.time||'').split(':').slice(1,3).join(':')}</div>
-                <div class="tape-val ${t.side === 'BUY' ? 'tape-buy' : 'tape-sell'}">${t.side} ${t.size} <small>@</small> ${Math.round(t.price)}</div>
-                <div style="text-align:right;font-size:0.6rem;color:var(--text-dim)">${(t.exchange||'').toUpperCase()}</div>
-            </div>`).join('');
+        if (el) el.innerHTML = tapeData.trades.map(t => {
+            const isBuy  = t.side === 'BUY';
+            const color  = isBuy ? 'rgba(34,197,94,1)' : 'rgba(239,68,68,1)';
+            const bg     = isBuy ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
+            const inst   = t.institutional ? '<span style="font-size:0.45rem;background:rgba(0,242,255,0.15);color:var(--accent);padding:1px 4px;border-radius:3px;margin-left:3px">INST</span>' : '';
+            return '<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;background:' + bg + ';border:1px solid ' + color + '33;white-space:nowrap;flex-shrink:0">'
+                + '<span style="font-size:0.55rem;color:var(--text-dim)">' + (t.time||'').slice(-5) + '</span>'
+                + '<span style="font-size:0.6rem;font-weight:900;color:' + color + '">' + t.side + '</span>'
+                + '<span style="font-size:0.65rem;font-weight:700;color:var(--text)">' + t.size + '</span>'
+                + '<span style="font-size:0.55rem;color:var(--text-dim)">@ ' + Math.round(t.price).toLocaleString() + '</span>'
+                + '<span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">' + (t.exchange||'').toUpperCase() + '</span>'
+                + inst + '</div>';
+        }).join('');
     }
 }
 async function renderSignalArchive(tabs = null) {
