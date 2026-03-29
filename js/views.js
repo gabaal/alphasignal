@@ -793,7 +793,7 @@ async function renderAlphaScore(tabs = null) {
                 <div>
                     ${renderHubTabs('score', tabs)}
                     <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h2>
-                    <p style="margin:0">Composite 0–100 ranking · Updated ${data.updated} · ${scores.length} assets scored ${isSafeMode ? '<span style="color:var(--accent); font-weight:700">[SAFE MODE ACTIVE]</span>' : ''}</p>
+                    <p style="margin:0">Composite 0&ndash;100 ranking &middot; Updated ${data.updated} &middot; ${scores.length} assets scored</p>
                 </div>
                 <!-- Pagination Controls -->
                 <div style="display:flex; align-items:center; gap:15px; margin-bottom:5px">
