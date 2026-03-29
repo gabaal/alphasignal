@@ -3885,297 +3885,174 @@ async function renderTradeLedger(tabs = null) {
     }
 }
 
-async function renderLiquidityView() {
-    const ticker = 'BTC-USD';
-    appEl.innerHTML = `<h1 class="view-title">Order Flow Magnitude Monitor (GOMM)</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-trade-ledger')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>${skeleton(3)}`;
-    
-    // Sidebar + Layout
+async function renderLiquidityView(tabs = null) {
+    // Standard hub tab setup - 4 sub-views as tabs
+    const gommTabs = [
+        { id: 'walls',        label: 'DEPTH WALLS',       view: 'liquidity', icon: 'bar_chart' },
+        { id: 'heatmap',      label: 'HEATMAP',           view: 'liquidity', icon: 'grid_on' },
+        { id: 'liquidations', label: 'LIQUIDATION FLUX',  view: 'liquidity', icon: 'warning' },
+        { id: 'volatility',   label: 'VOL SURFACE',       view: 'liquidity', icon: 'ssid_chart' }
+    ];
+
+    // Track active sub-tab in sessionStorage
+    let activeMode = sessionStorage.getItem('gomm-mode') || 'walls';
+
+    const tabBarHTML = `
+        <div class="hub-tabs" style="display:flex;gap:10px;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:10px;overflow-x:auto">
+            ${gommTabs.map(t => `
+                <button id="gomm-tab-${t.id}"
+                        class="intel-action-btn mini ${activeMode === t.id ? '' : 'outline'}"
+                        onclick="window._gommSwitch('${t.id}')"
+                        style="white-space:nowrap;padding:6px 12px;font-size:0.65rem">
+                    <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px">${t.icon}</span>${t.label}
+                </button>
+            `).join('')}
+        </div>`;
+
     appEl.innerHTML = `
-    <div class="gomm-container">
-        <div class="sidebar-panel">
-            <h2 class="view-title" style="margin:0"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bar_chart</span> Order Flow (GOMM)</h2>
-            <div class="stat-card">
-                <div class="label">GLOBAL IMBALANCE</div>
-                <div class="value" id="gomm-imbalance">--%</div>
-            </div>
-            <div class="stat-card" style="margin-top:10px">
-                <div class="label">TOTAL BOOK DEPTH</div>
-                <div class="value" id="gomm-depth">-- BTC</div>
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Order Flow <span class="premium-badge">LIVE</span></h1>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-liquidity')">
+                <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
+            </button>
+        </div>
+        ${tabBarHTML}
+        <h2 id="gomm-section-title" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem"></h2>
+
+        <div style="display:grid;grid-template-columns:1fr 200px;gap:1.5rem;align-items:start">
+            <!-- Main chart area -->
+            <div id="gomm-main-display">
+                <div class="skeleton-card"></div>
             </div>
 
-            <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px">
-                <button class="setup-generator-btn" id="mode-walls" style="width:100%; border-radius:8px">DEPTH WALLS</button>
-                <button class="profile-action-btn" id="mode-heatmap" style="width:100%; border-radius:8px">TEMPORAL HEATMAP</button>
-                <button class="profile-action-btn" id="mode-liquidation" style="width:100%; border-radius:8px">LIQUIDATION FLUX</button>
-                <button class="profile-action-btn" id="mode-volatility" style="width:100%; border-radius:8px; margin-top:10px;">VOLATILITY SURFACE</button>
-            </div>
-            
-            <div class="stat-card" style="margin-top:20px; background:rgba(0, 242, 255, 0.03); border:1px solid var(--accent)">
-                <div class="label" style="color:var(--accent); font-weight:900">⚡ WHALE WATCH (LIVE)</div>
-                <div id="whale-watch-content" class="whale-watch-list">
-                    <div style="font-size:0.6rem; color:var(--text-dim); text-align:center; padding:10px">Scanning entities...</div>
+            <!-- Right sidebar: stats + live tape -->
+            <div style="display:flex;flex-direction:column;gap:1rem">
+                <div class="glass-card" style="padding:1rem">
+                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:0.75rem">ORDER BOOK STATS</div>
+                    <div style="display:flex;flex-direction:column;gap:0.5rem">
+                        <div>
+                            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px">GLOBAL IMBALANCE</div>
+                            <div id="gomm-imbalance" style="font-size:1.1rem;font-weight:900;color:var(--accent)">--%</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px">TOTAL BOOK DEPTH</div>
+                            <div id="gomm-depth" style="font-size:1.1rem;font-weight:900;color:var(--text)">-- BTC</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card" style="padding:1rem;border:1px solid rgba(0,242,255,0.2)">
+                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:0.75rem">⚡ WHALE WATCH</div>
+                    <div id="whale-watch-content" class="whale-watch-list">
+                        <div style="font-size:0.6rem;color:var(--text-dim);text-align:center;padding:10px">Scanning entities...</div>
+                    </div>
+                </div>
+                <div class="glass-card" style="padding:1rem">
+                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:0.75rem">INSTITUTIONAL TAPE</div>
+                    <div id="tape-content" class="tape-list"></div>
                 </div>
             </div>
-        </div>
-        <div id="gomm-main-display" style="flex:1">
-            <div class="skeleton-card"></div>
-        </div>
-        <div class="tape-sidebar">
-            <div class="tape-header">INSTITUTIONAL LEDGER (LIVE)</div>
-            <div id="tape-content" class="tape-list"></div>
-        </div>
-    </div>`;
+        </div>`;
 
-    // Concurrent Fetches
+    const display = document.getElementById('gomm-main-display');
+    const sectionTitle = document.getElementById('gomm-section-title');
+
+    // Fetch all data concurrently
     const [data, tapeData, whaleData, liqData, volData] = await Promise.all([
         fetchAPI('/liquidity?ticker=BTC-USD'),
         fetchAPI('/tape?ticker=BTC-USD'),
         fetchAPI('/whales_entity?ticker=BTC-USD'),
         fetchAPI('/liquidations?ticker=BTC-USD'),
-        fetchAPI('/volatility-surface?ticker=BTC-USD')
+        fetchAPI('/volatility?ticker=BTC-USD').catch(() => null)
     ]);
-    
-    if (!data) return;
 
-    // Update Stats
-    const imbEl = document.getElementById('gomm-imbalance');
-    imbEl.textContent = `${data.imbalance > 0 ? '+' : ''}${data.imbalance}%`;
-    imbEl.style.color = data.imbalance > 0 ? 'var(--risk-low)' : 'var(--risk-high)';
-    document.getElementById('gomm-depth').textContent = `${data.metrics.total_depth} BTC`;
+    // Update stats
+    if (data && data.book) {
+        const bids = data.book.bids?.reduce((s, b) => s + parseFloat(b[1] || 0), 0) || 0;
+        const asks = data.book.asks?.reduce((s, a) => s + parseFloat(a[1] || 0), 0) || 0;
+        const total = bids + asks;
+        const imbalance = total > 0 ? (((bids - asks) / total) * 100).toFixed(1) : 0;
+        const el = document.getElementById('gomm-imbalance');
+        if (el) { el.textContent = `${imbalance > 0 ? '+' : ''}${imbalance}%`; el.style.color = imbalance > 0 ? 'var(--risk-low)' : 'var(--risk-high)'; }
+        const depthEl = document.getElementById('gomm-depth');
+        if (depthEl) depthEl.textContent = `${(total).toFixed(1)} BTC`;
+    }
 
-    const display = document.getElementById('gomm-main-display');
-
-    let currentPage = 1;
-    const itemsPerPage = 18;
-
+    // Sub-view renderers
     function renderWallsMode() {
-        display.innerHTML = `
-            <div class="card" style="height:100%; border:none; background:transparent; display:flex; flex-direction:column">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-shrink:0">
-                    <h3 class="card-title" style="margin:0">Live Order Book Depth <span style="font-size:0.8rem; color:var(--accent)">(Binance WS)</span></h3>
-                </div>
-                <div class="liquidity-chart" style="flex:1; width:100%; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding-right:10px; margin-bottom:20px;">
-                    <div style="height:400px; width:100%; position:relative; padding:10px">
-                        <canvas id="depthWallsChart"></canvas>
-                    </div>
-                </div>
-            </div>`;
-
+        sectionTitle.textContent = 'Depth Walls — Institutional Order Clusters';
+        if (!data || !data.book) {
+            display.innerHTML = `<div class="empty-state">Order book data unavailable</div>`;
+            return;
+        }
+        const bids = (data.book.bids || []).slice(0, 20);
+        const asks = (data.book.asks || []).slice(0, 20);
+        const labels = [...bids.map(b => parseFloat(b[0]).toFixed(0)), ...asks.map(a => parseFloat(a[0]).toFixed(0))];
+        const bidData = [...bids.map(b => parseFloat(b[1])), ...asks.map(() => 0)];
+        const askData = [...bids.map(() => 0), ...asks.map(a => parseFloat(a[1]))];
+        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommWallChart"></canvas></div></div>`;
         setTimeout(() => {
-            const ctx = document.getElementById('depthWallsChart');
+            const ctx = document.getElementById('gommWallChart')?.getContext('2d');
             if (!ctx) return;
-            
-            const liveChart = new Chart(ctx.getContext('2d'), {
-                type: 'scatter',
-                data: {
-                    datasets: [
-                        {
-                            label: 'Bids (Support)',
-                            data: [],
-                            borderColor: 'rgba(34, 197, 94, 0.8)',
-                            backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                            fill: true,
-                            showLine: true,
-                            pointRadius: 0,
-                            stepped: true
-                        },
-                        {
-                            label: 'Asks (Resistance)',
-                            data: [],
-                            borderColor: 'rgba(239, 68, 68, 0.8)',
-                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                            fill: true,
-                            showLine: true,
-                            pointRadius: 0,
-                            stepped: true
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    animation: false, // Disable animation for live WS streams to save CPU
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { 
-                        tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${c.raw.y.toFixed(2)} BTC Vol @ $${c.raw.x.toLocaleString()}` } },
-                        datalabels: { display: false }
-                    },
-                    scales: {
-                        x: { type: 'linear', title: { display:true, text: 'Limit Price ($)' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', callback: function(val) { return '$' + val.toLocaleString(); } } },
-                        y: { title: { display:true, text: 'Cumulative Volume (BTC)' }, grid: { color: 'rgba(255,255,255,0.05)' }, position: 'right', display: true, ticks: { color: '#8b949e' } },
-                        y1: { display: false } // To balance right margin
-                    }
+            new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [
+                    { label: 'Bids (Support)', data: bidData, backgroundColor: 'rgba(34,197,94,0.7)' },
+                    { label: 'Asks (Resistance)', data: askData, backgroundColor: 'rgba(239,68,68,0.7)' }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#aaa' } } },
+                    scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Size (BTC)', color: '#aaa' } } }
                 }
             });
-            
-            let isDrawing = false;
-            
-            // Connect to Binance WebSocket directly for Order Book visualization!
-            window.BinanceSocketManager.subscribe('BTCUSDT', 'depth20@100ms', (wsData) => {
-                if(isDrawing || !wsData.bids || !wsData.asks || !document.getElementById('depthWallsChart')) return;
-                isDrawing = true;
-                
-                let cumBid = 0;
-                let bidData = [...wsData.bids].map(w => { cumBid += parseFloat(w[1]); return { x: parseFloat(w[0]), y: cumBid }; });
-                // We do NOT reverse bids here because scatter chart 'x' axis maps numerical price correctly left-to-right
-                
-                let cumAsk = 0;
-                let askData = [...wsData.asks].map(w => { cumAsk += parseFloat(w[1]); return { x: parseFloat(w[0]), y: cumAsk }; });
-                
-                liveChart.data.datasets[0].data = bidData.reverse(); // Chart.js needs X sorted ascending
-                liveChart.data.datasets[1].data = askData;
-                liveChart.update('none'); // High-performance update
-                
-                isDrawing = false;
-            });
-            
         }, 50);
     }
 
     function renderHeatmapMode() {
-        const heatmapId = `tv-heatmap-${ticker.replace(/[^a-z0-9]/gi, '')}`;
-        display.innerHTML = `
-            <div class="card" style="height:100%; display:flex; flex-direction:column; background:rgba(0,0,0,0.2)">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding: 0 10px">
-                    <h3 class="card-title" style="margin:0">Temporal Liquidity Heatmap (Deep Dive)</h3>
-                    <span style="font-size:0.55rem; background:rgba(34, 197, 94, 0.1); color:var(--risk-low); padding:2px 8px; border-radius:4px; font-weight:900; letter-spacing:1px">TRADINGVIEW ENGINE ACTIVE</span>
-                </div>
-                <div id="${heatmapId}" style="height:350px; min-height:350px; background:rgba(0,0,0,0.4); border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1)"></div>
-                <div style="font-size:0.65rem; color:var(--text-dim); margin-top:10px; text-align:center; padding:5px">
-                    REAL-TIME INSTITUTIONAL FLOW PERSISTENCE (1M GRANULARITY)
-                </div>
-            </div>`;
-        
+        sectionTitle.textContent = 'Temporal Heatmap — Price & Volume Over Time';
+        if (!data || !data.history) {
+            display.innerHTML = `<div class="empty-state">Heatmap data unavailable</div>`;
+            return;
+        }
+        const history = data.history.slice(-50);
+        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommHeatChart"></canvas></div></div>`;
         setTimeout(() => {
-            if (!data || !data.history || !data.history.length) {
-                 const el = document.getElementById(heatmapId);
-                 if (el) el.innerHTML = '<p class="empty-state">Synchronization in progress. Awaiting historical stream...</p>';
-                 return;
-            }
-
-            try {
-                const container = document.getElementById(heatmapId);
-                if (!container) return;
-                container.innerHTML = '';
-                
-                const chart = LightweightCharts.createChart(container, {
-                    layout: { 
-                        background: { color: '#09090b' }, 
-                        textColor: '#d1d5db',
-                        fontSize: 10,
-                        fontFamily: 'JetBrains Mono'
-                    },
-                    grid: { 
-                        vertLines: { color: 'rgba(255, 255, 255, 0.03)' }, 
-                        horzLines: { color: 'rgba(255, 255, 255, 0.03)' } 
-                    },
-                    rightPriceScale: { 
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        autoScale: true,
-                        scaleMargins: { top: 0.1, bottom: 0.2 }
-                    },
-                    timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true },
-                    width: container.clientWidth || 800,
-                    height: 350
-                });
-
-                const candleSeries = chart.addCandlestickSeries({
-                    upColor: '#22c55e', downColor: '#ef4444', 
-                    borderVisible: false, wickUpColor: '#22c55e', wickDownColor: '#ef4444'
-                });
-                const priceSeries = chart.addAreaSeries({
-                    lineColor: 'rgba(34, 197, 94, 0.4)', 
-                    topColor: 'rgba(34, 197, 94, 0.1)', 
-                    bottomColor: 'rgba(34, 197, 94, 0)',
-                    lineWidth: 2,
-                });
-
-                // Tooltip Element
-                const tooltip = document.createElement('div');
-                tooltip.className = 'chart-tooltip';
-                container.appendChild(tooltip);
-
-                const formatted = data.history.map(d => {
-                    let ts = d.unix_time || Math.floor(new Date(d.timestamp).getTime() / 1000);
-                    return {
-                        time: ts,
-                        open: d.open || d.price,
-                        high: d.high || d.price,
-                        low: d.low || d.price,
-                        close: d.close || d.price
-                    };
-                }).filter(d => !isNaN(d.time)).sort((a,b) => a.time - b.time);
-
-                candleSeries.setData(formatted);
-                priceSeries.setData(formatted.map(d => ({ time: d.time, value: d.close })));
-                chart.timeScale().fitContent();
-
-                // Crosshair Move Logic
-                chart.subscribeCrosshairMove(param => {
-                    if (param.point === undefined || !param.time || !param.seriesData || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
-                        tooltip.style.display = 'none';
-                    } else {
-                        const d = param.seriesData.get(candleSeries);
-                        if (d) {
-                            tooltip.style.display = 'block';
-                            tooltip.style.left = Math.min(container.clientWidth - 210, param.point.x + 15) + 'px';
-                            tooltip.style.top = Math.max(10, param.point.y - 100) + 'px';
-                            tooltip.innerHTML = `
-                                <div style="color:var(--text-dim); margin-bottom:10px; font-weight:900; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px">MARKET NODE INTEL</div>
-                                <div class="tooltip-row"><span class="tooltip-label">OPEN</span><span class="tooltip-value">${formatPrice(d.open)}</span></div>
-                                <div class="tooltip-row"><span class="tooltip-label">HIGH</span><span class="tooltip-value">${formatPrice(d.high)}</span></div>
-                                <div class="tooltip-row"><span class="tooltip-label">LOW</span><span class="tooltip-value">${formatPrice(d.low)}</span></div>
-                                <div class="tooltip-row"><span class="tooltip-label">CLOSE</span><span class="tooltip-value">${formatPrice(d.close)}</span></div>
-                                <div class="tooltip-row" style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:5px">
-                                    <span class="tooltip-label">VOL</span><span class="tooltip-value" style="color:var(--risk-low)">INSTITUTIONAL</span>
-                                </div>
-                            `;
-                        } else {
-                            tooltip.style.display = 'none';
-                        }
-                    }
-                });
-            } catch (err) {
-                console.error('Heatmap Render Error:', err);
-            }
-        }, 300);
+            const ctx = document.getElementById('gommHeatChart')?.getContext('2d');
+            if (!ctx) return;
+            new Chart(ctx, {
+                type: 'bar',
+                data: { labels: history.map(h => h.date || h.time || ''),
+                    datasets: [{ label: 'Volume', data: history.map(h => h.volume || 0), backgroundColor: history.map(h => (h.close || 0) >= (h.open || 0) ? 'rgba(34,197,94,0.6)' : 'rgba(239,68,68,0.6)') }]
+                },
+                options: { responsive: true, maintainAspectRatio: false,
+                    scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa', maxTicksLimit: 10 } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } } }
+                }
+            });
+        }, 100);
     }
 
     function renderLiquidationMode() {
-        display.innerHTML = `
-            <div class="card" style="height:100%; display:flex; flex-direction:column">
-                <h2 class="card-title">Derivatives Topography <span style="font-size:0.8rem; color:var(--text-dim)">(Liquidations vs OI)</span></h2>
-                <div class="chart-container" style="flex:1; position:relative; min-height:400px; padding-top:10px">
-                    <canvas id="liquidationMapChart"></canvas>
-                </div>
-            </div>`;
-
+        sectionTitle.textContent = 'Liquidation Flux — Derivatives Topography (Liq vs OI)';
+        if (!liqData || !liqData.clusters) {
+            display.innerHTML = `<div class="empty-state">Liquidation data unavailable</div>`;
+            return;
+        }
+        const sorted = [...liqData.clusters].sort((a, b) => a.price - b.price);
+        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommLiqChart"></canvas></div></div>`;
         setTimeout(() => {
-            const ctx = document.getElementById('liquidationMapChart').getContext('2d');
-            
-            const sorted = [...liqData.clusters].sort((a,b) => a.price - b.price);
-            const labels = sorted.map(c => formatPrice(c.price));
-            
-            const longData = sorted.map(c => c.side === 'LONG' ? c.intensity * 10 : 0);
-            const shortData = sorted.map(c => c.side === 'SHORT' ? c.intensity * 10 : 0);
-            const oiData = sorted.map((c, i) => 50 + Math.sin(i / 2) * 20 + (c.intensity * 5));
-
+            const ctx = document.getElementById('gommLiqChart')?.getContext('2d');
+            if (!ctx) return;
             new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
+                data: { labels: sorted.map(c => parseFloat(c.price).toFixed(0)),
                     datasets: [
-                        { type: 'line', label: 'Est. Open Interest', data: oiData, borderColor: '#00f2ff', borderWidth: 2, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
-                        { type: 'bar', label: 'Short Liq (Resistance)', data: shortData, backgroundColor: 'rgba(34, 197, 94, 0.7)', yAxisID: 'y' },
-                        { type: 'bar', label: 'Long Liq (Support)', data: longData, backgroundColor: 'rgba(239, 68, 68, 0.7)', yAxisID: 'y' }
+                        { type: 'line', label: 'Est. OI', data: sorted.map((c,i) => 50 + Math.sin(i/2)*20 + c.intensity*5), borderColor: '#00f2ff', borderWidth: 2, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
+                        { label: 'Short Liq', data: sorted.map(c => c.side === 'SHORT' ? c.intensity * 10 : 0), backgroundColor: 'rgba(34,197,94,0.7)', yAxisID: 'y' },
+                        { label: 'Long Liq',  data: sorted.map(c => c.side === 'LONG'  ? c.intensity * 10 : 0), backgroundColor: 'rgba(239,68,68,0.7)',  yAxisID: 'y' }
                     ]
                 },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-                        y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Liquidation Imbalance' } },
-                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display:true, text: 'Open Interest' } }
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                    scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } },
+                        y:  { type: 'linear', position: 'left',  grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } },
+                        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' } }
                     }
                 }
             });
@@ -4183,96 +4060,66 @@ async function renderLiquidityView() {
     }
 
     function renderVolatilityMode() {
-        if (!volData) {
-            display.innerHTML = `<div style="padding:2rem;color:var(--text-dim);text-align:center;">Options Volatility Array Offline</div>`;
-            return;
-        }
-        display.innerHTML = `
-            <div class="card" style="height:100%; display:flex; flex-direction:column">
-                <h2 class="card-title">Options Volatility Surface <span style="font-size:0.8rem; color:var(--text-dim)">(${volData.structure})</span></h2>
-                <div class="chart-container" style="flex:1; position:relative; min-height:400px; padding-top:10px">
-                    <canvas id="volatilitySurfaceChart"></canvas>
-                </div>
-            </div>`;
-
+        sectionTitle.textContent = 'Volatility Surface — Options IV Smile & Skew';
+        if (!volData) { display.innerHTML = `<div class="empty-state">Options volatility data unavailable</div>`; return; }
+        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommVolChart"></canvas></div></div>`;
         setTimeout(() => {
-            const ctx = document.getElementById('volatilitySurfaceChart').getContext('2d');
+            const ctx = document.getElementById('gommVolChart')?.getContext('2d');
+            if (!ctx) return;
             new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: volData.expiries,
+                data: { labels: volData.expiries,
                     datasets: [
-                        { label: 'ATM Implied Volatility (%)', data: volData.atm_iv, borderColor: '#f7931a', backgroundColor: 'rgba(247, 147, 26, 0.1)', borderWidth: 3, tension: 0.3, fill: true },
-                        { label: '25-Delta Skew', data: volData.skew, borderColor: '#ff0055', borderDash: [5, 5], borderWidth: 2, tension: 0.3, type: 'line', yAxisID: 'y1' }
+                        { label: 'ATM IV (%)', data: volData.atm_iv, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.1)', borderWidth: 3, tension: 0.3, fill: true },
+                        { label: '25Δ Skew',   data: volData.skew,   borderColor: '#ff0055', borderDash: [5,5], borderWidth: 2, tension: 0.3, yAxisID: 'y1' }
                     ]
                 },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Expiry Timeframe' } },
-                        y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Implied Volatility (IV)' } },
-                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display:true, text: 'Directional Skew Premium' } }
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                    scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } },
+                        y:  { type: 'linear', position: 'left',  grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } },
+                        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' } }
                     }
                 }
             });
         }, 50);
     }
 
-    // Default Mode
-    renderWallsMode();
-
-    // Mode Commutation
-    const btnWalls = document.getElementById('mode-walls');
-    const btnHeat = document.getElementById('mode-heatmap');
-    const btnLiq = document.getElementById('mode-liquidation');
-    const btnVol = document.getElementById('mode-volatility');
-
-    const updateBtns = (active) => {
-        [btnWalls, btnHeat, btnLiq, btnVol].forEach(b => {
-            b.className = 'profile-action-btn';
-            b.style.background = 'rgba(255,255,255,0.05)';
+    // Tab switching - update active button styles + render sub-view
+    window._gommSwitch = function(mode) {
+        sessionStorage.setItem('gomm-mode', mode);
+        activeMode = mode;
+        gommTabs.forEach(t => {
+            const btn = document.getElementById(`gomm-tab-${t.id}`);
+            if (btn) btn.className = `intel-action-btn mini ${mode === t.id ? '' : 'outline'}`;
         });
-        active.className = 'setup-generator-btn';
-        active.style.background = '';
+        const renderers = { walls: renderWallsMode, heatmap: renderHeatmapMode, liquidations: renderLiquidationMode, volatility: renderVolatilityMode };
+        if (renderers[mode]) renderers[mode]();
     };
 
-    btnWalls.onclick = () => { renderWallsMode(); updateBtns(btnWalls); };
-    btnHeat.onclick = () => { renderHeatmapMode(); updateBtns(btnHeat); };
-    btnLiq.onclick = () => { renderLiquidationMode(); updateBtns(btnLiq); };
-    btnVol.onclick = () => { renderVolatilityMode(); updateBtns(btnVol); };
+    // Render active sub-view
+    window._gommSwitch(activeMode);
 
-    // Whale Pulse Sidebar
+    // Populate whale watch
     if (whaleData && whaleData.entities) {
-        document.getElementById('whale-watch-content').innerHTML = whaleData.entities.map(e => `
+        const el = document.getElementById('whale-watch-content');
+        if (el) el.innerHTML = whaleData.entities.map(e => `
             <div class="whale-item">
-                <div class="whale-header">
-                    <span class="whale-name">${e.name}</span>
-                    <span class="whale-type">${e.type}</span>
-                </div>
-                <div class="whale-status">
-                    <span class="status-${e.status.toLowerCase()}">${e.status.toUpperCase()}</span>
-                    <span style="color:var(--text-dim)">${e.last_tx}</span>
-                </div>
-            </div>
-        `).join('');
+                <div class="whale-header"><span class="whale-name">${e.name}</span><span class="whale-type">${e.type}</span></div>
+                <div class="whale-status"><span class="status-${e.status.toLowerCase()}">${e.status.toUpperCase()}</span><span style="color:var(--text-dim)">${e.last_tx}</span></div>
+            </div>`).join('');
     }
 
-    // Tape
-    const tapeContent = document.getElementById('tape-content');
+    // Populate tape
     if (tapeData && tapeData.trades) {
-        tapeContent.innerHTML = tapeData.trades.map(t => `
+        const el = document.getElementById('tape-content');
+        if (el) el.innerHTML = tapeData.trades.map(t => `
             <div class="tape-item ${t.institutional ? 'institutional' : ''}">
-                <div style="font-size:0.6rem; color:var(--text-dim)">${t.time.split(':')[1]}:${t.time.split(':')[2]}</div>
-                <div class="tape-val ${t.side === 'BUY' ? 'tape-buy' : 'tape-sell'}">
-                    ${t.side} ${t.size} <small>@</small> ${Math.round(t.price)}
-                </div>
-                <div style="text-align:right; font-size:0.6rem; color:var(--text-dim)">${t.exchange.toUpperCase()}</div>
-            </div>
-        `).join('');
+                <div style="font-size:0.6rem;color:var(--text-dim)">${(t.time||'').split(':').slice(1,3).join(':')}</div>
+                <div class="tape-val ${t.side === 'BUY' ? 'tape-buy' : 'tape-sell'}">${t.side} ${t.size} <small>@</small> ${Math.round(t.price)}</div>
+                <div style="text-align:right;font-size:0.6rem;color:var(--text-dim)">${(t.exchange||'').toUpperCase()}</div>
+            </div>`).join('');
     }
 }
-
 async function renderSignalArchive(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     // 1. Initial skeleton and header
