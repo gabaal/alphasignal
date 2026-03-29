@@ -4047,24 +4047,25 @@ async function renderLiquidityView(tabs = null) {
             const ctx = document.getElementById('gommWallChart')?.getContext('2d');
             if (!ctx) return;
             if (window._gommWallChartInst) { window._gommWallChartInst.destroy(); }
+            // Dual y-axis: bids on left (y), asks on right (y1)
+            // This guarantees both curves fill their own axis, regardless of size difference
             window._gommWallChartInst = new Chart(ctx, {
                 type: 'line',
                 data: { labels, datasets: [
-                    { label: 'Cumulative Bid Depth', data: bidData, borderColor: 'rgba(34,197,94,1)',  backgroundColor: 'rgba(34,197,94,0.18)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 1, spanGaps: false },
-                    { label: 'Cumulative Ask Depth', data: askData, borderColor: 'rgba(239,68,68,1)',   backgroundColor: 'rgba(239,68,68,0.18)',  fill: true, tension: 0.4, borderWidth: 2, pointRadius: 1, spanGaps: false }
+                    { label: 'Bid Depth (BTC)',  data: bidData, borderColor: 'rgba(34,197,94,1)',  backgroundColor: 'rgba(34,197,94,0.2)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, spanGaps: false, yAxisID: 'y'  },
+                    { label: 'Ask Depth (BTC)',  data: askData, borderColor: 'rgba(239,68,68,1)',  backgroundColor: 'rgba(239,68,68,0.2)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, spanGaps: false, yAxisID: 'y1' }
                 ]},
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { labels: { color: '#aaa', font: { size: 11 } } },
-                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(3) : '—'} BTC` } }
+                        legend: { labels: { color: '#aaa', font: { size: 11 }, boxWidth: 14 } },
+                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '—'} BTC` } }
                     },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888', maxTicksLimit: 16, font: { size: 10 } } },
-                        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888' },
-                             title: { display: true, text: 'Cumulative Depth (BTC)', color: '#888' },
-                             max: maxDepth * 1.1, min: 0 }
+                        x:  { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888', maxTicksLimit: 16, font: { size: 10 } } },
+                        y:  { position: 'left',  grid: { color: 'rgba(34,197,94,0.08)' },  ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: '← Bid Depth (BTC)', color: 'rgba(34,197,94,0.7)' }, min: 0 },
+                        y1: { position: 'right', grid: { drawOnChartArea: false },           ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: 'Ask Depth (BTC) →', color: 'rgba(239,68,68,0.7)' }, min: 0 }
                     }
                 }
             });
