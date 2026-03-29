@@ -938,7 +938,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <div class="institutional-timeline" style="margin-top:2rem">
             <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent)">INSTITUTIONAL EVENT TIMELINE</h3>
             <div class="catalyst-list">
-                ${data.timeline.map(item => `
+                ${(data.timeline || []).map(item => `
                     <div class="catalyst-item">
                         <div class="cat-date">${item.date}</div>
                         <div class="cat-card">
@@ -952,7 +952,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <div class="stats-panel" style="margin-top:2rem">
             <div class="stat-box"><label>Correlation</label><span>${correlation.toFixed(2)}</span></div>
             <div class="stat-box"><label>Alpha</label><span class="${alpha >= 0 ? 'pos' : 'neg'}">${alpha.toFixed(2)}%</span></div>
-            <div class="stat-box"><label>Z-Score (Stats)</label><span class="${Math.abs(data.stats.zScore) > 2 ? 'neg' : 'pos'}">${data.stats.zScore.toFixed(2)}</span></div>
+            <div class="stat-box"><label>Z-Score (Stats)</label><span class="${Math.abs(data.stats?.zScore ?? 0) > 2 ? 'neg' : 'pos'}">${(data.stats?.zScore ?? 0).toFixed(2)}</span></div>
             <div class="stat-box" style="position:relative">
                 <label>Sentiment Div.</label>
                 <div class="div-meter">

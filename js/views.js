@@ -2100,7 +2100,7 @@ async function renderWhales(tabs = null) {
             <div class="w-actions">
                 <div class="flow-badge flow-${w.flow.toLowerCase()}">${w.flow}</div>
                 <div class="impact-badge impact-${w.impact.toLowerCase()}">${w.impact} IMPACT</div>
-                <button class="timeframe-btn" onclick="openDetail('${w.asset}')">VIEW CHART</button>
+                <button class="timeframe-btn" onclick="openDetail('${w.asset}', 'WHALE TXN')">VIEW CHART</button>
             </div>
         </div>`;
     txListEl.innerHTML = `
