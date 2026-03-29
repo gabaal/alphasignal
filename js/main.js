@@ -2125,17 +2125,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initLivePriceStream();
     initLiveAlphaScroller();
     initFearGreedGauge();
+    setTimeout(initBTCSparkline, 300); // slight delay ensures Chart.js is ready
+    setInterval(initBTCSparkline, 5 * 60 * 1000);
     // updateInstitutionalPulse();
 });
 
-// Backup call if DOMContentLoaded already fired
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
+// Backup: if script loads after DOM is already ready (rare, e.g. deferred)
+if (document.readyState === 'complete') {
     initLivePriceStream();
     initLiveAlphaScroller();
     initFearGreedGauge();
-    initBTCSparkline();
-    setInterval(initBTCSparkline, 5 * 60 * 1000); // refresh every 5 min
-    // updateInstitutionalPulse();
+    setTimeout(initBTCSparkline, 300);
 }
 
 async function initFearGreedGauge() {
