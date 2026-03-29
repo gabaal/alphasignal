@@ -197,7 +197,7 @@ class MarketRoutesMixin:
         except Exception as e:
             self.send_error(500, f'Tape Engine Sync Error: {e}')
 
-    def handle_macro_calendar(self):
+    def handle_macro_calendar_legacy(self):
         try:
             now = datetime.now()
             events = []

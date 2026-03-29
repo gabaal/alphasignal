@@ -91,41 +91,60 @@ def get_orderbook_imbalance(ticker):
 
 class NotificationService:
     @staticmethod
-    def push_webhook(user_email, title, message, data=None):
+    def push_webhook(user_email, title, message, data=None, embed_color=0x00f2ff, fields=None):
+        """Send a rich notification to Discord and/or Telegram for the given user.
+        embed_color: 0x22c55e (green/long), 0xef4444 (red/short), 0x00f2ff (cyan/info)
+        fields: list of dicts with keys 'name', 'value', 'inline' for Discord embed fields
+        """
         try:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute("SELECT discord_webhook, telegram_chat_id FROM user_settings WHERE user_email = ? AND alerts_enabled = 1", (user_email,))
             row = c.fetchone()
             conn.close()
-            
+
             if not row: return
             discord, telegram_chat_id = row
-            
-            # Discord Dispatch
+
+            # ── Discord Dispatch ──
             if discord:
-                payload = {
-                    "embeds": [{
-                        "title": f"AlphaSignal Intelligence: {title}",
-                        "description": message,
-                        "color": 0x00f2ff,
-                        "timestamp": datetime.now().isoformat(),
-                        "footer": {"text": "AlphaSignal Terminal | Institutional Depth"}
-                    }]
+                embed = {
+                    "title": f"🚨 AlphaSignal: {title}",
+                    "description": message,
+                    "color": embed_color,
+                    "timestamp": datetime.utcnow().isoformat() + 'Z',
+                    "footer": {"text": "AlphaSignal Terminal  |  Institutional Intelligence Engine"},
+                    "thumbnail": {"url": "https://alphasignal.app/assets/pwa-icon-192.png"}
                 }
-                requests.post(discord, json=payload, timeout=5)
-            
-            # Telegram Dispatch
+                if fields:
+                    embed["fields"] = fields
+                try:
+                    requests.post(discord, json={"embeds": [embed]}, timeout=5)
+                except Exception as de:
+                    print(f"[NOTIFY] Discord error: {de}")
+
+            # ── Telegram Dispatch ──
             if telegram_chat_id and os.getenv("TELEGRAM_BOT_TOKEN"):
                 bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
-                msg_text = f"ðŸš¨ *AlphaSignal Intelligence: {title}*\n\n{message}\n\n_Institutional Depth Engine_"
+                field_lines = ''
+                if fields:
+                    field_lines = '\n' + '\n'.join(f"*{f['name']}:* {f['value']}" for f in fields)
+                msg_text = (
+                    f"🚨 *{title}*\n\n"
+                    f"{message}"
+                    f"{field_lines}\n\n"
+                    f"_AlphaSignal Institutional Engine_"
+                )
                 tg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                requests.post(tg_url, json={
-                    "chat_id": telegram_chat_id,
-                    "text": msg_text,
-                    "parse_mode": "Markdown"
-                }, timeout=5)
-                
+                try:
+                    requests.post(tg_url, json={
+                        "chat_id": telegram_chat_id,
+                        "text": msg_text,
+                        "parse_mode": "Markdown"
+                    }, timeout=5)
+                except Exception as te:
+                    print(f"[NOTIFY] Telegram error: {te}")
+
         except Exception as e:
             print(f"[{datetime.now()}] Notification Push Error: {e}")
 
@@ -460,28 +479,40 @@ class HarvestService:
                         # Record Signal in History
                         c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
                                  (signal_type, ticker, message, "medium", curr_p, datetime.now().isoformat()))
-                        
+
                         # Record Prediction Metadata
                         c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
                                  (ticker, pred_return, confidence, json.dumps(importance)))
-                        
+
                         print(f"[{datetime.now()}] !!! ALPHA ALERT DISPATCHED: {ticker} @ {curr_p} (Target: +{pred_return*100:.1f}%)")
-                        
-                        # Phase 8.3: Multi-Channel Dispatch (Discord/Telegram)
+
+                        # Phase 17-A: Rich Multi-Channel Dispatch with user z_threshold gate
                         try:
-                            # Re-fetch users to ensure fresh settings
                             with sqlite3.connect(DB_PATH) as alert_conn:
                                 alert_c = alert_conn.cursor()
-                                alert_c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1")
-                                for (target_email,) in alert_c.fetchall():
+                                alert_c.execute("SELECT user_email, z_threshold FROM user_settings WHERE alerts_enabled = 1")
+                                for row in alert_c.fetchall():
+                                    target_email = row[0]
+                                    user_z_thresh = float(row[1]) if row[1] else 2.0
+                                    # Only fire if ML return clears user's configured threshold
+                                    if pred_return * 100 < user_z_thresh:
+                                        continue
+                                    direction = 'LONG' if pred_return > 0 else 'SHORT'
+                                    color = 0x22c55e if pred_return > 0 else 0xef4444
+                                    top_driver = max(importance, key=importance.get)
                                     NOTIFY.push_webhook(
-                                        target_email, 
-                                        f"PREDICTIVE ALPHA: {ticker}", 
-                                        f"Institutional ML Engine detected a high-fidelity alpha window for **{ticker}**.\n\n" +
-                                        f"**Direction:** LONG (Predictive)\n" +
-                                        f"**Current Price:** ${curr_p:,.2f}\n" +
-                                        f"**Target Window:** +{pred_return*100:.1f}%\n" +
-                                        f"**Alpha Driver:** {message}"
+                                        target_email,
+                                        f"ALPHA SIGNAL: {ticker} — {direction}",
+                                        f"ML Engine detected a high-conviction alpha window for **{ticker}**.",
+                                        embed_color=color,
+                                        fields=[
+                                            {"name": "Direction", "value": direction, "inline": True},
+                                            {"name": "Current Price", "value": f"${curr_p:,.4f}", "inline": True},
+                                            {"name": "Predicted Alpha", "value": f"+{pred_return*100:.2f}%", "inline": True},
+                                            {"name": "Primary Driver", "value": top_driver.upper(), "inline": True},
+                                            {"name": "ML Confidence", "value": f"{confidence*100:.0f}%", "inline": True},
+                                            {"name": "Your Threshold", "value": f"{user_z_thresh:.1f}%", "inline": True},
+                                        ]
                                     )
                         except Exception as ne:
                             print(f"Alert Dispatch Error: {ne}")

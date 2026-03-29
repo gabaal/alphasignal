@@ -197,6 +197,9 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN telegram_chat_id TEXT")
     except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN z_threshold REAL DEFAULT 2.0")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS market_ticks (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, price REAL, volume REAL, open_interest REAL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS sentiment_history (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, score REAL, index_value REAL, volume REAL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS ml_predictions (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, predicted_return REAL, confidence REAL, features_json TEXT)''')

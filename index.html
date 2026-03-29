@@ -418,15 +418,15 @@
     <!-- Phase 15-C: Export libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="js/core.js?v=1.29"></script>
-    <script src="js/heatmap_engine.js?v=1.29"></script>
-    <script src="js/charts.js?v=1.29"></script>
-    <script src="js/views.js?v=1.29"></script>
-    <script src="js/main.js?v=1.29"></script>
+    <script src="js/core.js?v=1.30"></script>
+    <script src="js/heatmap_engine.js?v=1.30"></script>
+    <script src="js/charts.js?v=1.30"></script>
+    <script src="js/views.js?v=1.30"></script>
+    <script src="js/main.js?v=1.30"></script>
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
     <div id="notification-modal" class="overlay hidden">
-        <div class="overlay-content auth-panel animate-in" style="max-width:480px;">
+        <div class="overlay-content auth-panel animate-in" style="max-width:520px;">
             <div class="auth-header">
                 <div class="logo-orb large" style="width:40px; height:40px; margin-bottom:1rem"></div>
                 <h2>ALERT<span>CONFIG</span></h2>
@@ -444,6 +444,19 @@
                         <button class="intel-action-btn secondary" onclick="testTelegramConnection()" style="padding:0 12px; font-size:0.6rem; width:auto; border:1px solid var(--border)">TEST</button>
                     </div>
                 </div>
+                <!-- Phase 17-A: Z-Score Alert Threshold -->
+                <div class="input-group">
+                    <label for="z-threshold-slider" style="display:flex; justify-content:space-between">
+                        <span>SIGNAL THRESHOLD</span>
+                        <span id="z-threshold-display" style="color:var(--accent); font-weight:900">2.0% predicted alpha</span>
+                    </label>
+                    <input type="range" id="z-threshold-slider" min="0.5" max="10" step="0.5" value="2.0"
+                        style="width:100%; accent-color:var(--accent); cursor:pointer; margin-top:4px"
+                        oninput="document.getElementById('z-threshold-display').textContent = this.value + '% predicted alpha'">
+                    <p style="font-size:0.6rem; color:var(--text-dim); margin-top:6px">
+                        Only fire push alerts when ML engine predicts ≥ threshold alpha. Lower = more alerts. Higher = only major signals.
+                    </p>
+                </div>
                 <div class="input-group" style="flex-direction:row; align-items:center; gap:10px;">
                     <input type="checkbox" id="alerts-enabled" checked style="width:20px; height:20px; cursor:pointer">
                     <label for="alerts-enabled" style="margin:0; cursor:pointer">NETWORK ALERTS ENABLED</label>
@@ -451,6 +464,7 @@
                 <div id="notif-error" class="auth-error hidden" style="margin-bottom:1rem;"></div>
                 <div style="display:flex; flex-direction:column; gap:0.8rem; margin-top:1rem">
                     <button class="intel-action-btn" onclick="saveNotificationSettings()">SAVE CONFIGURATION</button>
+                    <button class="intel-action-btn secondary" style="background:rgba(0,242,255,0.08); color:var(--accent); border:1px solid rgba(0,242,255,0.2)" onclick="testFireAlert()">🚀 SEND TEST ALERT</button>
                     <button class="intel-action-btn secondary" style="background:rgba(255,255,255,0.05); color:var(--text-dim)" onclick="showNotificationSettings(false)">CLOSE REGISTRY</button>
                 </div>
             </div>

@@ -28,6 +28,8 @@ const viewMap = {
     'portfolio-optimizer': renderPortfolioOptimizer,
     'strategy-lab': renderStrategyLab,
     'backtester-v2': renderBacktesterV2,
+    'options-flow': renderOptionsFlow,
+    'macro-cal': renderMacroCalendar,
     risk: renderRiskMatrix,
     stress: renderStressHub,
     narrative: renderNarrativeGalaxy,
@@ -1676,11 +1678,14 @@ async function saveNotificationSettings() {
     }
     
     try {
+        const z = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
         const res = await fetchAPI('/user/settings', 'POST', {
             discord_webhook: discord,
             telegram_chat_id: telegram,
             alerts_enabled: enabled
         });
+        // Also persist z_threshold via Phase 17-A endpoint
+        await fetchAPI('/alert-settings', 'POST', { z_threshold: z });
         
         if (res && res.success) {
             console.log('[AlphaSignal] Settings Sync Complete.');

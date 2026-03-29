@@ -209,6 +209,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_error(500, str(e))
             elif path == '/api/user/settings':
                 self.handle_user_settings(post_data)
+            elif path == '/api/alert-settings':
+                self.handle_alert_settings(post_data)
             elif path == '/api/trade-ledger':
                 self.handle_trade_ledger(post_data)
             elif path == '/api/settings/test-telegram':
@@ -291,6 +293,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_signal_history()
             elif path == '/api/macro-calendar':
                 self.handle_macro_calendar()
+            elif path == '/api/options-flow':
+                self.handle_options_flow()
+            elif path == '/api/ai-rebalancer':
+                self.handle_ai_rebalancer()
+            elif path == '/api/alert-settings':
+                self.handle_alert_settings()
             elif path == '/api/liquidity':
                 self.handle_liquidity()
             elif path == '/api/liquidity-history':

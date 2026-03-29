@@ -70,6 +70,7 @@ const analyticsHubTabs = [
     { id: 'whales', label: 'WHALE PULSE', view: 'whales', icon: 'waves' },
     { id: 'velocity', label: 'CHAIN VELOCITY', view: 'velocity', icon: 'speed' },
     { id: 'onchain', label: 'ON-CHAIN STATS', view: 'onchain', icon: 'link' },
+    { id: 'options', label: 'OPTIONS FLOW', view: 'options-flow', icon: 'ssid_chart' },
     { id: 'newsroom', label: 'NEWSROOM', view: 'newsroom', icon: 'newspaper' }
 ];
 
@@ -2973,7 +2974,11 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                                 </div>
                             `).join('') : `<p style="font-size:0.7rem; color:var(--risk-high); opacity:0.8">${(optData && optData.error) ? optData.error : 'Data synchronization in progress...'}</p>`}
                         </div>
-                        <button class="intel-action-btn" style="margin-top:1.5rem; width:100%" onclick="executeRebalance()">
+                        <!-- Phase 17-C: AI Rebalancer -->
+                        <button class="intel-action-btn secondary" style="margin-top:0.5rem; width:100%; background:linear-gradient(135deg,rgba(0,212,170,0.15),rgba(0,168,150,0.1)); border:1px solid rgba(0,212,170,0.3); color:#00d4aa" onclick="document.getElementById('ai-rebalancer-section').style.display='block'; renderAIRebalancer()">
+                            <span class="material-symbols-outlined" style="font-size:1.1rem; vertical-align:middle; margin-right:8px">smart_toy</span>
+                            AI REBALANCER (GPT MEMO)
+                        </button>                        <button class="intel-action-btn" style="margin-top:1.5rem; width:100%" onclick="executeRebalance()">
                             <span class="material-symbols-outlined" style="font-size:1.1rem; vertical-align:middle; margin-right:8px">sync_alt</span>
                             EXECUTE REBALANCE
                         </button>
@@ -5628,3 +5633,283 @@ function renderBtv2Table(trades) {
     }).join('');
 }
 
+
+// ================================================================
+// Phase 17-B: Options Flow Scanner (Deribit)
+// ================================================================
+async function renderOptionsFlow(tabs = null) {
+    if (!tabs) tabs = analyticsHubTabs;
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">ssid_chart</span>Options Flow Scanner <span class="premium-badge">DERIBIT LIVE</span></h1>
+            <p>Real-time BTC & ETH Deribit options data — Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
+        </div>
+        ${renderHubTabs('options', tabs)}
+        <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+            <button id="opts-btc-btn" class="intel-action-btn mini" onclick="loadOptionsFlow('BTC')" style="background:linear-gradient(135deg,#f7931a,#ff6b00);color:#000">BTC OPTIONS</button>
+            <button id="opts-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH')">ETH OPTIONS</button>
+        </div>
+        <div id="opts-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
+            ${['Put/Call Ratio','Max Pain','ATM IV','IV Rank','Call OI','Put OI'].map(s =>
+                `<div class="glass-card" style="padding:1rem;text-align:center"><div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${s}</div><div class="opts-stat" id="opts-${s.toLowerCase().replace(/[^a-z]/g,'-')}" style="font-size:1.3rem;font-weight:800;color:var(--accent)">--</div></div>`
+            ).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+            <div class="glass-card" style="padding:1.5rem">
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV SMILE (±30% STRIKES)</div>
+                <canvas id="opts-smile-chart" height="220"></canvas>
+            </div>
+            <div class="glass-card" style="padding:1.5rem">
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">PUT / CALL VOLUME SPLIT</div>
+                <canvas id="opts-pcr-chart" height="220" style="max-width:220px;margin:0 auto;display:block"></canvas>
+            </div>
+        </div>
+        <div class="glass-card" style="padding:1.5rem">
+            <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">TOP STRIKES BY OPEN INTEREST</div>
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:separate;border-spacing:0 3px;font-size:0.75rem">
+                    <thead><tr style="color:var(--text-dim)">
+                        ${['Strike','Type','Expiry','IV %','Volume','Open Interest'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
+                    </tr></thead>
+                    <tbody id="opts-strikes-table"><tr><td colspan="6" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading Deribit data...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    window._optsCurrency = 'BTC';
+    loadOptionsFlow('BTC');
+}
+
+async function loadOptionsFlow(currency) {
+    window._optsCurrency = currency;
+    document.getElementById('opts-btc-btn').className = `intel-action-btn mini ${currency === 'BTC' ? '' : 'outline'}`;
+    document.getElementById('opts-eth-btn').className = `intel-action-btn mini ${currency === 'ETH' ? '' : 'outline'}`;
+    ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'].forEach(id => {
+        const el = document.getElementById('opts-' + id);
+        if (el) el.innerHTML = '<span style="font-size:0.8rem;color:var(--text-dim)">...</span>';
+    });
+    try {
+        const data = await fetchAPI('/options-flow', 'GET');
+        if (!data || data.error) { showToast('OPTIONS FLOW', data.error || 'API unavailable', 'alert'); return; }
+        const d = data[currency];
+        if (!d || d.error) { showToast('OPTIONS FLOW', d && d.error || 'No data for ' + currency, 'alert'); return; }
+
+        const ids = ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'];
+        const vals = [d.pcr, '$' + (d.max_pain||0).toLocaleString(), d.atm_iv + '%', d.iv_pct_rank + 'th', d.call_oi, d.put_oi];
+        const colors = [d.pcr > 1 ? '#ef4444' : '#22c55e','#00d4aa','#bc13fe','#ffd700','#22c55e','#ef4444'];
+        ids.forEach((id, i) => {
+            const el = document.getElementById('opts-' + id);
+            if (el) { el.textContent = vals[i]; el.style.color = colors[i]; }
+        });
+
+        // IV Smile chart
+        if (d.iv_smile && d.iv_smile.length) {
+            const sc = document.getElementById('opts-smile-chart');
+            if (sc) {
+                if (sc._chart) sc._chart.destroy();
+                sc._chart = new Chart(sc, {
+                    type: 'line',
+                    data: {
+                        labels: d.iv_smile.map(p => (p.moneyness >= 0 ? '+' : '') + p.moneyness + '%'),
+                        datasets: [{
+                            label: 'IV %', data: d.iv_smile.map(p => p.iv),
+                            borderColor: '#bc13fe', backgroundColor: 'rgba(188,19,254,0.1)',
+                            borderWidth: 2, tension: 0.4, pointRadius: 3, fill: true
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: {
+                        x: { ticks: { color: '#6b7280', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                        y: { ticks: { color: '#9ca3af', callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                    }}
+                });
+            }
+        }
+
+        // PCR doughnut
+        const pc = document.getElementById('opts-pcr-chart');
+        if (pc) {
+            if (pc._chart) pc._chart.destroy();
+            pc._chart = new Chart(pc, {
+                type: 'doughnut',
+                data: { labels: ['Calls', 'Puts'], datasets: [{ data: [d.call_volume, d.put_volume], backgroundColor: ['rgba(34,197,94,0.8)', 'rgba(239,68,68,0.8)'], borderWidth: 0 }] },
+                options: { cutout: '65%', plugins: { legend: { labels: { color: '#9ca3af', font: { size: 10 } } } } }
+            });
+        }
+
+        // Strikes table
+        const tbody = document.getElementById('opts-strikes-table');
+        if (tbody && d.top_strikes) {
+            tbody.innerHTML = d.top_strikes.map(s => `
+                <tr style="background:rgba(255,255,255,0.02)">
+                    <td style="padding:7px 10px;font-weight:700">$${s.strike.toLocaleString()}</td>
+                    <td style="padding:7px 10px"><span style="font-size:0.6rem;padding:2px 7px;border-radius:10px;background:${s.type==='C'?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${s.type==='C'?'#22c55e':'#ef4444'}">${s.type==='C'?'CALL':'PUT'}</span></td>
+                    <td style="padding:7px 10px;color:var(--text-dim);font-size:0.7rem">${s.expiry}</td>
+                    <td style="padding:7px 10px;color:#bc13fe;font-weight:700">${s.iv}%</td>
+                    <td style="padding:7px 10px">${s.volume.toLocaleString()}</td>
+                    <td style="padding:7px 10px;font-weight:700;color:var(--accent)">${s.oi.toLocaleString()}</td>
+                </tr>`).join('');
+        }
+    } catch(e) {
+        showToast('OPTIONS FLOW', 'Error: ' + e.message, 'alert');
+    }
+}
+
+// ================================================================
+// Phase 17-C: AI Portfolio Rebalancer (injected into renderPortfolioOptimizer)
+// ================================================================
+async function renderAIRebalancer() {
+    const rebalEl = document.getElementById('ai-rebalancer-section');
+    if (!rebalEl) return;
+    rebalEl.innerHTML = `<div style="text-align:center;padding:2rem"><div class="loader" style="margin:0 auto"></div><p style="color:var(--text-dim);margin-top:1rem;font-size:0.8rem">Running Max-Sharpe optimization across ML signals...</p></div>`;
+    try {
+        const data = await fetchAPI('/ai-rebalancer', 'GET');
+        if (data.error) { rebalEl.innerHTML = `<div class="error-msg">${data.error}</div>`; return; }
+
+        const sharpeImprove = data.proposed_sharpe && data.current_sharpe
+            ? (((data.proposed_sharpe - data.current_sharpe) / Math.abs(data.current_sharpe || 0.01)) * 100).toFixed(1) + '%'
+            : 'N/A';
+
+        rebalEl.innerHTML = `
+            <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(0,212,170,0.15);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+                    <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:#00d4aa">AI REBALANCING MEMO</div>
+                    <div style="display:flex;gap:12px;font-size:0.65rem">
+                        <span>Current Sharpe: <b style="color:#ffd700">${data.current_sharpe}</b></span>
+                        <span>→ Proposed: <b style="color:#22c55e">${data.proposed_sharpe}</b></span>
+                        <span>Improvement: <b style="color:#00d4aa">${sharpeImprove}</b></span>
+                    </div>
+                </div>
+                <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.7;white-space:pre-wrap;font-family:'JetBrains Mono',monospace">${data.memo}</div>
+            </div>
+            <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto">
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF — ${data.updated}</div>
+                <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
+                    <thead><tr style="color:var(--text-dim)">
+                        ${['Ticker','ML Score','Current','→ Suggested','Action'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
+                    </tr></thead>
+                    <tbody>
+                        ${(data.weights || []).map(w => {
+                            const act = w.action;
+                            const clr = act === 'ADD' ? '#22c55e' : act === 'REDUCE' ? '#ef4444' : '#60a5fa';
+                            return `<tr style="background:rgba(255,255,255,0.02)">
+                                <td style="padding:8px 10px;font-weight:700">${w.ticker}</td>
+                                <td style="padding:8px 10px;color:#bc13fe">${w.ml_score}%</td>
+                                <td style="padding:8px 10px;color:var(--text-dim)">${w.current_pct}</td>
+                                <td style="padding:8px 10px;font-weight:700;color:#00d4aa">${w.suggested_pct}</td>
+                                <td style="padding:8px 10px"><span style="font-size:0.6rem;padding:2px 8px;border-radius:8px;background:${clr}22;color:${clr};font-weight:700">${act}</span></td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+            ${data.tickets && data.tickets.length ? `
+            <button onclick="executeAIRebalance(${JSON.stringify(data.tickets).replace(/"/g,"'")})" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:10px 24px;border-radius:8px;font-weight:800;font-size:0.75rem;cursor:pointer;letter-spacing:1px;width:100%">
+                ⚡ EXECUTE ${data.tickets.length} REBALANCE TICKETS
+            </button>` : ''}
+        `;
+    } catch(e) {
+        if (rebalEl) rebalEl.innerHTML = `<div class="error-msg">Rebalancer Error: ${e.message}</div>`;
+    }
+}
+
+async function executeAIRebalance(tickets) {
+    if (!confirm(`Execute ${tickets.length} rebalance tickets? This will create entries in your Trade Ledger.`)) return;
+    for (const t of tickets) {
+        await fetchAPI('/api/trade-ledger', { method: 'POST', body: JSON.stringify({ ticker: t.ticker, action: t.action, price: 0, target: 0, stop: 0, weight: t.weight }) });
+    }
+    showToast('REBALANCE', `${tickets.length} tickets executed and logged.`, 'success');
+}
+
+// ================================================================
+// Phase 17-D: Live Macro Event Calendar
+// ================================================================
+async function renderMacroCalendar(tabs = null) {
+    if (!tabs) tabs = macroHubTabs;
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">event_note</span>Macro Event Calendar <span class="premium-badge">LIVE</span></h1>
+            <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
+        </div>
+        ${renderHubTabs('macro-cal', tabs)}
+        <div id="macro-cal-loading" style="text-align:center;padding:3rem"><div class="loader" style="margin:0 auto"></div></div>
+        <div id="macro-cal-content" style="display:none"></div>
+    `;
+    try {
+        const data = await fetchAPI('/macro-calendar');
+        document.getElementById('macro-cal-loading').style.display = 'none';
+        const calEl = document.getElementById('macro-cal-content');
+        if (!data || !data.events || !data.events.length) {
+            calEl.innerHTML = '<div class="error-msg">No upcoming macro events in window.</div>';
+            calEl.style.display = 'block'; return;
+        }
+        const typeColors = { FOMC: '#ef4444', CPI: '#f97316', NFP: '#22c55e', PCE: '#a78bfa', REBALANCE: '#60a5fa' };
+        const tierBg = { HIGH: 'rgba(239,68,68,0.12)', MEDIUM: 'rgba(249,115,22,0.1)', LOW: 'rgba(255,255,255,0.04)' };
+
+        calEl.innerHTML = `
+            <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:1rem">Updated ${data.updated} · Showing next 90 days</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+                ${data.events.map(ev => {
+                    const clr = typeColors[ev.type] || '#9ca3af';
+                    const bg  = tierBg[ev.tier] || tierBg.LOW;
+                    const dDir = ev.median_btc >= 0 ? '+' : '';
+                    const moves6 = (ev.hist_moves || []).slice(-6);
+                    const barMax = Math.max(...moves6.map(Math.abs), 1);
+                    const barsHtml = moves6.map(m => {
+                        const w = Math.abs(m) / barMax * 100;
+                        const c = m >= 0 ? '#22c55e' : '#ef4444';
+                        return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                            <div style="width:60px;text-align:right;font-size:0.55rem;color:var(--text-dim)">${m >= 0 ? '+' : ''}${m}%</div>
+                            <div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden">
+                                <div style="width:${w}%;height:100%;background:${c};border-radius:3px"></div>
+                            </div>
+                        </div>`;
+                    }).join('');
+
+                    return `
+                    <div style="background:${bg};border:1px solid ${clr}33;border-left:3px solid ${clr};border-radius:10px;padding:1.2rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start">
+                        <div style="min-width:90px;text-align:center">
+                            <div style="font-size:1.8rem;font-weight:900;color:${ev.days_until <= 7 ? '#ef4444' : ev.days_until <= 21 ? '#ffd700' : 'var(--text)'}">${ev.days_until === 0 ? 'TODAY' : ev.days_until + 'd'}</div>
+                            <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${ev.date}</div>
+                            <div style="margin-top:8px;padding:3px 8px;border-radius:6px;background:${clr}22;color:${clr};font-size:0.55rem;font-weight:900;letter-spacing:1px">${ev.type}</div>
+                        </div>
+                        <div style="flex:1;min-width:200px">
+                            <div style="font-size:0.9rem;font-weight:800;color:var(--text);margin-bottom:4px">${ev.event}</div>
+                            <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+                                <span style="font-size:0.65rem;color:var(--text-dim)">Median BTC move: <b style="color:${ev.median_btc >= 0 ? '#22c55e' : '#ef4444'}">${dDir}${ev.median_btc}%</b></span>
+                                <span style="font-size:0.65rem;color:var(--text-dim)">Avg volatility: <b style="color:#bc13fe">${ev.avg_vol}%</b></span>
+                                <span style="font-size:0.65rem;color:var(--text-dim)">Bull bias: <b style="color:#ffd700">${ev.bull_bias}%</b></span>
+                            </div>
+                            <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:6px">LAST 6 INSTANCES — BTC DAY-OF MOVE</div>
+                            ${barsHtml}
+                        </div>
+                        <div style="text-align:center;min-width:80px">
+                            <div style="font-size:0.55rem;color:var(--text-dim);margin-bottom:4px">IMPACT SCORE</div>
+                            <div style="font-size:2rem;font-weight:900;color:${ev.impact_score >= 70 ? '#ef4444' : ev.impact_score >= 40 ? '#ffd700' : '#22c55e'}">${ev.impact_score}</div>
+                            <div style="font-size:0.55rem;padding:2px 8px;border-radius:6px;background:${ev.tier==='HIGH'?'rgba(239,68,68,0.15)':ev.tier==='MEDIUM'?'rgba(255,215,0,0.1)':'rgba(34,197,94,0.1)'};color:${ev.tier==='HIGH'?'#ef4444':ev.tier==='MEDIUM'?'#ffd700':'#22c55e'};font-weight:700">${ev.tier}</div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+        calEl.style.display = 'block';
+    } catch(e) {
+        const el = document.getElementById('macro-cal-content');
+        if (el) { el.innerHTML = `<div class="error-msg">Calendar Error: ${e.message}</div>`; el.style.display = 'block'; }
+        const ld = document.getElementById('macro-cal-loading');
+        if (ld) ld.style.display = 'none';
+    }
+}
+
+// ================================================================
+// Phase 17-A: Test fire alert helper + modal settings loader
+// ================================================================
+async function testFireAlert() {
+    const z = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
+    showToast('ALERT CONFIG', 'Sending test notification...', 'info');
+    const data = await fetchAPI('/alert-settings', 'POST', { z_threshold: z, test_fire: true });
+    if (data && data.success) {
+        showToast('ALERT CONFIG', 'Test alert dispatched! Check Discord/Telegram.', 'success');
+    } else {
+        showToast('ALERT CONFIG', 'Save your webhook first, then test.', 'alert');
+    }
+}
