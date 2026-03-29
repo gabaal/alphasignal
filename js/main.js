@@ -490,16 +490,16 @@ async function renderHome() {
             <section style="padding:4rem 2rem;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(188,19,254,0.04),rgba(0,0,0,0.4))">
                 <div style="max-width:1200px;margin:0 auto">
                     <div style="text-align:center;margin-bottom:3rem">
-                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 18 — LATEST INSTITUTIONAL ADDITIONS</span>
+                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 19 — LATEST INSTITUTIONAL ADDITIONS</span>
                         <h2 style="margin-top:1.5rem">Freshly Deployed Intelligence</h2>
                         <p style="color:var(--text-dim)">The most recent upgrades across institutional order flow, AI rebalancing, macro intelligence, and options analytics.</p>
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
                         ${[
-                        { icon: 'bar_chart', view: 'liquidity', color: '#00f2ff', title: 'GOMM Order Flow (v1.50)', desc: 'Institutional Tape as a full-width horizontal strip. Heatmap shows live price/candle chart. Liquidation Flux fixed. Bid depth now updates in real-time every poll.' },
-                            { icon: 'auto_mode', view: 'portfolio-optimizer', color: '#22c55e', title: 'AI Portfolio Rebalancer', desc: 'Monte Carlo optimiser with GPT-4 rebalancing memo and execution ledger integration for full audit trail.' },
-                            { icon: 'event', view: 'macro-calendar', color: '#f59e0b', title: 'Live Macro Calendar', desc: '90-day FOMC/CPI/NFP/PCE calendar with historical BTC impact scoring and volatility analysis from real price data.' },
-                            { icon: 'ssid_chart', view: 'options-flow', color: '#bc13fe', title: 'Deribit Options Flow', desc: 'Live BTC & ETH Put/Call ratio, Max Pain strike, ATM IV, IV smile chart, and top open-interest strikes.' }
+                            { icon: 'grid_on', view: 'macro-hub', color: '#00f2ff', title: 'Cross-Asset Momentum Heatmap', desc: 'Color-coded rolling returns heatmap (1D/7D/30D/90D) across 15 assets with Z-score column. Injected in Macro Compass. Cells clickable to asset intel modal.' },
+                            { icon: 'notifications_active', view: 'alerts', color: '#22c55e', title: 'Alerts v2 — Trigger Dashboard', desc: 'Overhauled alerts view with active trigger conditions panel (Z-Score, Whale, De-peg, Vol Spike, CME Gap). Each alert now shows severity badge and direct CHART button.' },
+                            { icon: 'psychology', view: 'whales', color: '#bc13fe', title: 'AI Deep-Dive Buttons', desc: 'AI analyst shortcut buttons added to ETF Flows, Whale Pulse, and Global Markets hub headers. One-click to full institutional AI synthesis on any asset.' },
+                            { icon: 'account_balance_wallet', view: 'whales', color: '#f59e0b', title: 'Live Whale Flow Network', desc: 'Whale Wallet Flow Network now fetches live /api/whale-sankey data. 7 entity types with $M-scaled inflow/outflow bars. Congestion-weighted via Blockchain.info mempool.' }
                         ].map(f => `
                             <div class="glass-card" onclick="switchView('${f.view}')" style="cursor:pointer;padding:1.5rem;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s"
                                  onmouseover="this.style.borderColor='${f.color}';this.style.background='rgba(255,255,255,0.02)'"

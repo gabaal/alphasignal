@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --bg-deep: #05070a;
     --bg-card: #0d1117;
     --accent: #00f2ff;
@@ -3087,4 +3087,35 @@ h4 {
     margin-bottom: 0.25rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+/* ── Momentum Heatmap Table ────────────────────────────────── */
+#momentum-heatmap-grid table { min-width: 480px; }
+#momentum-heatmap-grid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Scrollable heatmap on mobile */
+@media (max-width: 900px) {
+    .macro-grid { grid-template-columns: 1fr !important; }
+    #momentum-heatmap-grid table { font-size: 0.65rem !important; }
+    #momentum-heatmap-grid td, #momentum-heatmap-grid th { padding: 5px 6px !important; }
+    /* Whale flow bar chart full-width on mobile */
+    #whaleSankeyCanvas { max-height: 180px; }
+    /* Performance empty-state responsive grid */
+    .perf-empty-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 600px) {
+    #momentum-heatmap-grid table { font-size: 0.6rem !important; min-width: 360px; }
+    /* Alert cards */
+    .alert-card .intel-action-btn { font-size: 0.55rem !important; padding: 3px 8px !important; }
+}
+
+/* ── AI Deep-Dive button glow ──────────────────────────────── */
+.intel-action-btn.ai-glow {
+    background: linear-gradient(135deg, rgba(0,242,255,0.15), rgba(188,19,254,0.1));
+    border-color: rgba(0,242,255,0.3);
+    transition: all 0.2s ease;
+}
+.intel-action-btn.ai-glow:hover {
+    box-shadow: 0 0 15px rgba(0,242,255,0.25), 0 0 30px rgba(188,19,254,0.1);
+    border-color: var(--accent);
 }

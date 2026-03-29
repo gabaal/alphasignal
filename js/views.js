@@ -106,8 +106,18 @@ async function renderETFFlows(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     const tabHTML = tabs ? renderHubTabs('etf', tabs) : '';
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-macro-compass')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="intel-action-btn mini" onclick="showSignalDetail(null,'BTC-USD')" style="width:auto;padding:4px 12px;font-size:0.6rem;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border-color:rgba(0,242,255,0.3)">
+                    <span class="material-symbols-outlined" style="font-size:13px">psychology</span> AI DEEP-DIVE
+                </button>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-macro-compass')">
+                    <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
+                </button>
+            </div>
         </div>
         ${tabHTML}
         <h2 class="section-heading" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-top:0.5rem">Bitcoin Spot ETF Daily Flows</h2>
@@ -1986,10 +1996,17 @@ async function renderWhales(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-whales')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h1>
+                <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
             </div>
-           
-            <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="intel-action-btn mini" onclick="showSignalDetail(null,'BTC-USD')" style="width:auto;padding:4px 12px;font-size:0.6rem;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border-color:rgba(0,242,255,0.3)">
+                    <span class="material-symbols-outlined" style="font-size:13px">psychology</span> AI DEEP-DIVE
+                </button>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-whales')">
+                    <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
+                </button>
+            </div>
         </div>
         ${tabs ? renderHubTabs('whales', tabs) : ''}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Whale Pulse Monitor</h2>
@@ -4927,34 +4944,74 @@ async function renderAlerts() {
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1>Live Intelligence Alerts</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-            <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
+            <div>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">notifications_active</span>Live Intelligence Alerts <span class="premium-badge">LIVE</span></h1>
+                <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <button class="intel-action-btn mini" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="renderAlerts()"><span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH</button>
+            </div>
         </div>
+
+        <!-- Alert Trigger Conditions -->
+        <div class="card" style="padding:1rem;margin-bottom:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center">
+            <span style="font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);font-weight:700">ACTIVE TRIGGERS</span>
+            ${[
+                ['Z-Score &gt; 2.5σ', '#22c55e', 'show_chart'],
+                ['Whale Txn &gt; $5M', '#00f2ff', 'account_balance_wallet'],
+                ['De-peg &gt; 1%', '#ef4444', 'warning'],
+                ['Vol Spike 3×', '#f59e0b', 'bolt'],
+                ['CME Gap Fill', '#bc13fe', 'pivot_table_chart']
+            ].map(([label, color, icon]) => `
+                <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.03);border:1px solid ${color}33;border-radius:6px;padding:4px 10px">
+                    <span class="material-symbols-outlined" style="font-size:12px;color:${color}">${icon}</span>
+                    <span style="font-size:0.6rem;color:${color};font-weight:700">${label}</span>
+                </div>
+            `).join('')}
+            <span style="margin-left:auto;font-size:0.6rem;color:var(--text-dim)">Updated: ${new Date().toLocaleTimeString()}</span>
+        </div>
+
         <div class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
-            ${data.length ? data.map(a => {
+            ${data && data.length ? data.map(a => {
                 const ts = a.timestamp ? (a.timestamp.includes('T') ? a.timestamp.split('T')[1].split('.')[0] : a.timestamp) : 'SYNC';
+                const sevColor = a.severity === 'high' ? 'var(--risk-high)' : (a.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)');
                 return `
-                <div class="alert-card ${a.severity}" style="background:var(--bg-card); border:1px solid var(--border); border-left:4px solid ${a.severity === 'high' ? 'var(--risk-high)' : (a.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)')}; border-radius:12px; padding:1.5rem; position:relative; overflow:hidden">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px">
-                        <span style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:${a.severity === 'high' ? 'var(--risk-high)' : 'var(--accent)'}">${a.type}</span>
+                <div class="alert-card ${a.severity}" style="background:var(--bg-card); border:1px solid var(--border); border-left:4px solid ${sevColor}; border-radius:12px; padding:1.5rem; position:relative; overflow:hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;flex-wrap:wrap;gap:8px">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                            <span style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:${sevColor}">${a.type}</span>
+                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:100px;font-weight:800;background:${a.severity === 'high' ? 'rgba(239,68,68,0.15)' : 'rgba(0,242,255,0.1)'};color:${sevColor};border:1px solid ${sevColor}33;letter-spacing:1px">${a.severity?.toUpperCase() || 'INFO'}</span>
+                            ${a.ticker && a.ticker !== 'SYSTEM' ? `<span style="font-size:0.65rem;font-weight:900;color:var(--accent)">${a.ticker.replace('-USD','')}</span>` : ''}
+                        </div>
                         <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono)">${ts}</span>
                     </div>
                     <div style="font-size:1.1rem; font-weight:800; margin-bottom:8px">${a.title || (a.ticker + ' SIGNAL')}</div>
                     <div style="font-size:0.85rem; color:var(--text-dim); line-height:1.4; margin-bottom:1rem">${a.content || a.message}</div>
-                    
-                    <div style="display:flex; gap:10px">
+                    <div style="display:flex; gap:10px;flex-wrap:wrap">
                         <button class="intel-action-btn mini" onclick="showSignalDetail('${a.id}', '${a.ticker}')" style="font-size:0.6rem; padding:4px 10px">
                             <span class="material-symbols-outlined" style="font-size:14px; margin-right:4px">psychology</span>
                             AI REASONING
                         </button>
+                        ${a.ticker && a.ticker !== 'SYSTEM' ? `
+                        <button class="intel-action-btn mini outline" onclick="openDetail('${a.ticker}', 'ALERT')" style="font-size:0.6rem;padding:4px 10px">
+                            <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px">monitoring</span>
+                            CHART
+                        </button>` : ''}
                     </div>
                 </div>
                 `;
-            }).join('') : '<p class="empty-state">No active high-severity threats detected.</p>'}
+            }).join('') : `
+            <div class="card" style="padding:3rem;text-align:center">
+                <span class="material-symbols-outlined" style="font-size:3rem;color:var(--risk-low);display:block;margin-bottom:1rem">check_circle</span>
+                <h3 style="color:var(--risk-low);margin-bottom:0.5rem">ALL CLEAR</h3>
+                <p style="color:var(--text-dim);font-size:0.85rem">No active high-severity threats detected. All trigger conditions within normal parameters.</p>
+            </div>`}
         </div>`;
     
     // Clear badge when viewing alerts
-    document.getElementById('alert-badge').style.display = 'none';
+    const badge = document.getElementById('alert-badge');
+    if (badge) badge.style.display = 'none';
 }
 
 async function showSignalDetail(alertId, ticker) {
