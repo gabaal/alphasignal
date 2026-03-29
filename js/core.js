@@ -1062,7 +1062,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
 
     // Initialize Tape Reader
     if (window.activeTape) window.activeTape.stop();
-    window.lastBasePrice = history[history.length-1].price;
+    window.lastBasePrice = history[history.length-1]?.close ?? history[history.length-1]?.price ?? 0;
     window.activeTape = new TapeReader('tape-container', ticker);
     window.activeTape.start();
 }
