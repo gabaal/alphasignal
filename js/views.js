@@ -3965,31 +3965,38 @@ async function renderLiquidityView(tabs = null) {
         fetch('/api/volatility-surface?ticker=BTC-USD').then(r => r.ok ? r.json() : null).catch(() => null)
     ]);
 
-    // Update stats
-    if (data && data.book) {
-        const bids = data.book.bids?.reduce((s, b) => s + parseFloat(b[1] || 0), 0) || 0;
-        const asks = data.book.asks?.reduce((s, a) => s + parseFloat(a[1] || 0), 0) || 0;
-        const total = bids + asks;
-        const imbalance = total > 0 ? (((bids - asks) / total) * 100).toFixed(1) : 0;
+    // Update stats from API response (walls-based, not book-based)
+    if (data) {
         const el = document.getElementById('gomm-imbalance');
-        if (el) { el.textContent = `${imbalance > 0 ? '+' : ''}${imbalance}%`; el.style.color = imbalance > 0 ? 'var(--risk-low)' : 'var(--risk-high)'; }
+        if (el && data.imbalance) {
+            el.textContent = data.imbalance;
+            const val = parseFloat(data.imbalance);
+            el.style.color = val > 0 ? 'var(--risk-low)' : 'var(--risk-high)';
+        }
         const depthEl = document.getElementById('gomm-depth');
-        if (depthEl) depthEl.textContent = `${(total).toFixed(1)} BTC`;
+        if (depthEl && data.total_depth) depthEl.textContent = data.total_depth;
     }
 
     // Sub-view renderers
     function renderWallsMode() {
         sectionTitle.textContent = 'Depth Walls — Institutional Order Clusters';
-        if (!data || !data.book) {
+        if (!data || !data.walls || data.walls.length === 0) {
             display.innerHTML = `<div class="empty-state">Order book data unavailable</div>`;
             return;
         }
-        const bids = (data.book.bids || []).slice(0, 20);
-        const asks = (data.book.asks || []).slice(0, 20);
-        const labels = [...bids.map(b => parseFloat(b[0]).toFixed(0)), ...asks.map(a => parseFloat(a[0]).toFixed(0))];
-        const bidData = [...bids.map(b => parseFloat(b[1])), ...asks.map(() => 0)];
-        const askData = [...bids.map(() => 0), ...asks.map(a => parseFloat(a[1]))];
-        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommWallChart"></canvas></div></div>`;
+        const walls = data.walls;
+        const bids = walls.filter(w => w.side === 'bid').sort((a,b) => b.price - a.price).slice(0, 20);
+        const asks = walls.filter(w => w.side === 'ask').sort((a,b) => a.price - b.price).slice(0, 20);
+        // Merge and sort by price for a depth chart
+        const all = [...bids, ...asks].sort((a,b) => a.price - b.price);
+        const labels = all.map(w => `$${w.price.toFixed(0)}`);
+        const bidData = all.map(w => w.side === 'bid' ? w.size : 0);
+        const askData = all.map(w => w.side === 'ask' ? w.size : 0);
+        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommWallChart"></canvas></div>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;padding:0.75rem 0;font-size:0.65rem;color:var(--text-dim)">
+                ${bids.slice(0,5).map(w => `<span style="color:var(--risk-low)">▲ BID $${w.price.toFixed(0)} — ${w.size.toFixed(1)} BTC</span>`).join('')}
+                ${asks.slice(0,5).map(w => `<span style="color:var(--risk-high)">▼ ASK $${w.price.toFixed(0)} — ${w.size.toFixed(1)} BTC</span>`).join('')}
+            </div></div>`;
         setTimeout(() => {
             const ctx = document.getElementById('gommWallChart')?.getContext('2d');
             if (!ctx) return;
@@ -4000,7 +4007,7 @@ async function renderLiquidityView(tabs = null) {
                     { label: 'Asks (Resistance)', data: askData, backgroundColor: 'rgba(239,68,68,0.7)' }
                 ]},
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#aaa' } } },
-                    scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Size (BTC)', color: '#aaa' } } }
+                    scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa', maxTicksLimit: 12 } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Size (BTC)', color: '#aaa' } } }
                 }
             });
         }, 50);
