@@ -192,9 +192,15 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
         if (res.status === 401) {
             const params = new URLSearchParams(window.location.search);
             const currentView = params.get('view') || 'home';
-            const isFreeView = (currentView === 'signals' || currentView === 'help' || currentView === 'home' || currentView.startsWith('explain-'));
+            // PUBLIC: no auth needed at all
+            const isPublicView = (
+                currentView === 'signals' || currentView === 'home' ||
+                currentView === 'help' || currentView.startsWith('explain-')
+            );
+            // FREE: login required (not premium)
+            const isFreeView = isPublicView || currentView === 'command-center' || currentView === 'free-tier';
             
-            if (!isFreeView) {
+            if (!isPublicView) {
                 showAuth(true);
             }
             return null;
@@ -249,24 +255,44 @@ function updatePremiumUI() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         const view = item.getAttribute('data-view');
-        const isFreeView = (
-            view === 'signals' || view === 'help' || view === 'home' || view?.startsWith('explain-') ||
-            view === 'strategy-lab' || view === 'institutional-hub' ||
-            view === 'alpha-hub' || view === 'global-hub' || view === 'macro-hub' ||
-            view === 'analytics-hub' || view === 'risk-hub' || view === 'audit-hub' ||
-            view === 'ask-terminal' || view === 'command-center'
-        );
         
-        if (isFreeView || isPremiumUser) {
+        // PUBLIC: always visible, no lock
+        const isPublicView = (
+            view === 'signals' || view === 'home' || view === 'help' ||
+            view?.startsWith('explain-')
+        );
+        // FREE: visible only when logged in
+        const isFreeView = isPublicView || view === 'command-center' || view === 'free-tier';
+        
+        const canAccess = isPremiumUser || isFreeView || (isAuthenticatedUser && isFreeView);
+        
+        if (isPremiumUser || isPublicView) {
+            // Premium or public — fully unlock, remove all locks
             const lock = item.querySelector('.premium-lock');
             if (lock) lock.remove();
             item.classList.remove('locked-nav');
-        } else {
+        } else if (isAuthenticatedUser && isFreeView) {
+            // Logged-in free user can access free-tier views
+            const lock = item.querySelector('.premium-lock');
+            if (lock) lock.remove();
+            item.classList.remove('locked-nav');
+        } else if (!isAuthenticatedUser && isFreeView && !isPublicView) {
+            // Not logged in, free-tier view — show login lock
             item.classList.add('locked-nav');
             if (!item.querySelector('.premium-lock')) {
                 const lock = document.createElement('span');
                 lock.className = 'premium-lock material-symbols-outlined';
-                lock.setAttribute('aria-label', 'Locked');
+                lock.setAttribute('aria-label', 'Login required');
+                lock.textContent = 'login';
+                item.appendChild(lock);
+            }
+        } else {
+            // Premium-gated view
+            item.classList.add('locked-nav');
+            if (!item.querySelector('.premium-lock')) {
+                const lock = document.createElement('span');
+                lock.className = 'premium-lock material-symbols-outlined';
+                lock.setAttribute('aria-label', 'Premium required');
                 lock.textContent = 'lock';
                 item.appendChild(lock);
             }

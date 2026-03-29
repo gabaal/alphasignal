@@ -1625,26 +1625,34 @@ function switchView(view, pushState = true) {
         window.globalUIWipe();
     }
 
-    // 1. Check Access Rights
-    const isFreeView = (
-        view === 'signals' || view === 'help' || view === 'home' || 
-        view?.startsWith('explain-') ||
-        view === 'strategy-lab' || view === 'institutional-hub' ||
-        view === 'alpha-hub' || view === 'global-hub' || view === 'macro-hub' ||
-        view === 'analytics-hub' || view === 'risk-hub' || view === 'audit-hub' ||
-        view === 'ask-terminal' || view === 'command-center'
+    // 1. Check Access Rights — three-tier model
+    // PUBLIC: no auth required
+    const isPublicView = (
+        view === 'signals' || view === 'home' || view === 'help' ||
+        view?.startsWith('explain-')
     );
-    
-    if (!isFreeView && !isPremiumUser) {
-        console.warn(`Access Denied: ${view} is a premium view.`);
-        if (!isAuthenticatedUser) {
+    // FREE: login required, no subscription needed
+    const isFreeView = isPublicView || view === 'command-center' || view === 'free-tier';
+
+    if (!isPublicView && !isPremiumUser) {
+        if (!isFreeView) {
+            // Premium-gated view
+            console.warn(`Paywall: ${view} requires Institutional subscription.`);
+            if (!isAuthenticatedUser) {
+                showAuth(true);
+                showToast('AUTHENTICATION REQUIRED', 'Please log in to access institutional intelligence.', 'alert');
+            } else {
+                showPaywall(true);
+                showToast('INSTITUTIONAL ACCESS REQUIRED', 'Upgrade to access this module.', 'alert');
+            }
+            return;
+        } else if (!isAuthenticatedUser) {
+            // Free-tier view, but not logged in
+            console.warn(`Login required: ${view}`);
             showAuth(true);
-            showToast("AUTHENTICATION REQUIRED", "Please login to access institutional intelligence.", "alert");
-        } else {
-            showPaywall(true);
-            showToast("PREMIUM REQUIRED", "This module requires an active Institutional subscription.", "alert");
+            showToast('LOGIN REQUIRED', 'Please log in to access this module.', 'alert');
+            return;
         }
-        return;
     }
 
     // Update SEO Meta
