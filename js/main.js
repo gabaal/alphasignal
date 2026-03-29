@@ -156,18 +156,16 @@ async function renderCommandCenter() {
 
     // Data Fetching & Rendering
     try {
-        const [macro, regime, etf, signals, catalysts] = await Promise.all([
+        const [macro, regime, etf, signals] = await Promise.all([
             fetchAPI('/macro'),
             fetchAPI('/regime'),
-            fetchAPI('/fear-greed'), // Reusing fear-greed endpoint for the dial
-            fetchAPI('/signals'),
-            fetchAPI('/macro-calendar')
+            fetchAPI('/fear-greed'),
+            fetchAPI('/signals')
         ]);
 
         // 1. Fear & Greed Dial
         if (macro) {
-            const fg = regime; // FearGreed if available
-            // Note: Since endpoints vary, we'll use placeholder logic or existing helpers
+            const fg = regime;
             initCommandGauges(macro, regime);
         }
 
@@ -202,21 +200,19 @@ async function renderCommandCenter() {
             }
         } catch(e) { console.error("Signals Error:", e); }
 
-        // 6. CME Gaps
+        // 6. CME Gaps (static placeholders — full data available in premium CME Gaps view)
         try {
-            if (catalysts) {
-                const gaps = [
-                    { price: '63,450', dist: '+3.2%', status: 'UNFILLED' },
-                    { price: '58,200', dist: '-4.5%', status: 'PARTIAL' }
-                ];
-                document.getElementById('cmd-cme-gaps').innerHTML = gaps.map(g => `
-                    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border)">
-                        <span style="font-size:0.75rem">$${g.price}</span>
-                        <span style="font-size:0.65rem; color:var(--text-dim)">${g.dist}</span>
-                        <span style="font-size:0.65rem; font-weight:900; color:var(--accent)">${g.status}</span>
-                    </div>
-                `).join('');
-            }
+            const gaps = [
+                { price: '63,450', dist: '+3.2%', status: 'UNFILLED' },
+                { price: '58,200', dist: '-4.5%', status: 'PARTIAL' }
+            ];
+            document.getElementById('cmd-cme-gaps').innerHTML = gaps.map(g => `
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border)">
+                    <span style="font-size:0.75rem">$${g.price}</span>
+                    <span style="font-size:0.65rem; color:var(--text-dim)">${g.dist}</span>
+                    <span style="font-size:0.65rem; font-weight:900; color:var(--accent)">${g.status}</span>
+                </div>
+            `).join('');
         } catch(e) { console.error("Gaps Error:", e); }
 
     } catch (e) {
