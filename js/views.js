@@ -5482,7 +5482,7 @@ async function renderOnChain(tabs = null) {
 async function renderBacktesterV2(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = `
-        ${renderHubTabs(tabs, 'backtester-v2')}
+        ${renderHubTabs('backtester', tabs)}
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
             <div>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#00d4aa">analytics</span>Signal Backtester <span class="premium-badge">V2</span></h1>

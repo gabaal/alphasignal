@@ -476,7 +476,7 @@ class InstitutionalRoutesMixin:
                 return
 
             # Fetch price history (always)
-            df = CACHE.download(ticker, period='1y', interval='1d', progress=False)
+            df = CACHE.download(ticker, period='1y', interval='1d')
             if df is None or df.empty:
                 self.send_json([])
                 return
@@ -656,7 +656,7 @@ class InstitutionalRoutesMixin:
             ticker = symbol if is_equity else symbol.replace('USDT', '-USD')
             
             # Fetch 1h data for enough resolution for a map
-            df = CACHE.download(ticker, period='2d', interval='1h', progress=False)
+            df = CACHE.download(ticker, period='2d', interval='1h')
             if df is None or df.empty:
                 self.send_json([])
                 return
@@ -3492,7 +3492,7 @@ class InstitutionalRoutesMixin:
             price_cache = {}
             for tk in unique_tickers:
                 try:
-                    df = CACHE.download(tk, period='2y', interval='1d', progress=False)
+                    df = CACHE.download(tk, period='2y', interval='1d')
                     if df is not None and not df.empty:
                         closes = self._get_price_series(df, tk)
                         price_cache[tk] = {
@@ -3503,7 +3503,7 @@ class InstitutionalRoutesMixin:
                     pass
 
             # BTC benchmark
-            btc_df = CACHE.download('BTC-USD', period='2y', interval='1d', progress=False)
+            btc_df = CACHE.download('BTC-USD', period='2y', interval='1d')
             btc_prices = {}
             if btc_df is not None and not btc_df.empty:
                 btc_closes = self._get_price_series(btc_df, 'BTC-USD')
