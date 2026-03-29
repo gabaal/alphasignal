@@ -3,9 +3,9 @@
 const viewMap = {
     'onchain': renderOnChain,
     'advanced-charting': renderAdvancedChart,
-    signals: renderSignals, 
+    signals: renderSignals,
     briefing: renderBriefing,
-    mindshare: renderMindshare, 
+    mindshare: renderMindshare,
     flow: renderFlows,
     heatmap: renderHeatmap,
     catalysts: renderCatalysts,
@@ -29,7 +29,6 @@ const viewMap = {
     'strategy-lab': renderStrategyLab,
     'backtester-v2': renderBacktesterV2,
     'options-flow': renderOptionsFlow,
-    'macro-cal': renderMacroCalendar,
     risk: renderRiskMatrix,
     stress: renderStressHub,
     narrative: renderNarrativeGalaxy,
@@ -73,10 +72,7 @@ const viewMap = {
     'liquidations': renderLiquidations,
     'cme-gaps': renderCMEGaps,
     'oi-radar': renderOIRadar,
-    'global-hub': renderGlobalHub,
     'command-center': renderCommandCenter,
-    'macro-hub': renderMacroHub,
-    'alpha-hub': renderAlphaHub,
     'trade-ledger': renderTradeLedger,
     'ask-terminal': renderAskTerminal,
     'explain-ai-engine': renderDocsAIEngine,
@@ -85,6 +81,7 @@ const viewMap = {
     'explain-tradingview': renderDocsTradingView,
     help: renderHelp
 };
+
 
 async function renderCommandCenter() {
     appEl.innerHTML = `
