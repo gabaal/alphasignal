@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg-deep: #05070a;
     --bg-card: #0d1117;
     --accent: #00f2ff;
@@ -3030,4 +3030,61 @@ button, .intel-action-btn, .nav-item, .signal-card, .glass-card, .hub-tabs butto
     .top-bar { padding-top: max(1rem, env(safe-area-inset-top)); }
     .mobile-nav { padding-bottom: max(10px, env(safe-area-inset-bottom)); height: calc(70px + env(safe-area-inset-bottom)); }
     .content { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+}
+
+/* ===================================================
+   HEADING HIERARCHY — Consistent across all views
+   H1 = View/page title (one per view)
+   H2 = Major chart / section heading within a view
+   H3 = Panel / card / metric label within a section
+   =================================================== */
+
+/* View title: always styled as terminal header */
+.view-header h1,
+.landing-page h1,
+h1 {
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Section headings: chart titles, data panel labels */
+h2 {
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+/* Inside view-header, h2 used for sub-title line */
+.view-header h2 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+/* Card / panel headings */
+h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+/* Stat/metric labels */
+h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }

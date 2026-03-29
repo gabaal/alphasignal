@@ -618,7 +618,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         <!-- 30D Signal Density Histogram -->
         <div class="card" style="margin-bottom:20px;">
             <div class="card-header" style="margin-bottom:10px">
-                <h3>Strategy Firing Density (30D Histogram)</h3>
+                <h2>Strategy Firing Density (30D Histogram)</h2>
                 <span class="label-tag">VOLATILITY CLUSTER MAP</span>
             </div>
             <div style="height:120px; width:100%; position:relative;">
@@ -796,7 +796,7 @@ async function renderAlphaScore(tabs = null) {
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
                 <div>
                     ${renderHubTabs('score', tabs)}
-                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
+                    <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h2>
                     <p style="margin:0">Composite 0–100 ranking · Updated ${data.updated} · ${scores.length} assets scored ${isSafeMode ? '<span style="color:var(--accent); font-weight:700">[SAFE MODE ACTIVE]</span>' : ''}</p>
                 </div>
                 <!-- Pagination Controls -->
@@ -899,7 +899,7 @@ async function renderPerformanceDashboard(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start">
             <div>
                 ${renderHubTabs('performance', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Institutional Alpha Performance <span class="premium-badge">LIVE</span></h1>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">trending_up</span> Institutional Alpha Performance <span class="premium-badge">LIVE</span></h2>
                 <p>Track record as of ${d.updated} · Based on ${d.total_signals} signals</p>
             </div>
             <div style="display:flex; gap:0.5rem">
@@ -1113,7 +1113,7 @@ async function renderFlows(tabs = null) {
             </div>
         </div>
         <div class="whale-list" style="margin-top:2.5rem">
-            <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent)">SPOT ETF FLOW ATTRIBUTION (REAL-TIME)</h3>
+            <h2 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent)">SPOT ETF FLOW ATTRIBUTION (REAL-TIME)</h2>
             <div style="display:grid; gap:12px">
                 ${data.etfFlows.map(f => `
                     <div class="whale-row" style="grid-template-columns: 100px 100px 1fr 150px; align-items:center">
@@ -1341,7 +1341,7 @@ async function renderMindshare() {
             
             <div class="glass-card" style="padding:1.5rem">
                 <div class="card-header">
-                    <h3>Cross-Chain TVL Migration</h3>
+                    <h2>Cross-Chain TVL Migration</h2>
                     <span class="label-tag">LIQUIDITY</span>
                 </div>
                 <div style="height: 350px; position: relative; margin-top:20px; margin-bottom:20px;">
@@ -1523,7 +1523,7 @@ async function renderCatalysts() {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">auto_awesome</span> Intelligence Catalyst Compass</h1>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">auto_awesome</span> Intelligence Catalyst Compass</h2>
             <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
         </div>
 
@@ -1593,7 +1593,7 @@ async function renderMacroCalendar(tabs = null) {
         <div class="card-grid">
             <div class="glass-card" style="grid-column: 1 / -1">
                 <div class="card-header">
-                    <h3>Economic Intelligence Calendar</h3>
+                    <h2>Economic Intelligence Calendar</h2>
                     <span class="label-tag">WEEKLYWIDE SYNC</span>
                 </div>
                 <div class="table-container">
@@ -3790,7 +3790,7 @@ async function renderTradeLedger(tabs = null) {
         if (!res || res.error) {
             appEl.innerHTML = `
                 <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <h2>Institutional Trade Ledger</h2>
+                    <h1>Institutional Trade Ledger</h1>
                 </div>
                 <div class="paywall-feature-block">
                     <span class="material-symbols-outlined" style="font-size:4rem; color:var(--accent); margin-bottom:1.5rem">history_edu</span>
@@ -3878,7 +3878,7 @@ async function renderLiquidityView() {
     appEl.innerHTML = `
     <div class="gomm-container">
         <div class="sidebar-panel">
-            <h1 class="view-title" style="margin:0"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bar_chart</span> Order Flow (GOMM)</h1>
+            <h2 class="view-title" style="margin:0"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bar_chart</span> Order Flow (GOMM)</h2>
             <div class="stat-card">
                 <div class="label">GLOBAL IMBALANCE</div>
                 <div class="value" id="gomm-imbalance">--%</div>
@@ -4392,7 +4392,7 @@ async function renderMacroView(tabs = null) {
         if (!data) return;
 
         appEl.innerHTML = `
-            <h1 class="view-title">🌏 Macro Catalyst Compass</h1>
+            <h2 class="view-title">🌏 Macro Catalyst Compass</h2>
             ${tabHTML}
             <p class="view-desc" style="margin-top:0.5rem">Tracking high-impact economic drivers and global liquidity shifts.</p>
             <div class="macro-grid" style="display:grid; grid-template-columns: 1fr 350px; gap:20px">
@@ -4551,7 +4551,7 @@ async function renderRegime(tabs = null) {
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">layers</span> Market Regime Framework</h1>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">layers</span> Market Regime Framework</h2>
             <p>Statistical classification of market cycles using Markov-Switching approximation.</p>
         </div>
         ${tabs ? renderHubTabs('regime', tabs) : ''}
