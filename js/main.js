@@ -479,9 +479,9 @@ function renderSystemGauge(canvasId, value, colorLow, colorHigh) {
 }
 
 // ============= Documentation Views (Hidden Routes) =============
-function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies = [], dataSources = "") {
+function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies = [], dataSources = "", targetView = null) {
     appEl.innerHTML = `
-        <div class="view-header"><h1>${title} - Terminal Documentation</h1></div>
+        <div class="view-header"><h1>${title} — Terminal Documentation</h1></div>
         <div class="doc-container" style="max-width: 900px; margin: 0 auto; padding-top: 2rem; padding-bottom: 5rem;">
             <p style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.6; font-weight: 500;">${subtitle}</p>
             
@@ -520,18 +520,25 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
                 <!-- Data Source Transparency -->
                 <div style="background: rgba(255,255,255,0.03); padding: 1.2rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; color: var(--text-dim);">
                     <div style="display: flex; align-items: center; margin-bottom: 0.5rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <span class="material-symbols-outlined" style="margin-right: 6px; font-size: 16px;">source</span> Data Provenance & Sources
+                        <span class="material-symbols-outlined" style="margin-right: 6px; font-size: 16px;">source</span> Data Provenance &amp; Sources
                     </div>
                     ${dataSources}
                 </div>
             ` : ''}
 
-            <div style="display: flex; gap: 1rem;">
-                <button class="intel-action-btn" onclick="switchView('help')"><span class="material-symbols-outlined" style="margin-right:8px; vertical-align:middle;">arrow_back</span> RETURN TO HELP HUB</button>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px">
+                    <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB
+                </button>
+                ${targetView ? `
+                <button class="intel-action-btn" onclick="switchView('${targetView}')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-weight:800">
+                    <span class="material-symbols-outlined" style="font-size:18px">open_in_new</span> OPEN VIEW
+                </button>` : ''}
             </div>
         </div>
     `;
 }
+
 
 function renderHelp() {
     const card = (view, icon, title, desc) => `
@@ -659,6 +666,7 @@ function renderDocsAdvancedCharting() {
         [
             { title: "Liquidity Wall Spotting", text: "By switching to the Market Depth tab, professional traders can visually isolate large limit-order structures ('Walls') acting as support or resistance, allowing for optimal entry timing." }
         ]
+    , 'advanced-charting'
     );
 }
 
@@ -675,6 +683,7 @@ function renderDocsOnchain() {
             { icon: 'query_stats', title: "Puell Multiple", desc: "Highlights extreme bear market bottoms by comparing current miner revenue to its yearly trend." },
             { icon: 'stacked_line_chart', title: "Realized Price", desc: "Estimates the macro cost-basis of the entire network to identify key support zones." }
         ]
+    , 'onchain'
     );
 }
 
@@ -693,6 +702,7 @@ function renderDocsSignals() {
             { title: 'Mean Reversion at +3.5 Z-Score', text: 'When an asset hits the +3.5 sigma level, the probability of a 5% pullback within the next 12 hours exceeds 82%. Traders use this to scale out of long positions or hedge with delta-neutral options.' }
         ],
         "Real-time L2/L3 orderbook data and trade execution tape from Binance, Coinbase, and OKX. Historical statistical normalization is computed across a rolling 5,000-point data window per asset."
+    , 'signals'
     );
 }
 
@@ -711,6 +721,7 @@ function renderDocsBriefing() {
             { title: 'Macro Catalyst Correlation', text: 'During the last CPI release, the AI Briefing instantly correlated the higher-than-expected print with "Liquid Staking" sector resilience, highlighting a defensive alpha opportunity within minutes.' }
         ],
         "Neural processing of 50,000+ daily news nodes, 1M+ social impressions via proprietary NLP models, and a curated database of 500+ global macro catalyst events."
+    , 'briefing'
     );
 }
 
@@ -729,6 +740,7 @@ function renderDocsLiquidity() {
             { title: 'Liquidity Vacuum Identification', text: 'During a rapid sell-off, GOMM highlighted a $200M "Liquidity Gap" between $58k and $59k, alerting traders that a bounce was unlikely until the deeper support wall at $57.5k was tested.' }
         ],
         "Aggregated L1/L2 orderbook depth and trade-by-trade execution data from 15+ top-tier centralized exchanges (CEX) and high-volume decentralized protocols (DEX)."
+    , 'liquidity'
     );
 }
 
@@ -747,6 +759,7 @@ function renderDocsMLEngine() {
             { title: 'Dynamic Feature Synergy', text: 'The Engine ranks feature importance on the fly, enabling dynamic rebalancing as the market shifts from momentum-driven to sentiment-driven cycles.' }
         ],
         "Trained dynamically every 24 hours on the core baseline universe, synthesizing technicals (RSI, MACD, BB) with real-time news scoring and order flow depth."
+    , 'alpha-hub'
     );
 }
 
@@ -765,6 +778,7 @@ function renderDocsWhales() {
             { title: 'The ETF Custodian Flow', text: 'Whale Pulse identified a massive $1.2B Bitcoin transfer from an exchange to a known ETF custodian wallet, confirming long-term institutional take-outs and reducing short-term sell pressure.' }
         ],
         "Real-time on-chain transaction indexing for 1,000+ institutional-labeled entities across Bitcoin, Ethereum, Solana, and Layer 2 ecosystems."
+    , 'whales'
     );
 }
 
@@ -783,6 +797,7 @@ function renderDocsMindshare() {
             { title: 'The Quiet Accumulation', text: 'Social mindshare often remains low while institutional "Whale Flow" is high. Identifying these "Under-the-Radar" narratives allows traders to enter before the crowd catches on.' }
         ],
         "Social graph analysis from Twitter (X), Reddit, and Telegram, processed through a proprietary vector-weighted NLP framework optimized for institutional finance jargon."
+    , 'mindshare'
     );
 }
 
@@ -801,6 +816,7 @@ function renderDocsBenchmark() {
             { title: 'The Rebalancing Edge', text: 'Our simulation engine proved that a weekly rebalancing of a Top-10 Altcoin basket outperformed a static "Buy & Hold" strategy by 22% over a 12-month period through systematic volatility harvesting.' }
         ],
         "Aggregated historical OHLCV data from 10+ global exchanges, with 1-minute resolution, backtested across 5 full market cycles (2017-Present)."
+    , 'portfolio-optimizer'
     );
 }
 
@@ -819,6 +835,7 @@ function renderDocsAlerts() {
             { title: 'Token Unlock Front-Running', text: 'Identifying a $500M token unlock for a leading L1 protocol 7 days in advance enabled users to open tactical short positions, capitalizing on the predictable sell-side pressure from early investors.' }
         ],
         "Consolidated data from official government statistical agencies, protocol legal filings, and verified governance proposals via a real-time scraping engine."
+    , 'alerts'
     );
 }
 
@@ -837,6 +854,7 @@ function renderDocsZScore() {
             { title: 'Vol-Compression to Z-Spike', text: 'Tracking assets that move from a sub-0.5 Z-score (low volatility) to a 1.5+ spike allows traders to enter momentum breakouts with high confidence and tight stop-losses.' }
         ],
         "Proprietary volatility normalization engine calculating real-time z-scores across a 180-period rolling mean and standard deviation window."
+    , 'stress'
     );
 }
 
@@ -855,6 +873,7 @@ function renderDocsAlpha() {
             { title: 'Alpha-Leader Rotation', text: 'When Alpha shifts from L1 protocols to DeFi sub-sectors, it signals a rotational capital flow. Early detection of these shifts via the Alpha leaderboard resulted in a 14% outperformance vs HODL.' }
         ],
         "Real-time cross-asset correlation matrices and relative strength indexing updated hourly against the BTC-USD and ETH-USD benchmarks."
+    , 'alpha-hub'
     );
 }
 
@@ -873,6 +892,7 @@ function renderDocsCorrelation() {
             { title: 'Risk-Off Synchronization', text: 'During market panics, correlations often spike to 0.99. Identifying this "Market Beta Capture" allows traders to swiftly reduce exposure across the entire portfolio through a single benchmark hedge.' }
         ],
         "Rolling 30-day and 60-day Pearson correlation coefficients calculated across 3,000+ asset pairs using logarithmic price returns."
+    , 'correlation-matrix'
     );
 }
 
@@ -891,6 +911,7 @@ function renderDocsSentiment() {
             { title: 'Crowd Exhaustion Alert', text: 'When Sentiment Velocity hit an all-time high alongside a +3.0 Z-score, our module flagged a "Crowded Trade" warning. Within 2 hours, the market saw a 3% flash-flush as late FOMO buyers were liquidated.' }
         ],
         "Neural processing of 100k+ daily social messages from Twitter (X), Reddit, and Telegram, filtered through a proprietary authority-weighted NLP cluster."
+    , 'mindshare'
     );
 }
 
@@ -910,6 +931,7 @@ function renderDocsRisk() {
             { title: 'Dynamic Sizing via Z-Score', text: 'When an asset\'s Z-score exceeded 4.0, the Risk module suggested a 60% reduction in new position sizing. This defensive posture saved users from a subsequent 12% volatility shake-out.' }
         ],
         "Historical volatility data, drawdown models, and covariance matrices updated on every 1-minute price tick across 2,000+ monitored assets."
+    , 'risk'
     );
 }
 
@@ -932,6 +954,7 @@ function renderDocsPlaybook() {
             { title: 'Volatility Crush Strategy', text: 'Utilizing the Catalyst Monitor to identify high-impact events and positioning with GOMM liquidity walls to capture the "volatility crush" post-announcement.' }
         ],
         "Compiled from institutional trading frameworks and refined through 5 years of proprietary market behavior modeling."
+    , 'strategy-lab'
     );
 }
 
@@ -950,6 +973,7 @@ function renderDocsRegimes() {
             { title: 'The Regime Pivot Warning', text: 'When the AI Briefing detected a shift from "Accumulation" to "Expansion" in the AI sector, it preceded a $2B capital rotation that sustained for 14 market days.' }
         ],
         "Regime detection computed via a Markov-Switching model applied to global crypto liquidity and macro sentiment nodes."
+    , 'regime'
     );
 }
 
@@ -969,6 +993,7 @@ function renderDocsAPI() {
             { title: 'Algorithmic Integration', text: 'A leading HF integrated our /api/signals into their execution engine to automatically toggle "Limit" vs "Market" orders based on real-time Z-Score volatility intensity.' }
         ],
         "Server-grade REST architecture with global CDN caching and 99.99% uptime for institutional endpoints."
+    , 'command-center'
     );
 }
 
@@ -987,6 +1012,7 @@ function renderDocsSignalArchive() {
             { title: 'PnL Recovery Analysis', text: 'The archive showed that signals generated during "Accumulation" regimes had a 15% longer average hold time but a 22% higher average total return compared to "Expansion" trades.' }
         ],
         "Aggregated from the internal AlphaSignal Signal Engine database, with price verification performed against 15+ top-tier exchange APIs."
+    , 'signal-archive'
     );
 }
 
@@ -1005,6 +1031,7 @@ function renderDocsPerformance() {
             { title: 'Portfolio Return Modeling', text: 'By analyzing the monthly breakdown, a fund manager modeled a 2% monthly alpha target using only signals with a >65% historical win rate in the "Expansion" regime.' }
         ],
         "All performance metrics are calculated using mid-market entry prices with a 0.1% estimated sliparound factor included for institutional realism."
+    , 'performance-dashboard'
     );
 }
 
@@ -1021,6 +1048,7 @@ function renderDocsAlphaScore() {
             { title: 'The 90+ Alpha Breakout', text: 'When SOL hit an Alpha Score of 92 with an ML Boost, it preceded a 14% impulsive rally in the subsequent 24 hours.' }
         ],
         "Composite scoring engine updated hourly using live feed data from 15+ institutional-grade sources."
+    , 'alpha-score'
     );
 }
 
@@ -1038,6 +1066,7 @@ function renderDocsTelegram() {
             { title: 'The "Safe Probe" Validation', text: 'A user verified their connection using the "Test Connection" button in Alert Hub, receiving a 1ms confirmation message that ensured no missed alerts during a high-volatility CPI print.' }
         ],
         "Bi-directional encrypted signal bridge using the Telegram Bot API and a dedicated institutional alert relay."
+    , 'alerts'
     );
 }
 
@@ -1055,6 +1084,7 @@ function renderDocsPWA() {
             { title: 'Mobile Tactical Edge', text: 'A fund manager installed the PWA on their iPad, allowing them to monitor the Narrative Galaxy and Whale Pulse during a macro conference without a laptop.' }
         ],
         "Service Worker and manifest-driven installation strategy compliant with modern W3C PWA standards."
+    , 'help'
     );
 }
 
@@ -1072,6 +1102,7 @@ function renderDocsPortfolioLab() {
             { title: 'Asset-Level Attribution', text: 'By monitoring the "Constituent Weightings", users identified that L1 protocols contributed 40% of total portfolio returns during the current 30-day window.' }
         ],
         "Quant-grade simulation engine calculating history, metrics, and correlations against a synthetic BTC-USD benchmark."
+    , 'portfolio-optimizer'
     );
 }
 
@@ -1097,7 +1128,7 @@ function renderDocsGlossaryImplementation() {
         ],
         [],
         "Proprietary definitions derived from institutional trading desk standards and quantitative finance academic frameworks."
-    );
+    , 'help');
 }
 
 function updateSEOMeta(view) {
@@ -1925,6 +1956,7 @@ function renderDocsTopologies() {
             { title: "Portfolio Web (Mathematical Radar)", icon: "account_tree", desc: "Located in the Portfolio Simulation Lab. Radially visualizes specific asset capital weightings dynamically optimized by the statistical ML backend." },
             { title: "Conviction Scatter Matrix (Bubble Chart)", icon: "bubble_chart", desc: "Located in the Whale Pulse dashboard. Multi-dimensional graph charting thousands of on-chain executions across Time Decay (X), Transaction Size (Y), and Volume Intensity (Radius)." }
         ]
+    , 'advanced-charting'
     );
 }
 
@@ -2214,6 +2246,11 @@ function renderDocsAIEngine() {
                 <h3 style="color:#bc13fe;margin-bottom:1rem">Signal Thesis Generator</h3>
                 <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">Each signal card has a <strong>THESIS</strong> button that generates a 2-sentence GPT-powered trade rationale specific to that ticker, signal direction, and Z-Score deviation. Used to rapidly synthesise the technical and fundamental case for entering or avoiding a trade.</p>
             </div>
+
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem">
+                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB</button>
+                <button class="intel-action-btn" onclick="switchView('ask-terminal')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-weight:800"><span class="material-symbols-outlined" style="font-size:18px">open_in_new</span> OPEN VIEW</button>
+            </div>
         </div>`;
 }
 
@@ -2404,7 +2441,8 @@ function showExportMenu(event, chartId, viewTitle) {
     // Auto-dismiss on outside click
     setTimeout(() => {
         document.addEventListener('click', () => document.getElementById('export-action-sheet')?.remove(), { once: true });
-    }, 50);
+    }, 50, 'ask-terminal'
+    );
 }
 
 // ================================================================
@@ -2446,6 +2484,11 @@ function renderDocsStrategyLab() {
                 <h3 style="color:#bc13fe;margin-bottom:0.75rem">Strategy Comparison Leaderboard</h3>
                 <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">Click <strong>COMPARE STRATEGIES</strong> to run all 5 strategies simultaneously and rank by Sharpe, CAGR, or Max Drawdown in the leaderboard table. Useful for identifying the optimal strategy for current market regime.</p>
             </div>
+
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem">
+                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB</button>
+                <button class="intel-action-btn" onclick="switchView('strategy-lab')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-weight:800"><span class="material-symbols-outlined" style="font-size:18px">open_in_new</span> OPEN VIEW</button>
+            </div>
         </div>`;
 }
 
@@ -2480,6 +2523,11 @@ function renderDocsBacktesterV2() {
             <div class="glass-card" style="padding:1.5rem">
                 <h3 style="color:#00d4aa;margin-bottom:0.75rem">Rolling Sharpe Chart</h3>
                 <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">The dual-axis chart plots cumulative strategy return (teal) vs BTC benchmark (orange) on the left axis, and the rolling 30-day Sharpe ratio (purple) on the right. When Sharpe dips below 0, the strategy is underperforming on a risk-adjusted basis for that window.</p>
+            </div>
+
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem">
+                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB</button>
+                <button class="intel-action-btn" onclick="switchView('backtester-v2')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-weight:800"><span class="material-symbols-outlined" style="font-size:18px">open_in_new</span> OPEN VIEW</button>
             </div>
         </div>`;
 }
@@ -2516,6 +2564,11 @@ function renderDocsTradingView() {
                 <h3 style="color:#2196f3;margin-bottom:0.75rem">Export & Pop-out</h3>
                 <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">Use the widget's built-in <strong>camera icon</strong> to snapshot the chart, or the <strong>pop-out button</strong> to open a full 1200x700 window for deeper analysis. These are TradingView native features and work independently of AlphaSignal's export engine.</p>
             </div>
+
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem">
+                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB</button>
+                <button class="intel-action-btn" onclick="switchView('advanced-charting')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-weight:800"><span class="material-symbols-outlined" style="font-size:18px">open_in_new</span> OPEN VIEW</button>
+            </div>
         </div>`;
 }
 
@@ -2536,6 +2589,9 @@ function renderDocsETFFlows() {
         ],
         [{ title: 'ETF Front-Running', text: 'Sustained 5-day positive net flows across IBIT and FBTC historically preceded 3-7% BTC price appreciation, providing a 24-48 hour positional edge.' }],
         "Daily AUM change data from SEC Form N-CEN filings and public ETF issuer reports."
+    , 'etf-flows'
+    , 'advanced-charting'
+    , 'backtester-v2'
     );
 }
 
@@ -2552,6 +2608,7 @@ function renderDocsLiquidations() {
         ],
         [{ title: 'The Short Squeeze Setup', text: 'When short liquidations spike above $80M in a 5-minute window while spot holds above key support, forced buying often accelerates price 4-8% within 30 minutes.' }],
         "Real-time data from Binance, OKX, Bybit, and Deribit WebSocket feeds. Refreshed every 10 seconds."
+    , 'liquidations'
     );
 }
 
@@ -2568,6 +2625,7 @@ function renderDocsOIRadar() {
         ],
         [{ title: 'OI Divergence Trade', text: 'BTC OI rose 18% over 72 hours while price gained only 2%. The terminal flagged extreme leverage buildup. A subsequent 6% flush wiped $340M in longs.' }],
         "Aggregated OI from Binance, OKX, Bybit, and BitMEX perpetual futures APIs. Refreshed every 5 minutes."
+    , 'oi-radar'
     );
 }
 
@@ -2584,6 +2642,7 @@ function renderDocsCMEGaps() {
         ],
         [{ title: 'The Gap Fill Trade', text: 'With BTC at $82,000 and an unfilled gap at $78,400, the terminal flagged a 4.3% downside target. The gap filled 11 days later during a macro-driven correction.' }],
         "CME Bitcoin futures OHLCV data. Weekend gap detection runs every Monday at 00:00 UTC."
+    , 'cme-gaps'
     );
 }
 
@@ -2601,6 +2660,7 @@ function renderDocsFlow() {
         ],
         [{ title: 'The Pre-Rally Signal', text: '14 days of positive ETF flows combined with declining exchange BTC reserves preceded a 22% BTC rally. Capital Flows caught both signals simultaneously.' }],
         "Aggregated from spot ETF AUM reports, Glassnode exchange reserve data, and on-chain USDT/USDC treasury monitors."
+    , 'flow'
     );
 }
 
@@ -2617,6 +2677,7 @@ function renderDocsRotation() {
         ],
         [{ title: 'L1 Rotation Capture', text: 'When ETH.D declined while SOL and AVAX outperformed BTC on a 7-day basis, the tracker flagged an L1 rotation. The identified basket returned an additional 35% over 3 weeks.' }],
         "Real-time OHLCV from 10+ centralised exchanges. Sector taxonomy maintained across 500+ assets."
+    , 'rotation'
     );
 }
 
@@ -2633,6 +2694,7 @@ function renderDocsMacroCompass() {
         ],
         [{ title: 'The DXY Breakout Trade', text: 'When DXY broke above 105 following hotter-than-expected CPI, the Compass immediately flagged a shift to Risk-Off regime. BTC declined 8% over 72 hours.' }],
         "Federal Reserve FRED database, DTCC yield curve data, and Bloomberg cross-asset correlation matrices. Updated daily."
+    , 'macro'
     );
 }
 
@@ -2649,6 +2711,7 @@ function renderDocsMacroCalendar() {
         ],
         [{ title: 'Pre-FOMC Positioning', text: 'FOMC meetings average 4.2% BTC volatility on announcement day. The calendar HIGH impact flag and historical bars gave traders a clear reference for sizing hedges in advance.' }],
         "FOMC, CPI, NFP, and PCE schedules from the Federal Reserve and BLS. Historical impact scored against 2-year BTC price data via yfinance."
+    , 'macro-calendar'
     );
 }
 
@@ -2666,6 +2729,7 @@ function renderDocsNarrative() {
         ],
         [{ title: 'Quiet Accumulation Detection', text: 'Three weeks before a major L2 announcement, the Galaxy detected rising semantic clustering around the project with low social volume. Early-positioning traders captured the subsequent 40% move.' }],
         "NLP processing of 100K+ daily social posts via keyword embedding models. Cluster assignments updated every 6 hours."
+    , 'narrative'
     );
 }
 
@@ -2683,6 +2747,7 @@ function renderDocsTokenUnlocks() {
         ],
         [{ title: 'The Investor Unlock Fade', text: 'A $120M investor unlock was tracked 3 weeks in advance. The HIGH Supply Shock Score prompted traders to open a tactical short 5 days prior, capturing a 9% decline into the unlock date.' }],
         "Token unlock data from TokenUnlocks.app and CryptoRank. Verified against on-chain vesting contract monitoring."
+    , 'token-unlocks'
     );
 }
 
@@ -2699,6 +2764,7 @@ function renderDocsYieldLab() {
         ],
         [{ title: 'Carry Trade Optimisation', text: 'When ETH staking yield expanded to 5.2% vs a 4.3% US 10Y yield, the Yield Lab flagged a 90bps positive carry opportunity, enabling institutions to justify an ETH overweight.' }],
         "Protocol yield data from DeFiLlama, on-chain rate queries via The Graph, and US Treasury rates from the Federal Reserve FRED API."
+    , 'yield-lab'
     );
 }
 
@@ -2715,6 +2781,7 @@ function renderDocsTradeLab() {
         ],
         [{ title: 'Thesis-to-Ticket Workflow', text: 'An analyst entered a BTC long thesis triggered by a +2.3 Z-score. The AI memo flagged the ETF flow tailwind. The risk calculator sized the position at 4.2% of portfolio. One click sent it to the Trade Ledger.' }],
         "Trade thesis generation powered by GPT-4o-mini. Risk calculations use historical signal win rate from the AlphaSignal backtest database."
+    , 'tradelab'
     );
 }
 
@@ -2732,6 +2799,7 @@ function renderDocsOptionsFlow() {
         ],
         [{ title: 'The IV Skew Signal', text: 'When put skew (downside IV premium over ATM) exceeded 15% on BTC, it historically preceded a 7-12% correction within 14 days as institutions loaded protective puts.' }],
         "Live data from Deribit public REST API. BTC and ETH options refreshed every 15 minutes. IV smile computed from front-month expiry strikes."
+    , 'options-flow'
     );
 }
 
@@ -2748,6 +2816,7 @@ function renderDocsNewsroom() {
         ],
         [{ title: 'Regulatory Front-Running', text: 'An SEC enforcement headline appeared in the Newsroom 4 minutes before price action reflected the news. The BEARISH tag and alert gave users a narrow window to reduce exposure ahead of a 6% pullback.' }],
         "News sourced from CryptoPanic public RSS. NLP sentiment classification via keyword embedding model. Breaking news detection threshold: 3+ simultaneous high-impact keyword matches."
+    , 'newsroom'
     );
 }
 
@@ -2765,6 +2834,7 @@ function renderDocsTradeLedger() {
         ],
         [{ title: 'Performance Attribution', text: 'Filtering the Trade Ledger to AI Rebalancer tickets and comparing PnL against a static HODL benchmark quantifies exactly how much alpha the AI system is generating net of transaction costs.' }],
         "All tickets stored in persistent SQLite ledger on the server. Data is user-specific and persists across sessions. Export available at any time."
+    , 'trade-ledger'
     );
 }
 
@@ -2782,6 +2852,7 @@ function renderDocsHeatmap() {
         ],
         [{ title: 'Sector Concentration Scan', text: 'During a DeFi narrative rotation, the heatmap showed 7 of 8 tracked DeFi tokens simultaneously in the +1.5 to +2.5 Z-score band, visually confirming the rotation in progress.' }],
         "Z-score computed from 90-day rolling returns using yfinance OHLCV data. Heatmap refreshed every 5 minutes."
+    , 'heatmap'
     );
 }
 
@@ -2798,6 +2869,7 @@ function renderDocsCommandCenter() {
         ],
         [],
         "Aggregates data from 6 underlying terminal modules. Click through to individual hubs for full detail and interactivity."
+    , 'command-center'
     );
 }
 
@@ -2814,5 +2886,6 @@ function renderDocsAskTerminal() {
         ],
         [{ title: 'Rapid Due Diligence', text: 'An analyst asked about the current BTC options skew and what it implies for price. The AI returned a 3-paragraph brief citing PCR, IV skew direction, and historical analogues in under 4 seconds.' }],
         "Powered by OpenAI GPT-4o-mini API. Responses generated in real-time with no caching to ensure contextual accuracy."
+    , 'ask-terminal'
     );
 }
