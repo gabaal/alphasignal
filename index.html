@@ -208,7 +208,7 @@
                 </div>
                 <div class="search-container" role="search">
                     <input type="text" id="global-search" placeholder="SEARCH TICKER (e.g. AAPL, TSLA, SOL-USD)..." autocomplete="off" aria-label="Search for tickers">
-                    <span class="search-hint" aria-hidden="true">ENTER Ã¢â€ Âµ</span>
+                    <span class="search-hint" aria-hidden="true">ENTER â†µ</span>
                 </div>
                 <div class="top-bar-actions">
                     <div class="action-group" id="live-meta-group">
@@ -291,7 +291,7 @@
 
     <div id="detail-overlay" class="overlay hidden">
         <div class="overlay-content">
-            <button class="close-overlay" aria-label="Close Overlay">Ãƒâ€”</button>
+            <button class="close-overlay" aria-label="Close Overlay">Ã—</button>
             <div id="detail-body">
                 <!-- Detail content injected here -->
             </div>
@@ -301,7 +301,7 @@
     <!-- Pack G5: AI Analyst Modal -->
     <div id="ai-modal" class="overlay hidden">
         <div class="overlay-content ai-analyst-panel">
-            <button class="close-ai-modal" aria-label="Close AI Analyst Modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">Ãƒâ€”</button>
+            <button class="close-ai-modal" aria-label="Close AI Analyst Modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">Ã—</button>
             <div class="ai-header">
                 <div class="ai-orb"></div>
                 <h2>Alpha Intelligence Analyst</h2>
@@ -318,7 +318,7 @@
     <!-- News Article Modal -->
     <div id="news-modal" class="overlay hidden">
         <div class="overlay-content news-article-panel">
-            <button class="close-overlay" onclick="document.getElementById('news-modal').classList.add('hidden')">Ãƒâ€”</button>
+            <button class="close-overlay" onclick="document.getElementById('news-modal').classList.add('hidden')">Ã—</button>
             <div id="news-article-body">
                 <!-- News content injected here -->
             </div>
@@ -363,7 +363,7 @@
     <!-- Paywall Modal -->
     <div id="paywall-overlay" class="overlay hidden">
         <div class="overlay-content paywall-panel">
-            <button class="close-overlay" onclick="document.getElementById('paywall-overlay').classList.add('hidden')">Ãƒâ€”</button>
+            <button class="close-overlay" onclick="document.getElementById('paywall-overlay').classList.add('hidden')">Ã—</button>
             <div class="paywall-header">
                 <div class="premium-orb"></div>
                 <h2>PREMIUM<span>ACCESS</span></h2>
@@ -403,7 +403,7 @@
                     <div class="price">$7.99<span>/mo</span></div>
                     <button class="intel-action-btn large" onclick="handleSubscribe()">UPGRADE TO PRO</button>
                 </div>
-                <p class="paywall-footer-text">SECURE SUBSCRIPTION Ã¢â‚¬Â¢ 256-BIT ENCRYPTION Ã¢â‚¬Â¢ CANCEL ANYTIME</p>
+                <p class="paywall-footer-text">SECURE SUBSCRIPTION â€¢ 256-BIT ENCRYPTION â€¢ CANCEL ANYTIME</p>
             </div>
         </div>
     </div>
@@ -418,11 +418,11 @@
     <!-- Phase 15-C: Export libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="js/core.js?v=1.39"></script>
-    <script src="js/heatmap_engine.js?v=1.39"></script>
-    <script src="js/charts.js?v=1.39"></script>
-    <script src="js/views.js?v=1.39"></script>
-    <script src="js/main.js?v=1.39"></script>
+    <script src="js/core.js?v=1.40"></script>
+    <script src="js/heatmap_engine.js?v=1.40"></script>
+    <script src="js/charts.js?v=1.40"></script>
+    <script src="js/views.js?v=1.40"></script>
+    <script src="js/main.js?v=1.40"></script>
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
     <div id="notification-modal" class="overlay hidden">
@@ -454,7 +454,7 @@
                         style="width:100%; accent-color:var(--accent); cursor:pointer; margin-top:4px"
                         oninput="document.getElementById('z-threshold-display').textContent = this.value + '% predicted alpha'">
                     <p style="font-size:0.6rem; color:var(--text-dim); margin-top:6px">
-                        Only fire push alerts when ML engine predicts ≥ threshold alpha. Lower = more alerts. Higher = only major signals.
+                        Only fire push alerts when ML engine predicts = threshold alpha. Lower = more alerts. Higher = only major signals.
                     </p>
                 </div>
                 <div class="input-group" style="flex-direction:row; align-items:center; gap:10px;">
@@ -464,7 +464,7 @@
                 <div id="notif-error" class="auth-error hidden" style="margin-bottom:1rem;"></div>
                 <div style="display:flex; flex-direction:column; gap:0.8rem; margin-top:1rem">
                     <button class="intel-action-btn" onclick="saveNotificationSettings()">SAVE CONFIGURATION</button>
-                    <button class="intel-action-btn secondary" style="background:rgba(0,242,255,0.08); color:var(--accent); border:1px solid rgba(0,242,255,0.2)" onclick="testFireAlert()">🚀 SEND TEST ALERT</button>
+                    <button class="intel-action-btn secondary" style="background:rgba(0,242,255,0.08); color:var(--accent); border:1px solid rgba(0,242,255,0.2)" onclick="testFireAlert()">?? SEND TEST ALERT</button>
                     <button class="intel-action-btn secondary" style="background:rgba(255,255,255,0.05); color:var(--text-dim)" onclick="showNotificationSettings(false)">CLOSE REGISTRY</button>
                 </div>
             </div>
@@ -499,9 +499,7 @@
             background:linear-gradient(135deg,#00d4aa,#00a896); color:#000;
             border:none; border-radius:8px; padding:8px 14px;
             font-size:0.7rem; font-weight:800; cursor:pointer; flex-shrink:0;">INSTALL</button>
-        <button id="pwa-dismiss-btn" style="
-            background:none; border:none; color:rgba(255,255,255,0.4);
-            font-size:1.2rem; cursor:pointer; flex-shrink:0; line-height:1;">Ãƒâ€”</button>
+        <button id="pwa-dismiss-btn" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;flex-shrink:0;padding:4px;display:flex;align-items:center;" aria-label="Dismiss"><span class="material-symbols-outlined" style="font-size:18px">close</span></button>
     </div>
     <style>
         @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
