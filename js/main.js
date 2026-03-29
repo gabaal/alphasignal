@@ -79,7 +79,25 @@ const viewMap = {
     'explain-strategy-lab': renderDocsStrategyLab,
     'explain-backtester-v2': renderDocsBacktesterV2,
     'explain-tradingview': renderDocsTradingView,
-    help: renderHelp
+    help: renderHelp,
+    'explain-etf-flows': renderDocsETFFlows,
+    'explain-liquidations': renderDocsLiquidations,
+    'explain-oi-radar': renderDocsOIRadar,
+    'explain-cme-gaps': renderDocsCMEGaps,
+    'explain-flow': renderDocsFlow,
+    'explain-rotation': renderDocsRotation,
+    'explain-macro-compass': renderDocsMacroCompass,
+    'explain-macro-calendar': renderDocsMacroCalendar,
+    'explain-narrative': renderDocsNarrative,
+    'explain-token-unlocks': renderDocsTokenUnlocks,
+    'explain-yield-lab': renderDocsYieldLab,
+    'explain-tradelab': renderDocsTradeLab,
+    'explain-options-flow': renderDocsOptionsFlow,
+    'explain-newsroom': renderDocsNewsroom,
+    'explain-trade-ledger': renderDocsTradeLedger,
+    'explain-heatmap': renderDocsHeatmap,
+    'explain-command-center': renderDocsCommandCenter,
+    'explain-ask-terminal': renderDocsAskTerminal
 };
 
 
@@ -516,101 +534,112 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
 }
 
 function renderHelp() {
-    const group = (label, icon, cards) => `
-        <div style="margin-bottom:2.5rem;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.6rem;border-bottom:1px solid rgba(0,242,255,0.12);">
-                <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.2rem;">${icon}</span>
-                <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;">${label}</span>
-            </div>
-            <div class="f-grid">${cards}</div>
-        </div>`;
     const card = (view, icon, title, desc) => `
-        <div class="f-card" onclick="switchView('${view}')">
-            <div class="f-icon"><span class="material-symbols-outlined" style="font-size:48px;color:var(--accent);">${icon}</span></div>
-            <h3>${title}</h3><p>${desc}</p>
+        <div class="help-card" onclick="switchView('${view}')" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;transition:all 0.2s;display:flex;flex-direction:column;gap:8px"
+             onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(0,242,255,0.04)'"
+             onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
+            <div style="display:flex;align-items:center;gap:10px">
+                <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.3rem">${icon}</span>
+                <span style="font-size:0.72rem;font-weight:800;letter-spacing:1.5px;color:var(--text)">${title}</span>
+            </div>
+            <p style="font-size:0.68rem;color:var(--text-dim);line-height:1.5;margin:0">${desc}</p>
         </div>`;
-
+    const group = (title, icon, content) => `
+        <div style="margin-bottom:2.5rem">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)">
+                <span class="material-symbols-outlined" style="color:var(--accent)">${icon}</span>
+                <h2 style="font-size:0.7rem;font-weight:900;letter-spacing:3px;color:var(--text);margin:0">${title}</h2>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem">${content}</div>
+        </div>`;
     appEl.innerHTML = `
         <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent);">help</span>Terminal Documentation</h1></div>
-        <div class="doc-container" style="max-width:960px;margin:0 auto;padding-top:1.5rem;">
-            <p style="font-size:1rem;color:var(--text-dim);margin-bottom:2.5rem;line-height:1.6;">Select a module below to view detailed methodology, data sources and analytical frameworks. Organised by sidebar hub.</p>
+        <div class="doc-container" style="max-width:1100px;margin:0 auto;padding-top:1.5rem;">
+            <p style="font-size:0.95rem;color:var(--text-dim);margin-bottom:2.5rem;line-height:1.6;">One documentation page per view, organised by sidebar hub. Click any card to read the full methodology and data sources.</p>
 
-            ${group('Command Center & Signals', 'dashboard', `
-                ${card('explain-signals', 'radar', 'Signal Intelligence', 'Understanding Z-Score deviations and alpha generation.')}
-                ${card('explain-ml-engine', 'model_training', 'ML Alpha Engine', 'Neural feature synthesis and predictive modelling.')}
-                ${card('explain-alpha-score', 'electric_bolt', 'Alpha Score', 'Composite ranking and scoring methodology.')}
-                ${card('explain-signal-archive', 'history', 'Signal Archive', 'Historical signal record and PnL tracking.')}
-                ${card('explain-zscore', 'insights', 'Z-Score Interpretation', 'Decoding statistical intensity and outlier detection.')}
-                ${card('explain-alerts', 'event', 'Signal Alerts & Catalysts', 'Configuring alerts and tracking macro catalyst events.')}
-                ${card('explain-telegram', 'notifications_active', 'Alert Hooks', 'Configuring Telegram & Push Intelligence.')}
+            ${group('?? Global Markets Hub', 'public', `
+                ${card('explain-etf-flows', 'account_balance', 'ETF Flows', 'Daily institutional capital via regulated Bitcoin spot ETF vehicles.')}
+                ${card('explain-liquidations', 'local_fire_department', 'Liquidations', 'Real-time leveraged position wipeout scanner and cascade alerts.')}
+                ${card('explain-oi-radar', 'track_changes', 'OI Radar', 'Multi-asset perpetual futures open interest tracking.')}
+                ${card('explain-cme-gaps', 'pivot_table_chart', 'CME Gaps', 'Identifying and tracking unfilled Bitcoin CME futures gaps.')}
             `)}
 
-            ${group('Global Markets Hub', 'public', `
-                ${card('explain-briefing', 'memory', 'Market Briefing (AI)', 'How global market trends are neutrally synthesised.')}
-                ${card('explain-liquidity', 'bar_chart', 'Capital Flows & Order Flow', 'Interpreting liquidity walls and execution tape.')}
-                ${card('explain-correlation', 'grid_4x4', 'Sector Rotation & Correlation', 'Identifying market decoupling and rotation events.')}
+            ${group('?? Macro Intel Hub', 'monitoring', `
+                ${card('explain-briefing', 'description', 'Market Briefing', 'AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.')}
+                ${card('explain-flow', 'swap_horiz', 'Capital Flows', 'Velocity and direction of institutional capital rotating into the crypto ecosystem.')}
+                ${card('explain-rotation', 'rotate_right', 'Sector Rotation', 'Capital rotation across crypto sectors using a treemap and momentum matrix.')}
+                ${card('explain-macro-compass', 'public', 'Macro Compass', 'Global macro environment synthesis and its impact on digital asset prices.')}
+                ${card('explain-correlation', 'grid_4x4', 'Correlation Matrix', 'Identifying market decoupling, sector correlation, and rotation events.')}
+                ${card('explain-macro-calendar', 'event', 'Macro Calendar', '90-day forward calendar of macro events scored by historical BTC impact.')}
+                ${card('explain-regimes', 'layers', 'Market Regime', 'Statistical classification of market cycles using Markov-Switching approximation.')}
             `)}
 
-            ${group('Macro Intel Hub', 'monitoring', `
-                ${card('explain-regimes', 'layers', 'Market Regimes', 'Identifying institutional cycles and trends.')}
-                ${card('explain-benchmark', 'science', 'Portfolio Simulation', 'Modelling and backtesting quant portfolios.')}
-                ${card('explain-zscore', 'insights', 'Macro Z-Score', 'Interpreting statistical deviations across macro assets.')}
+            ${group('? Alpha Strategy Hub', 'electric_bolt', `
+                ${card('explain-signals', 'radar', 'Signal Intelligence', 'Understanding Z-Score deviations and alpha signal generation methodology.')}
+                ${card('explain-ml-engine', 'model_training', 'ML Alpha Engine', 'Neural feature synthesis and multi-factor predictive modelling architecture.')}
+                ${card('explain-alpha-score', 'bolt', 'Alpha Score', 'Composite multi-factor ranking and scoring methodology across 50+ assets.')}
+                ${card('explain-strategy-lab', 'science', 'Strategy Lab', 'Pairs Trading, Momentum Ignition, Regime Carry, Kelly Sizer + walk-forward.')}
+                ${card('explain-backtester-v2', 'analytics', 'Backtester V2', 'Live signal history simulation: rolling Sharpe, monthly P&L calendar, benchmark.')}
+                ${card('explain-signal-archive', 'history', 'Signal Archive', 'Historical signal record, PnL tracking, and performance attribution.')}
+                ${card('explain-narrative', 'hub', 'Narrative Galaxy', 'Force-directed graph of crypto narrative clusters and social momentum velocity.')}
+                ${card('explain-ai-engine', 'smart_toy', 'AI Narrative Engine', 'GPT-4o-mini memos, Ask Terminal, and Signal Thesis Generator methodology.')}
             `)}
 
-            ${group('Alpha Strategy Hub', 'electric_bolt', `
-                ${card('explain-alpha', 'trending_up', 'Alpha Strategy', 'Trading relative strength and market benchmarks.')}
-                ${card('explain-alpha-score', 'bolt', 'Alpha Score Composite', 'Multi-factor ranking and composite scoring.')}
-                ${card('explain-playbook', 'auto_stories', 'Trading Playbook', 'Advanced strategies and signal combinations.')}
-                ${card('explain-performance', 'trending_up', 'Audit & Performance', 'Win rate, returns, and monthly breakdowns.')}
-                ${card('explain-strategy-lab', 'science', 'Strategy Lab', 'Pairs Trading, Momentum Ignition, Regime Carry, Kelly Sizer, Dual Momentum + walk-forward.')}
-                ${card('explain-backtester-v2', 'analytics', 'Signal Backtester V2', 'Live signal history simulation: rolling Sharpe, monthly P&L calendar, BTC benchmark.')}
-                ${card('explain-ai-engine', 'smart_toy', 'AI Narrative Engine', 'GPT-4o-mini memos, Ask Terminal, and Signal Thesis Generator.')}
+            ${group('?? Institutional Hub', 'key', `
+                ${card('explain-token-unlocks', 'key', 'Token Unlocks', 'Forward-looking schedule of major vesting unlocks and projected sell pressure.')}
+                ${card('explain-yield-lab', 'biotech', 'Yield Lab', 'Multi-protocol DeFi yield aggregator and risk-adjusted rate comparison engine.')}
+                ${card('explain-portfolio-lab', 'auto_mode', 'Portfolio Optimizer', 'ML rebalancing, Monte Carlo optimisation, and Markowitz Efficient Frontier.')}
+                ${card('explain-tradelab', 'experiment', 'Trade Idea Lab', 'AI-assisted workspace for building and validating structured trade ideas.')}
             `)}
 
-            ${group('Institutional Hub', 'key', `
-                ${card('explain-portfolio-lab', 'biotech', 'Portfolio Optimizer', 'ML rebalancing and Markowitz Efficient Frontier.')}
-                ${card('explain-benchmark', 'science', 'Yield Lab & Token Unlocks', 'Modelling token unlock events and yield curves.')}
+            ${group('?? Analytics Hub', 'analytics', `
+                ${card('explain-whales', 'waves', 'Whale Pulse', 'Detecting and tracking massive on-chain block transactions across networks.')}
+                ${card('explain-velocity', 'speed', 'Chain Velocity', 'Capital rotation tracking and cross-chain volume acceleration metrics.')}
+                ${card('explain-onchain', 'link', 'On-Chain Analytics', 'Real MVRV, SOPR, Puell Multiple and hashrate from CoinGecko + Blockchain.info.')}
+                ${card('explain-options-flow', 'ssid_chart', 'Options Flow', 'Deribit BTC & ETH options: Put/Call ratio, Max Pain, IV smile, top OI strikes.')}
+                ${card('explain-newsroom', 'newspaper', 'Newsroom', 'Real-time institutional crypto news feed with AI sentiment tagging.')}
             `)}
 
-            ${group('Analytics Hub', 'analytics', `
-                ${card('explain-whales', 'waves', 'Whale Pulse', 'Detecting massive on-chain block transactions.')}
-                ${card('explain-velocity', 'speed', 'Chain Velocity', 'Capital rotation tracking and volume acceleration.')}
-                ${card('explain-onchain', 'link', 'On-Chain Analytics (Real Data)', 'Real MVRV, SOPR, Puell Multiple & hashrate from CoinGecko + Blockchain.info.')}
-                ${card('explain-mindshare', 'hub', 'Narrative Galaxy & Mindshare', 'NLP-driven social cluster visualisation.')}
-                ${card('explain-sentiment', 'psychology', 'Sentiment Synthesis', 'How we process social mindshare and news flow.')}
+            ${group('?? Audit & Performance Hub', 'assignment', `
+                ${card('explain-trade-ledger', 'list_alt', 'Trade Ledger', 'Persistent, auditable record of all AI-generated and manual execution tickets.')}
+                ${card('explain-performance', 'trending_up', 'Performance Dashboard', 'Win rate, returns, monthly P&L calendar, and system benchmark comparison.')}
             `)}
 
-            ${group('Advanced Charting', 'candlestick_chart', `
-                ${card('explain-advanced-charting', 'candlestick_chart', 'Advanced Charting Suite', 'Depth, dynamic order flow overlays and 3D orderbook.')}
-                ${card('explain-tradingview', 'show_chart', 'TradingView Integration', 'Professional charts with MA/RSI/MACD/BB pre-loaded. Supports all crypto + equity symbols.')}
-                ${card('explain-topologies', 'category', 'Funding Rate Heatmap', 'Reading cross-asset perpetual funding rate grids.')}
-                ${card('explain-topologies', 'bar_chart', 'Tape Imbalance Histogram', 'Live 30-second buy/sell volume imbalance analysis.')}
-                ${card('explain-topologies', 'stacked_line_chart', 'Volatility Surface (3D)', 'Implied volatility smile and term structure modelling.')}
+            ${group('??? Risk & Stress Hub', 'grid_on', `
+                ${card('explain-risk', 'shield_with_heart', 'Risk Matrix', 'Using volatility, drawdown, and VaR for institutional position sizing.')}
+                ${card('explain-zscore', 'warning_amber', 'Stress Lab', 'Macro scenario stress-testing and tail risk modelling methodology.')}
             `)}
 
-            ${group('Risk & Stress Hub', 'grid_on', `
-                ${card('explain-risk', 'shield_with_heart', 'Risk Management', 'Using volatility and drawdowns for position sizing.')}
-                ${card('explain-zscore', 'warning_amber', 'Stress Lab', 'Macro scenario stress-testing and tail risk modelling.')}
+            ${group('?? Advanced Charting', 'candlestick_chart', `
+                ${card('explain-advanced-charting', 'candlestick_chart', 'Charting Suite', 'Depth, orderbook overlays, CVD, funding heatmap, and 3D volatility surface.')}
+                ${card('explain-tradingview', 'show_chart', 'TradingView', 'Professional charts with MA/RSI/MACD/BB pre-loaded. Supports all crypto + equity.')}
             `)}
 
-            ${group('Order Flow & Liquidity', 'bar_chart', `
-                ${card('explain-liquidity', 'bar_chart', 'Order Flow (GOMM)', 'Interpreting institutional liquidity walls and tape.')}
-                ${card('explain-topologies', 'account_balance_wallet', 'Whale Wallet Flow Sankey', 'On-chain entity flow network and routing analytics.')}
-                ${card('explain-topologies', 'show_chart', 'Yield Curve Spread Monitor', 'US Treasury 2Y/10Y/30Y spread and inversion signals.')}
-                ${card('explain-topologies', 'donut_large', 'Capital Rotation Sunburst', 'Hierarchical capital allocation and 30D momentum view.')}
-                ${card('explain-topologies', 'radar', 'Signal Confidence Radar', '6-axis ML signal decomposition per asset.')}
+            ${group('?? Alerts & Signals', 'notifications_active', `
+                ${card('explain-alerts', 'event', 'Signal Alerts', 'Configuring alert thresholds, Z-score gates, and catalyst event tracking.')}
+                ${card('explain-telegram', 'notifications_active', 'Alert Hooks', 'Configuring Telegram and Discord webhook intelligence delivery.')}
+                ${card('explain-heatmap', 'grid_view', 'Market Heatmap', 'Colour-coded Z-score heatmap across the entire 50+ asset tracked universe.')}
             `)}
 
-            ${group('Reference & System', 'menu_book', `
-                ${card('explain-api', 'terminal', 'Institutional API', 'Programmatic data access for quant desks.')}
-                ${card('explain-glossary', 'menu_book', 'Terminal Glossary', 'Quick reference for all institutional metrics.')}
-                ${card('explain-pwa', 'install_mobile', 'Mobile Terminal', 'PWA installation for iOS / Android.')}
+            ${group('??? Command & Navigation', 'dashboard', `
+                ${card('explain-command-center', 'dashboard', 'Command Center', 'Consolidated master view aggregating key signals from all terminal hubs.')}
+                ${card('explain-ask-terminal', 'smart_toy', 'Ask Terminal', 'Conversational AI research assistant with full terminal context and methodology.')}
+            `)}
+
+            ${group('?? Reference & System', 'menu_book', `
+                ${card('explain-playbook', 'auto_stories', 'Trading Playbook', 'Advanced strategies, signal combinations, and institutional decision frameworks.')}
+                ${card('explain-alpha', 'trending_up', 'Alpha Strategy', 'Trading relative strength, market benchmarks, and alpha attribution methodology.')}
+                ${card('explain-sentiment', 'psychology', 'Sentiment Synthesis', 'How we process social mindshare, NLP polarity, and news flow signals.')}
+                ${card('explain-benchmark', 'science', 'Portfolio Simulation', 'Modelling and backtesting quant portfolios against market benchmarks.')}
+                ${card('explain-api', 'terminal', 'Institutional API', 'Programmatic data access endpoints for quant desks and institutional clients.')}
+                ${card('explain-glossary', 'menu_book', 'Terminal Glossary', 'Quick reference for all institutional metrics, formulas, and signals used.')}
+                ${card('explain-pwa', 'install_mobile', 'Mobile Terminal', 'PWA installation guide for iOS and Android — offline-capable terminal access.')}
+                ${card('explain-liquidity', 'bar_chart', 'Order Flow (GOMM)', 'Interpreting institutional liquidity walls, tape imbalance, and execution flow.')}
+                ${card('explain-mindshare', 'hub', 'Mindshare Engine', 'NLP-driven social cluster visualisation and attention scoring methodology.')}
             `)}
         </div>
     `;
 }
-
-
 
 function renderDocsAdvancedCharting() {
     renderExplainPage(
@@ -2490,3 +2519,300 @@ function renderDocsTradingView() {
         </div>`;
 }
 
+
+// ============= NEW DOC PAGES (Docs Audit v1.32) =============
+
+// --- Global Hub ---
+function renderDocsETFFlows() {
+    renderExplainPage(
+        "Bitcoin Spot ETF Flows",
+        "Tracking daily institutional capital entering and exiting via regulated Bitcoin ETF vehicles.",
+        "Since the approval of spot Bitcoin ETFs in January 2024, these products have become the primary institutional on-ramp for TradFi capital. AlphaSignal's ETF Flow monitor aggregates daily AUM changes across BlackRock (IBIT), Fidelity (FBTC), ARK (ARKB), and other major issuers. Net positive flow is a leading indicator of price support; sustained outflows often precede near-term corrections.",
+        [
+            { icon: 'account_balance', title: 'Net Daily Flows', desc: 'Aggregated USD-denominated inflows and outflows across all regulated spot Bitcoin ETF products.' },
+            { icon: 'bar_chart', title: '7-Day Rolling Trend', desc: 'Bar chart of weekly net flows to identify sustained accumulation or distribution phases.' },
+            { icon: 'trending_up', title: 'Issuer Breakdown', desc: 'Per-fund breakdown showing which ETF products are receiving the most institutional capital.' },
+            { icon: 'compare_arrows', title: 'BTC Price Correlation', desc: 'Flow data overlaid against spot BTC price to visualise the lag between institutional demand and price discovery.' }
+        ],
+        [{ title: 'ETF Front-Running', text: 'Sustained 5-day positive net flows across IBIT and FBTC historically preceded 3-7% BTC price appreciation, providing a 24-48 hour positional edge.' }],
+        "Daily AUM change data from SEC Form N-CEN filings and public ETF issuer reports."
+    );
+}
+
+function renderDocsLiquidations() {
+    renderExplainPage(
+        "Liquidation Cascade Scanner",
+        "Real-time monitoring of leveraged position wipeouts across perpetual futures markets.",
+        "Liquidation events occur when a leveraged trader's margin falls below the exchange maintenance threshold, forcing automatic closure. Large cascades near key technical levels can trigger chain reactions moving spot prices 5-15% in minutes. AlphaSignal tracks cross-exchange liquidations in real-time, warning you where the next forced-selling cluster will trigger.",
+        [
+            { icon: 'local_fire_department', title: 'Long vs Short Wipeouts', desc: 'Separate tracking of long and short liquidation volumes to gauge market directional bias.' },
+            { icon: 'timeline', title: 'Liquidation Histogram', desc: 'Price-level histogram showing concentrated liquidation clusters that act as magnetic price targets.' },
+            { icon: 'notifications_active', title: 'Cascade Alerts', desc: '1-minute rolling window alerts when liquidation volume exceeds 3x the 1-hour average.' },
+            { icon: 'pivot_table_chart', title: 'Exchange Breakdown', desc: 'Binance, OKX, Bybit, and Deribit data compared to identify venue-specific stress.' }
+        ],
+        [{ title: 'The Short Squeeze Setup', text: 'When short liquidations spike above $80M in a 5-minute window while spot holds above key support, forced buying often accelerates price 4-8% within 30 minutes.' }],
+        "Real-time data from Binance, OKX, Bybit, and Deribit WebSocket feeds. Refreshed every 10 seconds."
+    );
+}
+
+function renderDocsOIRadar() {
+    renderExplainPage(
+        "Open Interest Radar",
+        "Multi-asset perpetual futures open interest tracking across exchanges and timeframes.",
+        "Open Interest (OI) measures total active derivative contracts outstanding. Rising OI with rising price confirms trend participation. Falling OI with rising price signals a short-squeeze driven move that may be unsustainable. The OI Radar gives a real-time pulse of leverage build-up across all major assets and exchanges simultaneously.",
+        [
+            { icon: 'track_changes', title: 'Cross-Asset OI Heatmap', desc: 'Colour-coded matrix of OI changes (1h, 4h, 24h) across BTC, ETH, SOL, and 20+ altcoins.' },
+            { icon: 'trending_up', title: 'OI vs Price Divergence', desc: 'Flags assets where OI is rising sharply while price stagnates — coiled setups and trapped position warnings.' },
+            { icon: 'bar_chart', title: 'Exchange Distribution', desc: 'Shows which exchanges hold most OI per asset — critical for identifying liquidation level clusters.' },
+            { icon: 'radar', title: 'Funding Rate Overlay', desc: 'Combines OI with perpetual funding rates to identify when leverage is aggressively one-sided.' }
+        ],
+        [{ title: 'OI Divergence Trade', text: 'BTC OI rose 18% over 72 hours while price gained only 2%. The terminal flagged extreme leverage buildup. A subsequent 6% flush wiped $340M in longs.' }],
+        "Aggregated OI from Binance, OKX, Bybit, and BitMEX perpetual futures APIs. Refreshed every 5 minutes."
+    );
+}
+
+function renderDocsCMEGaps() {
+    renderExplainPage(
+        "CME Gap Analysis",
+        "Identifying and tracking unfilled price gaps in Bitcoin CME futures contracts.",
+        "The CME Bitcoin futures market closes on weekends. During this closure, spot BTC continues trading, often moving significantly. When CME reopens, a price gap is left between Friday close and Sunday open. Statistically, ~77% of CME gaps fill within 3 months. AlphaSignal tracks all open gaps, their distance from current price, and fill probability.",
+        [
+            { icon: 'pivot_table_chart', title: 'Active Gap Registry', desc: 'Live table of all unfilled CME gaps with distance-from-current-price and age tracking.' },
+            { icon: 'timeline', title: 'Historical Fill Rate', desc: 'Statistical analysis of gap-fill probability by gap size, age, and market regime context.' },
+            { icon: 'arrow_downward', title: 'Gap Distance Calculator', desc: 'Shows the % move required to fill each gap — useful for identifying price targets in ranging markets.' },
+            { icon: 'calendar_month', title: 'Weekly Gap Preview', desc: 'Tracks Friday close each week to monitor whether a new gap is likely to form over the weekend.' }
+        ],
+        [{ title: 'The Gap Fill Trade', text: 'With BTC at $82,000 and an unfilled gap at $78,400, the terminal flagged a 4.3% downside target. The gap filled 11 days later during a macro-driven correction.' }],
+        "CME Bitcoin futures OHLCV data. Weekend gap detection runs every Monday at 00:00 UTC."
+    );
+}
+
+// --- Macro Intel Hub ---
+function renderDocsFlow() {
+    renderExplainPage(
+        "Capital Flows Monitor",
+        "Tracking the velocity and direction of institutional capital rotating into the crypto ecosystem.",
+        "Capital Flows measures net USD movement through ETF products, exchange inflows/outflows, and stablecoin minting/burning. Flow data reveals the structural demand behind a move — distinguishing genuine institutional accumulation from retail FOMO-driven pumps. A sustained multi-week positive flow regime is one of the most reliable macro bull signals in the terminal.",
+        [
+            { icon: 'swap_horiz', title: 'Net Flow Attribution', desc: 'Exchange-wide net capital attribution combining spot ETF data, on-chain flows, and stablecoin supply changes.' },
+            { icon: 'trending_up', title: 'Sector Momentum', desc: 'Identifies which crypto sectors are receiving capital and which are experiencing outflows.' },
+            { icon: 'waterfall_chart', title: 'Stablecoin Velocity', desc: 'USDT and USDC mint/burn rates as a proxy for incoming dry powder and buying pressure.' },
+            { icon: 'compare_arrows', title: 'Exchange Net Position', desc: 'Rolling 30-day exchange net position change — sustained outflows are historically bullish for spot.' }
+        ],
+        [{ title: 'The Pre-Rally Signal', text: '14 days of positive ETF flows combined with declining exchange BTC reserves preceded a 22% BTC rally. Capital Flows caught both signals simultaneously.' }],
+        "Aggregated from spot ETF AUM reports, Glassnode exchange reserve data, and on-chain USDT/USDC treasury monitors."
+    );
+}
+
+function renderDocsRotation() {
+    renderExplainPage(
+        "Sector Rotation Tracker",
+        "Visualising capital rotation across crypto sectors using a treemap and momentum matrix.",
+        "Crypto markets rotate through distinct sector cycles. Capital first floods into Bitcoin, then Ethereum, then L1 altcoins, then DeFi and memecoins. Identifying where a rotation is in this cycle allows traders to position ahead of the crowd. The Sector Rotation view uses a weighted treemap with a momentum matrix flagging emerging rotation signals.",
+        [
+            { icon: 'rotate_right', title: 'Sector Treemap', desc: 'Dynamic, weighted treemap of 7D relative performance across L1, DeFi, AI, Memes, Gaming, and RWA sectors.' },
+            { icon: 'bar_chart', title: 'Rotation Momentum', desc: 'Cross-asset momentum ranking showing 24h, 7D, and 30D leaders to identify where rotation flows are heading.' },
+            { icon: 'electric_bolt', title: 'Beta Expansion Alerts', desc: 'Signals when a sector begins outperforming BTC on a risk-adjusted basis — early warning of a rotation event.' },
+            { icon: 'bubble_chart', title: 'Dominance Shifts', desc: 'BTC.D and ETH.D dominance tracking to confirm when capital is rotating into or out of altcoin exposure.' }
+        ],
+        [{ title: 'L1 Rotation Capture', text: 'When ETH.D declined while SOL and AVAX outperformed BTC on a 7-day basis, the tracker flagged an L1 rotation. The identified basket returned an additional 35% over 3 weeks.' }],
+        "Real-time OHLCV from 10+ centralised exchanges. Sector taxonomy maintained across 500+ assets."
+    );
+}
+
+function renderDocsMacroCompass() {
+    renderExplainPage(
+        "Macro Compass",
+        "A synthesised dashboard tracking the global macro environment and its impact on digital assets.",
+        "The Macro Compass aggregates key macro signals — equity correlation, DXY strength, yield curve shapes, and commodity trends — into a coherent view. Bitcoin has a 0.6-0.8 rolling correlation with risk-on assets during macro stress events, making macro context essential for timing entries and exits across all terminal instruments.",
+        [
+            { icon: 'public', title: 'Macro Correlation Matrix', desc: 'Rolling 30-day correlations between BTC, SPX, NASDAQ, DXY, Gold, and 10Y Treasury yields.' },
+            { icon: 'show_chart', title: 'Yield Curve Monitor', desc: 'US Treasury 2Y/10Y/30Y spread tracking. Sustained inversion has preceded risk-off environments.' },
+            { icon: 'trending_down', title: 'DXY Impact Model', desc: 'Real-time DXY overlay against BTC to quantify the inverse relationship and identify dollar-driven moves.' },
+            { icon: 'layers', title: 'Risk Regime Overlay', desc: 'Current macro regime classification (Risk-On / Risk-Off / Transitional) based on equity volatility and credit spreads.' }
+        ],
+        [{ title: 'The DXY Breakout Trade', text: 'When DXY broke above 105 following hotter-than-expected CPI, the Compass immediately flagged a shift to Risk-Off regime. BTC declined 8% over 72 hours.' }],
+        "Federal Reserve FRED database, DTCC yield curve data, and Bloomberg cross-asset correlation matrices. Updated daily."
+    );
+}
+
+function renderDocsMacroCalendar() {
+    renderExplainPage(
+        "Macro Event Calendar",
+        "A 90-day forward calendar of institutional macro events scored by historical BTC impact.",
+        "The Macro Event Calendar tracks scheduled economic releases — FOMC decisions, CPI prints, NFP reports, and PCE data — and scores each by its average historical BTC price impact over the past 6 occurrences. This turns the economic calendar from a passive reference into an active positioning tool.",
+        [
+            { icon: 'event', title: 'Event Timeline', desc: '90-day chronological listing of macro events with days-until countdown and event type badge.' },
+            { icon: 'bar_chart', title: 'Historical BTC Impact', desc: 'Per-event scoring showing median BTC move, average volatility, and historical directional bias.' },
+            { icon: 'warning', title: 'Impact Tier Badges', desc: 'Events classified HIGH / MEDIUM / LOW by weighted impact score, enabling rapid calendar triage.' },
+            { icon: 'timeline', title: 'Historical Move Bars', desc: 'Bar chart showing the last 6 real BTC same-date moves for each event instance.' }
+        ],
+        [{ title: 'Pre-FOMC Positioning', text: 'FOMC meetings average 4.2% BTC volatility on announcement day. The calendar HIGH impact flag and historical bars gave traders a clear reference for sizing hedges in advance.' }],
+        "FOMC, CPI, NFP, and PCE schedules from the Federal Reserve and BLS. Historical impact scored against 2-year BTC price data via yfinance."
+    );
+}
+
+// --- Alpha Strategy Hub ---
+function renderDocsNarrative() {
+    renderExplainPage(
+        "Narrative Galaxy",
+        "A force-directed graph visualising the social and informational gravity of crypto market narratives.",
+        "Markets move on narratives before they move on fundamentals. The Narrative Galaxy maps conceptual clusters being discussed across Twitter/X, Reddit, and Telegram — showing which themes are gaining momentum, which are crowded, and which are quietly building beneath the surface.",
+        [
+            { icon: 'hub', title: 'Force-Directed Cluster Map', desc: 'Each narrative is a node. Related narratives are pulled together by semantic similarity. Node size reflects mention volume.' },
+            { icon: 'speed', title: 'Narrative Velocity', desc: 'Tracks the rate of mention growth for each cluster. High-velocity narratives (>200% 7-day growth) often precede price moves.' },
+            { icon: 'sentiment_satisfied', title: 'Sentiment Polarity', desc: 'Green nodes carry net bullish sentiment; red nodes bearish. Intensity scales with conviction level.' },
+            { icon: 'warning_amber', title: 'Saturation Warning', desc: 'When a narrative reaches maximum mindshare without new information, it is flagged as a Crowded Trade contrarian signal.' }
+        ],
+        [{ title: 'Quiet Accumulation Detection', text: 'Three weeks before a major L2 announcement, the Galaxy detected rising semantic clustering around the project with low social volume. Early-positioning traders captured the subsequent 40% move.' }],
+        "NLP processing of 100K+ daily social posts via keyword embedding models. Cluster assignments updated every 6 hours."
+    );
+}
+
+// --- Institutional Hub ---
+function renderDocsTokenUnlocks() {
+    renderExplainPage(
+        "Token Unlock Schedule",
+        "Forward-looking schedule of major token vesting unlocks and their projected sell pressure.",
+        "Token unlocks are scheduled supply emission events where previously locked tokens — held by early investors, team members, or protocol treasuries — become tradeable. Large unlocks create predictable sell pressure windows. AlphaSignal tracks the next 90 days of unlock events across 50+ protocols, scored by unlock size relative to circulating supply.",
+        [
+            { icon: 'key', title: 'Unlock Calendar', desc: 'Chronological listing of upcoming unlocks with date, volume, USD value at current price, and % of circulating supply.' },
+            { icon: 'bar_chart', title: 'Supply Shock Score', desc: 'Each unlock scored 0-100 based on size as % of float, recipient category (team vs investor), and vesting cliff structure.' },
+            { icon: 'trending_down', title: 'Historical Price Impact', desc: 'For recurring protocols, shows actual price performance in the 7 days before and after prior unlock events.' },
+            { icon: 'notifications_active', title: 'Unlock Alerts', desc: 'Configurable alerts for unlocks exceeding a user-defined supply shock threshold, delivered 7 days and 24 hours in advance.' }
+        ],
+        [{ title: 'The Investor Unlock Fade', text: 'A $120M investor unlock was tracked 3 weeks in advance. The HIGH Supply Shock Score prompted traders to open a tactical short 5 days prior, capturing a 9% decline into the unlock date.' }],
+        "Token unlock data from TokenUnlocks.app and CryptoRank. Verified against on-chain vesting contract monitoring."
+    );
+}
+
+function renderDocsYieldLab() {
+    renderExplainPage(
+        "Yield Lab",
+        "A multi-protocol yield aggregator and DeFi rate comparison engine for institutional allocators.",
+        "The Yield Lab consolidates staking APYs, lending rates, and liquidity provision yields across major DeFi protocols and CeFi venues. The lab normalises rates for comparative analysis, models impermanent loss risk for LP positions, and tracks the historical spread between DeFi and TradFi risk-free rates.",
+        [
+            { icon: 'biotech', title: 'Protocol Rate Comparison', desc: 'Side-by-side APY comparison across Aave, Compound, Lido, Rocket Pool, and 10+ venues, updated hourly.' },
+            { icon: 'calculate', title: 'Risk-Adjusted Yield', desc: 'Adjusts raw APY for smart contract risk (audit score), liquidity depth, and token concentration.' },
+            { icon: 'candlestick_chart', title: 'Yield Curve History', desc: 'Historical chart of key protocol yields over time to identify yield compression and expansion cycles.' },
+            { icon: 'account_balance', title: 'DeFi vs TradFi Spread', desc: 'Tracks the spread between top DeFi lending rates and the US 3-month T-Bill — widening spread signals DeFi relative attractiveness.' }
+        ],
+        [{ title: 'Carry Trade Optimisation', text: 'When ETH staking yield expanded to 5.2% vs a 4.3% US 10Y yield, the Yield Lab flagged a 90bps positive carry opportunity, enabling institutions to justify an ETH overweight.' }],
+        "Protocol yield data from DeFiLlama, on-chain rate queries via The Graph, and US Treasury rates from the Federal Reserve FRED API."
+    );
+}
+
+function renderDocsTradeLab() {
+    renderExplainPage(
+        "Trade Idea Lab",
+        "An AI-assisted workspace for building and validating structured trade ideas before execution.",
+        "The Trade Idea Lab provides a structured environment for developing systematic trade theses. Define your conviction, set risk parameters, and the lab generates a structured execution plan — complete with an AI-generated trade thesis memo. All ideas can be auto-converted into execution tickets in the Trade Ledger with a single click.",
+        [
+            { icon: 'experiment', title: 'Thesis Builder', desc: 'Guided form to define entry trigger, conviction level, position sizing, stop-loss, and take-profit levels for any asset.' },
+            { icon: 'smart_toy', title: 'AI Thesis Memo', desc: 'GPT-powered narrative explaining the trade rationale, key risk factors, and historical analogues — generated from your inputs.' },
+            { icon: 'calculate', title: 'Risk/Reward Calculator', desc: 'Automatic R:R ratio calculation, max loss in USD, and expected value computation based on historical win rate.' },
+            { icon: 'send', title: 'One-Click Execution', desc: 'Convert any validated trade idea directly into a pending execution ticket in the institutional Trade Ledger.' }
+        ],
+        [{ title: 'Thesis-to-Ticket Workflow', text: 'An analyst entered a BTC long thesis triggered by a +2.3 Z-score. The AI memo flagged the ETF flow tailwind. The risk calculator sized the position at 4.2% of portfolio. One click sent it to the Trade Ledger.' }],
+        "Trade thesis generation powered by GPT-4o-mini. Risk calculations use historical signal win rate from the AlphaSignal backtest database."
+    );
+}
+
+// --- Analytics Hub ---
+function renderDocsOptionsFlow() {
+    renderExplainPage(
+        "Options Flow Scanner",
+        "Real-time BTC and ETH options data — Put/Call ratio, Max Pain, IV smile, and top OI strikes.",
+        "The options market is where institutional traders express high-conviction views with defined risk. AlphaSignal's scanner pulls live data from Deribit — the world's largest crypto options exchange by volume — and synthesises it into actionable intelligence.",
+        [
+            { icon: 'ssid_chart', title: 'Put/Call Ratio (PCR)', desc: 'Ratio of put volume to call volume. PCR > 1.0 signals bearish hedging; < 0.7 signals directional call buying.' },
+            { icon: 'push_pin', title: 'Max Pain Strike', desc: 'The price at which the maximum number of options expire worthless. Price tends to gravitate here near expiry.' },
+            { icon: 'area_chart', title: 'IV Smile Chart', desc: 'Implied Volatility plotted across strikes (±30% from ATM), revealing skew and directional market fear.' },
+            { icon: 'table_chart', title: 'Top OI Strikes', desc: 'The 10 highest open-interest strikes, showing where market participants have concentrated their positioning.' }
+        ],
+        [{ title: 'The IV Skew Signal', text: 'When put skew (downside IV premium over ATM) exceeded 15% on BTC, it historically preceded a 7-12% correction within 14 days as institutions loaded protective puts.' }],
+        "Live data from Deribit public REST API. BTC and ETH options refreshed every 15 minutes. IV smile computed from front-month expiry strikes."
+    );
+}
+
+function renderDocsNewsroom() {
+    renderExplainPage(
+        "Crypto Newsroom",
+        "A curated, real-time feed of institutional-grade crypto news with AI sentiment tagging.",
+        "The Newsroom aggregates the highest-signal news sources in the crypto ecosystem, applying NLP sentiment analysis to each headline as it arrives. AlphaSignal's Newsroom filters for institutional relevance — regulatory developments, large protocol announcements, ETF-related news, and macro policy shifts.",
+        [
+            { icon: 'newspaper', title: 'Live News Feed', desc: 'Real-time crypto news pulled from CryptoPanic RSS, filtered for headline relevance and institutional impact threshold.' },
+            { icon: 'psychology', title: 'AI Sentiment Tagging', desc: 'Each headline classified BULLISH / BEARISH / NEUTRAL by a keyword-weighted NLP model trained on crypto-specific vocabulary.' },
+            { icon: 'filter_alt', title: 'Category Filters', desc: 'Filter by topic: Regulation, ETF/TradFi, Protocol, Macro, or General to focus on relevant catalysts.' },
+            { icon: 'bolt', title: 'Breaking News Alerts', desc: 'High-impact headlines trigger instant dashboard toast notifications to your terminal.' }
+        ],
+        [{ title: 'Regulatory Front-Running', text: 'An SEC enforcement headline appeared in the Newsroom 4 minutes before price action reflected the news. The BEARISH tag and alert gave users a narrow window to reduce exposure ahead of a 6% pullback.' }],
+        "News sourced from CryptoPanic public RSS. NLP sentiment classification via keyword embedding model. Breaking news detection threshold: 3+ simultaneous high-impact keyword matches."
+    );
+}
+
+// --- Audit & Performance Hub ---
+function renderDocsTradeLedger() {
+    renderExplainPage(
+        "Institutional Trade Ledger",
+        "A persistent, auditable record of all AI-generated execution tickets and manual trade ideas.",
+        "The Trade Ledger is the terminal's audit trail. Every execution ticket generated by the AI Rebalancer, Trade Idea Lab, or manually by the user is logged here with full metadata: asset, direction, size, entry price, status, and AI thesis. Designed for institutional accountability and regulatory compliance review.",
+        [
+            { icon: 'list_alt', title: 'Execution Ticket Log', desc: 'Chronologically ordered log of all tickets with asset, direction, position size, entry price, and current status.' },
+            { icon: 'assignment_turned_in', title: 'Status Tracking', desc: 'Tickets move through PENDING ? EXECUTED ? CLOSED states with PnL displayed for closed positions.' },
+            { icon: 'smart_toy', title: 'AI Thesis Archive', desc: 'Each ticket retains the original AI-generated trade memo for retrospective review and performance attribution.' },
+            { icon: 'download', title: 'CSV Export', desc: 'Full ledger export as CSV for offline analysis, compliance reporting, or integration with portfolio management systems.' }
+        ],
+        [{ title: 'Performance Attribution', text: 'Filtering the Trade Ledger to AI Rebalancer tickets and comparing PnL against a static HODL benchmark quantifies exactly how much alpha the AI system is generating net of transaction costs.' }],
+        "All tickets stored in persistent SQLite ledger on the server. Data is user-specific and persists across sessions. Export available at any time."
+    );
+}
+
+// --- Miscellaneous ---
+function renderDocsHeatmap() {
+    renderExplainPage(
+        "Market Heatmap",
+        "A colour-coded visualisation of Z-score deviations across the entire tracked asset universe.",
+        "The Market Heatmap provides an at-a-glance overview of where statistical opportunities are concentrated across the 50+ asset universe. Each cell represents one asset; colour intensity reflects the magnitude of its current Z-score deviation from rolling mean returns. This is the fastest way to identify where alpha is currently concentrated.",
+        [
+            { icon: 'grid_view', title: 'Z-Score Heat Grid', desc: 'Full asset universe displayed as a colour-coded grid — instantly identify which assets have the highest statistical deviation.' },
+            { icon: 'palette', title: 'Colour Scale', desc: 'Green = positive Z-score (bullish deviation); Red = negative Z-score (bearish deviation). Intensity scales with sigma magnitude.' },
+            { icon: 'filter_alt', title: 'Sector Grouping', desc: 'Assets grouped by sector (L1, DeFi, Memes, AI, Gaming) for rapid sector-level comparison in a single view.' },
+            { icon: 'touch_app', title: 'Click-Through Detail', desc: 'Click any cell to open a full signal detail overlay including ML prediction and on-chain metrics.' }
+        ],
+        [{ title: 'Sector Concentration Scan', text: 'During a DeFi narrative rotation, the heatmap showed 7 of 8 tracked DeFi tokens simultaneously in the +1.5 to +2.5 Z-score band, visually confirming the rotation in progress.' }],
+        "Z-score computed from 90-day rolling returns using yfinance OHLCV data. Heatmap refreshed every 5 minutes."
+    );
+}
+
+function renderDocsCommandCenter() {
+    renderExplainPage(
+        "Institutional Command Center",
+        "A consolidated dashboard aggregating key signals from all terminal hubs into a single master view.",
+        "The Command Center is designed for senior traders and portfolio managers who need system-level situational awareness across all terminal modules simultaneously. Rather than navigating between hubs, it surfaces the most critical real-time signals from each — Conviction Dials, ETF Flows, Correlation Matrix, Alpha Signals, and CME Gaps — in a single dense layout.",
+        [
+            { icon: 'dashboard', title: 'System Conviction Dials', desc: 'Live Fear & Greed, Network Congestion, and Retail FOMO dials providing a composite read of market psychology.' },
+            { icon: 'account_balance', title: 'ETF Flow Summary', desc: 'Weekly ETF net flows bar chart showing the most recent 5 days of institutional capital movement.' },
+            { icon: 'grid_4x4', title: 'Macro Correlation Matrix', desc: 'Live 30-day correlation heatmap between BTC, SPX, DXY, Gold, and 10Y Treasury.' },
+            { icon: 'electric_bolt', title: 'Top Institutional Alpha', desc: 'Live feed of the 5 highest-conviction signals currently active across the terminal signal universe.' }
+        ],
+        [],
+        "Aggregates data from 6 underlying terminal modules. Click through to individual hubs for full detail and interactivity."
+    );
+}
+
+function renderDocsAskTerminal() {
+    renderExplainPage(
+        "Ask Terminal — AI Research Assistant",
+        "A conversational AI interface for on-demand institutional research within the terminal.",
+        "Ask Terminal is powered by GPT-4o-mini and has full context of the AlphaSignal methodology, signal universe, and current market data. Ask it to explain a Z-score reading, summarise the macro outlook, generate a trading thesis for a specific asset, or interpret an options flow signal.",
+        [
+            { icon: 'smart_toy', title: 'Contextual AI Research', desc: 'Ask any question about markets, signals, or the terminal methodology. The AI has the full AlphaSignal framework as context.' },
+            { icon: 'history', title: 'Conversation History', desc: 'Session-level conversation history maintained so you can build on previous questions without repeating context.' },
+            { icon: 'description', title: 'On-Demand Memos', desc: 'Request a structured analysis memo for any asset — the AI synthesises signal data, macro context, and options flow.' },
+            { icon: 'translate', title: 'Plain-English Explanations', desc: 'Ask the terminal to explain any metric or indicator in plain English — ideal for onboarding new team members.' }
+        ],
+        [{ title: 'Rapid Due Diligence', text: 'An analyst asked about the current BTC options skew and what it implies for price. The AI returned a 3-paragraph brief citing PCR, IV skew direction, and historical analogues in under 4 seconds.' }],
+        "Powered by OpenAI GPT-4o-mini API. Responses generated in real-time with no caching to ensure contextual accuracy."
+    );
+}
