@@ -87,8 +87,17 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.wfile.write(json.dumps(res).encode('utf-8'))
             elif path == '/api/auth/signup':
                 res = SupabaseClient.auth_signup(post_data.get('email'), post_data.get('password'))
-                if 'user' in res:
-                    self.send_json(res)
+                # Supabase returns user at top level {'id':..,'email':..} when email confirmation is ON
+                # or nested under 'user' key when confirmation is OFF
+                user_obj = res.get('user') or (res if 'id' in res and 'email' in res else None)
+                if user_obj:
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    # If access_token present (no email confirm required), set the cookie
+                    if 'access_token' in res:
+                        self.send_header('Set-Cookie', f"sb-access-token={res['access_token']}; Path=/; HttpOnly; Max-Age=3600")
+                    self.wfile.write(json.dumps({'success': True, 'user': user_obj}).encode('utf-8'))
                 else:
                     self.send_response(400)
                     self.send_header('Content-Type', 'application/json')
