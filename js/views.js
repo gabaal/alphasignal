@@ -1099,6 +1099,7 @@ async function renderFlows(tabs = null) {
             <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">flowsheet</span> Institutional Flow Monitor</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-liquidity')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Tracking the velocity of capital rotating into the ecosystem via spot ETFs and major aggregates.</p>
         </div>
+        ${tabs ? renderHubTabs('flow', tabs) : ''}
         <div class="pulse-grid">
             <div class="pulse-card">
                 <h3>Institutional Pressure</h3>
@@ -1562,17 +1563,20 @@ async function renderCatalysts() {
 }
 
 // ============= Macro Intelligence Hub =============
-async function renderMacroCalendar() {
+async function renderMacroCalendar(tabs = null) {
+    if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = skeleton(6);
     const data = await fetchAPI('/macro-calendar');
     if (!data) return;
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">calendar_month</span> Institutional Macro Compass</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
-            <p>Real-time synthesis of global economic catalysts and their projected impact on liquidity.</p>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">event</span> Macro Event Calendar <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
         </div>
+        ${tabs ? renderHubTabs('calendar', tabs) : ''}
         
+
         <div class="macro-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:2rem">
             ${Object.entries(data.yields || {}).map(([label, val]) => `
                 <div class="stat-card" style="background:var(--bg-card); padding:1.2rem; border:1px solid var(--border); border-radius:12px">
@@ -3475,11 +3479,13 @@ async function renderBriefing(tabs = null) {
 
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">electric_bolt</span> Alpha Strategy</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Market Intelligence Briefing</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
                 <p>AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.</p>
             </div>
+            ${tabs ? renderHubTabs('briefing', tabs) : ''}
             
             <div class="briefing-container" style="max-width:900px; margin:0 auto">
+
 
                 <!-- AI Daily Memo -->
                 <div class="glass-card" id="ai-memo-card" style="margin-bottom:2rem;padding:1.5rem;border:1px solid rgba(188,19,254,0.3);background:linear-gradient(135deg,rgba(188,19,254,0.06),rgba(0,0,0,0.4))">
@@ -4535,7 +4541,8 @@ async function showSignalDetail(alertId, ticker) {
     }
 }
 
-async function renderRegime() {
+async function renderRegime(tabs = null) {
+    if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `<h1 class="view-title">Market Regime Hub</h1>${skeleton(1)}`;
     const data = await fetchAPI('/regime?ticker=BTC-USD');
     if (!data) return;
@@ -4544,11 +4551,12 @@ async function renderRegime() {
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1>Market Regime Framework</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-regimes')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">layers</span> Market Regime Framework</h1> <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; margin-left: auto;" onclick="switchView('explain-regimes')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
             <p>Statistical classification of market cycles using Markov-Switching approximation.</p>
         </div>
+        ${tabs ? renderHubTabs('regime', tabs) : ''}
         
-        <div class="regime-container">
+
             <div class="regime-hero-card ${regimeClass}">
                 <div class="regime-badge">${data.current_regime}</div>
                 <div class="regime-main-stat">
