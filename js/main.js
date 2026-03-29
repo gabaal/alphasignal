@@ -2929,6 +2929,110 @@ function renderDocsMacroCalendar() {
     );
 }
 
+// --- Global Markets Hub ---
+function renderDocsETFFlows() {
+    renderExplainPage(
+        "Bitcoin Spot ETF Flows Monitor",
+        "Daily institutional capital flow tracking across all SEC-approved Bitcoin spot ETF vehicles.",
+        "AlphaSignal's ETF Flows view aggregates daily net flow data across BlackRock IBIT, Fidelity FBTC, ARK ARKB, Bitwise BITB, and 7 further vehicles. Net inflows indicate institutional accumulation; consistent outflows signal de-risking. The 7-day rolling total is the highest-signal variant — single-day swings are noise, sustained directional flows are regime-defining.",
+        [
+            { icon: 'account_balance', title: 'Daily Net Flow Bar Chart', desc: 'Per-ETF and aggregate net flow bars for the trailing 30 days. Color-coded green for inflows, red for outflows.' },
+            { icon: 'timeline', title: '7D Rolling Totals', desc: 'Smoothed 7-day cumulative net flow by vehicle. Sustained +$1B+ weekly inflows historically precede bullish price continuations.' },
+            { icon: 'table_chart', title: 'AUM League Table', desc: 'Ranked ETF AUM snapshot with today\'s flow, 7D total, and YTD net flow — allowing quick identification of dominant flow vehicles.' },
+            { icon: 'notifications_active', title: 'Outflow Reversal Alerts', desc: 'When a previously positive-flow ETF switches to sustained outflow for 3+ days, a system alert fires via the Alerts hub.' }
+        ],
+        [{ title: 'Identifying Institutional Accumulation Windows', text: 'In March 2024, sustained IBIT inflows exceeding $500M/day for 5 consecutive days preceded a 22% BTC rally. The ETF Flow tracker flagged the regime shift before price confirmed.' }],
+        "ETF flow data from BitMEX Research, The Block, and Farside Investors. AUM data from SEC 13F filings and ETF provider daily disclosures. Updated daily by 20:00 UTC."
+    , 'etf-flows'
+    );
+}
+
+function renderDocsLiquidations() {
+    renderExplainPage(
+        "Liquidation Cascade Scanner",
+        "Real-time leveraged position wipeout detection across major derivatives venues.",
+        "The Liquidation Scanner aggregates forced liquidation events from Binance, OKX, Bybit, and Deribit in near real-time. Sustained high-volume liquidations — especially clustered cascades — are leading indicators of capitalisation events. The scanner distinguishes between routine liquidations and systemic cascades by applying a rolling hourly Z-score deviation filter.",
+        [
+            { icon: 'local_fire_department', title: 'Live Liquidation Feed', desc: 'Timestamped liquidation events by venue, direction (long/short), and USD size. Large block liquidations are highlighted.' },
+            { icon: 'bar_chart', title: 'Cascade Heatmap', desc: 'Price-binned heatmap showing cumulative liquidation volume at each price level — revealing where leverage clusters exist ahead of the market.' },
+            { icon: 'trending_down', title: 'Long/Short Ratio', desc: 'Rolling ratio of long-vs-short liquidations. Extreme long-liquidation events (>80% of volume) signal capitulation bottoms.' },
+            { icon: 'warning_amber', title: 'Cascade Alert System', desc: 'When 15-minute liquidation volume exceeds 2.5x its 30-day rolling average, a CASCADE WARNING fires to the terminal.' }
+        ],
+        [{ title: 'The Cascade Bottom Signal', text: 'On a major flash crash day, the scanner registered $480M in long liquidations within 90 minutes — the highest reading in 60 days. This extreme reading historically signals within 72 hours of a local bottom.' }],
+        "Liquidation data from Binance WebSocket, OKX, Bybit, and Deribit public API streams. Large liquidation definition: single event >$1M USD equivalent. Cascade definition: 15m volume >2.5x 30D average."
+    , 'liquidations'
+    );
+}
+
+function renderDocsOIRadar() {
+    renderExplainPage(
+        "Open Interest Radar",
+        "Cross-asset perpetual futures open interest tracking with funding rate overlay.",
+        "Open Interest (OI) measures the total dollar value of all open derivative positions on an asset. Rising OI with rising price confirms a healthy trend; rising OI with falling price signals aggressive shorting. The OI Radar monitors the top 20 perpetual futures markets across Binance, Bybit, and OKX, with real-time funding rate overlay to distinguish directional from hedged positioning.",
+        [
+            { icon: 'track_changes', title: 'OI League Table', desc: 'Top 20 perp markets ranked by total OI, with 24h OI change percentage and current funding rate alongside price.' },
+            { icon: 'area_chart', title: 'OI vs Price Overlay', desc: '72-hour chart of OI and price together — divergences (OI rising + price falling) are flagged as potential short squeeze setups.' },
+            { icon: 'payments', title: 'Funding Rate Monitor', desc: 'Live funding rates per asset. Sustained negative funding (shorts paying longs) signals an overcrowded short that historically resolves with a squeeze.' },
+            { icon: 'bolt', title: 'OI Spike Alerts', desc: 'When OI surges >15% within a 4-hour window, the system fires an alert — a key leading indicator of either a breakout or a trap.' }
+        ],
+        [{ title: 'Detecting the Short Squeeze Setup', text: 'BTC OI increased 18% in 6 hours while price was flat and funding turned negative at -0.05%. The OI Radar flagged the extreme short positioning. A 12% squeeze followed within 24 hours.' }],
+        "OI data from Binance, Bybit, and OKX perpetuals REST APIs. Funding rates from Coinglass aggregator. Updated every 15 minutes."
+    , 'oi-radar'
+    );
+}
+
+function renderDocsCMEGaps() {
+    renderExplainPage(
+        "CME Bitcoin Gap Analysis",
+        "Identifying, tracking, and trading unfilled Bitcoin CME futures gaps.",
+        "CME Bitcoin futures trade Monday–Friday during regular US market hours. When spot crypto moves significantly over the weekend while CME is closed, it creates a 'gap' between Friday's close and Monday's open. Statistical analysis of 4+ years of CME gap data shows that approximately 78% of gaps are eventually filled — making gap identification a high-probability trade setup for patient institutional traders.",
+        [
+            { icon: 'pivot_table_chart', title: 'Active Gap Registry', desc: 'Live list of all unfilled CME gaps with price level, gap size ($), gap size (%), days open, and historical fill probability score.' },
+            { icon: 'history', title: 'Gap Fill History', desc: 'Historical record of all prior gaps with fill status, time-to-fill, and the price action context at time of formation.' },
+            { icon: 'calculate', title: 'Fill Probability Scoring', desc: 'Each gap scored 0–100 by size, direction, current distance from price, and age. Higher scores = higher mean-reversion statistical probability.' },
+            { icon: 'show_chart', title: 'Gap Distance Monitor', desc: 'Live tracking of BTC\'s distance from each open gap level, updated in real-time to identify when price approaches fill territory.' }
+        ],
+        [{ title: 'The Gap Fade Trade', text: 'After a bullish Sunday rally left a $5,200 gap below at $58,400, the CME Gap tracker scored it HIGH priority. A tactical partial short at $63,000 captured a 7% move back to partially fill the gap within 4 trading days.' }],
+        "CME gap data calculated from CME BTC front-month futures Friday close vs Monday open. Price data via yfinance. Gap fill probability scoring uses 2022-2024 historical gap dataset."
+    , 'cme-gaps'
+    );
+}
+
+// --- Macro Intel Hub ---
+function renderDocsFlow() {
+    renderExplainPage(
+        "Capital Flows Monitor",
+        "Velocity and direction of institutional capital rotating into and out of the crypto ecosystem.",
+        "Capital flow analysis tracks three primary channels of institutional capital: spot ETF flows (regulated capital), stablecoin supply expansion (on-ramp capital ready to deploy), and exchange net position changes (capital moving into self-custody vs to exchanges for selling). The synthesis of these three streams provides the most complete picture of institutional money movement available outside regulated prime broker data.",
+        [
+            { icon: 'swap_horiz', title: 'ETF Net Flow Aggregator', desc: 'Daily consolidated net flow across all 11 US Bitcoin spot ETFs. Sustained positive flow = institutional accumulation regime.' },
+            { icon: 'currency_exchange', title: 'Stablecoin Supply Velocity', desc: 'Week-over-week USDT + USDC supply growth rate. Rapid expansion signals incoming buy-side pressure as dry powder builds on exchanges.' },
+            { icon: 'account_balance', title: 'Exchange Net Position Change', desc: 'Rolling 30-day change in BTC held on exchanges vs self-custody. Declining exchange balances = reduced sell pressure (bullish signal).' },
+            { icon: 'trending_up', title: 'Composite Flow Score', desc: 'AlphaSignal\'s proprietary score (0–100) combining all three channels into a single capital flow conviction indicator.' }
+        ],
+        [{ title: 'The Institutional Accumulation Signal', text: 'When ETF flows turned positive ($300M+ weekly), stablecoin supply grew 4% in 2 weeks, AND exchange balances dropped 15K BTC in a month simultaneously, the composite score hit 84/100 — preceding a 35% BTC rally over the next 6 weeks.' }],
+        "ETF flows from Farside Investors. Stablecoin supply from CoinGecko and Glassnode public APIs. Exchange balance data from CryptoQuant and on-chain aggregation via Blockchain.info."
+    , 'flow'
+    );
+}
+
+function renderDocsRotation() {
+    renderExplainPage(
+        "Sector Rotation Tracker",
+        "Capital rotation across crypto sectors visualised through a weighted treemap and momentum matrix.",
+        "Crypto capital does not move uniformly — it rotates through sector narratives in sequence: typically Bitcoin leads, followed by large-cap L1s, then DeFi, then lower-cap narratives. AlphaSignal's Sector Rotation Tracker monitors the relative strength and momentum of 8 major sectors simultaneously, enabling traders to position ahead of sector rotations rather than chasing them.",
+        [
+            { icon: 'rotate_right', title: 'Weighted Sector Treemap', desc: 'Live treemap showing relative market cap and 7-day performance across Layer 1, DeFi, AI, Memes, RWA, Gaming, Infra, and L2 sectors.' },
+            { icon: 'grid_on', title: 'Momentum Matrix', desc: '8×4 matrix of sector performance across 1D, 7D, 30D, and 90D timeframes — identifying which sectors are leading and which are lagging.' },
+            { icon: 'speed', title: 'Rotation Velocity Score', desc: 'Measures the rate at which capital is entering or exiting each sector relative to BTC. High positive velocity = rotation is in early stages.' },
+            { icon: 'notifications', title: 'Beta Expansion Alerts', desc: 'When a sector\'s 7-day beta to BTC exceeds 2.0 (outperforming BTC 2:1+), a rotation alert fires — historically a leading signal of narrative momentum.' }
+        ],
+        [{ title: 'DeFi Rotation Signal', text: 'After BTC consolidated at $60K for 3 weeks, the Momentum Matrix showed DeFi sector switching from negative to positive 7D momentum while BTC was flat. Rotation alert fired. DeFi sector gained 40% over the following 3 weeks.' }],
+        "Sector performance data from CoinGecko sector classifications and 7-day price returns. Sector definitions updated monthly. Beta calculations use 90-day rolling correlation to BTC-USD price series."
+    , 'rotation'
+    );
+}
+
 // --- Alpha Strategy Hub ---
 function renderDocsNarrative() {
     renderExplainPage(
