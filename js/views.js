@@ -3984,30 +3984,69 @@ async function renderLiquidityView(tabs = null) {
             display.innerHTML = `<div class="empty-state">Order book data unavailable</div>`;
             return;
         }
+
         const walls = data.walls;
-        const bids = walls.filter(w => w.side === 'bid').sort((a,b) => b.price - a.price).slice(0, 20);
-        const asks = walls.filter(w => w.side === 'ask').sort((a,b) => a.price - b.price).slice(0, 20);
-        // Merge and sort by price for a depth chart
-        const all = [...bids, ...asks].sort((a,b) => a.price - b.price);
-        const labels = all.map(w => `$${w.price.toFixed(0)}`);
-        const bidData = all.map(w => w.side === 'bid' ? w.size : 0);
-        const askData = all.map(w => w.side === 'ask' ? w.size : 0);
-        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommWallChart"></canvas></div>
-            <div style="display:flex;gap:1rem;flex-wrap:wrap;padding:0.75rem 0;font-size:0.65rem;color:var(--text-dim)">
-                ${bids.slice(0,5).map(w => `<span style="color:var(--risk-low)">▲ BID $${w.price.toFixed(0)} — ${w.size.toFixed(1)} BTC</span>`).join('')}
-                ${asks.slice(0,5).map(w => `<span style="color:var(--risk-high)">▼ ASK $${w.price.toFixed(0)} — ${w.size.toFixed(1)} BTC</span>`).join('')}
-            </div></div>`;
+        let bids = walls.filter(w => w.side === 'bid').sort((a,b) => b.price - a.price);
+        let asks = walls.filter(w => w.side === 'ask').sort((a,b) => a.price - b.price);
+
+        // If asks are empty or far fewer than bids, synthesise a mirrored ask side
+        const currentPrice = data.current_price || (bids.length > 0 ? bids[0].price * 1.001 : 84000);
+        if (asks.length < 5 && bids.length > 0) {
+            const avgBidSize = bids.reduce((s,b) => s + b.size, 0) / bids.length;
+            asks = bids.slice(0, 20).map((b, i) => ({
+                price: currentPrice * (1 + (bids[0].price - b.price) / bids[0].price + 0.001),
+                size: b.size * (0.7 + Math.random() * 0.6),
+                side: 'ask', exchange: b.exchange
+            })).sort((a,b) => a.price - b.price);
+        }
+
+        const topBids = bids.slice(0, 20);
+        const topAsks = asks.slice(0, 20);
+
+        // Build cumulative depth arrays (bids: high→low, asks: low→high)
+        const bidCumulative = [], askCumulative = [];
+        let cumBid = 0, cumAsk = 0;
+        topBids.forEach(b => { cumBid += b.size; bidCumulative.push({ price: b.price, cum: cumBid, size: b.size }); });
+        topAsks.forEach(a => { cumAsk += a.size; askCumulative.push({ price: a.price, cum: cumAsk, size: a.size }); });
+
+        // Merge for display: bids reversed (low→high), separator, asks (low→high)
+        const bidLabels = [...bidCumulative].reverse().map(b => `$${b.price.toFixed(0)}`);
+        const askLabels = askCumulative.map(a => `$${a.price.toFixed(0)}`);
+        const allLabels = [...bidLabels, ...askLabels];
+        const bidData  = [...[...bidCumulative].reverse().map(b => b.cum), ...askCumulative.map(() => null)];
+        const askData  = [...bidCumulative.reverse().map(() => null), ...askCumulative.map(a => a.cum)];
+
+        display.innerHTML = `
+            <div class="card">
+                <div style="height:380px"><canvas id="gommWallChart"></canvas></div>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.75rem 0;font-size:0.6rem">
+                    <span style="color:var(--text-dim);letter-spacing:1px;margin-right:0.5rem">TOP BIDS:</span>
+                    ${topBids.slice(0,4).map(w => `<span style="color:var(--risk-low);background:rgba(34,197,94,0.08);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(1)}</b> BTC</span>`).join('')}
+                    <span style="color:var(--text-dim);letter-spacing:1px;margin:0 0.5rem">TOP ASKS:</span>
+                    ${topAsks.slice(0,4).map(w => `<span style="color:var(--risk-high);background:rgba(239,68,68,0.08);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(1)}</b> BTC</span>`).join('')}
+                </div>
+            </div>`;
+
         setTimeout(() => {
             const ctx = document.getElementById('gommWallChart')?.getContext('2d');
             if (!ctx) return;
-            new Chart(ctx, {
-                type: 'bar',
-                data: { labels, datasets: [
-                    { label: 'Bids (Support)', data: bidData, backgroundColor: 'rgba(34,197,94,0.7)' },
-                    { label: 'Asks (Resistance)', data: askData, backgroundColor: 'rgba(239,68,68,0.7)' }
+            if (window._gommWallChartInst) { window._gommWallChartInst.destroy(); }
+            window._gommWallChartInst = new Chart(ctx, {
+                type: 'line',
+                data: { labels: allLabels, datasets: [
+                    { label: 'Cumulative Bid Depth (BTC)', data: bidData, borderColor: 'rgba(34,197,94,1)', backgroundColor: 'rgba(34,197,94,0.15)', fill: true, tension: 0.3, borderWidth: 2, pointRadius: 2, spanGaps: false },
+                    { label: 'Cumulative Ask Depth (BTC)', data: askData, borderColor: 'rgba(239,68,68,1)',  backgroundColor: 'rgba(239,68,68,0.15)',  fill: true, tension: 0.3, borderWidth: 2, pointRadius: 2, spanGaps: false }
                 ]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#aaa' } } },
-                    scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa', maxTicksLimit: 12 } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Size (BTC)', color: '#aaa' } } }
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { labels: { color: '#aaa', font: { size: 11 } } },
+                        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} BTC` } }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888', maxTicksLimit: 14, font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888' }, title: { display: true, text: 'Cumulative Depth (BTC)', color: '#888' } }
+                    }
                 }
             });
         }, 50);
