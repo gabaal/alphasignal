@@ -1606,10 +1606,6 @@ async function loadRiskMatrix(tickers = null) {
     }, 50);
 }
 
-function formatPrice(price) {
-    return `$${Number(price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 async function runNeuralSetup(ticker) {
     const btn = document.getElementById('generate-setup-btn');
     const area = document.getElementById('setup-display-area');
