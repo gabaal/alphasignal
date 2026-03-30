@@ -1,4 +1,4 @@
-import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+﻿import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 import yfinance as yf
 import numpy as np
 import pandas as pd
@@ -2367,28 +2367,30 @@ class InstitutionalRoutesMixin:
             self.send_json([])
 
     def handle_alerts(self):
-        """Feature 2: Return historical alerts from the database."""
+        """Return historical alerts newest-first; mark as read for authenticated user."""
         try:
+            auth = self.is_authenticated()
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            # Fetch latest 20 alerts
-            c.execute('SELECT id, type, ticker, message, severity, timestamp FROM alerts_history ORDER BY timestamp DESC LIMIT 20')
+            # Fetch latest 50 alerts, newest first
+            c.execute('''SELECT id, type, ticker, message, severity, timestamp
+                         FROM alerts_history
+                         ORDER BY timestamp DESC
+                         LIMIT 50''')
             rows = c.fetchall()
-            conn.close()
-            
+
             alerts = []
             for row_id, sig_type, ticker, message, severity, ts in rows:
                 alerts.append({
                     'id': row_id,
                     'type': sig_type,
                     'ticker': ticker,
-                    'title': f"{ticker} — {sig_type.replace('_', ' ')}",
+                    'title': f"{ticker} - {sig_type.replace('_', ' ')}",
                     'content': message,
                     'severity': severity or 'medium',
                     'timestamp': ts
                 })
-            
-            # If no DB alerts, provide system status
+
             if not alerts:
                 alerts.append({
                     'type': 'SYSTEM',
@@ -2398,10 +2400,50 @@ class InstitutionalRoutesMixin:
                     'severity': 'low',
                     'timestamp': datetime.now().isoformat()
                 })
+
+            # Mark alerts as read - stamp current UTC time for this user
+            if auth:
+                email = auth.get('email', '')
+                now_str = datetime.utcnow().isoformat()
+                c.execute("""INSERT INTO user_settings (user_email, alerts_last_seen)
+                             VALUES (?, ?)
+                             ON CONFLICT(user_email) DO UPDATE SET alerts_last_seen = excluded.alerts_last_seen""",
+                          (email, now_str))
+                conn.commit()
+
+            conn.close()
             self.send_json(alerts)
         except Exception as e:
             print(f'Alerts Error: {e}')
             self.send_json([])
+
+    def handle_alerts_badge(self):
+        """Lightweight: return unread alert count (newer than user last_seen)."""
+        try:
+            auth = self.is_authenticated()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+
+            if auth:
+                email = auth.get('email', '')
+                c.execute('SELECT alerts_last_seen FROM user_settings WHERE user_email=?', (email,))
+                row = c.fetchone()
+                last_seen = row[0] if row and row[0] else None
+            else:
+                last_seen = None
+
+            if last_seen:
+                c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > ?", (last_seen,))
+            else:
+                c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
+
+            unread = c.fetchone()[0]
+            conn.close()
+            self.send_json({'unread': unread})
+        except Exception as e:
+            print(f'AlertsBadge Error: {e}')
+            self.send_json({'unread': 0})
+
 
     def handle_liquidity(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)

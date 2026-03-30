@@ -1790,42 +1790,40 @@ async function updateBTC() {
 
 
 async function syncAlerts() {
-    const data = await fetchAPI('/alerts');
-    if (data && data.length) {
-        const highSeverity = data.filter(a => a.severity === 'extreme' || a.severity === 'high').length;
-        const badge = document.getElementById('alert-badge');
-        if (badge) {
-            if (highSeverity > 0) {
-                badge.textContent = highSeverity;
-                badge.classList.add('has-alerts');
-                badge.style.display = 'flex';
-                // Re-trigger pulse animation
-                badge.style.animation = 'none';
-                void badge.offsetWidth; // force reflow
-                badge.style.animation = '';
-            } else if (data.length > 0) {
-                badge.textContent = data.length;
-                badge.classList.remove('has-alerts');
-                badge.style.backgroundColor = 'var(--accent)';
-                badge.style.display = 'flex';
-            }
-        }
+    const data = await fetchAPI('/alerts/badge');
+    const badge = document.getElementById('alert-badge');
+    const liveDot = document.getElementById('alerts-nav-live-dot');
 
-        // Live dot on Alerts nav item
-        const liveDot = document.getElementById('alerts-nav-live-dot');
-        if (liveDot) {
-            liveDot.style.display = highSeverity > 0 ? 'inline-block' : 'none';
-        }
+    const unread = data?.unread ?? 0;
 
-        // If user is on the alerts view, pulse the header indicator
-        const currentView = new URLSearchParams(window.location.search).get('view');
-        if (currentView === 'alerts') {
-            const pulse = document.getElementById('alerts-live-pulse');
-            if (pulse) {
-                pulse.innerHTML = `<span class="live-dot"></span> LIVE &bull; Updated ${new Date().toLocaleTimeString()}`;
-                pulse.style.opacity = '1';
-                setTimeout(() => { if (pulse) pulse.style.opacity = '0.5'; }, 3000);
-            }
+    if (badge) {
+        if (unread > 0) {
+            badge.textContent = unread;
+            badge.classList.add('has-alerts');
+            badge.style.display = 'flex';
+            // Re-trigger pulse animation
+            badge.style.animation = 'none';
+            void badge.offsetWidth;
+            badge.style.animation = '';
+        } else {
+            badge.textContent = '';
+            badge.classList.remove('has-alerts');
+            badge.style.display = 'none';
+        }
+    }
+
+    if (liveDot) {
+        liveDot.style.display = unread > 0 ? 'inline-block' : 'none';
+    }
+
+    // If user is on the alerts view, pulse the header indicator
+    const currentView = new URLSearchParams(window.location.search).get('view');
+    if (currentView === 'alerts') {
+        const pulse = document.getElementById('alerts-live-pulse');
+        if (pulse) {
+            pulse.innerHTML = `<span class="live-dot"></span> LIVE &bull; Updated ${new Date().toLocaleTimeString()}`;
+            pulse.style.opacity = '1';
+            setTimeout(() => { if (pulse) pulse.style.opacity = '0.5'; }, 3000);
         }
     }
 }
