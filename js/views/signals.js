@@ -60,6 +60,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     <div class="card-controls" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10">
                         <div class="ai-trigger" onclick="event.stopPropagation(); openAIAnalyst('${s.ticker}')" title="Run AI Deep-Dive"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
                         <div class="ai-trigger" onclick="event.stopPropagation(); openSignalThesisModal('${s.ticker}', '${s.alpha >= 0 ? 'LONG' : 'SHORT'}', ${Math.abs(s.zScore).toFixed(1)})" title="AI Trade Thesis" style="background:rgba(188,19,254,0.15);border-color:rgba(188,19,254,0.3)"><span class="material-symbols-outlined" style="font-size: 18px;color:#bc13fe">psychology</span></div>
+                        <div class="ai-trigger" onclick="event.stopPropagation(); addToWatchlist_quick('${s.ticker}')" title="Add to My Watchlist" style="background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.3)"><span class="material-symbols-outlined" style="font-size: 18px;color:#22c55e">add_circle</span></div>
                         <div class="share-trigger" onclick="event.stopPropagation(); shareSignal('${s.ticker}', ${s.alpha}, ${s.sentiment}, ${s.zScore})" title="Share to X (Twitter)"><span class="material-symbols-outlined" style="font-size: 18px;">share</span></div>
                     </div>
                     <div class="card-header">
