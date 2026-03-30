@@ -27,11 +27,15 @@ async function renderHome() {
                         <button class="intel-action-btn large" onclick="switchView('signals')" title="Launch the AlphaSignal Crypto Trading Terminal" aria-label="Launch Terminal">
                             <span class="material-symbols-outlined" style="margin-right:8px">radar</span> LAUNCH TERMINAL
                         </button>
+                        ${!isAuthenticatedUser ? `
+                        <button class="intel-action-btn large" onclick="showAuth(true)" style="background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(0,242,255,0.1));border-color:rgba(34,197,94,0.5);color:#22c55e" title="Create a free account">
+                            <span class="material-symbols-outlined" style="margin-right:8px">person_add</span> JOIN FREE
+                        </button>` : `
+                        <button class="intel-action-btn large secondary" onclick="switchView('my-terminal')" title="My Terminal — Watchlist & Positions">
+                            <span class="material-symbols-outlined" style="margin-right:8px">account_circle</span> MY TERMINAL
+                        </button>`}
                         <button class="intel-action-btn large secondary" onclick="switchView('command-center')" title="View Institutional Command Center" aria-label="Command Center">
                             <span class="material-symbols-outlined" style="margin-right:8px">dashboard</span> COMMAND CENTER
-                        </button>
-                        <button class="intel-action-btn large secondary" onclick="switchView('help')" title="Browse all documentation" aria-label="Documentation">
-                            <span class="material-symbols-outlined" style="margin-right:8px">menu_book</span> DOCS HUB
                         </button>
                     </div>
 

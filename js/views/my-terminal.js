@@ -89,17 +89,37 @@ async function renderWatchlistTab(el) {
 }
 
 function renderWatchlistCards(items) {
-    return items.map(item => {
-        const livePx = window.livePrices?.[item.ticker];
+    // Perf summary — only show when 3+ items have live prices
+    const withPx = items.filter(i => window.livePrices?.[i.ticker]);
+    const perfSummary = withPx.length >= 2 ? (() => {
+        const perfs = withPx.map(i => {
+            const live = window.livePrices[i.ticker];
+            // We don't have price-at-add from Supabase yet, so show TO-TARGET distance as proxy
+            // Future: store price_at_add column
+            return null; // placeholder — will enhance when we store entry price
+        }).filter(Boolean);
+        return '';
+    })() : '';
+
+    return perfSummary + items.map(item => {
+        const sym = item.ticker.replace('-USD', '').toUpperCase();
+        const livePx = window.livePrices?.[sym] ?? window.livePrices?.[item.ticker];
         const pxStr = livePx ? `$${Number(livePx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
         const targetStr = item.target_price ? `$${Number(item.target_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
         const dist = (livePx && item.target_price) ? (((item.target_price - livePx) / livePx) * 100).toFixed(2) : null;
         const distColor = dist !== null ? (dist >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
+
+        // % since added — uses price_at_add if stored, else shows target distance
+        const addedPx = item.price_at_add ? Number(item.price_at_add) : null;
+        const sincePct = (addedPx && livePx) ? (((livePx - addedPx) / addedPx) * 100).toFixed(2) : null;
+        const sinceColor = sincePct === null ? 'var(--text-dim)' : Number(sincePct) >= 0 ? '#22c55e' : '#ef4444';
+        const daysHeld = item.added_at ? Math.round((Date.now() - new Date(item.added_at).getTime()) / 86400000) : null;
+
         return `
-        <div class="card" style="padding:1rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <div class="card" style="padding:1rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;transition:box-shadow 0.2s" onmouseenter="this.style.boxShadow='0 4px 20px rgba(0,242,255,0.06)'" onmouseleave="this.style.boxShadow=''">
             <div style="flex:0 0 80px">
-                <div style="font-size:0.9rem;font-weight:900;color:var(--accent)">${item.ticker.replace('-USD','')}</div>
-                <div style="font-size:0.6rem;color:var(--text-dim);margin-top:2px">${new Date(item.added_at).toLocaleDateString()}</div>
+                <div style="font-size:0.9rem;font-weight:900;color:var(--accent)">${sym}</div>
+                ${daysHeld !== null ? `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${daysHeld === 0 ? 'Today' : daysHeld + 'd ago'}</div>` : ''}
             </div>
             <div style="flex:1;min-width:80px">
                 <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">LIVE PRICE</div>
@@ -113,11 +133,22 @@ function renderWatchlistCards(items) {
                 <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">TO TARGET</div>
                 <div style="font-size:1rem;font-weight:700;color:${distColor}">${dist !== null ? (dist >= 0 ? '+' : '') + dist + '%' : '—'}</div>
             </div>
+            ${sincePct !== null ? `
+            <div style="flex:1;min-width:80px">
+                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">SINCE ADDED</div>
+                <div style="font-size:1rem;font-weight:700;color:${sinceColor}">${Number(sincePct) >= 0 ? '+' : ''}${sincePct}%</div>
+            </div>` : ''}
             ${item.note ? `<div style="flex:2;min-width:120px;font-size:0.72rem;color:var(--text-dim);font-style:italic">"${item.note}"</div>` : ''}
-            <button onclick="removeWatchlistItem(${item.id})"
-                style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem;flex-shrink:0">
-                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">delete</span>
-            </button>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+                <button onclick="openDetail('${item.ticker}','WATCHLIST')" title="View chart"
+                    style="background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);color:var(--accent);padding:6px 8px;border-radius:8px;cursor:pointer">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">monitoring</span>
+                </button>
+                <button onclick="removeWatchlistItem(${item.id})"
+                    style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">delete</span>
+                </button>
+            </div>
         </div>`;
     }).join('');
 }

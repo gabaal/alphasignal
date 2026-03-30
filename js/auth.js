@@ -145,7 +145,11 @@ async function handleAuth(isSignup) {
             errorEl.style.color = "var(--risk-low)";
         } else {
             showAuth(false);
-            location.reload();
+            await checkAuthStatus();
+            // Show onboarding for first-time users (localStorage flag prevents repeat)
+            setTimeout(() => window.maybeShowOnboarding?.(), 600);
+            if (typeof renderCurrentView === 'function') renderCurrentView();
+            else location.reload();
         }
         return true;
     } else {
