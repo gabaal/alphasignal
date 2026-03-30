@@ -330,7 +330,7 @@ class PortfolioSimulator:
 PORTFOLIO_SIM = PortfolioSimulator()
 
 class HarvestService:
-    def __init__(self, cache, ws_server=None, interval=3600):
+    def __init__(self, cache, ws_server=None, interval=1800):  # 30-min harvest cycle
         self.cache = cache
         self.ws_server = ws_server
         self.interval = interval
@@ -465,20 +465,21 @@ class HarvestService:
                 importance = prediction['feature_importance']
                 confidence = prediction.get('confidence', 0.75)
                 
-                # 3. Decision Logic: Alert if predicted return > 0.025 (2.5% Alpha)
+                # 3. Decision Logic: Alert if predicted return > 0.8% (lowered from 2.5%)
                 signal_type = None
-                if pred_return >= 0.025:
+                if pred_return >= 0.008:
                     signal_type = "ML_ALPHA_PREDICTION"
+                    severity = 'critical' if pred_return >= 0.02 else 'high' if pred_return >= 0.01 else 'medium'
                     top_driver = max(importance, key=importance.get)
                     message = f"ML Engine predicts +{pred_return*100:.1f}% alpha window. Primary driver: {top_driver.upper()} ({(importance[top_driver]*100):.1f}% confidence)."
                 
                 if signal_type:
-                    # Anti-spam: Check if we alerted this ticker recently (last 4h)
-                    c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND timestamp > datetime('now', '-4 hours')", (ticker,))
+                    # Anti-spam: Check if we alerted this ticker recently (last 1h)
+                    c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND timestamp > datetime('now', '-1 hours')", (ticker,))
                     if not c.fetchone():
                         # Record Signal in History
                         c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
-                                 (signal_type, ticker, message, "medium", curr_p, datetime.now().isoformat()))
+                                 (signal_type, ticker, message, severity, curr_p, datetime.now().isoformat()))
 
                         # Record Prediction Metadata
                         c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
@@ -535,8 +536,84 @@ class HarvestService:
             except Exception as e:
                 print(f"Prediction loop error for {ticker}: {e}")
                 continue
+
+        # Rule-based fallback signals (fires even before ML models warm up)
+        self._generate_rule_based_signals(data, conn, c)
+
         conn.commit()
         conn.close()
+
+    def _generate_rule_based_signals(self, data, conn, c):
+        """RSI / MACD / volume-spike signals — complement to ML predictions."""
+        if data is None or data.empty: return
+        try:
+            tickers = data.columns.get_level_values(1).unique() if isinstance(data.columns, pd.MultiIndex) else []
+            for ticker in tickers:
+                try:
+                    if isinstance(data.columns, pd.MultiIndex):
+                        df = data.xs(ticker, axis=1, level=1).dropna()
+                    else:
+                        df = data.dropna()
+                    if len(df) < 15 or 'Close' not in df.columns: continue
+
+                    close = df['Close']
+                    curr_p = float(close.iloc[-1])
+
+                    # RSI-14
+                    delta = close.diff()
+                    gain = delta.where(delta > 0, 0).rolling(14).mean()
+                    loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+                    rs   = gain / loss.replace(0, 1e-9)
+                    rsi  = float((100 - 100 / (1 + rs)).iloc[-1])
+
+                    # MACD crossover
+                    ema12 = close.ewm(span=12).mean()
+                    ema26 = close.ewm(span=26).mean()
+                    macd  = ema12 - ema26
+                    signal_line = macd.ewm(span=9).mean()
+                    macd_cross = float(macd.iloc[-1]) > float(signal_line.iloc[-1]) and float(macd.iloc[-2]) <= float(signal_line.iloc[-2])
+                    macd_bear  = float(macd.iloc[-1]) < float(signal_line.iloc[-1]) and float(macd.iloc[-2]) >= float(signal_line.iloc[-2])
+
+                    # Volume spike (>2σ above 20d mean)
+                    vol_spike = False
+                    if 'Volume' in df.columns:
+                        vols = df['Volume'].dropna()
+                        if len(vols) > 20:
+                            vol_mean, vol_std = float(vols.rolling(20).mean().iloc[-1]), float(vols.rolling(20).std().iloc[-1])
+                            vol_spike = vol_std > 0 and float(vols.iloc[-1]) > vol_mean + 2 * vol_std
+
+                    sig_type, message, severity = None, '', 'medium'
+                    if rsi < 30:
+                        sig_type = 'RSI_OVERSOLD'
+                        message  = f'RSI-14 at {rsi:.1f} — deeply oversold. Potential institutional accumulation setup.'
+                        severity = 'high' if rsi < 25 else 'medium'
+                    elif rsi > 70:
+                        sig_type = 'RSI_OVERBOUGHT'
+                        message  = f'RSI-14 at {rsi:.1f} — overbought territory. Watch for distribution.'
+                        severity = 'medium'
+                    elif macd_cross and vol_spike:
+                        sig_type = 'MACD_BULLISH_CROSS'
+                        message  = f'MACD bullish crossover confirmed with volume spike on {ticker}. Momentum inflection.'
+                        severity = 'high'
+                    elif macd_bear:
+                        sig_type = 'MACD_BEARISH_CROSS'
+                        message  = f'MACD bearish crossover on {ticker}. Momentum deteriorating.'
+                        severity = 'medium'
+                    elif vol_spike:
+                        sig_type = 'VOLUME_SPIKE'
+                        message  = f'Volume 2σ above 20-day mean on {ticker}. Institutional activity detected.'
+                        severity = 'medium'
+
+                    if sig_type:
+                        c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND type = ? AND timestamp > datetime('now', '-2 hours')", (ticker, sig_type))
+                        if not c.fetchone():
+                            c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?,?,?,?,?,?)",
+                                      (sig_type, ticker, message, severity, curr_p, datetime.now().isoformat()))
+                            print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} (RSI={rsi:.1f})')
+                except Exception as te:
+                    continue
+        except Exception as e:
+            print(f'[RuleSig] Error: {e}')
 
     def record_orderbook_snapshots(self):
         """Phase 8: Resilient Snapshots.

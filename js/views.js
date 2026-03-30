@@ -61,7 +61,8 @@ const institutionalHubTabs = [
     { id: 'yield', label: 'YIELD LAB', view: 'yield-lab', icon: 'biotech' },
     { id: 'optimizer', label: 'PORTFOLIO OPTIMIZER', view: 'portfolio-optimizer', icon: 'auto_mode' },
     { id: 'portfolio', label: 'PORTFOLIO SIM', view: 'portfolio', icon: 'pie_chart' },
-    { id: 'tradelab', label: 'TRADE IDEA LAB', view: 'tradelab', icon: 'experiment' }
+    { id: 'tradelab', label: 'TRADE IDEA LAB', view: 'tradelab', icon: 'experiment' },
+    { id: 'rebalancer', label: 'AI REBALANCER', view: 'ai-rebalancer', icon: 'smart_toy' }
 ];
 
 async function renderInstitutionalHub() {
@@ -6423,8 +6424,118 @@ async function executeAIRebalance(tickets) {
 }
 
 // ================================================================
-// Phase 17-D: Live Macro Event Calendar
+// Standalone AI Rebalancer View (full page, routed as ai-rebalancer)
 // ================================================================
+async function renderAIRebalancerView(tabs = null) {
+    if (!tabs) tabs = institutionalHubTabs;
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">smart_toy</span>AI Portfolio Rebalancer <span class="premium-badge">AI</span></h1>
+            <p>Max-Sharpe portfolio optimisation via Monte Carlo simulation across ML signal predictions. GPT-generated institutional memo.</p>
+        </div>
+        ${renderHubTabs('rebalancer', tabs)}
+        <div id="ai-reb-top" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1.5rem">
+            ${['Current Sharpe','Proposed Sharpe','Sharpe Improvement','Assets Analysed','Rebalance Tickets','Last Updated'].map(s =>
+                `<div class="glass-card" style="padding:1rem;text-align:center"><div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${s}</div><div id="areb-${s.toLowerCase().replace(/[^a-z]/g,'-')}" style="font-size:1.2rem;font-weight:800;color:var(--accent)">--</div></div>`
+            ).join('')}
+        </div>
+        <div style="text-align:center;margin-bottom:1.5rem">
+            <button id="areb-run-btn" onclick="runAIRebalancerView()" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:12px 32px;border-radius:10px;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:1.5px">
+                <span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;font-size:1rem">auto_awesome</span>GENERATE REBALANCE PLAN
+            </button>
+        </div>
+        <div id="areb-content" style="display:none"></div>
+    `;
+}
+
+window.runAIRebalancerView = async function() {
+    const btn = document.getElementById('areb-run-btn');
+    const content = document.getElementById('areb-content');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loader" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></span>OPTIMISING...'; }
+
+    try {
+        const data = await fetchAPI('/ai-rebalancer', 'GET');
+        if (!data || data.error) {
+            showToast('AI REBALANCER', data?.error || 'Optimization failed', 'alert');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;font-size:1rem">auto_awesome</span>GENERATE REBALANCE PLAN'; }
+            return;
+        }
+
+        const improve = data.proposed_sharpe && data.current_sharpe
+            ? (((data.proposed_sharpe - data.current_sharpe) / Math.abs(data.current_sharpe || 0.01)) * 100).toFixed(1)
+            : 'N/A';
+        const improveColor = parseFloat(improve) > 0 ? '#22c55e' : '#ef4444';
+
+        // Populate stat badges
+        const vals = {
+            'current-sharpe':      data.current_sharpe ?? '--',
+            'proposed-sharpe':     data.proposed_sharpe ?? '--',
+            'sharpe-improvement':  improve !== 'N/A' ? improve + '%' : 'N/A',
+            'assets-analysed':     data.tickers_used?.length ?? '--',
+            'rebalance-tickets':   data.tickets?.length ?? 0,
+            'last-updated':        data.updated ?? '--'
+        };
+        const valColors = { 'sharpe-improvement': improveColor, 'proposed-sharpe': '#22c55e', 'rebalance-tickets': '#ffd700' };
+        Object.entries(vals).forEach(([k, v]) => {
+            const el = document.getElementById('areb-' + k);
+            if (el) { el.textContent = v; if (valColors[k]) el.style.color = valColors[k]; }
+        });
+
+        content.style.display = 'block';
+        content.innerHTML = `
+            <!-- Memo -->
+            <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(0,212,170,0.2)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">⚡ AI REBALANCING MEMO</div>
+                    <div style="font-size:0.65rem;color:var(--text-dim)">${data.updated}</div>
+                </div>
+                <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.8;white-space:pre-wrap;font-family:'JetBrains Mono',monospace,serif">${data.memo}</div>
+            </div>
+
+            <!-- Allocation table -->
+            <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto">
+                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF — ML MAX-SHARPE WEIGHTS</div>
+                <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
+                    <thead><tr style="color:var(--text-dim)">
+                        ${['Ticker','ML Score','Current Alloc','→ Suggested','Action'].map(h => `<th style="text-align:left;padding:8px 12px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
+                    </tr></thead>
+                    <tbody>
+                        ${(data.weights || []).sort((a,b) => parseFloat(b.suggested_pct) - parseFloat(a.suggested_pct)).map(w => {
+                            const act = w.action;
+                            const clr = act === 'ADD' ? '#22c55e' : act === 'REDUCE' ? '#ef4444' : '#60a5fa';
+                            const pct = parseFloat(w.suggested_pct);
+                            const bar = Math.min(pct * 2.5, 100);
+                            return `<tr style="background:rgba(255,255,255,0.02)">
+                                <td style="padding:10px 12px;font-weight:800;font-family:monospace">${w.ticker}</td>
+                                <td style="padding:10px 12px;color:#bc13fe;font-weight:700">${w.ml_score}%</td>
+                                <td style="padding:10px 12px;color:var(--text-dim)">${w.current_pct}</td>
+                                <td style="padding:10px 12px">
+                                    <span style="font-weight:800;color:#00d4aa">${w.suggested_pct}</span>
+                                    <div style="height:3px;background:rgba(0,212,170,0.15);border-radius:2px;margin-top:4px;width:100px">
+                                        <div style="height:3px;background:#00d4aa;border-radius:2px;width:${bar}%"></div>
+                                    </div>
+                                </td>
+                                <td style="padding:10px 12px"><span style="font-size:0.6rem;padding:3px 10px;border-radius:10px;background:${clr}22;color:${clr};font-weight:800;letter-spacing:0.5px">${act}</span></td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            ${data.tickets?.length ? `
+            <button onclick="executeAIRebalance(${JSON.stringify(data.tickets)})" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:12px 28px;border-radius:10px;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:1px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px">
+                <span class="material-symbols-outlined" style="font-size:1.1rem">sync_alt</span>
+                EXECUTE ${data.tickets.length} REBALANCE TICKET${data.tickets.length > 1 ? 'S' : ''} → TRADE LEDGER
+            </button>` : ''}
+        `;
+    } catch(e) {
+        showToast('AI REBALANCER', 'Error: ' + e.message, 'alert');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;font-size:1rem">auto_awesome</span>GENERATE REBALANCE PLAN'; }
+    }
+};
+
+
 async function renderMacroCalendar(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `

@@ -29,6 +29,7 @@ const viewMap = {
     'strategy-lab': renderStrategyLab,
     'backtester-v2': renderBacktesterV2,
     'options-flow': renderOptionsFlow,
+    'ai-rebalancer': renderAIRebalancerView,
     risk: renderRiskMatrix,
     stress: renderStressHub,
     narrative: renderNarrativeGalaxy,
