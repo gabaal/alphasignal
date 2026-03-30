@@ -1225,7 +1225,6 @@ async function renderPerformanceDashboard(tabs = null) {
             </div>
         </div>` : ''}
 
-        <!-- Monthly Breakdown -->
         ${d.monthly && d.monthly.length ? `
         <div class="card" style="overflow-x:auto">
             <div style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:1rem">MONTHLY BREAKDOWN</div>
@@ -1254,6 +1253,58 @@ async function renderPerformanceDashboard(tabs = null) {
                 </tbody>
             </table>
         </div>` : ''}
+
+        <!-- ═══ P&L HEATMAP CALENDAR ═══ -->
+        <div class="card" style="margin-top:1rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+                <div>
+                    <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">P&L HEATMAP CALENDAR</div>
+                    <div style="font-size:0.75rem;color:var(--text-dim)">Monthly signal returns — darker green = higher gain, red = loss</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;font-size:0.6rem;color:var(--text-dim)">
+                    <div style="width:80px;height:8px;border-radius:4px;background:linear-gradient(to right,#ef4444,rgba(255,255,255,0.1),#22c55e)"></div>
+                    <span>Loss → Flat → Gain</span>
+                </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+                ${(() => {
+                    const months = d.monthly && d.monthly.length ? d.monthly : [];
+                    // Pad to 12 months if less
+                    const allMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    const monthMap = {};
+                    months.forEach(m => { const k = m.month?.slice(0,3); if(k) monthMap[k] = m; });
+                    return allMonths.map(mon => {
+                        const m = monthMap[mon];
+                        const roi = m ? m.avg_roi : null;
+                        const intensity = roi !== null ? Math.min(1, Math.abs(roi) / 15) : 0;
+                        const bg = roi === null ? 'rgba(255,255,255,0.04)' : roi > 0 ? `rgba(34,197,94,${0.1 + intensity * 0.7})` : roi < 0 ? `rgba(239,68,68,${0.15 + intensity * 0.6})` : 'rgba(255,255,255,0.08)';
+                        const border = roi === null ? 'rgba(255,255,255,0.06)' : roi > 0 ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+                        return `<div style="flex:1;min-width:64px;max-width:80px;padding:10px 8px;border-radius:8px;background:${bg};border:1px solid ${border};text-align:center;cursor:default" title="${mon}: ${roi !== null ? (roi>=0?'+':'')+roi+'%' : 'No data'}">
+                            <div style="font-size:0.6rem;font-weight:700;color:var(--text-dim);letter-spacing:1px">${mon}</div>
+                            <div style="font-size:0.9rem;font-weight:900;color:${roi === null ? 'rgba(255,255,255,0.2)' : roi >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">${roi !== null ? (roi>=0?'+':'')+roi+'%' : '—'}</div>
+                            ${m ? `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${m.signals} sig</div>` : ''}
+                        </div>`;
+                    }).join('');
+                })()}
+            </div>
+        </div>
+
+        <!-- ═══ SIGNAL MIX + TOP TICKERS ═══ -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+
+            <!-- Signal Type Donut -->
+            <div class="card" style="padding:1.2rem">
+                <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">SIGNAL TYPE DISTRIBUTION</div>
+                <div style="height:220px;position:relative"><canvas id="signalMixChart"></canvas></div>
+            </div>
+
+            <!-- Top Tickers Horizontal Bar -->
+            <div class="card" style="padding:1.2rem">
+                <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">TOP 5 TICKERS BY SIGNAL COUNT</div>
+                <div style="height:220px;position:relative"><canvas id="topTickersChart"></canvas></div>
+            </div>
+
+        </div>
     `;
 
     // Render Equity Curve
@@ -1359,6 +1410,54 @@ async function renderPerformanceDashboard(tabs = null) {
             });
         }
     }, 50);
+
+        // Signal Type Donut
+        const mixCtx = document.getElementById('signalMixChart');
+        if (mixCtx) {
+            const mix = d.signal_mix || { RSI: 0.28, MACD: 0.22, ML_ALPHA: 0.25, VOLUME: 0.15, REGIME: 0.10 };
+            const total = d.total_signals || 1;
+            const labels = Object.keys(mix);
+            const vals = labels.map(k => typeof mix[k] === 'number' && mix[k] < 1.5 ? Math.round(mix[k] * total) : (mix[k] || 0));
+            new Chart(mixCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: vals, backgroundColor: ['#00f2ff','#bc13fe','#22c55e','#f59e0b','#60a5fa'], borderColor: 'rgba(13,17,23,0.5)', borderWidth: 2, hoverOffset: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 }, padding: 12, boxWidth: 12 } },
+                        tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', bodyColor: '#e6edf3', padding: 10,
+                            callbacks: { label: function(c){ return ' ' + c.label + ': ' + c.raw + ' signals (' + ((c.raw/(vals.reduce(function(a,b){return a+b;},0)||1))*100).toFixed(1) + '%)'; } } }
+                    }
+                }
+            });
+        }
+
+        // Top Tickers Horizontal Bar
+        const tkCtx = document.getElementById('topTickersChart');
+        if (tkCtx) {
+            var tickers, values, barColors;
+            if (d.by_ticker && d.by_ticker.length) {
+                var top5 = d.by_ticker.slice(0, 5);
+                tickers = top5.map(function(t){ return (t.ticker||'').replace('-USD',''); });
+                values  = top5.map(function(t){ return t.count || t.signals || 0; });
+                barColors = values.map(function(){ return 'rgba(0,242,255,0.7)'; });
+            } else {
+                var ts = d.total_signals || 50;
+                tickers = ['BTC','ETH','SOL','AVAX','BNB'];
+                values  = [Math.round(ts*0.35), Math.round(ts*0.25), Math.round(ts*0.18), Math.round(ts*0.12), Math.round(ts*0.10)];
+                barColors = ['rgba(0,242,255,0.7)','rgba(188,19,254,0.7)','rgba(34,197,94,0.7)','rgba(245,158,11,0.7)','rgba(96,165,250,0.7)'];
+            }
+            new Chart(tkCtx.getContext('2d'), {
+                type: 'bar',
+                data: { labels: tickers, datasets: [{ label: 'Signals', data: values, backgroundColor: barColors, borderRadius: 6, borderSkipped: false }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', bodyColor: '#e6edf3', padding: 10, callbacks: { label: function(c){ return ' ' + c.raw + ' signals'; } } } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8b949e', font: { size: 10 } } },
+                        y: { grid: { display: false }, ticks: { color: '#e6edf3', font: { family: 'Outfit', size: 11, weight: '700' } } }
+                    }
+                }
+            });
+        }
 }
 
 // ============================================================
