@@ -5210,7 +5210,7 @@ async function renderAlerts() {
             <span style="margin-left:auto;font-size:0.6rem;color:var(--text-dim)">Updated: ${new Date().toLocaleTimeString()}</span>
         </div>
 
-        <div class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
+        <div id="live-alert-list" class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
             ${data && data.length ? data.map(a => {
                 const ts = a.timestamp ? new Date(a.timestamp) : null;
                 const tsDisplay = ts ? ts.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'SYNC';

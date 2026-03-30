@@ -433,6 +433,73 @@ function cleanupAdvChart() {
     if (c) c.innerHTML = '<div class="loader" style="margin:4rem auto"></div>';
 }
 
+
+// ════════════════════════════════════════════════════════
+// Multi-Ticker Backtester Comparison
+// ════════════════════════════════════════════════════════
+async function runMultiTickerCompare(strategy, fast, slow) {
+    fast = fast || 20; slow = slow || 50;
+    const btn = document.getElementById('multi-ticker-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'LOADING...'; }
+    const tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD'];
+    const colors  = { 'BTC-USD': '#00f2ff', 'ETH-USD': '#bc13fe', 'SOL-USD': '#22c55e' };
+    try {
+        const results = await Promise.all(
+            tickers.map(t => fetchAPI('/backtest?ticker=' + t + '&strategy=' + strategy + '&fast=' + fast + '&slow=' + slow))
+        );
+        let existing = document.getElementById('multi-chart-panel');
+        if (existing) existing.remove();
+        const panel = document.createElement('div');
+        panel.id = 'multi-chart-panel';
+        panel.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9000;display:flex;align-items:center;justify-content:center;padding:2rem;backdrop-filter:blur(8px)';
+        const statsHtml = tickers.map(function(t, i) {
+            const r = results[i]; const ret = r && r.summary ? r.summary.totalReturn : null;
+            const col = colors[t];
+            if (ret === null) return '<div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:1rem;text-align:center"><div style="color:var(--text-dim);font-size:0.7rem">' + t + '</div><div style="color:var(--text-dim)">No data</div></div>';
+            return '<div style="background:rgba(255,255,255,0.03);border:1px solid ' + col + '30;border-radius:10px;padding:1rem;text-align:center"><div style="font-size:0.65rem;color:' + col + ';font-weight:900;letter-spacing:1px">' + t.replace('-USD','') + '</div><div style="font-size:1.4rem;font-weight:900;color:' + (ret>=0?'var(--risk-low)':'var(--risk-high)') + ';font-family:var(--font-mono)">' + (ret>=0?'+':'') + ret + '%</div><div style="font-size:0.6rem;color:var(--text-dim);margin-top:4px">Sharpe: ' + (r.summary.sharpe||'—') + ' · WR: ' + (r.summary.winRate||'—') + '%</div></div>';
+        }).join('');
+        panel.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:900px;width:100%;max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><div><h2 style="margin:0;font-size:1.1rem">Multi-Asset Strategy Comparison</h2><p style="margin:4px 0 0;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px">' + strategy.replace(/_/g,' ').toUpperCase() + ' · FAST:' + fast + ' SLOW:' + slow + '</p></div><button onclick="document.getElementById(chr(39) + chr(123) + chr(39)multi-chart-panel' + chr(39) + chr(125) + chr(39)).remove()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:var(--font-ui)">X CLOSE</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">' + statsHtml + '</div><div style="height:320px;position:relative"><canvas id="multi-ticker-canvas"></canvas></div></div>';
+        panel.querySelector('button').onclick = function() { document.getElementById('multi-chart-panel').remove(); };
+        document.body.appendChild(panel);
+        renderMultiTickerChart(tickers, results, colors);
+    } catch(e) { console.error('[MultiTicker]', e); }
+    finally { if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">compare_arrows</span> COMPARE BTC / ETH / SOL'; } }
+}
+
+function renderMultiTickerChart(tickers, results, colors) {
+    const canvas = document.getElementById('multi-ticker-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const datasets = tickers.map(function(t, i) {
+        const r = results[i];
+        const curve = (r && (r.equity_curve || r.curve)) || [];
+        return { label: t.replace('-USD',''), data: curve.map(function(p){return p.portfolio;}),
+            borderColor: colors[t], borderWidth: 2, pointRadius: 0, tension: 0.1, fill: false };
+    });
+    const longestResult = results.reduce(function(a,b){
+        return ((b&&(b.equity_curve||b.curve)||[]).length > (a&&(a.equity_curve||a.curve)||[]).length ? b : a);
+    }, results[0]);
+    const labels = ((longestResult&&(longestResult.equity_curve||longestResult.curve))||[]).map(function(p){return p.date;});
+    new Chart(ctx, {
+        type: 'line', data: { labels: labels, datasets: datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+                legend: { display: true, position: 'top', labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 } } },
+                tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', titleColor: '#00f2ff', bodyColor: '#e6edf3',
+                    borderColor: '#30363d', borderWidth: 1, padding: 12,
+                    callbacks: { label: function(c){ return c.dataset.label + ': ' + (c.parsed.y>=0?'+':'') + c.parsed.y.toFixed(2) + '%'; } }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 10 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#8b949e', font: { size: 10 }, callback: function(v){ return (v>=0?'+':'') + v + '%'; } } }
+            }
+        }
+    });
+}
+
 function renderAdvancedChart() {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">

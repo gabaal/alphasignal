@@ -589,6 +589,94 @@ async function renderHome() {
                 </div>
             </section>
 
+            <!-- ===== PRICING ===== -->
+            <section id="pricing" style="padding:5rem 2rem;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)">
+                <div style="max-width:900px;margin:0 auto;text-align:center">
+                    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">SIMPLE PRICING</div>
+                    <h2 style="font-size:2.2rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:0.75rem">Institutional Intelligence.<br><span style="color:var(--accent)">One Flat Fee.</span></h2>
+                    <p style="color:var(--text-dim);font-size:1rem;margin-bottom:3rem;max-width:500px;margin-left:auto;margin-right:auto">No seat fees. No data surcharges. Every hub, every signal, every AI feature — all included.</p>
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;text-align:left">
+
+                        <!-- FREE TIER -->
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:16px;padding:2rem;display:flex;flex-direction:column">
+                            <div style="font-size:0.65rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:0.5rem">FREE</div>
+                            <div style="font-size:2.5rem;font-weight:900;margin-bottom:0.25rem">$0<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:2rem">No credit card required</div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:12px;margin-bottom:2rem">
+                                ${[
+                                    ['check','Live Signal Feed (50 assets)'],
+                                    ['check','Fear & Greed + Conviction Dials'],
+                                    ['check','Basic Z-Score Signals'],
+                                    ['check','Market Pulse Bar (BTC/ETH/SOL)'],
+                                    ['check','Public Documentation Hub'],
+                                    ['close','Strategy Backtester V2'],
+                                    ['close','Options Flow Scanner'],
+                                    ['close','On-Chain Intelligence Hub'],
+                                    ['close','AI Portfolio Rebalancer'],
+                                    ['close','Discord/Telegram Alerts'],
+                                    ['close','Monte Carlo Simulator'],
+                                ].map(([icon, label]) => `
+                                <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem;color:${icon==='check'?'var(--text)':'var(--text-dim)'}">
+                                    <span class="material-symbols-outlined" style="font-size:1rem;color:${icon==='check'?'var(--risk-low)':'rgba(255,255,255,0.2)'}">${icon}</span>
+                                    ${label}
+                                </div>`).join('')}
+                            </div>
+                            <button class="intel-action-btn" style="width:100%;background:rgba(255,255,255,0.04);border-color:var(--border);color:var(--text-dim)" onclick="switchView('signals')">
+                                START FREE
+                            </button>
+                        </div>
+
+                        <!-- PRO TIER -->
+                        <div style="background:linear-gradient(135deg,rgba(0,242,255,0.07),rgba(188,19,254,0.05));border:2px solid rgba(0,242,255,0.4);border-radius:16px;padding:2rem;display:flex;flex-direction:column;position:relative;box-shadow:0 0 40px rgba(0,242,255,0.08)">
+                            <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--accent),#bc13fe);color:#000;font-size:0.6rem;font-weight:900;letter-spacing:2px;padding:4px 16px;border-radius:100px;white-space:nowrap">MOST POPULAR</div>
+                            <div style="font-size:0.65rem;letter-spacing:2px;color:var(--accent);font-weight:700;margin-bottom:0.5rem">PRO</div>
+                            <div style="font-size:2.5rem;font-weight:900;margin-bottom:0.25rem;color:var(--accent)">$7.99<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:2rem">Cancel anytime · Billed monthly</div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:12px;margin-bottom:2rem">
+                                ${[
+                                    'Everything in Free',
+                                    'Strategy Backtester V2 (15 strategies)',
+                                    'AI Portfolio Rebalancer (Monte Carlo)',
+                                    'Options Flow Scanner (Deribit live)',
+                                    'On-Chain Hub (MVRV, SOPR, NVT)',
+                                    'Whale Pulse + Wallet Attribution',
+                                    'Macro Calendar + AI Market Briefing',
+                                    'Discord & Telegram Alert Webhooks',
+                                    'AI Trade Thesis Generator',
+                                    'Strategy Compare (all 15 strategies)',
+                                    'Multi-Ticker Backtest Comparison',
+                                    'Full PDF Research Report Export',
+                                ].map(label => `
+                                <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem;color:var(--text)">
+                                    <span class="material-symbols-outlined" style="font-size:1rem;color:var(--risk-low)">check_circle</span>
+                                    ${label}
+                                </div>`).join('')}
+                            </div>
+                            <button class="intel-action-btn large" style="width:100%;background:linear-gradient(90deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border-color:var(--accent);font-size:0.85rem" onclick="typeof handleSubscribe !== 'undefined' ? handleSubscribe() : switchView('signals')">
+                                <span class="material-symbols-outlined" style="margin-right:8px">bolt</span>
+                                UNLOCK PRO — $7.99/MO
+                            </button>
+                            <div style="text-align:center;margin-top:0.75rem;font-size:0.65rem;color:var(--text-dim)">Secure payment via Stripe · Instant access</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Reassurance bar -->
+                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;margin-top:3rem">
+                        ${[
+                            ['lock','Bank-grade encryption'],
+                            ['cancel','Cancel anytime'],
+                            ['verified','No hidden fees'],
+                            ['support_agent','Telegram support'],
+                        ].map(([icon, label]) => `
+                        <div style="display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--text-dim)">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">${icon}</span>${label}
+                        </div>`).join('')}
+                    </div>
+                </div>
+            </section>
+
             <!-- ===== CTA FOOTER ===== -->
             <section style="padding:5rem 2rem;text-align:center;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(0,242,255,0.04),rgba(0,0,0,0.5))">
                 <div style="max-width:700px;margin:0 auto">
@@ -2281,10 +2369,37 @@ function initLivePriceStream() {
                         }
 
                         // Feature 2: Bell badge removed per user feedback
-                    } else if (msg.type === 'alert') {
-                        showToast(`Ã°Å¸â€œÂ¡ ${msg.data.signal_type}`, msg.data.message, 'alert');
+                    } else if (msg.type === 'new_alert' || msg.type === 'alert') {
+                        const d = msg.data;
+                        const ticker = d.ticker || d.signal_type || 'SIGNAL';
+                        showToast('\uD83D\uDD14 ' + ticker, d.content || d.message || '', 'alert');
+
+                        // Bump the alerts badge
+                        const alertBadge = document.getElementById('alerts-badge-count');
+                        if (alertBadge) {
+                            const cur = parseInt(alertBadge.textContent || '0', 10);
+                            alertBadge.textContent = cur + 1;
+                            alertBadge.style.display = 'inline-flex';
+                        }
+
+                        // Live-prepend card if Alerts view is open
+                        if (msg.type === 'new_alert') {
+                            const alertList = document.getElementById('live-alert-list');
+                            if (alertList) {
+                                const sevColor = d.severity === 'high' || d.severity === 'critical' ? 'var(--risk-high)' : d.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)';
+                                const ts = new Date(d.timestamp);
+                                const tsDisplay = ts.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                                const entryPrice = d.price && parseFloat(d.price) > 0 ? parseFloat(d.price) : null;
+                                const card = document.createElement('div');
+                                card.className = 'alert-card ' + (d.severity || 'medium');
+                                card.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ' + sevColor + ';border-radius:12px;padding:1.5rem;margin-bottom:1rem;animation:dropdownFadeIn 0.3s ease';
+                                const priceHtml = entryPrice ? '<span style="font-family:var(--font-mono);font-weight:700">ENTRY $' + entryPrice.toLocaleString('en-US',{maximumFractionDigits:4}) + '</span>' : '';
+                                card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:8px"><span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:rgba(0,242,255,0.08);color:var(--accent);border:1px solid rgba(0,242,255,0.2)">' + (d.type||'').replace(/_/g,' ') + '</span><span style="font-size:0.7rem;color:var(--accent);font-weight:900">' + (d.ticker||'') + '</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;color:var(--text-dim);font-family:var(--font-mono)">' + tsDisplay + '</span><span style="font-size:0.6rem;color:var(--accent);font-weight:700;padding:2px 8px;border:1px solid rgba(0,242,255,0.3);border-radius:100px;background:rgba(0,242,255,0.06)">LIVE</span></div></div><p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 10px">' + (d.content||'') + '</p>' + priceHtml;
+                                alertList.prepend(card);
+                            }
+                        }
                     } else if (msg.type === 'regime_shift') {
-                        showToast(`Ã¢Å¡â€“Ã¯Â¸Â REGIME SHIFT`, `Market has shifted from ${msg.data.old} to ${msg.data.new}.`, 'regime');
+                        showToast('\u26A0\uFE0F REGIME SHIFT', 'Market shifted from ' + msg.data.old + ' to ' + msg.data.new + '.', 'regime');
                     }
                 } catch(e) {}
             };

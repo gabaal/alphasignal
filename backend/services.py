@@ -521,17 +521,21 @@ class HarvestService:
                         # Real-time WebSocket Broadcast to Frontend
                         if self.ws_server:
                             try:
+                                row_id = c.lastrowid
                                 self.ws_server.broadcast(json.dumps({
-                                    "type": "alert", 
-                                    "data": {
-                                        "ticker": ticker, 
-                                        "signal_type": "Institutional Alpha", 
-                                        "price": curr_p, 
-                                        "message": message,
-                                        "timestamp": datetime.now().strftime('%H:%M:%S')
+                                    'type': 'new_alert',
+                                    'data': {
+                                        'id': row_id,
+                                        'type': signal_type,
+                                        'ticker': ticker,
+                                        'title': f"{ticker} — ML ALPHA SIGNAL",
+                                        'content': message,
+                                        'severity': severity,
+                                        'price': curr_p,
+                                        'timestamp': datetime.now().isoformat()
                                     }
                                 }))
-                            except Exception as wse: 
+                            except Exception as wse:
                                 print(f"WS Broadcast Error: {wse}")
             except Exception as e:
                 print(f"Prediction loop error for {ticker}: {e}")
@@ -640,6 +644,24 @@ class HarvestService:
                                         )
                             except Exception as ne:
                                 print(f'[RuleSig Notify] Error: {ne}')
+
+                            # Real-time WS push to frontend alert list
+                            if self.ws_server:
+                                try:
+                                    self.ws_server.broadcast(json.dumps({
+                                        'type': 'new_alert',
+                                        'data': {
+                                            'id': c.lastrowid,
+                                            'type': sig_type,
+                                            'ticker': ticker,
+                                            'title': f"{ticker} — {sig_type.replace('_', ' ')}",
+                                            'content': message,
+                                            'severity': severity,
+                                            'price': curr_p,
+                                            'timestamp': datetime.now().isoformat()
+                                        }
+                                    }))
+                                except: pass
                 except Exception as te:
                     continue
         except Exception as e:
