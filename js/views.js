@@ -5211,6 +5211,28 @@ async function renderAlerts() {
         </div>
 
         <div id="live-alert-list" class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
+            ${data && data.length ? (() => {
+                // Cache for client-side filtering
+                window._alertsCache = data;
+
+                return `
+                <div id="alert-filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;background:rgba(0,0,0,0.2);border-radius:12px;border:1px solid var(--border);margin-bottom:4px;align-items:center">
+                    <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px;margin-right:4px">FILTER:</span>
+                    ${['ALL','RSI','MACD','VOLUME','ML_ALPHA','REGIME','DIVERGENCE'].map(t => `
+                        <button class="filter-btn alert-filter-btn ${t==='ALL'?'active':''}" data-afilter="${t}"
+                            style="font-size:0.6rem;padding:3px 10px;border-radius:100px;border:1px solid rgba(255,255,255,0.1);background:${t==='ALL'?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.04)'};color:${t==='ALL'?'var(--accent)':'var(--text-dim)'};cursor:pointer;font-weight:700;letter-spacing:1px;transition:all 0.15s"
+                            onclick="window.filterAlerts('${t}',this)">${t.replace('_',' ')}</button>
+                    `).join('')}
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:4px 10px">
+                        <span class="material-symbols-outlined" style="font-size:14px;color:var(--text-dim)">search</span>
+                        <input id="alert-ticker-search" type="text" placeholder="Filter ticker…" autocomplete="off"
+                            style="background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:0.7rem;width:100px"
+                            oninput="window.filterAlerts(document.querySelector('.alert-filter-btn.active')?.dataset?.afilter||'ALL',null,this.value)">
+                    </div>
+                    <span id="alert-count-label" style="font-size:0.6rem;color:var(--text-dim)">50 alerts</span>
+                </div>
+                <div id="alert-cards-container" style="display:flex;flex-direction:column;gap:1.5rem">`;
+            })() : ''}
             ${data && data.length ? data.map(a => {
                 const ts = a.timestamp ? new Date(a.timestamp) : null;
                 const tsDisplay = ts ? ts.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'SYNC';
@@ -5296,11 +5318,65 @@ async function renderAlerts() {
                 <h3 style="color:var(--risk-low);margin-bottom:0.5rem">ALL CLEAR</h3>
                 <p style="color:var(--text-dim);font-size:0.85rem">No active high-severity threats detected. All trigger conditions within normal parameters.</p>
             </div>`}
+            ${window._alertsCache ? '</div>' : ''}
         </div>`;
 
-    // Clear badge when viewing alerts
+// Clear badge when viewing alerts
     const badge = document.getElementById('alert-badge');
     if (badge) badge.style.display = 'none';
+
+    // filterAlerts — client-side filter using cached data
+    window.filterAlerts = function(type, btn, tickerQ) {
+        const data = window._alertsCache || [];
+        const tickerVal = tickerQ !== undefined ? tickerQ : (document.getElementById('alert-ticker-search')?.value || '');
+        const tq = tickerVal.trim().toUpperCase();
+
+        // Update active button state
+        if (btn) {
+            document.querySelectorAll('.alert-filter-btn').forEach(b => {
+                b.style.background = 'rgba(255,255,255,0.04)'; b.style.color = 'var(--text-dim)'; b.classList.remove('active');
+            });
+            btn.style.background = 'rgba(0,242,255,0.12)'; btn.style.color = 'var(--accent)'; btn.classList.add('active');
+        }
+
+        const filtered = data.filter(a => {
+            const typeMatch = type === 'ALL' || (a.type || '').toUpperCase().includes(type);
+            const tickerMatch = !tq || (a.ticker || '').toUpperCase().includes(tq);
+            return typeMatch && tickerMatch;
+        });
+
+        const container = document.getElementById('alert-cards-container');
+        const countLabel = document.getElementById('alert-count-label');
+        if (countLabel) countLabel.textContent = filtered.length + ' alerts';
+        if (!container) return;
+
+        if (!filtered.length) {
+            container.innerHTML = `<div class="card" style="padding:2rem;text-align:center"><p style="color:var(--text-dim)">No alerts match this filter.</p></div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(a => {
+            const ts = a.timestamp ? new Date(a.timestamp) : null;
+            const tsDisplay = ts ? ts.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'SYNC';
+            const sev = a.severity || 'medium';
+            const sevColor = sev === 'high' || sev === 'critical' ? 'var(--risk-high)' : sev === 'medium' ? 'var(--accent)' : 'var(--text-dim)';
+            const ep = a.price && parseFloat(a.price) > 0 ? parseFloat(a.price) : null;
+            const lp = window.livePrices ? (window.livePrices[a.ticker] || window.livePrices[(a.ticker||'').replace('-USD','')]) : null;
+            const pnlHtml = ep && lp ? (() => { const pct = ((lp-ep)/ep*100); const col = pct>=0?'var(--risk-low)':'var(--risk-high)'; return `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString()}</span><span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700;color:${col}">${pct>=0?'+':''}${pct.toFixed(2)}%</span></div>`; })() : ep ? `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>` : '';
+            return `<div class="alert-card ${sev}" style="background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ${sevColor};border-radius:12px;padding:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <span style="font-size:0.65rem;font-weight:900;padding:3px 8px;border-radius:4px;background:rgba(255,255,255,0.05);color:${sevColor}">${a.type||''}</span>
+                        <span style="font-size:0.7rem;color:var(--accent);font-weight:900">${(a.ticker||'').replace('-USD','')}</span>
+                    </div>
+                    <span style="font-size:0.65rem;color:var(--text-dim);font-family:var(--font-mono)">${tsDisplay}</span>
+                </div>
+                <div style="font-size:1rem;font-weight:800;margin-bottom:8px">${a.title||''}</div>
+                <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.5;margin-bottom:10px">${a.content||a.message||''}</div>
+                ${pnlHtml}
+            </div>`;
+        }).join('');
+    };
 
     // Non-blocking: load saved settings and update the panel after initial render
     fetchAPI('/alert-settings').then(s => {

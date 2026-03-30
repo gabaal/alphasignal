@@ -1961,6 +1961,78 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     startCountdown(); 
     
+    // ── Onboarding Tour (first-run only) ──────────────────────────────
+    window.startTour = function() {
+        const steps = [
+            { target: '#sidebar .nav-item[data-view="home"], .hero-section h1, .landing-page h1', title: '👋 Welcome to AlphaSignal', body: 'An institutional-grade intelligence terminal with 8 hubs, 60+ live views, and AI-powered signals. Let\'s take a 30-second tour.', action: null },
+            { target: '.nav-item[data-view="signals"], [data-view="signals"]', title: '📡 Alpha Signals', body: 'Your real-time signal feed. Z-score deviations, ML alpha predictions, and RSI/MACD alerts across 50 assets — live.', action: "switchView('signals')" },
+            { target: '.nav-item[data-view="alpha-hub"], [data-view="alpha-hub"]', title: '🧪 Strategy Lab', body: 'Test any strategy on any asset. Choose from 15 quant strategies, tune fast/slow parameters, and compare against Buy & Hold.', action: null },
+            { target: '.nav-item[data-view="alerts"], [data-view="alerts"]', title: '🔔 Live Alerts', body: 'Real-time signal alerts pushed via WebSocket. Filter by type, search tickers, and track P&L from entry price to now.', action: "switchView('alerts')" },
+        ];
+
+        let step = 0;
+        const overlay = document.createElement('div');
+        overlay.id = 'tour-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:19999;pointer-events:none';
+        document.body.appendChild(overlay);
+
+        const backdrop = document.createElement('div');
+        backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(2px);z-index:19998;pointer-events:all';
+        document.body.appendChild(backdrop);
+
+        const card = document.createElement('div');
+        card.style.cssText = 'position:fixed;background:var(--bg-card);border:1px solid rgba(0,242,255,0.4);border-radius:16px;padding:1.5rem;max-width:320px;z-index:20000;box-shadow:0 0 40px rgba(0,242,255,0.15),0 20px 60px rgba(0,0,0,0.8);pointer-events:all;transition:all 0.3s ease';
+        document.body.appendChild(card);
+
+        function renderStep() {
+            const s = steps[step];
+            const total = steps.length;
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+                    <span style="font-size:0.6rem;color:var(--accent);font-weight:700;letter-spacing:2px">TOUR ${step+1} / ${total}</span>
+                    <button onclick="endTour()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem;line-height:1">✕</button>
+                </div>
+                <h3 style="font-size:1rem;margin:0 0 0.5rem;font-weight:800">${s.title}</h3>
+                <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 1rem">${s.body}</p>
+                <div style="display:flex;gap:8px;justify-content:flex-end">
+                    ${step > 0 ? '<button onclick="prevTourStep()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.75rem">← BACK</button>' : ''}
+                    <button onclick="${step < total-1 ? 'nextTourStep()' : 'endTour()'}" style="background:linear-gradient(90deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border:1px solid rgba(0,242,255,0.4);color:var(--text);padding:6px 18px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.75rem;font-weight:700">
+                        ${step < total-1 ? 'NEXT →' : '✓ DONE'}
+                    </button>
+                </div>
+                <div style="display:flex;gap:4px;justify-content:center;margin-top:0.75rem">
+                    ${Array.from({length:total},(_,i)=>`<div style="width:${i===step?'18px':'6px'};height:6px;border-radius:100px;background:${i===step?'var(--accent)':'rgba(255,255,255,0.15)'};transition:all 0.3s"></div>`).join('')}
+                </div>`;
+
+            // Position card at bottom-right on mobile, smart-position on desktop
+            const vw = window.innerWidth;
+            if (vw < 700) {
+                card.style.left = '1rem'; card.style.right = '1rem'; card.style.bottom = '90px'; card.style.top = 'auto'; card.style.maxWidth = 'none';
+            } else {
+                card.style.bottom = '2rem'; card.style.right = '2rem'; card.style.left = 'auto'; card.style.top = 'auto';
+            }
+
+            if (s.action) try { eval(s.action); } catch(e) {}
+        }
+
+        window.nextTourStep = function() { if (step < steps.length-1) { step++; renderStep(); } };
+        window.prevTourStep = function() { if (step > 0) { step--; renderStep(); } };
+        window.endTour = function() {
+            [overlay, backdrop, card].forEach(el => el.remove());
+            localStorage.setItem('alphasignal_toured', '1');
+            delete window.nextTourStep; delete window.prevTourStep;
+        };
+
+        backdrop.onclick = window.endTour;
+        renderStep();
+    };
+
+    // Fire tour for first-time visitors (after 2s delay)
+    if (!localStorage.getItem('alphasignal_toured')) {
+        setTimeout(window.startTour, 2000);
+    }
+    // ── End Tour ─────────────────────────────────────────────────────
+
     // Sidebar Profile Dropdown
     const profileDropdown = document.getElementById('user-profile-dropdown');
     if (profileDropdown) {
@@ -2776,8 +2848,51 @@ async function exportResearchReport() {
         addHeader('Page 2');
         y = 20;
 
-        // Section 3: Top Signals
-        sectionTitle('SECTION 3 — TOP LIVE INSTITUTIONAL SIGNALS', y);
+        // Section 3: Live P&L Snapshot
+        sectionTitle('SECTION 3 — LIVE ALERT P&L TRACKER', y);
+        y += 12;
+        const alertPnlData = (window._alertsCache || []).filter(a => a.price && parseFloat(a.price) > 0).slice(0, 10);
+        if (alertPnlData.length) {
+            pdf.setTextColor(100,100,100); pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold');
+            ['TICKER', 'TYPE', 'ENTRY $', 'LIVE $', 'P&L %', 'DATE'].forEach((h, i) => {
+                pdf.text(h, M + [0, 28, 60, 96, 130, 155][i], y);
+            });
+            y += 6;
+            pdf.setLineWidth(0.2); pdf.setDrawColor(50,50,50);
+            pdf.line(M, y, PW - M, y); y += 4;
+            const lp = window.livePrices || {};
+            alertPnlData.forEach((a, idx) => {
+                if (y > PH - 25) { pdf.addPage(); addHeader('P&L'); y = 20; }
+                const bg = idx % 2 === 0;
+                if (bg) { pdf.setFillColor(15, 22, 30); pdf.rect(M - 2, y - 4, PW - M*2 + 4, 8, 'F'); }
+                const ep = parseFloat(a.price);
+                const livep = lp[a.ticker] || lp[(a.ticker||'').replace('-USD','')] || null;
+                const pct = livep ? ((livep - ep) / ep * 100) : null;
+                pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...accent); pdf.setFontSize(7.5);
+                pdf.text((a.ticker||'--').replace('-USD',''), M, y);
+                pdf.setFont('helvetica', 'normal'); pdf.setTextColor(200,200,200);
+                pdf.text((a.type||'--').substring(0,10), M + 28, y);
+                pdf.text('$' + ep.toLocaleString('en-US', {maximumFractionDigits:4}), M + 60, y);
+                pdf.text(livep ? ('$' + livep.toLocaleString('en-US', {maximumFractionDigits:4})) : '--', M + 96, y);
+                if (pct !== null) {
+                    pdf.setTextColor(pct >= 0 ? 34 : 239, pct >= 0 ? 197 : 68, pct >= 0 ? 94 : 68);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text((pct >= 0 ? '+' : '') + pct.toFixed(2) + '%', M + 130, y);
+                } else {
+                    pdf.setTextColor(100,100,100); pdf.text('N/A', M + 130, y);
+                }
+                pdf.setFont('helvetica', 'normal'); pdf.setTextColor(200,200,200);
+                pdf.text(a.timestamp ? a.timestamp.split('T')[0] : '--', M + 155, y);
+                y += 9;
+            });
+        } else {
+            pdf.setTextColor(100,100,100); pdf.setFontSize(8);
+            pdf.text('P&L data unavailable. View Alerts tab to seed prices.', M, y); y += 9;
+        }
+
+        // Section 4: Top Signals
+        y += 6;
+        sectionTitle('SECTION 4 - TOP LIVE INSTITUTIONAL SIGNALS', y);
         y += 12;
         const sigList = Array.isArray(signals) ? signals.slice(0, 10) : [];
         if (sigList.length) {
@@ -2812,9 +2927,9 @@ async function exportResearchReport() {
             pdf.text('Signal data unavailable.', M, y); y += 9;
         }
 
-        // Section 4: Macro Events
+        // Section 5: Macro Events
         y += 6;
-        sectionTitle('SECTION 4 — UPCOMING MACRO EVENTS', y);
+        sectionTitle('SECTION 5 - UPCOMING MACRO EVENTS', y);
         y += 12;
         const macroList = Array.isArray(macro) ? macro.slice(0, 8) : [];
         if (macroList.length) {
@@ -2854,7 +2969,7 @@ async function exportResearchReport() {
         // ─────────────────────────────────────
         if (y > PH - 60) { pdf.addPage(); addHeader('Page'); y = 20; }
         y += 6;
-        sectionTitle('SECTION 5 — SIGNAL ARCHIVE SNAPSHOT (LAST 10)', y);
+        sectionTitle('SECTION 6 - SIGNAL ARCHIVE SNAPSHOT (LAST 10)', y);
         y += 12;
         const archList = Array.isArray(archive) ? archive.slice(0, 10) : [];
         if (archList.length) {
@@ -2897,7 +3012,7 @@ async function exportResearchReport() {
 
         const ts = new Date().toISOString().slice(0, 10);
         pdf.save(`alphasignal-research-report-${ts}.pdf`);
-        showToast('REPORT EXPORTED', `5-section PDF saved (${pageCount} pages).`, 'success');
+        showToast('REPORT EXPORTED', `6-section PDF saved (${pageCount} pages).`, 'success');
     } catch (e) {
         console.error('[exportResearchReport]', e);
         showToast('ERROR', 'Report export failed: ' + e.message, 'alert');

@@ -219,6 +219,9 @@
                     </div>
 
                     <div class="action-group" id="system-actions-group">
+                        <button onclick="switchView('home'); setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),350)" aria-label="Pricing" class="action-btn-styled outline" title="View pricing plans" style="font-size:0.75rem;letter-spacing:1px;font-weight:700">
+                            <span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> PRICING
+                        </button>
                         <button id="export-btn" onclick="showExportMenu(event, 'main-content', document.querySelector('h1')?.textContent?.trim() || 'AlphaSignal View')" aria-label="Export" class="action-btn-styled outline" title="Export chart, PDF or CSV">
                             <span class="material-symbols-outlined" style="font-size: 1rem;">ios_share</span> EXPORT
                         </button>
@@ -273,17 +276,18 @@
                 <span class="m-icon material-symbols-outlined" aria-hidden="true">memory</span>
                 <span class="m-label">AI Intel</span>
             </div>
-            <div class="mobile-nav-item" data-view="heatmap" aria-label="View Market">
-                <span class="m-icon material-symbols-outlined" aria-hidden="true">grid_view</span>
-                <span class="m-label">Market</span>
+            <div class="mobile-nav-item" data-view="macro-hub" aria-label="View Market">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">public</span>
+                <span class="m-label">Macro</span>
             </div>
-            <div class="mobile-nav-item" data-view="velocity" aria-label="View Velocity">
-                <span class="m-icon material-symbols-outlined" aria-hidden="true">speed</span>
-                <span class="m-label">Velocity</span>
+            <div class="mobile-nav-item" data-view="alerts" aria-label="View Alerts" style="position:relative">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">notifications</span>
+                <span class="m-label">Alerts</span>
+                <span id="mobile-alert-dot" style="display:none;position:absolute;top:8px;right:22%;width:8px;height:8px;border-radius:50%;background:var(--risk-high);border:1px solid var(--bg)"></span>
             </div>
             <div class="mobile-nav-item" id="mobile-more-btn" aria-label="View More Options">
-                <span class="m-icon material-symbols-outlined" aria-hidden="true">more_horiz</span>
-                <span class="m-label">More</span>
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">apps</span>
+                <span class="m-label">Hubs</span>
             </div>
         </nav>
     </div>
