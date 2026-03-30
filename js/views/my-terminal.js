@@ -124,7 +124,7 @@ window.addToWatchlist = async function() {
     const target = document.getElementById('wl-target')?.value;
     const note   = document.getElementById('wl-note')?.value.trim();
     if (!ticker) return showToast('Enter a ticker symbol', 'warning');
-    const res = await fetchAPI('/watchlist', { method: 'POST', body: JSON.stringify({ ticker, target_price: target || null, note }) });
+    const res = await fetchAPI('/watchlist', 'POST', { ticker, target_price: target || null, note });
     if (res?.success) {
         showToast(`${ticker} added to watchlist`, 'success');
         const el = document.getElementById('my-terminal-content');
@@ -135,7 +135,7 @@ window.addToWatchlist = async function() {
 };
 
 window.removeWatchlistItem = async function(id) {
-    const res = await fetchAPI(`/watchlist/${id}`, { method: 'DELETE' });
+    const res = await fetchAPI(`/watchlist/${id}`, 'DELETE');
     if (res?.success) {
         showToast('Removed from watchlist', 'success');
         const el = document.getElementById('my-terminal-content');
@@ -279,10 +279,7 @@ window.addPosition = async function() {
     const stop   = document.getElementById('pos-stop')?.value;
     const notes  = document.getElementById('pos-notes')?.value.trim();
     if (!ticker || !qty || !entry) return showToast('Ticker, qty and entry price required', 'warning');
-    const res = await fetchAPI('/positions', {
-        method: 'POST',
-        body: JSON.stringify({ ticker, side, qty, entry_price: entry, target_price: target || null, stop_price: stop || null, notes })
-    });
+    const res = await fetchAPI('/positions', 'POST', { ticker, side, qty, entry_price: entry, target_price: target || null, stop_price: stop || null, notes });
     if (res?.success) {
         showToast(`${ticker} ${side} position logged`, 'success');
         const el = document.getElementById('my-terminal-content');
@@ -293,7 +290,7 @@ window.addPosition = async function() {
 };
 
 window.removePosition = async function(id) {
-    const res = await fetchAPI(`/positions/${id}`, { method: 'DELETE' });
+    const res = await fetchAPI(`/positions/${id}`, 'DELETE');
     if (res?.success) {
         showToast('Position closed', 'success');
         const el = document.getElementById('my-terminal-content');
