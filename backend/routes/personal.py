@@ -21,11 +21,24 @@ class PersonalRoutesMixin:
             if not ticker:
                 return self.send_json({'error': 'ticker required'})
             user_id = auth_info['user_id']
+
+            # Fetch live price at time of add — stored for performance tracking
+            price_at_add = None
+            try:
+                import yfinance as yf
+                yf_ticker = ticker if ticker.endswith('-USD') else f'{ticker}-USD'
+                fast = yf.download(yf_ticker, period='1d', interval='1m', progress=False, auto_adjust=True)
+                if not fast.empty:
+                    price_at_add = round(float(fast['Close'].dropna().iloc[-1]), 8)
+            except Exception:
+                pass  # Non-blocking — watchlist still saves, just without entry price
+
             payload = {
                 'user_id': user_id,
                 'ticker': ticker,
                 'target_price': data.get('target_price'),
                 'note': data.get('note', ''),
+                'price_at_add': price_at_add,
                 'added_at': datetime.utcnow().isoformat()
             }
             # Upsert — update note/target if ticker already exists for this user
@@ -36,6 +49,7 @@ class PersonalRoutesMixin:
             self.send_json({'success': True, 'item': result[0] if isinstance(result, list) and result else payload})
         except Exception as e:
             self.send_json({'error': str(e)})
+
 
     def handle_watchlist_delete(self, auth_info, item_id):
         try:
