@@ -234,7 +234,14 @@ class BinanceLiveStream:
 if __name__ == "__main__":
     print("Initializing AlphaSignal Terminal...", flush=True)
     init_db() # Ensure all persistent intelligence tables exist
-    
+
+    # Seed historical signals on first boot / after Railway wipe
+    try:
+        from startup_seed import seed_if_needed
+        seed_if_needed()
+    except Exception as seed_err:
+        print(f"[Boot] Seed skipped: {seed_err}", flush=True)
+
     # Start TCPServer FIRST to ensure API is responsive
     print(f"Binding TCPServer to 0.0.0.0:{PORT}...", flush=True)
     try:

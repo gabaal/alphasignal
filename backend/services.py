@@ -610,10 +610,41 @@ class HarvestService:
                             c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?,?,?,?,?,?)",
                                       (sig_type, ticker, message, severity, curr_p, datetime.now().isoformat()))
                             print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} (RSI={rsi:.1f})')
+
+                            # Multi-channel dispatch — notify users with alerts_enabled
+                            try:
+                                with sqlite3.connect(DB_PATH) as notify_conn:
+                                    notify_c = notify_conn.cursor()
+                                    notify_c.execute("SELECT user_email, z_threshold FROM user_settings WHERE alerts_enabled = 1")
+                                    for (n_email, n_z) in notify_c.fetchall():
+                                        # Rule-based signals use severity as gate: high/critical always fires,
+                                        # medium only fires if user threshold <= 1.5%
+                                        user_z = float(n_z) if n_z else 2.0
+                                        if severity == 'medium' and user_z > 1.5:
+                                            continue
+                                        direction = 'BULLISH' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'BEARISH' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
+                                        embed_color = 0x22c55e if direction == 'BULLISH' else 0xef4444 if direction == 'BEARISH' else 0x00f2ff
+                                        NOTIFY.push_webhook(
+                                            n_email,
+                                            f"{sig_type.replace('_', ' ')}: {ticker}",
+                                            message,
+                                            embed_color=embed_color,
+                                            fields=[
+                                                {"name": "Ticker",    "value": ticker,                "inline": True},
+                                                {"name": "Price",     "value": f"${curr_p:,.4f}",    "inline": True},
+                                                {"name": "Signal",    "value": sig_type,             "inline": True},
+                                                {"name": "Severity",  "value": severity.upper(),     "inline": True},
+                                                {"name": "RSI-14",    "value": f"{rsi:.1f}",         "inline": True},
+                                                {"name": "Direction", "value": direction,            "inline": True},
+                                            ]
+                                        )
+                            except Exception as ne:
+                                print(f'[RuleSig Notify] Error: {ne}')
                 except Exception as te:
                     continue
         except Exception as e:
             print(f'[RuleSig] Error: {e}')
+
 
     def record_orderbook_snapshots(self):
         """Phase 8: Resilient Snapshots.
