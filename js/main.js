@@ -362,7 +362,7 @@ async function renderHome() {
                 <div class="hero-content">
                     <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1.5rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">
                         <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
-                        LIVE INSTITUTIONAL TERMINAL &mdash; v1.51
+                        LIVE INSTITUTIONAL TERMINAL &mdash; v1.52
                     </div>
                     <h1>Institutional Intelligence Terminal. <span>Live.</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                     <p class="hero-subtitle">
@@ -848,6 +848,16 @@ function renderHelp() {
     appEl.innerHTML = `
         <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent);">help</span>Terminal Documentation</h1></div>
         <div class="doc-container" style="max-width:1100px;margin:0 auto;padding-top:1.5rem;">
+            <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:2rem;padding:1rem 1.5rem;background:linear-gradient(90deg,rgba(0,242,255,0.06),rgba(188,19,254,0.04));border:1px solid rgba(0,242,255,0.2);border-radius:12px">
+                <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.5rem">tour</span>
+                <div style="flex:1">
+                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:2px">FIRST TIME HERE?</div>
+                    <div style="font-size:0.75rem;color:var(--text-dim)">Take the guided 4-step onboarding tour to explore key terminal features.</div>
+                </div>
+                <button onclick="typeof window.startTour === 'function' ? window.startTour() : null" style="background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.35);color:var(--accent);padding:8px 18px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.72rem;font-weight:700;letter-spacing:1px;white-space:nowrap">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">play_arrow</span> TAKE THE TOUR
+                </button>
+            </div>
             <p style="font-size:0.95rem;color:var(--text-dim);margin-bottom:2.5rem;line-height:1.6;">One documentation page per view, organised by sidebar hub. Click any card to read the full methodology and data sources.</p>
 
             ${group('Global Markets Hub', 'public', `
@@ -2438,6 +2448,9 @@ function initLivePriceStream() {
                                 badge.textContent = msg.signal_count;
                                 badge.style.display = msg.signal_count > 0 ? 'inline-flex' : 'none';
                             }
+                            // Mobile alert dot
+                            const dot = document.getElementById('mobile-alert-dot');
+                            if (dot) dot.style.display = msg.new_today > 0 ? 'block' : 'none';
                         }
 
                         // Feature 2: Bell badge removed per user feedback

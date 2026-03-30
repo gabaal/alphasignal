@@ -4185,7 +4185,7 @@ class InstitutionalRoutesMixin:
             InstitutionalRoutesMixin._boot_time = getattr(InstitutionalRoutesMixin, '_boot_time', _time.time())
             self.send_json({
                 'status': 'ok',
-                'version': '1.51',
+                'version': '1.52',
                 'signals': total_signals,
                 'signals_24h': signals_today,
                 'uptime_s': uptime_s,
