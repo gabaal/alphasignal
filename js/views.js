@@ -2745,9 +2745,18 @@ async function renderRotation(tabs = null) {
 
 async function renderStrategyLab(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
-    appEl.innerHTML = skeleton(1);
-    runStrategyBacktest('BTC-USD', 'trend_regime');
+    // Restore last-used ticker & strategy from localStorage
+    const savedTicker   = localStorage.getItem('sl_ticker')   || 'BTC-USD';
+    const savedStrategy = localStorage.getItem('sl_strategy') || 'trend_regime';
+    runStrategyBacktest(savedTicker, savedStrategy, 20, 50, tabs);
 }
+
+// Persist ticker/strategy choice so tab-switching doesn't reset
+window._slPersist = function(ticker, strategy) {
+    if (ticker)   localStorage.setItem('sl_ticker',   ticker);
+    if (strategy) localStorage.setItem('sl_strategy', strategy);
+};
+
 
 function renderGuppyRibbon(history) {
     const ctx = document.getElementById('guppyChart');
@@ -3715,6 +3724,87 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                 SYNC_TIME: ${data.timestamp}
             </div>
         </div>
+
+        <!-- Live Cluster Intelligence Panel -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem">
+            <!-- Cluster Rankings -->
+            <div class="glass-card" style="padding:1.5rem">
+                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">NARRATIVE CLUSTER RANKINGS</div>
+                ${(() => {
+                    // Group clusters by category, count signals
+                    const counts = {};
+                    (data.clusters || []).forEach(c => {
+                        counts[c.category] = (counts[c.category] || 0) + (c.size || 1);
+                    });
+                    const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+                    const max = sorted[0]?.[1] || 1;
+                    return sorted.map(([cat, count], i) => {
+                        const anchor = data.anchors?.[cat] || {};
+                        const color  = anchor.color || '#00d4aa';
+                        const pct    = Math.round(count / max * 100);
+                        const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+                        return `<div style="margin-bottom:12px">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                                <span style="font-size:0.65rem;font-weight:800;color:${color}">${medal} ${cat}</span>
+                                <span style="font-size:0.6rem;color:var(--text-dim)">${count} signal${count !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px">
+                                <div style="height:4px;background:${color};border-radius:2px;width:${pct}%;transition:width 1s ease"></div>
+                            </div>
+                        </div>`;
+                    }).join('') || '<p style="color:var(--text-dim);font-size:0.75rem">No cluster data yet</p>';
+                })()}
+            </div>
+
+            <!-- Top Tickers per Cluster -->
+            <div class="glass-card" style="padding:1.5rem">
+                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">TOP TICKERS BY CLUSTER</div>
+                ${(() => {
+                    const byCluster = {};
+                    (data.clusters || []).forEach(c => {
+                        if (!byCluster[c.category]) byCluster[c.category] = [];
+                        byCluster[c.category].push({ ticker: c.ticker, size: c.size || 1, sentiment: c.sentiment || 0 });
+                    });
+                    return Object.entries(byCluster).slice(0, 5).map(([cat, tickers]) => {
+                        const anchor = data.anchors?.[cat] || {};
+                        const color  = anchor.color || '#00d4aa';
+                        const top = tickers.sort((a,b) => b.size - a.size).slice(0, 4);
+                        return `<div style="margin-bottom:14px">
+                            <div style="font-size:0.6rem;font-weight:800;color:${color};margin-bottom:6px;letter-spacing:1px">${cat}</div>
+                            <div style="display:flex;gap:6px;flex-wrap:wrap">
+                                ${top.map(t => `
+                                    <span style="font-size:0.6rem;padding:3px 8px;border-radius:8px;background:${color}18;color:${color};border:1px solid ${color}33;font-weight:700;cursor:pointer" onclick="openDetail('${t.ticker}','NARRATIVE')">${t.ticker.replace('-USD','')}</span>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                    }).join('') || '<p style="color:var(--text-dim);font-size:0.75rem">Loading cluster data...</p>';
+                })()}
+            </div>
+        </div>
+
+        <!-- Sentiment Velocity Heatmap -->
+        ${data.clusters && data.clusters.length ? `
+        <div class="glass-card" style="padding:1.5rem;margin-top:1.5rem">
+            <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">NARRATIVE SENTIMENT VELOCITY — TOP 20 SIGNALS</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+                ${(data.clusters || []).sort((a,b) => Math.abs(b.sentiment||0) - Math.abs(a.sentiment||0)).slice(0,20).map(c => {
+                    const sent = c.sentiment || 0;
+                    const isPos = sent >= 0;
+                    const color = isPos ? '#22c55e' : '#ef4444';
+                    const bg    = isPos ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)';
+                    const bar   = Math.min(Math.abs(sent) * 100, 100);
+                    const anchor = data.anchors?.[c.category] || {};
+                    return `<div style="background:${bg};border:1px solid ${color}22;border-radius:8px;padding:10px">
+                        <div style="font-size:0.65rem;font-weight:800;color:white;margin-bottom:2px">${(c.ticker||'—').replace('-USD','')}</div>
+                        <div style="font-size:0.5rem;color:var(--text-dim);margin-bottom:6px">${c.category || ''}</div>
+                        <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:4px">
+                            <div style="height:3px;background:${color};border-radius:2px;width:${bar}%"></div>
+                        </div>
+                        <div style="font-size:0.6rem;color:${color};font-weight:700">${isPos ? '+' : ''}${(sent*100).toFixed(1)}%</div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>` : ''}
     `;
 
     const canvas = document.getElementById('galaxyCanvas');
@@ -4981,8 +5071,18 @@ async function renderDocsVelocity() {
 // ============= Core Features =============
 async function renderAlerts() {
     appEl.innerHTML = skeleton(3);
-    const data = await fetchAPI('/alerts');
-    
+    const [data, settings] = await Promise.all([
+        fetchAPI('/alerts'),
+        fetchAPI('/alert-settings', 'GET').catch(() => null)
+    ]);
+
+    const hasDiscord  = settings?.has_discord  || false;
+    const hasTelegram = settings?.has_telegram || false;
+    const zThreshold  = settings?.z_threshold  || 2.0;
+    const alertsOn    = settings?.alerts_enabled !== false;
+    const discMasked  = settings?.discord_masked  || '';
+    const tgMasked    = settings?.telegram_masked || '';
+
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
@@ -4996,7 +5096,66 @@ async function renderAlerts() {
             </div>
         </div>
 
-        <!-- Alert Trigger Conditions -->
+        <!-- ⚙️ Notification Settings Panel -->
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(0,212,170,0.15)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px">
+                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">⚙ NOTIFICATION SETTINGS</div>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.7rem;color:var(--text-dim)">
+                    <span>ALERTS ENABLED</span>
+                    <input type="checkbox" id="alerts-enabled-toggle" ${alertsOn ? 'checked' : ''} style="width:16px;height:16px;accent-color:#00d4aa;cursor:pointer">
+                </label>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem">
+                <!-- Discord -->
+                <div>
+                    <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                        <span style="font-size:0.85rem">🎮</span> DISCORD WEBHOOK
+                        ${hasDiscord ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700">✓ CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
+                    </label>
+                    <input id="discord-webhook-input" type="password" placeholder="${hasDiscord ? discMasked + ' (enter new to update)' : 'https://discord.com/api/webhooks/…'}"
+                        style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid ${hasDiscord ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
+                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Server → Integrations → Webhooks → Copy URL</div>
+                </div>
+                <!-- Telegram -->
+                <div>
+                    <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                        <span style="font-size:0.85rem">✈️</span> TELEGRAM CHAT ID
+                        ${hasTelegram ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700">✓ CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
+                    </label>
+                    <input id="telegram-chat-input" type="text" placeholder="${hasTelegram ? tgMasked + ' (enter new to update)' : '-1001234567890'}"
+                        style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid ${hasTelegram ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
+                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Open @userinfobot or @getidsbot in Telegram to find your chat ID</div>
+                </div>
+            </div>
+            <!-- Z-Threshold Slider -->
+            <div style="margin-bottom:1.2rem">
+                <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:8px">
+                    <span>⚡ ALERT SENSITIVITY — Z-SCORE THRESHOLD</span>
+                    <span id="z-val-display" style="color:#ffd700;font-weight:900">${zThreshold.toFixed(1)}σ</span>
+                </label>
+                <input type="range" id="z-threshold-slider" min="0.5" max="5" step="0.1" value="${zThreshold}"
+                    oninput="document.getElementById('z-val-display').textContent=parseFloat(this.value).toFixed(1)+'σ'"
+                    style="width:100%;accent-color:#00d4aa;cursor:pointer">
+                <div style="display:flex;justify-content:space-between;font-size:0.55rem;color:var(--text-dim);margin-top:4px">
+                    <span>0.5σ — Very Sensitive (many alerts)</span>
+                    <span>5σ — Only Extreme Events</span>
+                </div>
+            </div>
+            <!-- Action Buttons -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button id="save-alert-settings-btn" onclick="saveAlertSettings()" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:10px 20px;border-radius:8px;font-weight:900;font-size:0.7rem;cursor:pointer;letter-spacing:1px;flex:1;min-width:120px">
+                    <span class="material-symbols-outlined" style="vertical-align:middle;font-size:1rem;margin-right:4px">save</span>SAVE SETTINGS
+                </button>
+                <button onclick="testFireAlertSettings()" style="background:rgba(188,19,254,0.15);color:#bc13fe;border:1px solid rgba(188,19,254,0.3);padding:10px 20px;border-radius:8px;font-weight:800;font-size:0.7rem;cursor:pointer;letter-spacing:1px;flex:1;min-width:120px">
+                    <span class="material-symbols-outlined" style="vertical-align:middle;font-size:1rem;margin-right:4px">send</span>TEST FIRE ALERT
+                </button>
+                <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" style="background:rgba(88,101,242,0.15);color:#8c9eff;border:1px solid rgba(88,101,242,0.3);padding:10px 16px;border-radius:8px;font-weight:800;font-size:0.7rem;cursor:pointer;letter-spacing:1px;display:flex;align-items:center;gap:4px;text-decoration:none">
+                    <span class="material-symbols-outlined" style="font-size:1rem">open_in_new</span>DISCORD GUIDE
+                </a>
+            </div>
+        </div>
+
+        <!-- Active Trigger Conditions -->
         <div class="card" style="padding:1rem;margin-bottom:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center">
             <span style="font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);font-weight:700">ACTIVE TRIGGERS</span>
             ${[
@@ -5017,13 +5176,13 @@ async function renderAlerts() {
         <div class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
             ${data && data.length ? data.map(a => {
                 const ts = a.timestamp ? (a.timestamp.includes('T') ? a.timestamp.split('T')[1].split('.')[0] : a.timestamp) : 'SYNC';
-                const sevColor = a.severity === 'high' ? 'var(--risk-high)' : (a.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)');
+                const sevColor = a.severity === 'high' || a.severity === 'critical' ? 'var(--risk-high)' : (a.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)');
                 return `
                 <div class="alert-card ${a.severity}" style="background:var(--bg-card); border:1px solid var(--border); border-left:4px solid ${sevColor}; border-radius:12px; padding:1.5rem; position:relative; overflow:hidden">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;flex-wrap:wrap;gap:8px">
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                             <span style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:${sevColor}">${a.type}</span>
-                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:100px;font-weight:800;background:${a.severity === 'high' ? 'rgba(239,68,68,0.15)' : 'rgba(0,242,255,0.1)'};color:${sevColor};border:1px solid ${sevColor}33;letter-spacing:1px">${a.severity?.toUpperCase() || 'INFO'}</span>
+                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:100px;font-weight:800;background:${a.severity === 'high' || a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(0,242,255,0.1)'};color:${sevColor};border:1px solid ${sevColor}33;letter-spacing:1px">${a.severity?.toUpperCase() || 'INFO'}</span>
                             ${a.ticker && a.ticker !== 'SYSTEM' ? `<span style="font-size:0.65rem;font-weight:900;color:var(--accent)">${a.ticker.replace('-USD','')}</span>` : ''}
                         </div>
                         <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono)">${ts}</span>
@@ -5050,11 +5209,39 @@ async function renderAlerts() {
                 <p style="color:var(--text-dim);font-size:0.85rem">No active high-severity threats detected. All trigger conditions within normal parameters.</p>
             </div>`}
         </div>`;
-    
+
     // Clear badge when viewing alerts
     const badge = document.getElementById('alert-badge');
     if (badge) badge.style.display = 'none';
 }
+
+window.saveAlertSettings = async function() {
+    const btn = document.getElementById('save-alert-settings-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loader" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>SAVING...'; }
+    const discord  = (document.getElementById('discord-webhook-input')?.value || '').trim();
+    const telegram = (document.getElementById('telegram-chat-input')?.value || '').trim();
+    const z        = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
+    const enabled  = document.getElementById('alerts-enabled-toggle')?.checked !== false;
+    const result = await fetchAPI('/alert-settings', 'POST', { discord_webhook: discord, telegram_chat_id: telegram, z_threshold: z, alerts_enabled: enabled });
+    if (result?.success) {
+        showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? '✓' : '✗'}  Telegram: ${result.has_telegram ? '✓' : '✗'}`, 'success');
+    } else {
+        showToast('ALERT SETTINGS', result?.error || 'Save failed', 'alert');
+    }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align:middle;font-size:1rem;margin-right:4px">save</span>SAVE SETTINGS'; }
+};
+
+window.testFireAlertSettings = async function() {
+    const z = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
+    showToast('ALERT CONFIG', 'Sending test notification...', 'info');
+    const data = await fetchAPI('/alert-settings', 'POST', { z_threshold: z, test_fire: true });
+    if (data?.success) {
+        showToast('ALERT CONFIG', 'Test alert dispatched! Check Discord/Telegram.', 'success');
+    } else {
+        showToast('ALERT CONFIG', 'Save your Discord/Telegram credentials first, then test.', 'alert');
+    }
+};
+
 
 async function showSignalDetail(alertId, ticker) {
     const modal = document.getElementById('ai-modal');

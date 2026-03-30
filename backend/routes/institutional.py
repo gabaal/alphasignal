@@ -3667,7 +3667,7 @@ class InstitutionalRoutesMixin:
     # Phase 17-A: Alert Settings GET/POST
     # ================================================================
     def handle_alert_settings(self, post_data=None):
-        """GET: return current alert settings. POST: save z_threshold."""
+        """GET: return current alert settings. POST: save all notification config."""
         try:
             auth = self.is_authenticated()
             if not auth:
@@ -3678,14 +3678,25 @@ class InstitutionalRoutesMixin:
             if post_data:
                 z = float(post_data.get('z_threshold', 2.0))
                 z = max(0.5, min(z, 10.0))
-                c.execute("""INSERT INTO user_settings (user_email, z_threshold)
-                             VALUES (?, ?)
-                             ON CONFLICT(user_email) DO UPDATE SET z_threshold=excluded.z_threshold""",
-                          (email, z))
+                discord  = str(post_data.get('discord_webhook', '')).strip()
+                telegram = str(post_data.get('telegram_chat_id', '')).strip()
+                enabled  = bool(post_data.get('alerts_enabled', True))
+                # Upsert all settings, preserving existing webhook if new one not provided
+                c.execute("""INSERT INTO user_settings (user_email, z_threshold, alerts_enabled, discord_webhook, telegram_chat_id)
+                             VALUES (?, ?, ?, ?, ?)
+                             ON CONFLICT(user_email) DO UPDATE SET
+                               z_threshold      = excluded.z_threshold,
+                               alerts_enabled   = excluded.alerts_enabled,
+                               discord_webhook  = CASE WHEN excluded.discord_webhook != '' THEN excluded.discord_webhook ELSE discord_webhook END,
+                               telegram_chat_id = CASE WHEN excluded.telegram_chat_id != '' THEN excluded.telegram_chat_id ELSE telegram_chat_id END""",
+                          (email, z, enabled, discord, telegram))
                 conn.commit()
+                # Re-read to confirm
+                c.execute('SELECT discord_webhook, telegram_chat_id FROM user_settings WHERE user_email=?', (email,))
+                saved = c.fetchone()
                 conn.close()
                 # Test fire if requested
-                if post_data.get('test_fire'):
+                if post_data.get('test_fire') and saved and (saved[0] or saved[1]):
                     NOTIFY.push_webhook(
                         email,
                         'TEST ALERT \u2014 AlphaSignal',
@@ -3696,17 +3707,30 @@ class InstitutionalRoutesMixin:
                             {'name': 'Status', 'value': '\u2705 Active', 'inline': True}
                         ]
                     )
-                self.send_json({'success': True, 'z_threshold': z})
+                has_discord  = bool(saved[0]) if saved else bool(discord)
+                has_telegram = bool(saved[1]) if saved else bool(telegram)
+                self.send_json({'success': True, 'z_threshold': z, 'has_discord': has_discord, 'has_telegram': has_telegram})
             else:
                 c.execute('SELECT z_threshold, discord_webhook, telegram_chat_id, alerts_enabled FROM user_settings WHERE user_email=?', (email,))
                 row = c.fetchone()
                 conn.close()
                 if row:
-                    self.send_json({'z_threshold': row[0] or 2.0, 'has_discord': bool(row[1]), 'has_telegram': bool(row[2]), 'alerts_enabled': bool(row[3])})
+                    # Mask webhook for display: show last 8 chars only
+                    disc_masked = ('…' + row[1][-8:]) if row[1] else ''
+                    tg_masked   = ('…' + row[2][-6:]) if row[2] else ''
+                    self.send_json({
+                        'z_threshold':    row[0] or 2.0,
+                        'has_discord':    bool(row[1]),
+                        'has_telegram':   bool(row[2]),
+                        'alerts_enabled': bool(row[3]),
+                        'discord_masked': disc_masked,
+                        'telegram_masked': tg_masked
+                    })
                 else:
-                    self.send_json({'z_threshold': 2.0, 'has_discord': False, 'has_telegram': False, 'alerts_enabled': True})
+                    self.send_json({'z_threshold': 2.0, 'has_discord': False, 'has_telegram': False, 'alerts_enabled': True, 'discord_masked': '', 'telegram_masked': ''})
         except Exception as e:
             print(f'[AlertSettings] {e}')
+            import traceback; traceback.print_exc()
             self.send_json({'error': str(e)})
 
     # ================================================================
