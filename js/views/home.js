@@ -17,7 +17,7 @@ async function renderHome() {
                 <div class="hero-content">
                     <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1.5rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">
                         <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
-                        LIVE INSTITUTIONAL TERMINAL &mdash; v1.52
+                        LIVE INSTITUTIONAL TERMINAL &mdash; v1.53
                     </div>
                     <h1>Institutional Intelligence Terminal. <span>Live.</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                     <p class="hero-subtitle">
@@ -146,20 +146,20 @@ async function renderHome() {
                 </div>
             </section>
 
-            <!-- ===== PHASE 17 FEATURE SPOTLIGHT ===== -->
+            <!-- ===== PHASE 20 FEATURE SPOTLIGHT ===== -->
             <section style="padding:4rem 2rem;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(188,19,254,0.04),rgba(0,0,0,0.4))">
                 <div style="max-width:1200px;margin:0 auto">
                     <div style="text-align:center;margin-bottom:3rem">
-                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 19 — LATEST INSTITUTIONAL ADDITIONS</span>
-                        <h2 style="margin-top:1.5rem">Freshly Deployed Intelligence</h2>
-                        <p style="color:var(--text-dim)">The most recent upgrades across institutional order flow, AI rebalancing, macro intelligence, and options analytics.</p>
+                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 20 — GROWTH &amp; RETENTION · v1.53</span>
+                        <h2 style="margin-top:1.5rem">Built for Traders Who Stay</h2>
+                        <p style="color:var(--text-dim)">My Terminal, real-time price alerts, viral signal sharing, and full PWA mobile support — all shipped in v1.53.</p>
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
                         ${[
-                            { icon: 'grid_on', view: 'macro-hub', color: '#00f2ff', title: 'Cross-Asset Momentum Heatmap', desc: 'Color-coded rolling returns heatmap (1D/7D/30D/90D) across 15 assets with Z-score column. Injected in Macro Compass. Cells clickable to asset intel modal.' },
-                            { icon: 'notifications_active', view: 'alerts', color: '#22c55e', title: 'Alerts v2 — Trigger Dashboard', desc: 'Overhauled alerts view with active trigger conditions panel (Z-Score, Whale, De-peg, Vol Spike, CME Gap). Each alert now shows severity badge and direct CHART button.' },
-                            { icon: 'psychology', view: 'whales', color: '#bc13fe', title: 'AI Deep-Dive Buttons', desc: 'AI analyst shortcut buttons added to ETF Flows, Whale Pulse, and Global Markets hub headers. One-click to full institutional AI synthesis on any asset.' },
-                            { icon: 'account_balance_wallet', view: 'whales', color: '#f59e0b', title: 'Live Whale Flow Network', desc: 'Whale Wallet Flow Network now fetches live /api/whale-sankey data. 7 entity types with $M-scaled inflow/outflow bars. Congestion-weighted via Blockchain.info mempool.' }
+                            { icon: 'account_circle', view: 'my-terminal', color: '#00f2ff', title: 'My Terminal — Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
+                            { icon: 'notifications_active', view: 'my-terminal', color: '#22c55e', title: 'Real-Time Price Alerts', desc: 'Target price crossing alerts fire as browser notifications the instant a watched asset hits your price — backed by the live WebSocket price stream.' },
+                            { icon: 'link', view: 'alerts', color: '#bc13fe', title: 'Signal Permalinks', desc: 'Every signal gets a public shareable URL with live vs signal price performance, AI thesis analysis, and one-click Add to Watchlist for visitors.' },
+                            { icon: 'install_mobile', view: 'home', color: '#f59e0b', title: 'PWA + Daily Digest', desc: 'Install AlphaSignal as a native app on iOS and Android. 07:30 UTC morning digest delivers top signals to Discord and Telegram automatically.' }
                         ].map(f => `
                             <div class="glass-card" onclick="switchView('${f.view}')" style="cursor:pointer;padding:1.5rem;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s"
                                  onmouseover="this.style.borderColor='${f.color}';this.style.background='rgba(255,255,255,0.02)'"
@@ -173,6 +173,7 @@ async function renderHome() {
                     </div>
                 </div>
             </section>
+
 
             <!-- ===== HOW IT WORKS ===== -->
             <section style="padding:4rem 2rem;border-top:1px solid var(--border)">
