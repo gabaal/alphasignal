@@ -14,7 +14,7 @@ function switchView(view, pushState = true) {
         view?.startsWith('explain-')
     );
     // FREE: login required, no subscription needed
-    const isFreeView = isPublicView || view === 'command-center' || view === 'free-tier';
+    const isFreeView = isPublicView || view === 'command-center' || view === 'free-tier' || view === 'my-terminal';
 
     if (!isPublicView && !isPremiumUser) {
         if (!isFreeView) {

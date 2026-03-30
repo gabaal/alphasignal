@@ -1,16 +1,20 @@
 async function renderMyTerminal() {
-    const auth = window._authState;
-    if (!auth || !auth.authenticated) {
+    // Use the same globals that the rest of the app uses (set by checkAuthStatus)
+    if (!isAuthenticatedUser) {
         appEl.innerHTML = `
             <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">person</span>My Terminal</h1></div>
             <div class="card" style="padding:2.5rem;text-align:center;margin-top:2rem">
                 <span class="material-symbols-outlined" style="font-size:3rem;color:var(--accent);opacity:0.5">lock</span>
                 <h3 style="margin:1rem 0 0.5rem">Sign In Required</h3>
                 <p style="color:var(--text-dim);margin-bottom:1.5rem">Your personal watchlist and positions are tied to your account.</p>
-                <button class="intel-action-btn" onclick="showAuth()" style="margin:0 auto">SIGN IN / REGISTER</button>
+                <button class="intel-action-btn" onclick="showAuth(true)" style="margin:0 auto">SIGN IN / REGISTER</button>
             </div>`;
         return;
     }
+
+    // Fetch current user email from auth status
+    const authStatus = await fetchAPI('/auth/status');
+    const userEmail = authStatus?.email || '';
 
     const tabsHTML = `
         <div class="hub-tabs" style="display:flex;gap:10px;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:10px;overflow-x:auto">
@@ -26,7 +30,7 @@ async function renderMyTerminal() {
         <div class="view-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">person</span>My Terminal</h1>
-                <p style="color:var(--text-dim);font-size:0.8rem">Personal watchlist and open positions · ${auth.email}</p>
+                <p style="color:var(--text-dim);font-size:0.8rem">Personal watchlist and open positions · ${userEmail}</p>
             </div>
         </div>
         ${tabsHTML}
