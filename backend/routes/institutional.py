@@ -1,4 +1,4 @@
-﻿import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 import yfinance as yf
 import numpy as np
 import pandas as pd
@@ -4168,3 +4168,27 @@ class InstitutionalRoutesMixin:
             print(f'[MacroCalendar] {e}')
             import traceback; traceback.print_exc()
             self.send_json({'events': [], 'error': str(e)})
+
+    def handle_health(self):
+        """GET /health — Railway health probe & monitoring endpoint."""
+        import time as _time
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT COUNT(*) FROM alerts_history")
+            total_signals = c.fetchone()[0]
+            c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
+            signals_today = c.fetchone()[0]
+            conn.close()
+            uptime_s = int(_time.time() - getattr(InstitutionalRoutesMixin, '_boot_time', _time.time()))
+            InstitutionalRoutesMixin._boot_time = getattr(InstitutionalRoutesMixin, '_boot_time', _time.time())
+            self.send_json({
+                'status': 'ok',
+                'version': '1.51',
+                'signals': total_signals,
+                'signals_24h': signals_today,
+                'uptime_s': uptime_s,
+                'uptime': f'{uptime_s // 3600}h {(uptime_s % 3600) // 60}m'
+            })
+        except Exception as e:
+            self.send_json({'status': 'degraded', 'error': str(e)})

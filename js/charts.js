@@ -406,13 +406,13 @@ function renderStrategyChart(curve) {
                     boxPadding: 6,
                     usePointStyle: true,
                     callbacks: {
-                        label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; }
+                        label: function(context) { const v = context.parsed.y; return context.dataset.label + ': ' + (v>=0?'+':'') + v.toFixed(2) + '%'; }
                     }
                 }
             },
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#8b949e', maxRotation: 0, autoSkip: true, maxTicksLimit: 10, font: { family: 'JetBrains Mono', size: 10 } } },
-                y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: value => value + '%' } }
+                y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => (v>=0?'+':'') + v + '%' } }
             }
         }
     });

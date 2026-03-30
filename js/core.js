@@ -1357,6 +1357,13 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 </div>
 
                 <div id="strat-tv-container" style="height: 300px; margin-bottom: 20px; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.05); overflow:hidden"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span style="font-size:0.65rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">EQUITY CURVE</span>
+                        <span id="strat-outperf-badge" style="font-size:0.65rem;font-weight:900;padding:3px 10px;border-radius:100px;border:1px solid rgba(34,197,94,0.3);color:var(--risk-low);font-family:var(--font-mono)"></span>
+                    </div>
+                    <button id="bh-toggle-btn" data-show="true" onclick="window.toggleBenchmark && window.toggleBenchmark()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:4px 12px;border-radius:6px;font-size:0.6rem;cursor:pointer;font-family:var(--font-mono);font-weight:700;letter-spacing:1px">HIDE BUY &amp; HOLD</button>
+                </div>
                 <div class="chart-container" style="height: 250px; background: rgba(0,0,0,0.1); border-radius:16px; border:1px solid var(--border); padding: 20px">
                     <canvas id="strategyChart"></canvas>
                 </div>

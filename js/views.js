@@ -5170,20 +5170,65 @@ async function renderAlerts() {
 
         <div class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
             ${data && data.length ? data.map(a => {
-                const ts = a.timestamp ? (a.timestamp.includes('T') ? a.timestamp.split('T')[1].split('.')[0] : a.timestamp) : 'SYNC';
+                const ts = a.timestamp ? new Date(a.timestamp) : null;
+                const tsDisplay = ts ? ts.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'SYNC';
                 const sevColor = a.severity === 'high' || a.severity === 'critical' ? 'var(--risk-high)' : (a.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)');
+
+                // P&L tracking: compute time since signal
+                const ageMs = ts ? (Date.now() - ts.getTime()) : null;
+                const ageLabel = ageMs !== null ? (
+                    ageMs < 3600000 ? `${Math.round(ageMs/60000)}m ago` :
+                    ageMs < 86400000 ? `${Math.round(ageMs/3600000)}h ago` :
+                    `${Math.round(ageMs/86400000)}d ago`
+                ) : '';
+
+                // Live price from WS broadcast (window.livePrices set by WebSocket handler)
+                const sym = a.ticker ? a.ticker.replace('-USD','').toUpperCase() : null;
+                const livePrice = sym && window.livePrices ? window.livePrices[sym] : null;
+                const entryPrice = a.price && parseFloat(a.price) > 0 ? parseFloat(a.price) : null;
+                let pnlHtml = '';
+                if (entryPrice && livePrice && sym) {
+                    const pnlPct = ((livePrice - entryPrice) / entryPrice * 100);
+                    const pnlColor = pnlPct > 0 ? 'var(--risk-low)' : pnlPct < 0 ? 'var(--risk-high)' : 'var(--text-dim)';
+                    const pnlSign = pnlPct > 0 ? '+' : '';
+                    pnlHtml = `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
+                        <div style="font-size:0.65rem;color:var(--text-dim)">
+                            <span style="font-weight:700;letter-spacing:1px">ENTRY</span><br>
+                            <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
+                        </div>
+                        <span style="color:var(--text-dim);font-size:0.8rem">→</span>
+                        <div style="font-size:0.65rem;color:var(--text-dim)">
+                            <span style="font-weight:700;letter-spacing:1px">NOW</span><br>
+                            <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${livePrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
+                        </div>
+                        <div style="margin-left:auto;text-align:right">
+                            <div style="font-size:1rem;font-weight:900;color:${pnlColor};font-family:var(--font-mono)">${pnlSign}${pnlPct.toFixed(2)}%</div>
+                            <div style="font-size:0.55rem;color:var(--text-dim)">since signal</div>
+                        </div>
+                    </div>`;
+                } else if (entryPrice) {
+                    pnlHtml = `<div style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px">
+                        <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">ENTRY PRICE</span>
+                        <span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
+                    </div>`;
+                }
+
                 return `
-                <div class="alert-card ${a.severity}" style="background:var(--bg-card); border:1px solid var(--border); border-left:4px solid ${sevColor}; border-radius:12px; padding:1.5rem; position:relative; overflow:hidden">
+                <div class="alert-card ${a.severity}" style="background:var(--bg-card); border:1px solid var(--border); border-left:4px solid ${sevColor}; border-radius:12px; padding:1.5rem; position:relative; overflow:hidden; transition:transform 0.2s ease,box-shadow 0.2s ease" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;flex-wrap:wrap;gap:8px">
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                             <span style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:${sevColor}">${a.type}</span>
                             <span style="font-size:0.65rem;padding:3px 8px;border-radius:100px;font-weight:800;background:${a.severity === 'high' || a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(0,242,255,0.1)'};color:${sevColor};border:1px solid ${sevColor}33;letter-spacing:1px">${a.severity?.toUpperCase() || 'INFO'}</span>
                             ${a.ticker && a.ticker !== 'SYSTEM' ? `<span style="font-size:0.65rem;font-weight:900;color:var(--accent)">${a.ticker.replace('-USD','')}</span>` : ''}
                         </div>
-                        <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono)">${ts}</span>
+                        <div style="text-align:right">
+                            <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono)">${tsDisplay}</div>
+                            ${ageLabel ? `<div style="font-size:0.6rem;color:var(--text-dim);opacity:0.6">${ageLabel}</div>` : ''}
+                        </div>
                     </div>
                     <div style="font-size:1.1rem; font-weight:800; margin-bottom:8px">${a.title || (a.ticker + ' SIGNAL')}</div>
                     <div style="font-size:0.85rem; color:var(--text-dim); line-height:1.4; margin-bottom:1rem">${a.content || a.message}</div>
+                    ${pnlHtml}
                     <div style="display:flex; gap:10px;flex-wrap:wrap">
                         <button class="intel-action-btn mini" onclick="showSignalDetail('${a.id}', '${a.ticker}')" style="font-size:0.6rem; padding:4px 10px">
                             <span class="material-symbols-outlined" style="font-size:14px; margin-right:4px">psychology</span>
@@ -5193,6 +5238,9 @@ async function renderAlerts() {
                         <button class="intel-action-btn mini outline" onclick="openDetail('${a.ticker}', 'ALERT')" style="font-size:0.6rem;padding:4px 10px">
                             <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px">monitoring</span>
                             CHART
+                        </button>
+                        <button onclick="navigator.clipboard.writeText('${a.ticker}')" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:4px 10px;border-radius:6px;font-size:0.6rem;cursor:pointer;font-family:var(--font-mono)" title="Copy ticker">
+                            ${a.ticker.replace('-USD','')}
                         </button>` : ''}
                     </div>
                 </div>
