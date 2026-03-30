@@ -435,6 +435,9 @@ function initLivePriceStream() {
                         if (!window.livePrices) window.livePrices = {};
                         Object.assign(window.livePrices, p); // BTC, ETH, SOL from WS
 
+                        // ── Watchlist Target Price Alerts ──────────────────────
+                        if (isAuthenticatedUser) checkWatchlistAlerts(p);
+
                         if (p.BTC) {
                             currentBTCPrice = p.BTC;
                             const btcText = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;

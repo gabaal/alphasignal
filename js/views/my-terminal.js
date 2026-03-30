@@ -38,6 +38,9 @@ async function renderMyTerminal() {
 
     window._myTerminalTab = 'watchlist';
     myTerminalTab('watchlist');
+
+    // Request browser notification permission so alerts fire when tab is backgrounded
+    setTimeout(() => window._requestNotifPermission?.(), 1500);
 }
 
 window.myTerminalTab = async function(tab) {
@@ -297,5 +300,137 @@ window.removePosition = async function(id) {
         if (el) await renderPositionsTab(el);
     } else {
         showToast('Failed to close position', 'error');
+    }
+};
+
+// ══════════════════════════════════════════════════════════════
+// PRICE ALERT ENGINE — runs on every WS tick
+// ══════════════════════════════════════════════════════════════
+
+// Dedup set: tracks fired alerts so they don't repeat every tick
+// Key format: "TICKER:TARGET:direction" e.g. "BTC-USD:120000:above"
+window._alertsFired    = window._alertsFired    || new Set();
+window._watchlistCache = window._watchlistCache || null;
+window._positionsCache = window._positionsCache || null;
+window._alertCacheTs   = window._alertCacheTs   || 0;
+
+const ALERT_CACHE_TTL = 5 * 60 * 1000; // Refresh every 5 min
+
+async function _refreshAlertCaches() {
+    const now = Date.now();
+    if (now - window._alertCacheTs < ALERT_CACHE_TTL && window._watchlistCache) return;
+    try {
+        const [wl, pos] = await Promise.all([
+            fetchAPI('/watchlist'),
+            fetchAPI('/positions')
+        ]);
+        window._watchlistCache = wl || [];
+        window._positionsCache = pos || [];
+        window._alertCacheTs = now;
+    } catch(e) { /* silent fail — don't crash the WS loop */ }
+}
+
+function _sendPriceAlert(title, body, type = 'success') {
+    // 1. In-app toast
+    showToast(title, body, type);
+
+    // 2. Browser notification (fires even when tab is in background)
+    if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+            new Notification(`🎯 ${title}`, { body, icon: '/favicon.png', tag: title });
+        } else if (Notification.permission === 'default') {
+            Notification.requestPermission().then(perm => {
+                if (perm === 'granted') {
+                    new Notification(`🎯 ${title}`, { body, icon: '/favicon.png', tag: title });
+                }
+            });
+        }
+    }
+}
+
+window.checkWatchlistAlerts = async function(prices) {
+    // Lazy-load caches
+    await _refreshAlertCaches();
+
+    const watchlist = window._watchlistCache || [];
+    const positions = window._positionsCache || [];
+
+    // ── 1. Watchlist target alerts ─────────────────────────────
+    watchlist.forEach(item => {
+        if (!item.target_price) return;
+
+        // Match ticker: strip -USD suffix for the price key
+        const sym = item.ticker.replace('-USD', '');
+        const live = prices[sym] ?? prices[item.ticker];
+        if (!live || !item.target_price) return;
+
+        const target = Number(item.target_price);
+        const crossed = live >= target;
+        const key = `${item.ticker}:${target}:target`;
+
+        if (crossed && !window._alertsFired.has(key)) {
+            window._alertsFired.add(key);
+            const pct = (((live - target) / target) * 100).toFixed(2);
+            _sendPriceAlert(
+                `🎯 ${sym} HIT TARGET`,
+                `${sym} is at $${live.toLocaleString()} — your target of $${target.toLocaleString()} was reached! ${pct > 0 ? '+'+pct : pct}%`,
+                'success'
+            );
+        }
+
+        // Reset dedup key if price retreats 2% below target (so future crosses re-alert)
+        if (live < target * 0.98 && window._alertsFired.has(key)) {
+            window._alertsFired.delete(key);
+        }
+    });
+
+    // ── 2. Position target + stop alerts ──────────────────────
+    positions.forEach(pos => {
+        const sym = pos.ticker.replace('-USD', '');
+        const live = prices[sym] ?? prices[pos.ticker];
+        if (!live) return;
+
+        const isLong = pos.side !== 'SHORT';
+
+        // TARGET hit
+        if (pos.target_price) {
+            const target = Number(pos.target_price);
+            const targetHit = isLong ? live >= target : live <= target;
+            const targetKey = `${pos.ticker}:${pos.id}:target`;
+
+            if (targetHit && !window._alertsFired.has(targetKey)) {
+                window._alertsFired.add(targetKey);
+                const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
+                _sendPriceAlert(
+                    `✅ ${sym} TARGET HIT`,
+                    `Your ${pos.side} hit $${target.toLocaleString()} — take profit? Entry: $${Number(pos.entry_price).toLocaleString()} · +${pnlPct}%`,
+                    'success'
+                );
+            }
+        }
+
+        // STOP-LOSS breach
+        if (pos.stop_price) {
+            const stop = Number(pos.stop_price);
+            const stopHit = isLong ? live <= stop : live >= stop;
+            const stopKey = `${pos.ticker}:${pos.id}:stop`;
+
+            if (stopHit && !window._alertsFired.has(stopKey)) {
+                window._alertsFired.add(stopKey);
+                const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
+                _sendPriceAlert(
+                    `🛑 ${sym} STOP BREACHED`,
+                    `Your ${pos.side} stop of $${stop.toLocaleString()} was hit. Entry: $${Number(pos.entry_price).toLocaleString()} · -${pnlPct}%`,
+                    'alert'
+                );
+            }
+        }
+    });
+};
+
+// Request browser notification permission proactively when user is on My Terminal
+window._requestNotifPermission = function() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
     }
 };
