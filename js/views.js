@@ -5071,17 +5071,12 @@ async function renderDocsVelocity() {
 // ============= Core Features =============
 async function renderAlerts() {
     appEl.innerHTML = skeleton(3);
-    const [data, settings] = await Promise.all([
-        fetchAPI('/alerts'),
-        fetchAPI('/alert-settings', 'GET').catch(() => null)
-    ]);
+    // Load alerts data (primary) — settings load separately & non-blocking
+    const data = await fetchAPI('/alerts');
 
-    const hasDiscord  = settings?.has_discord  || false;
-    const hasTelegram = settings?.has_telegram || false;
-    const zThreshold  = settings?.z_threshold  || 2.0;
-    const alertsOn    = settings?.alerts_enabled !== false;
-    const discMasked  = settings?.discord_masked  || '';
-    const tgMasked    = settings?.telegram_masked || '';
+    // Default settings — panel always renders with these, then updates when real data arrives
+    let hasDiscord  = false, hasTelegram = false, zThreshold = 2.0, alertsOn = true;
+    let discMasked  = '', tgMasked = '';
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -5213,6 +5208,20 @@ async function renderAlerts() {
     // Clear badge when viewing alerts
     const badge = document.getElementById('alert-badge');
     if (badge) badge.style.display = 'none';
+
+    // Non-blocking: load saved settings and update the panel after initial render
+    fetchAPI('/alert-settings').then(s => {
+        if (!s || s.error) return;
+        const discIn  = document.getElementById('discord-webhook-input');
+        const tgIn    = document.getElementById('telegram-chat-input');
+        const slider  = document.getElementById('z-threshold-slider');
+        const zDisp   = document.getElementById('z-val-display');
+        const toggle  = document.getElementById('alerts-enabled-toggle');
+        if (slider && s.z_threshold) { slider.value = s.z_threshold; if(zDisp) zDisp.textContent = parseFloat(s.z_threshold).toFixed(1) + 'σ'; }
+        if (toggle) toggle.checked = s.alerts_enabled !== false;
+        if (discIn && s.has_discord) discIn.placeholder = (s.discord_masked || '…') + ' (enter new to update)';
+        if (tgIn   && s.has_telegram) tgIn.placeholder  = (s.telegram_masked || '…') + ' (enter new to update)';
+    }).catch(() => {});
 }
 
 window.saveAlertSettings = async function() {
