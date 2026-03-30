@@ -289,6 +289,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             auth_info = None
             if path.startswith('/api/'):
                 public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge']
+                # Routes that require auth but NOT premium subscription
+                free_auth_routes = ['/api/watchlist', '/api/positions']
                 if path not in public_routes:
                     auth_info = self.is_authenticated()
                     if not auth_info:
@@ -298,7 +300,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         self.end_headers()
                         self.wfile.write(json.dumps({'error': 'Unauthorized'}).encode('utf-8'))
                         return
-                    if not auth_info.get('is_premium', False):
+                    if not auth_info.get('is_premium', False) and path not in free_auth_routes:
                         print(f'[{datetime.now()}] PREMIUM REJECT: {path}')
                         self.send_response(402)
                         self.send_header('Content-Type', 'application/json')
