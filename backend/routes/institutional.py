@@ -2937,8 +2937,37 @@ class InstitutionalRoutesMixin:
                     continue
             win_rate = round(wins / total * 100, 1) if total > 0 else 0
             avg_return = round(total_roi / total, 2) if total > 0 else 0
-            monthly_series = sorted([{'month': m, 'signals': v['signals'], 'avg_roi': round(v['total_roi'] / v['signals'], 2)} for m, v in monthly.items()], key=lambda x: x['month'])
-            self.send_json({'total_signals': total, 'win_rate': win_rate, 'avg_return': avg_return, 'total_return': round(total_roi, 2), 'best_pick': best, 'worst_pick': worst, 'monthly': monthly_series, 'updated': datetime.now().strftime('%H:%M UTC')})
+
+            # Format monthly series with human-readable month labels
+            monthly_series = sorted([{
+                'month': datetime.strptime(m, '%Y-%m').strftime('%b') if len(m) == 7 else m,
+                'month_key': m,
+                'signals': v['signals'],
+                'avg_roi': round(v['total_roi'] / v['signals'], 2)
+            } for m, v in monthly.items()], key=lambda x: x['month_key'])
+
+            # Signal type distribution (from type column in alerts_history)
+            try:
+                conn2 = sqlite3.connect(DB_PATH)
+                c2 = conn2.cursor()
+                c2.execute("SELECT type, COUNT(*) as cnt FROM alerts_history GROUP BY type ORDER BY cnt DESC")
+                type_rows = c2.fetchall()
+                c2.execute("SELECT ticker, COUNT(*) as cnt FROM alerts_history WHERE ticker != 'SYSTEM' GROUP BY ticker ORDER BY cnt DESC LIMIT 5")
+                ticker_rows = c2.fetchall()
+                conn2.close()
+                total_typed = sum(r[1] for r in type_rows) or 1
+                signal_mix = {r[0]: round(r[1] / total_typed, 4) for r in type_rows if r[0]}
+                by_ticker = [{'ticker': r[0], 'count': r[1]} for r in ticker_rows]
+            except:
+                signal_mix = {}
+                by_ticker = []
+
+            self.send_json({
+                'total_signals': total, 'win_rate': win_rate, 'avg_return': avg_return,
+                'total_return': round(total_roi, 2), 'best_pick': best, 'worst_pick': worst,
+                'monthly': monthly_series, 'signal_mix': signal_mix, 'by_ticker': by_ticker,
+                'updated': datetime.now().strftime('%H:%M UTC')
+            })
         except Exception as e:
             print(f'Performance Error: {e}')
             self.send_json({'total_signals': 0, 'win_rate': 0, 'avg_return': 0, 'error': str(e)})
