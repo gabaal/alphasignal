@@ -5074,6 +5074,48 @@ async function renderAlerts() {
     // Load alerts data (primary) — settings load separately & non-blocking
     const data = await fetchAPI('/alerts');
 
+    // ── Seed window.livePrices for ALL tickers visible in alerts ──────────────
+    // WS already covers BTC/ETH/SOL. For ADA, XRP, MSTR, COIN etc. we use the
+    // signals endpoint which has current prices for the full 50-asset universe.
+    if (!window.livePrices) window.livePrices = {};
+    if (!window._livePricesSeedDone) {
+        // Non-blocking: don't await, let the UI paint first
+        fetchAPI('/signals').then(sigs => {
+            if (!sigs || !sigs.signals) return;
+            sigs.signals.forEach(s => {
+                if (s.ticker && s.price) {
+                    // Normalise: strip -USD suffix for lookup key
+                    const key = s.ticker.replace('-USD','').toUpperCase();
+                    window.livePrices[key] = parseFloat(s.price);
+                }
+            });
+            window._livePricesSeedDone = true;
+            // Re-paint P&L rows that were rendered with no live price
+            document.querySelectorAll('.pnl-pending').forEach(el => {
+                const ticker = el.dataset.ticker;
+                const entryPrice = parseFloat(el.dataset.entry);
+                const sym = ticker ? ticker.replace('-USD','').toUpperCase() : null;
+                const liveP = sym ? window.livePrices[sym] : null;
+                if (!liveP || !entryPrice) return;
+                const pct = ((liveP - entryPrice) / entryPrice * 100);
+                const color = pct > 0 ? 'var(--risk-low)' : pct < 0 ? 'var(--risk-high)' : 'var(--text-dim)';
+                el.innerHTML = `
+                <div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
+                    <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">ENTRY</span><br>
+                    <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
+                    <span style="color:var(--text-dim);font-size:0.8rem">→</span>
+                    <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">NOW</span><br>
+                    <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${liveP.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
+                    <div style="margin-left:auto;text-align:right">
+                        <div style="font-size:1rem;font-weight:900;color:${color};font-family:var(--font-mono)">${pct > 0 ? '+' : ''}${pct.toFixed(2)}%</div>
+                        <div style="font-size:0.55rem;color:var(--text-dim)">since signal</div>
+                    </div>
+                </div>`;
+                el.classList.remove('pnl-pending');
+            });
+        }).catch(() => {});
+    }
+
     // Default settings — panel always renders with these, then updates when real data arrives
     let hasDiscord  = false, hasTelegram = false, zThreshold = 2.0, alertsOn = true;
     let discMasked  = '', tgMasked = '';
@@ -5207,9 +5249,12 @@ async function renderAlerts() {
                         </div>
                     </div>`;
                 } else if (entryPrice) {
-                    pnlHtml = `<div style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px">
-                        <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">ENTRY PRICE</span>
+                    // No live price yet — render a pending placeholder that gets upgraded
+                    // by the bulk-seed callback once /signals resolves
+                    pnlHtml = `<div class="pnl-pending" data-ticker="${a.ticker || ''}" data-entry="${entryPrice}" style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px">
+                        <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">ENTRY</span>
                         <span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
+                        <span style="font-size:0.6rem;color:var(--text-dim);opacity:0.5;margin-left:4px">· fetching live…</span>
                     </div>`;
                 }
 

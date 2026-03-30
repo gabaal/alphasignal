@@ -2373,14 +2373,14 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             # Fetch latest 50 alerts, newest first
-            c.execute('''SELECT id, type, ticker, message, severity, timestamp
+            c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
                          FROM alerts_history
                          ORDER BY timestamp DESC
                          LIMIT 50''')
             rows = c.fetchall()
 
             alerts = []
-            for row_id, sig_type, ticker, message, severity, ts in rows:
+            for row_id, sig_type, ticker, message, severity, ts, price in rows:
                 alerts.append({
                     'id': row_id,
                     'type': sig_type,
@@ -2388,7 +2388,8 @@ class InstitutionalRoutesMixin:
                     'title': f"{ticker} - {sig_type.replace('_', ' ')}",
                     'content': message,
                     'severity': severity or 'medium',
-                    'timestamp': ts
+                    'timestamp': ts,
+                    'price': price
                 })
 
             if not alerts:

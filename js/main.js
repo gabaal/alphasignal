@@ -2248,6 +2248,11 @@ function initLivePriceStream() {
                     
                     if (msg.type === 'prices') {
                         const p = msg.data;
+
+                        // ── Populate global live price cache (used by alert card P&L) ──
+                        if (!window.livePrices) window.livePrices = {};
+                        Object.assign(window.livePrices, p); // BTC, ETH, SOL from WS
+
                         if (p.BTC) {
                             currentBTCPrice = p.BTC;
                             const btcText = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
