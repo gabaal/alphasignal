@@ -99,7 +99,11 @@ const viewMap = {
     'explain-heatmap': renderDocsHeatmap,
     'explain-command-center': renderDocsCommandCenter,
     'explain-ask-terminal': renderDocsAskTerminal,
-    'my-terminal': renderMyTerminal
+    'my-terminal': renderMyTerminal,
+    'signal': () => {
+        const id = new URLSearchParams(window.location.search).get('id');
+        renderSignalPermalink(id);
+    }
 };
 
 

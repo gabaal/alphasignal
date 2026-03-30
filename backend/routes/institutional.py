@@ -29,6 +29,25 @@ class InstitutionalRoutesMixin:
         except: pass
         return None
 
+    def handle_signal_permalink(self, signal_id):
+        """Public: GET /api/signal/{id} — returns a single signal for permalink sharing."""
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute('SELECT * FROM alerts_history WHERE id = ?', (signal_id,))
+            row = c.fetchone()
+            conn.close()
+            if not row:
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Signal not found'}).encode())
+                return
+            self.send_json(dict(row))
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
     def _get_volume_series(self, df, ticker):
         """Robustly extract the Volume series from a dataframe regardless of formatting."""
         if df is None or df.empty: return None

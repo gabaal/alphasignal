@@ -11,12 +11,13 @@ from backend.routes.market import MarketRoutesMixin
 from backend.routes.institutional import InstitutionalRoutesMixin
 from backend.routes.ai_engine import AIEngineRoutesMixin
 from backend.routes.personal import PersonalRoutesMixin
+from backend.routes.digest import DigestRoutesMixin
 import socketserver, http.server
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
 
-class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin):
+class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin, DigestRoutesMixin):
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         super().end_headers()
@@ -262,6 +263,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 auth_info = self.is_authenticated()
                 if auth_info: self.handle_positions_post(auth_info, post_data)
                 else: self.send_response(401); self.end_headers()
+            elif path == '/api/digest/send':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_digest_send(auth_info)
+                else: self.send_response(401); self.end_headers()
             else:
                 self.send_error(404, 'Path not found')
         except Exception as e:
@@ -289,9 +294,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             auth_info = None
             if path.startswith('/api/'):
                 public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge']
-                # Routes that require auth but NOT premium subscription
-                free_auth_routes = ['/api/watchlist', '/api/positions']
-                if path not in public_routes:
+                free_auth_routes = ['/api/watchlist', '/api/positions', '/api/digest/send']
+                # /api/signal/{id} is fully public — no auth gate for shared links
+                if path.startswith('/api/signal/'):
+                    pass  # skip gate, handle_signal_permalink does not require auth
+                elif path not in public_routes:
                     auth_info = self.is_authenticated()
                     if not auth_info:
                         print(f'[{datetime.now()}] AUTH FAIL: {path}')
@@ -309,6 +316,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         return
                 elif path == '/api/auth/status':
                     auth_info = self.is_authenticated()
+
             if path == '/api/auth/status':
                 self.handle_auth_status(auth_info)
             elif path == '/api/config':
@@ -486,6 +494,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_watchlist_get(auth_info)
             elif path == '/api/positions':
                 self.handle_positions_get(auth_info)
+            elif path.startswith('/api/signal/'):
+                # Public: /api/signal/{id} — no auth required for sharing
+                signal_id = path.split('/')[-1]
+                self.handle_signal_permalink(signal_id)
             elif path == '/health':
                 self.handle_health()
             else:

@@ -11,7 +11,7 @@ function switchView(view, pushState = true) {
     // PUBLIC: no auth required
     const isPublicView = (
         view === 'signals' || view === 'home' || view === 'help' ||
-        view?.startsWith('explain-')
+        view?.startsWith('explain-') || view === 'signal'
     );
     // FREE: login required, no subscription needed
     const isFreeView = isPublicView || view === 'command-center' || view === 'free-tier' || view === 'my-terminal';

@@ -290,6 +290,10 @@ if __name__ == "__main__":
     port_thread = threading.Thread(target=PORTFOLIO_SIM.run_simulation_loop, daemon=True)
     print("Starting Institutional Portfolio Simulation loop...", flush=True)
     port_thread.start()
-    
+
+    # Start Daily Digest Cron (sends at 07:30 UTC)
+    from backend.routes.digest import start_digest_cron
+    start_digest_cron()
+
     httpd.serve_forever()
 
