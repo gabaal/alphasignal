@@ -98,7 +98,8 @@ const viewMap = {
     'explain-trade-ledger': renderDocsTradeLedger,
     'explain-heatmap': renderDocsHeatmap,
     'explain-command-center': renderDocsCommandCenter,
-    'explain-ask-terminal': renderDocsAskTerminal
+    'explain-ask-terminal': renderDocsAskTerminal,
+    'my-terminal': renderMyTerminal
 };
 
 

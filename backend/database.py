@@ -208,5 +208,26 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS ml_predictions (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, predicted_return REAL, confidence REAL, features_json TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS portfolio_history (timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, equity REAL, draw_down REAL, assets_json TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS trade_ledger (id INTEGER PRIMARY KEY AUTOINCREMENT, user_email TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, ticker TEXT, action TEXT, price REAL, target REAL, stop REAL, rr REAL, slippage REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS watchlist (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email TEXT NOT NULL,
+        ticker TEXT NOT NULL,
+        target_price REAL,
+        note TEXT,
+        added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_email, ticker)
+    )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS positions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email TEXT NOT NULL,
+        ticker TEXT NOT NULL,
+        side TEXT DEFAULT 'LONG',
+        qty REAL NOT NULL,
+        entry_price REAL NOT NULL,
+        target_price REAL,
+        stop_price REAL,
+        opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        notes TEXT
+    )''')
     conn.commit()
     conn.close()

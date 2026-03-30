@@ -10,21 +10,47 @@ from backend.routes.auth import AuthRoutesMixin
 from backend.routes.market import MarketRoutesMixin
 from backend.routes.institutional import InstitutionalRoutesMixin
 from backend.routes.ai_engine import AIEngineRoutesMixin
+from backend.routes.personal import PersonalRoutesMixin
 import socketserver, http.server
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
 
-class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin):
+class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin):
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         super().end_headers()
 
     def do_OPTIONS(self):
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey, prefer')
         self.end_headers()
+
+    def do_DELETE(self):
+        try:
+            parsed = urllib.parse.urlparse(self.path)
+            path = parsed.path.rstrip('/')
+            auth_info = self.is_authenticated()
+            if not auth_info:
+                self.send_response(401)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Unauthorized'}).encode('utf-8'))
+                return
+            # Extract ID from path: /api/watchlist/123 or /api/positions/123
+            parts = path.split('/')
+            item_id = parts[-1] if len(parts) > 1 else None
+            if path.startswith('/api/watchlist'):
+                self.handle_watchlist_delete(auth_info, item_id)
+            elif path.startswith('/api/positions'):
+                self.handle_positions_delete(auth_info, item_id)
+            else:
+                self.send_response(404)
+                self.end_headers()
+        except Exception as e:
+            print(f'[{datetime.now()}] DELETE Error: {e}')
+            self.send_error(500, str(e))
 
     def send_json(self, data):
         try:
@@ -228,6 +254,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_portfolio_execute(post_data)
             elif path == '/api/ask-terminal':
                 self.handle_ask_terminal(post_data)
+            elif path == '/api/watchlist':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_watchlist_post(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
+            elif path == '/api/positions':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_positions_post(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
             else:
                 self.send_error(404, 'Path not found')
         except Exception as e:
@@ -446,6 +480,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_cohort_waves()
             elif path == '/api/yield-lab':
                 self.handle_yield_lab()
+            elif path == '/api/watchlist':
+                self.handle_watchlist_get(auth_info)
+            elif path == '/api/positions':
+                self.handle_positions_get(auth_info)
             elif path == '/health':
                 self.handle_health()
             else:
