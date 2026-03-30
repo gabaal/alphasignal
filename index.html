@@ -138,6 +138,7 @@
                 <div class="nav-item" data-view="alerts" aria-label="View Signal Alerts">
                     <span class="icon material-symbols-outlined" aria-hidden="true">notifications</span> Alerts
                     <span class="alert-badge" id="alert-badge" style="display:none" aria-label="Active Alerts Count">0</span>
+                    <span id="alerts-nav-live-dot" class="live-dot" style="display:none;margin-left:4px"></span>
                 </div>
                 <div class="nav-item" data-view="ask-terminal" aria-label="Ask the Terminal AI">
                     <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Ask Terminal <span class="premium-badge" style="font-size:0.5rem;background:#bc13fe;color:black;padding:1px 5px;border-radius:4px;margin-left:2px">AI</span>
@@ -204,10 +205,9 @@
                         <canvas id="btcSparklineChart"></canvas>
                     </div>
                 </div>
-                <div class="search-container" role="search">
-                    <input type="text" id="global-search" placeholder="SEARCH TICKER (e.g. AAPL, TSLA, SOL-USD)..." autocomplete="off" aria-label="Search for tickers">
-
-
+                <div class="search-container" role="search" style="position:relative">
+                    <input type="text" id="global-search" placeholder="&#x2318;K / Ctrl+K — SEARCH TICKER..." autocomplete="off" aria-label="Search for tickers">
+                    <div id="search-dropdown" class="search-dropdown hidden"></div>
                 </div>
                 <div class="top-bar-actions">
                     <div class="action-group" id="live-meta-group">
@@ -417,11 +417,11 @@
     <!-- Phase 15-C: Export libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="js/core.js?v=1.50"></script>
-    <script src="js/heatmap_engine.js?v=1.50"></script>
-    <script src="js/charts.js?v=1.50"></script>
-    <script src="js/views.js?v=1.50"></script>
-    <script src="js/main.js?v=1.50"></script>
+    <script src="js/core.js?v=1.51"></script>
+    <script src="js/heatmap_engine.js?v=1.51"></script>
+    <script src="js/charts.js?v=1.51"></script>
+    <script src="js/views.js?v=1.51"></script>
+    <script src="js/main.js?v=1.51"></script>
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
     <div id="notification-modal" class="overlay hidden">

@@ -4719,8 +4719,12 @@ async function renderSignalArchive(tabs = null) {
                 <div class="card" style="text-align:center; padding:3rem">
                     <p style="color:var(--text-dim); font-size:0.85rem">No signals found matching these criteria.</p>
                 </div>`;
+            window._archiveCurrentData = [];
             return;
         }
+
+        // Cache for CSV export
+        window._archiveCurrentData = data;
 
         const stateColors = {
             'HIT_TP2': '#22c55e', 'HIT_TP1': '#86efac',
@@ -4753,12 +4757,13 @@ async function renderSignalArchive(tabs = null) {
         container.innerHTML = `
             <div class="card" style="overflow-x:auto">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:15px">
-                    <span style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1} • ${pageInfo?.total || 0} TOTAL)</span>
-                    <div style="display:flex; gap:15px; align-items:center;">
+                    <span style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1} &bull; ${pageInfo?.total || 0} TOTAL)</span>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <button class="btv2-export-btn" onclick="_archiveExportPage()"><span class="material-symbols-outlined" style="font-size:13px">download</span> EXPORT PAGE CSV</button>
+                        <a href="/api/export?type=signals" download class="btv2-export-btn"><span class="material-symbols-outlined" style="font-size:13px">file_download</span> EXPORT ALL</a>
                         <button class="setup-generator-btn" style="width:85px; padding:0; font-size:0.65rem; height:24px; line-height:24px; text-align:center" onclick="window.loadArchiveData(${currentPage - 1 > 0 ? currentPage - 1 : 1})" ${currentPage === 1 ? 'disabled style="opacity:0.5"' : ''}>PREVIOUS</button>
                         <div style="font-size:0.75rem; color:var(--text-dim)">PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1}</div>
                         <button class="setup-generator-btn" style="width:85px; padding:0; font-size:0.65rem; height:24px; line-height:24px; text-align:center" onclick="window.loadArchiveData(${currentPage + 1})" ${(pageInfo && currentPage >= pageInfo.pages) ? 'disabled style="opacity:0.5"' : ''}>NEXT</button>
-                        <a href="/api/export?type=signals" download class="setup-generator-btn" style="width:auto; padding:4px 12px; font-size:0.6rem; height:24px; line-height:16px; text-decoration:none; display:flex; align-items:center; gap:5px"><span class="material-symbols-outlined" style="font-size:12px">download</span> EXPORT ALL (CSV)</a>
                     </div>
                 </div>
                 <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
@@ -4801,6 +4806,15 @@ async function renderSignalArchive(tabs = null) {
     };
 
     window.loadArchiveData = loadData;
+    // Expose current page data for CSV export
+    window._archiveCurrentData = null;
+    window._archiveExportPage = function() {
+        if (!window._archiveCurrentData || !window._archiveCurrentData.length) {
+            showToast('EXPORT', 'No data to export on this page.', 'alert'); return;
+        }
+        exportCSV(window._archiveCurrentData, `alphasignal_archive_page_${new Date().toISOString().split('T')[0]}.csv`);
+        showToast('EXPORT', 'Page data exported as CSV.', 'success');
+    };
 
     document.getElementById('apply-filters').onclick = () => loadData(1);
     // Load initial data
@@ -6068,7 +6082,12 @@ async function renderBacktesterV2(tabs = null) {
             <div id="btv2-calendar" style="display:flex;flex-wrap:wrap;gap:6px"></div>
         </div>
         <div class="glass-card" style="padding:1.5rem">
-            <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">RECENT TRADE LOG (Last 50)</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem">
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim)">RECENT TRADE LOG (Last 50)</div>
+                <button class="btv2-export-btn" onclick="window._btv2ExportCSV()">
+                    <span class="material-symbols-outlined" style="font-size:13px">download</span> EXPORT TRADES CSV
+                </button>
+            </div>
             <div style="overflow-x:auto">
                 <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
                     <thead><tr style="color:var(--text-dim)">${['Ticker','Signal','Entry','Exit','Entry $','Exit $','Strat P&L','BTC P&L','Alpha'].map(h => '<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px;white-space:nowrap">' + h + '</th>').join('')}</tr></thead>
@@ -6077,7 +6096,7 @@ async function renderBacktesterV2(tabs = null) {
             </div>
         </div>
     `;
-    loadBacktesterV2();
+    // Don't auto-run — let the user click RUN BACKTEST (avoids blank chart when no data)
 }
 
 async function loadBacktesterV2() {
@@ -6088,7 +6107,22 @@ async function loadBacktesterV2() {
     });
     try {
         const data = await fetchAPI('/backtest-v2?hold=' + hold + '&limit=200');
-        if (data.error && !data.trades) { showToast('BACKTESTER', data.error, 'alert'); return; }
+        // Show error toast for any error condition
+        if (data.error || !data.trades || !data.trades.length) {
+            const msg = data.error || 'No signal history yet. Signals generate automatically as the system runs.';
+            showToast('BACKTESTER', msg, 'alert');
+            // Show friendly empty state in table
+            const tbody = document.getElementById('btv2-tbody');
+            if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.8rem">
+                <span class="material-symbols-outlined" style="display:block;font-size:2rem;margin-bottom:8px;color:var(--border)">bar_chart</span>
+                ${msg}<br><span style="font-size:0.7rem;margin-top:6px;display:block">Signals are logged automatically. Check back once the system has run for a few hours.</span>
+            </td></tr>`;
+            // Reset stat displays to dashes
+            ['win-rate','total-trades','total-return','sharpe','max-drawdown','profit-factor','calmar','consec--wins','consec--losses'].forEach(id => {
+                const el = document.getElementById('btv2-' + id); if (el) { el.textContent = '--'; el.style.color = 'var(--text-dim)'; }
+            });
+            return;
+        }
         const s = data.stats || {};
         const statMap = {
             'win-rate':      { val: (s.win_rate != null ? s.win_rate + '%' : '--'),        color: (s.win_rate||0) >= 55 ? '#22c55e' : '#ef4444' },
@@ -6118,6 +6152,15 @@ async function loadBacktesterV2() {
             const elL = document.getElementById('btv2-consec--losses');
             if (elW) { elW.textContent = maxWins; elW.style.color = '#22c55e'; }
             if (elL) { elL.textContent = maxLoss; elL.style.color = '#ef4444'; }
+            // Cache for CSV export
+            window.lastBacktestData = data.trades;
+            window._btv2ExportCSV = function() {
+                if (!window.lastBacktestData || !window.lastBacktestData.length) {
+                    showToast('EXPORT', 'Run backtest first to generate data.', 'alert'); return;
+                }
+                exportCSV(window.lastBacktestData, `alphasignal_backtest_${new Date().toISOString().split('T')[0]}.csv`);
+                showToast('EXPORT', 'Backtest trades exported as CSV.', 'success');
+            };
             renderBtv2Table(data.trades.slice().reverse());
         }
     } catch(e) {

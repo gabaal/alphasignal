@@ -623,7 +623,78 @@ const INSTANT_TICKERS = {
     'OP': 'OP-USD', 'INJ': 'INJ-USD', 'SUI': 'SUI-USD', 'APT': 'APT-USD',
     'BTC-USD': 'BTC-USD', 'ETH-USD': 'ETH-USD', 'SOL-USD': 'SOL-USD',
     'MSTR': 'MSTR', 'COIN': 'COIN', 'MARA': 'MARA', 'NVDA': 'NVDA',
-    'TSLA': 'TSLA', 'AAPL': 'AAPL', 'SPY': 'SPY', 'QQQ': 'QQQ', 'GLD': 'GLD'
+    'TSLA': 'TSLA', 'AAPL': 'AAPL', 'SPY': 'SPY', 'QQQ': 'QQQ', 'GLD': 'GLD',
+    'NEAR': 'NEAR-USD', 'FET': 'FET-USD', 'RNDR': 'RNDR-USD', 'WLD': 'WLD-USD',
+    'PEPE': 'PEPE-USD', 'BONK': 'BONK-USD', 'WIF': 'WIF-USD', 'FLOKI': 'FLOKI-USD',
+    'LDO': 'LDO-USD', 'MKR': 'MKR-USD', 'CRV': 'CRV-USD', 'RUNE': 'RUNE-USD',
+    'IMX': 'IMX-USD', 'TAO': 'TAO-USD', 'IBIT': 'IBIT', 'FBTC': 'FBTC', 'ARKB': 'ARKB'
+};
+
+// ============= Keyboard Shortcuts =============
+document.addEventListener('keydown', (e) => {
+    // Ctrl+K or Cmd+K — focus global search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchEl = document.getElementById('global-search');
+        if (searchEl) { searchEl.focus(); searchEl.select(); }
+    }
+    // Escape — close search dropdown
+    if (e.key === 'Escape') {
+        const dd = document.getElementById('search-dropdown');
+        if (dd) dd.classList.add('hidden');
+    }
+});
+
+// ============= Search Dropdown Logic =============
+document.addEventListener('DOMContentLoaded', () => {
+    const searchEl = document.getElementById('global-search');
+    if (!searchEl) return;
+
+    // Enter key submits
+    searchEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); executeSearch(); }
+    });
+
+    // Instant dropdown on input
+    searchEl.addEventListener('input', () => {
+        const raw = searchEl.value.trim().toUpperCase();
+        const dd = document.getElementById('search-dropdown');
+        if (!dd) return;
+        if (!raw || raw.length < 1) { dd.classList.add('hidden'); return; }
+
+        const matches = Object.keys(INSTANT_TICKERS)
+            .filter(k => k.startsWith(raw) && !k.includes('-USD'))
+            .slice(0, 7);
+
+        if (!matches.length) { dd.classList.add('hidden'); return; }
+
+        dd.innerHTML = matches.map(k => {
+            const resolved = INSTANT_TICKERS[k];
+            const isCrypto = resolved.includes('-USD');
+            return `<div class="search-dd-item" onclick="_searchSelectItem('${resolved}','${isCrypto ? 'CRYPTO' : 'EQUITY'}')">
+                <span class="search-dd-ticker">${k}</span>
+                <span class="search-dd-type">${isCrypto ? 'CRYPTO' : 'EQUITY'}</span>
+            </div>`;
+        }).join('');
+        dd.classList.remove('hidden');
+    });
+
+    // Hide on outside click
+    document.addEventListener('click', (e) => {
+        const dd = document.getElementById('search-dropdown');
+        if (dd && !dd.contains(e.target) && e.target.id !== 'global-search') {
+            dd.classList.add('hidden');
+        }
+    });
+});
+
+window._searchSelectItem = function(resolved, category) {
+    const searchEl = document.getElementById('global-search');
+    const dd = document.getElementById('search-dropdown');
+    if (searchEl) searchEl.value = '';
+    if (dd) dd.classList.add('hidden');
+    showToast('INSTANT OPEN', `Loading ${resolved} intelligence...`, 'success');
+    openDetail(resolved, category);
 };
 
 async function executeSearch() {
@@ -1716,29 +1787,37 @@ async function syncAlerts() {
     if (data && data.length) {
         const highSeverity = data.filter(a => a.severity === 'extreme' || a.severity === 'high').length;
         const badge = document.getElementById('alert-badge');
-        if (highSeverity > 0) {
-            badge.textContent = highSeverity;
-            badge.style.display = 'flex';
-            // Flash badge to signal new data
-            badge.style.animation = 'none';
-            setTimeout(() => badge.style.animation = '', 50);
-        } else if (data.length > 0) {
-            badge.textContent = data.length;
-            badge.style.backgroundColor = 'var(--accent)';
-            badge.style.display = 'flex';
+        if (badge) {
+            if (highSeverity > 0) {
+                badge.textContent = highSeverity;
+                badge.classList.add('has-alerts');
+                badge.style.display = 'flex';
+                // Re-trigger pulse animation
+                badge.style.animation = 'none';
+                void badge.offsetWidth; // force reflow
+                badge.style.animation = '';
+            } else if (data.length > 0) {
+                badge.textContent = data.length;
+                badge.classList.remove('has-alerts');
+                badge.style.backgroundColor = 'var(--accent)';
+                badge.style.display = 'flex';
+            }
         }
-        // If user is on the alerts view, auto-refresh it silently
+
+        // Live dot on Alerts nav item
+        const liveDot = document.getElementById('alerts-nav-live-dot');
+        if (liveDot) {
+            liveDot.style.display = highSeverity > 0 ? 'inline-block' : 'none';
+        }
+
+        // If user is on the alerts view, pulse the header indicator
         const currentView = new URLSearchParams(window.location.search).get('view');
         if (currentView === 'alerts') {
-            const alertList = document.querySelector('.alert-list');
-            if (alertList) {
-                // Show a subtle pulse indicator
-                const pulse = document.getElementById('alerts-live-pulse');
-                if (pulse) {
-                    pulse.textContent = 'LIVE • Updated ' + new Date().toLocaleTimeString();
-                    pulse.style.opacity = '1';
-                    setTimeout(() => { if (pulse) pulse.style.opacity = '0.5'; }, 3000);
-                }
+            const pulse = document.getElementById('alerts-live-pulse');
+            if (pulse) {
+                pulse.innerHTML = `<span class="live-dot"></span> LIVE &bull; Updated ${new Date().toLocaleTimeString()}`;
+                pulse.style.opacity = '1';
+                setTimeout(() => { if (pulse) pulse.style.opacity = '0.5'; }, 3000);
             }
         }
     }

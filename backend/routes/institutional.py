@@ -3474,25 +3474,79 @@ class InstitutionalRoutesMixin:
             # 2. Fetch price data per ticker
             unique_tickers = list({r[0] for r in rows})
             price_cache = {}
+
+            def _extract_closes(df, tk):
+                """Robust Close extractor for yfinance single/multi-ticker DataFrames."""
+                if df is None or df.empty:
+                    return None
+                try:
+                    if isinstance(df.columns, pd.MultiIndex):
+                        # Single ticker yfinance: MultiIndex ('Close', 'BTC-USD')
+                        close_level = df.xs('Close', axis=1, level=0) if 'Close' in df.columns.get_level_values(0) else None
+                        if close_level is not None:
+                            if tk in close_level.columns:
+                                return close_level[tk]
+                            if len(close_level.columns) == 1:
+                                return close_level.iloc[:, 0]
+                    # Handle tuple-string columns from JSON deserialization e.g. "('Close', 'BTC-USD')"
+                    tuple_str = str(('Close', tk))
+                    if tuple_str in df.columns:
+                        return df[tuple_str]
+                    # Also try just 'Close' as a key directly
+                    if 'Close' in df.columns:
+                        return df['Close']
+                    # Case-insensitive close search
+                    for col in df.columns:
+                        if 'close' in str(col).lower():
+                            return df[col]
+                    # Last resort: first numeric column
+                    numeric_cols = df.select_dtypes(include='number').columns
+                    if len(numeric_cols) > 0:
+                        return df[numeric_cols[0]]
+                except Exception as ex:
+                    print(f'[Backtest] _extract_closes({tk}): {ex}')
+                return None
+
             for tk in unique_tickers:
                 try:
                     df = CACHE.download(tk, period='2y', interval='1d')
                     if df is not None and not df.empty:
-                        closes = self._get_price_series(df, tk)
-                        price_cache[tk] = {
-                            int(pd.Timestamp(idx).timestamp()): float(v)
-                            for idx, v in zip(df.index, closes)
-                        }
-                except Exception:
-                    pass
+                        closes = _extract_closes(df, tk)
+                        if closes is None or closes.empty:
+                            print(f'[Backtest] No close data for {tk}')
+                            continue
+                        result = {}
+                        for idx, v in zip(df.index, closes):
+                            if not pd.notna(v): continue
+                            try:
+                                ts = pd.Timestamp(idx)
+                                unix = int(ts.timestamp())
+                                # JSON cache stores ms timestamps; normalize
+                                if unix > 1e12: unix = unix // 1000
+                            except Exception:
+                                continue
+                            result[unix] = float(v)
+                        price_cache[tk] = result
+                        print(f'[Backtest] {tk}: {len(result)} price bars')
+                except Exception as ex:
+                    print(f'[Backtest] Price fetch error for {tk}: {ex}')
 
             # BTC benchmark
             btc_df = CACHE.download('BTC-USD', period='2y', interval='1d')
             btc_prices = {}
             if btc_df is not None and not btc_df.empty:
-                btc_closes = self._get_price_series(btc_df, 'BTC-USD')
-                for d, p in zip(btc_df.index, btc_closes):
-                    btc_prices[int(pd.Timestamp(d).timestamp())] = float(p)
+                btc_closes = _extract_closes(btc_df, 'BTC-USD')
+                if btc_closes is not None:
+                    for d, p in zip(btc_df.index, btc_closes):
+                        if not pd.notna(p): continue
+                        try:
+                            ts = pd.Timestamp(d)
+                            unix = int(ts.timestamp())
+                            if unix > 1e12: unix = unix // 1000
+                            btc_prices[unix] = float(p)
+                        except Exception:
+                            continue
+            print(f'[Backtest] BTC benchmark: {len(btc_prices)} bars, price_cache tickers: {list(price_cache.keys())}')
 
             # 3. Simulate trades
             trades = []
@@ -3508,9 +3562,10 @@ class InstitutionalRoutesMixin:
                     continue
 
                 future_ts = [t for t in sorted_ts if t >= entry_ts]
-                if len(future_ts) < 2:
+                if not future_ts:
                     continue
 
+                # Use however many bars are available (partial hold is ok)
                 exit_idx  = min(hold_bars, len(future_ts) - 1)
                 exit_ts   = future_ts[exit_idx]
                 entry_pr  = prices_dict[future_ts[0]]
@@ -3567,10 +3622,11 @@ class InstitutionalRoutesMixin:
             calmar = round(total_return / max(max_dd, 0.001), 3)
 
             rolling_sharpe = []
-            for i in range(30, len(pnls) + 1):
-                win_pnl = pnls[i-30:i]
-                mn  = sum(win_pnl) / 30
-                sd  = (sum((x - mn) ** 2 for x in win_pnl) / 30) ** 0.5 + 1e-9
+            window = max(2, min(10, len(pnls)))  # adaptive window: min 2, max 10, grows with data
+            for i in range(window, len(pnls) + 1):
+                win_pnl = pnls[i-window:i]
+                mn  = sum(win_pnl) / window
+                sd  = (sum((x - mn) ** 2 for x in win_pnl) / window) ** 0.5 + 1e-9
                 rolling_sharpe.append({
                     'date':              trades[i-1]['entry_date'],
                     'sharpe':            round(mn / sd * (252 ** 0.5), 3),
