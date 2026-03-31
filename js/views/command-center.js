@@ -24,34 +24,8 @@ async function renderCommandCenter() {
             </div>
         </div>
 
-        <div class="command-main-grid" style="display:grid; grid-template-columns: 1fr 400px; gap:1.5rem; margin-bottom:1.5rem">
-            <div class="card">
-                <div class="card-header" style="margin-bottom:1rem">
-                    <h3>7D ETF NET FLOWS <span style="font-size:0.6rem; color:var(--text-dim)">($ Millions)</span></h3>
-                </div>
-                <div style="height:350px"><canvas id="cmd-etf-chart"></canvas></div>
-            </div>
-            <div class="card">
-                <div class="card-header">
-                    <h3>MACRO CORRELATION MATRIX</h3>
-                </div>
-                <div id="cmd-corr-matrix" style="height:350px; overflow:hidden"></div>
-            </div>
-        </div>
-
-        <div class="grid-2">
-            <div class="card">
-                <h3 style="margin-bottom:1rem">TOP INSTITUTIONAL ALPHA</h3>
-                <div id="cmd-top-signals"></div>
-            </div>
-            <div class="card">
-                <h3 style="margin-bottom:1rem">CME MAGNET GAPS</h3>
-                <div id="cmd-cme-gaps"></div>
-            </div>
-        </div>
-
-        <!-- Signal Analytics Charts -->
-        <div style="margin-top:1.5rem">
+        <!-- Signal Analytics Charts — directly below gauges -->
+        <div style="margin-bottom:1.5rem">
             <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">LIVE SIGNAL INTELLIGENCE</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px">
                 <div class="card" style="padding:1rem">
@@ -84,7 +58,34 @@ async function renderCommandCenter() {
                 </div>
             </div>
         </div>
+
+        <div class="command-main-grid" style="display:grid; grid-template-columns: 1fr 400px; gap:1.5rem; margin-bottom:1.5rem">
+            <div class="card">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <h3>7D ETF NET FLOWS <span style="font-size:0.6rem; color:var(--text-dim)">($ Millions)</span></h3>
+                </div>
+                <div style="height:350px"><canvas id="cmd-etf-chart"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>MACRO CORRELATION MATRIX</h3>
+                </div>
+                <div id="cmd-corr-matrix" style="height:350px; overflow:hidden"></div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3 style="margin-bottom:1rem">TOP INSTITUTIONAL ALPHA</h3>
+                <div id="cmd-top-signals"></div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom:1rem">CME MAGNET GAPS</h3>
+                <div id="cmd-cme-gaps"></div>
+            </div>
+        </div>
     `;
+
 
     // Data Fetching & Rendering
     try {
