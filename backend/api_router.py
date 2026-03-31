@@ -12,13 +12,14 @@ from backend.routes.institutional import InstitutionalRoutesMixin
 from backend.routes.ai_engine import AIEngineRoutesMixin
 from backend.routes.personal import PersonalRoutesMixin
 from backend.routes.digest import DigestRoutesMixin
+from backend.routes.price_alerts import PriceAlertRoutesMixin, start_price_alert_checker as _pa_start
 from backend.routes.telegram_bot import start_bot as _tg_start  # noqa — imported here for reference
 import socketserver, http.server
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
 
-class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin, DigestRoutesMixin):
+class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin, DigestRoutesMixin, PriceAlertRoutesMixin):
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         super().end_headers()
@@ -47,6 +48,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_watchlist_delete(auth_info, item_id)
             elif path.startswith('/api/positions'):
                 self.handle_positions_delete(auth_info, item_id)
+            elif path.startswith('/api/price-alerts'):
+                self.handle_price_alerts_delete(auth_info, item_id)
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -268,6 +271,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 auth_info = self.is_authenticated()
                 if auth_info: self.handle_digest_send(auth_info)
                 else: self.send_response(401); self.end_headers()
+            elif path == '/api/price-alerts':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_price_alerts_post(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
+            elif path == '/api/onboarding-complete':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_onboarding_complete(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
             else:
                 self.send_error(404, 'Path not found')
         except Exception as e:
@@ -294,8 +305,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge', '/api/telegram/link']
-                free_auth_routes = ['/api/watchlist', '/api/positions', '/api/digest/send']
+                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge', '/api/telegram/link', '/api/signal-leaderboard']
+                free_auth_routes = ['/api/watchlist', '/api/positions', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete']
                 # /api/signal/{id} is fully public — no auth gate for shared links
                 if path.startswith('/api/signal/'):
                     pass  # skip gate, handle_signal_permalink does not require auth
@@ -495,6 +506,16 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_watchlist_get(auth_info)
             elif path == '/api/positions':
                 self.handle_positions_get(auth_info)
+            elif path == '/api/price-alerts':
+                auth_info = auth_info or self.is_authenticated()
+                if auth_info: self.handle_price_alerts_get(auth_info)
+                else: self.send_response(401); self.end_headers()
+            elif path == '/api/signal-leaderboard':
+                self.handle_signal_leaderboard()
+            elif path == '/api/market-brief':
+                auth_info = auth_info or self.is_authenticated()
+                if auth_info: self.handle_market_brief()
+                else: self.send_response(401); self.end_headers()
             elif path.startswith('/api/signal/'):
                 # Public: /api/signal/{id} — no auth required for sharing
                 signal_id = path.split('/')[-1]
@@ -522,4 +543,42 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 super().do_GET()
         except Exception as e:
             print(f'[{datetime.now()}] Global do_GET error: {e}')
+
+    def handle_onboarding_complete(self, auth_info, post_data):
+        """Log when a user completes or skips the onboarding wizard."""
+        import sqlite3 as _sq
+        try:
+            email = auth_info.get('email', '')
+            skipped = post_data.get('skipped', False)
+            wcount = int(post_data.get('watchlist_count', 0))
+            completed_at = post_data.get('completed_at', datetime.now().isoformat())
+
+            with _sq.connect(DB_PATH) as conn:
+                c = conn.cursor()
+                # Add columns if they don't exist yet (idempotent)
+                for col, typ in [
+                    ('onboarding_completed_at', 'TEXT'),
+                    ('onboarding_skipped', 'INTEGER'),
+                    ('onboarding_watchlist_count', 'INTEGER'),
+                ]:
+                    try:
+                        c.execute(f'ALTER TABLE user_settings ADD COLUMN {col} {typ}')
+                    except Exception:
+                        pass
+                c.execute("""
+                    INSERT INTO user_settings (user_email, onboarding_completed_at, onboarding_skipped, onboarding_watchlist_count)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(user_email) DO UPDATE SET
+                        onboarding_completed_at = excluded.onboarding_completed_at,
+                        onboarding_skipped = excluded.onboarding_skipped,
+                        onboarding_watchlist_count = excluded.onboarding_watchlist_count
+                """, (email, completed_at, 1 if skipped else 0, wcount))
+                conn.commit()
+
+            action = 'SKIPPED' if skipped else 'COMPLETED'
+            print(f'[Onboarding] {email} {action} — watchlist_count={wcount}')
+            self.send_json({'success': True, 'action': action})
+        except Exception as e:
+            print(f'[Onboarding] Error: {e}')
+            self.send_json({'success': False, 'error': str(e)})
 

@@ -295,6 +295,10 @@ if __name__ == "__main__":
     from backend.routes.digest import start_digest_cron
     start_digest_cron()
 
+    # Start Price Alert Checker (polls every 60s)
+    from backend.routes.price_alerts import start_price_alert_checker
+    start_price_alert_checker()
+
     # Start Telegram Bot (long-polling)
     from backend.routes.telegram_bot import start_bot as start_telegram_bot
     start_telegram_bot()

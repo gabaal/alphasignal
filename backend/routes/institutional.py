@@ -1425,41 +1425,152 @@ class InstitutionalRoutesMixin:
         conn.close()
         universe_tickers = [t for sub in UNIVERSE.values() for t in sub]
         all_tickers = sorted(list(set(universe_tickers + tracked)))
-        print(f"DEBUG: universe size={len(universe_tickers)}, all_tickers size={len(all_tickers)}")
         results = []
         try:
             btc_data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close').squeeze()
             btc_pct = btc_data.pct_change().dropna()
             data = CACHE.download(all_tickers, period='60d', interval='1d', column='Close')
+            btc_change_pct = (float(btc_data.iloc[-1]) - float(btc_data.iloc[-2])) / float(btc_data.iloc[-2]) * 100
             for ticker in all_tickers:
                 try:
                     if ticker not in data.columns:
                         continue
                     prices = data[ticker].dropna()
-                    if prices.empty:
+                    if len(prices) < 2:
                         continue
                     change = (float(prices.iloc[-1]) - float(prices.iloc[-2])) / float(prices.iloc[-2]) * 100
-                    corr = float(np.corrcoef(btc_pct.values, prices.pct_change().dropna().reindex(btc_pct.index).ffill().values)[0, 1]) if len(prices) > 10 else 0
+                    # Fix: align on common index before computing correlation
                     rets = prices.pct_change().dropna()
-                    z_score = (rets.iloc[-1] - rets.mean()) / rets.std() if len(rets) > 10 else 0
+                    common_idx = btc_pct.index.intersection(rets.index)
+                    if len(common_idx) >= 10:
+                        corr = float(btc_pct.loc[common_idx].corr(rets.loc[common_idx]))
+                        corr = corr if not np.isnan(corr) else 0.0
+                    else:
+                        corr = 0.0
+                    z_score = float((rets.iloc[-1] - rets.mean()) / rets.std()) if len(rets) > 10 else 0.0
+                    z_score = z_score if not np.isnan(z_score) else 0.0
                     category = 'CRYPTO' if '-USD' in ticker else 'EQUITY'
                     for cat, tickers in UNIVERSE.items():
                         if ticker in tickers:
                             category = cat
                             break
-                    results.append({'ticker': ticker, 'name': get_ticker_name(ticker), 'price': float(prices.iloc[-1]), 'change': change, 'btcCorrelation': float(corr) if not np.isnan(corr) else 0.0, 'alpha': change - (float(btc_data.iloc[-1]) - float(btc_data.iloc[-2])) / float(btc_data.iloc[-2]) * 100, 'sentiment': get_sentiment(ticker), 'category': category, 'zScore': float(z_score) if not np.isnan(z_score) else 0})
+                    results.append({
+                        'ticker': ticker,
+                        'name': get_ticker_name(ticker),
+                        'price': float(prices.iloc[-1]),
+                        'change': round(change, 2),
+                        'btcCorrelation': round(corr, 2),
+                        'alpha': round(change - btc_change_pct, 2),
+                        'sentiment': get_sentiment(ticker),
+                        'category': category,
+                        'zScore': round(z_score, 2)
+                    })
                 except Exception as e:
-                    print(f"INNER SIGNAL ERROR for {ticker}: {e}")
-                    import traceback
-                    traceback.print_exc()
                     continue
-            print(f"DEBUG: loop completed, results size={len(results)}")
             self.send_json(sorted(results, key=lambda x: x['alpha'], reverse=True))
         except Exception as e:
             print(f'SIGNAL ERROR: {e}')
-            import traceback
-            traceback.print_exc()
             self.send_json([])
+
+    def handle_signal_leaderboard(self):
+        """Signal performance leaderboard — win rate and avg return per signal type."""
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            # Get signals older than 1h so price has had time to move
+            c.execute("""
+                SELECT id, type, ticker, message, severity, price, timestamp
+                FROM alerts_history
+                WHERE price IS NOT NULL AND price > 0
+                  AND timestamp < datetime('now', '-1 hours')
+                ORDER BY timestamp DESC
+                LIMIT 200
+            """)
+            signals = [dict(r) for r in c.fetchall()]
+            conn.close()
+
+            if not signals:
+                self.send_json({'signals': [], 'stats': {'total': 0, 'win_rate': 0, 'avg_return': 0}})
+                return
+
+            results = []
+            wins = 0
+            total_return = 0.0
+
+            for s in signals:
+                ticker = s['ticker']
+                signal_price = float(s['price'])
+                sig_type = s.get('type', '')
+
+                # Determine direction from signal type
+                is_long = any(x in sig_type for x in ['OVERSOLD', 'BULLISH', 'ALPHA', 'VOLUME'])
+                is_short = any(x in sig_type for x in ['OVERBOUGHT', 'BEARISH'])
+
+                # Get current price from market_ticks
+                current_price = None
+                try:
+                    tc = sqlite3.connect(DB_PATH)
+                    tc.row_factory = sqlite3.Row
+                    cur = tc.cursor()
+                    cur.execute(
+                        "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
+                        (ticker,)
+                    )
+                    row = cur.fetchone()
+                    tc.close()
+                    if row:
+                        current_price = float(row['price'])
+                except Exception:
+                    pass
+
+                if not current_price or current_price <= 0:
+                    continue
+
+                move_pct = ((current_price - signal_price) / signal_price) * 100
+
+                if is_long:
+                    won = move_pct > 0
+                elif is_short:
+                    won = move_pct < 0
+                    move_pct = -move_pct  # invert for display
+                else:
+                    won = move_pct > 0  # default long bias
+
+                if won:
+                    wins += 1
+                total_return += move_pct
+
+                results.append({
+                    'id': s['id'],
+                    'ticker': ticker.replace('-USD', ''),
+                    'type': sig_type.replace('_', ' '),
+                    'severity': s.get('severity', 'MEDIUM').upper(),
+                    'signal_price': round(signal_price, 4),
+                    'current_price': round(current_price, 4),
+                    'move_pct': round(move_pct, 2),
+                    'outcome': 'WIN' if won else 'LOSS',
+                    'direction': 'LONG' if is_long else ('SHORT' if is_short else 'LONG'),
+                    'timestamp': s.get('timestamp', ''),
+                })
+
+            n = len(results)
+            win_rate = round((wins / n) * 100, 1) if n > 0 else 0
+            avg_return = round(total_return / n, 2) if n > 0 else 0
+
+            self.send_json({
+                'signals': results[:50],
+                'stats': {
+                    'total': n,
+                    'wins': wins,
+                    'losses': n - wins,
+                    'win_rate': win_rate,
+                    'avg_return': avg_return,
+                }
+            })
+        except Exception as e:
+            print(f'[Leaderboard] Error: {e}')
+            self.send_json({'signals': [], 'stats': {'total': 0, 'win_rate': 0, 'avg_return': 0}})
 
     def handle_miners(self):
         miner_tickers = UNIVERSE['MINERS']

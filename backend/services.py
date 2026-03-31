@@ -149,6 +149,52 @@ class NotificationService:
             print(f"[{datetime.now()}] Notification Push Error: {e}")
 
 
+def notify_watchlist_users(ticker, sig_type, message, severity, curr_p):
+    """Send a targeted alert to every user that has `ticker` in their watchlist.
+    This is called after every ML and rule-based signal fires — independent of
+    the existing 'alerts_enabled' broadcast, so watchers always get pinged."""
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            c = conn.cursor()
+            # Find users watching this ticker
+            c.execute("""
+                SELECT DISTINCT us.user_email
+                FROM tracked_tickers tt
+                JOIN user_settings us ON us.user_email = tt.user_email
+                WHERE tt.ticker = ?
+                  AND us.user_email IS NOT NULL
+            """, (ticker,))
+            watchers = [row[0] for row in c.fetchall()]
+
+        if not watchers:
+            return
+
+        direction = 'BULLISH' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS', 'ML_ALPHA_PREDICTION') else \
+                    'BEARISH' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'ALERT'
+        color = 0x22c55e if direction == 'BULLISH' else 0xef4444 if direction == 'BEARISH' else 0x00f2ff
+        sev_icon = {'critical':'🔴','high':'🟠','medium':'🟡'}.get(severity.lower(), '⚪')
+
+        for email in watchers:
+            NOTIFY.push_webhook(
+                email,
+                f"Watchlist Signal: {ticker.replace('-USD','')} {sev_icon}",
+                f"{sig_type.replace('_',' ')} detected on **{ticker}** — asset is in your watchlist.",
+                embed_color=color,
+                fields=[
+                    {"name": "Ticker",    "value": ticker,                "inline": True},
+                    {"name": "Price",     "value": f"${curr_p:,.4f}",    "inline": True},
+                    {"name": "Signal",    "value": sig_type,             "inline": True},
+                    {"name": "Severity",  "value": severity.upper(),     "inline": True},
+                    {"name": "Direction", "value": direction,            "inline": True},
+                    {"name": "Link",      "value": f"[Open Terminal](https://alphasignal.digital/?view=alerts-hub)", "inline": True},
+                ]
+            )
+        if watchers:
+            print(f"[WatchlistAlert] {ticker} {sig_type} → notified {len(watchers)} watcher(s)")
+    except Exception as e:
+        print(f"[WatchlistAlert] Error: {e}")
+
+
 
 
 
@@ -487,6 +533,10 @@ class HarvestService:
 
                         print(f"[{datetime.now()}] !!! ALPHA ALERT DISPATCHED: {ticker} @ {curr_p} (Target: +{pred_return*100:.1f}%)")
 
+                        # Watchlist-targeted alerts (personalised)
+                        threading.Thread(target=notify_watchlist_users,
+                            args=(ticker, signal_type, message, severity, curr_p),
+                            daemon=True).start()
                         # Phase 17-A: Rich Multi-Channel Dispatch with user z_threshold gate
                         try:
                             with sqlite3.connect(DB_PATH) as alert_conn:
@@ -614,6 +664,12 @@ class HarvestService:
                             c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?,?,?,?,?,?)",
                                       (sig_type, ticker, message, severity, curr_p, datetime.now().isoformat()))
                             print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} (RSI={rsi:.1f})')
+
+                            # Watchlist-targeted alerts (personalised)
+                            threading.Thread(target=notify_watchlist_users,
+                                args=(ticker, sig_type, message, severity, curr_p),
+                                daemon=True).start()
+
 
                             # Multi-channel dispatch — notify users with alerts_enabled
                             try:

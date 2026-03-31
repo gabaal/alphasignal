@@ -53,6 +53,64 @@ def _get_btc_summary():
         return None
 
 
+def _get_leaderboard_stats():
+    """Quick signal win-rate summary for the digest."""
+    try:
+        import yfinance as yf
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("""
+            SELECT ticker, type, price, timestamp
+            FROM alerts_history
+            WHERE price > 0
+            ORDER BY timestamp DESC
+            LIMIT 100
+        """)
+        rows = c.fetchall()
+        conn.close()
+        if not rows:
+            return None
+        wins, losses = 0, 0
+        for r in rows:
+            try:
+                ticker = r['ticker']
+                entry = float(r['price'])
+                sig_type = r['type']
+                # Quick current price via yfinance
+                hist = yf.Ticker(ticker).history(period='1d', interval='1m')
+                if hist.empty: continue
+                curr = float(hist['Close'].iloc[-1])
+                move = (curr - entry) / entry
+                is_bullish = sig_type in ('RSI_OVERSOLD','MACD_BULLISH_CROSS','ML_ALPHA_PREDICTION')
+                won = (move > 0 and is_bullish) or (move < 0 and not is_bullish)
+                if won: wins += 1
+                else: losses += 1
+            except: continue
+        total = wins + losses
+        if total == 0:
+            return None
+        return {'wins': wins, 'losses': losses, 'total': total,
+                'win_rate': round(wins / total * 100, 1)}
+    except Exception as e:
+        print(f"[Digest] Leaderboard stats error: {e}")
+        return None
+
+
+def _get_market_brief_excerpt():
+    """Pull the cached market brief text (first ~300 chars)."""
+    try:
+        # Import here to avoid circular; brief is cached in _brief_cache
+        from backend.routes.ai_engine import _brief_cache
+        if _brief_cache.get('brief'):
+            full = _brief_cache['brief']
+            excerpt = full[:320].rsplit(' ', 1)[0] + '…'
+            return excerpt
+    except Exception:
+        pass
+    return None
+
+
 def _get_eligible_users():
     """Return all user emails with alerts enabled."""
     try:
@@ -83,7 +141,7 @@ def _sev_label(sev):
     return {'CRITICAL': '🔴 CRITICAL', 'HIGH': '🟠 HIGH', 'MEDIUM': '🟡 MEDIUM'}.get(sev, '⚪ LOW')
 
 
-def _build_email_html(user_email, signals, btc_price):
+def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excerpt=None):
     """Render a premium dark-themed HTML digest email."""
     now = datetime.utcnow().strftime('%A, %d %B %Y')
     terminal_url = 'https://alphasignal.digital'
@@ -205,7 +263,34 @@ def _build_email_html(user_email, signals, btc_price):
           <!-- BTC price -->
           {btc_row}
 
-          <!-- Signals heading -->
+          <!-- Performance Stats -->
+          {f'''
+          <tr>
+            <td style="padding:14px 28px;background:#0d1117;border-bottom:1px solid #1e2433;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;color:#6b7280;">SIGNAL WIN RATE (LAST 100 SIGNALS)</span>
+                  </td>
+                  <td align="right">
+                    <span style="font-family:\'JetBrains Mono\',monospace,sans-serif;font-size:18px;font-weight:900;color:{'#22c55e' if lb_stats['win_rate']>=55 else '#f59e0b' if lb_stats['win_rate']>=45 else '#ef4444'};">{ lb_stats['win_rate'] }%</span>
+                    <span style="font-family:Arial,sans-serif;font-size:10px;color:#6b7280;margin-left:6px;">{lb_stats['wins']}W / {lb_stats['losses']}L</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>''' if lb_stats else ''}
+
+          <!-- AI Brief excerpt -->
+          {f'''
+          <tr>
+            <td style="padding:16px 28px;background:#0d1117;border-bottom:1px solid #1e2433;border-left:3px solid #bc13fe;">
+              <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;color:#bc13fe;display:block;margin-bottom:6px;">AI MARKET BRIEF</span>
+              <span style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;line-height:1.6;">{brief_excerpt}</span>
+            </td>
+          </tr>''' if brief_excerpt else ''}
+
+          <!-- Signal heading -->
           <tr>
             <td style="padding:16px 28px 8px;background:#0d1117;">
               <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;
@@ -360,12 +445,14 @@ def send_digest_to_user(user_email):
     try:
         signals = _get_top_signals(limit=3)
         btc     = _get_btc_summary()
+        lb      = _get_leaderboard_stats()
+        brief   = _get_market_brief_excerpt()
 
         # ── Email (Resend) ─────────────────────────────────────
         try:
             now_str = datetime.utcnow().strftime('%d %b %Y')
             subject = f"AlphaSignal Morning Digest — {now_str}"
-            html    = _build_email_html(user_email, signals, btc)
+            html    = _build_email_html(user_email, signals, btc, lb_stats=lb, brief_excerpt=brief)
             _send_resend_email(user_email, subject, html)
         except Exception as e:
             print(f"[Digest] Email build error for {user_email}: {e}")

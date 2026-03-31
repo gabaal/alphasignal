@@ -102,4 +102,19 @@ async function renderRiskHub() {
     renderRiskMatrix(riskHubTabs);
 }
 
+// ============= Alerts Hub =============
+const alertsHubTabs = [
+    { id: 'alerts',            label: 'LIVE ALERTS',    view: 'alerts-hub',        icon: 'notifications' },
+    { id: 'price-alerts',      label: 'PRICE ALERTS',   view: 'price-alerts-hub',  icon: 'add_alert' },
+    { id: 'signal-leaderboard',label: 'LEADERBOARD',    view: 'leaderboard-hub',   icon: 'leaderboard' },
+    { id: 'market-brief',      label: 'MARKET BRIEF',   view: 'market-brief-hub',  icon: 'article' },
+    { id: 'signal-archive',    label: 'SIGNAL ARCHIVE', view: 'signal-archive',    icon: 'archive' },
+];
+
+// Hub-aware wrappers — each view shows the shared tab bar
+async function renderAlertsHub()    { window._alertsHubTabs = alertsHubTabs; renderAlerts(alertsHubTabs); }
+async function renderPriceAlertsHub()     { renderPriceAlerts(alertsHubTabs); }
+async function renderLeaderboardHub()     { renderSignalLeaderboard(alertsHubTabs); }
+async function renderMarketBriefHub()     { renderMarketBrief(alertsHubTabs); }
+
 // ============= Update existing renderers to support tabs =============

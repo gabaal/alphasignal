@@ -100,6 +100,13 @@ const viewMap = {
     'explain-command-center': renderDocsCommandCenter,
     'explain-ask-terminal': renderDocsAskTerminal,
     'my-terminal': renderMyTerminal,
+    'price-alerts': renderPriceAlerts,
+    'signal-leaderboard': renderSignalLeaderboard,
+    'market-brief': renderMarketBrief,
+    'alerts-hub': renderAlertsHub,
+    'price-alerts-hub': renderPriceAlertsHub,
+    'leaderboard-hub':  renderLeaderboardHub,
+    'market-brief-hub': renderMarketBriefHub,
     'signal': () => {
         const id = new URLSearchParams(window.location.search).get('id');
         renderSignalPermalink(id);

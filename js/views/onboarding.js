@@ -136,7 +136,7 @@ window.showOnboardingModal = function() {
                     <span class="material-symbols-outlined" style="vertical-align:middle;margin-right:6px">check_circle</span>
                     FINISH SETUP → GO TO MY TERMINAL
                 </button>
-                <button onclick="finishOnboarding()" style="display:block;width:100%;background:none;border:none;color:var(--text-dim);font-size:0.65rem;margin-top:10px;cursor:pointer">Skip for now</button>
+                <button onclick="finishOnboarding(true)" style="display:block;width:100%;background:none;border:none;color:var(--text-dim);font-size:0.65rem;margin-top:10px;cursor:pointer">Skip for now</button>
             </div>
         </div>
 
@@ -183,7 +183,7 @@ window.requestOnboardNotif = function() {
     });
 };
 
-window.finishOnboarding = async function() {
+window.finishOnboarding = async function(skipped = false) {
     // Bulk-add selected assets to watchlist
     const tickers = Array.from(window._onboardSelected || []);
     if (tickers.length > 0 && isAuthenticatedUser) {
@@ -193,6 +193,15 @@ window.finishOnboarding = async function() {
         // Invalidate digest cache so new items are picked up
         window._watchlistCache = null;
         window._alertCacheTs = 0;
+    }
+
+    // Track activation in the backend
+    if (isAuthenticatedUser) {
+        fetchAPI('/onboarding-complete', 'POST', {
+            skipped: skipped,
+            watchlist_count: tickers.length,
+            completed_at: new Date().toISOString()
+        }).catch(() => {});
     }
 
     localStorage.setItem(ONBOARD_KEY, '1');
