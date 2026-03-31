@@ -521,21 +521,200 @@ function renderDocsAlphaScore() {
 }
 
 function renderDocsTelegram() {
-    renderExplainPage(
-        "Institutional Alert Hooks",
-        "Configuring secure Telegram and push intelligence for mobile Alpha.",
-        "The AlphaSignal terminal allows you to bridge institutional intelligence directly to your mobile device via Telegram. By configuring a secure 'Alert Hook', you receive high-conviction ML signals, regime shift warnings, and Whale Pulse alerts in real-time, accompanied by the technical reasoning behind each signal.",
-        [
-            { icon: 'notifications_active', title: 'Telegram Bot Setup', desc: 'Connect your secure terminal ID to our proprietary Telegram bot to receive encrypted signal streams.' },
-            { icon: 'security', title: 'Safe Probe', desc: 'A secure connection test that verifies your Chat ID and signal delivery path without exposing sensitive API keys.' },
-            { icon: 'bolt', title: 'Instant Execution', desc: 'Signals include deep-links to the terminal, allowing you to move from alert to analysis in a single tap.' }
-        ],
-        [
-            { title: 'The "Safe Probe" Validation', text: 'A user verified their connection using the "Test Connection" button in Alert Hub, receiving a 1ms confirmation message that ensured no missed alerts during a high-volatility CPI print.' }
-        ],
-        "Bi-directional encrypted signal bridge using the Telegram Bot API and a dedicated institutional alert relay."
-    , 'alerts'
-    );
+    // Fetch live bot info from the backend
+    fetch('/api/telegram/link')
+        .then(r => r.json())
+        .then(info => _renderDocsTelegramPage(info))
+        .catch(() => _renderDocsTelegramPage({ bot_name: 'alphasignalbot_bot', bot_url: 'https://t.me/alphasignalbot_bot', active: false }));
+}
+
+function _renderDocsTelegramPage(botInfo) {
+    const botUrl  = botInfo.bot_url  || 'https://t.me/alphasignalbot_bot';
+    const botName = botInfo.bot_name || 'alphasignalbot_bot';
+    const isActive = botInfo.active;
+
+    const stepStyle = `display:flex;align-items:flex-start;gap:1rem;padding:1.1rem 1.2rem;
+        background:rgba(0,242,255,0.03);border:1px solid rgba(0,242,255,0.12);
+        border-radius:10px;margin-bottom:0.75rem;`;
+    const numStyle = `min-width:32px;height:32px;border-radius:50%;background:var(--accent);
+        color:#000;display:flex;align-items:center;justify-content:center;
+        font-weight:900;font-size:0.8rem;flex-shrink:0;margin-top:2px;`;
+    const labelStyle = `font-size:0.72rem;font-weight:800;letter-spacing:1px;color:var(--accent);margin-bottom:4px;`;
+    const descStyle  = `font-size:0.82rem;color:var(--text-dim);line-height:1.55;`;
+
+    const cmdRow = (cmd, desc) => `
+        <div style="display:flex;align-items:center;gap:1rem;padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <code style="background:rgba(0,242,255,0.08);color:var(--accent);padding:3px 10px;border-radius:6px;font-size:0.78rem;white-space:nowrap;min-width:90px;text-align:center;">${cmd}</code>
+            <span style="font-size:0.8rem;color:var(--text-dim);">${desc}</span>
+        </div>`;
+
+    appEl.innerHTML = `
+        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent);">notifications_active</span>Telegram Bot — Alert Setup</h1></div>
+        <div class="doc-container" style="max-width:860px;margin:0 auto;padding-top:1.5rem;padding-bottom:5rem;">
+
+            <p style="font-size:0.95rem;color:var(--text-dim);line-height:1.6;margin-bottom:2rem;">
+                Receive your AlphaSignal morning digest and live high-severity signal alerts directly in Telegram.
+                The bot takes 60 seconds to set up and requires no API keys on your end.
+            </p>
+
+            <!-- Live Bot Status Banner -->
+            <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.4rem;
+                background:${isActive ? 'rgba(0,242,255,0.06)' : 'rgba(255,165,0,0.06)'};
+                border:1px solid ${isActive ? 'rgba(0,242,255,0.25)' : 'rgba(255,165,0,0.25)'};
+                border-radius:10px;margin-bottom:2.5rem;">
+                <span class="material-symbols-outlined" style="color:${isActive ? 'var(--accent)' : '#ffa500'};font-size:1.6rem;">
+                    ${isActive ? 'check_circle' : 'warning'}
+                </span>
+                <div>
+                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:1.5px;color:${isActive ? 'var(--accent)' : '#ffa500'};">
+                        BOT STATUS: ${isActive ? 'ONLINE' : 'TOKEN NOT CONFIGURED'}
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px;">
+                        ${isActive
+                            ? `@${botName} is live and accepting connections`
+                            : 'Set TELEGRAM_BOT_TOKEN in your environment variables to activate the bot'}
+                    </div>
+                </div>
+                ${isActive ? `
+                <a href="${botUrl}" target="_blank" rel="noopener" style="margin-left:auto;
+                    background:var(--accent);color:#000;padding:8px 18px;border-radius:8px;
+                    font-size:0.72rem;font-weight:900;letter-spacing:1px;text-decoration:none;white-space:nowrap;">
+                    OPEN BOT &rarr;
+                </a>` : ''}
+            </div>
+
+            <!-- How to Link Section -->
+            <div style="margin-bottom:2.5rem;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);">
+                    <span class="material-symbols-outlined" style="color:var(--accent);">link</span>
+                    <h2 style="font-size:0.7rem;font-weight:900;letter-spacing:3px;color:var(--text);margin:0;">HOW TO LINK YOUR ACCOUNT</h2>
+                </div>
+
+                <div style="${stepStyle}">
+                    <div style="${numStyle}">1</div>
+                    <div>
+                        <div style="${labelStyle}">OPEN THE BOT</div>
+                        <div style="${descStyle}">
+                            Tap the link to open the AlphaSignal bot in Telegram:
+                            <a href="${botUrl}" target="_blank" rel="noopener"
+                                style="color:var(--accent);font-weight:700;margin-left:4px;">@${botName}</a>
+                            <br>Or search for <code style="color:var(--accent);background:rgba(0,242,255,0.08);padding:1px 7px;border-radius:4px;">@${botName}</code> directly in the Telegram app.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="${stepStyle}">
+                    <div style="${numStyle}">2</div>
+                    <div>
+                        <div style="${labelStyle}">SEND /START</div>
+                        <div style="${descStyle}">
+                            Tap <strong>Start</strong> or type <code style="color:var(--accent);background:rgba(0,242,255,0.08);padding:1px 7px;border-radius:4px;">/start</code> to begin.
+                            The bot will greet you and ask for your AlphaSignal email address.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="${stepStyle}">
+                    <div style="${numStyle}">3</div>
+                    <div>
+                        <div style="${labelStyle}">REPLY WITH YOUR EMAIL</div>
+                        <div style="${descStyle}">
+                            Type the email address you used to register on AlphaSignal and send it.
+                            The bot will confirm your account is linked within seconds.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="${stepStyle}">
+                    <div style="${numStyle}">4</div>
+                    <div>
+                        <div style="${labelStyle}">YOU'RE LIVE</div>
+                        <div style="${descStyle}">
+                            Once linked, you will automatically receive:<br>
+                            &bull; <strong style="color:var(--text);">Morning Digest</strong> — daily at 07:30 UTC with top 3 signals + BTC summary<br>
+                            &bull; <strong style="color:var(--text);">Live Signal Alerts</strong> — when CRITICAL or HIGH severity signals fire
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bot Commands Reference -->
+            <div style="margin-bottom:2.5rem;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);">
+                    <span class="material-symbols-outlined" style="color:var(--accent);">terminal</span>
+                    <h2 style="font-size:0.7rem;font-weight:900;letter-spacing:3px;color:var(--text);margin:0;">BOT COMMANDS</h2>
+                </div>
+                <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:0.5rem 1.2rem;">
+                    ${cmdRow('/start',  'Begin setup — bot will prompt for your AlphaSignal email')}
+                    ${cmdRow('/status', 'Show your linked account and current alert status')}
+                    ${cmdRow('/unsub',  'Pause all Telegram alerts (account stays linked)')}
+                    ${cmdRow('/resub',  'Re-enable alerts after pausing')}
+                    ${cmdRow('/help',   'Show all available commands')}
+                </div>
+            </div>
+
+            <!-- Discord Section -->
+            <div style="margin-bottom:2.5rem;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);">
+                    <span class="material-symbols-outlined" style="color:var(--accent);">hub</span>
+                    <h2 style="font-size:0.7rem;font-weight:900;letter-spacing:3px;color:var(--text);margin:0;">DISCORD WEBHOOK</h2>
+                </div>
+                <div style="background:rgba(0,242,255,0.03);border:1px solid rgba(0,242,255,0.12);border-radius:10px;padding:1.2rem 1.4rem;">
+                    <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6;margin:0;">
+                        Prefer Discord? Head to <strong style="color:var(--text);">Alert Settings</strong> in the sidebar and paste your Discord channel webhook URL.
+                        The morning digest and signal alerts will post directly to your server channel.
+                        <br><br>
+                        To create a webhook: <em>Server Settings → Integrations → Webhooks → New Webhook → Copy URL</em>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature tiles -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:2.5rem;">
+                <div style="background:rgba(255,255,255,0.02);padding:1.4rem;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
+                    <h3 style="color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;font-size:1rem;">
+                        <span class="material-symbols-outlined" style="margin-right:8px;font-size:20px;">notifications_active</span> Morning Digest
+                    </h3>
+                    <p style="color:var(--text-dim);line-height:1.5;font-size:0.86rem;">
+                        Sent daily at 07:30 UTC. Includes top 3 signals from the last 24h ranked by severity,
+                        current BTC price summary, and a direct deep-link back to the terminal.
+                    </p>
+                </div>
+                <div style="background:rgba(255,255,255,0.02);padding:1.4rem;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
+                    <h3 style="color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;font-size:1rem;">
+                        <span class="material-symbols-outlined" style="margin-right:8px;font-size:20px;">bolt</span> Live Signal Alerts
+                    </h3>
+                    <p style="color:var(--text-dim);line-height:1.5;font-size:0.86rem;">
+                        Real-time push when a CRITICAL or HIGH severity signal fires. Each alert includes
+                        the ticker, signal type, entry price, and a link to the full Signal Archive entry.
+                    </p>
+                </div>
+                <div style="background:rgba(255,255,255,0.02);padding:1.4rem;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
+                    <h3 style="color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;font-size:1rem;">
+                        <span class="material-symbols-outlined" style="margin-right:8px;font-size:20px;">security</span> Privacy
+                    </h3>
+                    <p style="color:var(--text-dim);line-height:1.5;font-size:0.86rem;">
+                        Only your email is stored — no Telegram passwords or API tokens required from you.
+                        Use /unsub at any time to immediately stop all messages.
+                    </p>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span> RETURN TO HELP HUB
+                </button>
+                <a href="${botUrl}" target="_blank" rel="noopener"
+                    class="intel-action-btn"
+                    style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-weight:800;text-decoration:none;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">open_in_new</span> OPEN @${botName}
+                </a>
+                <button class="intel-action-btn outline" onclick="switchView('alert-settings')" style="display:flex;align-items:center;gap:8px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">settings</span> ALERT SETTINGS
+                </button>
+            </div>
+        </div>
+    `;
 }
 
 function renderDocsPWA() {

@@ -130,6 +130,49 @@ function shareSignal(ticker, alpha, sentiment, zScore) {
     console.log("Sharing signal:", ticker);
     window.open(twitterUrl, '_blank');
 }
+// ============= Inline Signal Thesis (Phase 18) =============
+window._thesisCache = window._thesisCache || {};
+
+async function toggleInlineThesis(ticker, dir, zscore, cardId) {
+    const bodyEl    = document.getElementById(`${cardId}-thesis`);
+    const chevronEl = document.getElementById(`${cardId}-chevron`);
+    if (!bodyEl) return;
+
+    const isOpen = bodyEl.style.display !== 'none';
+    if (isOpen) {
+        bodyEl.style.display = 'none';
+        if (chevronEl) { chevronEl.textContent = 'expand_more'; chevronEl.style.transform = ''; }
+        return;
+    }
+
+    // Open
+    bodyEl.style.display = 'block';
+    if (chevronEl) { chevronEl.textContent = 'expand_less'; chevronEl.style.transform = 'rotate(180deg)'; }
+
+    const cacheKey = `${ticker}-${dir}`;
+    if (window._thesisCache[cacheKey]) {
+        bodyEl.innerHTML = window._thesisCache[cacheKey];
+        return;
+    }
+
+    // Show spinner
+    bodyEl.innerHTML = `<span style="display:flex;align-items:center;gap:6px;color:rgba(188,19,254,0.6)">
+        <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:14px">sync</span>
+        <span style="font-size:0.7rem;letter-spacing:1px">GENERATING THESIS...</span>
+    </span>`;
+
+    try {
+        const data = await fetchAPI(`/signal-thesis?ticker=${ticker}&signal=${dir}&zscore=${zscore}`);
+        const text = data?.thesis || 'Analysis unavailable.';
+        const html = `<span style="color:rgba(188,19,254,0.7);font-size:0.6rem;font-weight:900;letter-spacing:1px;display:block;margin-bottom:4px">
+            ${ticker} · ${dir} · Z: ${zscore}σ</span>${text}`;
+        window._thesisCache[cacheKey] = html;
+        bodyEl.innerHTML = html;
+    } catch (e) {
+        bodyEl.innerHTML = `<span style="color:#ef4444;font-size:0.72rem">Thesis unavailable</span>`;
+    }
+}
+
 // ============= Notification & Alert Hooks (Phase 8) =============
 async function showNotificationSettings(visible) {
     console.log(`[AlphaSignal] Notification Settings Modal: ${visible ? 'OPEN' : 'CLOSE'}`);
@@ -142,17 +185,46 @@ async function showNotificationSettings(visible) {
     }
     
     if (visible) {
-        // Fetch current settings
-        try {
-            const settings = await fetchAPI('/user/settings');
-            if (settings) {
-                if (document.getElementById('discord-webhook')) document.getElementById('discord-webhook').value = settings.discord_webhook || '';
-                if (document.getElementById('telegram-chat-id')) document.getElementById('telegram-chat-id').value = settings.telegram_chat_id || '';
-                if (document.getElementById('alerts-enabled')) document.getElementById('alerts-enabled').checked = settings.alerts_enabled !== false;
-            }
-        } catch (err) {
-            console.warn('[AlphaSignal] Failed to fetch user settings, showing blank form.', err);
+        // Fetch settings and bot info in parallel
+        const [settings, botInfo] = await Promise.all([
+            fetchAPI('/user/settings').catch(() => null),
+            fetch('/api/telegram/link').then(r => r.json()).catch(() => ({ bot_url: 'https://t.me/alphasignalbot_bot', bot_name: 'alphasignalbot_bot', active: false }))
+        ]);
+
+        // Populate Discord webhook
+        if (document.getElementById('discord-webhook'))
+            document.getElementById('discord-webhook').value = settings?.discord_webhook || '';
+
+        // Populate hidden chat_id field (for save)
+        const chatId = settings?.telegram_chat_id || '';
+        if (document.getElementById('telegram-chat-id'))
+            document.getElementById('telegram-chat-id').value = chatId;
+
+        // Update bot link href dynamically
+        const botLink = document.getElementById('tg-bot-link');
+        if (botLink && botInfo.bot_url) botLink.href = botInfo.bot_url;
+        if (botLink && botInfo.bot_name)
+            botLink.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span> CONNECT VIA @${botInfo.bot_name}`;
+
+        // Show connected vs unlinked state
+        const connectedEl = document.getElementById('tg-status-connected');
+        const unlinkedEl  = document.getElementById('tg-status-unlinked');
+        const emailEl     = document.getElementById('tg-linked-email');
+
+        if (chatId) {
+            if (connectedEl) connectedEl.style.display = 'flex';
+            if (unlinkedEl)  unlinkedEl.style.display  = 'none';
+            if (emailEl)     emailEl.textContent = settings?.user_email
+                ? `Linked to ${settings.user_email} \u00b7 chat_id ${chatId}`
+                : `chat_id ${chatId}`;
+        } else {
+            if (connectedEl) connectedEl.style.display = 'none';
+            if (unlinkedEl)  unlinkedEl.style.display  = 'flex';
         }
+
+        if (document.getElementById('alerts-enabled'))
+            document.getElementById('alerts-enabled').checked = settings?.alerts_enabled !== false;
+
         modal.classList.remove('hidden');
         if (layout) layout.style.filter = 'blur(10px)';
     } else {
@@ -162,9 +234,9 @@ async function showNotificationSettings(visible) {
 }
 
 async function testTelegramConnection() {
-    const chatID = document.getElementById('telegram-chat-id').value.trim();
+    const chatID = document.getElementById('telegram-chat-id')?.value.trim();
     if (!chatID) {
-        showToast("ERROR: Please enter a Chat ID first.");
+        showToast("NOT LINKED: Open the bot and send /start to connect your account.");
         return;
     }
     showToast("TESTING_CONNECTION: Dispatching signal to Telegram...");

@@ -92,7 +92,7 @@ def _build_telegram_digest(user_email, signals, btc_price):
     lines += [
         "",
         "━━━━━━━━━━━━━━━━━━━━━━",
-        "📱 [Open AlphaSignal Terminal](https://alphasignal.app)",
+        "📱 [Open AlphaSignal Terminal](https://alphasignal.digital)",
         "_Unsubscribe: disable alerts in Settings_"
     ]
     return "\n".join(lines)
@@ -125,7 +125,7 @@ def _build_discord_digest(user_email, signals, btc_price):
             "title": f"📊 Morning Digest — {now}",
             "color": 0x00f2ff,
             "fields": fields,
-            "footer": {"text": "AlphaSignal Terminal • alphasignal.app"},
+            "footer": {"text": "AlphaSignal Terminal • alphasignal.digital"},
             "timestamp": datetime.utcnow().isoformat()
         }]
     }

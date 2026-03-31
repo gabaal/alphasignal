@@ -55,11 +55,14 @@ async function renderSignals(category = 'ALL', tabs = null) {
             <button class="export-btn" style="margin-left:auto" onclick="exportCSV(lastSignalsData,'alphasignal_signals.csv')">📥 Export CSV</button>
         </div>
         <div class="signal-grid">
-            ${filtered.map(s => `
+            ${filtered.map(s => {
+                const dir = s.alpha >= 0 ? 'LONG' : 'SHORT';
+                const zAbs = Math.abs(s.zScore).toFixed(1);
+                const cardId = `sc-${s.ticker.replace(/[^a-z0-9]/gi,'')}`;
+                return `
                 <div class="signal-card ${Math.abs(s.zScore) > 2 ? 'z-outlier' : ''}" onclick="openDetail('${s.ticker}', '${s.category}', ${s.btcCorrelation}, ${s.alpha}, ${s.sentiment}, '60d', ${s.category === 'TRACKED'})">
                     <div class="card-controls" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10">
                         <div class="ai-trigger" onclick="event.stopPropagation(); openAIAnalyst('${s.ticker}')" title="Run AI Deep-Dive"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
-                        <div class="ai-trigger" onclick="event.stopPropagation(); openSignalThesisModal('${s.ticker}', '${s.alpha >= 0 ? 'LONG' : 'SHORT'}', ${Math.abs(s.zScore).toFixed(1)})" title="AI Trade Thesis" style="background:rgba(188,19,254,0.15);border-color:rgba(188,19,254,0.3)"><span class="material-symbols-outlined" style="font-size: 18px;color:#bc13fe">psychology</span></div>
                         <div class="ai-trigger" onclick="event.stopPropagation(); addToWatchlist_quick('${s.ticker}')" title="Add to My Watchlist" style="background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.3)"><span class="material-symbols-outlined" style="font-size: 18px;color:#22c55e">add_circle</span></div>
                         <div class="share-trigger" onclick="event.stopPropagation(); shareSignal('${s.ticker}', ${s.alpha}, ${s.sentiment}, ${s.zScore})" title="Share to X (Twitter)"><span class="material-symbols-outlined" style="font-size: 18px;">share</span></div>
                     </div>
@@ -81,9 +84,25 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         <div class="metric-line"><span>Relative Alpha</span><span class="${s.alpha >= 0 ? 'pos' : 'neg'}">${s.alpha >= 0 ? '+' : ''}${s.alpha.toFixed(2)}%</span></div>
                         <div class="metric-line"><span>Sentiment</span><span class="${getSentimentClass(s.sentiment)}">${getSentimentLabel(s.sentiment)}</span></div>
                     </div>
+                    <!-- Inline AI Thesis Strip -->
+                    <div class="thesis-strip" id="${cardId}-strip"
+                        onclick="event.stopPropagation(); toggleInlineThesis('${s.ticker}', '${dir}', '${zAbs}', '${cardId}')"
+                        style="margin-top:10px;padding:7px 10px;border-radius:7px;cursor:pointer;
+                               background:rgba(188,19,254,0.07);border:1px solid rgba(188,19,254,0.2);
+                               display:flex;align-items:center;gap:7px;transition:background 0.2s;"
+                        onmouseover="this.style.background='rgba(188,19,254,0.14)'"
+                        onmouseout="this.style.background='rgba(188,19,254,0.07)'">
+                        <span class="material-symbols-outlined" style="font-size:14px;color:#bc13fe;flex-shrink:0;">psychology</span>
+                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:1px;color:#bc13fe;">AI THESIS</span>
+                        <span id="${cardId}-chevron" class="material-symbols-outlined" style="font-size:14px;color:rgba(188,19,254,0.5);margin-left:auto;transition:transform 0.2s;">expand_more</span>
+                    </div>
+                    <div id="${cardId}-thesis" style="display:none;padding:8px 10px 2px;font-size:0.75rem;
+                        line-height:1.6;color:var(--text-dim);border-left:2px solid rgba(188,19,254,0.3);
+                        margin-top:6px;"></div>
                 </div>
-            `).join('')}
+            `}).join('')}
         </div>`;
+
 
     // Render 30D Signal Density Histogram
     setTimeout(() => {

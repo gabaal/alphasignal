@@ -473,12 +473,36 @@
                     <label for="discord-webhook">DISCORD WEBHOOK</label>
                     <input type="url" id="discord-webhook" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
                 </div>
-                <div class="input-group">
-                    <label for="telegram-chat-id">TELEGRAM CHAT ID</label>
-                    <div style="display:flex; gap:8px">
-                        <input type="text" id="telegram-chat-id" placeholder="e.g. 12345678" autocomplete="off" style="flex:1">
-                        <button class="intel-action-btn secondary" onclick="testTelegramConnection()" style="padding:0 12px; font-size:0.6rem; width:auto; border:1px solid var(--border)">TEST</button>
+                <div class="input-group" id="tg-bot-panel">
+                    <label>TELEGRAM BOT</label>
+                    <div id="tg-status-connected" style="display:none; align-items:center; gap:10px; padding:10px 14px; background:rgba(0,242,255,0.06); border:1px solid rgba(0,242,255,0.25); border-radius:8px; margin-bottom:2px;">
+                        <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.2rem;">check_circle</span>
+                        <div style="flex:1">
+                            <div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--accent)">CONNECTED</div>
+                            <div id="tg-linked-email" style="font-size:0.72rem;color:var(--text-dim);margin-top:1px"></div>
+                        </div>
+                        <button onclick="testTelegramConnection()" style="background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.3);color:var(--accent);padding:5px 12px;border-radius:6px;font-size:0.6rem;font-weight:700;cursor:pointer;letter-spacing:0.5px">TEST</button>
                     </div>
+                    <div id="tg-status-unlinked" style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.5;">
+                            Link your account in 60 seconds via the AlphaSignal bot:
+                        </div>
+                        <a id="tg-bot-link" href="https://t.me/alphasignalbot_bot" target="_blank" rel="noopener"
+                            style="display:flex;align-items:center;justify-content:center;gap:8px;
+                            background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(0,242,255,0.05));
+                            border:1px solid rgba(0,242,255,0.35);color:var(--accent);
+                            padding:10px 18px;border-radius:8px;font-size:0.72rem;font-weight:900;
+                            letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+                            onmouseover="this.style.background='rgba(0,242,255,0.2)'"
+                            onmouseout="this.style.background='linear-gradient(135deg,rgba(0,242,255,0.15),rgba(0,242,255,0.05))'">
+                            <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
+                            CONNECT VIA @alphasignalbot_bot
+                        </a>
+                        <div style="font-size:0.62rem;color:var(--text-dim);text-align:center;">
+                            Open the bot &rarr; send /start &rarr; reply with your email
+                        </div>
+                    </div>
+                    <input type="hidden" id="telegram-chat-id">
                 </div>
                 <!-- Phase 17-A: Z-Score Alert Threshold -->
                 <div class="input-group">

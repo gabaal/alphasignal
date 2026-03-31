@@ -295,5 +295,9 @@ if __name__ == "__main__":
     from backend.routes.digest import start_digest_cron
     start_digest_cron()
 
+    # Start Telegram Bot (long-polling)
+    from backend.routes.telegram_bot import start_bot as start_telegram_bot
+    start_telegram_bot()
+
     httpd.serve_forever()
 

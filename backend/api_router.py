@@ -12,6 +12,7 @@ from backend.routes.institutional import InstitutionalRoutesMixin
 from backend.routes.ai_engine import AIEngineRoutesMixin
 from backend.routes.personal import PersonalRoutesMixin
 from backend.routes.digest import DigestRoutesMixin
+from backend.routes.telegram_bot import start_bot as _tg_start  # noqa — imported here for reference
 import socketserver, http.server
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -293,7 +294,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge']
+                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge', '/api/telegram/link']
                 free_auth_routes = ['/api/watchlist', '/api/positions', '/api/digest/send']
                 # /api/signal/{id} is fully public — no auth gate for shared links
                 if path.startswith('/api/signal/'):
@@ -498,6 +499,23 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 # Public: /api/signal/{id} — no auth required for sharing
                 signal_id = path.split('/')[-1]
                 self.handle_signal_permalink(signal_id)
+            elif path == '/api/telegram/link':
+                import os
+                token = os.getenv('TELEGRAM_BOT_TOKEN', '')
+                bot_name = ''
+                if token:
+                    try:
+                        import requests as _req
+                        r = _req.get(f'https://api.telegram.org/bot{token}/getMe', timeout=5)
+                        if r.status_code == 200:
+                            bot_name = r.json().get('result', {}).get('username', '')
+                    except:
+                        pass
+                self.send_json({
+                    'bot_name': bot_name,
+                    'bot_url': f'https://t.me/{bot_name}' if bot_name else '',
+                    'active': bool(bot_name)
+                })
             elif path == '/health':
                 self.handle_health()
             else:

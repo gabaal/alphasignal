@@ -114,7 +114,7 @@ class NotificationService:
                     "color": embed_color,
                     "timestamp": datetime.utcnow().isoformat() + 'Z',
                     "footer": {"text": "AlphaSignal Terminal  |  Institutional Intelligence Engine"},
-                    "thumbnail": {"url": "https://alphasignal.app/assets/pwa-icon-192.png"}
+                    "thumbnail": {"url": "https://alphasignal.digital/assets/pwa-icon-192.png"}
                 }
                 if fields:
                     embed["fields"] = fields
