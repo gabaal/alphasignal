@@ -1,12 +1,22 @@
 async function renderHome() {
     // Fetch live data in parallel for stats bar
-    const [dialsData, signalData] = await Promise.allSettled([
+    const [dialsData, signalData, lbData] = await Promise.allSettled([
         fetchAPI('/system-dials'),
-        fetchAPI('/signals')
+        fetchAPI('/signals'),
+        fetchAPI('/signal-leaderboard')
     ]);
     const dials = dialsData.status === 'fulfilled' && dialsData.value?.dials ? dialsData.value.dials : null;
     const signals = signalData.status === 'fulfilled' && Array.isArray(signalData.value) ? signalData.value : [];
+    const lb = lbData.status === 'fulfilled' && lbData.value ? lbData.value : null;
     const topSignal = signals[0] || null;
+    // Compute win rate from leaderboard rows
+    const lbRows = lb?.rows || lb?.leaderboard || lb?.data || [];
+    const lbWins = lbRows.filter(r => (r.win_rate ?? r.winRate ?? 0) > 0).length;
+    const lbTotal = lbRows.length;
+    const winRatePct = lbTotal > 0
+        ? Math.round(lbRows.reduce((a, r) => a + (r.win_rate ?? r.winRate ?? 0), 0) / lbTotal)
+        : null;
+    const wrColor = winRatePct === null ? '#94a3b8' : winRatePct >= 60 ? '#22c55e' : winRatePct >= 45 ? '#f59e0b' : '#ef4444';
 
     appEl.innerHTML = `
         <div class="landing-page">
@@ -52,8 +62,14 @@ async function renderHome() {
                             <span style="color:var(--accent);font-weight:800;margin-left:8px">${signals.length}</span>
                         </div>
                         ${dials ? `<div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
-                            <span style="color:var(--text-dim);letter-spacing:1px">FEAR & GREED</span>
+                            <span style="color:var(--text-dim);letter-spacing:1px">FEAR &amp; GREED</span>
                             <span style="color:var(--accent);font-weight:800;margin-left:8px">${Math.round(dials.fear_greed?.value || 50)}</span>
+                        </div>` : ''}
+                        ${winRatePct !== null ? `
+                        <div onclick="switchView('alerts-hub')" style="cursor:pointer;background:rgba(${wrColor==='#22c55e'?'34,197,94':'251,146,60'},0.08);border:1px solid rgba(${wrColor==='#22c55e'?'34,197,94':'251,146,60'},0.25);border-radius:8px;padding:8px 16px;font-size:0.7rem;transition:all 0.15s" onmouseover="this.style.background='rgba(${wrColor==='#22c55e'?'34,197,94':'251,146,60'},0.15)'" onmouseout="this.style.background='rgba(${wrColor==='#22c55e'?'34,197,94':'251,146,60'},0.08)'">
+                            <span style="color:var(--text-dim);letter-spacing:1px">SIGNAL WIN RATE</span>
+                            <span style="color:${wrColor};font-weight:900;font-size:0.85rem;margin-left:8px">${winRatePct}%</span>
+                            <span style="color:var(--text-dim);font-size:0.6rem;margin-left:4px">${lbTotal} signals →</span>
                         </div>` : ''}
                     </div>` : ''}
                 </div>
@@ -81,6 +97,11 @@ async function renderHome() {
                             <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">${label}</div>
                         </div>
                     `).join('')}
+                    ${winRatePct !== null ? `
+                    <div onclick="switchView('alerts-hub')" style="cursor:pointer" title="View Signal Leaderboard">
+                        <div style="font-size:2rem;font-weight:900;color:${wrColor};line-height:1">${winRatePct}%</div>
+                        <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">Signal Win Rate</div>
+                    </div>` : ''}
                 </div>
             </section>
 

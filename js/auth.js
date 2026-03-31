@@ -148,8 +148,10 @@ async function handleAuth(isSignup) {
             await checkAuthStatus();
             // Show onboarding for first-time users (localStorage flag prevents repeat)
             setTimeout(() => window.maybeShowOnboarding?.(), 600);
-            if (typeof renderCurrentView === 'function') renderCurrentView();
-            else location.reload();
+            // Land in Alerts Hub — richest retention view for returning users
+            if (!window.maybeShowOnboarding || localStorage.getItem('alphasignal_onboarded')) {
+                switchView('alerts-hub');
+            }
         }
         return true;
     } else {

@@ -89,16 +89,40 @@ async function renderWatchlistTab(el) {
 }
 
 function renderWatchlistCards(items) {
-    // Perf summary — only show when 3+ items have live prices
-    const withPx = items.filter(i => window.livePrices?.[i.ticker]);
-    const perfSummary = withPx.length >= 2 ? (() => {
-        const perfs = withPx.map(i => {
-            const live = window.livePrices[i.ticker];
-            // We don't have price-at-add from Supabase yet, so show TO-TARGET distance as proxy
-            // Future: store price_at_add column
-            return null; // placeholder — will enhance when we store entry price
-        }).filter(Boolean);
-        return '';
+    // Portfolio summary — aggregate SINCE ADDED performance
+    const withPerf = items.filter(i => {
+        const sym = i.ticker.replace('-USD','').toUpperCase();
+        const live = window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
+        return live && i.price_at_add;
+    });
+    const perfSummary = withPerf.length >= 2 ? (() => {
+        const moves = withPerf.map(i => {
+            const sym = i.ticker.replace('-USD','').toUpperCase();
+            const live = window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
+            return ((live - Number(i.price_at_add)) / Number(i.price_at_add)) * 100;
+        });
+        const avg = moves.reduce((a, v) => a + v, 0) / moves.length;
+        const winners = moves.filter(v => v > 0).length;
+        const avgColor = avg >= 0 ? '#22c55e' : '#ef4444';
+        const winRate = Math.round(winners / moves.length * 100);
+        return `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1rem">
+            <div class="card" style="padding:0.9rem;text-align:center">
+                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">WATCHED</div>
+                <div style="font-size:1.4rem;font-weight:900;color:var(--accent)">${items.length}</div>
+                <div style="font-size:0.55rem;color:var(--text-dim)">assets</div>
+            </div>
+            <div class="card" style="padding:0.9rem;text-align:center">
+                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">AVG RETURN</div>
+                <div style="font-size:1.4rem;font-weight:900;color:${avgColor}">${avg >= 0 ? '+' : ''}${avg.toFixed(2)}%</div>
+                <div style="font-size:0.55rem;color:var(--text-dim)">since added</div>
+            </div>
+            <div class="card" style="padding:0.9rem;text-align:center">
+                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">WIN RATE</div>
+                <div style="font-size:1.4rem;font-weight:900;color:${winRate >= 50 ? '#22c55e' : '#ef4444'}">${winRate}%</div>
+                <div style="font-size:0.55rem;color:var(--text-dim)">${winners}/${moves.length} green</div>
+            </div>
+        </div>`;
     })() : '';
 
     return perfSummary + items.map(item => {

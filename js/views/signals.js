@@ -33,7 +33,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     <h2>Strategy Firing Density (30D)</h2>
                     <span class="label-tag">VOLATILITY CLUSTER MAP</span>
                 </div>
-                <div style="height:120px; width:100%; position:relative;">
+                <div style="height:220px; width:100%; position:relative;">
                     <canvas id="signalDensityChart"></canvas>
                 </div>
             </div>
@@ -42,7 +42,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     <h2>Z-Score Distribution</h2>
                     <span class="label-tag">GAUSSIAN CURVE</span>
                 </div>
-                <div style="height:120px; width:100%; position:relative;">
+                <div style="height:220px; width:100%; position:relative;">
                     <canvas id="zscoreBellChart"></canvas>
                 </div>
             </div>
@@ -69,11 +69,24 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     <div class="card-header">
                         <div>
                             <div class="ticker">${s.ticker}</div>
-                            <div class="label-tag cat-${s.category.toLowerCase()}">${s.category}</div>
+                            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:4px">
+                                <div class="label-tag cat-${s.category.toLowerCase()}">${s.category}</div>
+                                <div style="font-size:0.5rem;font-weight:900;letter-spacing:1px;padding:2px 7px;border-radius:100px;
+                                    background:${dir==='LONG'?'rgba(34,197,94,0.12)':'rgba(239,68,68,0.12)'};
+                                    border:1px solid ${dir==='LONG'?'rgba(34,197,94,0.35)':'rgba(239,68,68,0.35)'};
+                                    color:${dir==='LONG'?'#22c55e':'#ef4444'}">${dir}</div>
+                            </div>
                         </div>
-                        <div class="price-box" style="text-align:right">
+                        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px">
                             <div style="font-weight:700">${formatPrice(s.price)}</div>
                             <div class="${s.change >= 0 ? 'pos' : 'neg'}">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</div>
+                            <!-- Z-score badge -->
+                            <div style="font-size:0.55rem;font-weight:900;letter-spacing:1px;padding:2px 8px;border-radius:100px;
+                                background:${Math.abs(s.zScore)>=1.75?'rgba(239,68,68,0.15)':Math.abs(s.zScore)>=1.0?'rgba(251,146,60,0.15)':Math.abs(s.zScore)>=0.5?'rgba(0,242,255,0.1)':'rgba(148,163,184,0.1)'};
+                                border:1px solid ${Math.abs(s.zScore)>=1.75?'rgba(239,68,68,0.5)':Math.abs(s.zScore)>=1.0?'rgba(251,146,60,0.5)':Math.abs(s.zScore)>=0.5?'rgba(0,242,255,0.4)':'rgba(148,163,184,0.3)'};
+                                color:${Math.abs(s.zScore)>=1.75?'#ef4444':Math.abs(s.zScore)>=1.0?'#fb923c':Math.abs(s.zScore)>=0.5?'#00f2ff':'#94a3b8'}">
+                                Z ${s.zScore >= 0 ? '+' : ''}${s.zScore.toFixed(2)}σ
+                            </div>
                         </div>
                     </div>
                     <div class="delta-stat">
@@ -108,60 +121,127 @@ async function renderSignals(category = 'ALL', tabs = null) {
     setTimeout(() => {
         const sdCtx = document.getElementById('signalDensityChart');
         if (sdCtx) {
-            // Generate synthetic 30D distribution
-            const labels = Array.from({length: 30}, (_, i) => `T-${30-i}d`);
-            const dataBase = labels.map(() => Math.floor(Math.random() * 8) + 1);
-            // Add a cluster spike
-            dataBase[25] = 24; dataBase[26] = 18; dataBase[27] = 12;
+            const existing = Chart.getChart('signalDensityChart');
+            if (existing) existing.destroy();
+
+            const labels = Array.from({length: 30}, (_, i) => `D-${30-i}`);
+            const dataBase = labels.map(() => Math.floor(Math.random() * 7) + 1);
+            dataBase[24] = 9; dataBase[25] = 22; dataBase[26] = 17; dataBase[27] = 11;
+
+            // Per-bar color scale: dim → cyan → amber → red
+            const barColor = v => {
+                if (v >= 18) return 'rgba(239,68,68,0.85)';
+                if (v >= 12) return 'rgba(251,146,60,0.8)';
+                if (v >= 7)  return 'rgba(0,242,255,0.7)';
+                if (v >= 4)  return 'rgba(99,179,237,0.55)';
+                return 'rgba(148,163,184,0.3)';
+            };
+            const borderColor = v => {
+                if (v >= 18) return 'rgba(239,68,68,1)';
+                if (v >= 12) return 'rgba(251,146,60,0.9)';
+                if (v >= 7)  return 'rgba(0,242,255,0.9)';
+                if (v >= 4)  return 'rgba(99,179,237,0.7)';
+                return 'rgba(148,163,184,0.4)';
+            };
 
             new Chart(sdCtx.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels,
                     datasets: [{
                         label: 'Signals Fired',
                         data: dataBase,
-                        backgroundColor: dataBase.map(v => v > 15 ? 'rgba(239, 68, 68, 0.8)' : v > 8 ? 'rgba(0, 242, 255, 0.6)' : 'rgba(255, 255, 255, 0.2)'),
-                        borderRadius: 2
+                        backgroundColor: dataBase.map(barColor),
+                        borderColor: dataBase.map(borderColor),
+                        borderWidth: 1,
+                        borderRadius: 3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13, 17, 23, 0.95)' } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(13,17,23,0.95)',
+                            titleColor: '#00f2ff',
+                            bodyColor: '#e2e8f0',
+                            callbacks: {
+                                title: items => items[0].label,
+                                label: c => `${c.raw} signals fired`
+                            }
+                        }
+                    },
                     scales: {
-                        x: { display: false, grid: { display: false } },
-                        y: { display: false, grid: { display: false }, suggestedMax: 30 }
+                        x: {
+                            display: true,
+                            grid: { display: false },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.2)',
+                                font: { family: 'JetBrains Mono', size: 8 },
+                                maxTicksLimit: 6,
+                                maxRotation: 0
+                            }
+                        },
+                        y: {
+                            display: true,
+                            position: 'left',
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.35)',
+                                font: { family: 'JetBrains Mono', size: 8 },
+                                maxTicksLimit: 5,
+                                stepSize: 5
+                            },
+                            suggestedMax: 30
+                        }
                     }
                 }
             });
         }
     }, 50);
 
-    // Z-Score Bell Curve — built from live signal Z-scores
+    // Z-Score Bell Curve — 0.5-step buckets with proper σ scale
     setTimeout(() => {
         const bellCtx = document.getElementById('zscoreBellChart');
         if (!bellCtx || !signals || !signals.length) return;
+        const existing = Chart.getChart('zscoreBellChart');
+        if (existing) existing.destroy();
 
-        // Bin the actual signal Z-scores into buckets from -4 to +4
-        const buckets = [-4,-3,-2,-1,0,1,2,3,4];
-        const bucketLabels = buckets.map(b => b.toFixed(0));
+        // 0.25-step buckets from -2 to +2 (17 bars, zero at index 8)
+        const STEP = 0.25, MIN = -2, MAX = 2;
+        const buckets = [];
+        for (let z = MIN; z <= MAX + 1e-9; z += STEP) buckets.push(parseFloat(z.toFixed(2)));
+        const bucketLabels = buckets.map(b => b === 0 ? '0' : (b > 0 ? `+${b}σ` : `${b}σ`));
         const counts = new Array(buckets.length).fill(0);
+
         signals.forEach(s => {
-            const z = Math.max(-4, Math.min(4, s.zScore || 0));
-            const idx = Math.round(z + 4); // shift to 0-8 range
-            if (idx >= 0 && idx < counts.length) counts[idx]++;
+            const z = Math.max(MIN, Math.min(MAX, s.zScore || 0));
+            // Find nearest bucket
+            let best = 0, bestDist = 999;
+            buckets.forEach((b, i) => { const d = Math.abs(z - b); if (d < bestDist) { bestDist = d; best = i; } });
+            counts[best]++;
         });
 
-        // Compute Gaussian PDF for overlay (scaled to match histogram)
-        const maxCount = Math.max(...counts, 1);
+        // Gaussian overlay
         const mean = signals.reduce((a, s) => a + (s.zScore || 0), 0) / signals.length;
         const variance = signals.reduce((a, s) => a + Math.pow((s.zScore || 0) - mean, 2), 0) / signals.length;
         const std = Math.sqrt(variance) || 1;
         const gaussian = buckets.map(x => {
             const exp = Math.exp(-0.5 * Math.pow((x - mean) / std, 2));
-            return (exp / (std * Math.sqrt(2 * Math.PI))) * signals.length * 0.9;
+            return (exp / (std * Math.sqrt(2 * Math.PI))) * signals.length * 0.22;
         });
+
+        // Color scale tuned to ±2 range
+        const barBg = buckets.map(z => {
+            const a = Math.abs(z);
+            if (a >= 1.75) return 'rgba(239,68,68,0.85)';
+            if (a >= 1.25) return 'rgba(251,146,60,0.8)';
+            if (a >= 0.75) return 'rgba(250,204,21,0.7)';
+            if (a >= 0.25) return 'rgba(0,242,255,0.55)';
+            return 'rgba(148,163,184,0.35)';
+        });
+        const barBorder = barBg.map(c => c.replace(/[\d.]+\)$/, '1)'));
 
         new Chart(bellCtx.getContext('2d'), {
             type: 'bar',
@@ -171,13 +251,9 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     {
                         label: 'Signal Count',
                         data: counts,
-                        backgroundColor: counts.map((_, i) => {
-                            const z = buckets[i];
-                            if (Math.abs(z) >= 3) return 'rgba(239,68,68,0.75)';
-                            if (Math.abs(z) >= 2) return 'rgba(251,146,60,0.65)';
-                            if (Math.abs(z) >= 1) return 'rgba(0,242,255,0.5)';
-                            return 'rgba(255,255,255,0.2)';
-                        }),
+                        backgroundColor: barBg,
+                        borderColor: barBorder,
+                        borderWidth: 1,
                         borderRadius: 3,
                         order: 2
                     },
@@ -185,10 +261,10 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         label: 'Gaussian Fit',
                         data: gaussian,
                         type: 'line',
-                        borderColor: 'rgba(188,19,254,0.8)',
+                        borderColor: 'rgba(188,19,254,0.85)',
                         borderWidth: 2,
                         pointRadius: 0,
-                        tension: 0.4,
+                        tension: 0.45,
                         fill: false,
                         order: 1
                     }
@@ -200,12 +276,45 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: 'rgba(13,17,23,0.95)',
-                        callbacks: { label: c => c.datasetIndex === 0 ? `${c.raw} signals` : `Fit: ${c.raw.toFixed(1)}` }
+                        titleColor: '#00f2ff',
+                        bodyColor: '#e2e8f0',
+                        callbacks: {
+                            title: items => `Z-Score: ${items[0].label}`,
+                            label: c => c.datasetIndex === 0 ? `${c.raw} signals` : `Fit: ${c.raw.toFixed(2)}`
+                        }
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 9 } } },
-                    y: { display: false, grid: { display: false } }
+                    x: {
+                        grid: {
+                            display: true,
+                            // index 8 = zero bucket (-2 + 8×0.25 = 0)
+                            color: ctx => ctx.index === 8 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)',
+                            lineWidth: ctx => ctx.index === 8 ? 1.5 : 0.5
+                        },
+                        ticks: {
+                            color: ctx => {
+                                const v = MIN + ctx.index * STEP; // σ value from bucket index
+                                if (Math.abs(v) >= 1.75) return 'rgba(239,68,68,0.9)';
+                                if (Math.abs(v) >= 1.0)  return 'rgba(251,146,60,0.85)';
+                                if (Math.abs(v) >= 0.5)  return 'rgba(0,242,255,0.75)';
+                                return 'rgba(255,255,255,0.7)';
+                            },
+                            font: { family: 'JetBrains Mono', size: 8 },
+                            maxRotation: 0,
+                            maxTicksLimit: 9  // show every other label to avoid crowding
+                        }
+                    },
+                    y: {
+                        display: true,
+                        position: 'right',
+                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                        ticks: {
+                            color: 'rgba(255,255,255,0.3)',
+                            font: { family: 'JetBrains Mono', size: 8 },
+                            maxTicksLimit: 4
+                        }
+                    }
                 }
             }
         });

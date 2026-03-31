@@ -189,7 +189,15 @@ def init_db():
         c.execute("ALTER TABLE alerts_history ADD COLUMN price REAL")
     except: pass
     
-    c.execute('''CREATE TABLE IF NOT EXISTS tracked_tickers (ticker TEXT PRIMARY KEY)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS tracked_tickers (
+        ticker TEXT NOT NULL,
+        user_email TEXT,
+        PRIMARY KEY (ticker, user_email)
+    )''')
+    # Migration: add user_email column if old schema exists
+    try:
+        c.execute("ALTER TABLE tracked_tickers ADD COLUMN user_email TEXT")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS price_history (ticker TEXT, date TEXT, price REAL, PRIMARY KEY (ticker, date))''')
     c.execute('''CREATE TABLE IF NOT EXISTS cache_store (key TEXT PRIMARY KEY, value TEXT, expires_at REAL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS orderbook_snapshots (id INTEGER PRIMARY KEY, ticker TEXT, snapshot_data TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
@@ -204,6 +212,10 @@ def init_db():
         c.execute("ALTER TABLE user_settings ADD COLUMN alerts_last_seen TEXT")
     except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS market_ticks (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, price REAL, volume REAL, open_interest REAL)''')
+    # Ensure index on market_ticks for leaderboard lookups
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_market_ticks_sym_ts ON market_ticks (symbol, timestamp DESC)")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS sentiment_history (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, score REAL, index_value REAL, volume REAL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS ml_predictions (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, predicted_return REAL, confidence REAL, features_json TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS portfolio_history (timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, equity REAL, draw_down REAL, assets_json TEXT)''')
@@ -217,6 +229,11 @@ def init_db():
         added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_email, ticker)
     )''')
+    # Migration: add price_at_add column for portfolio P&L tracking
+    try:
+        c.execute("ALTER TABLE watchlist ADD COLUMN price_at_add REAL")
+    except: pass
+
     c.execute('''CREATE TABLE IF NOT EXISTS positions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_email TEXT NOT NULL,
