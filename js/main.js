@@ -99,6 +99,7 @@ const viewMap = {
     'explain-heatmap': renderDocsHeatmap,
     'explain-command-center': renderDocsCommandCenter,
     'explain-ask-terminal': renderDocsAskTerminal,
+    'explain-my-terminal': renderDocsMyTerminal,
     'my-terminal': renderMyTerminal,
     'price-alerts': renderPriceAlerts,
     'signal-leaderboard': renderSignalLeaderboard,

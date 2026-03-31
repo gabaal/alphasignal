@@ -30,8 +30,9 @@ async function renderMyTerminal() {
         <div class="view-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">person</span>My Terminal</h1>
-                <p style="color:var(--text-dim);font-size:0.8rem">Personal watchlist and open positions · ${userEmail}</p>
+                <p style="color:var(--text-dim);font-size:0.8rem">Personal watchlist and open positions &middot; ${userEmail}</p>
             </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-my-terminal')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${tabsHTML}
         <div id="my-terminal-content">${skeleton(2)}</div>`;

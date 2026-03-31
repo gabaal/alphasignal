@@ -122,147 +122,7 @@ function renderDocsTradingView() {
 }
 
 
-// ============= NEW DOC PAGES (Docs Audit v1.32) =============
 
-// --- Global Hub ---
-function renderDocsETFFlows() {
-    renderExplainPage(
-        "Bitcoin Spot ETF Flows",
-        "Tracking daily institutional capital entering and exiting via regulated Bitcoin ETF vehicles.",
-        "Since the approval of spot Bitcoin ETFs in January 2024, these products have become the primary institutional on-ramp for TradFi capital. AlphaSignal's ETF Flow monitor aggregates daily AUM changes across BlackRock (IBIT), Fidelity (FBTC), ARK (ARKB), and other major issuers. Net positive flow is a leading indicator of price support; sustained outflows often precede near-term corrections.",
-        [
-            { icon: 'account_balance', title: 'Net Daily Flows', desc: 'Aggregated USD-denominated inflows and outflows across all regulated spot Bitcoin ETF products.' },
-            { icon: 'bar_chart', title: '7-Day Rolling Trend', desc: 'Bar chart of weekly net flows to identify sustained accumulation or distribution phases.' },
-            { icon: 'trending_up', title: 'Issuer Breakdown', desc: 'Per-fund breakdown showing which ETF products are receiving the most institutional capital.' },
-            { icon: 'compare_arrows', title: 'BTC Price Correlation', desc: 'Flow data overlaid against spot BTC price to visualise the lag between institutional demand and price discovery.' }
-        ],
-        [{ title: 'ETF Front-Running', text: 'Sustained 5-day positive net flows across IBIT and FBTC historically preceded 3-7% BTC price appreciation, providing a 24-48 hour positional edge.' }],
-        "Daily AUM change data from SEC Form N-CEN filings and public ETF issuer reports."
-    , 'etf-flows'
-    , 'advanced-charting'
-    , 'backtester-v2'
-    );
-}
-
-function renderDocsLiquidations() {
-    renderExplainPage(
-        "Liquidation Cascade Scanner",
-        "Real-time monitoring of leveraged position wipeouts across perpetual futures markets.",
-        "Liquidation events occur when a leveraged trader's margin falls below the exchange maintenance threshold, forcing automatic closure. Large cascades near key technical levels can trigger chain reactions moving spot prices 5-15% in minutes. AlphaSignal tracks cross-exchange liquidations in real-time, warning you where the next forced-selling cluster will trigger.",
-        [
-            { icon: 'local_fire_department', title: 'Long vs Short Wipeouts', desc: 'Separate tracking of long and short liquidation volumes to gauge market directional bias.' },
-            { icon: 'timeline', title: 'Liquidation Histogram', desc: 'Price-level histogram showing concentrated liquidation clusters that act as magnetic price targets.' },
-            { icon: 'notifications_active', title: 'Cascade Alerts', desc: '1-minute rolling window alerts when liquidation volume exceeds 3x the 1-hour average.' },
-            { icon: 'pivot_table_chart', title: 'Exchange Breakdown', desc: 'Binance, OKX, Bybit, and Deribit data compared to identify venue-specific stress.' }
-        ],
-        [{ title: 'The Short Squeeze Setup', text: 'When short liquidations spike above $80M in a 5-minute window while spot holds above key support, forced buying often accelerates price 4-8% within 30 minutes.' }],
-        "Real-time data from Binance, OKX, Bybit, and Deribit WebSocket feeds. Refreshed every 10 seconds."
-    , 'liquidations'
-    );
-}
-
-function renderDocsOIRadar() {
-    renderExplainPage(
-        "Open Interest Radar",
-        "Multi-asset perpetual futures open interest tracking across exchanges and timeframes.",
-        "Open Interest (OI) measures total active derivative contracts outstanding. Rising OI with rising price confirms trend participation. Falling OI with rising price signals a short-squeeze driven move that may be unsustainable. The OI Radar gives a real-time pulse of leverage build-up across all major assets and exchanges simultaneously.",
-        [
-            { icon: 'track_changes', title: 'Cross-Asset OI Heatmap', desc: 'Colour-coded matrix of OI changes (1h, 4h, 24h) across BTC, ETH, SOL, and 20+ altcoins.' },
-            { icon: 'trending_up', title: 'OI vs Price Divergence', desc: 'Flags assets where OI is rising sharply while price stagnates — coiled setups and trapped position warnings.' },
-            { icon: 'bar_chart', title: 'Exchange Distribution', desc: 'Shows which exchanges hold most OI per asset — critical for identifying liquidation level clusters.' },
-            { icon: 'radar', title: 'Funding Rate Overlay', desc: 'Combines OI with perpetual funding rates to identify when leverage is aggressively one-sided.' }
-        ],
-        [{ title: 'OI Divergence Trade', text: 'BTC OI rose 18% over 72 hours while price gained only 2%. The terminal flagged extreme leverage buildup. A subsequent 6% flush wiped $340M in longs.' }],
-        "Aggregated OI from Binance, OKX, Bybit, and BitMEX perpetual futures APIs. Refreshed every 5 minutes."
-    , 'oi-radar'
-    );
-}
-
-function renderDocsCMEGaps() {
-    renderExplainPage(
-        "CME Gap Analysis",
-        "Identifying and tracking unfilled price gaps in Bitcoin CME futures contracts.",
-        "The CME Bitcoin futures market closes on weekends. During this closure, spot BTC continues trading, often moving significantly. When CME reopens, a price gap is left between Friday close and Sunday open. Statistically, ~77% of CME gaps fill within 3 months. AlphaSignal tracks all open gaps, their distance from current price, and fill probability.",
-        [
-            { icon: 'pivot_table_chart', title: 'Active Gap Registry', desc: 'Live table of all unfilled CME gaps with distance-from-current-price and age tracking.' },
-            { icon: 'timeline', title: 'Historical Fill Rate', desc: 'Statistical analysis of gap-fill probability by gap size, age, and market regime context.' },
-            { icon: 'arrow_downward', title: 'Gap Distance Calculator', desc: 'Shows the % move required to fill each gap — useful for identifying price targets in ranging markets.' },
-            { icon: 'calendar_month', title: 'Weekly Gap Preview', desc: 'Tracks Friday close each week to monitor whether a new gap is likely to form over the weekend.' }
-        ],
-        [{ title: 'The Gap Fill Trade', text: 'With BTC at $82,000 and an unfilled gap at $78,400, the terminal flagged a 4.3% downside target. The gap filled 11 days later during a macro-driven correction.' }],
-        "CME Bitcoin futures OHLCV data. Weekend gap detection runs every Monday at 00:00 UTC."
-    , 'cme-gaps'
-    );
-}
-
-// --- Macro Intel Hub ---
-function renderDocsFlow() {
-    renderExplainPage(
-        "Capital Flows Monitor",
-        "Tracking the velocity and direction of institutional capital rotating into the crypto ecosystem.",
-        "Capital Flows measures net USD movement through ETF products, exchange inflows/outflows, and stablecoin minting/burning. Flow data reveals the structural demand behind a move — distinguishing genuine institutional accumulation from retail FOMO-driven pumps. A sustained multi-week positive flow regime is one of the most reliable macro bull signals in the terminal.",
-        [
-            { icon: 'swap_horiz', title: 'Net Flow Attribution', desc: 'Exchange-wide net capital attribution combining spot ETF data, on-chain flows, and stablecoin supply changes.' },
-            { icon: 'trending_up', title: 'Sector Momentum', desc: 'Identifies which crypto sectors are receiving capital and which are experiencing outflows.' },
-            { icon: 'waterfall_chart', title: 'Stablecoin Velocity', desc: 'USDT and USDC mint/burn rates as a proxy for incoming dry powder and buying pressure.' },
-            { icon: 'compare_arrows', title: 'Exchange Net Position', desc: 'Rolling 30-day exchange net position change — sustained outflows are historically bullish for spot.' }
-        ],
-        [{ title: 'The Pre-Rally Signal', text: '14 days of positive ETF flows combined with declining exchange BTC reserves preceded a 22% BTC rally. Capital Flows caught both signals simultaneously.' }],
-        "Aggregated from spot ETF AUM reports, Glassnode exchange reserve data, and on-chain USDT/USDC treasury monitors."
-    , 'flow'
-    );
-}
-
-function renderDocsRotation() {
-    renderExplainPage(
-        "Sector Rotation Tracker",
-        "Visualising capital rotation across crypto sectors using a treemap and momentum matrix.",
-        "Crypto markets rotate through distinct sector cycles. Capital first floods into Bitcoin, then Ethereum, then L1 altcoins, then DeFi and memecoins. Identifying where a rotation is in this cycle allows traders to position ahead of the crowd. The Sector Rotation view uses a weighted treemap with a momentum matrix flagging emerging rotation signals.",
-        [
-            { icon: 'rotate_right', title: 'Sector Treemap', desc: 'Dynamic, weighted treemap of 7D relative performance across L1, DeFi, AI, Memes, Gaming, and RWA sectors.' },
-            { icon: 'bar_chart', title: 'Rotation Momentum', desc: 'Cross-asset momentum ranking showing 24h, 7D, and 30D leaders to identify where rotation flows are heading.' },
-            { icon: 'electric_bolt', title: 'Beta Expansion Alerts', desc: 'Signals when a sector begins outperforming BTC on a risk-adjusted basis — early warning of a rotation event.' },
-            { icon: 'bubble_chart', title: 'Dominance Shifts', desc: 'BTC.D and ETH.D dominance tracking to confirm when capital is rotating into or out of altcoin exposure.' }
-        ],
-        [{ title: 'L1 Rotation Capture', text: 'When ETH.D declined while SOL and AVAX outperformed BTC on a 7-day basis, the tracker flagged an L1 rotation. The identified basket returned an additional 35% over 3 weeks.' }],
-        "Real-time OHLCV from 10+ centralised exchanges. Sector taxonomy maintained across 500+ assets."
-    , 'rotation'
-    );
-}
-
-function renderDocsMacroCompass() {
-    renderExplainPage(
-        "Macro Compass",
-        "A synthesised dashboard tracking the global macro environment and its impact on digital assets.",
-        "The Macro Compass aggregates key macro signals — equity correlation, DXY strength, yield curve shapes, and commodity trends — into a coherent view. Bitcoin has a 0.6-0.8 rolling correlation with risk-on assets during macro stress events, making macro context essential for timing entries and exits across all terminal instruments.",
-        [
-            { icon: 'public', title: 'Macro Correlation Matrix', desc: 'Rolling 30-day correlations between BTC, SPX, NASDAQ, DXY, Gold, and 10Y Treasury yields.' },
-            { icon: 'show_chart', title: 'Yield Curve Monitor', desc: 'US Treasury 2Y/10Y/30Y spread tracking. Sustained inversion has preceded risk-off environments.' },
-            { icon: 'trending_down', title: 'DXY Impact Model', desc: 'Real-time DXY overlay against BTC to quantify the inverse relationship and identify dollar-driven moves.' },
-            { icon: 'layers', title: 'Risk Regime Overlay', desc: 'Current macro regime classification (Risk-On / Risk-Off / Transitional) based on equity volatility and credit spreads.' }
-        ],
-        [{ title: 'The DXY Breakout Trade', text: 'When DXY broke above 105 following hotter-than-expected CPI, the Compass immediately flagged a shift to Risk-Off regime. BTC declined 8% over 72 hours.' }],
-        "Federal Reserve FRED database, DTCC yield curve data, and Bloomberg cross-asset correlation matrices. Updated daily."
-    , 'macro'
-    );
-}
-
-function renderDocsMacroCalendar() {
-    renderExplainPage(
-        "Macro Event Calendar",
-        "A 90-day forward calendar of institutional macro events scored by historical BTC impact.",
-        "The Macro Event Calendar tracks scheduled economic releases — FOMC decisions, CPI prints, NFP reports, and PCE data — and scores each by its average historical BTC price impact over the past 6 occurrences. This turns the economic calendar from a passive reference into an active positioning tool.",
-        [
-            { icon: 'event', title: 'Event Timeline', desc: '90-day chronological listing of macro events with days-until countdown and event type badge.' },
-            { icon: 'bar_chart', title: 'Historical BTC Impact', desc: 'Per-event scoring showing median BTC move, average volatility, and historical directional bias.' },
-            { icon: 'warning', title: 'Impact Tier Badges', desc: 'Events classified HIGH / MEDIUM / LOW by weighted impact score, enabling rapid calendar triage.' },
-            { icon: 'timeline', title: 'Historical Move Bars', desc: 'Bar chart showing the last 6 real BTC same-date moves for each event instance.' }
-        ],
-        [{ title: 'Pre-FOMC Positioning', text: 'FOMC meetings average 4.2% BTC volatility on announcement day. The calendar HIGH impact flag and historical bars gave traders a clear reference for sizing hedges in advance.' }],
-        "FOMC, CPI, NFP, and PCE schedules from the Federal Reserve and BLS. Historical impact scored against 2-year BTC price data via yfinance."
-    , 'macro-calendar'
-    );
-}
 
 // --- Global Markets Hub ---
 function renderDocsETFFlows() {
@@ -512,17 +372,41 @@ function renderDocsHeatmap() {
 function renderDocsCommandCenter() {
     renderExplainPage(
         "Institutional Command Center",
-        "A consolidated dashboard aggregating key signals from all terminal hubs into a single master view.",
-        "The Command Center is designed for senior traders and portfolio managers who need system-level situational awareness across all terminal modules simultaneously. Rather than navigating between hubs, it surfaces the most critical real-time signals from each — Conviction Dials, ETF Flows, Correlation Matrix, Alpha Signals, and CME Gaps — in a single dense layout.",
+        "Consolidated master dashboard — every critical signal from every hub, on one screen.",
+        "The Command Center is designed for senior traders and portfolio managers who need system-level situational awareness without navigating between hubs. It surfaces the most critical real-time intelligence from each module simultaneously: Conviction Dials, Live Analytics Charts, ETF Flows, Macro Correlation Matrix, Top Alpha Signals, and CME Gap Tracker.\n\nThe four Signal Intelligence Analytics Charts (Alpha vs Z-Score Scatter, Category Mix Donut, BTC Correlation Histogram, Alpha Leaders) are interactive — click any chart to expand it to fullscreen with richer labels and axis annotations.",
         [
-            { icon: 'dashboard', title: 'System Conviction Dials', desc: 'Live Fear & Greed, Network Congestion, and Retail FOMO dials providing a composite read of market psychology.' },
-            { icon: 'account_balance', title: 'ETF Flow Summary', desc: 'Weekly ETF net flows bar chart showing the most recent 5 days of institutional capital movement.' },
-            { icon: 'grid_4x4', title: 'Macro Correlation Matrix', desc: 'Live 30-day correlation heatmap between BTC, SPX, DXY, Gold, and 10Y Treasury.' },
+            { icon: 'dashboard', title: 'System Conviction Dials', desc: 'Live Fear & Greed, Network Congestion, and Retail FOMO gauges providing a composite read of current market psychology.' },
+            { icon: 'scatter_plot', title: 'Alpha vs Z-Score Scatter', desc: 'Quadrant scatter of all live signals. Top-right = quality signals (high alpha + high Z-score). Click to expand with labelled quadrant zones.' },
+            { icon: 'donut_large', title: 'Category Mix Donut', desc: 'Real-time sector distribution of the live signal universe. Identifies which categories are currently generating the most signals.' },
+            { icon: 'bar_chart', title: 'BTC Correlation Histogram', desc: 'Distribution of BTC correlation values across all tracked assets. Colour-coded: cyan = positively correlated, red = inversely correlated.' },
+            { icon: 'leaderboard', title: 'Alpha Leaders Bar', desc: 'Top 8 assets by relative alpha vs the crypto market average. Click to expand to top 12 with full labels.' },
+            { icon: 'grid_4x4', title: 'Macro Correlation Matrix', desc: 'Pairwise Pearson correlation heatmap. Click to expand to full size with row/column asset labels and scrollable grid.' },
+            { icon: 'account_balance', title: 'ETF Flow Summary', desc: '5-day ETF net flow bar chart showing the most recent institutional capital movement.' },
             { icon: 'electric_bolt', title: 'Top Institutional Alpha', desc: 'Live feed of the 5 highest-conviction signals currently active across the terminal signal universe.' }
         ],
-        [],
-        "Aggregates data from 6 underlying terminal modules. Click through to individual hubs for full detail and interactivity."
+        [{ title: 'Morning Situational Brief', text: 'Open Command Center at market open. The Conviction Dials + Alpha vs Z-Score scatter give a 10-second read on risk appetite and where statistical opportunity is concentrated — before navigating to individual hubs.' }],
+        "Aggregates live data from 8 underlying terminal modules. Click any analytics chart to zoom. Click through hub cards to open individual full views."
     , 'command-center'
+    );
+}
+
+function renderDocsMyTerminal() {
+    renderExplainPage(
+        "My Terminal",
+        "Your personal watchlist, open positions tracker, and portfolio performance summary.",
+        "My Terminal is your personalised workspace within the AlphaSignal system. Add any tracked asset to your watchlist with a defined entry price, and the terminal will instantly calculate your live P&L, percentage return, and portfolio-level win rate. It persists across sessions and forms the foundation of your personal institutional trading record.",
+        [
+            { icon: 'bookmark_add', title: 'Watchlist Management', desc: 'Add any of the 50+ tracked assets to your watchlist with a target entry price. Remove positions with a single click. Managed per-user server-side.' },
+            { icon: 'trending_up', title: 'Live P&L Tracking', desc: 'Each watchlist position calculates live P&L in real-time using the WebSocket price feed. Colour-coded green/red for at-a-glance performance.' },
+            { icon: 'analytics', title: 'Portfolio Summary Stats', desc: 'Header stats show Average Return across all positions, total Win Rate (% of positions above entry), and number of actively watched assets.' },
+            { icon: 'notifications', title: 'Browser Notifications', desc: 'My Terminal requests browser notification permission on load so the terminal can fire price alerts even when the tab is in the background.' },
+            { icon: 'person', title: 'Session Persistence', desc: 'Watchlist data is stored server-side and tied to your user account. Your positions survive browser restarts and device changes.' }
+        ],
+        [
+            { title: 'Portfolio Conviction Tracking', text: 'A trader watching 8 positions had 6 in positive P&L. The 75% win rate displayed on the summary header provided a quick confidence check before adding new positions from the Signal Intelligence view.' }
+        ],
+        "Watchlist stored in server-side SQLite database per user. Live prices sourced from WebSocket feed (BTC/ETH/SOL) and supplemented by the signals endpoint for the full 50+ asset universe."
+    , 'my-terminal'
     );
 }
 

@@ -90,15 +90,21 @@ function renderHelp() {
                 ${card('explain-tradingview', 'show_chart', 'TradingView', 'Professional charts with MA/RSI/MACD/BB pre-loaded. Supports all crypto + equity.')}
             `)}
 
-            ${group('Alerts & Signals', 'notifications_active', `
-                ${card('explain-alerts', 'event', 'Signal Alerts', 'Configuring alert thresholds, Z-score gates, and catalyst event tracking.')}
-                ${card('explain-telegram', 'notifications_active', 'Alert Hooks', 'Configuring Telegram and Discord webhook intelligence delivery.')}
+            ${group('Alerts & Notifications Hub', 'notifications_active', `
+                ${card('explain-alerts', 'notifications_active', 'Alerts Hub', 'Live signal alerts, price threshold alerts, leaderboard, and AI market brief — all in one hub.')}
                 ${card('explain-heatmap', 'grid_view', 'Market Heatmap', 'Colour-coded Z-score heatmap across the entire 50+ asset tracked universe.')}
+                ${card('explain-telegram', 'notifications_active', 'Alert Hooks', 'Configuring Telegram and Discord webhook intelligence delivery.')}
+                ${card('explain-signal-archive', 'history', 'Signal Archive', 'Historical signal record, P&L tracking, and performance attribution.')}
             `)}
 
             ${group('Command & Navigation', 'dashboard', `
-                ${card('explain-command-center', 'dashboard', 'Command Center', 'Consolidated master view aggregating key signals from all terminal hubs.')}
+                ${card('explain-command-center', 'dashboard', 'Command Center', 'Consolidated master view: Conviction Dials, 4 analytics charts, ETF flows, correlation matrix, and top alpha.')}
                 ${card('explain-ask-terminal', 'smart_toy', 'Ask Terminal', 'Conversational AI research assistant with full terminal context and methodology.')}
+            `)}
+
+            ${group('Personal Terminal', 'person', `
+                ${card('explain-my-terminal', 'person', 'My Terminal', 'Personal watchlist, live P&L tracking, win rate summary, and browser notification alerts.')}
+                ${card('explain-pwa', 'install_mobile', 'Mobile Terminal', 'PWA installation guide for iOS and Android — offline-capable terminal access.')}
             `)}
 
             ${group('Reference & System', 'menu_book', `
@@ -108,7 +114,6 @@ function renderHelp() {
                 ${card('explain-benchmark', 'science', 'Portfolio Simulation', 'Modelling and backtesting quant portfolios against market benchmarks.')}
                 ${card('explain-api', 'terminal', 'Institutional API', 'Programmatic data access endpoints for quant desks and institutional clients.')}
                 ${card('explain-glossary', 'menu_book', 'Terminal Glossary', 'Quick reference for all institutional metrics, formulas, and signals used.')}
-                ${card('explain-pwa', 'install_mobile', 'Mobile Terminal', 'PWA installation guide for iOS and Android — offline-capable terminal access.')}
                 ${card('explain-liquidity', 'bar_chart', 'Order Flow (GOMM)', 'Interpreting institutional liquidity walls, tape imbalance, and execution flow.')}
                 ${card('explain-mindshare', 'hub', 'Mindshare Engine', 'NLP-driven social cluster visualisation and attention scoring methodology.')}
             `)}
@@ -157,19 +162,22 @@ function renderDocsOnchain() {
 
 function renderDocsSignals() {
     renderExplainPage(
-        "Signal Intelligence",
-        "The mathematical heartbeat of the AlphaSignal terminal.",
-        "Our signal engine processes thousands of data points across global markets to identify institutional momentum before it becomes obvious to retail traders. We use a proprietary blend of Z-Score normalization, volume-weighted average price (VWAP) deviations, and cross-asset beta analysis to generate high-conviction insights. Every signal is a distilled representation of statistical probability, designed to highlight assets that are entering a period of extreme volatility or sustained trend expansion.",
+        "Alpha Signal Intelligence",
+        "Live Z-score-driven momentum signals across 50+ institutional crypto assets.",
+        "The Signal Intelligence view is the core of the AlphaSignal engine. Every 60 seconds the system recalculates Z-score deviations across the full 50+ asset universe, flags statistical outliers, assigns a directional conviction (BULLISH / BEARISH), and scores each signal's alpha relative to the crypto market average. Signals are colour-coded by strength and annotated with on-chain, macro, and social context from across the terminal's data streams.\n\nThe view also includes two real-time analytics charts — the \"Strategy Firing Density\" cluster map (30-day signal pressure heat) and the \"Z-Score Distribution\" Gaussian bell curve — giving an at-a-glance read on current signal density and the statistical profile of the live universe.",
         [
-            { icon: 'radar', title: 'Momentum Vector', desc: 'Calculated using a 14-period exponential smoothing of price/volume divergence. A positive vector indicates sustained institutional buy-side pressure.' },
-            { icon: 'filter_alt', title: 'Noise Filtering', desc: 'Our algorithms automatically strip away high-frequency retail noise, focusing only on transactions that represent significant capital commitment.' },
-            { icon: 'settings_input_component', title: 'Z-Score Normalization', desc: 'By normalizing all asset movements to a standard deviation scale, we allow you to compare a 10% move in BTC with a 2% move in a low-volatility equity.' }
+            { icon: 'radar', title: 'Z-Score Signal Cards', desc: 'Each card shows ticker, Z-score (–2 to +2 range), directional badge (BULLISH / BEARISH), relative alpha %, and a generated thesis memo.' },
+            { icon: 'bolt', title: 'BULLISH / BEARISH Chips', desc: 'Direction indicators derived from momentum vector + Z-score sign. Green chip = upward statistical deviation; red = downward.' },
+            { icon: 'filter_alt', title: 'Category Filters', desc: 'Filter by EXCHANGE, PROXY, MINERS, ETF, DEFI, L1, STABLES, and MEMES to focus on specific sector signals.' },
+            { icon: 'analytics', title: 'Strategy Firing Density', desc: '30-day scatter chart of signal clustering over time. Dense windows indicate periods of high institutional momentum.' },
+            { icon: 'show_chart', title: 'Z-Score Bell Curve', desc: 'Gaussian distribution of current Z-scores across the universe. Assets in the tails are statistical outliers — prime signal candidates.' },
+            { icon: 'download', title: 'CSV Export', desc: 'Export the live signal table with all metrics for offline analysis or integration with external portfolio systems.' }
         ],
         [
-            { title: 'Volatility Compression Breakout', text: 'During a 48-hour period of low Z-score activity, the Momentum Vector began to diverge positively. Our terminal flagged this as "Institutional Accumulation," preceding a 15% breakout in less than 4 hours.' },
-            { title: 'Mean Reversion at +3.5 Z-Score', text: 'When an asset hits the +3.5 sigma level, the probability of a 5% pullback within the next 12 hours exceeds 82%. Traders use this to scale out of long positions or hedge with delta-neutral options.' }
+            { title: 'Volatility Compression Breakout', text: 'During a 48-hour period of low Z-score activity, the Momentum Vector began to diverge positively. The terminal flagged Institutional Accumulation, preceding a 15% breakout in less than 4 hours.' },
+            { title: 'Mean Reversion at +3.5 Z-Score', text: 'When an asset hits the +3.5 sigma level the probability of a 5% pullback within 12 hours exceeds 82%. Traders use this to scale out of long positions or hedge with delta-neutral options.' }
         ],
-        "Real-time L2/L3 orderbook data and trade execution tape from Binance, Coinbase, and OKX. Historical statistical normalization is computed across a rolling 5,000-point data window per asset."
+        "Real-time OHLCV from Binance, Coinbase, and OKX. Z-scores computed on a rolling 180-period mean and standard deviation window. Alpha scores benchmarked against the equal-weight crypto market average."
     , 'signals'
     );
 }
@@ -290,20 +298,23 @@ function renderDocsBenchmark() {
 
 function renderDocsAlerts() {
     renderExplainPage(
-        "Catalyst Monitor",
-        "A comprehensive operational calendar of institutional-grade volatility events.",
-        "The Catalyst Monitor is designed to track any event that could significantly impact market liquidity or direction. This includes macro-economic data prints (CPI, PPI, PCE), regulatory hearings, token unlocks, and major network upgrades. By mapping these events on a timeline, traders can anticipate periods of heightened volatility and position themselves accordingly before the news hits the wire. It is the definitive schedule for the institutional crypto trader.",
+        "Alerts Hub",
+        "Live signal alerts, custom price thresholds, signal leaderboard, and AI market brief — all in one hub.",
+        "The Alerts Hub is the real-time monitoring nerve centre of the AlphaSignal terminal. It consolidates four distinct surveillance tools into a single tabbed interface, ensuring you never miss a high-conviction signal or key price level. All alert types support Telegram and Discord webhook delivery so you receive notifications even when the terminal is closed.",
         [
-            { icon: 'calendar_month', title: 'Macro Events', desc: 'FOMC meetings, CPI prints, and Treasury auctions that inject volatility into all risk-on assets and define the medium-term market trend.' },
-            { icon: 'token', title: 'Token Unlocks', desc: 'Scheduled supply emissions for major protocols. Large unlocks often create predictable downward pressure and opportunities for tactical hedging.' },
-            { icon: 'verified', title: 'Network Upgrades', desc: 'Hard forks and technical roadmap milestones. These technical "catalysts" often serve as significant "buy the rumor, sell the news" events.' }
+            { icon: 'notifications_active', title: 'Live Signal Alerts', desc: 'Real-time feed of Z-score threshold crossings across the 50+ asset universe. Each alert shows ticker, Z-score, direction, alpha %, and the AI-generated signal thesis.' },
+            { icon: 'add_alert', title: 'Price Alerts', desc: 'Set custom price-level alerts for any tracked asset. Define target price, condition (above / below), and delivery method. Fires instantly to Telegram or Discord.' },
+            { icon: 'leaderboard', title: 'Signal Leaderboard', desc: 'Ranked performance table of all historical signals sorted by alpha generated. Identify which assets and categories consistently produce the highest-conviction calls.' },
+            { icon: 'article', title: 'Market Brief', desc: 'AI-generated daily narrative briefing synthesising macro context, top signals, ETF flows, and sector rotation into a single concise read.' },
+            { icon: 'archive', title: 'Signal Archive', desc: 'Full history of every signal fired with P&L tracking. Filter by ticker, date range, or category to audit system performance.' },
+            { icon: 'telegram', title: 'Webhook Delivery', desc: 'Connect your Telegram bot or Discord webhook in Settings to receive every alert off-platform. Configure Z-score threshold to control alert frequency.' }
         ],
         [
-            { title: 'The "Pre-CPI" Volatility Hedge', text: 'By monitoring the GOMM liquidity heatmap 2 hours before a CPI print, the Catalyst Monitor highlighted a significant bid-side thinning, allowing traders to hedge against the subsequent 2% volatility spike.' },
-            { title: 'Token Unlock Front-Running', text: 'Identifying a $500M token unlock for a leading L1 protocol 7 days in advance enabled users to open tactical short positions, capitalizing on the predictable sell-side pressure from early investors.' }
+            { title: 'Pre-Rally Positioning via Alert', text: 'A +2.4 Z-score alert fired on SOL-USD at 03:00 UTC — before US traders woke. The Telegram delivery enabled immediate positioning, capturing a subsequent 8% move within 6 hours.' },
+            { title: 'Price Alert Stop-Management', text: 'A trader set a price alert at $58,000 BTC as a stop-loss trigger level. The alert fired 12 minutes before the rapid flash, providing enough lead time to reduce exposure.' }
         ],
-        "Consolidated data from official government statistical agencies, protocol legal filings, and verified governance proposals via a real-time scraping engine."
-    , 'alerts'
+        "Signal alerts computed from live Z-score engine (refreshed every 60 seconds). Price alerts stored server-side and evaluated on each tick. Market Brief generated by GPT-4o-mini on demand."
+    , 'alerts-hub'
     );
 }
 
