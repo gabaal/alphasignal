@@ -1,792 +1,536 @@
+// ============= Help Hub — Sidebar-Mirrored Index =============
 function renderHelp() {
-    const card = (view, icon, title, desc) => `
-        <div class="help-card" onclick="switchView('${view}')" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;transition:all 0.2s;display:flex;flex-direction:column;gap:8px"
-             onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(0,242,255,0.04)'"
-             onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
-            <div style="display:flex;align-items:center;gap:10px">
-                <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.3rem">${icon}</span>
-                <span style="font-size:0.72rem;font-weight:800;letter-spacing:1.5px;color:var(--text)">${title}</span>
-            </div>
-            <p style="font-size:0.68rem;color:var(--text-dim);line-height:1.5;margin:0">${desc}</p>
-        </div>`;
-    const group = (title, icon, content) => `
-        <div style="margin-bottom:2.5rem">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)">
-                <span class="material-symbols-outlined" style="color:var(--accent)">${icon}</span>
-                <h2 style="font-size:0.7rem;font-weight:900;letter-spacing:3px;color:var(--text);margin:0">${title}</h2>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem">${content}</div>
-        </div>`;
+    const hubs = [
+        { id: 'global-markets', name: 'Global Markets', icon: 'public', color: '#00f2ff', view: 'global-hub',
+          docs: [
+            { name: 'ETF Flows', desc: '3 components: Stacked bar chart, Daily leaderboard table, Cumulative waterfall chart', route: 'docs-etf-flows', icon: 'account_balance' },
+            { name: 'Liquidations', desc: '3 components: Cascade scanner chart, Total rekt stat, Largest single order stat', route: 'docs-liquidations', icon: 'local_fire_department' },
+            { name: 'OI Radar', desc: '4 components: Exchange spider chart, IV smile curve, OI divergence bubble map, Attribution table', route: 'docs-oi-radar', icon: 'track_changes' },
+            { name: 'CME Gaps', desc: '1 component: Active magnet levels registry', route: 'docs-cme-gaps', icon: 'gap_stats' },
+          ]
+        },
+        { id: 'macro-intel', name: 'Macro Intelligence', icon: 'monitoring', color: '#a78bfa', view: 'macro-hub',
+          docs: [
+            { name: 'Strategy Briefing', desc: '3 components: AI institutional memo, Conviction dials, BTC benchmark chart', route: 'docs-briefing', icon: 'memory' },
+            { name: 'Sector Rotation', desc: '2 components: Sector momentum treemap, Rotation matrix table', route: 'docs-sector-rotation', icon: 'swap_horiz' },
+            { name: 'Macro Compass', desc: '3 components: Macro correlation heatmap, Yield curve chart, DXY overlay', route: 'docs-macro-compass', icon: 'explore' },
+            { name: 'Macro Calendar', desc: '2 components: Economic event calendar, BTC impact score table', route: 'docs-macro-calendar', icon: 'calendar_month' },
+            { name: 'Market Regime', desc: '3 components: Regime classifier gauge, Transition matrix, Regime heatmap history', route: 'docs-regime', icon: 'category' },
+          ]
+        },
+        { id: 'alpha-strategy', name: 'Alpha Strategy', icon: 'electric_bolt', color: '#facc15', view: 'alpha-hub',
+          docs: [
+            { name: 'Signal Intelligence', desc: '4 components: Signal cards, Firing density histogram, Z-score bell curve, Confidence radar', route: 'docs-signals', icon: 'radar' },
+            { name: 'ML Alpha Engine', desc: '3 components: Prediction table, Feature importance bar chart, Model accuracy gauge', route: 'docs-ml-engine', icon: 'smart_toy' },
+            { name: 'Alpha Score', desc: '2 components: Composite ranking table with score bars, Grade distribution', route: 'docs-alpha-score', icon: 'electric_bolt' },
+            { name: 'Strategy Lab', desc: '4 components: Strategy selector, Equity curve, Guppy ribbon, Monte Carlo bands', route: 'docs-strategy-lab', icon: 'science' },
+            { name: 'Backtester V2', desc: '3 components: Rolling Sharpe chart, Monthly P&L heatmap calendar, Trade summary stats', route: 'docs-backtester', icon: 'history' },
+            { name: 'Signal Archive', desc: '2 components: Historical signal table, Running P&L tracker', route: 'docs-signal-archive', icon: 'archive' },
+            { name: 'Narrative Galaxy', desc: '2 components: Force-directed galaxy graph, Velocity indicator table', route: 'docs-narrative', icon: 'hub' },
+          ]
+        },
+        { id: 'institutional-hub', name: 'Institutional Hub', icon: 'key', color: '#fb923c', view: 'institutional-hub',
+          docs: [
+            { name: 'Token Unlocks', desc: '2 components: Unlock schedule table, Supply impact score badges', route: 'docs-token-unlocks', icon: 'lock_open' },
+            { name: 'DeFi Yield Lab', desc: '3 components: Protocol APY comparison table, Avg staking stat, Risk score bar', route: 'docs-yield-lab', icon: 'savings' },
+            { name: 'Portfolio Optimizer', desc: '3 components: ML rebalancing table, Radar allocation chart, Efficient frontier scatter', route: 'docs-portfolio-optimizer', icon: 'account_tree' },
+            { name: 'Trade Idea Lab', desc: '2 components: Thesis builder form, Risk/reward calculator', route: 'docs-trade-lab', icon: 'tips_and_updates' },
+          ]
+        },
+        { id: 'analytics-hub', name: 'Analytics Hub', icon: 'analytics', color: '#22c55e', view: 'analytics-hub',
+          docs: [
+            { name: 'Whale Pulse', desc: '3 components: Whale transaction feed, Execution time polar chart, Volume bubble scatter', route: 'docs-whale-pulse', icon: 'waves' },
+            { name: 'Chain Velocity', desc: '2 components: Velocity time-series chart, Cross-chain Sankey diagram', route: 'docs-chain-velocity', icon: 'speed' },
+            { name: 'On-Chain Analytics', desc: '5 components: MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Realized Price overlay', route: 'docs-onchain', icon: 'link' },
+            { name: 'Options Flow', desc: '4 components: Put/Call ratio gauge, Max Pain chart, IV Smile, Top OI strikes table', route: 'docs-options-flow', icon: 'waterfall_chart' },
+            { name: 'Newsroom', desc: '2 components: Live news feed with sentiment tags, Keyword frequency heatmap', route: 'docs-newsroom', icon: 'newspaper' },
+          ]
+        },
+        { id: 'audit-hub', name: 'Audit & Performance', icon: 'trending_up', color: '#60a5fa', view: 'audit-hub',
+          docs: [
+            { name: 'Trade Ledger', desc: '2 components: Trade log table with P&L, Performance attribution breakdown', route: 'docs-trade-ledger', icon: 'receipt_long' },
+            { name: 'Performance Dashboard', desc: '3 components: Win rate stat cards, Monthly ROI heatmap calendar, Equity curve', route: 'docs-performance', icon: 'bar_chart' },
+          ]
+        },
+        { id: 'risk-hub', name: 'Risk & Stress', icon: 'grid_on', color: '#ef4444', view: 'risk-hub',
+          docs: [
+            { name: 'Risk Matrix', desc: '3 components: VaR gauge, Volatility-adjusted position sizer, Correlation scatter plot', route: 'docs-risk-matrix', icon: 'shield' },
+            { name: 'Stress Test Lab', desc: '2 components: Scenario stress table, Z-score distribution chart', route: 'docs-stress-lab', icon: 'warning' },
+          ]
+        },
+        { id: 'advanced-charting', name: 'Advanced Charting', icon: 'candlestick_chart', color: '#c084fc', view: 'advanced-charting',
+          docs: [
+            { name: 'Charting Suite', desc: '5 components: Candle chart, Volume Profile, CVD, Exchange Inflow/Outflow, Market Depth', route: 'docs-charting-suite', icon: 'candlestick_chart' },
+            { name: 'TradingView Widget', desc: '1 component: Full TradingView professional chart with pre-loaded institutional studies', route: 'docs-tradingview', icon: 'show_chart' },
+          ]
+        },
+        { id: 'order-flow', name: 'Order Flow (GOMM)', icon: 'bar_chart', color: '#00f2ff', view: 'liquidity',
+          docs: [
+            { name: 'Liquidity Dashboard', desc: '3 components: Orderbook depth chart, Execution tape feed, Institutional liquidity heatmap', route: 'docs-order-flow', icon: 'bar_chart' },
+          ]
+        },
+        { id: 'alerts-hub', name: 'Alerts Hub', icon: 'notifications_active', color: '#f43f5e', view: 'alerts-hub',
+          docs: [
+            { name: 'Live Signal Alerts', desc: '2 components: Alert feed cards, Severity filter controls', route: 'docs-alerts', icon: 'notifications' },
+            { name: 'Price Alerts', desc: '2 components: Alert manager table, Target price form', route: 'docs-price-alerts', icon: 'price_check' },
+            { name: 'Signal Leaderboard', desc: '1 component: Ranked leaderboard table with win rate and ROI', route: 'docs-signal-leaderboard', icon: 'leaderboard' },
+            { name: 'Market Brief', desc: '1 component: AI-generated daily market brief with structured sections', route: 'docs-market-brief', icon: 'summarize' },
+          ]
+        },
+        { id: 'personal', name: 'Personal', icon: 'person', color: '#34d399', view: 'my-terminal',
+          docs: [
+            { name: 'My Terminal', desc: '3 components: Watchlist table with live P&L, Portfolio summary stats, Notification controls', route: 'docs-my-terminal', icon: 'bookmark_add' },
+            { name: 'Ask Terminal', desc: '2 components: AI chat interface, Suggested query chips', route: 'docs-ask-terminal', icon: 'smart_toy' },
+            { name: 'Command Center', desc: '4 components: Conviction dials, Alpha vs Z-Score scatter, BTC sparkline, Hub quick-links', route: 'docs-command-center', icon: 'dashboard' },
+          ]
+        },
+    ];
+
     appEl.innerHTML = `
-        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent);">help</span>Terminal Documentation</h1></div>
-        <div class="doc-container" style="max-width:1100px;margin:0 auto;padding-top:1.5rem;">
-            <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:2rem;padding:1rem 1.5rem;background:linear-gradient(90deg,rgba(0,242,255,0.06),rgba(188,19,254,0.04));border:1px solid rgba(0,242,255,0.2);border-radius:12px">
-                <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.5rem">tour</span>
-                <div style="flex:1">
-                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:2px">FIRST TIME HERE?</div>
-                    <div style="font-size:0.75rem;color:var(--text-dim)">Take the guided 4-step onboarding tour to explore key terminal features.</div>
+        <div class="view-header">
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">help</span>Help &amp; Documentation</h1>
+            <p style="color:var(--text-dim)">View-level reference guides — one document per view, explaining every chart, table, and widget. Organised by the left-hand navigation menu.</p>
+        </div>
+        <div style="max-width:960px;display:flex;flex-direction:column;gap:2rem;padding-bottom:5rem">
+            ${hubs.map(hub => `
+            <div style="border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden">
+                <div style="padding:1rem 1.4rem;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span class="material-symbols-outlined" style="color:${hub.color};font-size:1.2rem">${hub.icon}</span>
+                        <span style="font-size:0.85rem;font-weight:900;letter-spacing:1px;color:${hub.color}">${hub.name}</span>
+                        <span style="font-size:0.55rem;color:var(--text-dim);font-weight:700;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:100px;border:1px solid rgba(255,255,255,0.08)">${hub.docs.length} VIEW${hub.docs.length > 1 ? 'S' : ''}</span>
+                    </div>
+                    <button onclick="switchView('${hub.view}')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:4px 12px;border-radius:100px;font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.2s" onmouseover="this.style.borderColor='${hub.color}';this.style.color='${hub.color}'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--text-dim)'">
+                        <span class="material-symbols-outlined" style="font-size:13px">open_in_new</span> OPEN HUB
+                    </button>
                 </div>
-                <button onclick="typeof window.startTour === 'function' ? window.startTour() : null" style="background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.35);color:var(--accent);padding:8px 18px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.72rem;font-weight:700;letter-spacing:1px;white-space:nowrap">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">play_arrow</span> TAKE THE TOUR
-                </button>
-            </div>
-            <p style="font-size:0.95rem;color:var(--text-dim);margin-bottom:2.5rem;line-height:1.6;">One documentation page per view, organised by sidebar hub. Click any card to read the full methodology and data sources.</p>
-
-            ${group('Global Markets Hub', 'public', `
-                ${card('explain-etf-flows', 'account_balance', 'ETF Flows', 'Daily institutional capital via regulated Bitcoin spot ETF vehicles.')}
-                ${card('explain-liquidations', 'local_fire_department', 'Liquidations', 'Real-time leveraged position wipeout scanner and cascade alerts.')}
-                ${card('explain-oi-radar', 'track_changes', 'OI Radar', 'Multi-asset perpetual futures open interest tracking.')}
-                ${card('explain-cme-gaps', 'pivot_table_chart', 'CME Gaps', 'Identifying and tracking unfilled Bitcoin CME futures gaps.')}
-            `)}
-
-            ${group('Macro Intel Hub', 'monitoring', `
-                ${card('explain-briefing', 'description', 'Market Briefing', 'AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.')}
-                ${card('explain-flow', 'swap_horiz', 'Capital Flows', 'Velocity and direction of institutional capital rotating into the crypto ecosystem.')}
-                ${card('explain-rotation', 'rotate_right', 'Sector Rotation', 'Capital rotation across crypto sectors using a treemap and momentum matrix.')}
-                ${card('explain-macro-compass', 'public', 'Macro Compass', 'Global macro environment synthesis and its impact on digital asset prices.')}
-                ${card('explain-correlation', 'grid_4x4', 'Correlation Matrix', 'Identifying market decoupling, sector correlation, and rotation events.')}
-                ${card('explain-macro-calendar', 'event', 'Macro Calendar', '90-day forward calendar of macro events scored by historical BTC impact.')}
-                ${card('explain-regimes', 'layers', 'Market Regime', 'Statistical classification of market cycles using Markov-Switching approximation.')}
-            `)}
-
-            ${group('Alpha Strategy Hub', 'electric_bolt', `
-                ${card('explain-signals', 'radar', 'Signal Intelligence', 'Understanding Z-Score deviations and alpha signal generation methodology.')}
-                ${card('explain-ml-engine', 'model_training', 'ML Alpha Engine', 'Neural feature synthesis and multi-factor predictive modelling architecture.')}
-                ${card('explain-alpha-score', 'bolt', 'Alpha Score', 'Composite multi-factor ranking and scoring methodology across 50+ assets.')}
-                ${card('explain-strategy-lab', 'science', 'Strategy Lab', 'Pairs Trading, Momentum Ignition, Regime Carry, Kelly Sizer + walk-forward.')}
-                ${card('explain-backtester-v2', 'analytics', 'Backtester V2', 'Live signal history simulation: rolling Sharpe, monthly P&L calendar, benchmark.')}
-                ${card('explain-signal-archive', 'history', 'Signal Archive', 'Historical signal record, PnL tracking, and performance attribution.')}
-                ${card('explain-narrative', 'hub', 'Narrative Galaxy', 'Force-directed graph of crypto narrative clusters and social momentum velocity.')}
-                ${card('explain-ai-engine', 'smart_toy', 'AI Narrative Engine', 'GPT-4o-mini memos, Ask Terminal, and Signal Thesis Generator methodology.')}
-            `)}
-
-            ${group('Institutional Hub', 'key', `
-                ${card('explain-token-unlocks', 'key', 'Token Unlocks', 'Forward-looking schedule of major vesting unlocks and projected sell pressure.')}
-                ${card('explain-yield-lab', 'biotech', 'Yield Lab', 'Multi-protocol DeFi yield aggregator and risk-adjusted rate comparison engine.')}
-                ${card('explain-portfolio-lab', 'auto_mode', 'Portfolio Optimizer', 'ML rebalancing, Monte Carlo optimisation, and Markowitz Efficient Frontier.')}
-                ${card('explain-tradelab', 'experiment', 'Trade Idea Lab', 'AI-assisted workspace for building and validating structured trade ideas.')}
-            `)}
-
-            ${group('Analytics Hub', 'analytics', `
-                ${card('explain-whales', 'waves', 'Whale Pulse', 'Detecting and tracking massive on-chain block transactions across networks.')}
-                ${card('explain-velocity', 'speed', 'Chain Velocity', 'Capital rotation tracking and cross-chain volume acceleration metrics.')}
-                ${card('explain-onchain', 'link', 'On-Chain Analytics', 'Real MVRV, SOPR, Puell Multiple and hashrate from CoinGecko + Blockchain.info.')}
-                ${card('explain-options-flow', 'ssid_chart', 'Options Flow', 'Deribit BTC & ETH options: Put/Call ratio, Max Pain, IV smile, top OI strikes.')}
-                ${card('explain-newsroom', 'newspaper', 'Newsroom', 'Real-time institutional crypto news feed with AI sentiment tagging.')}
-            `)}
-
-            ${group('Audit & Performance Hub', 'assignment', `
-                ${card('explain-trade-ledger', 'list_alt', 'Trade Ledger', 'Persistent, auditable record of all AI-generated and manual execution tickets.')}
-                ${card('explain-performance', 'trending_up', 'Performance Dashboard', 'Win rate, returns, monthly P&L calendar, and system benchmark comparison.')}
-            `)}
-
-            ${group('Risk & Stress Hub', 'grid_on', `
-                ${card('explain-risk', 'shield_with_heart', 'Risk Matrix', 'Using volatility, drawdown, and VaR for institutional position sizing.')}
-                ${card('explain-zscore', 'warning_amber', 'Stress Lab', 'Macro scenario stress-testing and tail risk modelling methodology.')}
-            `)}
-
-            ${group('Advanced Charting', 'candlestick_chart', `
-                ${card('explain-advanced-charting', 'candlestick_chart', 'Charting Suite', 'Depth, orderbook overlays, CVD, funding heatmap, and 3D volatility surface.')}
-                ${card('explain-tradingview', 'show_chart', 'TradingView', 'Professional charts with MA/RSI/MACD/BB pre-loaded. Supports all crypto + equity.')}
-            `)}
-
-            ${group('Alerts & Notifications Hub', 'notifications_active', `
-                ${card('explain-alerts', 'notifications_active', 'Alerts Hub', 'Live signal alerts, price threshold alerts, leaderboard, and AI market brief — all in one hub.')}
-                ${card('explain-heatmap', 'grid_view', 'Market Heatmap', 'Colour-coded Z-score heatmap across the entire 50+ asset tracked universe.')}
-                ${card('explain-telegram', 'notifications_active', 'Alert Hooks', 'Configuring Telegram and Discord webhook intelligence delivery.')}
-                ${card('explain-signal-archive', 'history', 'Signal Archive', 'Historical signal record, P&L tracking, and performance attribution.')}
-            `)}
-
-            ${group('Command & Navigation', 'dashboard', `
-                ${card('explain-command-center', 'dashboard', 'Command Center', 'Consolidated master view: Conviction Dials, 4 analytics charts, ETF flows, correlation matrix, and top alpha.')}
-                ${card('explain-ask-terminal', 'smart_toy', 'Ask Terminal', 'Conversational AI research assistant with full terminal context and methodology.')}
-            `)}
-
-            ${group('Personal Terminal', 'person', `
-                ${card('explain-my-terminal', 'person', 'My Terminal', 'Personal watchlist, live P&L tracking, win rate summary, and browser notification alerts.')}
-                ${card('explain-pwa', 'install_mobile', 'Mobile Terminal', 'PWA installation guide for iOS and Android — offline-capable terminal access.')}
-            `)}
-
-            ${group('Reference & System', 'menu_book', `
-                ${card('explain-playbook', 'auto_stories', 'Trading Playbook', 'Advanced strategies, signal combinations, and institutional decision frameworks.')}
-                ${card('explain-alpha', 'trending_up', 'Alpha Strategy', 'Trading relative strength, market benchmarks, and alpha attribution methodology.')}
-                ${card('explain-sentiment', 'psychology', 'Sentiment Synthesis', 'How we process social mindshare, NLP polarity, and news flow signals.')}
-                ${card('explain-benchmark', 'science', 'Portfolio Simulation', 'Modelling and backtesting quant portfolios against market benchmarks.')}
-                ${card('explain-api', 'terminal', 'Institutional API', 'Programmatic data access endpoints for quant desks and institutional clients.')}
-                ${card('explain-glossary', 'menu_book', 'Terminal Glossary', 'Quick reference for all institutional metrics, formulas, and signals used.')}
-                ${card('explain-liquidity', 'bar_chart', 'Order Flow (GOMM)', 'Interpreting institutional liquidity walls, tape imbalance, and execution flow.')}
-                ${card('explain-mindshare', 'hub', 'Mindshare Engine', 'NLP-driven social cluster visualisation and attention scoring methodology.')}
-            `)}
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0">
+                    ${hub.docs.map((doc, idx) => `
+                    <div onclick="switchView('${doc.route}')" style="padding:1.1rem 1.4rem;cursor:pointer;border-right:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.18s;position:relative" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                            <span class="material-symbols-outlined" style="font-size:16px;color:${hub.color}">${doc.icon}</span>
+                            <span style="font-size:0.85rem;font-weight:700;color:var(--text)">${doc.name}</span>
+                        </div>
+                        <p style="font-size:0.7rem;line-height:1.5;color:var(--text-dim);margin:0">${doc.desc}</p>
+                        <span class="material-symbols-outlined" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;color:rgba(255,255,255,0.15)">chevron_right</span>
+                    </div>`).join('')}
+                </div>
+            </div>`).join('')}
         </div>
     `;
 }
 
-function renderDocsAdvancedCharting() {
-    renderExplainPage(
-        "Advanced Charting Pro Suite",
-        "The Advanced Charting module integrates professional-grade Technical Analysis, Market Depth visualization, and Real-time WebSockets.",
-        "AlphaSignal's Charting engine utilizes TradingView's Lightweight Charts library, supercharged by direct Binance WebSockets and REST pipelines. This allows ZERO-latency rendering of price, volume, and order-book liquidity without relying on intermittent intermediary proxies.",
-        [
-            { icon: 'candlestick_chart', title: "Price & Overlays", desc: "Live 1m to 1d candlesticks superimposed with Dynamic EMA 20 and 50 lookback curves." },
-            { icon: 'water_drop', title: "Market Depth", desc: "Live dual-area mapping of continuous bid/ask limit orders pulling from Binance Order Book." },
-            { icon: 'timeline', title: "Derivatives", desc: "Overlay of Open Interest progression and liquidation histogram tracking." },
-            { icon: 'bubble_chart', title: "Liquidation Pulse", desc: "High-fidelity canvas bubble map overlay visualizing highly-leveraged liquidation cascades and stop-loss clusters directly on the price action." },
-            { icon: 'align_horizontal_left', title: "Volume Profile (VAP)", desc: "Left-anchored vertical histogram revealing the Volume-at-Price distribution to pinpoint institutional support and resistance zones." },
-            { icon: 'stacked_line_chart', title: "Comparative Index", desc: "Percentage-normalized overlap of BTC, ETH, and SOL growth rates." },
-            { icon: 'ssid_chart', title: "Cumulative Volume Delta (CVD)", desc: "Tracks net difference between aggressive market buying and selling over time." },
-            { icon: 'currency_exchange', title: "Exchange Flows", desc: "Simulates the 30-day net position change of assets moving onto or off of global exchanges." }
-        ],
-        [
-            { title: "Liquidity Wall Spotting", text: "By switching to the Market Depth tab, professional traders can visually isolate large limit-order structures ('Walls') acting as support or resistance, allowing for optimal entry timing." }
+// ============= GLOBAL MARKETS HUB =============
+function renderDocsViewETFFlows() {
+    renderViewDocPage({
+        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        title: 'ETF Flows', viewId: 'etf-flows',
+        summary: 'Track real-time institutional capital movement through U.S.-regulated Bitcoin Spot ETF vehicles. These flows are the clearest signal of Wall Street accumulation and distribution cycles currently available to retail traders.',
+        components: [
+            {
+                name: 'Bitcoin Spot ETF Daily Flows', type: 'CHART', icon: 'account_balance',
+                description: 'A stacked bar chart showing each ETF issuer\'s net daily flow in millions of dollars. Positive bars (above zero) indicate net inflows — new capital entering the ETF. Negative bars indicate outflows — capital being redeemed. A white line overlay tracks the cumulative running total across all issuers on the right Y-axis. Issuers tracked: BlackRock IBIT (cyan), Fidelity FBTC (green), ARK ARKB (yellow), and Bitwise BITB (purple).',
+                howToRead: 'The left Y-axis measures individual daily flow per issuer in $M. The right Y-axis (white line) measures the cumulative total across all ETFs. Each bar stack shows the composite picture: how many issuers are flowing in the same direction simultaneously.',
+                signals: [
+                    'All bars green on the same day = broad institutional accumulation',
+                    'IBIT dominant green while others red = BlackRock-specific buying pressure',
+                    'Cumulative line curling downward after sustained highs = distribution phase beginning',
+                    '3+ consecutive days of net positive signals institutional price support regime'
+                ]
+            },
+            {
+                name: 'Daily Flow Leaderboard', type: 'TABLE', icon: 'leaderboard',
+                description: 'A ranked table sorting all tracked ETFs by their most recent trading day\'s net flow. Colour-coded: green values indicate net inflows, red values indicate net outflows. This gives an immediate single-line read on which institutional vehicle is currently driving the market.',
+                howToRead: 'Read top-to-bottom as a ranking of institutional conviction by issuer. The top fund by flow is where the real money is moving today.',
+                signals: [
+                    'Leaderboard flip (e.g. FBTC overtaking IBIT) = custodian rotation, often during rebalancing',
+                    'All four funds showing red = serious distribution event, high caution',
+                    'Bottom-ranked fund going green while others red = contrarian accumulation',
+                    'Total combined flow exceeding $500M in a day = significant macro event driver'
+                ]
+            },
+            {
+                name: 'Cumulative Flow USD', type: 'STAT', icon: 'monetization_on',
+                description: 'A single large-format stat displaying the total net cumulative inflow across all tracked Bitcoin Spot ETFs since their January 2024 launch. This is the definitive measure of structural institutional adoption.',
+                howToRead: 'Compare this figure week-over-week. Growth confirms sustained institutional interest. A declining cumulative total (net negative week) is a rare but significant warning signal.',
+                signals: [
+                    'Cumulative total declining week-over-week = distribution pressure building',
+                    'Cumulative total crossing round-number milestones ($20B, $30B) = media catalyst for new retail inflows',
+                    'Rapid acceleration (>$1B added in one week) = short-squeeze catalyst'
+                ]
+            },
+            {
+                name: 'Cumulative Net Flow Waterfall (Week-over-Week)', type: 'CHART', icon: 'waterfall_chart',
+                description: 'A floating bar waterfall chart showing the last 10 trading days of net ETF flows as individual gain/loss blocks. Each bar floats from the previous day\'s cumulative total, so the chart visually shows whether momentum is building or eroding. A dashed cyan line tracks the running sum. Green bars extend upward (inflow day), red bars fall downward (outflow day).',
+                howToRead: 'Follow the dashed cyan line direction. Bars above the previous bar = accumulation momentum building. Bars that break below the previous baseline = structural selling beginning. The height of each bar reflects the magnitude of that day\'s flow.',
+                signals: [
+                    'Cascading red bars compressing the cyan line = sustained distribution, price weakness likely',
+                    'A large green bar after multiple red bars = institutional capitulation buy (reversal signal)',
+                    'Consistently small positive bars = steady accumulation, price likely grinding higher',
+                    'Alternating green/red bars of equal size = distribution at price; choppy price action expected'
+                ]
+            },
         ]
-    , 'advanced-charting'
-    );
+    });
 }
 
-function renderDocsOnchain() {
-    renderExplainPage(
-        "On-Chain Analytics Dashboard",
-        "Deep quantitative modeling of blockchain fundamentals and macro valuation metrics without the need for external enterprise data subscriptions.",
-        "To provide high-fidelity macro indicators without prohibitive third-party dependencies, AlphaSignal employs an internal synthesis engine. This engine mathematically derives the MVRV Z-Score and NVT Ratio by modeling long-term volatility drift, moving-average deviation, and network utilization rates against historical price action.",
-        [
-            { icon: 'area_chart', title: "MVRV Z-Score", desc: "Assesses asset over/undervaluation. When Market Value exceeds Realized Value significantly (Top red band), tops often form." },
-            { icon: 'show_chart', title: "NVT Ratio", desc: "Network Value to Transactions ratio acts as crypto's native P/E ratio to gauge utility." },
-            { icon: 'memory', title: "Fundamentals", desc: "Simulated tracking of absolute algorithmic difficulty, Hashrate growth, and active entities." },
-            { icon: 'bar_chart', title: "SOPR", desc: "Measures whether the macro market is spending at a net aggregate profit or loss." },
-            { icon: 'query_stats', title: "Puell Multiple", desc: "Highlights extreme bear market bottoms by comparing current miner revenue to its yearly trend." },
-            { icon: 'stacked_line_chart', title: "Realized Price", desc: "Estimates the macro cost-basis of the entire network to identify key support zones." }
+function renderDocsViewLiquidations() {
+    renderViewDocPage({
+        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        title: 'Liquidations', viewId: 'liquidations',
+        summary: 'Monitor forced position closures across all major derivatives exchanges. Liquidation cascades are one of the most reliable indicators of short-term price extremes and are essential context for any leveraged trade.',
+        components: [
+            {
+                name: 'Liquidation Cascade Scanner', type: 'CHART', icon: 'local_fire_department',
+                description: 'A horizontal bar chart showing forced liquidations broken down by asset (BTC, ETH, SOL, XRP, DOGE, etc.) and direction. Red bars represent LONG liquidations — traders who were betting on price increases and got forced out. Green bars represent SHORT liquidations — traders betting on price falls who got squeezed out. The X-axis measures liquidations in millions of dollars.',
+                howToRead: 'Longer red bars = longs being wiped out, price likely dropped sharply. Longer green bars = shorts being squeezed, price likely spiked sharply. The ratio of red to green bars reveals which side of the market is over-leveraged.',
+                signals: [
+                    'BTC longs >$50M in 24h = aggressive long squeeze event, potential for further downside',
+                    'Shorts >$30M across multiple assets simultaneously = broad short-squeeze, momentum strong',
+                    'Longs dominating but price not recovering = cascading liquidations, do not catch the knife',
+                    'Equal long/short liquidations = indecision; wait for a clear directional break'
+                ]
+            },
+            {
+                name: 'Total Rekt 24H', type: 'STAT', icon: 'local_fire_department',
+                description: 'Displays the total combined liquidation volume across all assets and exchanges in the past 24 hours, with the Long/Short breakdown as a percentage. A headline figure that immediately contextualises the severity of the current move.',
+                howToRead: 'Higher totals (>$200M/day) indicate a volatile, leveraged market environment. The Long/Short percentage split shows which side of the market is more aggressively leveraged.',
+                signals: [
+                    '>$500M total in 24h = extreme volatility event; institutional risk-off likely',
+                    '78%+ Long-biased liquidations = the market was over-leveraged long, possible bottom forming',
+                    '78%+ Short-biased liquidations = short squeeze in progress, momentum trade setup active'
+                ]
+            },
+            {
+                name: 'Largest Single Order', type: 'STAT', icon: 'bolt',
+                description: 'Displays the single largest forced liquidation order detected in the current 24-hour window, including the asset pair, exchange, and notional size in USD. Large single liquidations from specific exchanges can reveal which institutional venues are most exposed.',
+                howToRead: 'A liquidation >$1M from CME indicates institutional futures positioning unwound. A liquidation from Binance or Bybit >$2M is a significant retail leverage flush.',
+                signals: [
+                    'Single liquidations >$5M = a large leveraged fund or whale position was forced out',
+                    'CME-origin large liquidation = institutional momentum shift, follow with caution',
+                    'Repeated large orders at the same price = cluster liquidation zone, likely a magnet for price'
+                ]
+            },
         ]
-    , 'onchain'
-    );
+    });
 }
 
-function renderDocsSignals() {
-    renderExplainPage(
-        "Alpha Signal Intelligence",
-        "Live Z-score-driven momentum signals across 50+ institutional crypto assets.",
-        "The Signal Intelligence view is the core of the AlphaSignal engine. Every 60 seconds the system recalculates Z-score deviations across the full 50+ asset universe, flags statistical outliers, assigns a directional conviction (BULLISH / BEARISH), and scores each signal's alpha relative to the crypto market average. Signals are colour-coded by strength and annotated with on-chain, macro, and social context from across the terminal's data streams.\n\nThe view also includes two real-time analytics charts — the \"Strategy Firing Density\" cluster map (30-day signal pressure heat) and the \"Z-Score Distribution\" Gaussian bell curve — giving an at-a-glance read on current signal density and the statistical profile of the live universe.",
-        [
-            { icon: 'radar', title: 'Z-Score Signal Cards', desc: 'Each card shows ticker, Z-score (–2 to +2 range), directional badge (BULLISH / BEARISH), relative alpha %, and a generated thesis memo.' },
-            { icon: 'bolt', title: 'BULLISH / BEARISH Chips', desc: 'Direction indicators derived from momentum vector + Z-score sign. Green chip = upward statistical deviation; red = downward.' },
-            { icon: 'filter_alt', title: 'Category Filters', desc: 'Filter by EXCHANGE, PROXY, MINERS, ETF, DEFI, L1, STABLES, and MEMES to focus on specific sector signals.' },
-            { icon: 'analytics', title: 'Strategy Firing Density', desc: '30-day scatter chart of signal clustering over time. Dense windows indicate periods of high institutional momentum.' },
-            { icon: 'show_chart', title: 'Z-Score Bell Curve', desc: 'Gaussian distribution of current Z-scores across the universe. Assets in the tails are statistical outliers — prime signal candidates.' },
-            { icon: 'download', title: 'CSV Export', desc: 'Export the live signal table with all metrics for offline analysis or integration with external portfolio systems.' }
-        ],
-        [
-            { title: 'Volatility Compression Breakout', text: 'During a 48-hour period of low Z-score activity, the Momentum Vector began to diverge positively. The terminal flagged Institutional Accumulation, preceding a 15% breakout in less than 4 hours.' },
-            { title: 'Mean Reversion at +3.5 Z-Score', text: 'When an asset hits the +3.5 sigma level the probability of a 5% pullback within 12 hours exceeds 82%. Traders use this to scale out of long positions or hedge with delta-neutral options.' }
-        ],
-        "Real-time OHLCV from Binance, Coinbase, and OKX. Z-scores computed on a rolling 180-period mean and standard deviation window. Alpha scores benchmarked against the equal-weight crypto market average."
-    , 'signals'
-    );
+function renderDocsViewOIRadar() {
+    renderViewDocPage({
+        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        title: 'OI Radar', viewId: 'oi-radar',
+        summary: 'Open Interest (OI) measures the total number of outstanding derivative contracts. This hub aggregates OI data across Binance, Bybit, OKX, and CME to reveal where leverage is concentrated and which direction the squeeze will come.',
+        components: [
+            {
+                name: 'Exchange OI Spider Chart', type: 'CHART', icon: 'track_changes',
+                description: 'A radar/spider chart comparing Binance Perpetuals vs CME Futures across four dimensions: Open Interest ($B), 24h Delta (%), Funding Rate (×100), and Volume (relative). Each axis normalises to 100, allowing direct comparison of the two dominant trading venues. The cyan polygon represents CME; the yellow polygon represents Binance.',
+                howToRead: 'When the CME polygon is larger than Binance on the OI axis, institutional futures positioning is dominant. When Binance dominates the Funding Rate axis, perpetual speculators are over-extended.',
+                signals: [
+                    'CME OI leading Binance by >$2B = institutional hedging or ETF arbitrage in play',
+                    'Binance funding rate >0.03% = perpetuals overheated long; short squeeze risk reducing',
+                    'Both polygons shrinking simultaneously = market de-risking; liquidity withdrawing',
+                    'Funding rate near 0 on all venues = market is balanced; breakout likely imminent'
+                ]
+            },
+            {
+                name: 'OI Flow Attribution Table', type: 'TABLE', icon: 'table_chart',
+                description: 'A table listing each major derivatives exchange with their absolute OI ($B), 24-hour change delta (%), and current funding rate. This gives a structured breakdown of where capital is committed across the derivatives ecosystem.',
+                howToRead: 'Sort mentally by OI size for concentration risk. A positive delta means OI is growing (new positions opening). A negative delta means positions are closing (de-leveraging).',
+                signals: [
+                    'OI growing on CME while Binance OI falls = regulated institutions buying, retail exiting',
+                    'Negative OI delta across all venues = broad de-risking; price instability likely',
+                    'Funding rate diverging significantly between venues = basis trade opportunity'
+                ]
+            },
+            {
+                name: 'Options Implied Volatility Smile Curve', type: 'CHART', icon: 'show_chart',
+                description: 'A line chart plotting Implied Volatility (IV%) against strike price moneyness — from deep OTM Puts (-30%) through ATM (0%) to deep OTM Calls (+30%). A dashed baseline shows 30-day Historical Volatility for reference. The IV Smile is sourced from Deribit 30-day expiry options.',
+                howToRead: 'A steeper left tail (OTM Puts showing high IV) means institutions are aggressively buying downside protection. A flatter right tail (OTM Calls with lower or equal IV) means the market is not pricing in a large upside move. An inverted smile (higher IV at OTM calls) would indicate a call skew — bullish.',
+                signals: [
+                    'Left-tail IV >80% with right-tail <65% = institutional put-buying, fear of downside',
+                    'IV Smile flatter than historical baseline = volatility compression; breakout imminent',
+                    'Both tails symmetric and elevated = market pricing in a large move, direction unknown',
+                    'Right-tail IV exceeds left-tail = call skew; institutions expect rally or are hedging short'
+                ]
+            },
+            {
+                name: 'OI Divergence Bubble Map', type: 'CHART', icon: 'bubble_chart',
+                description: 'A bubble scatter chart plotting 24h Price Change (X-axis) against 24h OI Change (Y-axis) for 8 assets simultaneously. Bubble size = absolute OI ($B). Colour coding: Orange = price up + OI up (long-squeeze risk), Red = price down + OI up (short-trap risk), Yellow = price up + OI down (long unwind), Grey = price down + OI down (de-leveraging).',
+                howToRead: 'Each bubble is one asset. Assets in the orange quadrant (top-right) are most vulnerable to a long squeeze — OI is growing as price rises, meaning traders are adding longs into a rally. Assets in the red quadrant (top-left) are building a squeeze setup on the short side.',
+                signals: [
+                    'Large BTC bubble in orange quadrant = high leverage long squeeze risk for the overall market',
+                    'Multiple small-cap coins in red quadrant simultaneously = coordinated short-squeeze signal',
+                    'Assets clustering near origin (0%, 0%) = low conviction market, range-bound expected',
+                    'A single asset migrating from grey to orange over consecutive days = accumulation detected'
+                ]
+            },
+        ]
+    });
 }
 
-function renderDocsBriefing() {
-    renderExplainPage(
-        "AI Intelligence Briefing",
-        "Synthesized institutional intelligence for rapid decision making.",
-        "The AI Briefing module is a neural synthesis engine that consumes and correlates news flow, social mindshare, and macro catalyst data. Unlike generic news aggregators, our LLM framework is tuned specifically for institutional finance. It identifies 'hidden' connections--such as how a specific regulatory shift in Asia might impact L2 liquidity in Europe--and presents them in a concise, actionable format. It is designed to save analysts hours of manual research by highlighting the signal within the noise.",
-        [
-            { icon: 'memory', title: 'Neural Synthesis', desc: 'Millions of text nodes are processed daily to identify emerging narratives and shifts in institutional sentiment before they reach mainstream media.' },
-            { icon: 'auto_graph', title: 'Sector Correlation', desc: 'The briefing automatically groups assets into thematic sectors (L1, DeFi, AI, Memes) to show where rotational capital is flowing in real-time.' },
-            { icon: 'history_edu', title: 'Macro Translation', desc: 'Translating complex macro events--like FOMC minutes or CPI prints--into direct impact estimates for your tracked portfolio.' }
-        ],
-        [
-            { title: 'Narrative Shift Detection', text: 'Our AI Briefing identified a sustained increase in "Institutional Staking" mentions 72 hours before a major US pension fund announced its ETH position, allowing users to position ahead of the narrative surge.' },
-            { title: 'Macro Catalyst Correlation', text: 'During the last CPI release, the AI Briefing instantly correlated the higher-than-expected print with "Liquid Staking" sector resilience, highlighting a defensive alpha opportunity within minutes.' }
-        ],
-        "Neural processing of 50,000+ daily news nodes, 1M+ social impressions via proprietary NLP models, and a curated database of 500+ global macro catalyst events."
-    , 'briefing'
-    );
+function renderDocsViewCMEGaps() {
+    renderViewDocPage({
+        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        title: 'CME Gaps', viewId: 'cme-gaps',
+        summary: 'CME Bitcoin Futures trade only on weekdays (Sunday 6PM to Friday 5PM ET). Gaps form when the Friday closing price differs materially from the Sunday opening price. These unfilled price voids act as institutional "magnet" levels that price is statistically drawn to fill.',
+        components: [
+            {
+                name: 'Active Magnet Levels Registry', type: 'TABLE', icon: 'gap_stats',
+                description: 'A structured list of all currently active (unfilled) CME Gap levels. Each entry shows the price range of the gap, whether it is an UPPER gap (above current price) or LOWER gap (below current price), its fill status (UNFILLED, PARTIAL, FILLED), and the current percentage distance from spot price. Colour coding: green for upper gaps, red/amber for lower gaps based on proximity.',
+                howToRead: 'UNFILLED gaps are open structural liquidity voids. The "Distance" column shows how far price needs to travel to fill each gap. PARTIAL gaps have been partially filled but the level still exerts magnetic pull. FILLED gaps are historical reference — they no longer act as magnets.',
+                signals: [
+                    'A gap within 2-3% of current price = high probability of imminent gap fill, plan entries',
+                    'Multiple unfilled lower gaps stacking = downside targets are well-defined; use as take-profit',
+                    'No unfilled lower gaps + upper gap exists = path of least resistance is up',
+                    'Friday/Sunday gap >2% = use Monday to confirm direction before committing to a trade',
+                    'Price rapidly approaching a gap level from above = institutional sell-orders likely near gap top'
+                ]
+            },
+        ]
+    });
 }
 
-function renderDocsLiquidity() {
-    renderExplainPage(
-        "Order Flow (GOMM)",
-        "Visualizing professional liquidity walls and execution tape from 15+ top-tier institutional exchanges.",
-        "The Global Orderflow Magnitude Monitor (GOMM) provides a deep-dive into the exchange limit order books. By tracking the depth and density of bids and asks across the top 100 liquidity pairs, we can identify 'Liquidity Walls'--large clusters of orders that act as natural magnets or barriers for price action. Understanding where 'deep' liquidity sits allows professional traders to predict reversal points and identify where the most significant slippage is likely to occur.",
-        [
-            { icon: 'water_drop', title: 'Liquidity Heatmap', desc: 'A dense visual mapping of limit order resting on the books. Highlights potential support and resistance zones.' },
-            { icon: 'list_alt', title: 'Execution Tape (Institutional)', desc: 'Filtering out retail noise to show only large block trades executing across fragmented exchanges.' },
-            { icon: 'history', title: 'Historical Snapshots', desc: 'Captures and replays historical orderbook configurations to model how liquidity walls shift in real-time.' }
-        ],
-        [
-            { title: 'Iceberg Detection', text: 'By monitoring the GOMM execution tape alongside orderbook depth, we detected a 5,000 BTC hidden buy wall at $64k. While price appeared to be dropping, the "Large Block" filter showed aggressive absorption.' },
-            { title: 'Liquidity Vacuum Identification', text: 'During a rapid sell-off, GOMM highlighted a $200M "Liquidity Gap" between $58k and $59k, alerting traders that a bounce was unlikely until the deeper support wall at $57.5k was tested.' }
-        ],
-        "Aggregated L1/L2 orderbook depth and trade-by-trade execution data from 15+ top-tier centralized exchanges (CEX) and high-volume decentralized protocols (DEX)."
-    , 'liquidity'
-    );
+// MACRO INTEL APPENDED
+
+// ============= MACRO INTEL HUB =============
+function renderDocsViewBriefing() {
+    renderViewDocPage({
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
+        title: 'Strategy Briefing', viewId: 'briefing',
+        summary: 'The AI-powered institutional morning brief. Every data point is synthesised into actionable macro context by the AlphaSignal intelligence engine.',
+        components: [
+            { name: 'AI Institutional Memo', type: 'AI', icon: 'memory',
+              description: 'A GPT-4o-mini generated memo covering: Macro Context (current regime, BTC vs key levels, fear/greed reading), Key Opportunities (highest-alpha setups from the ML engine), and Risk Warnings (elevated Z-scores, liquidation concentration, macro event risks). Regenerated every 15 minutes.',
+              howToRead: 'Read top-to-bottom as a structured pre-trade briefing. Bold purple terms are key concepts. The Key Opportunities paragraph contains the most actionable content.',
+              signals: ['Multiple assets in Opportunities = broad momentum; consider basket exposure','Risk Warnings longer than Opportunities = defensive posture recommended','Mentions of liquidation cluster = volatile session expected','Refresh generates a new memo if market conditions have shifted'] },
+            { name: 'System Conviction Dials', type: 'GAUGE', icon: 'speed',
+              description: 'Three 180-degree analog gauges: Fear & Greed Index (0-100), Network Congestion (gas fees proxy), and Retail Sentiment Score. Each sweeps from red through amber to green.',
+              howToRead: 'All three dials together give the market health picture. Fear & Greed <25 = extreme fear (contrarian buy zone). Retail Sentiment >80 = euphoria warning.',
+              signals: ['All three dials green simultaneously = high-conviction bullish environment','Fear & Greed <25 + Retail Sentiment <30 = capitulation; historically strong buy zone','Retail Sentiment >80 + Fear & Greed >80 = distribution warning','Network Congestion spike without price move = quiet on-chain accumulation'] },
+            { name: 'BTC vs 60/40 Benchmark Chart', type: 'CHART', icon: 'show_chart',
+              description: 'Dual-line chart comparing BTC cumulative return against a traditional 60/40 portfolio over a rolling 90-day window. Contextualises BTC performance within traditional finance frameworks.',
+              howToRead: 'When BTC line diverges positively, Bitcoin is outperforming traditional assets. Negative divergence signals institutional rotation to safe assets.',
+              signals: ['BTC crossing above 60/40 after underperformance = momentum re-entry signal','BTC underperforming 60/40 for >30 days = macro headwinds; reduce sizing','Both lines declining = risk-off; cash or stables preferred'] },
+        ]
+    });
 }
-
-function renderDocsMLEngine() {
-    renderExplainPage(
-        "ML Alpha Engine",
-        "Predictive machine learning using Sentiment and Orderbook imbalances.",
-        "The ML Alpha Engine is our proprietary Random Forest predictive architecture. It continuously processes historical price action alongside real-time news sentiment and high-frequency orderbook imbalances. By synthesizing these diverse datasets, the model learns the non-linear relationships that precede major asset breakouts, generating highly accurate 24-hour alpha predictions.",
-        [
-            { icon: 'psychology', title: 'Sentiment Analysis', desc: 'Real-time NLP analysis of global news and social mindshare to determine prevailing narrative strength.' },
-            { icon: 'balance', title: 'Orderbook Imbalance', desc: 'Continuous tracking of CEX bid/ask structural depths to model liquidity absorption and incoming volatility.' },
-            { icon: 'network_node', title: 'Ensemble Learning', desc: 'A Random Forest model trained daily on the latest market regimes to adapt to evolving institutional mechanics.' }
-        ],
-        [
-            { title: 'Predictive Edge Generation', text: 'When Orderbook Imbalance turned highly positive ahead of a neutral sentiment print, the ML Engine accurately predicted a +6% 24h alpha window on SOL by recognizing hidden absorption.' },
-            { title: 'Dynamic Feature Synergy', text: 'The Engine ranks feature importance on the fly, enabling dynamic rebalancing as the market shifts from momentum-driven to sentiment-driven cycles.' }
-        ],
-        "Trained dynamically every 24 hours on the core baseline universe, synthesizing technicals (RSI, MACD, BB) with real-time news scoring and order flow depth."
-    , 'alpha-hub'
-    );
+function renderDocsViewSectorRotation() {
+    renderViewDocPage({
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
+        title: 'Sector Rotation', viewId: 'rotation',
+        summary: 'Track which crypto sectors are attracting capital and which are bleeding. Rotation patterns reveal where institutional money is moving before price confirms.',
+        components: [
+            { name: 'Sector Momentum Treemap', type: 'CHART', icon: 'grid_view',
+              description: 'Each rectangle represents a crypto sector. Size = relative market cap weight. Colour = 7-day momentum: dark green (strong positive), light green (mild), grey (flat), orange (mild negative), red (strong negative).',
+              howToRead: 'Green-heavy treemap = broad market strength. Only one or two green sectors = narrow rotation. Memes outsizing all others = retail FOMO phase.',
+              signals: ['L1s green while DeFi red = base layer accumulation, early bull signal','All sectors red except Stables = active risk-off; go defensive','L2s outperforming L1s = scaling narrative gaining traction'] },
+            { name: 'Rotation Matrix Table', type: 'TABLE', icon: 'swap_horiz',
+              description: 'Ranks sectors by 1D, 7D, and 30D momentum scores with direction arrows. Compare columns to identify emerging rotations before they appear in price charts.',
+              howToRead: '1D flipping positive while 7D still negative = early reversal candidate. Positive 7D but negative 1D = approaching top.',
+              signals: ['1D arrow flipping from down to up with 7D negative = reversal candidate','DeFi and L2s rotating positive together = ETH ecosystem accumulation','All sectors showing double-down arrows = flash crash; wait for stabilisation'] },
+        ]
+    });
 }
-
-function renderDocsWhales() {
-    renderExplainPage(
-        "Institutional Whale Pulse",
-        "Tracking large-scale capital movements across the blockchain.",
-        "Whale Pulse monitors large-scale on-chain and off-chain transactions, filtering out retail 'dust' to focus on high-conviction institutional moves. By tracking wallet clusters associated with known funds, exchanges, and early adopters, we can visualize the movement of 'Smart Money'. Whether it is a massive transfer from an exchange to cold storage (accumulation) or a large-scale deposit (distribution), Whale Pulse gives you a head-start on anticipating major market shifts.",
-        [
-            { icon: 'waves', title: 'Block Detection', desc: 'Custom algorithms identify transactions exceeding $1M in value, providing alerts for massive capital reallocations in real-time.' },
-            { icon: 'group', title: 'Entity Clustering', desc: 'We use heuristic analysis to cluster related wallets, allowing you to track the combined movements of large institutional entities rather than single addresses.' },
-            { icon: 'timer', title: 'Inflow/Outflow Velocity', desc: 'Measuring the rate at which assets are moving into or out of centralized exchanges. High net outflows are historically bullish indicators.' }
-        ],
-        [
-            { title: 'Strategic Accumulation Warning', text: 'Our clustering engine detected 15 dormant "Hedge Fund" labeled wallets moving $250M of stablecoins onto an exchange. This "Dry Powder" signal preceded an 8% market-wide rally by 12 hours.' },
-            { title: 'The ETF Custodian Flow', text: 'Whale Pulse identified a massive $1.2B Bitcoin transfer from an exchange to a known ETF custodian wallet, confirming long-term institutional take-outs and reducing short-term sell pressure.' }
-        ],
-        "Real-time on-chain transaction indexing for 1,000+ institutional-labeled entities across Bitcoin, Ethereum, Solana, and Layer 2 ecosystems."
-    , 'whales'
-    );
+function renderDocsViewMacroCompass() {
+    renderViewDocPage({
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
+        title: 'Macro Compass', viewId: 'macro',
+        summary: 'Cross-asset correlation analysis combining crypto, equities, bonds, and the US Dollar. Essential for understanding whether Bitcoin is trading as a risk asset, safe haven, or in a detached regime.',
+        components: [
+            { name: 'Cross-Asset Correlation Heatmap', type: 'CHART', icon: 'grid_on',
+              description: 'A colour-coded matrix of Pearson correlations between BTC and macro assets: S&P 500, Gold, DXY, US 10Y Yield, Nasdaq. Values -1.0 to +1.0. Cyan = positive, red = negative.',
+              howToRead: 'Focus on the BTC row. High BTC/SPX (>0.6) = Bitcoin as a risk asset; macro events dominate. Low BTC/DXY is normal.',
+              signals: ['BTC/SPX >0.7 = trade BTC like Nasdaq; Fed decisions will dominate','BTC/Gold correlation rising = safe-haven narrative gaining institutional traction','BTC decorrelating from all assets = unique internal catalyst; on-chain analysis most relevant'] },
+            { name: 'US Yield Curve Monitor', type: 'CHART', icon: 'timeline',
+              description: 'Line chart of US Treasury yields across maturities (3M, 2Y, 5Y, 10Y, 30Y) vs 90-days-ago. Inversion (short > long rates) highlighted in red.',
+              howToRead: 'Normal upward slope = healthy growth. Inverted curve historically precedes recession by 6-18 months. 2Y/10Y spread is the key watch metric.',
+              signals: ['Deepening inversion = recession risk rising; risk-off expected','10Y yield >5% = competition for capital; crypto outflows to bonds accelerate','Curve rapidly steepening after inversion = recession arriving; gold > BTC short term'] },
+            { name: 'DXY (US Dollar Index) Overlay', type: 'CHART', icon: 'currency_exchange',
+              description: 'Dual-axis chart of DXY vs BTC price over 90 days. The inverse correlation between dollar strength and crypto is one of the most consistent macro relationships.',
+              howToRead: 'Both moving inversely = correlation active, macro-driven. If both rise simultaneously, internal BTC demand is overcoming macro headwinds.',
+              signals: ['DXY falling from multi-year highs = historically strong crypto tailwind','DXY >105 = headwind for all risk assets including crypto','BTC rising while DXY rising = very bullish � unique internal demand overcoming headwinds'] },
+        ]
+    });
 }
-
-function renderDocsMindshare() {
-    renderExplainPage(
-        "Narrative Galaxy",
-        "Visualizing the social and psychological clusters of market mindshare.",
-        "Markets are driven by narratives. The Narrative Galaxy utilizes Natural Language Processing (NLP) to map out the social discourse surrounding specific assets. By clustering related keywords and tracking their growth (velocity) and sentiment, we can visualize which 'story' is currently capturing the market's attention. Is the focus on 'Regulatory Clarity', 'Institutional Adoption', or 'Network Congestion'? The Galaxy shows you the gravity of each narrative in real-time.",
-        [
-            { icon: 'hub', title: 'Social Clustering', desc: 'Visualizing how different tokens are being discussed in relation to each other. Overlapping clusters often indicate high-correlation narratives.' },
-            { icon: 'speed', title: 'Narrative Velocity', desc: 'Tracking the rate of growth for specific keywords. High-velocity narratives often precede significant price discovery events.' },
-            { icon: 'bubble_chart', title: 'Mindshare Heatmap', desc: 'A multi-dimensional view of which sectors (DeFi, AI, Gaming) are capturing the highest percentage of the market\'s total attention span.' }
-        ],
-        [
-            { title: 'Sentiment Exhaustion Peak', text: 'When a narrative cluster reaches "Maximum Saturation" (high velocity + extreme bullish sentiment), our Galaxy often flags a "Crowded Trade" warning. This typically precedes a 10% corrective move as retail FOMO peaks.' },
-            { title: 'The Quiet Accumulation', text: 'Social mindshare often remains low while institutional "Whale Flow" is high. Identifying these "Under-the-Radar" narratives allows traders to enter before the crowd catches on.' }
-        ],
-        "Social graph analysis from Twitter (X), Reddit, and Telegram, processed through a proprietary vector-weighted NLP framework optimized for institutional finance jargon."
-    , 'mindshare'
-    );
+function renderDocsViewMacroCalendar() {
+    renderViewDocPage({
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
+        title: 'Macro Calendar', viewId: 'macro-calendar',
+        summary: 'Forward-looking calendar of high-impact economic events scored for their expected effect on Bitcoin. Prevents being caught off-guard by scheduled macro volatility.',
+        components: [
+            { name: 'Economic Event Calendar', type: 'WIDGET', icon: 'calendar_month',
+              description: 'Timeline of upcoming macro events: FOMC meetings, CPI, Non-Farm Payrolls, PCE, GDP, and Fed speeches. Each tagged with date/time (UTC) and impact level (HIGH/MEDIUM/LOW).',
+              howToRead: 'Red tags (HIGH) will almost certainly cause short-term BTC volatility. Amber (MEDIUM) depends on outcome vs consensus. Green (LOW) are typically non-events.',
+              signals: ['FOMC within 48h = reduce leveraged exposure','CPI below expectations = dovish signal; strong bullish crypto catalyst','Multiple HIGH events in one week = risk management week; smaller position sizes'] },
+            { name: 'BTC Impact Score Table', type: 'TABLE', icon: 'bolt',
+              description: 'Table with proprietary BTC Impact Score (0-10) for each event, combining: historical BTC volatility around this event type, current positioning, and deviation from consensus.',
+              howToRead: 'Score 7+ = direct preparation needed. Score 3 or below = tradeable without adjustment.',
+              signals: ['Impact 8-10 = close leveraged positions 24h before','Impact 7+ with OI > = extreme leverage flush risk','Post-event: if BTC does not move on a 9/10 event, the subsequent direction is very significant'] },
+        ]
+    });
 }
-
-function renderDocsBenchmark() {
-    renderExplainPage(
-        "Portfolio Simulation",
-        "Backtesting and modeling institutional crypto portfolios.",
-        "The Portfolio Simulation tool allows institutions to model the performance of specific asset combinations against market benchmarks like BTC or the S&P 500. By simulating historical drawdowns, volatility, and rebalancing strategies, you can optimize your capital allocation for the highest possible Sharpe and Sortino ratios. This tool provides the quantitative foundation for building a robust, institutional-grade crypto exposure strategy.",
-        [
-            { icon: 'science', title: 'Hypothetical Modeling', desc: 'Simulate how your portfolio would have performed during historical black-swan events or bull-market expansion phases.' },
-            { icon: 'calculate', title: 'Risk-Adjusted Returns', desc: 'Moving beyond simple PnL to calculate Sharpe, Sortino, and Calmar ratios for a true understanding of your capital efficiency.' },
-            { icon: 'history', title: 'Rebalancing Alpha', desc: 'Test different rebalancing frequencies (daily, weekly, monthly) to see which strategy captures the most volatility harvesting alpha.' }
-        ],
-        [
-            { title: 'Black-Swan Stress Testing', text: 'Modeling a 30% BTC "flash crash" on a DeFi-heavy portfolio highlighted a 45% maximum drawdown, leading to a refined rebalancing strategy that reduced downside risk to 28% without sacrificing upside beta.' },
-            { title: 'The Rebalancing Edge', text: 'Our simulation engine proved that a weekly rebalancing of a Top-10 Altcoin basket outperformed a static "Buy & Hold" strategy by 22% over a 12-month period through systematic volatility harvesting.' }
-        ],
-        "Aggregated historical OHLCV data from 10+ global exchanges, with 1-minute resolution, backtested across 5 full market cycles (2017-Present)."
-    , 'portfolio-optimizer'
-    );
+function renderDocsViewRegime() {
+    renderViewDocPage({
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
+        title: 'Market Regime', viewId: 'regime',
+        summary: 'The AlphaSignal Regime Engine classifies the market into High-Volatility Expansion, Low-Volatility Compression, or Neutral/Accumulation. Each regime demands a completely different trading approach.',
+        components: [
+            { name: 'Current Regime Classifier', type: 'GAUGE', icon: 'category',
+              description: 'Large-format display of the currently detected regime with confidence score (0-100%). Three regimes: HIGH-VOL EXPANSION (trending, large moves), LOW-VOL COMPRESSION (tight range, coiling energy), NEUTRAL/ACCUMULATION (mid-range, institutional patterns). Uses a Hidden Markov Model.',
+              howToRead: 'The regime label is the primary output. Below 60% confidence = regime transition; be cautious.',
+              signals: ['HIGH-VOL >80% confidence = trend-following strategies outperform','LOW-VOL >75% confidence = breakout imminent; reduce size and wait','Confidence falling from >80% to <60% = transitioning; reduce all exposure temporarily'] },
+            { name: 'Regime Transition Probability Matrix', type: 'TABLE', icon: 'transform',
+              description: '3x3 matrix showing statistical probability of transitioning from current regime to each other regime over next 7 days. Built from historical sequence data.',
+              howToRead: 'Find the current regime row. The column with highest probability = most likely next state.',
+              signals: ['High probability LOW-VOL to HIGH-VOL = breakout imminent; prepare levels','HIGH-VOL to NEUTRAL probable = trend exhausting; take profits on winners','Equal probabilities = model uncertain; very mixed market signals'] },
+            { name: 'Regime History Heatmap', type: 'CHART', icon: 'view_timeline',
+              description: '90-day colour-coded heatmap: red (High-Vol), teal (Low-Vol Compression), amber (Neutral). Each column = one calendar day.',
+              howToRead: 'Look for duration patterns. Long teal runs almost always precede red periods. Rapid alternation = choppy market.',
+              signals: ['Teal run >14 days = breakout overdue; energy has been coiling','Pattern amber > teal > red = textbook accumulation > compression > expansion sequence','Red spikes then immediately amber = failed breakout; likely retraces'] },
+        ]
+    });
 }
-
-function renderDocsAlerts() {
-    renderExplainPage(
-        "Alerts Hub",
-        "Live signal alerts, custom price thresholds, signal leaderboard, and AI market brief — all in one hub.",
-        "The Alerts Hub is the real-time monitoring nerve centre of the AlphaSignal terminal. It consolidates four distinct surveillance tools into a single tabbed interface, ensuring you never miss a high-conviction signal or key price level. All alert types support Telegram and Discord webhook delivery so you receive notifications even when the terminal is closed.",
-        [
-            { icon: 'notifications_active', title: 'Live Signal Alerts', desc: 'Real-time feed of Z-score threshold crossings across the 50+ asset universe. Each alert shows ticker, Z-score, direction, alpha %, and the AI-generated signal thesis.' },
-            { icon: 'add_alert', title: 'Price Alerts', desc: 'Set custom price-level alerts for any tracked asset. Define target price, condition (above / below), and delivery method. Fires instantly to Telegram or Discord.' },
-            { icon: 'leaderboard', title: 'Signal Leaderboard', desc: 'Ranked performance table of all historical signals sorted by alpha generated. Identify which assets and categories consistently produce the highest-conviction calls.' },
-            { icon: 'article', title: 'Market Brief', desc: 'AI-generated daily narrative briefing synthesising macro context, top signals, ETF flows, and sector rotation into a single concise read.' },
-            { icon: 'archive', title: 'Signal Archive', desc: 'Full history of every signal fired with P&L tracking. Filter by ticker, date range, or category to audit system performance.' },
-            { icon: 'telegram', title: 'Webhook Delivery', desc: 'Connect your Telegram bot or Discord webhook in Settings to receive every alert off-platform. Configure Z-score threshold to control alert frequency.' }
-        ],
-        [
-            { title: 'Pre-Rally Positioning via Alert', text: 'A +2.4 Z-score alert fired on SOL-USD at 03:00 UTC — before US traders woke. The Telegram delivery enabled immediate positioning, capturing a subsequent 8% move within 6 hours.' },
-            { title: 'Price Alert Stop-Management', text: 'A trader set a price alert at $58,000 BTC as a stop-loss trigger level. The alert fired 12 minutes before the rapid flash, providing enough lead time to reduce exposure.' }
-        ],
-        "Signal alerts computed from live Z-score engine (refreshed every 60 seconds). Price alerts stored server-side and evaluated on each tick. Market Brief generated by GPT-4o-mini on demand."
-    , 'alerts-hub'
-    );
+// ============= ALPHA STRATEGY HUB =============
+function renderDocsViewSignals() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'Signal Intelligence', viewId: 'signals',
+        summary: 'The core signal engine monitors 50+ assets across MVRV deviations, momentum oscillators, on-chain flows, and social sentiment. Z-score measures how statistically extreme each signal is.',
+        components: [
+            { name: 'Signal Cards Grid', type: 'WIDGET', icon: 'radar',
+              description: 'Each asset generates a card: Ticker, Category, Price, 24h Change, Relative Alpha (%), Sentiment label, BTC Correlation, Z-Score badge. Category filter bar allows sector-level screening. Cards with Z >1.75 pulse with a glow border.',
+              howToRead: 'Z-Score colour: cyan (0.5-1.0 mild), amber (1.0-1.75 moderate), red (>1.75 extreme outlier). Positive alpha = asset outperforming BTC. The AI THESIS button generates a GPT-4o-mini trade rationale.',
+              signals: ['Z >2.0 with green alpha = extreme bullish outlier; high-conviction long','Z >1.75 with negative alpha = extreme bearish; short candidate or avoid','Bullish sentiment + low Z = early momentum, not yet extreme � watch to confirm','BEARISH + high Z = crowded short; watch for squeeze potential'] },
+            { name: 'Strategy Firing Density Histogram (30D)', type: 'CHART', icon: 'bar_chart',
+              description: '30-day bar chart of daily signal count. Colour by density: grey (<4), cyan (4-7), amber (7-12), red (>18). Reveals whether the current signal environment is active or quiet.',
+              howToRead: 'High bars on the right = active environment. Grey plateau then sudden spike = market waking up. Consecutive red bars = extreme activity coinciding with major price moves.',
+              signals: ['3+ red bars in 5 days = hyperactive environment; high volatility period active','Sustained grey for 2+ weeks = low conviction; reduce position sizes','Single sudden red spike after grey = breakout catalyst has triggered'] },
+            { name: 'Z-Score Bell Curve Distribution', type: 'CHART', icon: 'area_chart',
+              description: 'Histogram of all current Z-scores with a Gaussian curve fitted on top in purple. X-axis: -2s to +2s in 0.25 buckets. Bar colours match signal card scheme.',
+              howToRead: 'Normal bell = most assets at baseline. Positive skew = broad bullish momentum. Fat tails on both sides = high dispersion market.',
+              signals: ['Distribution skewing positive = systematic broad-market strength; index exposure appropriate','Fat tails both sides = pairs trades or sector rotation opportunities','Most assets at Z=0 = low conviction; wait for distribution to widen'] },
+            { name: 'Signal Confidence Radar', type: 'CHART', icon: 'track_changes',
+              description: '6-axis radar scoring confidence for a selected asset: Momentum, Volatility, Network Activity, Liquidity, Social Hype, Dev Commits. Asset selectable via dropdown.',
+              howToRead: 'Large even hexagon = well-rounded conviction. Lopsided shape = single-factor signal, lower reliability.',
+              signals: ['High Momentum + Network Activity + Liquidity = strongest signal trinity','High Social Hype + Low Network Activity = hype pump; extreme caution','All axes below 40 = asset is dormant; skip regardless of Z-score'] },
+        ]
+    });
 }
-
-function renderDocsZScore() {
-    renderExplainPage(
-        "Z-Score Interpretation",
-        "Statistical intensity monitoring for advanced volatility arbitrage and outlier detection.",
-        "The Z-Score is a measure of how many standard deviations a data point is from its mean. In the AlphaSignal terminal, we use this to highlight 'statistical outliers'. A high Z-score (above +2.0 or below -2.0) means an asset is moving in a way that is highly unusual compared to its typical volatility profile. Professional traders use Z-scores to identify extreme overextensions (reversion opportunities) or the beginning of massive, institutional-led trend breakouts.",
-        [
-            { icon: 'analytics', title: 'Standard Deviation', desc: 'A Z-score of +3.0 indicates a move 3 standard deviations above the mean--a statistical rarity that often precedes a price correction or "cooling off" period.' },
-            { icon: 'trending_up', title: 'Mean Reversion', desc: 'Extreme Z-scores (+3.5 or -3.5) are historically associated with exhaustion. When combined with declining volume, these are prime signals for mean-reversion trades.' },
-            { icon: 'bolt', title: 'Momentum Breakouts', desc: 'A sustained Z-score between +1.5 and +2.5 often represents an institutional "trend breakout" where the asset is successfully discovering a new higher value range.' }
-        ],
-        [
-            { title: 'The Sigma-3 Exhaustion Play', text: 'When a popular large-cap asset hit a +3.2 Z-score while the Whale Flow remained flat, our system flagged a "Retail Exhaustion" event. This preceded a 4.5% mean-reversion pullback within 6 hours.' },
-            { title: 'Vol-Compression to Z-Spike', text: 'Tracking assets that move from a sub-0.5 Z-score (low volatility) to a 1.5+ spike allows traders to enter momentum breakouts with high confidence and tight stop-losses.' }
-        ],
-        "Proprietary volatility normalization engine calculating real-time z-scores across a 180-period rolling mean and standard deviation window."
-    , 'stress'
-    );
+function renderDocsViewMLEngine() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'ML Alpha Engine', viewId: 'signals',
+        summary: 'The dual-model ensemble (LSTM + XGBoost) generates 24h price direction predictions. This view exposes the model internals � confidence scores, feature importances, and agreement metrics.',
+        components: [
+            { name: 'ML Prediction Table', type: 'TABLE', icon: 'smart_toy',
+              description: 'Ranked table: Asset, ML Direction (LONG/SHORT/NEUTRAL), LSTM Confidence %, XGBoost Confidence %, Ensemble Consensus (HIGH/MEDIUM/LOW), Primary reason. Sorted by ensemble confidence.',
+              howToRead: 'Focus on HIGH consensus rows � both models agree. Both >70% = elite signal quality.',
+              signals: ['Both models >75% same direction = highest-conviction terminal setup','Models disagreeing = LOW consensus; skip or reduce size significantly','NEUTRAL across majority of assets = no strong trend; cash is a valid position'] },
+            { name: 'Feature Importance Bar Chart', type: 'CHART', icon: 'bar_chart',
+              description: 'Horizontal bars ranking the top 10 XGBoost input features by contribution: RSI deviation, MVRV Z-score, funding rate, volume delta, social velocity, on-chain active addresses.',
+              howToRead: 'Longest bar = factor currently driving predictions most. If funding rate dominates, derivatives are key. If MVRV dominates, on-chain valuation is primary.',
+              signals: ['Social velocity top-ranked = hype-driven cycle; models may lag, use cautiously','MVRV or on-chain top-ranked = fundamental model signal, higher reliability','Volume delta first = short-term flow prediction useful for day-trade confirmation'] },
+            { name: 'Model Accuracy Gauge', type: 'GAUGE', icon: 'speed',
+              description: '180-degree gauge showing rolling 30-day directional accuracy. Reference line at 58% = the statistical edge threshold. Calculated on a live holdout set.',
+              howToRead: '>58% = model has edge. 50-58% = marginal edge, reduce position sizing 50%. <50% = discard predictions temporarily.',
+              signals: ['>65% = strong model period; weight signals heavily in decisions','Falling from 65% to 55% over 2 weeks = regime change causing model drift','Below 50% = do not act on ML signals until recalibration'] },
+        ]
+    });
 }
-
-function renderDocsAlpha() {
-    renderExplainPage(
-        "Alpha Generation Strategy",
-        "Quantifying relative strength by stripping away market noise and benchmark beta.",
-        "Alpha represents the 'excess return' of an asset relative to a benchmark--in our terminal, typically Bitcoin (BTC-USD). If Bitcoin moves up 5% and an asset moves up 8%, that asset has generated 3% Alpha. Our platform prioritizes assets with high positive Alpha because they represent true idiosyncratic strength--assets that are attracting capital even when the broader market is struggling. Trading Alpha-positive assets is one of the most effective ways to outperform the benchmark index.",
-        [
-            { icon: 'benchmark', title: 'Benchmark Beta', desc: 'Alpha allows you to see through the "Beta" (broad market movement) to identify assets that are truly leading the market through unique fundamental strength.' },
-            { icon: 'show_chart', title: 'Institutional Strength', desc: 'Consistent positive Alpha is the hallmark of institutional accumulation. These assets often continue to climb even during broad-market pullbacks or flat periods.' },
-            { icon: 'filter_list', title: 'Selection Alpha', desc: 'Our terminal sorts the entire universe by Alpha, instantly surface-leveling the top 10% of assets that are currently being "blessed" by smart money capital.' }
-        ],
-        [
-            { title: 'Beta-Neutral Long/Short', text: 'By selecting assets with +5% Alpha and shorting the BTC-USD benchmark, traders created a "Market Neutral" position that generated profit during a sideways market regime through relative outperformance.' },
-            { title: 'Alpha-Leader Rotation', text: 'When Alpha shifts from L1 protocols to DeFi sub-sectors, it signals a rotational capital flow. Early detection of these shifts via the Alpha leaderboard resulted in a 14% outperformance vs HODL.' }
-        ],
-        "Real-time cross-asset correlation matrices and relative strength indexing updated hourly against the BTC-USD and ETH-USD benchmarks."
-    , 'alpha-hub'
-    );
+function renderDocsViewAlphaScore() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'Alpha Score', viewId: 'alpha-score',
+        summary: 'A composite 0-100 ranking of every tracked asset across momentum, sentiment, on-chain activity, ML prediction, and volatility. The most efficient single-screen opportunity screener.',
+        components: [
+            { name: 'Composite Alpha Score Ranking Table', type: 'TABLE', icon: 'electric_bolt',
+              description: 'Paginated table (15/page): Rank, Ticker, Sector, Score progress bar, Grade (A/B/C/D), Signal label (STRONG BUY / BUY / NEUTRAL / CAUTION), Model consensus, LSTM %, XGBoost %, and reason summary. Bars colour-coded by grade: green (A), blue (B), yellow (C), red (D).',
+              howToRead: 'Grade A + STRONG BUY + HIGH consensus = best current opportunities. Grade D + CAUTION = avoid or short candidates. WHY column summarises the specific driving factors.',
+              signals: ['Multiple Grade-A assets in same sector = sector-wide momentum; allocation recommended','Asset dropping from A to C in 48h = signal deterioration; exit or reduce immediately','Grade-B with both models >70% = underrated; better risk/reward than crowded Grade-A'] },
+            { name: 'Grade Distribution Summary', type: 'STAT', icon: 'grade',
+              description: 'Stat cards showing count and percentage of assets in each grade bucket (A/B/C/D). Market-wide health read at a glance.',
+              howToRead: 'Healthy bull market = 30-40% of assets in A or B. Bear market compresses most into D.',
+              signals: ['>40% Grade A = euphoric bull; caution on new entries � late cycle','> 60% Grade D = broad capitulation; contrarian buy zone likely forming','Even distribution across A/B/C/D = balanced market; individual asset selection critical'] },
+        ]
+    });
 }
-
-function renderDocsCorrelation() {
-    renderExplainPage(
-        "Correlation & Decoupling",
-        "Monitoring the mathematical relationship between Bitcoin and the broader universe.",
-        "Correlation measures the degree to which two assets move in relation to each other. A correlation of +1.0 means they move in perfect lockstep. In crypto, most assets are highly correlated to Bitcoin. However, the most profitable opportunities often occur during 'Decoupling' events--when an asset breaks its link with BTC and begins to move independently. The AlphaSignal terminal tracks these shifts to help you identify rotational capital moving into specific sectors or tokens.",
-        [
-            { icon: 'link', title: 'High Correlation (>0.85)', desc: 'Indicates a "Risk-On" environment where all ships are rising or falling with the BTC tide. During these times, focus on the assets with the highest Beta for maximum leverage.' },
-            { icon: 'link_off', title: 'Decoupling (<0.50)', desc: 'Identifies idiosyncratic strength or weakness. This is where professional traders look for unique alpha opportunities that are independent of the broader market trend.' },
-            { icon: 'sync', title: 'Relative Rotation', desc: 'Changes in correlation often precede sector rotation. Tracking these shifts allows you to anticipate capital moving from Large-Caps into DeFi, L2s, or specific Meme narratives.' }
-        ],
-        [
-            { title: 'The De-Peg / Decoupling Signal', text: 'When a major L1 protocol correlation dropped from 0.92 to 0.45 while price was rising, our system flagged an idiosyncratic breakout. This decoupling preceded a 20% independent rally while BTC remained flat.' },
-            { title: 'Risk-Off Synchronization', text: 'During market panics, correlations often spike to 0.99. Identifying this "Market Beta Capture" allows traders to swiftly reduce exposure across the entire portfolio through a single benchmark hedge.' }
-        ],
-        "Rolling 30-day and 60-day Pearson correlation coefficients calculated across 3,000+ asset pairs using logarithmic price returns."
-    , 'correlation-matrix'
-    );
+function renderDocsViewStrategyLab() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'Strategy Lab', viewId: 'strategy-lab',
+        summary: 'Live strategy testing with institutional metrics. Select a pre-built strategy, configure parameters, and see the equity curve, statistical metrics, and Monte Carlo confidence bands update in real-time.',
+        components: [
+            { name: 'Strategy Selector & Parameters', type: 'FORM', icon: 'science',
+              description: 'Dropdown to select a strategy (MVRV Reversion, Momentum Cross, Regime-Adaptive, VWAP Bounce) with configurable asset, lookback window, and signal threshold.',
+              howToRead: 'Start with default parameters. Modify one parameter at a time. Wide thresholds fire fewer but higher-quality signals.',
+              signals: ['MVRV Reversion works best in HIGH-VOL regimes','Regime-Adaptive works across all market states','Momentum Cross requires a confirmed trend � check Regime view first before using'] },
+            { name: 'Strategy Equity Curve', type: 'CHART', icon: 'show_chart',
+              description: 'Cumulative portfolio value from  over the backtested period. Green dots = entries, red dots = exits. Compared against BTC buy-and-hold baseline.',
+              howToRead: 'Strategy line consistently above BTC baseline = alpha being generated. Large sudden drops = drawdown periods. Smooth steady rise = robust strategy.',
+              signals: ['Strategy above BTC baseline consistently = genuine alpha, not just market beta','Strategy below BTC >30 days = underperforming simple holding; reconsider allocation','Equity plateau = strategy in losing streak; wait for confirmation before going live'] },
+            { name: 'Guppy EMA Density Ribbon', type: 'CHART', icon: 'waves',
+              description: 'Price chart with 15 EMAs: 6 short-period (3-15) in cyan, 9 long-period (30-75) in red. Ribbon compression = volatility coiling. Expansion = trend confirmed.',
+              howToRead: 'Cyan ribbon above red = bullish structure. Red above cyan = bearish. Crossing = trend change. ALL ribbons compressed together = large move imminent.',
+              signals: ['Cyan crossing above red = strong trend reversal to upside','Both ribbons tight = breakout imminent; watch for volume confirmation','Price holding above cyan ribbon during pullback = trend intact; buy the dip'] },
+            { name: 'Monte Carlo Simulation Bands', type: 'CHART', icon: 'scatter_plot',
+              description: '500 simulated 30-day return paths from current equity. Shaded region = 5th-95th percentile. Bold median line = expected trajectory.',
+              howToRead: 'Wide band = high variance / uncertainty. Narrow band = more predictable. The 5th percentile line is your downside scenario.',
+              signals: ['Narrow band sloping up = high-confidence bullish outlook for this strategy','Wide downward band = risky in current conditions; reduce allocation','5th percentile below your stop-loss threshold = position size needs reduction'] },
+        ]
+    });
 }
-
-function renderDocsSentiment() {
-    renderExplainPage(
-        "Sentiment Synthesis",
-        "Quantifying market psychology through institutional NLP and social graph analysis.",
-        "Sentiment Synthesis is the bridge between social noise and actionable momentum. Our proprietary NLP models don't just 'search' for keywords; they analyze the authority of the speaker, the velocity of the discourse, and the underlying emotional valence of the market. This creates a real-time 'heat' index that highlights assets which are currently experiencing a psychological shift--often a leading indicator for institutional capital flows.",
-        [
-            { icon: 'psychology', title: 'Valence Weighting', desc: 'Our AI distinguishes between "Retail FOMO" and "Institutional Accumulation" by weighting sentiment based on historical authority scores and engagement quality.' },
-            { icon: 'auto_graph', title: 'Sentiment Velocity', desc: 'Tracking the rate of change in sentiment. Rapid spikes in bullish sentiment often precede local tops, while gradual climbs indicate sustainable trend development.' },
-            { icon: 'flare', title: 'Crowded Trade Warning', desc: 'Automatically flags when sentiment reaches "Extreme Greed" levels, signaling a high-probability reversal as the majority of buyers have already entered.' }
-        ],
-        [
-            { title: 'The Sentiment Divergence Reversal', text: 'During a 12-hour price consolidation, Sentiment Synthesis showed a steady 15% climb in "High-Authority" bullishness. This underlying psychological shift preceded a 6% price breakout.' },
-            { title: 'Crowd Exhaustion Alert', text: 'When Sentiment Velocity hit an all-time high alongside a +3.0 Z-score, our module flagged a "Crowded Trade" warning. Within 2 hours, the market saw a 3% flash-flush as late FOMO buyers were liquidated.' }
-        ],
-        "Neural processing of 100k+ daily social messages from Twitter (X), Reddit, and Telegram, filtered through a proprietary authority-weighted NLP cluster."
-    , 'mindshare'
-    );
+function renderDocsViewBacktester() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'Backtester V2', viewId: 'backtester-v2',
+        summary: 'Institutional-grade backtests across the full AlphaSignal history. Every metric is computed on actual historical signals � not reconstructed or curve-fitted.',
+        components: [
+            { name: 'Rolling Sharpe Ratio Chart', type: 'CHART', icon: 'show_chart',
+              description: '30-day rolling Sharpe Ratio time-series across the full backtest period. Reference line at Sharpe = 1.0 marks the minimum acceptable institutional threshold.',
+              howToRead: 'Above 1.0 = generating better risk-adjusted returns than 1:1. Above 2.0 = excellent. Below 0 = losing money relative to risk taken.',
+              signals: ['Consistently >1.5 over 90+ days = institutionally viable strategy; deploy capital','Dropping from 2.0 to 0.5 = entering difficult regime; reduce exposure','Recovering from negative to positive = regime aligning again'] },
+            { name: 'Monthly P&L Heatmap Calendar', type: 'CHART', icon: 'calendar_month',
+              description: 'Calendar heatmap of monthly returns: dark green (>+5%), light green (+1-5%), grey (flat), orange (-1 to -5%), red (<-5%). Reveals seasonal patterns in strategy performance.',
+              howToRead: 'Look for consistent red or green months across multiple years � these are structural patterns worth accounting for.',
+              signals: ['Consistent red in January = reduce exposure in Jan for this strategy','Consistent green in Q4 = end-of-year institutional buying benefits this strategy','Isolated red months surrounded by green = one-off event, not structural'] },
+            { name: 'Trade Summary Statistics Panel', type: 'STAT', icon: 'analytics',
+              description: 'Full stats: Total Trades, Win Rate %, Avg Win, Avg Loss, Profit Factor (Wins/Losses), Max Drawdown %, Calmar Ratio (Annual Return / Max DD), Best/Worst single trade.',
+              howToRead: 'Profit Factor >1.5 = makes .50 per  lost. Win Rate alone misleads � 40% win rate with 3:1 reward/risk beats 70% win rate with 1:2.',
+              signals: ['Profit Factor >2.0 = excellent edge; full allocation justified','Max Drawdown >30% = strong risk management protocols required','Calmar >1.0 = annual return exceeds max drawdown; strong risk-adjusted profile'] },
+        ]
+    });
 }
-
-function renderDocsRisk() {
-    renderExplainPage(
-        "Risk Management",
-        "Institutional frameworks for capital preservation and position sizing.",
-        "Institutional trading is not just about finding winners; it's about surviving the losers. Our Risk Management module provides real-time volatility-adjusted position sizing and drawdown modeling. By analyzing the current market regime (high vs low vol) and your portfolio's beta-weighted exposure, our algorithms suggest optimal risk parameters to ensure that no single 'black-swan' event can compromise your capital base.",
-        [
-            { icon: 'shield_with_heart', title: 'Volatility Sizing', desc: 'Automatically adjusting your suggested position size based on current asset volatility. High Z-score assets require smaller allocations to maintain a constant risk profile.' },
-            { icon: 'security', title: 'VaR 95% (Value at Risk)', desc: 'The maximum expected loss over a 1-day horizon with 95% confidence. Monitored in real-time in the Portfolio Lab to ensure capital preservation.' },
-            { icon: 'warning', title: 'Drawdown Modeling', desc: 'Simulating worst-case scenarios for your active positions. Understand your "VaR" across the entire fund as market conditions shift.' },
-            { icon: 'balance', title: 'Exposure Balancing', desc: 'Analyzing cross-asset correlations to ensure your portfolio isn\'t unintentionally over-exposed to a single risk factor or thematic sector.' }
-        ],
-        [
-            { title: 'The VaR Stress Check', text: 'When the Portfolio Lab flagged a 95% VaR spike to -4.5%, the system suggested a 20% reduction in long exposure. This defensive rotation successfully mitigated a subsequent overnight market-wide 5% pullback.' },
-            { title: 'Dynamic Sizing via Z-Score', text: 'When an asset\'s Z-score exceeded 4.0, the Risk module suggested a 60% reduction in new position sizing. This defensive posture saved users from a subsequent 12% volatility shake-out.' }
-        ],
-        "Historical volatility data, drawdown models, and covariance matrices updated on every 1-minute price tick across 2,000+ monitored assets."
-    , 'risk'
-    );
+function renderDocsViewSignalArchive() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'Signal Archive', viewId: 'signal-archive',
+        summary: 'Historical record of every signal generated, with outcome tracking. Build conviction in the methodology and identify which categories have the strongest track record.',
+        components: [
+            { name: 'Historical Signal Table', type: 'TABLE', icon: 'archive',
+              description: 'Filterable table: Date, Ticker, Direction, Entry Z-Score, Entry/Exit Price, Return %, Duration, and Outcome badge (WIN/LOSS/OPEN). Filter by date range, ticker, direction, outcome.',
+              howToRead: 'Sort by Return descending to find highest-alpha historical setups. Filter OPEN for active signals. Filter WIN to understand conditions that produce the best outcomes.',
+              signals: ['Filtering LONG + WIN shows the best historical patterns; look for common conditions','Multiple consecutive LOSS for same ticker = strategy not suited for that asset','High-Z signals (>2.0) winning more frequently = confirms extreme Z-scores are reliable'] },
+            { name: 'Running P&L Tracker', type: 'CHART', icon: 'trending_up',
+              description: 'Cumulative return curve treating each signal as 1 unit of capital. This is the true live track record of the signal engine over its full operational history.',
+              howToRead: 'Steadily rising curve = genuine statistical edge over time. Plateau = drawdown phase. Slope of recent section (right side) indicates current edge strength.',
+              signals: ['Curve making new all-time highs = system in strong regime; highest conviction period','Drawdown for >60 days = difficult period; reduce position sizes on signals','Steep recent upward slope = system firing high-quality signals currently'] },
+        ]
+    });
 }
-
-function renderDocsGlossary() {
-    renderDocsGlossaryImplementation();
+function renderDocsViewNarrative() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'Narrative Galaxy', viewId: 'narrative',
+        summary: 'Force-directed network graph of market narrative strength and velocity across social media, on-chain data, and news. Narratives gaining momentum often precede price action.',
+        components: [
+            { name: 'Force-Directed Narrative Galaxy', type: 'MAP', icon: 'hub',
+              description: 'Interactive graph where each node = a market narrative (e.g. BTC ETF Flows, ETH Staking, AI x Crypto). Node size = social mention volume. Colour: green (gaining), grey (flat), red (fading). Edges connect co-occurring narratives. Click a node to see constituent assets.',
+              howToRead: 'Large green nodes = hot narratives with growing mindshare. Thick edges between two large nodes = narratives mutually reinforcing each other.',
+              signals: ['New node growing rapidly = emerging narrative before price action confirms it','Large node shrinking and turning grey = narrative exhaustion; sell into this','Two bullish clusters merging = multiplicative effect; allocate to cross-narrative assets'] },
+            { name: 'Narrative Velocity Table', type: 'TABLE', icon: 'speed',
+              description: 'Narratives ranked by 7-day mention growth velocity. Shows: Name, Current Volume, 7D Change %, Peak Volume, and Momentum tag (ACCELERATING / PEAKING / FADING).',
+              howToRead: 'ACCELERATING = early-to-mid stage, best entry. PEAKING = late stage, good for exits. FADING = actively avoid.',
+              signals: ['New narrative hitting ACCELERATING from zero = ground floor opportunity','Narrative showing PEAKING + price at ATH = exit signal; distribute into narrative strength','Multiple narratives FADING simultaneously = broad exhaustion; correction likely'] },
+        ]
+    });
 }
-
-function renderDocsPlaybook() {
-    renderExplainPage(
-        "Advanced Trading Playbook",
-        "Mastering the synthesis of multiple terminal signals for high-conviction execution.",
-        "The true power of AlphaSignal lies in the 'Synthesis'--the ability to combine uncorrelated data points to confirm an institutional setup. This playbook outlines the standard operating procedures (SOPs) used by professional quant desks to identify, validate, and execute trades using our real-time intelligence feeds.",
-        [
-            { icon: 'conveyor_belt', title: 'The Divergence Play', desc: 'When Z-Score hits -2.5 (statistical oversold) while Whale Flow shows "Strategic Accumulation". This is the highest conviction long setup in our arsenal.' },
-            { icon: 'balance', title: 'Delta-Neutral Arbitrage', desc: 'Using Alpha relative strength to go long the leader while shorting the market-beta (BTC-USD) during high-correlation regimes.' },
-            { icon: 'flare', title: 'Sentiment Exhaustion', desc: 'Identifying local tops when Sentiment Synthesis hits +0.9 (Euphoria) alongside a +3.0 Z-Score spike and flat Liquidity Depth.' }
-        ],
-        [
-            { title: 'The L2 Rotation Play', text: 'By monitoring Narrative Galaxy velocity for "Scaling" and "Rollups", combined with a positive Alpha shift in the L2 sector, users positioned 24h ahead of the Polygon rally.' },
-            { title: 'Volatility Crush Strategy', text: 'Utilizing the Catalyst Monitor to identify high-impact events and positioning with GOMM liquidity walls to capture the "volatility crush" post-announcement.' }
-        ],
-        "Compiled from institutional trading frameworks and refined through 5 years of proprietary market behavior modeling."
-    , 'strategy-lab'
-    );
-}
-
-function renderDocsRegimes() {
-    renderExplainPage(
-        "Market Regime Framework",
-        "The structural DNA of the market--identifying the macro environment.",
-        "Markets shift between structural phases. Identifying the current 'Regime' is the first step in selecting the correct trading strategy. AlphaSignal uses a multi-factor model (Volatility, Volume, Sentiment, and Flow) to classify the current market environment into one of four distinct states.",
-        [
-            { icon: 'downloading', title: 'Accumulation', desc: 'Characterized by low Z-score, negative Sentiment, but rising Whale Inflows. Institutional capital is quietly building positions ahead of a breakout.' },
-            { icon: 'trending_up', title: 'Expansion', desc: 'High Momentum Vector, rising Alpha, and positive Sentiment Clusters. This is the "Trend following" regime where long positions are most effective.' },
-            { icon: 'uploading', title: 'Distribution', desc: 'Extreme positive Z-score (+3.0), slowing Momentum, and massive Whale Outflows. Smart money is taking profits into late-retail FOMO.' },
-            { icon: 'trending_down', title: 'Contraction / Flush', desc: 'Breaking of GOMM liquidity walls, high Correlation spikes, and rapid Sentiment Velocity to the downside. Defensive capital preservation is prioritized.' }
-        ],
-        [
-            { title: 'The Regime Pivot Warning', text: 'When the AI Briefing detected a shift from "Accumulation" to "Expansion" in the AI sector, it preceded a $2B capital rotation that sustained for 14 market days.' }
-        ],
-        "Regime detection computed via a Markov-Switching model applied to global crypto liquidity and macro sentiment nodes."
-    , 'regime'
-    );
-}
-
-function renderDocsAPI() {
-    renderExplainPage(
-        "Institutional API Access",
-        "Programmatic intelligence for algorithmic execution and custom data pipelines.",
-        "The AlphaSignal terminal is built on a high-throughput REST API. Institutional users can bypass the GUI to integrate our proprietary signals directly into their proprietary trading bots, risk management systems, or custom dashboards. We provide low-latency endpoints for all primary data layers.",
-        [
-            { icon: 'code', title: '/api/signals', desc: 'Get the latest Momentum Vector, Z-Score, and Alpha ranks for the entire universe in a single JSON payload.' },
-            { icon: 'security', title: '/api/portfolio/risk', desc: 'Institutional risk analytics: VaR 95%, Portfolio Beta, Sortino Ratio, and Volatility snapshots.' },
-            { icon: 'grid_view', title: '/api/portfolio/correlations', desc: 'Returns the 15x15 peer characterization matrix for the top institutional-grade assets.' },
-            { icon: 'data_object', title: '/api/history', desc: 'Retrieve historical signal snapshots to train your own ML models or backtest custom strategies.' },
-            { icon: 'security', title: 'Authentication', desc: 'Institutional API keys are encrypted with AES-256 and restricted by CIDR-based IP whitelisting for maximum security.' }
-        ],
-        [
-            { title: 'Algorithmic Integration', text: 'A leading HF integrated our /api/signals into their execution engine to automatically toggle "Limit" vs "Market" orders based on real-time Z-Score volatility intensity.' }
-        ],
-        "Server-grade REST architecture with global CDN caching and 99.99% uptime for institutional endpoints."
-    , 'command-center'
-    );
-}
-
-function renderDocsSignalArchive() {
-    renderExplainPage(
-        "Signal Archive & PnL",
-        "Transparent tracking of every institutional engine alert.",
-        "The Signal Archive serves as the ultimate source of truth for the AlphaSignal terminal. It records every alert generated by our engine, including the exact entry price, timestamp, and subsequent price performance. By tracking real-time Profit and Loss (PnL) and Take-Profit (TP) hits, we provide users with a complete, unfettered view of the engine's historical accuracy and trade duration dynamics.",
-        [
-            { icon: 'history', title: 'Verifiable Record', desc: 'Every signal is timestamped and immutable. This allows institutional users to audit our track record and verify signal validity against historical exchange data.' },
-            { icon: 'track_changes', title: 'TP/SL Monitoring', desc: 'Our system tracks signals through multiple Take-Profit tiers (TP1, TP2) and Stop-Loss levels, providing a realistic view of executable alpha.' },
-            { icon: 'query_stats', title: 'Outcome Attribution', desc: 'Analyzing why specific signals succeeded or failed based on the market regime and sentiment at the time of the alert.' }
-        ],
-        [
-            { title: 'Institutional Audit', text: 'During a quarterly review, an institutional user verified that 78% of "Extreme Alpha" signals hit TP1 within 48 hours, confirming the engine\'s short-term momentum accuracy.' },
-            { title: 'PnL Recovery Analysis', text: 'The archive showed that signals generated during "Accumulation" regimes had a 15% longer average hold time but a 22% higher average total return compared to "Expansion" trades.' }
-        ],
-        "Aggregated from the internal AlphaSignal Signal Engine database, with price verification performed against 15+ top-tier exchange APIs."
-    , 'signal-archive'
-    );
-}
-
-function renderDocsPerformance() {
-    renderExplainPage(
-        "Performance Metrics",
-        "Deep-dive analytics into terminal win rates and return distributions.",
-        "The Performance Dashboard distills thousands of archived signals into clear, actionable track records. We track 'Win Rate' (signals hitting TP1 or better), 'Average ROI', and 'Monthly Breakdown' to help users understand the consistency of the intelligence engine. These metrics are calculated dynamically to reflect current market conditions and the varying success rates across different asset classes (L1s, DeFi, Memes, etc.).",
-        [
-            { icon: 'bar_chart', title: 'Win Rate Distribution', desc: 'Calculated as the percentage of signals that reached at least Take-Profit Tier 1 before being stopped out by a regime shift.' },
-            { icon: 'monitoring', title: 'ROI Attribution', desc: 'A breakdown of total returns across different asset categories, highlighting where the terminal is currently extracting the most value.' },
-            { icon: 'calendar_month', title: 'Monthly Linearity', desc: 'Visualizing equity growth and win rate stability over time to ensure the engine performs reliably across both Bull and Bear regimes.' }
-        ],
-        [
-            { title: 'Regime Performance Shift', text: 'During the high-volatility regime of Q4, the Performance Dashboard highlighted a 12% spike in DeFi-sector win rates, allowing users to concentrate capital in high-probability sectors.' },
-            { title: 'Portfolio Return Modeling', text: 'By analyzing the monthly breakdown, a fund manager modeled a 2% monthly alpha target using only signals with a >65% historical win rate in the "Expansion" regime.' }
-        ],
-        "All performance metrics are calculated using mid-market entry prices with a 0.1% estimated sliparound factor included for institutional realism."
-    , 'performance-dashboard'
-    );
-}
-
-function renderDocsAlphaScore() {
-    renderExplainPage(
-        "Alpha Score & Boosting",
-        "The terminal's ultimate composite signal--collapsing complexity into actionable ranks.",
-        "The Alpha Score is a proprietary ranking from 0-100 that synthesizes momentum, sentiment, and on-chain flow. High scores indicate assets with a strong 'Momentum Vector' and positive institutional accumulation. The Neural Engine also provides an 'ML Boost' to assets where historical patterns suggest a high probability of short-term alpha.",
-        [
-            { icon: 'workspace_premium', title: 'ML Boost', desc: 'A high-conviction statistical boost applied when multiple neural nodes align on a specific asset return profile.' },
-            { icon: 'rocket_launch', title: 'Momentum Vector', desc: 'The directional force of price and volume acceleration over a rolling 48-hour window.' }
-        ],
-        [
-            { title: 'The 90+ Alpha Breakout', text: 'When SOL hit an Alpha Score of 92 with an ML Boost, it preceded a 14% impulsive rally in the subsequent 24 hours.' }
-        ],
-        "Composite scoring engine updated hourly using live feed data from 15+ institutional-grade sources."
-    , 'alpha-score'
-    );
-}
-
-function renderDocsTelegram() {
-    // Fetch live bot info from the backend
-    fetch('/api/telegram/link')
-        .then(r => r.json())
-        .then(info => _renderDocsTelegramPage(info))
-        .catch(() => _renderDocsTelegramPage({ bot_name: 'alphasignalbot_bot', bot_url: 'https://t.me/alphasignalbot_bot', active: false }));
-}
-
-function _renderDocsTelegramPage(botInfo) {
-    const botUrl  = botInfo.bot_url  || 'https://t.me/alphasignalbot_bot';
-    const botName = botInfo.bot_name || 'alphasignalbot_bot';
-    const isActive = botInfo.active;
-
-    const stepStyle = `display:flex;align-items:flex-start;gap:1rem;padding:1.1rem 1.2rem;
-        background:rgba(0,242,255,0.03);border:1px solid rgba(0,242,255,0.12);
-        border-radius:10px;margin-bottom:0.75rem;`;
-    const numStyle = `min-width:32px;height:32px;border-radius:50%;background:var(--accent);
-        color:#000;display:flex;align-items:center;justify-content:center;
-        font-weight:900;font-size:0.8rem;flex-shrink:0;margin-top:2px;`;
-    const labelStyle = `font-size:0.72rem;font-weight:800;letter-spacing:1px;color:var(--accent);margin-bottom:4px;`;
-    const descStyle  = `font-size:0.82rem;color:var(--text-dim);line-height:1.55;`;
-
-    const cmdRow = (cmd, desc) => `
-        <div style="display:flex;align-items:center;gap:1rem;padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-            <code style="background:rgba(0,242,255,0.08);color:var(--accent);padding:3px 10px;border-radius:6px;font-size:0.78rem;white-space:nowrap;min-width:90px;text-align:center;">${cmd}</code>
-            <span style="font-size:0.8rem;color:var(--text-dim);">${desc}</span>
-        </div>`;
-
-    appEl.innerHTML = `
-        <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent);">notifications_active</span>Telegram Bot — Alert Setup</h1></div>
-        <div class="doc-container" style="max-width:860px;margin:0 auto;padding-top:1.5rem;padding-bottom:5rem;">
-
-            <p style="font-size:0.95rem;color:var(--text-dim);line-height:1.6;margin-bottom:2rem;">
-                Receive your AlphaSignal morning digest and live high-severity signal alerts directly in Telegram.
-                The bot takes 60 seconds to set up and requires no API keys on your end.
-            </p>
-
-            <!-- Live Bot Status Banner -->
-            <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.4rem;
-                background:${isActive ? 'rgba(0,242,255,0.06)' : 'rgba(255,165,0,0.06)'};
-                border:1px solid ${isActive ? 'rgba(0,242,255,0.25)' : 'rgba(255,165,0,0.25)'};
-                border-radius:10px;margin-bottom:2.5rem;">
-                <span class="material-symbols-outlined" style="color:${isActive ? 'var(--accent)' : '#ffa500'};font-size:1.6rem;">
-                    ${isActive ? 'check_circle' : 'warning'}
-                </span>
-                <div>
-                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:1.5px;color:${isActive ? 'var(--accent)' : '#ffa500'};">
-                        BOT STATUS: ${isActive ? 'ONLINE' : 'TOKEN NOT CONFIGURED'}
-                    </div>
-                    <div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px;">
-                        ${isActive
-                            ? `@${botName} is live and accepting connections`
-                            : 'Set TELEGRAM_BOT_TOKEN in your environment variables to activate the bot'}
-                    </div>
-                </div>
-                ${isActive ? `
-                <a href="${botUrl}" target="_blank" rel="noopener" style="margin-left:auto;
-                    background:var(--accent);color:#000;padding:8px 18px;border-radius:8px;
-                    font-size:0.72rem;font-weight:900;letter-spacing:1px;text-decoration:none;white-space:nowrap;">
-                    OPEN BOT &rarr;
-                </a>` : ''}
-            </div>
-
-            <!-- How to Link Section -->
-            <div style="margin-bottom:2.5rem;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);">
-                    <span class="material-symbols-outlined" style="color:var(--accent);">link</span>
-                    <h2 style="font-size:0.7rem;font-weight:900;letter-spacing:3px;color:var(--text);margin:0;">HOW TO LINK YOUR ACCOUNT</h2>
-                </div>
-
-                <div style="${stepStyle}">
-                    <div style="${numStyle}">1</div>
-                    <div>
-                        <div style="${labelStyle}">OPEN THE BOT</div>
-                        <div style="${descStyle}">
-                            Tap the link to open the AlphaSignal bot in Telegram:
-                            <a href="${botUrl}" target="_blank" rel="noopener"
-                                style="color:var(--accent);font-weight:700;margin-left:4px;">@${botName}</a>
-                            <br>Or search for <code style="color:var(--accent);background:rgba(0,242,255,0.08);padding:1px 7px;border-radius:4px;">@${botName}</code> directly in the Telegram app.
-                        </div>
-                    </div>
-                </div>
-
-                <div style="${stepStyle}">
-                    <div style="${numStyle}">2</div>
-                    <div>
-                        <div style="${labelStyle}">SEND /START</div>
-                        <div style="${descStyle}">
-                            Tap <strong>Start</strong> or type <code style="color:var(--accent);background:rgba(0,242,255,0.08);padding:1px 7px;border-radius:4px;">/start</code> to begin.
-                            The bot will greet you and ask for your AlphaSignal email address.
-                        </div>
-                    </div>
-                </div>
-
-                <div style="${stepStyle}">
-                    <div style="${numStyle}">3</div>
-                    <div>
-                        <div style="${labelStyle}">REPLY WITH YOUR EMAIL</div>
-                        <div style="${descStyle}">
-                            Type the email address you used to register on AlphaSignal and send it.
-                            The bot will confirm your account is linked within seconds.
-                        </div>
-                    </div>
-                </div>
-
-                <div style="${stepStyle}">
-                    <div style="${numStyle}">4</div>
-                    <div>
-                        <div style="${labelStyle}">YOU'RE LIVE</div>
-                        <div style="${descStyle}">
-                            Once linked, you will automatically receive:<br>
-                            &bull; <strong style="color:var(--text);">Morning Digest</strong> — daily at 07:30 UTC with top 3 signals + BTC summary<br>
-                            &bull; <strong style="color:var(--text);">Live Signal Alerts</strong> — when CRITICAL or HIGH severity signals fire
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bot Commands Reference -->
-            <div style="margin-bottom:2.5rem;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);">
-                    <span class="material-symbols-outlined" style="color:var(--accent);">terminal</span>
-                    <h2 style="font-size:0.7rem;font-weight:900;letter-spacing:3px;color:var(--text);margin:0;">BOT COMMANDS</h2>
-                </div>
-                <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:0.5rem 1.2rem;">
-                    ${cmdRow('/start',  'Begin setup — bot will prompt for your AlphaSignal email')}
-                    ${cmdRow('/status', 'Show your linked account and current alert status')}
-                    ${cmdRow('/unsub',  'Pause all Telegram alerts (account stays linked)')}
-                    ${cmdRow('/resub',  'Re-enable alerts after pausing')}
-                    ${cmdRow('/help',   'Show all available commands')}
-                </div>
-            </div>
-
-            <!-- Discord Section -->
-            <div style="margin-bottom:2.5rem;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);">
-                    <span class="material-symbols-outlined" style="color:var(--accent);">hub</span>
-                    <h2 style="font-size:0.7rem;font-weight:900;letter-spacing:3px;color:var(--text);margin:0;">DISCORD WEBHOOK</h2>
-                </div>
-                <div style="background:rgba(0,242,255,0.03);border:1px solid rgba(0,242,255,0.12);border-radius:10px;padding:1.2rem 1.4rem;">
-                    <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6;margin:0;">
-                        Prefer Discord? Head to <strong style="color:var(--text);">Alert Settings</strong> in the sidebar and paste your Discord channel webhook URL.
-                        The morning digest and signal alerts will post directly to your server channel.
-                        <br><br>
-                        To create a webhook: <em>Server Settings → Integrations → Webhooks → New Webhook → Copy URL</em>
-                    </p>
-                </div>
-            </div>
-
-            <!-- Feature tiles -->
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:2.5rem;">
-                <div style="background:rgba(255,255,255,0.02);padding:1.4rem;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
-                    <h3 style="color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;font-size:1rem;">
-                        <span class="material-symbols-outlined" style="margin-right:8px;font-size:20px;">notifications_active</span> Morning Digest
-                    </h3>
-                    <p style="color:var(--text-dim);line-height:1.5;font-size:0.86rem;">
-                        Sent daily at 07:30 UTC. Includes top 3 signals from the last 24h ranked by severity,
-                        current BTC price summary, and a direct deep-link back to the terminal.
-                    </p>
-                </div>
-                <div style="background:rgba(255,255,255,0.02);padding:1.4rem;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
-                    <h3 style="color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;font-size:1rem;">
-                        <span class="material-symbols-outlined" style="margin-right:8px;font-size:20px;">bolt</span> Live Signal Alerts
-                    </h3>
-                    <p style="color:var(--text-dim);line-height:1.5;font-size:0.86rem;">
-                        Real-time push when a CRITICAL or HIGH severity signal fires. Each alert includes
-                        the ticker, signal type, entry price, and a link to the full Signal Archive entry.
-                    </p>
-                </div>
-                <div style="background:rgba(255,255,255,0.02);padding:1.4rem;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
-                    <h3 style="color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;font-size:1rem;">
-                        <span class="material-symbols-outlined" style="margin-right:8px;font-size:20px;">security</span> Privacy
-                    </h3>
-                    <p style="color:var(--text-dim);line-height:1.5;font-size:0.86rem;">
-                        Only your email is stored — no Telegram passwords or API tokens required from you.
-                        Use /unsub at any time to immediately stop all messages.
-                    </p>
-                </div>
-            </div>
-
-            <div style="display:flex;gap:1rem;flex-wrap:wrap;">
-                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;">
-                    <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span> RETURN TO HELP HUB
-                </button>
-                <a href="${botUrl}" target="_blank" rel="noopener"
-                    class="intel-action-btn"
-                    style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-weight:800;text-decoration:none;">
-                    <span class="material-symbols-outlined" style="font-size:18px;">open_in_new</span> OPEN @${botName}
-                </a>
-                <button class="intel-action-btn outline" onclick="switchView('alert-settings')" style="display:flex;align-items:center;gap:8px;">
-                    <span class="material-symbols-outlined" style="font-size:18px;">settings</span> ALERT SETTINGS
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-function renderDocsPWA() {
-    renderExplainPage(
-        "Mobile Terminal Installation",
-        "Access institutional-grade market intelligence on the go via PWA technology.",
-        "AlphaSignal is built as a Progressive Web App (PWA), meaning you can install it directly on your mobile device home screen without an App Store middleman. This provides a persistent, fullscreen terminal experience with local caching for low-latency market monitoring.",
-        [
-            { icon: 'install_mobile', title: 'Add to Home Screen', desc: 'Use the "Share" menu on iOS or "Install" prompt on Android to add AlphaSignal to your device dashboards.' },
-            { icon: 'speed', title: 'Performance Caching', desc: 'The terminal uses a robust Service Worker to cache core UI assets, ensuring rapid loading even in low-bandwidth environments.' },
-            { icon: 'fullscreen', title: 'Native Experience', desc: 'Launch in standalone mode to remove browser chrome and focus entirely on the high-fidelity intelligence stream.' }
-        ],
-        [
-            { title: 'Mobile Tactical Edge', text: 'A fund manager installed the PWA on their iPad, allowing them to monitor the Narrative Galaxy and Whale Pulse during a macro conference without a laptop.' }
-        ],
-        "Service Worker and manifest-driven installation strategy compliant with modern W3C PWA standards."
-    , 'help'
-    );
-}
-
-function renderDocsPortfolioLab() {
-    renderExplainPage(
-        "Institutional Portfolio Lab",
-        "Deep-dive into the ML-driven rebalancing fund and advanced risk analytics.",
-        "The Portfolio Lab is the terminal's premier environment for simulating institutional-grade capital allocation. It tracks a dynamic fund that automatically rebalances into the top 5 ML-boosted assets daily, providing live performance attribution and sophisticated risk modeling.",
-        [
-            { icon: 'biotech', title: 'ML Rebalancing', desc: 'The fund automatically selects the top 5 assets by Alpha Score daily, simulating a professional "Momentum-Weighted" strategy.' },
-            { icon: 'security', title: 'VaR 95% CI', desc: 'Live Value at Risk monitoring to ensure the simulated fund maintains a professional institutional risk profile.' },
-            { icon: 'grid_view', title: 'Correlation Matrix', desc: 'A 15x15 rolling 30D matrix identifying systemic risks and diversification opportunities across the signal universe.' }
-        ],
-        [
-            { title: 'Asset-Level Attribution', text: 'By monitoring the "Constituent Weightings", users identified that L1 protocols contributed 40% of total portfolio returns during the current 30-day window.' }
-        ],
-        "Quant-grade simulation engine calculating history, metrics, and correlations against a synthetic BTC-USD benchmark."
-    , 'portfolio-optimizer'
-    );
-}
-
-
-function renderDocsGlossaryImplementation() {
-    renderExplainPage(
-        "Terminal Glossary",
-        "Institutional metrics and terminology for the modern quant trader.",
-        "The AlphaSignal terminal utilizes proprietary and institutional-standard metrics. This glossary provides technical definitions for the most critical terms used across the platform.",
-        [
-            { icon: 'terminal', title: 'Alpha (%)', desc: 'Excess return relative to the BTC-USD benchmark. Positive Alpha indicates market leadership and idiosyncratic strength.' },
-            { icon: 'show_chart', title: 'Beta', desc: 'Market sensitivity metric. A Beta of 1.1 means the asset is expected to outperform the benchmark by 10% on the upside.' },
-            { icon: 'grid_view', title: 'Correlation Matrix', desc: 'A 15x15 peer matrix illustrating the statistical relationship between asset pairs. High values indicate assets move in sync.' },
-            { icon: 'speed', title: 'Cross-Chain Velocity', desc: 'The rate at which capital and narrative attention rotate across distinct Layer 1 networks (e.g. ETH to SOL).' },
-            { icon: 'receipt_long', title: 'Institutional Trade Ledger', desc: 'An immutable, verified record of historical execution tickets and strategies for precise performance auditing.' },
-            { icon: 'model_training', title: 'ML Alpha Engine', desc: 'A machine learning ensemble model dynamically trained on both technicals and sentiment for 24-hour predictions.' },
-            { icon: 'balance', title: 'Orderbook Imbalance', desc: 'The structural difference between aggregate bid and ask walls, serving as a leading indicator of liquidity absorption.' },
-            { icon: 'calculate', title: 'Sharpe Ratio', desc: 'Measure of risk-adjusted return. Calculated as (Portfolio Return - Risk-Free Rate) / Standard Deviation.' },
-            { icon: 'analytics', title: 'Sortino Ratio', desc: 'Differentiated from Sharpe by only penalizing downside volatility, providing a clearer view of "bad" risk.' },
-            { icon: 'security', title: 'VaR 95%', desc: 'Value at Risk. A statistical measure of the maximum potential 1-day loss of a portfolio at a 95% confidence level.' },
-            { icon: 'waves', title: 'Whale Flow', desc: 'Proprietary filtering of the trade tape to show only significant capital commitments (>$100k) from institutional-labeled entities.' },
-            { icon: 'database', title: 'Z-Score', desc: 'Statistical distance from the mean in standard deviations. Scores > Ã‚Â±2.0 identify significant momentum or exhaustion outliers.' }
-        ],
-        [],
-        "Proprietary definitions derived from institutional trading desk standards and quantitative finance academic frameworks."
-    , 'help');
-}
-
-// updateSEOMeta() — extracted to js/seo-meta.js

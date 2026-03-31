@@ -108,6 +108,45 @@ const viewMap = {
     'price-alerts-hub': renderPriceAlertsHub,
     'leaderboard-hub':  renderLeaderboardHub,
     'market-brief-hub': renderMarketBriefHub,
+    // ---- docs-* per-view documentation routes (docs-a.js) ----
+    'docs-etf-flows': renderDocsViewETFFlows,
+    'docs-liquidations': renderDocsViewLiquidations,
+    'docs-oi-radar': renderDocsViewOIRadar,
+    'docs-cme-gaps': renderDocsViewCMEGaps,
+    'docs-briefing': renderDocsViewBriefing,
+    'docs-rotation': renderDocsViewSectorRotation,
+    'docs-macro-compass': renderDocsViewMacroCompass,
+    'docs-macro-calendar': renderDocsViewMacroCalendar,
+    'docs-regime': renderDocsViewRegime,
+    'docs-signals': renderDocsViewSignals,
+    'docs-ml-engine': renderDocsViewMLEngine,
+    'docs-alpha-score': renderDocsViewAlphaScore,
+    'docs-strategy-lab': renderDocsViewStrategyLab,
+    'docs-backtester': renderDocsViewBacktester,
+    'docs-signal-archive': renderDocsViewSignalArchive,
+    'docs-narrative': renderDocsViewNarrative,
+    'docs-token-unlocks': renderDocsViewTokenUnlocks,
+    'docs-yield-lab': renderDocsViewYieldLab,
+    'docs-portfolio-optimizer': renderDocsViewPortfolioOptimizer,
+    'docs-tradelab': renderDocsViewTradeLab,
+    'docs-whale-pulse': renderDocsViewWhalePulse,
+    'docs-onchain': renderDocsViewOnchain,
+    'docs-options-flow': renderDocsViewOptionsFlow,
+    'docs-newsroom': renderDocsViewNewsroom,
+    'docs-trade-ledger': renderDocsViewTradeLedger,
+    'docs-performance': renderDocsViewPerformance,
+    'docs-risk-matrix': renderDocsViewRiskMatrix,
+    'docs-stress-lab': renderDocsViewStressLab,
+    'docs-charting-suite': renderDocsViewChartingSuite,
+    'docs-tradingview': renderDocsViewTradingViewWidget,
+    'docs-order-flow': renderDocsViewOrderFlow,
+    'docs-alerts': renderDocsViewAlerts,
+    'docs-price-alerts': renderDocsViewPriceAlerts,
+    'docs-signal-leaderboard': renderDocsViewSignalLeaderboard,
+    'docs-market-brief': renderDocsViewMarketBrief,
+    'docs-my-terminal': renderDocsViewMyTerminal,
+    'docs-ask-terminal': renderDocsViewAskTerminal,
+    'docs-command-center': renderDocsViewCommandCenter,
     'signal': () => {
         const id = new URLSearchParams(window.location.search).get('id');
         renderSignalPermalink(id);
@@ -466,8 +505,10 @@ function renderDocsTopologies() {
             { title: "Cumulative Depth Profile (Stepped Area)", icon: "water_drop", desc: "Located in the Order Flow hub. Maps raw aggregate institutional bid and ask liquidity levels as a stepped histogram to expose structural market gravity." },
             { title: "Portfolio Web (Mathematical Radar)", icon: "account_tree", desc: "Located in the Portfolio Simulation Lab. Radially visualizes specific asset capital weightings dynamically optimized by the statistical ML backend." },
             { title: "Conviction Scatter Matrix (Bubble Chart)", icon: "bubble_chart", desc: "Located in the Whale Pulse dashboard. Multi-dimensional graph charting thousands of on-chain executions across Time Decay (X), Transaction Size (Y), and Volume Intensity (Radius)." }
-        ]
-    , 'advanced-charting'
+        ],
+        [],
+        "AlphaSignal proprietary charting engine built on TradingView Lightweight Charts, D3.js v7, Chart.js, and Canvas API.",
+        'advanced-charting'
     );
 }
 
