@@ -1,4 +1,4 @@
-async function renderMyTerminal() {
+﻿async function renderMyTerminal() {
     // Use the same globals that the rest of the app uses (set by checkAuthStatus)
     if (!isAuthenticatedUser) {
         appEl.innerHTML = `
@@ -32,7 +32,7 @@ async function renderMyTerminal() {
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">person</span>My Terminal</h1>
                 <p style="color:var(--text-dim);font-size:0.8rem">Personal watchlist and open positions &middot; ${userEmail}</p>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-my-terminal')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-my-terminal')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${tabsHTML}
         <div id="my-terminal-content">${skeleton(2)}</div>`;

@@ -1,4 +1,4 @@
-async function renderSignals(category = 'ALL', tabs = null) {
+﻿async function renderSignals(category = 'ALL', tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     currentSignalCategory = category;
     appEl.innerHTML = skeleton(8);
@@ -21,7 +21,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('signals', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
            
         </div>
@@ -398,7 +398,7 @@ async function renderAlphaScore(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">ML</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">ML</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Composite 0–100 ranking across momentum, sentiment, signal engine alerts & volatility.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>

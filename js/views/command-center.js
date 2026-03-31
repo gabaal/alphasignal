@@ -1,7 +1,7 @@
-async function renderCommandCenter() {
+﻿async function renderCommandCenter() {
     appEl.innerHTML = `
         <div class="view-header" style="margin-bottom:2rem">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">dashboard</span> Institutional Command Center <span class="premium-badge">MASTER VIEW</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">dashboard</span> Institutional Command Center <span class="premium-badge">MASTER VIEW</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p style="color:var(--text-dim); margin-top:0.5rem">Consolidated real-time intelligence across Macro, Global, and Alpha hubs.</p>
         </div>
         

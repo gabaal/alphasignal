@@ -1,4 +1,4 @@
-async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
+﻿async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI(`/narrative-clusters?chain=${filterChain}&v=${Date.now()}`);
@@ -8,7 +8,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">
             <div>
                 ${renderHubTabs('narrative', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">NLP</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-narrative')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">NLP</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-narrative')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
             </div>
             <div class="view-actions" style="margin-bottom:0">
@@ -286,7 +286,7 @@ async function renderBriefing(tabs = null) {
 
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">AI</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">AI</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.</p>
             </div>
             ${tabs ? renderHubTabs('briefing', tabs) : ''}

@@ -1,4 +1,4 @@
-async function renderMacroSync(tabs = null) {
+﻿async function renderMacroSync(tabs = null) {
     const tabHTML = tabs ? renderHubTabs('pulse', tabs) : '';
     appEl.innerHTML = skeleton(2);
     const [data, sectors, corrData] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors'), fetchAPI('/correlation-matrix')]);
@@ -6,7 +6,7 @@ async function renderMacroSync(tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">monitoring</span> Macro Intel</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-macro-compass')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">monitoring</span> Macro Intel</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-macro-compass')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${tabHTML}
         <p style="margin-top: -1rem; margin-bottom: 1.5rem; color: var(--text-dim); font-size: 0.8rem;">Real-time correlation analytics between Bitcoin and traditional macro assets.</p>
@@ -302,7 +302,7 @@ async function renderRotation(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('rotation', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-rotation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-rotation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
            
             <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>

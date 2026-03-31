@@ -1,4 +1,4 @@
-async function renderHome() {
+﻿async function renderHome() {
     // Fetch live data in parallel for stats bar
     const [dialsData, signalData, lbData] = await Promise.allSettled([
         fetchAPI('/system-dials'),
@@ -29,7 +29,7 @@ async function renderHome() {
                         <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
                         LIVE INSTITUTIONAL TERMINAL &mdash; v1.53
                     </div>
-                    <h1>Institutional Intelligence Terminal. <span>Live.</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                    <h1>Institutional Intelligence Terminal. <span>Live.</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                     <p class="hero-subtitle">
                         AlphaSignal is a multi-hub institutional intelligence terminal for Bitcoin, crypto, and macro markets. Real-time Z-score signals, AI portfolio rebalancing, options flow, whale tracking, macro calendars, and 60+ analytical views — synthesised by AI, verified by institutional order flow.
                     </p>

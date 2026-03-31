@@ -1,4 +1,4 @@
-async function renderWhales(tabs = null) {
+﻿async function renderWhales(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = skeleton(5);
     const [data, entityData, execData] = await Promise.all([
@@ -18,7 +18,7 @@ async function renderWhales(tabs = null) {
                 <button class="intel-action-btn mini" onclick="showSignalDetail(null,'BTC-USD')" style="width:auto;padding:4px 12px;font-size:0.6rem;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border-color:rgba(0,242,255,0.3)">
                     <span class="material-symbols-outlined" style="font-size:13px">psychology</span> AI DEEP-DIVE
                 </button>
-                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-whales')">
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-whale-pulse')">
                     <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
                 </button>
             </div>

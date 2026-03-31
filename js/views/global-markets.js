@@ -1,4 +1,4 @@
-async function renderETFFlows(tabs = null) {
+﻿async function renderETFFlows(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     const tabHTML = tabs ? renderHubTabs('etf', tabs) : '';
     appEl.innerHTML = `
@@ -10,7 +10,7 @@ async function renderETFFlows(tabs = null) {
                 <button class="intel-action-btn mini" onclick="showSignalDetail(null,'BTC-USD')" style="width:auto;padding:4px 12px;font-size:0.6rem;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border-color:rgba(0,242,255,0.3)">
                     <span class="material-symbols-outlined" style="font-size:13px">psychology</span> AI DEEP-DIVE
                 </button>
-                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-macro-compass')">
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-macro-compass')">
                     <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
                 </button>
             </div>
@@ -188,7 +188,7 @@ async function renderLiquidations(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-liquidations')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-liquidations')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('liquidations', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
@@ -266,7 +266,7 @@ async function renderCMEGaps(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-cme-gaps')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-cme-gaps')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('gaps', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
@@ -306,7 +306,7 @@ async function renderOIRadar(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-oi-radar')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-oi-radar')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('oi', tabs)}
         <div class="grid-2">
@@ -521,7 +521,7 @@ async function renderTokenUnlocks(tabs = null) {
         <div class="view-header">
             ${renderHubTabs('unlocks', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Token Unlock Schedule</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-token-unlocks')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-token-unlocks')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p style="color:var(--text-dim); margin-top:0.5rem">Capital flow anticipation based on structural unlock schedules.</p>
         </div>
         <div class="card" style="overflow-x:auto">
@@ -585,7 +585,7 @@ async function renderYieldLab(tabs = null) {
         <div class="view-header">
             ${renderHubTabs('yield', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">DeFi Yield Lab</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">BETA</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-yield-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">BETA</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-yield-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p style="color:var(--text-dim); margin-top:0.5rem">Optimized capital efficiency markers across Tier-1 lending and restaking protocols.</p>
         </div>
         <div class="grid-2" style="margin-bottom:1.5rem">

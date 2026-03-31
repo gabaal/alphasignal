@@ -1,4 +1,4 @@
-async function renderPortfolioLab(customBasket = null, tabs = null) {
+﻿async function renderPortfolioLab(customBasket = null, tabs = null) {
     appEl.innerHTML = skeleton(1);
     const endpoint = customBasket ? `/portfolio-sim?basket=${customBasket}` : '/portfolio-sim';
     const [data, optData] = await Promise.all([
@@ -15,7 +15,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('explain-portfolio-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-portfolio-optimizer')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores.</p>
         </div>
         ${tabs ? renderHubTabs('optimizer', tabs) : ''}
