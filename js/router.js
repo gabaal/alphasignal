@@ -11,7 +11,7 @@ function switchView(view, pushState = true) {
     // PUBLIC: no auth required
     const isPublicView = (
         view === 'signals' || view === 'home' || view === 'help' ||
-        view?.startsWith('explain-') || view === 'signal'
+        view?.startsWith('explain-') || view?.startsWith('docs-') || view === 'signal'
     );
     // FREE: login required, no subscription needed
     const isFreeView = isPublicView || view === 'command-center' || view === 'free-tier' || view === 'my-terminal' || view === 'price-alerts' || view === 'market-brief' || view === 'signal-leaderboard' || view === 'alerts-hub' || view === 'price-alerts-hub' || view === 'leaderboard-hub' || view === 'market-brief-hub';
