@@ -1,4 +1,4 @@
-function updateSEOMeta(view) {
+﻿function updateSEOMeta(view) {
     const viewMetadata = {
         // === ROOT / HOME ===
         'home': {
@@ -313,6 +313,183 @@ function updateSEOMeta(view) {
             desc: 'AI-powered portfolio rebalancing using Monte Carlo simulation, Markowitz Efficient Frontier, and GPT-4 generated execution memos. Full audit trail via the institutional trade ledger.'
         },
 
+
+        // === DOCS � PER-VIEW DOCUMENTATION PAGES (v1.57) ===
+
+        // Global Markets docs
+        'docs-etf-flows': {
+            title: 'Bitcoin Spot ETF Flows � Complete Chart Guide | AlphaSignal Docs',
+            desc: 'Detailed documentation for the AlphaSignal ETF Flows view. Explains the Bitcoin Spot ETF Daily Flows bar chart, Daily Leaderboard table, and Cumulative Net Flow Waterfall � with how-to-read guides and key trading signals for each component.'
+        },
+        'docs-liquidations': {
+            title: 'Crypto Liquidation Scanner � Chart Guide | AlphaSignal Docs',
+            desc: 'Full documentation for the Alpha Signal Liquidations view. Covers the liquidation cascade bar chart, heatmap, and cumulative chart � explaining what each component means, how to read abnormal liquidation clusters, and when they signal high-conviction entries.'
+        },
+        'docs-oi-radar': {
+            title: 'Open Interest Radar � Chart Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the AlphaSignal OI Radar view. Explains OI vs price divergence charts, funding rate heatmap, and cross-exchange aggregation � including signals for over-leveraged conditions and leverage flush risks.'
+        },
+        'docs-cme-gaps': {
+            title: 'CME Bitcoin Gap Tracker � Chart Guide | AlphaSignal Docs',
+            desc: 'Documentation for the Alpha Signal CME Gaps view. Covers the gap inventory table, fill probability scoring, and price overlay chart � with historical fill rate data and trading strategies built around CME gap mechanics.'
+        },
+
+        // Macro Intelligence docs
+        'docs-briefing': {
+            title: 'AI Macro Briefing � Component Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Macro Briefing view. Explains the GPT-4o macro intelligence memo, System Conviction Dials (Fear & Greed, Network Congestion, Retail Sentiment), and the BTC Correlation Tracker � with signal interpretation for each gauge.'
+        },
+        'docs-rotation': {
+            title: 'Sector Rotation � Chart Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the Alpha Signal Sector Rotation view. Documents the RRG (Relative Rotation Graph), 30-day sector performance heatmap, and momentum leader table � with institutional rotation cycle interpretation.'
+        },
+        'docs-macro-compass': {
+            title: 'Macro Compass � Regime Chart Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Macro Compass view. Explains the M2 vs BTC correlation chart, DXY overlay, yield curve monitor, and global risk-on/off scatter � with regime-based trading signals for each chart.'
+        },
+        'docs-macro-calendar': {
+            title: 'Macro Event Calendar � Chart Guide | AlphaSignal Docs',
+            desc: 'Full documentation for the Alpha Signal Macro Calendar view. Covers the event timeline, BTC impact scoring, and historical volatility overlay � explaining how FOMC, CPI, and NFP events have historically moved Bitcoin price.'
+        },
+        'docs-regime': {
+            title: 'Market Regime Engine � Classification Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the AlphaSignal Regime Classifier. Documents the Regime Classification Dial, 12-month regime history chart, and Strategy Allocation Table � with signal rules for each of the four regime states (Bull Trend, Bear Trend, High Volatility, Accumulation).'
+        },
+
+        // Alpha Strategy docs
+        'docs-signals': {
+            title: 'Alpha Signals � Z-Score Card Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Signals view. Explains the Z-score signal cards, momentum vector bars, and historical signal performance � with a full breakdown of how the rolling Z-score is calculated and how to trade the levels.'
+        },
+        'docs-ml-engine': {
+            title: 'ML Engine � Prediction Model Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the Alpha Signal ML Engine view. Documents the 7-day directional probability bars, confidence delta chart, and signal correlation matrix � explaining how the ensemble ML model generates its predictions.'
+        },
+        'docs-alpha-score': {
+            title: 'Alpha Score � Composite Ranking Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Alpha Score view. Explains the composite ranking table, grade distribution chart, and Alpha Score breakdown � covering all five contributing factors and how to use grades for asset selection.'
+        },
+        'docs-strategy-lab': {
+            title: 'Strategy Lab � Signal Rules Builder Guide | AlphaSignal Docs',
+            desc: 'Full documentation for the Alpha Signal Strategy Lab. Covers the visual signal rules builder, backtest performance chart, and parameter sensitivity table � with guidance on building and validating custom signal strategies.'
+        },
+        'docs-backtester': {
+            title: 'Signal Backtester V2 � Performance Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the AlphaSignal Backtester V2 view. Explains the equity curve chart, monthly return heatmap, drawdown analysis, and regime performance breakdown � with institutional interpretation of Sharpe, Sortino, and Calmar ratios.'
+        },
+        'docs-signal-archive': {
+            title: 'Signal Archive � Historical Record Guide | AlphaSignal Docs',
+            desc: 'Documentation for the Alpha Signal Signal Archive view. Covers the historical signal table, win rate analysis, and signal replay chart � providing a complete auditable record of all generated Z-score signals and their outcomes.'
+        },
+        'docs-narrative': {
+            title: 'Narrative Galaxy � Trend Cluster Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Narrative Galaxy view. Explains the 3D force-directed narrative cluster chart, trending keyword timeline, and dominant narrative radar � with signals for identifying emerging vs fading market narratives.'
+        },
+
+        // Institutional hub docs
+        'docs-token-unlocks': {
+            title: 'Token Unlock Schedule � Table Guide | AlphaSignal Docs',
+            desc: 'Documentation for the Alpha Signal Token Unlocks view. Explains the unlock schedule table, supply impact score badges, and sell pressure ratings � with signal rules for positioning around major protocol unlock events.'
+        },
+        'docs-yield-lab': {
+            title: 'DeFi Yield Lab � Protocol Comparison Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the AlphaSignal Yield Lab view. Covers the APY comparison table, real yield vs emissions breakdown, and protocol risk score bars � with signals for identifying sustainable DeFi yield opportunities vs inflationary traps.'
+        },
+        'docs-portfolio-optimizer': {
+            title: 'Portfolio Optimizer � Efficient Frontier Guide | AlphaSignal Docs',
+            desc: 'Documentation for the Alpha Signal Portfolio Optimizer view. Explains the ML rebalancing recommendation table, allocation radar chart, and Efficient Frontier scatter � with institutional portfolio construction and regime-adaptive weighting signals.'
+        },
+        'docs-tradelab': {
+            title: 'Trade Idea Lab � Thesis Builder Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Trade Idea Lab. Covers the systematic thesis builder form, risk/reward calculator, and AI thesis validator � with rules for structuring institutional-grade trade setups before committing capital.'
+        },
+
+        // Analytics hub docs
+        'docs-whale-pulse': {
+            title: 'Whale Pulse � On-Chain Transaction Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the Alpha Signal Whale Pulse view. Explains the whale transaction feed, execution time polar chart, and volume bubble scatter � with signals for identifying coordinated institutional accumulation and distribution events.'
+        },
+        'docs-onchain': {
+            title: 'On-Chain Analytics � MVRV, SOPR, NVT, Puell Guide | AlphaSignal Docs',
+            desc: 'Full documentation for the AlphaSignal On-Chain Analytics view. Covers MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, and Realised Price Overlay � all five Bitcoin cycle valuation metrics explained with actionable signal rules.'
+        },
+        'docs-options-flow': {
+            title: 'Options Flow � Deribit Structure Guide | AlphaSignal Docs',
+            desc: 'Documentation for the Alpha Signal Options Flow view. Explains the Put/Call Ratio gauge, Max Pain level chart, IV Smile Curve, and top OI strikes table � with signals for reading institutional options market positioning.'
+        },
+        'docs-newsroom': {
+            title: 'Newsroom � AI Sentiment Feed Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Newsroom view. Covers the live news feed with AI sentiment classification, and keyword sentiment heatmap � including signal rules for high-impact regulatory, institutional, and macro news events.'
+        },
+
+        // Audit & Performance docs
+        'docs-trade-ledger': {
+            title: 'Trade Ledger � Audit Log Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the Alpha Signal Trade Ledger view. Explains the trade log table, signal source attribution, and performance attribution breakdown � providing a complete auditable track record of every signal-based trade.'
+        },
+        'docs-performance': {
+            title: 'Performance Dashboard � Equity Curve Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Performance Dashboard view. Covers key performance stat cards, monthly ROI heatmap calendar, and portfolio equity curve vs BTC benchmark � with institutional performance attribution interpretation.'
+        },
+
+        // Risk & Stress docs
+        'docs-risk-matrix': {
+            title: 'Risk Matrix � Portfolio VaR Guide | AlphaSignal Docs',
+            desc: 'Documentation for the Alpha Signal Risk Matrix view. Explains the Portfolio VaR gauge, volatility-adjusted position sizer, and correlation scatter � with institutional risk management rules for sizing and hedging every position.'
+        },
+        'docs-stress-lab': {
+            title: 'Stress Test Lab � Historical Scenario Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the AlphaSignal Stress Test Lab view. Covers the historical scenario stress test table (FTX, March 2020, Luna) and Z-score distribution chart � with rules for stress-testing current portfolio exposure against extreme market events.'
+        },
+
+        // Advanced Charting docs
+        'docs-charting-suite': {
+            title: 'Charting Suite � Order Flow Charts Guide | AlphaSignal Docs',
+            desc: 'Full documentation for the Alpha Signal Charting Suite view. Explains the OHLCV candlestick chart, Volume Profile, Cumulative Volume Delta (CVD), and Market Depth chart � with institutional interpretation signals for each panel.'
+        },
+        'docs-tradingview': {
+            title: 'TradingView Widget � Embedded Chart Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal TradingView integration. Covers the full-featured embedded TradingView Pro chart with all built-in indicators, drawing tools, and multi-timeframe analysis available directly inside the terminal.'
+        },
+
+        // Order Flow docs
+        'docs-order-flow': {
+            title: 'Liquidity Dashboard � GOMM Order Flow Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the Alpha Signal GOMM Liquidity Dashboard. Explains the aggregated order book depth chart, live execution tape, and institutional liquidity heatmap � with signals for identifying high-probability institutional price levels.'
+        },
+
+        // Alerts Hub docs
+        'docs-alerts': {
+            title: 'Live Signal Alerts � Alert Feed Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Live Alerts view. Explains alert feed cards, severity levels (LOW / MEDIUM / HIGH / CRITICAL), and filter controls � including signal rules for CRITICAL Z-Score and Regime Change alert responses.'
+        },
+        'docs-price-alerts': {
+            title: 'Price Alerts � Custom Trigger Guide | AlphaSignal Docs',
+            desc: 'Documentation for the Alpha Signal Price Alerts view. Covers the alert manager table, creation form, and browser push notification setup � with best practice rules for pairing entry alerts with corresponding stop alerts.'
+        },
+        'docs-signal-leaderboard': {
+            title: 'Signal Leaderboard � Performance Ranking Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Signal Leaderboard view. Explains the ranked performance table with 7D / 30D / 90D / All-Time filtering � identifying which signal types generate genuine repeatable alpha across all market regimes.'
+        },
+        'docs-market-brief': {
+            title: 'AI Market Brief � Daily Memo Guide | AlphaSignal Docs',
+            desc: 'Documentation for the Alpha Signal Market Brief view. Explains the five-section AI daily brief (Overnight Summary, Signal Environment, Macro Watch, Risk Signals, Actionable Ideas) � generated by GPT-4o with live terminal data injection.'
+        },
+
+        // Personal docs
+        'docs-my-terminal': {
+            title: 'My Terminal � Watchlist & Notification Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal My Terminal personal hub. Covers the live P&L watchlist table, portfolio summary stats, and notification preference controls � with signals for grade changes and optimal alert configuration.'
+        },
+        'docs-ask-terminal': {
+            title: 'Ask Terminal � AI Chat Guide | AlphaSignal Docs',
+            desc: 'Technical reference for the Alpha Signal Ask Terminal AI interface. Explains the GPT-4o chat with live terminal context injection, and Dynamic suggested query chips � with best practice question patterns for market analysis.'
+        },
+        'docs-command-center': {
+            title: 'Command Center � Dashboard Guide | AlphaSignal Docs',
+            desc: 'Documentation for the AlphaSignal Command Center home screen. Explains the Alpha Score vs Z-Score scatter plot, Hub Quick-Link Grid, BTC price sparkline, and System Conviction Dials � the single-glance intelligence overview for every session.'
+        },
+
         // === MISC ROUTES ===
         'signal': {
             title: 'Live Alpha Signal — Z-Score Intelligence Detail',
@@ -322,16 +499,16 @@ function updateSEOMeta(view) {
 
     const meta = viewMetadata[view] || {
         title: view.charAt(0).toUpperCase() + view.slice(1),
-        desc: 'AlphaSignal Institutional Intelligence Terminal - Real-time signals and AI insights.'
+        desc: 'AlphaSignal (Alpha Signal) Institutional Crypto Intelligence Terminal � Real-time signals, on-chain analytics, and AI insights at alphasignal.digital'
     };
 
-    const fullTitle = `${meta.title} | AlphaSignal -- Bitcoin & Crypto Trading Signals`;
+    const fullTitle = `${meta.title} | AlphaSignal — Crypto Intelligence Terminal`;
     const viewUrl = view === 'home' ? 'https://alphasignal.digital/' : `https://alphasignal.digital/?view=${view}`;
 
     document.title = fullTitle;
 
     // 1. Update Meta Description
-    const metaDesc = document.querySelector('meta[name="description"]');
+    const metaDesc = document.querySelector('meta[name=--description--]');
     if (metaDesc) metaDesc.setAttribute('content', meta.desc);
 
     // 2. Update Canonical Link
@@ -358,33 +535,33 @@ function updateSEOMeta(view) {
         
         // Always add Breadcrumbs
         schemas.push({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [{
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Signals",
-                "item": "https://alphasignal.digital/"
+            --@context--: --https://schema.org--,
+            --@type--: --BreadcrumbList--,
+            --itemListElement--: [{
+                --@type--: --ListItem--,
+                --position--: 1,
+                --name--: --Signals--,
+                --item--: --https://alphasignal.digital/--
             }, {
-                "@type": "ListItem",
-                "position": 2,
-                "name": meta.title,
-                "item": viewUrl
+                --@type--: --ListItem--,
+                --position--: 2,
+                --name--: meta.title,
+                --item--: viewUrl
             }]
         });
 
         // Add FAQ if on Home View
         if (view === 'home' || view === 'landing') {
             schemas.push({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": [
-                    { "@type": "Question", "name": "How does AlphaSignal calculate Alpha?", "acceptedAnswer": { "@type": "Answer", "text": "Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude. A Z-score above +2.0 indicates a statistically significant positive deviation -- the core of our signal generation logic." } },
-                    { "@type": "Question", "name": "What makes the Options Flow Scanner different?", "acceptedAnswer": { "@type": "Answer", "text": "AlphaSignal sources live data directly from the Deribit API -- the world's largest crypto options exchange by volume. We compute Put/Call ratio, Max Pain strike, ATM Implied Volatility, and the full IV smile across all strikes in real time." } },
-                    { "@type": "Question", "name": "How does the AI Portfolio Rebalancer work?", "acceptedAnswer": { "@type": "Answer", "text": "The AI Rebalancer uses Monte Carlo simulation to model 10,000 portfolio scenarios. It applies Markowitz Efficient Frontier optimisation constrained by ML signal confidence scores, then generates a GPT-4 rebalancing memo. All recommended trades convert to execution tickets in the Trade Ledger." } },
-                    { "@type": "Question", "name": "What data sources power the Macro Event Calendar?", "acceptedAnswer": { "@type": "Answer", "text": "The calendar aggregates FOMC, CPI, NFP, and PCE schedules from the Federal Reserve and BLS. Each event is scored for historical BTC impact using 2 years of real price data via yfinance, showing median move and directional bias." } },
-                    { "@type": "Question", "name": "Is this terminal suitable for automated strategies?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The Signal Archive and Backtester V2 allow historical performance validation across market regimes. The Trade Idea Lab and Trade Ledger support structured execution, and the institutional API provides programmatic data access for quant desks." } },
-                    { "@type": "Question", "name": "Can I use AlphaSignal on mobile?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. AlphaSignal is a Progressive Web App (PWA) installable on iOS and Android. Navigate to the terminal on your mobile browser and select Add to Home Screen for a full native-app experience." } }
+                --@context--: --https://schema.org--,
+                --@type--: --FAQPage--,
+                --mainEntity--: [
+                    { --@type--: --Question--, --name--: --How does AlphaSignal calculate Alpha--, --acceptedAnswer--: { --@type--: --Answer--, --text--: --Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude. A Z-score above +2.0 indicates a statistically significant positive deviation -- the core of our signal generation logic.-- } },
+                    { --@type--: --Question--, --name--: --What makes the Options Flow Scanner different--, --acceptedAnswer--: { --@type--: --Answer--, --text--: --AlphaSignal sources live data directly from the Deribit API -- the world's largest crypto options exchange by volume. We compute Put/Call ratio, Max Pain strike, ATM Implied Volatility, and the full IV smile across all strikes in real time.-- } },
+                    { --@type--: --Question--, --name--: --How does the AI Portfolio Rebalancer work--, --acceptedAnswer--: { --@type--: --Answer--, --text--: --The AI Rebalancer uses Monte Carlo simulation to model 10,000 portfolio scenarios. It applies Markowitz Efficient Frontier optimisation constrained by ML signal confidence scores, then generates a GPT-4 rebalancing memo. All recommended trades convert to execution tickets in the Trade Ledger.-- } },
+                    { --@type--: --Question--, --name--: --What data sources power the Macro Event Calendar--, --acceptedAnswer--: { --@type--: --Answer--, --text--: --The calendar aggregates FOMC, CPI, NFP, and PCE schedules from the Federal Reserve and BLS. Each event is scored for historical BTC impact using 2 years of real price data via yfinance, showing median move and directional bias.-- } },
+                    { --@type--: --Question--, --name--: --Is this terminal suitable for automated strategies--, --acceptedAnswer--: { --@type--: --Answer--, --text--: --Yes. The Signal Archive and Backtester V2 allow historical performance validation across market regimes. The Trade Idea Lab and Trade Ledger support structured execution, and the institutional API provides programmatic data access for quant desks.-- } },
+                    { --@type--: --Question--, --name--: --Can I use AlphaSignal on mobile--, --acceptedAnswer--: { --@type--: --Answer--, --text--: --Yes. AlphaSignal is a Progressive Web App (PWA) installable on iOS and Android. Navigate to the terminal on your mobile browser and select Add to Home Screen for a full native-app experience.-- } }
                 ]
             });
         }
@@ -392,6 +569,6 @@ function updateSEOMeta(view) {
         ldJsonEl.textContent = JSON.stringify(schemas);
     }
 
-    console.log(`SEO Update: Full synchronization complete for view "${view}"`);
+    console.log(`SEO Update: Full synchronization complete for view --${view}--`);
 }
 
