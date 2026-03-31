@@ -26,36 +26,60 @@ async function renderCommandCenter() {
 
         <!-- Signal Analytics Charts — directly below gauges -->
         <div style="margin-bottom:1.5rem">
-            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">LIVE SIGNAL INTELLIGENCE</div>
+            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">LIVE SIGNAL INTELLIGENCE <span style="color:rgba(0,242,255,0.4);font-size:0.5rem;margin-left:6px">CLICK TO EXPAND</span></div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px">
-                <div class="card" style="padding:1rem">
+                <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('scatter')"
+                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                     <div class="card-header" style="margin-bottom:8px">
                         <h3 style="font-size:0.75rem">Alpha vs Z-Score</h3>
                         <span class="label-tag">QUALITY SCATTER</span>
                     </div>
                     <div style="height:200px;position:relative"><canvas id="cmd-alphaVsZChart"></canvas></div>
                 </div>
-                <div class="card" style="padding:1rem">
+                <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('donut')"
+                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                     <div class="card-header" style="margin-bottom:8px">
                         <h3 style="font-size:0.75rem">Category Mix</h3>
                         <span class="label-tag">SECTOR BREAKDOWN</span>
                     </div>
                     <div style="height:200px;position:relative"><canvas id="cmd-categoryDonutChart"></canvas></div>
                 </div>
-                <div class="card" style="padding:1rem">
+                <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('btccorr')"
+                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                     <div class="card-header" style="margin-bottom:8px">
                         <h3 style="font-size:0.75rem">BTC Correlation</h3>
                         <span class="label-tag">CORRELATION SPREAD</span>
                     </div>
                     <div style="height:200px;position:relative"><canvas id="cmd-btcCorrChart"></canvas></div>
                 </div>
-                <div class="card" style="padding:1rem">
+                <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('alpha')"
+                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                     <div class="card-header" style="margin-bottom:8px">
                         <h3 style="font-size:0.75rem">Alpha Leaders</h3>
                         <span class="label-tag">TOP 8 BY ALPHA</span>
                     </div>
                     <div style="height:200px;position:relative"><canvas id="cmd-topAlphaChart"></canvas></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Chart Zoom Modal -->
+        <div id="cmdChartModal" onclick="if(event.target===this)closeCmdChartModal()"
+            style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);backdrop-filter:blur(12px);
+                   -webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:2rem">
+            <div style="position:relative;width:min(90vw,1100px);background:rgba(5,7,30,0.97);
+                        border:1px solid rgba(0,242,255,0.2);border-radius:16px;padding:1.5rem;
+                        box-shadow:0 0 60px rgba(0,242,255,0.08)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <div>
+                        <div id="cmdModalTitle" style="font-size:0.85rem;font-weight:900;color:var(--accent);letter-spacing:1px"></div>
+                        <div id="cmdModalSubtitle" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-top:2px"></div>
+                    </div>
+                    <button onclick="closeCmdChartModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+                        color:#ef4444;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:0.7rem;font-weight:700
+                        ">✕ CLOSE</button>
+                </div>
+                <div style="height:65vh;position:relative"><canvas id="cmdModalCanvas"></canvas></div>
             </div>
         </div>
 
@@ -151,6 +175,7 @@ async function renderCommandCenter() {
         // 7. Signal Analytics Charts — built from live signals data
         if (signals && signals.length) {
             const _sigs = signals;
+            window._cmdSigs = _sigs; // cache for modal
 
             // Alpha vs Z-Score Scatter
             setTimeout(() => {
@@ -250,6 +275,123 @@ async function renderCommandCenter() {
     } catch (e) {
         console.error("Command Center Synergy Error:", e);
     }
+}
+
+// ── Chart Zoom Modal ────────────────────────────────────────────────────────
+function openCmdChartModal(key) {
+    const modal = document.getElementById('cmdChartModal');
+    const titleEl = document.getElementById('cmdModalTitle');
+    const subtitleEl = document.getElementById('cmdModalSubtitle');
+    if (!modal) return;
+
+    const sigs = window._cmdSigs || [];
+    const existing = Chart.getChart('cmdModalCanvas'); if (existing) existing.destroy();
+    const el = document.getElementById('cmdModalCanvas');
+    if (!el || !sigs.length) return;
+
+    const meta = {
+        scatter:  { title: 'Alpha vs Z-Score',    subtitle: 'SCATTER · SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED' },
+        donut:    { title: 'Category Mix',         subtitle: 'SECTOR BREAKDOWN — % DISTRIBUTION OF LIVE SIGNALS' },
+        btccorr:  { title: 'BTC Correlation',      subtitle: 'CORRELATION SPREAD — SIGNAL UNIVERSE VS BITCOIN' },
+        alpha:    { title: 'Alpha Leaders',        subtitle: 'TOP 12 BY RELATIVE ALPHA — VS CRYPTO MARKET AVERAGE' },
+    };
+    titleEl.textContent    = meta[key]?.title    || '';
+    subtitleEl.textContent = meta[key]?.subtitle || '';
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCmdChartModal(); }, { once: true });
+
+    setTimeout(() => {
+        const ctx = el.getContext('2d');
+        if (key === 'scatter') {
+            const pts = sigs.map(s => ({ x: parseFloat(s.zScore)||0, y: parseFloat(s.alpha)||0, label: s.ticker.replace('-USD','') }));
+            const quadPlugin = { id:'modalQuadrants', beforeDraw(chart) {
+                const {ctx:c,chartArea:{left,top,right,bottom},scales:{x,y}} = chart;
+                const mx=x.getPixelForValue(0), my=y.getPixelForValue(0); c.save();
+                c.fillStyle='rgba(34,197,94,0.05)';   c.fillRect(mx,top,right-mx,my-top);
+                c.fillStyle='rgba(0,242,255,0.05)';   c.fillRect(left,top,mx-left,my-top);
+                c.fillStyle='rgba(148,163,184,0.02)'; c.fillRect(left,my,mx-left,bottom-my);
+                c.fillStyle='rgba(239,68,68,0.05)';   c.fillRect(mx,my,right-mx,bottom-my);
+                // Quadrant labels
+                c.font='bold 10px JetBrains Mono'; c.globalAlpha=0.4;
+                c.fillStyle='#22c55e'; c.fillText('QUALITY SIGNALS', mx+8, top+16);
+                c.fillStyle='#00f2ff'; c.fillText('HIDDEN GEMS',     left+8, top+16);
+                c.fillStyle='#94a3b8'; c.fillText('WEAK SHORT',      left+8, my+16);
+                c.fillStyle='#ef4444'; c.fillText('OVEREXTENDED',    mx+8,   my+16);
+                c.globalAlpha=1; c.restore();
+            }};
+            new Chart(ctx, {
+                type:'scatter', plugins:[quadPlugin],
+                data:{ datasets:[{ data:pts, pointRadius:7, pointHoverRadius:10,
+                    backgroundColor: pts.map(p=> p.x>0&&p.y>0?'rgba(34,197,94,0.8)':p.x<0&&p.y>0?'rgba(0,242,255,0.8)':p.x>0&&p.y<0?'rgba(239,68,68,0.7)':'rgba(148,163,184,0.55)'),
+                    borderWidth:0 }]},
+                options:{ responsive:true, maintainAspectRatio:false, animation:{duration:400},
+                    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(13,17,23,0.97)', titleColor:'#00f2ff', bodyColor:'#e2e8f0', titleFont:{family:'JetBrains Mono',size:13,weight:'700'}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
+                        callbacks:{ title:i=>i[0].raw.label, label:c=>`Z-Score: ${c.raw.x.toFixed(2)}σ   Alpha: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
+                    scales:{
+                        x:{ title:{display:true,text:'Z-Score (σ)',color:'rgba(255,255,255,0.5)',font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:'rgba(255,255,255,0.07)'}, ticks:{color:'rgba(255,255,255,0.5)',font:{family:'JetBrains Mono',size:10}} },
+                        y:{ title:{display:true,text:'Relative Alpha (%)',color:'rgba(255,255,255,0.5)',font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:'rgba(255,255,255,0.07)'}, ticks:{color:'rgba(255,255,255,0.5)',font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
+                    }
+                }
+            });
+        } else if (key === 'donut') {
+            const cats = {}; sigs.forEach(s=>{ cats[s.category]=(cats[s.category]||0)+1; });
+            const labels=Object.keys(cats), counts=labels.map(k=>cats[k]);
+            const palette=['#00f2ff','#22c55e','#f59e0b','#bc13fe','#ef4444','#60a5fa','#fb923c','#a78bfa','#34d399'];
+            new Chart(ctx, {
+                type:'doughnut',
+                data:{ labels, datasets:[{ data:counts, backgroundColor:labels.map((_,i)=>palette[i%palette.length]+'cc'), borderColor:'rgba(5,7,30,1)', borderWidth:3, hoverOffset:12 }]},
+                options:{ responsive:true, maintainAspectRatio:false, cutout:'55%', animation:{duration:600,animateRotate:true},
+                    plugins:{ legend:{display:true,position:'right',labels:{color:'rgba(255,255,255,0.7)',font:{family:'JetBrains Mono',size:13},boxWidth:14,padding:14}},
+                        tooltip:{ backgroundColor:'rgba(13,17,23,0.97)', titleColor:'#00f2ff', bodyColor:'#e2e8f0', titleFont:{family:'JetBrains Mono',size:13}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
+                            callbacks:{label:c=>` ${c.label}: ${c.raw} signals (${Math.round(c.raw/sigs.length*100)}%)`}}}
+                }
+            });
+        } else if (key === 'btccorr') {
+            const bins=[], binLabels=[];
+            for(let v=-1;v<=1+1e-9;v=parseFloat((v+0.1).toFixed(1))){ bins.push(v); binLabels.push(v.toFixed(1)); }
+            const counts=new Array(bins.length).fill(0);
+            sigs.forEach(s=>{ const corr=Math.max(-1,Math.min(1,parseFloat(s.btcCorrelation)||0)); const idx=Math.round((corr+1)/0.1); if(idx>=0&&idx<counts.length)counts[idx]++; });
+            const barBg=bins.map(v=>v<-0.6?'rgba(239,68,68,0.85)':v<-0.3?'rgba(251,146,60,0.75)':v<0.3?'rgba(148,163,184,0.45)':v<0.6?'rgba(0,242,255,0.65)':'rgba(34,197,94,0.85)');
+            new Chart(ctx, {
+                type:'bar',
+                data:{ labels:binLabels, datasets:[{ data:counts, backgroundColor:barBg, borderColor:barBg.map(c=>c.replace(/[\d.]+\)$/,'1)')), borderWidth:1, borderRadius:4 }]},
+                options:{ responsive:true, maintainAspectRatio:false, animation:{duration:500},
+                    plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.97)',titleColor:'#00f2ff',titleFont:{family:'JetBrains Mono',size:13},bodyFont:{family:'JetBrains Mono',size:11},padding:12,
+                        callbacks:{title:i=>`BTC Correlation: ${i[0].label}`,label:c=>`${c.raw} signals in this bucket`}}},
+                    scales:{
+                        x:{ grid:{display:false}, ticks:{color:c2=>{const v=parseFloat(binLabels[c2.index]);return Math.abs(v)>0.6?'rgba(239,68,68,0.9)':Math.abs(v)>0.3?'rgba(0,242,255,0.7)':'rgba(255,255,255,0.4)';},font:{family:'JetBrains Mono',size:10},maxRotation:0} },
+                        y:{ display:true, position:'right', grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{family:'JetBrains Mono',size:10}} }
+                    }
+                }
+            });
+        } else if (key === 'alpha') {
+            const sorted=[...sigs].filter(s=>s.alpha!==undefined).sort((a,b)=>Math.abs(b.alpha)-Math.abs(a.alpha)).slice(0,12);
+            const labels=sorted.map(s=>s.ticker.replace('-USD','')), values=sorted.map(s=>parseFloat(s.alpha));
+            const colors=values.map(v=>v>=0?'rgba(34,197,94,0.8)':'rgba(239,68,68,0.8)');
+            new Chart(ctx, {
+                type:'bar',
+                data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderColor:colors.map(c=>c.replace(/[\d.]+\)$/,'1)')), borderWidth:1, borderRadius:6 }]},
+                options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:{duration:500},
+                    plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.97)',titleColor:'#00f2ff',titleFont:{family:'JetBrains Mono',size:13},bodyFont:{family:'JetBrains Mono',size:11},padding:12,
+                        callbacks:{label:c=>` Relative Alpha: ${c.raw>=0?'+':''}${parseFloat(c.raw).toFixed(2)}%`}}},
+                    scales:{
+                        x:{ grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.45)',font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
+                        y:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.75)',font:{family:'JetBrains Mono',size:11,weight:'700'}} }
+                    }
+                }
+            });
+        }
+    }, 30);
+}
+
+function closeCmdChartModal() {
+    const modal = document.getElementById('cmdChartModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    const existing = Chart.getChart('cmdModalCanvas'); if (existing) existing.destroy();
 }
 
 // ============= BTC Top-Bar Sparkline =============
