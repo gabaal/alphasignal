@@ -4,13 +4,13 @@
   <!-- ===== ROOT ===== -->
   <url>
     <loc>https://alphasignal.digital/</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=home</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -18,7 +18,7 @@
   <!-- ===== COMMAND CENTER ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=command-center</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -26,31 +26,31 @@
   <!-- ===== GLOBAL MARKETS HUB ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=global-hub</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=etf-flows</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=liquidations</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=oi-radar</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=cme-gaps</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -58,49 +58,49 @@
   <!-- ===== MACRO INTEL HUB ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=macro-hub</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=briefing</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=flow</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=rotation</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=macro</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=correlation-matrix</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=macro-calendar</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=regime</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
@@ -108,43 +108,43 @@
   <!-- ===== ALPHA STRATEGY HUB ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=alpha-hub</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=signals</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>hourly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=alpha-score</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=strategy-lab</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=backtester-v2</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=signal-archive</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=narrative</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
@@ -152,43 +152,43 @@
   <!-- ===== INSTITUTIONAL HUB ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=institutional-hub</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=token-unlocks</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=yield-lab</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=portfolio-optimizer</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=portfolio</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=tradelab</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=ai-rebalancer</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -196,37 +196,37 @@
   <!-- ===== ANALYTICS HUB ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=analytics-hub</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=whales</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=velocity</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=onchain</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=options-flow</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=newsroom</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -234,19 +234,19 @@
   <!-- ===== AUDIT & PERFORMANCE HUB ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=audit-hub</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=trade-ledger</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=performance-dashboard</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
@@ -254,19 +254,19 @@
   <!-- ===== RISK & STRESS HUB ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=risk-hub</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=risk</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=stress</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
@@ -274,7 +274,7 @@
   <!-- ===== ADVANCED CHARTING ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=advanced-charting</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -282,37 +282,72 @@
   <!-- ===== SIDEBAR STANDALONE ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=mindshare</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=liquidity</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=heatmap</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=alerts</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
+
+  <!-- ===== ALERTS HUB ===== -->
+  <url>
+    <loc>https://alphasignal.digital/?view=alerts-hub</loc>
+    <lastmod>2026-03-31</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/?view=price-alerts-hub</loc>
+    <lastmod>2026-03-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/?view=leaderboard-hub</loc>
+    <lastmod>2026-03-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/?view=market-brief-hub</loc>
+    <lastmod>2026-03-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ===== MY TERMINAL ===== -->
+  <url>
+    <loc>https://alphasignal.digital/?view=my-terminal</loc>
+    <lastmod>2026-03-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <url>
     <loc>https://alphasignal.digital/?view=ask-terminal</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=help</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -320,295 +355,301 @@
   <!-- ===== DOCUMENTATION PAGES ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=explain-signals</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-briefing</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-ml-engine</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-alpha-score</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-alpha</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-strategy-lab</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-backtester-v2</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-signal-archive</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-narrative</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-ai-engine</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-etf-flows</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-liquidations</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-oi-radar</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-cme-gaps</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-flow</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-rotation</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-macro-compass</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-macro-calendar</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-regimes</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-correlation</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-token-unlocks</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-yield-lab</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-portfolio-lab</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-tradelab</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-whales</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-velocity</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-onchain</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-options-flow</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-newsroom</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-trade-ledger</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-performance</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-risk</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-zscore</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-advanced-charting</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-tradingview</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-heatmap</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-alerts</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-telegram</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-command-center</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-ask-terminal</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/?view=explain-my-terminal</loc>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-liquidity</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-mindshare</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-sentiment</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-benchmark</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-playbook</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-api</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-glossary</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-pwa</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://alphasignal.digital/?view=explain-topologies</loc>
-    <lastmod>2026-03-29</lastmod>
+    <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
