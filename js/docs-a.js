@@ -1,4 +1,4 @@
-// ============= Help Hub â€” Sidebar-Mirrored Index =============
+ï»¿// ============= Help Hub â€” Sidebar-Mirrored Index =============
 function renderHelp() {
     const hubs = [
         { id: 'global-markets', name: 'Global Markets', icon: 'public', color: '#00f2ff', view: 'global-hub',
@@ -12,7 +12,7 @@ function renderHelp() {
         { id: 'macro-intel', name: 'Macro Intelligence', icon: 'monitoring', color: '#a78bfa', view: 'macro-hub',
           docs: [
             { name: 'Strategy Briefing', desc: '3 components: AI institutional memo, Conviction dials, BTC benchmark chart', route: 'docs-briefing', icon: 'memory' },
-            { name: 'Sector Rotation', desc: '2 components: Sector momentum treemap, Rotation matrix table', route: 'docs-sector-rotation', icon: 'swap_horiz' },
+            { name: 'Sector Rotation', desc: '2 components: Sector momentum treemap, Rotation matrix table', route: 'docs-rotation', icon: 'swap_horiz' },
             { name: 'Macro Compass', desc: '3 components: Macro correlation heatmap, Yield curve chart, DXY overlay', route: 'docs-macro-compass', icon: 'explore' },
             { name: 'Macro Calendar', desc: '2 components: Economic event calendar, BTC impact score table', route: 'docs-macro-calendar', icon: 'calendar_month' },
             { name: 'Market Regime', desc: '3 components: Regime classifier gauge, Transition matrix, Regime heatmap history', route: 'docs-regime', icon: 'category' },
@@ -34,13 +34,13 @@ function renderHelp() {
             { name: 'Token Unlocks', desc: '2 components: Unlock schedule table, Supply impact score badges', route: 'docs-token-unlocks', icon: 'lock_open' },
             { name: 'DeFi Yield Lab', desc: '3 components: Protocol APY comparison table, Avg staking stat, Risk score bar', route: 'docs-yield-lab', icon: 'savings' },
             { name: 'Portfolio Optimizer', desc: '3 components: ML rebalancing table, Radar allocation chart, Efficient frontier scatter', route: 'docs-portfolio-optimizer', icon: 'account_tree' },
-            { name: 'Trade Idea Lab', desc: '2 components: Thesis builder form, Risk/reward calculator', route: 'docs-trade-lab', icon: 'tips_and_updates' },
+            { name: 'Trade Idea Lab', desc: '2 components: Thesis builder form, Risk/reward calculator', route: 'docs-tradelab', icon: 'tips_and_updates' },
           ]
         },
         { id: 'analytics-hub', name: 'Analytics Hub', icon: 'analytics', color: '#22c55e', view: 'analytics-hub',
           docs: [
             { name: 'Whale Pulse', desc: '3 components: Whale transaction feed, Execution time polar chart, Volume bubble scatter', route: 'docs-whale-pulse', icon: 'waves' },
-            { name: 'Chain Velocity', desc: '2 components: Velocity time-series chart, Cross-chain Sankey diagram', route: 'docs-chain-velocity', icon: 'speed' },
+            { name: 'Whale Pulse & Chain Velocity', desc: '2 components: Velocity time-series chart, Cross-chain Sankey diagram', route: 'docs-whale-pulse', icon: 'speed' },
             { name: 'On-Chain Analytics', desc: '5 components: MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Realized Price overlay', route: 'docs-onchain', icon: 'link' },
             { name: 'Options Flow', desc: '4 components: Put/Call ratio gauge, Max Pain chart, IV Smile, Top OI strikes table', route: 'docs-options-flow', icon: 'waterfall_chart' },
             { name: 'Newsroom', desc: '2 components: Live news feed with sentiment tags, Keyword frequency heatmap', route: 'docs-newsroom', icon: 'newspaper' },
@@ -125,6 +125,11 @@ function renderDocsViewETFFlows() {
     renderViewDocPage({
         hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
         title: 'ETF Flows', viewId: 'etf-flows',
+        relatedDocs: [
+            { name: 'Liquidations', route: 'docs-liquidations', icon: 'local_fire_department' },
+            { name: 'OI Radar', route: 'docs-oi-radar', icon: 'track_changes' },
+            { name: 'Macro Compass', route: 'docs-macro-compass', icon: 'explore' },
+        ],
         summary: 'Track real-time institutional capital movement through U.S.-regulated Bitcoin Spot ETF vehicles. These flows are the clearest signal of Wall Street accumulation and distribution cycles currently available to retail traders.',
         components: [
             {
@@ -178,6 +183,11 @@ function renderDocsViewLiquidations() {
     renderViewDocPage({
         hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
         title: 'Liquidations', viewId: 'liquidations',
+        relatedDocs: [
+            { name: 'ETF Flows', route: 'docs-etf-flows', icon: 'account_balance' },
+            { name: 'OI Radar', route: 'docs-oi-radar', icon: 'track_changes' },
+            { name: 'Risk Matrix', route: 'docs-risk-matrix', icon: 'shield' },
+        ],
         summary: 'Monitor forced position closures across all major derivatives exchanges. Liquidation cascades are one of the most reliable indicators of short-term price extremes and are essential context for any leveraged trade.',
         components: [
             {
@@ -219,6 +229,11 @@ function renderDocsViewOIRadar() {
     renderViewDocPage({
         hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
         title: 'OI Radar', viewId: 'oi-radar',
+        relatedDocs: [
+            { name: 'Liquidations', route: 'docs-liquidations', icon: 'local_fire_department' },
+            { name: 'Options Flow', route: 'docs-options-flow', icon: 'waterfall_chart' },
+            { name: 'CME Gaps', route: 'docs-cme-gaps', icon: 'gap_stats' },
+        ],
         summary: 'Open Interest (OI) measures the total number of outstanding derivative contracts. This hub aggregates OI data across Binance, Bybit, OKX, and CME to reveal where leverage is concentrated and which direction the squeeze will come.',
         components: [
             {
@@ -296,7 +311,7 @@ function renderDocsViewCMEGaps() {
 function renderDocsViewBriefing() {
     renderViewDocPage({
         hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
-        title: 'Strategy Briefing', viewId: 'briefing',
+        title: 'Strategy Briefing', viewId: 'macro-hub',
         summary: 'The AI-powered institutional morning brief. Every data point is synthesised into actionable macro context by the AlphaSignal intelligence engine.',
         components: [
             { name: 'AI Institutional Memo', type: 'AI', icon: 'memory',
@@ -317,7 +332,7 @@ function renderDocsViewBriefing() {
 function renderDocsViewSectorRotation() {
     renderViewDocPage({
         hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
-        title: 'Sector Rotation', viewId: 'rotation',
+        title: 'Sector Rotation', viewId: 'macro-hub',
         summary: 'Track which crypto sectors are attracting capital and which are bleeding. Rotation patterns reveal where institutional money is moving before price confirms.',
         components: [
             { name: 'Sector Momentum Treemap', type: 'CHART', icon: 'grid_view',
@@ -334,7 +349,7 @@ function renderDocsViewSectorRotation() {
 function renderDocsViewMacroCompass() {
     renderViewDocPage({
         hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
-        title: 'Macro Compass', viewId: 'macro',
+        title: 'Macro Compass', viewId: 'macro-hub',
         summary: 'Cross-asset correlation analysis combining crypto, equities, bonds, and the US Dollar. Essential for understanding whether Bitcoin is trading as a risk asset, safe haven, or in a detached regime.',
         components: [
             { name: 'Cross-Asset Correlation Heatmap', type: 'CHART', icon: 'grid_on',
@@ -348,14 +363,14 @@ function renderDocsViewMacroCompass() {
             { name: 'DXY (US Dollar Index) Overlay', type: 'CHART', icon: 'currency_exchange',
               description: 'Dual-axis chart of DXY vs BTC price over 90 days. The inverse correlation between dollar strength and crypto is one of the most consistent macro relationships.',
               howToRead: 'Both moving inversely = correlation active, macro-driven. If both rise simultaneously, internal BTC demand is overcoming macro headwinds.',
-              signals: ['DXY falling from multi-year highs = historically strong crypto tailwind','DXY >105 = headwind for all risk assets including crypto','BTC rising while DXY rising = very bullish — unique internal demand overcoming headwinds'] },
+              signals: ['DXY falling from multi-year highs = historically strong crypto tailwind','DXY >105 = headwind for all risk assets including crypto','BTC rising while DXY rising = very bullish ï¿½ unique internal demand overcoming headwinds'] },
         ]
     });
 }
 function renderDocsViewMacroCalendar() {
     renderViewDocPage({
         hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
-        title: 'Macro Calendar', viewId: 'macro-calendar',
+        title: 'Macro Calendar', viewId: 'macro-hub',
         summary: 'Forward-looking calendar of high-impact economic events scored for their expected effect on Bitcoin. Prevents being caught off-guard by scheduled macro volatility.',
         components: [
             { name: 'Economic Event Calendar', type: 'WIDGET', icon: 'calendar_month',
@@ -372,7 +387,7 @@ function renderDocsViewMacroCalendar() {
 function renderDocsViewRegime() {
     renderViewDocPage({
         hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
-        title: 'Market Regime', viewId: 'regime',
+        title: 'Market Regime', viewId: 'macro-hub',
         summary: 'The AlphaSignal Regime Engine classifies the market into High-Volatility Expansion, Low-Volatility Compression, or Neutral/Accumulation. Each regime demands a completely different trading approach.',
         components: [
             { name: 'Current Regime Classifier', type: 'GAUGE', icon: 'category',
@@ -395,12 +410,18 @@ function renderDocsViewSignals() {
     renderViewDocPage({
         hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Signal Intelligence', viewId: 'signals',
+        relatedDocs: [
+            { name: 'ML Engine', route: 'docs-ml-engine', icon: 'smart_toy' },
+            { name: 'Backtester V2', route: 'docs-backtester', icon: 'history' },
+            { name: 'Signal Archive', route: 'docs-signal-archive', icon: 'archive' },
+            { name: 'Alpha Score', route: 'docs-alpha-score', icon: 'electric_bolt' },
+        ],
         summary: 'The core signal engine monitors 50+ assets across MVRV deviations, momentum oscillators, on-chain flows, and social sentiment. Z-score measures how statistically extreme each signal is.',
         components: [
             { name: 'Signal Cards Grid', type: 'WIDGET', icon: 'radar',
               description: 'Each asset generates a card: Ticker, Category, Price, 24h Change, Relative Alpha (%), Sentiment label, BTC Correlation, Z-Score badge. Category filter bar allows sector-level screening. Cards with Z >1.75 pulse with a glow border.',
               howToRead: 'Z-Score colour: cyan (0.5-1.0 mild), amber (1.0-1.75 moderate), red (>1.75 extreme outlier). Positive alpha = asset outperforming BTC. The AI THESIS button generates a GPT-4o-mini trade rationale.',
-              signals: ['Z >2.0 with green alpha = extreme bullish outlier; high-conviction long','Z >1.75 with negative alpha = extreme bearish; short candidate or avoid','Bullish sentiment + low Z = early momentum, not yet extreme — watch to confirm','BEARISH + high Z = crowded short; watch for squeeze potential'] },
+              signals: ['Z >2.0 with green alpha = extreme bullish outlier; high-conviction long','Z >1.75 with negative alpha = extreme bearish; short candidate or avoid','Bullish sentiment + low Z = early momentum, not yet extreme ï¿½ watch to confirm','BEARISH + high Z = crowded short; watch for squeeze potential'] },
             { name: 'Strategy Firing Density Histogram (30D)', type: 'CHART', icon: 'bar_chart',
               description: '30-day bar chart of daily signal count. Colour by density: grey (<4), cyan (4-7), amber (7-12), red (>18). Reveals whether the current signal environment is active or quiet.',
               howToRead: 'High bars on the right = active environment. Grey plateau then sudden spike = market waking up. Consecutive red bars = extreme activity coinciding with major price moves.',
@@ -420,11 +441,11 @@ function renderDocsViewMLEngine() {
     renderViewDocPage({
         hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'ML Alpha Engine', viewId: 'signals',
-        summary: 'The dual-model ensemble (LSTM + XGBoost) generates 24h price direction predictions. This view exposes the model internals — confidence scores, feature importances, and agreement metrics.',
+        summary: 'The dual-model ensemble (LSTM + XGBoost) generates 24h price direction predictions. This view exposes the model internals ï¿½ confidence scores, feature importances, and agreement metrics.',
         components: [
             { name: 'ML Prediction Table', type: 'TABLE', icon: 'smart_toy',
               description: 'Ranked table: Asset, ML Direction (LONG/SHORT/NEUTRAL), LSTM Confidence %, XGBoost Confidence %, Ensemble Consensus (HIGH/MEDIUM/LOW), Primary reason. Sorted by ensemble confidence.',
-              howToRead: 'Focus on HIGH consensus rows — both models agree. Both >70% = elite signal quality.',
+              howToRead: 'Focus on HIGH consensus rows ï¿½ both models agree. Both >70% = elite signal quality.',
               signals: ['Both models >75% same direction = highest-conviction terminal setup','Models disagreeing = LOW consensus; skip or reduce size significantly','NEUTRAL across majority of assets = no strong trend; cash is a valid position'] },
             { name: 'Feature Importance Bar Chart', type: 'CHART', icon: 'bar_chart',
               description: 'Horizontal bars ranking the top 10 XGBoost input features by contribution: RSI deviation, MVRV Z-score, funding rate, volume delta, social velocity, on-chain active addresses.',
@@ -450,7 +471,7 @@ function renderDocsViewAlphaScore() {
             { name: 'Grade Distribution Summary', type: 'STAT', icon: 'grade',
               description: 'Stat cards showing count and percentage of assets in each grade bucket (A/B/C/D). Market-wide health read at a glance.',
               howToRead: 'Healthy bull market = 30-40% of assets in A or B. Bear market compresses most into D.',
-              signals: ['>40% Grade A = euphoric bull; caution on new entries — late cycle','> 60% Grade D = broad capitulation; contrarian buy zone likely forming','Even distribution across A/B/C/D = balanced market; individual asset selection critical'] },
+              signals: ['>40% Grade A = euphoric bull; caution on new entries ï¿½ late cycle','> 60% Grade D = broad capitulation; contrarian buy zone likely forming','Even distribution across A/B/C/D = balanced market; individual asset selection critical'] },
         ]
     });
 }
@@ -463,7 +484,7 @@ function renderDocsViewStrategyLab() {
             { name: 'Strategy Selector & Parameters', type: 'FORM', icon: 'science',
               description: 'Dropdown to select a strategy (MVRV Reversion, Momentum Cross, Regime-Adaptive, VWAP Bounce) with configurable asset, lookback window, and signal threshold.',
               howToRead: 'Start with default parameters. Modify one parameter at a time. Wide thresholds fire fewer but higher-quality signals.',
-              signals: ['MVRV Reversion works best in HIGH-VOL regimes','Regime-Adaptive works across all market states','Momentum Cross requires a confirmed trend — check Regime view first before using'] },
+              signals: ['MVRV Reversion works best in HIGH-VOL regimes','Regime-Adaptive works across all market states','Momentum Cross requires a confirmed trend ï¿½ check Regime view first before using'] },
             { name: 'Strategy Equity Curve', type: 'CHART', icon: 'show_chart',
               description: 'Cumulative portfolio value from  over the backtested period. Green dots = entries, red dots = exits. Compared against BTC buy-and-hold baseline.',
               howToRead: 'Strategy line consistently above BTC baseline = alpha being generated. Large sudden drops = drawdown periods. Smooth steady rise = robust strategy.',
@@ -483,7 +504,7 @@ function renderDocsViewBacktester() {
     renderViewDocPage({
         hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Backtester V2', viewId: 'backtester-v2',
-        summary: 'Institutional-grade backtests across the full AlphaSignal history. Every metric is computed on actual historical signals — not reconstructed or curve-fitted.',
+        summary: 'Institutional-grade backtests across the full AlphaSignal history. Every metric is computed on actual historical signals ï¿½ not reconstructed or curve-fitted.',
         components: [
             { name: 'Rolling Sharpe Ratio Chart', type: 'CHART', icon: 'show_chart',
               description: '30-day rolling Sharpe Ratio time-series across the full backtest period. Reference line at Sharpe = 1.0 marks the minimum acceptable institutional threshold.',
@@ -491,11 +512,11 @@ function renderDocsViewBacktester() {
               signals: ['Consistently >1.5 over 90+ days = institutionally viable strategy; deploy capital','Dropping from 2.0 to 0.5 = entering difficult regime; reduce exposure','Recovering from negative to positive = regime aligning again'] },
             { name: 'Monthly P&L Heatmap Calendar', type: 'CHART', icon: 'calendar_month',
               description: 'Calendar heatmap of monthly returns: dark green (>+5%), light green (+1-5%), grey (flat), orange (-1 to -5%), red (<-5%). Reveals seasonal patterns in strategy performance.',
-              howToRead: 'Look for consistent red or green months across multiple years — these are structural patterns worth accounting for.',
+              howToRead: 'Look for consistent red or green months across multiple years ï¿½ these are structural patterns worth accounting for.',
               signals: ['Consistent red in January = reduce exposure in Jan for this strategy','Consistent green in Q4 = end-of-year institutional buying benefits this strategy','Isolated red months surrounded by green = one-off event, not structural'] },
             { name: 'Trade Summary Statistics Panel', type: 'STAT', icon: 'analytics',
               description: 'Full stats: Total Trades, Win Rate %, Avg Win, Avg Loss, Profit Factor (Wins/Losses), Max Drawdown %, Calmar Ratio (Annual Return / Max DD), Best/Worst single trade.',
-              howToRead: 'Profit Factor >1.5 = makes .50 per  lost. Win Rate alone misleads — 40% win rate with 3:1 reward/risk beats 70% win rate with 1:2.',
+              howToRead: 'Profit Factor >1.5 = makes .50 per  lost. Win Rate alone misleads ï¿½ 40% win rate with 3:1 reward/risk beats 70% win rate with 1:2.',
               signals: ['Profit Factor >2.0 = excellent edge; full allocation justified','Max Drawdown >30% = strong risk management protocols required','Calmar >1.0 = annual return exceeds max drawdown; strong risk-adjusted profile'] },
         ]
     });

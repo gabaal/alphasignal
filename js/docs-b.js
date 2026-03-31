@@ -1,4 +1,4 @@
-// docs-b.js — remaining hub documentation
+﻿// docs-b.js — remaining hub documentation
 // Institutional | Analytics | Audit | Risk | Advanced Charting | Order Flow | Alerts | Personal
 
 // ============= INSTITUTIONAL HUB =============
@@ -158,6 +158,12 @@ function renderDocsViewOnchain() {
     renderViewDocPage({
         hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
         title: 'On-Chain Analytics', viewId: 'analytics-hub',
+        relatedDocs: [
+            { name: 'Whale Pulse', route: 'docs-whale-pulse', icon: 'waves' },
+            { name: 'Options Flow', route: 'docs-options-flow', icon: 'waterfall_chart' },
+            { name: 'Market Regime', route: 'docs-regime', icon: 'category' },
+            { name: 'Macro Compass', route: 'docs-macro-compass', icon: 'explore' },
+        ],
         summary: 'Five proven on-chain valuation and behaviour metrics that have historically identified Bitcoin market cycle tops and bottoms. These are the metrics institutional analysts track when price action alone is insufficient.',
         components: [
             {
@@ -319,6 +325,11 @@ function renderDocsViewPerformance() {
     renderViewDocPage({
         hub: 'Audit & Performance', hubIcon: 'trending_up', hubColor: '#60a5fa',
         title: 'Performance Dashboard', viewId: 'audit-hub',
+        relatedDocs: [
+            { name: 'Trade Ledger', route: 'docs-trade-ledger', icon: 'receipt_long' },
+            { name: 'Signal Archive', route: 'docs-signal-archive', icon: 'archive' },
+            { name: 'Backtester V2', route: 'docs-backtester', icon: 'history' },
+        ],
         summary: 'Comprehensive portfolio performance metrics in institutional reporting format. Track win rate, ROI, and equity growth across all time horizons.',
         components: [
             {
@@ -360,6 +371,11 @@ function renderDocsViewRiskMatrix() {
     renderViewDocPage({
         hub: 'Risk & Stress', hubIcon: 'grid_on', hubColor: '#ef4444',
         title: 'Risk Matrix', viewId: 'risk-hub',
+        relatedDocs: [
+            { name: 'Stress Test Lab', route: 'docs-stress-lab', icon: 'warning' },
+            { name: 'Liquidations', route: 'docs-liquidations', icon: 'local_fire_department' },
+            { name: 'OI Radar', route: 'docs-oi-radar', icon: 'track_changes' },
+        ],
         summary: 'Institutional position risk management. Calculate Value-at-Risk, volatility-adjusted position sizing, and portfolio-level correlation exposure before every trade.',
         components: [
             {

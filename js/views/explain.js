@@ -53,7 +53,7 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
 }
 
 // ============= New Per-Chart Doc Template =============
-function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, viewId, summary, components }) {
+function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, viewId, summary, components, relatedDocs = [] }) {
     const typeStyles = {
         'CHART':  { bg: 'rgba(0,242,255,0.08)',    color: '#00f2ff',  border: 'rgba(0,242,255,0.2)'    },
         'TABLE':  { bg: 'rgba(188,19,254,0.08)',   color: '#bc13fe',  border: 'rgba(188,19,254,0.2)'   },
@@ -118,12 +118,24 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
                 </div>`;
             }).join('')}
 
+            ${relatedDocs.length ? `
+            <div style="padding-top:1.2rem;border-top:1px solid rgba(255,255,255,0.06)">
+                <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:0.8rem;display:flex;align-items:center;gap:6px">
+                    <span class="material-symbols-outlined" style="font-size:13px">link</span>RELATED GUIDES
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+                    ${relatedDocs.map(r => `<button onclick="switchView('${r.route}')" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);font-size:0.72rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;font-family:inherit" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--text-dim)'">
+                        <span class="material-symbols-outlined" style="font-size:13px">${r.icon || 'article'}</span>${r.name}
+                    </button>`).join('')}
+                </div>
+            </div>` : ''}
+
             <div style="display:flex;gap:1rem;flex-wrap:wrap;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.06)">
                 <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;width:auto">
                     <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span> HELP HUB
                 </button>
                 ${viewId ? `<button class="intel-action-btn" onclick="switchView('${viewId}')" style="display:flex;align-items:center;gap:8px;width:auto;background:${hubColor};color:#000;font-weight:800">
-                    <span class="material-symbols-outlined" style="font-size:16px">open_in_new</span> OPEN VIEW
+                    <span class="material-symbols-outlined" style="font-size:16px">open_in_new</span> OPEN VIEW IN TERMINAL
                 </button>` : ''}
             </div>
         </div>
