@@ -90,9 +90,11 @@ async function renderCommandCenter() {
                 </div>
                 <div style="height:350px"><canvas id="cmd-etf-chart"></canvas></div>
             </div>
-            <div class="card">
+            <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('corr')"
+                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                 <div class="card-header">
                     <h3>MACRO CORRELATION MATRIX</h3>
+                    <span class="label-tag" style="cursor:zoom-in">CLICK TO EXPAND</span>
                 </div>
                 <div id="cmd-corr-matrix" style="height:350px; overflow:hidden"></div>
             </div>
@@ -142,7 +144,10 @@ async function renderCommandCenter() {
         // 4. Correlation Matrix
         try {
             const corrData = await fetchAPI('/correlation-matrix');
-            if (corrData) renderCorrelationHeatmap('cmd-corr-matrix', corrData);
+            if (corrData) {
+                window._cmdCorrData = corrData; // cache for modal
+                renderCorrelationHeatmap('cmd-corr-matrix', corrData);
+            }
         } catch(e) { console.error("Corr Matrix Error:", e); }
 
         // 5. Top Signals
@@ -287,13 +292,16 @@ function openCmdChartModal(key) {
     const sigs = window._cmdSigs || [];
     const existing = Chart.getChart('cmdModalCanvas'); if (existing) existing.destroy();
     const el = document.getElementById('cmdModalCanvas');
-    if (!el || !sigs.length) return;
+    if (!el) return;
+    // For chart-based modals, require signals. Corr modal uses corrData instead.
+    if (key !== 'corr' && !sigs.length) return;
 
     const meta = {
-        scatter:  { title: 'Alpha vs Z-Score',    subtitle: 'SCATTER · SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED' },
-        donut:    { title: 'Category Mix',         subtitle: 'SECTOR BREAKDOWN — % DISTRIBUTION OF LIVE SIGNALS' },
-        btccorr:  { title: 'BTC Correlation',      subtitle: 'CORRELATION SPREAD — SIGNAL UNIVERSE VS BITCOIN' },
-        alpha:    { title: 'Alpha Leaders',        subtitle: 'TOP 12 BY RELATIVE ALPHA — VS CRYPTO MARKET AVERAGE' },
+        scatter:  { title: 'Alpha vs Z-Score',       subtitle: 'SCATTER · SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED' },
+        donut:    { title: 'Category Mix',            subtitle: 'SECTOR BREAKDOWN — % DISTRIBUTION OF LIVE SIGNALS' },
+        btccorr:  { title: 'BTC Correlation',         subtitle: 'CORRELATION SPREAD — SIGNAL UNIVERSE VS BITCOIN' },
+        alpha:    { title: 'Alpha Leaders',           subtitle: 'TOP 12 BY RELATIVE ALPHA — VS CRYPTO MARKET AVERAGE' },
+        corr:     { title: 'Macro Correlation Matrix',subtitle: 'PAIRWISE PEARSON CORRELATION — CYAN=POSITIVE · RED=NEGATIVE · OPACITY=STRENGTH' },
     };
     titleEl.textContent    = meta[key]?.title    || '';
     subtitleEl.textContent = meta[key]?.subtitle || '';
@@ -301,6 +309,68 @@ function openCmdChartModal(key) {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCmdChartModal(); }, { once: true });
+
+    // Correlation matrix is div-based — handle separately
+    if (key === 'corr') {
+        el.style.display = 'none'; // hide canvas
+        let corrDiv = document.getElementById('cmdModalCorrDiv');
+        if (!corrDiv) {
+            corrDiv = document.createElement('div');
+            corrDiv.id = 'cmdModalCorrDiv';
+            el.parentNode.appendChild(corrDiv);
+        }
+        corrDiv.style.cssText = 'height:65vh;overflow:auto;padding:8px';
+        const data = window._cmdCorrData;
+        if (!data) { corrDiv.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:2rem">No correlation data cached yet — open Command Center first.</p>'; return; }
+
+        const labels = data.tickers || data.assets || [];
+        const matrix = data.matrix || [];
+        const n = labels.length;
+        const cellPx = Math.max(36, Math.min(60, Math.floor((window.innerWidth * 0.78) / (n + 1))));
+
+        // Build labelled grid: top row = column headers (rotated), first col = row labels
+        let html = `<div style="display:inline-grid;grid-template-columns:${cellPx*1.6}px repeat(${n},${cellPx}px);gap:1px;min-width:max-content">`;
+        // Top-left empty corner
+        html += `<div></div>`;
+        // Column headers (rotated)
+        labels.forEach(l => {
+            html += `<div style="writing-mode:vertical-lr;transform:rotate(180deg);font-size:${Math.min(9,cellPx*0.22)}px;font-weight:700;
+                color:rgba(255,255,255,0.5);font-family:'JetBrains Mono';text-align:center;padding:4px 0;white-space:nowrap">${l.replace('-USD','')}</div>`;
+        });
+        // Data rows
+        labels.forEach((rowLabel, ri) => {
+            // Row label
+            html += `<div style="font-size:${Math.min(9,cellPx*0.22)}px;font-weight:700;color:rgba(255,255,255,0.6);
+                font-family:'JetBrains Mono';display:flex;align-items:center;justify-content:flex-end;
+                padding-right:6px;white-space:nowrap">${rowLabel.replace('-USD','')}</div>`;
+            // Cells for this row
+            labels.forEach((colLabel, ci) => {
+                const cell = matrix.find(c => {
+                    const cx = c.x || c.assetA, cy = c.y || c.assetB;
+                    return cx === rowLabel && cy === colLabel;
+                });
+                const v = cell ? (cell.v !== undefined ? cell.v : cell.correlation) : 0;
+                const isdiag = ri === ci;
+                const opacity = isdiag ? 0.15 : Math.abs(v);
+                const bg = isdiag ? 'rgba(255,255,255,0.08)' : v > 0 ? `rgba(0,242,255,${opacity.toFixed(2)})` : `rgba(255,62,62,${opacity.toFixed(2)})`;
+                const textColor = Math.abs(v) > 0.5 || isdiag ? 'white' : 'rgba(255,255,255,0.6)';
+                html += `<div title="${rowLabel.replace('-USD','')} vs ${colLabel.replace('-USD','')}: ${v.toFixed ? v.toFixed(2) : v}"
+                    style="width:${cellPx}px;height:${cellPx}px;background:${bg};display:flex;align-items:center;justify-content:center;
+                    font-size:${Math.min(9,cellPx*0.2)}px;font-weight:900;color:${textColor};
+                    font-family:'JetBrains Mono';border:1px solid rgba(0,0,0,0.15);border-radius:2px">
+                    ${isdiag ? rowLabel.replace('-USD','') : (v.toFixed ? v.toFixed(2) : '')}
+                </div>`;
+            });
+        });
+        html += '</div>';
+        corrDiv.innerHTML = html;
+        return; // skip the setTimeout below
+    }
+
+    // Hide any old corr div
+    const oldCorrDiv = document.getElementById('cmdModalCorrDiv');
+    if (oldCorrDiv) { oldCorrDiv.style.display = 'none'; }
+    el.style.display = '';
 
     setTimeout(() => {
         const ctx = el.getContext('2d');
@@ -392,6 +462,10 @@ function closeCmdChartModal() {
     modal.style.display = 'none';
     document.body.style.overflow = '';
     const existing = Chart.getChart('cmdModalCanvas'); if (existing) existing.destroy();
+    const corrDiv = document.getElementById('cmdModalCorrDiv');
+    if (corrDiv) corrDiv.style.display = 'none';
+    const canvasEl = document.getElementById('cmdModalCanvas');
+    if (canvasEl) canvasEl.style.display = '';
 }
 
 // ============= BTC Top-Bar Sparkline =============
