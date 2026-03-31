@@ -1,4 +1,4 @@
-import sqlite3, json, os, requests, threading, time
+import sqlite3, os, requests, threading, time
 from datetime import datetime, timedelta
 from backend.database import DB_PATH, SUPABASE_URL, SUPABASE_HEADERS
 from backend.services import NOTIFY
@@ -6,6 +6,11 @@ from backend.services import NOTIFY
 # ── Configurable send time (UTC) ──────────────────────────────
 DIGEST_HOUR_UTC   = 7
 DIGEST_MINUTE_UTC = 30
+
+
+# ─────────────────────────────────────────────────────────────
+# DATA HELPERS
+# ─────────────────────────────────────────────────────────────
 
 def _get_top_signals(limit=5):
     """Top signals from last 24h by severity, then recency."""
@@ -34,6 +39,7 @@ def _get_top_signals(limit=5):
         print(f"[Digest] Error fetching signals: {e}")
         return []
 
+
 def _get_btc_summary():
     """Latest BTC price from market_ticks."""
     try:
@@ -43,52 +49,266 @@ def _get_btc_summary():
         row = c.fetchone()
         conn.close()
         return float(row[1]) if row else None
-    except:
+    except Exception:
         return None
 
-def _get_user_watchlist(user_email):
-    """Fetch user's watchlist from Supabase, return items near target (within 5%)."""
+
+def _get_eligible_users():
+    """Return all user emails with alerts enabled."""
     try:
-        # Get user_id from Supabase first
-        url = f"{SUPABASE_URL}/rest/v1/watchlist?select=ticker,target_price,note&user_id=eq."
-        # We need to look up user_id by email via auth.users — instead query by email join
-        # Simpler: use service-role key if available, else skip watchlist personalisation
-        # For now return empty list gracefully — watchlist alerts still work in-browser
-        return []
-    except:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("""
+            SELECT user_email FROM user_settings
+            WHERE alerts_enabled = 1
+              AND user_email IS NOT NULL
+              AND user_email != ''
+        """)
+        rows = [r[0] for r in c.fetchall()]
+        conn.close()
+        return rows
+    except Exception as e:
+        print(f"[Digest] Error fetching users: {e}")
         return []
 
+
+# ─────────────────────────────────────────────────────────────
+# EMAIL DIGEST  (Resend API)
+# ─────────────────────────────────────────────────────────────
+
+def _sev_color(sev):
+    return {'CRITICAL': '#ef4444', 'HIGH': '#fb923c', 'MEDIUM': '#facc15'}.get(sev, '#94a3b8')
+
+def _sev_label(sev):
+    return {'CRITICAL': '🔴 CRITICAL', 'HIGH': '🟠 HIGH', 'MEDIUM': '🟡 MEDIUM'}.get(sev, '⚪ LOW')
+
+
+def _build_email_html(user_email, signals, btc_price):
+    """Render a premium dark-themed HTML digest email."""
+    now = datetime.utcnow().strftime('%A, %d %B %Y')
+    terminal_url = 'https://alphasignal.digital'
+
+    btc_row = ''
+    if btc_price:
+        btc_row = f"""
+        <tr>
+          <td style="padding:14px 28px;background:#0d1117;border-bottom:1px solid #1e2433;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td>
+                  <span style="font-family:'JetBrains Mono',monospace,sans-serif;font-size:11px;
+                    font-weight:700;letter-spacing:2px;color:#6b7280;">BTC / USD</span>
+                </td>
+                <td align="right">
+                  <span style="font-family:'JetBrains Mono',monospace,sans-serif;font-size:22px;
+                    font-weight:900;color:#00f2ff;">${btc_price:,.0f}</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>"""
+
+    signal_rows = ''
+    if signals:
+        for s in signals[:3]:
+            sev      = s.get('severity', 'MEDIUM')
+            color    = _sev_color(sev)
+            label    = _sev_label(sev)
+            ticker   = s.get('ticker', '?').replace('-USD', '')
+            sig_type = s.get('type', '').replace('_', ' ')
+            price_str = f"${s['price']:,.4f}" if s.get('price') else ''
+            raw_msg  = s.get('message') or ''
+            msg      = raw_msg[:120] + ('...' if len(raw_msg) > 120 else '')
+            msg_row  = (
+                f'<tr><td colspan="2" style="padding-top:6px;">'
+                f'<span style="font-family:Arial,sans-serif;font-size:12px;color:#64748b;line-height:1.5;">'
+                f'{msg}</span></td></tr>'
+            ) if msg else ''
+            signal_rows += f"""
+            <tr>
+              <td style="padding:16px 28px;border-bottom:1px solid #1e2433;border-left:3px solid {color};">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td>
+                      <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;
+                        letter-spacing:2px;color:{color};text-transform:uppercase;">{label}</span>
+                    </td>
+                    <td align="right">
+                      <span style="font-family:'JetBrains Mono',monospace,sans-serif;font-size:11px;
+                        color:#94a3b8;">{price_str}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="padding-top:4px;">
+                      <span style="font-family:Arial,sans-serif;font-size:15px;font-weight:700;
+                        color:#f8fafc;">{ticker}</span>
+                      <span style="font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;
+                        margin-left:8px;">{sig_type}</span>
+                    </td>
+                  </tr>
+                  {msg_row}
+                </table>
+              </td>
+            </tr>"""
+    else:
+        signal_rows = """
+        <tr>
+          <td style="padding:24px 28px;text-align:center;color:#64748b;font-family:Arial,sans-serif;font-size:13px;">
+            No signals fired in the last 24h — markets were quiet.
+          </td>
+        </tr>"""
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>AlphaSignal Morning Digest</title>
+</head>
+<body style="margin:0;padding:0;background:#05070a;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#05070a;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0"
+          style="max-width:600px;width:100%;background:#0d1117;border-radius:12px;
+                 border:1px solid #1e2433;overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:28px 28px 20px;background:linear-gradient(135deg,#0d1117 0%,#0a0f1e 100%);
+                border-bottom:1px solid #1e2433;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <span style="font-family:Arial,sans-serif;font-size:22px;font-weight:900;
+                      color:#f8fafc;letter-spacing:-0.5px;">Alpha<span style="color:#00f2ff;">Signal</span></span>
+                    <span style="display:block;font-family:Arial,sans-serif;font-size:9px;
+                      font-weight:700;letter-spacing:3px;color:#6b7280;margin-top:3px;">
+                      INSTITUTIONAL INTELLIGENCE TERMINAL</span>
+                  </td>
+                  <td align="right" style="vertical-align:top;">
+                    <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;
+                      letter-spacing:2px;color:#00f2ff;background:rgba(0,242,255,0.1);
+                      border:1px solid rgba(0,242,255,0.25);padding:4px 10px;border-radius:20px;">
+                      MORNING DIGEST</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding-top:12px;">
+                    <span style="font-family:Arial,sans-serif;font-size:12px;color:#6b7280;">{now} · 07:30 UTC</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- BTC price -->
+          {btc_row}
+
+          <!-- Signals heading -->
+          <tr>
+            <td style="padding:16px 28px 8px;background:#0d1117;">
+              <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;
+                letter-spacing:3px;color:#6b7280;">TOP SIGNALS — LAST 24H</span>
+            </td>
+          </tr>
+
+          <!-- Signal rows -->
+          {signal_rows}
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding:24px 28px;background:#0d1117;text-align:center;">
+              <a href="{terminal_url}" target="_blank"
+                style="display:inline-block;background:#00f2ff;color:#000;font-family:Arial,sans-serif;
+                  font-size:12px;font-weight:900;letter-spacing:2px;padding:12px 28px;
+                  border-radius:8px;text-decoration:none;">
+                OPEN TERMINAL &rarr;
+              </a>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:16px 28px;background:#080b12;border-top:1px solid #1e2433;text-align:center;">
+              <span style="font-family:Arial,sans-serif;font-size:10px;color:#374151;line-height:1.6;">
+                You're receiving this because you enabled alerts on
+                <a href="{terminal_url}" style="color:#4b5563;text-decoration:none;">alphasignal.digital</a>.<br>
+                <a href="{terminal_url}/?view=alert-settings" style="color:#4b5563;">Unsubscribe</a>
+                &nbsp;·&nbsp;
+                <a href="{terminal_url}" style="color:#4b5563;">AlphaSignal Terminal</a>
+              </span>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+
+def _send_resend_email(to_email, subject, html_body):
+    """Send an email via the Resend API. Requires RESEND_API_KEY env var."""
+    api_key  = os.getenv('RESEND_API_KEY', '')
+    from_addr = os.getenv('RESEND_FROM', 'AlphaSignal <digest@alphasignal.digital>')
+    if not api_key:
+        print('[Digest] RESEND_API_KEY not set — skipping email', flush=True)
+        return False
+    try:
+        resp = requests.post(
+            'https://api.resend.com/emails',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'from': from_addr,
+                'to': [to_email],
+                'subject': subject,
+                'html': html_body,
+            },
+            timeout=15
+        )
+        if resp.status_code in (200, 201, 202):
+            print(f'[Digest] Email sent to {to_email}', flush=True)
+            return True
+        else:
+            print(f'[Digest] Email failed ({resp.status_code}): {resp.text}', flush=True)
+            return False
+    except Exception as e:
+        print(f'[Digest] Email error for {to_email}: {e}', flush=True)
+        return False
+
+
+# ─────────────────────────────────────────────────────────────
+# TELEGRAM DIGEST
+# ─────────────────────────────────────────────────────────────
+
 def _build_telegram_digest(user_email, signals, btc_price):
-    """Build Telegram-formatted digest message."""
     now = datetime.utcnow().strftime('%d %b %Y')
     lines = [
         f"📊 *AlphaSignal Morning Digest — {now}*",
-        f"━━━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━━━━━━",
     ]
-
-    # BTC summary
     if btc_price:
         lines.append(f"₿ *BTC:* ${btc_price:,.0f}")
         lines.append("")
-
-    # Top signals
     if signals:
-        lines.append(f"🔔 *Top Signals (Last 24h)*")
-        for i, s in enumerate(signals[:3], 1):
-            sev = s.get('severity', 'MEDIUM')
+        lines.append("🔔 *Top Signals (Last 24h)*")
+        for s in signals[:3]:
+            sev  = s.get('severity', 'MEDIUM')
             icon = {'CRITICAL': '🔴', 'HIGH': '🟠', 'MEDIUM': '🟡'}.get(sev, '⚪')
             ticker = s.get('ticker', '?').replace('-USD', '')
             sig_type = s.get('type', '')
             price_str = f"@ ${s['price']:,.2f}" if s.get('price') else ''
-            ts = s.get('timestamp', '')[:10]
             lines.append(f"{icon} *{ticker}* — {sig_type} {price_str}")
-            # Truncate message to 80 chars
             msg = s.get('message', '')
             if msg:
                 lines.append(f"   _{msg[:80]}{'...' if len(msg) > 80 else ''}_")
     else:
         lines.append("✅ No signals in the last 24h — markets are quiet.")
-
     lines += [
         "",
         "━━━━━━━━━━━━━━━━━━━━━━",
@@ -97,29 +317,29 @@ def _build_telegram_digest(user_email, signals, btc_price):
     ]
     return "\n".join(lines)
 
+
+# ─────────────────────────────────────────────────────────────
+# DISCORD DIGEST
+# ─────────────────────────────────────────────────────────────
+
 def _build_discord_digest(user_email, signals, btc_price):
-    """Build Discord embed payload."""
     now = datetime.utcnow().strftime('%d %b %Y')
     fields = []
-
     if btc_price:
         fields.append({"name": "BTC Price", "value": f"`${btc_price:,.0f}`", "inline": True})
-
     for s in signals[:3]:
-        sev = s.get('severity', 'MEDIUM')
-        icon = {'CRITICAL': '🔴', 'HIGH': '🟠', 'MEDIUM': '🟡'}.get(sev, '⚪')
+        sev    = s.get('severity', 'MEDIUM')
+        icon   = {'CRITICAL': '🔴', 'HIGH': '🟠', 'MEDIUM': '🟡'}.get(sev, '⚪')
         ticker = s.get('ticker', '?').replace('-USD', '')
         price_str = f"@ ${s['price']:,.2f}" if s.get('price') else ''
-        msg = (s.get('message', '') or '')[:100]
+        msg    = (s.get('message', '') or '')[:100]
         fields.append({
             "name": f"{icon} {ticker} — {s.get('type','')} {price_str}",
             "value": msg or "No details",
             "inline": False
         })
-
     if not signals:
         fields.append({"name": "No Signals", "value": "Markets were quiet in the last 24h.", "inline": False})
-
     return {
         "embeds": [{
             "title": f"📊 Morning Digest — {now}",
@@ -130,11 +350,25 @@ def _build_discord_digest(user_email, signals, btc_price):
         }]
     }
 
+
+# ─────────────────────────────────────────────────────────────
+# MAIN SEND FUNCTION
+# ─────────────────────────────────────────────────────────────
+
 def send_digest_to_user(user_email):
-    """Build and send the daily digest to a single user via Telegram + Discord."""
+    """Send daily digest to one user: Email + Telegram + Discord."""
     try:
-        signals  = _get_top_signals(limit=3)
-        btc      = _get_btc_summary()
+        signals = _get_top_signals(limit=3)
+        btc     = _get_btc_summary()
+
+        # ── Email (Resend) ─────────────────────────────────────
+        try:
+            now_str = datetime.utcnow().strftime('%d %b %Y')
+            subject = f"AlphaSignal Morning Digest — {now_str}"
+            html    = _build_email_html(user_email, signals, btc)
+            _send_resend_email(user_email, subject, html)
+        except Exception as e:
+            print(f"[Digest] Email build error for {user_email}: {e}")
 
         # ── Telegram ───────────────────────────────────────────
         bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -147,14 +381,13 @@ def send_digest_to_user(user_email):
                 conn.close()
                 if row and row[0]:
                     msg = _build_telegram_digest(user_email, signals, btc)
-                    tg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    requests.post(tg_url, json={
-                        "chat_id": row[0],
-                        "text": msg,
-                        "parse_mode": "Markdown",
-                        "disable_web_page_preview": False
-                    }, timeout=10)
-                    print(f"[Digest] Telegram sent to {user_email}")
+                    requests.post(
+                        f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                        json={"chat_id": row[0], "text": msg,
+                              "parse_mode": "Markdown", "disable_web_page_preview": False},
+                        timeout=10
+                    )
+                    print(f"[Digest] Telegram sent to {user_email}", flush=True)
             except Exception as e:
                 print(f"[Digest] Telegram error for {user_email}: {e}")
 
@@ -168,49 +401,32 @@ def send_digest_to_user(user_email):
             if row and row[0]:
                 payload = _build_discord_digest(user_email, signals, btc)
                 requests.post(row[0], json=payload, timeout=10)
-                print(f"[Digest] Discord sent to {user_email}")
+                print(f"[Digest] Discord sent to {user_email}", flush=True)
         except Exception as e:
             print(f"[Digest] Discord error for {user_email}: {e}")
 
     except Exception as e:
         print(f"[Digest] Fatal error for {user_email}: {e}")
 
-def _get_eligible_users():
-    """Return all user emails with alerts enabled and at least one delivery channel."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("""
-            SELECT user_email FROM user_settings
-            WHERE alerts_enabled = 1
-              AND (
-                  (telegram_chat_id IS NOT NULL AND telegram_chat_id != '')
-                  OR (discord_webhook IS NOT NULL AND discord_webhook != '')
-              )
-        """)
-        rows = [r[0] for r in c.fetchall()]
-        conn.close()
-        return rows
-    except Exception as e:
-        print(f"[Digest] Error fetching users: {e}")
-        return []
+
+# ─────────────────────────────────────────────────────────────
+# CRON SCHEDULER
+# ─────────────────────────────────────────────────────────────
 
 def start_digest_cron():
-    """Background thread: sends digest to all eligible users at DIGEST_HOUR_UTC:DIGEST_MINUTE_UTC UTC daily."""
+    """Background daemon: fires digest at DIGEST_HOUR_UTC:DIGEST_MINUTE_UTC UTC daily."""
     def _loop():
         print(f"[Digest] Cron started — will send at {DIGEST_HOUR_UTC:02d}:{DIGEST_MINUTE_UTC:02d} UTC daily", flush=True)
         while True:
             try:
-                now = datetime.utcnow()
+                now    = datetime.utcnow()
                 target = now.replace(hour=DIGEST_HOUR_UTC, minute=DIGEST_MINUTE_UTC, second=0, microsecond=0)
                 if now >= target:
-                    # Already past today's send time — schedule for tomorrow
                     target += timedelta(days=1)
                 wait_seconds = (target - now).total_seconds()
                 print(f"[Digest] Next send at {target.strftime('%Y-%m-%d %H:%M UTC')} ({wait_seconds/3600:.1f}h)", flush=True)
                 time.sleep(wait_seconds)
 
-                # Send time reached
                 users = _get_eligible_users()
                 print(f"[Digest] Sending to {len(users)} user(s)...", flush=True)
                 for email in users:
@@ -219,8 +435,7 @@ def start_digest_cron():
                     except Exception as e:
                         print(f"[Digest] Error for {email}: {e}")
 
-                # Sleep 61 seconds to avoid double-firing at minute boundary
-                time.sleep(61)
+                time.sleep(61)  # avoid double-fire at boundary
             except Exception as e:
                 print(f"[Digest] Cron error: {e}")
                 time.sleep(60)
@@ -230,6 +445,10 @@ def start_digest_cron():
     return t
 
 
+# ─────────────────────────────────────────────────────────────
+# HTTP ROUTE MIXIN
+# ─────────────────────────────────────────────────────────────
+
 class DigestRoutesMixin:
     """POST /api/digest/send — manual trigger for testing."""
     def handle_digest_send(self, auth_info):
@@ -237,7 +456,6 @@ class DigestRoutesMixin:
             user_email = auth_info.get('email')
             if not user_email:
                 return self.send_json({'error': 'No email in auth'})
-            # Run in background so response is instant
             threading.Thread(target=send_digest_to_user, args=(user_email,), daemon=True).start()
             self.send_json({'success': True, 'message': f'Digest queued for {user_email}'})
         except Exception as e:
