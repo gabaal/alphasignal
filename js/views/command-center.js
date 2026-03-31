@@ -49,6 +49,41 @@ async function renderCommandCenter() {
                 <div id="cmd-cme-gaps"></div>
             </div>
         </div>
+
+        <!-- Signal Analytics Charts -->
+        <div style="margin-top:1.5rem">
+            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">LIVE SIGNAL INTELLIGENCE</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px">
+                <div class="card" style="padding:1rem">
+                    <div class="card-header" style="margin-bottom:8px">
+                        <h3 style="font-size:0.75rem">Alpha vs Z-Score</h3>
+                        <span class="label-tag">QUALITY SCATTER</span>
+                    </div>
+                    <div style="height:200px;position:relative"><canvas id="cmd-alphaVsZChart"></canvas></div>
+                </div>
+                <div class="card" style="padding:1rem">
+                    <div class="card-header" style="margin-bottom:8px">
+                        <h3 style="font-size:0.75rem">Category Mix</h3>
+                        <span class="label-tag">SECTOR BREAKDOWN</span>
+                    </div>
+                    <div style="height:200px;position:relative"><canvas id="cmd-categoryDonutChart"></canvas></div>
+                </div>
+                <div class="card" style="padding:1rem">
+                    <div class="card-header" style="margin-bottom:8px">
+                        <h3 style="font-size:0.75rem">BTC Correlation</h3>
+                        <span class="label-tag">CORRELATION SPREAD</span>
+                    </div>
+                    <div style="height:200px;position:relative"><canvas id="cmd-btcCorrChart"></canvas></div>
+                </div>
+                <div class="card" style="padding:1rem">
+                    <div class="card-header" style="margin-bottom:8px">
+                        <h3 style="font-size:0.75rem">Alpha Leaders</h3>
+                        <span class="label-tag">TOP 8 BY ALPHA</span>
+                    </div>
+                    <div style="height:200px;position:relative"><canvas id="cmd-topAlphaChart"></canvas></div>
+                </div>
+            </div>
+        </div>
     `;
 
     // Data Fetching & Rendering
@@ -111,6 +146,105 @@ async function renderCommandCenter() {
                 </div>
             `).join('');
         } catch(e) { console.error("Gaps Error:", e); }
+
+        // 7. Signal Analytics Charts — built from live signals data
+        if (signals && signals.length) {
+            const _sigs = signals;
+
+            // Alpha vs Z-Score Scatter
+            setTimeout(() => {
+                const el = document.getElementById('cmd-alphaVsZChart');
+                if (!el) return;
+                const existing = Chart.getChart('cmd-alphaVsZChart'); if (existing) existing.destroy();
+                const pts = _sigs.map(s => ({ x: parseFloat(s.zScore)||0, y: parseFloat(s.alpha)||0, label: s.ticker.replace('-USD','') }));
+                const quadPlugin = { id:'cmdQuadrants', beforeDraw(chart) {
+                    const {ctx:c,chartArea:{left,top,right,bottom},scales:{x,y}} = chart;
+                    const mx=x.getPixelForValue(0), my=y.getPixelForValue(0); c.save();
+                    c.fillStyle='rgba(34,197,94,0.04)';   c.fillRect(mx,top,right-mx,my-top);
+                    c.fillStyle='rgba(0,242,255,0.04)';   c.fillRect(left,top,mx-left,my-top);
+                    c.fillStyle='rgba(148,163,184,0.02)'; c.fillRect(left,my,mx-left,bottom-my);
+                    c.fillStyle='rgba(239,68,68,0.04)';   c.fillRect(mx,my,right-mx,bottom-my);
+                    c.restore();
+                }};
+                new Chart(el.getContext('2d'), {
+                    type:'scatter', plugins:[quadPlugin],
+                    data:{ datasets:[{ data:pts, pointRadius:5, pointHoverRadius:7,
+                        backgroundColor: pts.map(p=> p.x>0&&p.y>0?'rgba(34,197,94,0.75)':p.x<0&&p.y>0?'rgba(0,242,255,0.75)':p.x>0&&p.y<0?'rgba(239,68,68,0.65)':'rgba(148,163,184,0.5)'),
+                        borderWidth:0 }]},
+                    options:{ responsive:true, maintainAspectRatio:false,
+                        plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(13,17,23,0.95)', titleColor:'#00f2ff', bodyColor:'#e2e8f0',
+                            callbacks:{ title:items=>items[0].raw.label, label:c=>`Z: ${c.raw.x.toFixed(2)}σ  α: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
+                        scales:{
+                            x:{ title:{display:true,text:'Z-Score (σ)',color:'rgba(255,255,255,0.3)',font:{size:8,family:'JetBrains Mono'}}, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{family:'JetBrains Mono',size:8}} },
+                            y:{ title:{display:true,text:'Alpha (%)',color:'rgba(255,255,255,0.3)',font:{size:8,family:'JetBrains Mono'}}, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{family:'JetBrains Mono',size:8},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
+                        }
+                    }
+                });
+            }, 80);
+
+            // Category Mix Donut
+            setTimeout(() => {
+                const el = document.getElementById('cmd-categoryDonutChart');
+                if (!el) return;
+                const existing = Chart.getChart('cmd-categoryDonutChart'); if (existing) existing.destroy();
+                const cats = {}; _sigs.forEach(s=>{ cats[s.category]=(cats[s.category]||0)+1; });
+                const labels=Object.keys(cats), counts=labels.map(k=>cats[k]);
+                const palette=['#00f2ff','#22c55e','#f59e0b','#bc13fe','#ef4444','#60a5fa','#fb923c','#a78bfa','#34d399'];
+                new Chart(el.getContext('2d'), {
+                    type:'doughnut',
+                    data:{ labels, datasets:[{ data:counts, backgroundColor:labels.map((_,i)=>palette[i%palette.length]+'cc'), borderColor:'rgba(5,7,30,1)', borderWidth:2, hoverOffset:6 }]},
+                    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
+                        plugins:{ legend:{display:true,position:'right',labels:{color:'rgba(255,255,255,0.5)',font:{family:'JetBrains Mono',size:8},boxWidth:10,padding:8}},
+                            tooltip:{ backgroundColor:'rgba(13,17,23,0.95)', titleColor:'#00f2ff', bodyColor:'#e2e8f0',
+                                callbacks:{label:c=>` ${c.label}: ${c.raw} (${Math.round(c.raw/_sigs.length*100)}%)`}}}
+                    }
+                });
+            }, 110);
+
+            // BTC Correlation Histogram
+            setTimeout(() => {
+                const el = document.getElementById('cmd-btcCorrChart');
+                if (!el) return;
+                const existing = Chart.getChart('cmd-btcCorrChart'); if (existing) existing.destroy();
+                const bins=[], binLabels=[];
+                for(let v=-1;v<=1+1e-9;v=parseFloat((v+0.1).toFixed(1))){ bins.push(v); binLabels.push(v.toFixed(1)); }
+                const counts=new Array(bins.length).fill(0);
+                _sigs.forEach(s=>{ const corr=Math.max(-1,Math.min(1,parseFloat(s.btcCorrelation)||0)); const idx=Math.round((corr+1)/0.1); if(idx>=0&&idx<counts.length)counts[idx]++; });
+                const barBg=bins.map(v=>v<-0.6?'rgba(239,68,68,0.8)':v<-0.3?'rgba(251,146,60,0.7)':v<0.3?'rgba(148,163,184,0.4)':v<0.6?'rgba(0,242,255,0.6)':'rgba(34,197,94,0.8)');
+                new Chart(el.getContext('2d'), {
+                    type:'bar',
+                    data:{ labels:binLabels, datasets:[{ data:counts, backgroundColor:barBg, borderColor:barBg.map(c=>c.replace(/[\d.]+\)$/,'1)')), borderWidth:1, borderRadius:2 }]},
+                    options:{ responsive:true, maintainAspectRatio:false,
+                        plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.95)',titleColor:'#00f2ff',callbacks:{title:i=>`BTC Corr: ${i[0].label}`,label:c=>`${c.raw} signals`}}},
+                        scales:{
+                            x:{ grid:{display:false}, ticks:{color:c2=>{const v=parseFloat(binLabels[c2.index]);return Math.abs(v)>0.6?'rgba(239,68,68,0.8)':Math.abs(v)>0.3?'rgba(0,242,255,0.6)':'rgba(255,255,255,0.3)';},font:{family:'JetBrains Mono',size:7},maxTicksLimit:9,maxRotation:0} },
+                            y:{ display:true, position:'right', grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(255,255,255,0.3)',font:{family:'JetBrains Mono',size:8},maxTicksLimit:4} }
+                        }
+                    }
+                });
+            }, 140);
+
+            // Alpha Leaders Horizontal Bar
+            setTimeout(() => {
+                const el = document.getElementById('cmd-topAlphaChart');
+                if (!el) return;
+                const existing = Chart.getChart('cmd-topAlphaChart'); if (existing) existing.destroy();
+                const sorted=[..._sigs].filter(s=>s.alpha!==undefined).sort((a,b)=>Math.abs(b.alpha)-Math.abs(a.alpha)).slice(0,8);
+                const labels=sorted.map(s=>s.ticker.replace('-USD','')), values=sorted.map(s=>parseFloat(s.alpha));
+                const colors=values.map(v=>v>=0?'rgba(34,197,94,0.75)':'rgba(239,68,68,0.75)');
+                new Chart(el.getContext('2d'), {
+                    type:'bar',
+                    data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderColor:colors.map(c=>c.replace(/[\d.]+\)$/,'1)')), borderWidth:1, borderRadius:4 }]},
+                    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+                        plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.95)',titleColor:'#00f2ff',bodyColor:'#e2e8f0',callbacks:{label:c=>` Alpha: ${c.raw>=0?'+':''}${parseFloat(c.raw).toFixed(2)}%`}}},
+                        scales:{
+                            x:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(255,255,255,0.35)',font:{family:'JetBrains Mono',size:8},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
+                            y:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.6)',font:{family:'JetBrains Mono',size:9,weight:'700'}} }
+                        }
+                    }
+                });
+            }, 170);
+        }
 
     } catch (e) {
         console.error("Command Center Synergy Error:", e);

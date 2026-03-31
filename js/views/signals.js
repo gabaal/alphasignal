@@ -321,6 +321,16 @@ async function renderSignals(category = 'ALL', tabs = null) {
     }, 50);
 
     // Signal Confidence Radar — loads after signals are painted
+
+
+
+
+
+
+
+
+
+    // Signal Confidence Radar — loads after signals are painted
     setTimeout(async () => {
         const radarSection = document.createElement('div');
         radarSection.innerHTML = `
