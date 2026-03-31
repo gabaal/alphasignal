@@ -229,6 +229,40 @@ function renderDocsRotation() {
 }
 
 // --- Alpha Strategy Hub ---
+function renderDocsMacroCompass() {
+    renderExplainPage(
+        "Macro Compass",
+        "A synthesised dashboard tracking the global macro environment and its impact on digital assets.",
+        "The Macro Compass aggregates key macro signals — equity correlation, DXY strength, yield curve shapes, and commodity trends — into a coherent view. Bitcoin has a 0.6–0.8 rolling correlation with risk-on assets during macro stress events, making macro context essential for timing entries and exits across all terminal instruments.",
+        [
+            { icon: 'public',        title: 'Macro Correlation Matrix', desc: 'Rolling 30-day correlations between BTC, SPX, NASDAQ, DXY, Gold, and 10Y Treasury yields.' },
+            { icon: 'show_chart',    title: 'Yield Curve Monitor',      desc: 'US Treasury 2Y/10Y/30Y spread tracking. Sustained inversion has preceded risk-off environments.' },
+            { icon: 'trending_down', title: 'DXY Impact Model',         desc: 'Real-time DXY overlay against BTC to quantify the inverse relationship and identify dollar-driven moves.' },
+            { icon: 'layers',        title: 'Risk Regime Overlay',      desc: 'Current macro regime classification (Risk-On / Risk-Off / Transitional) based on equity volatility and credit spreads.' }
+        ],
+        [{ title: 'The DXY Breakout Trade', text: 'When DXY broke above 105 following hotter-than-expected CPI, the Compass immediately flagged a shift to Risk-Off regime. BTC declined 8% over 72 hours.' }],
+        "Federal Reserve FRED database, DTCC yield curve data, and Bloomberg cross-asset correlation matrices. Updated daily."
+    , 'macro'
+    );
+}
+
+function renderDocsMacroCalendar() {
+    renderExplainPage(
+        "Macro Event Calendar",
+        "A 90-day forward calendar of institutional macro events scored by historical BTC impact.",
+        "The Macro Event Calendar tracks scheduled economic releases — FOMC decisions, CPI prints, NFP reports, and PCE data — and scores each by its average historical BTC price impact over the past 6 occurrences. This turns the economic calendar from a passive reference into an active positioning tool.",
+        [
+            { icon: 'event',         title: 'Event Timeline',        desc: '90-day chronological listing of macro events with days-until countdown and event type badge.' },
+            { icon: 'bar_chart',     title: 'Historical BTC Impact', desc: 'Per-event scoring showing median BTC move, average volatility, and historical directional bias.' },
+            { icon: 'warning',       title: 'Impact Tier Badges',    desc: 'Events classified HIGH / MEDIUM / LOW by weighted impact score, enabling rapid calendar triage.' },
+            { icon: 'timeline',      title: 'Historical Move Bars',  desc: 'Bar chart showing the last 6 real BTC same-date moves for each event instance.' }
+        ],
+        [{ title: 'Pre-FOMC Positioning', text: 'FOMC meetings average 4.2% BTC volatility on announcement day. The calendar HIGH impact flag and historical bars gave traders a clear reference for sizing hedges in advance.' }],
+        "FOMC, CPI, NFP, and PCE schedules from the Federal Reserve and BLS. Historical impact scored against 2-year BTC price data via yfinance."
+    , 'macro-calendar'
+    );
+}
+
 function renderDocsNarrative() {
     renderExplainPage(
         "Narrative Galaxy",
