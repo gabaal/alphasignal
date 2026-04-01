@@ -120,7 +120,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const loginBtn = document.getElementById('login-btn');
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
-            const isSignup = document.getElementById('auth-btn-label')?.textContent.trim() === 'CREATE ACCOUNT';
+            const isSignup = document.getElementById('auth-btn-label')?.textContent.trim() === 'REGISTER';
             handleAuth(isSignup);
         });
     }
@@ -132,7 +132,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (el) {
             el.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    const isSignup = document.getElementById('auth-btn-label')?.textContent.trim() === 'CREATE ACCOUNT';
+                    const isSignup = document.getElementById('auth-btn-label')?.textContent.trim() === 'REGISTER';
                     handleAuth(isSignup);
                 }
             });
@@ -146,19 +146,18 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (toggleAuthLink) {
         toggleAuthLink.addEventListener('click', (e) => {
             e.preventDefault();
-            const isSignup = toggleAuthLink.textContent.includes('Create account');
+            const isInLoginMode = toggleAuthLink.textContent.includes('Create account');
             const btnLabel = document.getElementById('auth-btn-label');
-            const switchText = document.getElementById('auth-switch-text');
-            if (isSignup) {
-                // switching to LOGIN mode
+            if (isInLoginMode) {
+                // Switch TO register mode
+                if (btnLabel) btnLabel.textContent = 'REGISTER';
+                toggleAuthLink.textContent = 'Sign in';
+                document.getElementById('auth-password').setAttribute('autocomplete', 'new-password');
+            } else {
+                // Switch TO login mode
                 if (btnLabel) btnLabel.textContent = 'SIGN IN';
                 toggleAuthLink.textContent = 'Create account';
-                if (switchText) switchText.textContent = "Don't have an account?";
-            } else {
-                // switching to REGISTER mode
-                if (btnLabel) btnLabel.textContent = 'CREATE ACCOUNT';
-                toggleAuthLink.textContent = 'Sign in instead';
-                if (switchText) switchText.textContent = 'Already have an account?';
+                document.getElementById('auth-password').setAttribute('autocomplete', 'current-password');
             }
         });
     }
