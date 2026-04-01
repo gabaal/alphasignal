@@ -78,6 +78,36 @@ async function renderOnChain(tabs = null) {
                 <div id="hash-chart" style="width:100%; height:250px"></div>
             </div>
         </div>
+
+        <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1.5rem">Investor Sentiment Suite</h2>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap:1rem; margin-bottom:1rem">
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('sentiment')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">Investor Sentiment Index</h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Composite score from MVRV, SOPR &amp; Puell. Above 0 = Greed, Below 0 = Fear.</p>
+                <div id="sentiment-chart" style="width:100%; height:300px"></div>
+            </div>
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('cvd')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">Cumulative Volume Delta</h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Aggregated buy vs sell pressure. Rising = buyers in control, falling = sellers dominating.</p>
+                <div id="cvd-chart" style="width:100%; height:300px"></div>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:1rem; margin-bottom:1rem">
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('exchflow')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">Exchange Net Flow</h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Net coin movement to/from exchanges. Negative (green) = outflow = holding sentiment.</p>
+                <div id="exchflow-chart" style="width:100%; height:250px"></div>
+            </div>
+        </div>
     `;
 
     document.getElementById('mvrv-chart').innerHTML = '<div class="loader" style="margin:2rem auto"></div>';
@@ -133,15 +163,48 @@ async function renderOnChain(tabs = null) {
                  .setData(data.map(d=>({time: d.time, value: d.hash_fast})));
         hashChart.addLineSeries({ color: 'rgba(255,255,255,0.4)', lineWidth: 2, title: '60D Hash Ribbon' })
                  .setData(data.map(d=>({time: d.time, value: d.hash_slow})));
+
+        // ── Investor Sentiment Index (composite: normalize MVRV + SOPR + Puell) ──
+        const sentimentData = (() => {
+            const mvrvVals  = data.map(d => d.mvrv);
+            const soprVals  = data.map(d => d.sopr);
+            const puellVals = data.map(d => d.puell);
+            const norm = (arr, lo, hi) => arr.map(v => ((v - lo) / Math.max(hi - lo, 0.001)) * 200 - 100);
+            const mvrvN  = norm(mvrvVals,  Math.min(...mvrvVals),  Math.max(...mvrvVals));
+            const soprN  = norm(soprVals,  Math.min(...soprVals),  Math.max(...soprVals));
+            const puellN = norm(puellVals, Math.min(...puellVals), Math.max(...puellVals));
+            return data.map((d, i) => ({ time: d.time, value: parseFloat(((mvrvN[i] + soprN[i] + puellN[i]) / 3).toFixed(2)) }));
+        })();
+        const sentimentContainer = document.getElementById('sentiment-chart');
+        const sentimentChart = LightweightCharts.createChart(sentimentContainer, chartOpts(300));
+        const sentSeries = sentimentChart.addAreaSeries({ topColor: 'rgba(0,212,170,0.35)', bottomColor: 'rgba(239,68,68,0.15)', lineColor: '#00d4aa', lineWidth: 2, title: 'Sentiment' });
+        sentSeries.setData(sentimentData);
+        // Zero baseline
+        sentimentChart.addLineSeries({ color: 'rgba(255,255,255,0.2)', lineWidth: 1, lineStyle: 2 }).setData(data.map(d => ({ time: d.time, value: 0 })));
+
+        // ── CVD ───────────────────────────────────────────────────────────────────
+        const cvdContainer = document.getElementById('cvd-chart');
+        const cvdChart = LightweightCharts.createChart(cvdContainer, chartOpts(300));
+        cvdChart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0.05)', lineColor: '#60a5fa', lineWidth: 2, title: 'CVD' })
+                .setData(data.map(d => ({ time: d.time, value: d.cvd })));
+
+        // ── Exchange Net Flow ─────────────────────────────────────────────────────
+        const exchflowContainer = document.getElementById('exchflow-chart');
+        const exchflowChart = LightweightCharts.createChart(exchflowContainer, chartOpts(250));
+        exchflowChart.addHistogramSeries({ priceFormat: { type: 'price', precision: 0 } })
+            .setData(data.map(d => ({ time: d.time, value: d.exch_flow, color: d.exch_flow < 0 ? '#10b981' : '#ef4444' })));
         
         // Resizing
         const charts = [
-            { c: mvrvChart, id: 'mvrv-chart', h: 300 },
-            { c: realizedChart, id: 'realized-chart', h: 300 },
-            { c: soprChart, id: 'sopr-chart', h: 250 },
-            { c: puellChart, id: 'puell-chart', h: 250 },
-            { c: nvtChart, id: 'nvt-chart', h: 250 },
-            { c: hashChart, id: 'hash-chart', h: 250 }
+            { c: mvrvChart,       id: 'mvrv-chart',      h: 300 },
+            { c: realizedChart,   id: 'realized-chart',  h: 300 },
+            { c: soprChart,       id: 'sopr-chart',      h: 250 },
+            { c: puellChart,      id: 'puell-chart',     h: 250 },
+            { c: nvtChart,        id: 'nvt-chart',       h: 250 },
+            { c: hashChart,       id: 'hash-chart',      h: 250 },
+            { c: sentimentChart,  id: 'sentiment-chart', h: 300 },
+            { c: cvdChart,        id: 'cvd-chart',       h: 300 },
+            { c: exchflowChart,   id: 'exchflow-chart',  h: 250 }
         ];
         
         const ro = new ResizeObserver(entries => {
@@ -151,7 +214,7 @@ async function renderOnChain(tabs = null) {
             });
         });
         
-        const containers = [mvrvContainer, realizedContainer, soprContainer, puellContainer, nvtContainer, hashContainer];
+        const containers = [mvrvContainer, realizedContainer, soprContainer, puellContainer, nvtContainer, hashContainer, sentimentContainer, cvdContainer, exchflowContainer];
         containers.forEach(cn => ro.observe(cn));
         charts.forEach(ch => ch.c.timeScale().fitContent());
 
@@ -170,12 +233,15 @@ function openOnchainModal(type) {
     document.body.style.overflow = 'hidden';
 
     const configs = {
-        mvrv:     { title: 'MVRV Z-SCORE', sub: 'MARKET VALUE VS REALISED VALUE — 365D' },
-        realized: { title: 'REALIZED PRICE VS SPOT', sub: 'ON-CHAIN COST BASIS vs CURRENT PRICE' },
-        sopr:     { title: 'SOPR — SPENT OUTPUT PROFIT RATIO', sub: '1.0 = BREAKEVEN THRESHOLD' },
-        puell:    { title: 'PUELL MULTIPLE', sub: 'MINER REVENUE / 365D MA' },
-        nvt:      { title: 'NVT RATIO', sub: 'NETWORK VALUE TO TRANSACTIONS (P/E OF CRYPTO)' },
-        hash:     { title: 'HASH RIBBONS', sub: '30D VS 60D HASHRATE — MINER CAPITULATION SIGNAL' }
+        mvrv:      { title: 'MVRV Z-SCORE', sub: 'MARKET VALUE VS REALISED VALUE — 365D' },
+        realized:  { title: 'REALIZED PRICE VS SPOT', sub: 'ON-CHAIN COST BASIS vs CURRENT PRICE' },
+        sopr:      { title: 'SOPR — SPENT OUTPUT PROFIT RATIO', sub: '1.0 = BREAKEVEN THRESHOLD' },
+        puell:     { title: 'PUELL MULTIPLE', sub: 'MINER REVENUE / 365D MA' },
+        nvt:       { title: 'NVT RATIO', sub: 'NETWORK VALUE TO TRANSACTIONS (P/E OF CRYPTO)' },
+        hash:      { title: 'HASH RIBBONS', sub: '30D VS 60D HASHRATE — MINER CAPITULATION SIGNAL' },
+        sentiment: { title: 'INVESTOR SENTIMENT INDEX', sub: 'COMPOSITE SCORE: MVRV + SOPR + PUELL — ABOVE 0 = GREED, BELOW 0 = FEAR' },
+        cvd:       { title: 'CUMULATIVE VOLUME DELTA', sub: 'AGGREGATED BUY VS SELL PRESSURE OVER TIME' },
+        exchflow:  { title: 'EXCHANGE NET FLOW', sub: 'GREEN = OUTFLOW (BULLISH) · RED = INFLOW (SELLING PRESSURE)' }
     };
     const cfg = configs[type] || { title: type.toUpperCase(), sub: '' };
     document.getElementById('onchain-modal-title').textContent = cfg.title;
@@ -203,6 +269,17 @@ function openOnchainModal(type) {
     } else if (type === 'hash') {
         chart.addLineSeries({ color: '#f7931a', lineWidth: 2, title: '30D' }).setData(data.map(d=>({time:d.time,value:d.hash_fast})));
         chart.addLineSeries({ color: 'rgba(255,255,255,0.4)', lineWidth: 2, title: '60D' }).setData(data.map(d=>({time:d.time,value:d.hash_slow})));
+    } else if (type === 'sentiment') {
+        const mv = data.map(d => d.mvrv), sp = data.map(d => d.sopr), pu = data.map(d => d.puell);
+        const norm = (arr) => { const lo = Math.min(...arr), hi = Math.max(...arr); return arr.map(v => ((v-lo)/Math.max(hi-lo,0.001))*200-100); };
+        const mn = norm(mv), sn = norm(sp), pn = norm(pu);
+        const sd = data.map((d,i) => ({ time: d.time, value: parseFloat(((mn[i]+sn[i]+pn[i])/3).toFixed(2)) }));
+        chart.addAreaSeries({ topColor: 'rgba(0,212,170,0.35)', bottomColor: 'rgba(239,68,68,0.15)', lineColor: '#00d4aa', lineWidth: 2 }).setData(sd);
+        chart.addLineSeries({ color: 'rgba(255,255,255,0.2)', lineWidth: 1, lineStyle: 2 }).setData(data.map(d => ({ time: d.time, value: 0 })));
+    } else if (type === 'cvd') {
+        chart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0.05)', lineColor: '#60a5fa', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.cvd})));
+    } else if (type === 'exchflow') {
+        chart.addHistogramSeries({ priceFormat: { type: 'price', precision: 0 } }).setData(data.map(d=>({ time:d.time, value:d.exch_flow, color: d.exch_flow < 0 ? '#10b981' : '#ef4444' })));
     }
     chart.timeScale().fitContent();
 
