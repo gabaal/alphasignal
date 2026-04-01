@@ -271,7 +271,8 @@ function openOnchainModal(type) {
     if (container._lwChart) { try { container._lwChart.remove(); } catch(e){} container._lwChart = null; }
 
     // HTML-only modal (funding rates bar chart)
-    if (cfg.htmlOnly) {
+﻿    if (cfg.htmlOnly) {
+        // Funding rates: use cached data from /api/funding-rates
         if (type === 'funding') {
             const fr = window._fundingData;
             if (fr && fr.rows) {
@@ -295,22 +296,38 @@ function openOnchainModal(type) {
             } else {
                 container.innerHTML = '<div class="error-msg" style="margin:2rem">Visit Custom Charts tab first to load data</div>';
             }
+        }
+
+        // Correlation matrix: fetch on-demand if cache empty
         if (type === 'correlation') {
-            const cm = window._correlationData;
-            if (cm && cm.assets && cm.matrix) {
+            const renderCorrelation = (cm) => {
                 container.style.overflowX = 'auto';
                 container.style.padding = '1.5rem';
                 const lookup = {};
                 cm.matrix.forEach(c => { lookup[c.assetA + '_' + c.assetB] = c.correlation; });
-                const cell = (v) => { const abs=Math.abs(v); const alpha=(abs*0.8+0.1).toFixed(2); const bg=v>=0?'rgba(0,212,170,'+alpha+')':'rgba(239,68,68,'+alpha+')'; const txt=abs>0.5?'#000':'var(--text)'; return '<td style="min-width:52px;height:36px;text-align:center;font-size:0.7rem;font-weight:700;font-family:monospace;background:'+bg+';color:'+txt+';border:1px solid rgba(255,255,255,0.04);padding:2px 4px">'+(v===1?'--':v.toFixed(2))+'</td>'; };
-                const hdr = '<tr><th style="padding:6px 10px"></th>'+cm.assets.map(a=>'<th style="font-size:0.65rem;font-weight:800;color:var(--text-dim);padding:6px 8px;letter-spacing:1px;white-space:nowrap">'+a+'</th>').join('')+'</tr>';
-                const rows = cm.assets.map(a=>'<tr><td style="font-size:0.65rem;font-weight:800;color:var(--text);padding:6px 10px;white-space:nowrap;letter-spacing:1px">'+a+'</td>'+cm.assets.map(b=>cell(lookup[a+'_'+b]||0)).join('')+'</tr>').join('');
-                container.innerHTML = '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:12px;letter-spacing:2px">90-DAY ROLLING PEARSON CORRELATIONS</div><table style="border-collapse:collapse">'+hdr+rows+'</table>';
+                const cell = (v) => {
+                    const abs = Math.abs(v);
+                    const alpha = (abs * 0.8 + 0.1).toFixed(2);
+                    const bg = v >= 0 ? 'rgba(0,212,170,' + alpha + ')' : 'rgba(239,68,68,' + alpha + ')';
+                    const txt = abs > 0.5 ? '#000' : 'var(--text)';
+                    return '<td style="min-width:52px;height:36px;text-align:center;font-size:0.7rem;font-weight:700;font-family:monospace;background:' + bg + ';color:' + txt + ';border:1px solid rgba(255,255,255,0.04);padding:2px 4px">' + (v === 1 ? '--' : v.toFixed(2)) + '</td>';
+                };
+                const hdr = '<tr><th style="padding:6px 10px"></th>' + cm.assets.map(a => '<th style="font-size:0.65rem;font-weight:800;color:var(--text-dim);padding:6px 8px;letter-spacing:1px;white-space:nowrap">' + a + '</th>').join('') + '</tr>';
+                const rows = cm.assets.map(a => '<tr><td style="font-size:0.65rem;font-weight:800;color:var(--text);padding:6px 10px;white-space:nowrap;letter-spacing:1px">' + a + '</td>' + cm.assets.map(b => cell(lookup[a + '_' + b] || 0)).join('') + '</tr>').join('');
+                container.innerHTML = '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:12px;letter-spacing:2px">90-DAY ROLLING PEARSON CORRELATIONS</div><table style="border-collapse:collapse">' + hdr + rows + '</table>';
+            };
+            const cached = window._correlationData;
+            if (cached && cached.assets && cached.matrix) {
+                renderCorrelation(cached);
             } else {
-                container.innerHTML = '<div class="error-msg" style="margin:2rem">Visit Custom Charts tab first to load data</div>';
+                container.innerHTML = '<div class="loader" style="margin:4rem auto"></div>';
+                fetchAPI('/correlation-matrix').then(cm => {
+                    if (cm && cm.assets) { window._correlationData = cm; renderCorrelation(cm); }
+                    else container.innerHTML = '<div class="error-msg" style="margin:2rem">Failed to load correlation data</div>';
+                }).catch(() => { container.innerHTML = '<div class="error-msg" style="margin:2rem">Failed to load correlation data</div>'; });
             }
         }
-        }
+
         return;
     }
 
