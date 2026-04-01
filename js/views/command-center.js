@@ -342,6 +342,11 @@ function openCmdChartModal(key) {
 
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    // Widen panel for ETF chart, reset for others
+    const innerPanel = modal.querySelector('div');
+    if (innerPanel) {
+        innerPanel.style.width = key === 'etf' ? 'min(96vw, 1600px)' : 'min(90vw, 1100px)';
+    }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCmdChartModal(); }, { once: true });
 
     // Correlation matrix is div-based — handle separately
