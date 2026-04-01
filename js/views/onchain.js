@@ -505,7 +505,7 @@ async function renderAIRebalancer() {
 async function executeAIRebalance(tickets) {
     if (!confirm(`Execute ${tickets.length} rebalance tickets? This will create entries in your Trade Ledger.`)) return;
     for (const t of tickets) {
-        await fetchAPI('/api/trade-ledger', { method: 'POST', body: JSON.stringify({ ticker: t.ticker, action: t.action, price: 0, target: 0, stop: 0, weight: t.weight }) });
+        await fetchAPI('/trade-ledger', 'POST', { ticker: t.ticker, action: t.action, price: 0, target: 0, stop: 0, weight: t.weight });
     }
     showToast('REBALANCE', `${tickets.length} tickets executed and logged.`, 'success');
 }
