@@ -102,10 +102,26 @@ async function renderCommandCenter() {
             </div>
         </div>
 
-        <div class="grid-2">
+        <div style="display:grid;grid-template-columns:minmax(200px,280px) 320px 1fr;gap:1.5rem;align-items:start">
             <div class="card">
                 <h3 style="margin-bottom:1rem">TOP INSTITUTIONAL ALPHA</h3>
                 <div id="cmd-top-signals"></div>
+            </div>
+            <div class="card" style="background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <h3 style="margin:0;color:var(--accent);font-size:0.75rem;letter-spacing:1px">
+                        <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:5px">radar</span>CONFIDENCE RADAR
+                    </h3>
+                    <select id="cmd-radar-select" style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono'" onchange="loadCmdRadar(this.value)">
+                        <option value="BTC-USD">BTC</option><option value="ETH-USD">ETH</option>
+                        <option value="SOL-USD">SOL</option><option value="LINK-USD">LINK</option>
+                        <option value="ADA-USD">ADA</option>
+                    </select>
+                </div>
+                <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:0.75rem">6-DIMENSION ML SIGNAL DECOMPOSITION</div>
+                <div style="display:flex;justify-content:center">
+                    <div style="width:280px;height:280px"><canvas id="cmd-radar-chart"></canvas></div>
+                </div>
             </div>
             <div class="card">
                 <h3 style="margin-bottom:1rem">CME MAGNET GAPS</h3>
@@ -193,6 +209,9 @@ async function renderCommandCenter() {
                 `).join('');
             }
         } catch(e) { console.error("Signals Error:", e); }
+
+        // 5b. Confidence Radar — init with BTC
+        setTimeout(() => loadCmdRadar('BTC-USD'), 300);
 
         // 6. CME Gaps (static placeholders — full data available in premium CME Gaps view)
         try {
@@ -787,5 +806,40 @@ async function renderCommandETF() {
         // Graceful degradation
         if (ctx) ctx.closest('.card') && (ctx.closest('.card').innerHTML += '<p style="color:var(--text-dim);font-size:0.7rem;text-align:center;padding:1rem">ETF flow data syncing...</p>');
     }
+}
+
+async function loadCmdRadar(ticker) {
+    try {
+        const data = await fetchAPI(`/signal-radar?ticker=${ticker}`);
+        if (!data || !data.values) return;
+        const ctx = document.getElementById('cmd-radar-chart');
+        if (!ctx) return;
+        const existing = Chart.getChart('cmd-radar-chart'); if (existing) existing.destroy();
+        new Chart(ctx.getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: ticker.replace('-USD', '') + ' Confidence',
+                    data: data.values,
+                    borderColor: '#00f2ff',
+                    backgroundColor: 'rgba(0,242,255,0.08)',
+                    pointBackgroundColor: '#00f2ff',
+                    pointRadius: 4,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: true,
+                plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 8 } } } },
+                scales: { r: {
+                    min: 0, max: 100,
+                    ticks: { stepSize: 25, color: 'rgba(255,255,255,0.25)', backdropColor: 'transparent', font: { size: 7 } },
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                    pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 8.5, family: 'JetBrains Mono' } }
+                }}
+            }
+        });
+    } catch(e) { console.warn('Cmd Radar error:', e); }
 }
 
