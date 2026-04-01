@@ -1098,7 +1098,7 @@ async function renderCustomAnalytics(tabs) {
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;margin-bottom:1rem">' +
             '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'mvrv-sopr\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">MVRV / SOPR Overlay</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
-                '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">MVRV Z-Score (red) and SOPR (green) normalized on the same axis €” convergence zones signal inflection points.</p>' +
+                '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">MVRV Z-Score (red) and SOPR (green) normalized on the same axis — convergence zones signal inflection points.</p>' +
                 '<div id="custom-mvrv-sopr" style="width:100%;height:280px"></div>' +
             '</div>' +
             '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'volatility\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
@@ -1168,11 +1168,11 @@ async function renderCustomAnalytics(tabs) {
         window._fundingData = fr;
         if (fr && fr.rows && fr.rows.length) {
             containers.funding.innerHTML = '';
-            // Render as a styled HTML bar table €” more informative than a LW chart for point-in-time rates
+            // Render as a styled HTML bar table — more informative than a LW chart for point-in-time rates
             const rows = fr.rows;
             const maxAbs = Math.max(...rows.map(r => Math.abs(r.current)));
             containers.funding.innerHTML =
-                '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:8px;letter-spacing:1px">CURRENT 8H RATE €” ' + (fr.source === 'binance_fapi' ? '<span style="color:#22c55e">LIVE BINANCE FAPI</span>' : 'SYNTHETIC') + '</div>' +
+                '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:8px;letter-spacing:1px">CURRENT 8H RATE — ' + (fr.source === 'binance_fapi' ? '<span style="color:#22c55e">LIVE BINANCE FAPI</span>' : 'SYNTHETIC') + '</div>' +
                 rows.map(r => {
                     const pct = maxAbs > 0 ? Math.abs(r.current) / maxAbs * 100 : 0;
                     const clr = r.current >= 0 ? '#00d4aa' : '#ef4444';

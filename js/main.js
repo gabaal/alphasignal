@@ -171,7 +171,7 @@ const viewMap = {
 function shareSignal(ticker, alpha, sentiment, zScore) {
     const sentimentLabel = sentiment > 0.1 ? 'BULLISH' : (sentiment < -0.1 ? 'BEARISH' : 'NEUTRAL');
     const text = `Ã°Å¸Å¡Â¨ AlphaSignal Terminal Update: $${ticker}\n\n` +
-                 `Ã°Å¸â€œË† Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
+                 `Ã°Å¸â“Ë† Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
                  `Ã°Å¸Â§Â  Sentiment Synthesis: ${sentimentLabel}\n` +
                  `Ã¢Å¡Â¡ Z-Score Intensity: ${zScore.toFixed(2)}\n\n` +
                  `Institutional intelligence detected. View the full terminal:\n`;

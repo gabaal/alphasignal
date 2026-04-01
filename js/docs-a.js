@@ -45,7 +45,7 @@ function renderHelp() {
             { name: 'Options Flow', desc: '4 components: Put/Call ratio gauge, Max Pain chart, IV Smile, Top OI strikes table', route: 'docs-options-flow', icon: 'waterfall_chart' },
             { name: 'Newsroom', desc: '2 components: Live news feed with sentiment tags, Keyword frequency heatmap', route: 'docs-newsroom', icon: 'newspaper' },
             { name: 'TradingView Hub', desc: '13 widgets: Market Overview, Symbol Comparison, Technical Analysis (BTC/ETH/SOL/BNB), Screener, Economic Calendar, Hotlists, Crypto Heatmap, Forex Cross Rates, Forex Heat Map, S&P 500 Sector Heatmap', route: 'docs-tradingview-hub', icon: 'show_chart' },
-            { name: 'Custom Charts', desc: '4 charts: BTC Dominance area chart, Funding Rate bar chart, MVRV/SOPR Overlay, 30-Day Rolling Volatility €” all built on live backend data', route: 'docs-custom-charts', icon: 'bar_chart' },
+            { name: 'Custom Charts', desc: '4 charts: BTC Dominance area chart, Funding Rate bar chart, MVRV/SOPR Overlay, 30-Day Rolling Volatility — all built on live backend data', route: 'docs-custom-charts', icon: 'bar_chart' },
           ]
         },
         { id: 'audit-hub', name: 'Audit & Performance', icon: 'trending_up', color: '#60a5fa', view: 'audit-hub',
