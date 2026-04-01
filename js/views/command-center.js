@@ -631,13 +631,20 @@ function initCommandGauges(macro, regime) {
             if (!sub) {
                 sub = document.createElement('div');
                 sub.id = 'cmd-regime-sub';
-                sub.style.cssText = 'font-size:0.55rem;letter-spacing:2px;color:rgba(255,255,255,0.4);margin-top:4px';
+                sub.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:8px';
                 regimeEl.parentNode.appendChild(sub);
             }
-            const conf = regime.confidence ? `${Math.round(regime.confidence * 100)}% CONF` : '';
-            const trend = regime.trend ? `· ${regime.trend}` : '';
-            const vol = regime.volatility ? `· VOL ${regime.volatility}` : '';
-            sub.textContent = [conf, trend, vol].filter(Boolean).join(' ');
+            const pill = (label, bg, fg) =>
+                `<span style="font-size:0.45rem;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:20px;background:${bg};color:${fg};white-space:nowrap">${label}</span>`;
+            const trendColor = { 'BULLISH': '#22c55e', 'BEARISH': '#ef4444', 'NEUTRAL': '#94a3b8' };
+            const volColor   = { 'HIGH': '#f59e0b',   'LOW': '#00f2ff',      'MEDIUM': '#94a3b8' };
+            const tc = trendColor[regime.trend] || '#94a3b8';
+            const vc = volColor[regime.volatility] || '#94a3b8';
+            const pills = [];
+            if (regime.confidence)  pills.push(pill(`${Math.round(regime.confidence * 100)}% CONF`, 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.6)'));
+            if (regime.trend)       pills.push(pill(regime.trend, `${tc}22`, tc));
+            if (regime.volatility)  pills.push(pill(`VOL ${regime.volatility}`, `${vc}22`, vc));
+            sub.innerHTML = pills.join('');
         }
         renderRegimeHeatmap('#cmd-regime-heatmap', regime.history || []);
     }
