@@ -1,4 +1,4 @@
-ï»¿// ============= Help Hub â€” Sidebar-Mirrored Index =============
+// ============= Help Hub — Sidebar-Mirrored Index =============
 function renderHelp() {
     const hubs = [
         { id: 'global-markets', name: 'Global Markets', icon: 'public', color: '#00f2ff', view: 'global-hub',
@@ -6,7 +6,7 @@ function renderHelp() {
             { name: 'ETF Flows', desc: '3 components: Stacked bar chart, Daily leaderboard table, Cumulative waterfall chart', route: 'docs-etf-flows', icon: 'account_balance' },
             { name: 'Liquidations', desc: '3 components: Cascade scanner chart, Total rekt stat, Largest single order stat', route: 'docs-liquidations', icon: 'local_fire_department' },
             { name: 'OI Radar', desc: '4 components: Exchange spider chart, IV smile curve, OI divergence bubble map, Attribution table', route: 'docs-oi-radar', icon: 'track_changes' },
-            { name: 'CME Gaps', desc: '1 component: Active magnet levels registry', route: 'docs-cme-gaps', icon: 'gap_stats' },
+            { name: 'CME Gaps', desc: '1 component: Active magnet levels registry', route: 'docs-cme-gaps', icon: 'candlestick_chart' },
           ]
         },
         { id: 'macro-intel', name: 'Macro Intelligence', icon: 'monitoring', color: '#a78bfa', view: 'macro-hub',
@@ -89,7 +89,7 @@ function renderHelp() {
     appEl.innerHTML = `
         <div class="view-header">
             <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">help</span>Help &amp; Documentation</h1>
-            <p style="color:var(--text-dim)">View-level reference guides â€” one document per view, explaining every chart, table, and widget. Organised by the left-hand navigation menu.</p>
+            <p style="color:var(--text-dim)">View-level reference guides — one document per view, explaining every chart, table, and widget. Organised by the left-hand navigation menu.</p>
         </div>
         <div style="max-width:960px;display:flex;flex-direction:column;gap:2rem;padding-bottom:5rem">
             ${hubs.map(hub => `
@@ -134,7 +134,7 @@ function renderDocsViewETFFlows() {
         components: [
             {
                 name: 'Bitcoin Spot ETF Daily Flows', type: 'CHART', icon: 'account_balance',
-                description: 'A stacked bar chart showing each ETF issuer\'s net daily flow in millions of dollars. Positive bars (above zero) indicate net inflows â€” new capital entering the ETF. Negative bars indicate outflows â€” capital being redeemed. A white line overlay tracks the cumulative running total across all issuers on the right Y-axis. Issuers tracked: BlackRock IBIT (cyan), Fidelity FBTC (green), ARK ARKB (yellow), and Bitwise BITB (purple).',
+                description: 'A stacked bar chart showing each ETF issuer\'s net daily flow in millions of dollars. Positive bars (above zero) indicate net inflows — new capital entering the ETF. Negative bars indicate outflows — capital being redeemed. A white line overlay tracks the cumulative running total across all issuers on the right Y-axis. Issuers tracked: BlackRock IBIT (cyan), Fidelity FBTC (green), ARK ARKB (yellow), and Bitwise BITB (purple).',
                 howToRead: 'The left Y-axis measures individual daily flow per issuer in $M. The right Y-axis (white line) measures the cumulative total across all ETFs. Each bar stack shows the composite picture: how many issuers are flowing in the same direction simultaneously.',
                 signals: [
                     'All bars green on the same day = broad institutional accumulation',
@@ -192,7 +192,7 @@ function renderDocsViewLiquidations() {
         components: [
             {
                 name: 'Liquidation Cascade Scanner', type: 'CHART', icon: 'local_fire_department',
-                description: 'A horizontal bar chart showing forced liquidations broken down by asset (BTC, ETH, SOL, XRP, DOGE, etc.) and direction. Red bars represent LONG liquidations â€” traders who were betting on price increases and got forced out. Green bars represent SHORT liquidations â€” traders betting on price falls who got squeezed out. The X-axis measures liquidations in millions of dollars.',
+                description: 'A horizontal bar chart showing forced liquidations broken down by asset (BTC, ETH, SOL, XRP, DOGE, etc.) and direction. Red bars represent LONG liquidations — traders who were betting on price increases and got forced out. Green bars represent SHORT liquidations — traders betting on price falls who got squeezed out. The X-axis measures liquidations in millions of dollars.',
                 howToRead: 'Longer red bars = longs being wiped out, price likely dropped sharply. Longer green bars = shorts being squeezed, price likely spiked sharply. The ratio of red to green bars reveals which side of the market is over-leveraged.',
                 signals: [
                     'BTC longs >$50M in 24h = aggressive long squeeze event, potential for further downside',
@@ -232,13 +232,13 @@ function renderDocsViewOIRadar() {
         relatedDocs: [
             { name: 'Liquidations', route: 'docs-liquidations', icon: 'local_fire_department' },
             { name: 'Options Flow', route: 'docs-options-flow', icon: 'waterfall_chart' },
-            { name: 'CME Gaps', route: 'docs-cme-gaps', icon: 'gap_stats' },
+            { name: 'CME Gaps', route: 'docs-cme-gaps', icon: 'candlestick_chart' },
         ],
         summary: 'Open Interest (OI) measures the total number of outstanding derivative contracts. This hub aggregates OI data across Binance, Bybit, OKX, and CME to reveal where leverage is concentrated and which direction the squeeze will come.',
         components: [
             {
                 name: 'Exchange OI Spider Chart', type: 'CHART', icon: 'track_changes',
-                description: 'A radar/spider chart comparing Binance Perpetuals vs CME Futures across four dimensions: Open Interest ($B), 24h Delta (%), Funding Rate (Ã—100), and Volume (relative). Each axis normalises to 100, allowing direct comparison of the two dominant trading venues. The cyan polygon represents CME; the yellow polygon represents Binance.',
+                description: 'A radar/spider chart comparing Binance Perpetuals vs CME Futures across four dimensions: Open Interest ($B), 24h Delta (%), Funding Rate (×100), and Volume (relative). Each axis normalises to 100, allowing direct comparison of the two dominant trading venues. The cyan polygon represents CME; the yellow polygon represents Binance.',
                 howToRead: 'When the CME polygon is larger than Binance on the OI axis, institutional futures positioning is dominant. When Binance dominates the Funding Rate axis, perpetual speculators are over-extended.',
                 signals: [
                     'CME OI leading Binance by >$2B = institutional hedging or ETF arbitrage in play',
@@ -259,8 +259,8 @@ function renderDocsViewOIRadar() {
             },
             {
                 name: 'Options Implied Volatility Smile Curve', type: 'CHART', icon: 'show_chart',
-                description: 'A line chart plotting Implied Volatility (IV%) against strike price moneyness â€” from deep OTM Puts (-30%) through ATM (0%) to deep OTM Calls (+30%). A dashed baseline shows 30-day Historical Volatility for reference. The IV Smile is sourced from Deribit 30-day expiry options.',
-                howToRead: 'A steeper left tail (OTM Puts showing high IV) means institutions are aggressively buying downside protection. A flatter right tail (OTM Calls with lower or equal IV) means the market is not pricing in a large upside move. An inverted smile (higher IV at OTM calls) would indicate a call skew â€” bullish.',
+                description: 'A line chart plotting Implied Volatility (IV%) against strike price moneyness — from deep OTM Puts (-30%) through ATM (0%) to deep OTM Calls (+30%). A dashed baseline shows 30-day Historical Volatility for reference. The IV Smile is sourced from Deribit 30-day expiry options.',
+                howToRead: 'A steeper left tail (OTM Puts showing high IV) means institutions are aggressively buying downside protection. A flatter right tail (OTM Calls with lower or equal IV) means the market is not pricing in a large upside move. An inverted smile (higher IV at OTM calls) would indicate a call skew — bullish.',
                 signals: [
                     'Left-tail IV >80% with right-tail <65% = institutional put-buying, fear of downside',
                     'IV Smile flatter than historical baseline = volatility compression; breakout imminent',
@@ -271,7 +271,7 @@ function renderDocsViewOIRadar() {
             {
                 name: 'OI Divergence Bubble Map', type: 'CHART', icon: 'bubble_chart',
                 description: 'A bubble scatter chart plotting 24h Price Change (X-axis) against 24h OI Change (Y-axis) for 8 assets simultaneously. Bubble size = absolute OI ($B). Colour coding: Orange = price up + OI up (long-squeeze risk), Red = price down + OI up (short-trap risk), Yellow = price up + OI down (long unwind), Grey = price down + OI down (de-leveraging).',
-                howToRead: 'Each bubble is one asset. Assets in the orange quadrant (top-right) are most vulnerable to a long squeeze â€” OI is growing as price rises, meaning traders are adding longs into a rally. Assets in the red quadrant (top-left) are building a squeeze setup on the short side.',
+                howToRead: 'Each bubble is one asset. Assets in the orange quadrant (top-right) are most vulnerable to a long squeeze — OI is growing as price rises, meaning traders are adding longs into a rally. Assets in the red quadrant (top-left) are building a squeeze setup on the short side.',
                 signals: [
                     'Large BTC bubble in orange quadrant = high leverage long squeeze risk for the overall market',
                     'Multiple small-cap coins in red quadrant simultaneously = coordinated short-squeeze signal',
@@ -290,9 +290,9 @@ function renderDocsViewCMEGaps() {
         summary: 'CME Bitcoin Futures trade only on weekdays (Sunday 6PM to Friday 5PM ET). Gaps form when the Friday closing price differs materially from the Sunday opening price. These unfilled price voids act as institutional "magnet" levels that price is statistically drawn to fill.',
         components: [
             {
-                name: 'Active Magnet Levels Registry', type: 'TABLE', icon: 'gap_stats',
+                name: 'Active Magnet Levels Registry', type: 'TABLE', icon: 'candlestick_chart',
                 description: 'A structured list of all currently active (unfilled) CME Gap levels. Each entry shows the price range of the gap, whether it is an UPPER gap (above current price) or LOWER gap (below current price), its fill status (UNFILLED, PARTIAL, FILLED), and the current percentage distance from spot price. Colour coding: green for upper gaps, red/amber for lower gaps based on proximity.',
-                howToRead: 'UNFILLED gaps are open structural liquidity voids. The "Distance" column shows how far price needs to travel to fill each gap. PARTIAL gaps have been partially filled but the level still exerts magnetic pull. FILLED gaps are historical reference â€” they no longer act as magnets.',
+                howToRead: 'UNFILLED gaps are open structural liquidity voids. The "Distance" column shows how far price needs to travel to fill each gap. PARTIAL gaps have been partially filled but the level still exerts magnetic pull. FILLED gaps are historical reference — they no longer act as magnets.',
                 signals: [
                     'A gap within 2-3% of current price = high probability of imminent gap fill, plan entries',
                     'Multiple unfilled lower gaps stacking = downside targets are well-defined; use as take-profit',
@@ -363,7 +363,7 @@ function renderDocsViewMacroCompass() {
             { name: 'DXY (US Dollar Index) Overlay', type: 'CHART', icon: 'currency_exchange',
               description: 'Dual-axis chart of DXY vs BTC price over 90 days. The inverse correlation between dollar strength and crypto is one of the most consistent macro relationships.',
               howToRead: 'Both moving inversely = correlation active, macro-driven. If both rise simultaneously, internal BTC demand is overcoming macro headwinds.',
-              signals: ['DXY falling from multi-year highs = historically strong crypto tailwind','DXY >105 = headwind for all risk assets including crypto','BTC rising while DXY rising = very bullish ï¿½ unique internal demand overcoming headwinds'] },
+              signals: ['DXY falling from multi-year highs = historically strong crypto tailwind','DXY >105 = headwind for all risk assets including crypto','BTC rising while DXY rising = very bullish ? unique internal demand overcoming headwinds'] },
         ]
     });
 }
@@ -421,7 +421,7 @@ function renderDocsViewSignals() {
             { name: 'Signal Cards Grid', type: 'WIDGET', icon: 'radar',
               description: 'Each asset generates a card: Ticker, Category, Price, 24h Change, Relative Alpha (%), Sentiment label, BTC Correlation, Z-Score badge. Category filter bar allows sector-level screening. Cards with Z >1.75 pulse with a glow border.',
               howToRead: 'Z-Score colour: cyan (0.5-1.0 mild), amber (1.0-1.75 moderate), red (>1.75 extreme outlier). Positive alpha = asset outperforming BTC. The AI THESIS button generates a GPT-4o-mini trade rationale.',
-              signals: ['Z >2.0 with green alpha = extreme bullish outlier; high-conviction long','Z >1.75 with negative alpha = extreme bearish; short candidate or avoid','Bullish sentiment + low Z = early momentum, not yet extreme ï¿½ watch to confirm','BEARISH + high Z = crowded short; watch for squeeze potential'] },
+              signals: ['Z >2.0 with green alpha = extreme bullish outlier; high-conviction long','Z >1.75 with negative alpha = extreme bearish; short candidate or avoid','Bullish sentiment + low Z = early momentum, not yet extreme ? watch to confirm','BEARISH + high Z = crowded short; watch for squeeze potential'] },
             { name: 'Strategy Firing Density Histogram (30D)', type: 'CHART', icon: 'bar_chart',
               description: '30-day bar chart of daily signal count. Colour by density: grey (<4), cyan (4-7), amber (7-12), red (>18). Reveals whether the current signal environment is active or quiet.',
               howToRead: 'High bars on the right = active environment. Grey plateau then sudden spike = market waking up. Consecutive red bars = extreme activity coinciding with major price moves.',
@@ -441,11 +441,11 @@ function renderDocsViewMLEngine() {
     renderViewDocPage({
         hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'ML Alpha Engine', viewId: 'signals',
-        summary: 'The dual-model ensemble (LSTM + XGBoost) generates 24h price direction predictions. This view exposes the model internals ï¿½ confidence scores, feature importances, and agreement metrics.',
+        summary: 'The dual-model ensemble (LSTM + XGBoost) generates 24h price direction predictions. This view exposes the model internals ? confidence scores, feature importances, and agreement metrics.',
         components: [
             { name: 'ML Prediction Table', type: 'TABLE', icon: 'smart_toy',
               description: 'Ranked table: Asset, ML Direction (LONG/SHORT/NEUTRAL), LSTM Confidence %, XGBoost Confidence %, Ensemble Consensus (HIGH/MEDIUM/LOW), Primary reason. Sorted by ensemble confidence.',
-              howToRead: 'Focus on HIGH consensus rows ï¿½ both models agree. Both >70% = elite signal quality.',
+              howToRead: 'Focus on HIGH consensus rows ? both models agree. Both >70% = elite signal quality.',
               signals: ['Both models >75% same direction = highest-conviction terminal setup','Models disagreeing = LOW consensus; skip or reduce size significantly','NEUTRAL across majority of assets = no strong trend; cash is a valid position'] },
             { name: 'Feature Importance Bar Chart', type: 'CHART', icon: 'bar_chart',
               description: 'Horizontal bars ranking the top 10 XGBoost input features by contribution: RSI deviation, MVRV Z-score, funding rate, volume delta, social velocity, on-chain active addresses.',
@@ -471,7 +471,7 @@ function renderDocsViewAlphaScore() {
             { name: 'Grade Distribution Summary', type: 'STAT', icon: 'grade',
               description: 'Stat cards showing count and percentage of assets in each grade bucket (A/B/C/D). Market-wide health read at a glance.',
               howToRead: 'Healthy bull market = 30-40% of assets in A or B. Bear market compresses most into D.',
-              signals: ['>40% Grade A = euphoric bull; caution on new entries ï¿½ late cycle','> 60% Grade D = broad capitulation; contrarian buy zone likely forming','Even distribution across A/B/C/D = balanced market; individual asset selection critical'] },
+              signals: ['>40% Grade A = euphoric bull; caution on new entries ? late cycle','> 60% Grade D = broad capitulation; contrarian buy zone likely forming','Even distribution across A/B/C/D = balanced market; individual asset selection critical'] },
         ]
     });
 }
@@ -484,7 +484,7 @@ function renderDocsViewStrategyLab() {
             { name: 'Strategy Selector & Parameters', type: 'FORM', icon: 'science',
               description: 'Dropdown to select a strategy (MVRV Reversion, Momentum Cross, Regime-Adaptive, VWAP Bounce) with configurable asset, lookback window, and signal threshold.',
               howToRead: 'Start with default parameters. Modify one parameter at a time. Wide thresholds fire fewer but higher-quality signals.',
-              signals: ['MVRV Reversion works best in HIGH-VOL regimes','Regime-Adaptive works across all market states','Momentum Cross requires a confirmed trend ï¿½ check Regime view first before using'] },
+              signals: ['MVRV Reversion works best in HIGH-VOL regimes','Regime-Adaptive works across all market states','Momentum Cross requires a confirmed trend ? check Regime view first before using'] },
             { name: 'Strategy Equity Curve', type: 'CHART', icon: 'show_chart',
               description: 'Cumulative portfolio value from  over the backtested period. Green dots = entries, red dots = exits. Compared against BTC buy-and-hold baseline.',
               howToRead: 'Strategy line consistently above BTC baseline = alpha being generated. Large sudden drops = drawdown periods. Smooth steady rise = robust strategy.',
@@ -504,7 +504,7 @@ function renderDocsViewBacktester() {
     renderViewDocPage({
         hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Backtester V2', viewId: 'backtester-v2',
-        summary: 'Institutional-grade backtests across the full AlphaSignal history. Every metric is computed on actual historical signals ï¿½ not reconstructed or curve-fitted.',
+        summary: 'Institutional-grade backtests across the full AlphaSignal history. Every metric is computed on actual historical signals ? not reconstructed or curve-fitted.',
         components: [
             { name: 'Rolling Sharpe Ratio Chart', type: 'CHART', icon: 'show_chart',
               description: '30-day rolling Sharpe Ratio time-series across the full backtest period. Reference line at Sharpe = 1.0 marks the minimum acceptable institutional threshold.',
@@ -512,11 +512,11 @@ function renderDocsViewBacktester() {
               signals: ['Consistently >1.5 over 90+ days = institutionally viable strategy; deploy capital','Dropping from 2.0 to 0.5 = entering difficult regime; reduce exposure','Recovering from negative to positive = regime aligning again'] },
             { name: 'Monthly P&L Heatmap Calendar', type: 'CHART', icon: 'calendar_month',
               description: 'Calendar heatmap of monthly returns: dark green (>+5%), light green (+1-5%), grey (flat), orange (-1 to -5%), red (<-5%). Reveals seasonal patterns in strategy performance.',
-              howToRead: 'Look for consistent red or green months across multiple years ï¿½ these are structural patterns worth accounting for.',
+              howToRead: 'Look for consistent red or green months across multiple years ? these are structural patterns worth accounting for.',
               signals: ['Consistent red in January = reduce exposure in Jan for this strategy','Consistent green in Q4 = end-of-year institutional buying benefits this strategy','Isolated red months surrounded by green = one-off event, not structural'] },
             { name: 'Trade Summary Statistics Panel', type: 'STAT', icon: 'analytics',
               description: 'Full stats: Total Trades, Win Rate %, Avg Win, Avg Loss, Profit Factor (Wins/Losses), Max Drawdown %, Calmar Ratio (Annual Return / Max DD), Best/Worst single trade.',
-              howToRead: 'Profit Factor >1.5 = makes .50 per  lost. Win Rate alone misleads ï¿½ 40% win rate with 3:1 reward/risk beats 70% win rate with 1:2.',
+              howToRead: 'Profit Factor >1.5 = makes .50 per  lost. Win Rate alone misleads ? 40% win rate with 3:1 reward/risk beats 70% win rate with 1:2.',
               signals: ['Profit Factor >2.0 = excellent edge; full allocation justified','Max Drawdown >30% = strong risk management protocols required','Calmar >1.0 = annual return exceeds max drawdown; strong risk-adjusted profile'] },
         ]
     });
