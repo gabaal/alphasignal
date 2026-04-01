@@ -1,4 +1,4 @@
-﻿// docs-b.js — remaining hub documentation
+// docs-b.js — remaining hub documentation
 // Institutional | Analytics | Audit | Risk | Advanced Charting | Order Flow | Alerts | Personal
 
 // ============= INSTITUTIONAL HUB =============
@@ -148,6 +148,53 @@ function renderDocsViewWhalePulse() {
                     '3+ green bubbles >$10M within 1 hour = coordinated accumulation event; high-conviction buy',
                     'Large red bubble at price resistance = institutional seller defending that level',
                     'Bubbles absent for >6 hours = whale inactivity; wait for them to resume before trading directionally'
+                ]
+            }
+        ]
+    });
+}
+
+function renderDocsViewChainVelocity() {
+    renderViewDocPage({
+        hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
+        title: 'Chain Velocity', viewId: 'analytics-hub',
+        relatedDocs: [
+            { name: 'Whale Pulse', route: 'docs-whale-pulse', icon: 'waves' },
+            { name: 'On-Chain Analytics', route: 'docs-onchain', icon: 'link' },
+            { name: 'Sector Rotation', route: 'docs-rotation', icon: 'swap_horiz' },
+        ],
+        summary: 'Cross-chain capital velocity and volume acceleration tracking across Ethereum, Solana, Avalanche, and Cardano. Identifies which L1 ecosystem is attracting institutional attention before price confirms the rotation.',
+        components: [
+            {
+                name: 'Velocity Time-Series Chart', type: 'CHART', icon: 'speed',
+                description: 'A multi-line time-series chart showing volume acceleration (Velocity Score) for each tracked L1 over the past 30 days. Velocity = current 24h volume ÷ 5-day moving average volume. A score above 1.0 means volume is expanding relative to recent norms. Lines are colour-coded by chain: Ethereum (cyan), Solana (green), Avalanche (orange), Cardano (purple). The 1.0 baseline is drawn as a dashed white reference line.',
+                howToRead: 'Lines crossing above 1.0 from below = capital accelerating into that chain. Lines well above 2.0 = unusual surge — check whether it is organic demand or a one-off event. Lines persistently below 1.0 = capital leaving that ecosystem.',
+                signals: [
+                    'Solana velocity >1.8 while Ethereum <0.9 = active rotation from ETH to SOL; rotate sector exposure',
+                    'All chains simultaneously above 1.5 = broad risk-on tide lifting all L1s; long basket exposure optimal',
+                    'Single chain spiking alone above 2.5 = check for a protocol-specific event (airdrop, listing, exploit)',
+                    'All chains falling below 0.7 together = macro risk-off; cash or stables preferred'
+                ]
+            },
+            {
+                name: 'Cross-Chain Capital Flow Sankey', type: 'CHART', icon: 'moving',
+                description: 'A D3.js Sankey flow diagram showing where capital entered the ecosystem (left: Fiat, BTC, Stables) and where it flowed to (right: individual L1 networks and DeFi verticals). Line thickness is proportional to 24h volume. Labels show the USD equivalent of each flow stream.',
+                howToRead: 'Follow the thickest lines to see where new capital is being deployed. A thick line entering Solana DeFi from Stables = new capital deploying into SOL-based yield strategies — a bullish indicator for SOL. Thin lines everywhere = capital is not moving between chains; range-bound market.',
+                signals: [
+                    'Thick flow into L2s (Arbitrum, Optimism) from ETH = users seeking lower fees; ETH ecosystem healthy',
+                    'Capital flowing from L1s back to Stables = risk reduction in progress; across-chain de-risking',
+                    'Heavy BTC → ETH Sankey line = ETH accumulation phase; likely precedes ETH outperformance',
+                    'Multiple chains receiving inflows from Fiat simultaneously = new retail entry; early market expansion'
+                ]
+            },
+            {
+                name: 'Network Signature Radar', type: 'CHART', icon: 'radar',
+                description: 'A 4-axis radar chart plotting each chain across: Momentum (price vs 20D MA), Social Heat (mention velocity), Liquidity (DEX volume rank), and Institutional Vigor (Z-score of volume acceleration). Each chain is a separate coloured polygon. A large, even polygon = well-rounded high-conviction chain.',
+                howToRead: 'A chain with large Momentum but small Liquidity = price moving on thin volume — unsustainable. A chain with high Social Heat but low Institutional Vigor = hype without capital confirmation. Strong Vigor + Momentum together = high-confidence rotation signal.',
+                signals: [
+                    'Chain dominating all four axes = strongest current opportunity; lead allocation target',
+                    'High Social Heat + Low Vigor for a chain = narrative ahead of capital; wait for Vigor to confirm',
+                    'All chains showing small, compressed polygons = no clear rotation target; market undecided'
                 ]
             }
         ]

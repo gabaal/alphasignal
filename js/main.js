@@ -131,6 +131,7 @@ const viewMap = {
     'docs-portfolio-optimizer': renderDocsViewPortfolioOptimizer,
     'docs-tradelab': renderDocsViewTradeLab,
     'docs-whale-pulse': renderDocsViewWhalePulse,
+    'docs-chain-velocity': renderDocsViewChainVelocity,
     'docs-onchain': renderDocsViewOnchain,
     'docs-options-flow': renderDocsViewOptionsFlow,
     'docs-newsroom': renderDocsViewNewsroom,
