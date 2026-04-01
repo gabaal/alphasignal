@@ -3232,6 +3232,190 @@ h4 {
 }
 
 /* Backtester export btn */
+.auth-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Icon-wrapped input rows */
+.auth-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.auth-input-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 1rem;
+    color: var(--text-dim);
+    pointer-events: none;
+    transition: color 0.2s;
+    z-index: 1;
+}
+
+.auth-input-wrap:focus-within .auth-input-icon {
+    color: var(--accent);
+}
+
+.auth-input-wrap input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    padding: 0.9rem 2.8rem 0.9rem 2.8rem;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'JetBrains Mono';
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+.auth-input-wrap input::placeholder {
+    color: rgba(255,255,255,0.2);
+    font-size: 0.82rem;
+}
+
+.auth-input-wrap input:focus {
+    border-color: var(--accent);
+    background: rgba(0, 242, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(0, 242, 255, 0.08);
+}
+
+/* Show/hide password button */
+.auth-eye-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+    z-index: 1;
+}
+.auth-eye-btn:hover { color: var(--accent); }
+.auth-eye-btn .material-symbols-outlined { font-size: 1rem; }
+
+/* Legacy input-group (used in notification modal etc.) */
+.input-group {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.input-group label {
+    font-family: 'JetBrains Mono';
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+.input-group input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'JetBrains Mono';
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: var(--accent);
+    background: rgba(0, 242, 255, 0.05);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+}
+
+/* Submit button */
+.intel-action-btn.auth-submit {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 1rem;
+    border-radius: 12px;
+    font-family: 'Outfit';
+    font-weight: 900;
+    font-size: 0.95rem;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 1px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.25);
+    margin: 0.25rem 0;
+}
+.intel-action-btn.auth-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 242, 255, 0.4);
+    background: #fff;
+}
+
+/* Divider */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono';
+}
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* Trust strip */
+.auth-trust-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    opacity: 0.5;
+}
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'JetBrains Mono';
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.trust-item .material-symbols-outlined { font-size: 0.85rem; }
+.trust-sep { width: 1px; height: 16px; background: var(--border); }
+
+/* Auth switch */
+.auth-switch {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono';
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
 .btv2-export-btn {
     background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,168,150,0.1));
     border: 1px solid rgba(0,212,170,0.35);

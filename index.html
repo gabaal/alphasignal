@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -336,33 +336,58 @@
     <!-- Auth Shell -->
     <div id="auth-overlay" class="overlay hidden">
         <div class="overlay-content auth-panel" role="dialog" aria-labelledby="auth-title" aria-describedby="auth-desc">
+
             <div class="auth-header">
                 <div class="logo-orb large" aria-hidden="true"></div>
-                <h2 id="auth-title">ALPHASIGNAL<span>TERMINAL</span></h2>
-                <p id="auth-desc">INSTITUTIONAL INTELLIGENCE ACCESS</p>
+                <h2 id="auth-title">ALPHA<span>SIGNAL</span></h2>
+                <p id="auth-desc">Institutional Intelligence Terminal</p>
             </div>
-            
+
             <div id="auth-form-container" class="auth-body">
-                <div class="input-group">
-                    <label for="auth-email">EMAIL</label>
-                    <input type="email" id="auth-email" placeholder="ENTER EMAIL..." autocomplete="email" aria-required="true" />
+
+                <div class="auth-input-wrap">
+                    <span class="auth-input-icon material-symbols-outlined">mail</span>
+                    <input type="email" id="auth-email" placeholder="Email address" autocomplete="email" aria-required="true" aria-label="Email address" />
                 </div>
-                <div class="input-group">
-                    <label for="auth-password">PASSWORD</label>
-                    <input type="password" id="auth-password" placeholder="ENTER PASSWORD..." autocomplete="current-password" aria-required="true" />
+
+                <div class="auth-input-wrap">
+                    <span class="auth-input-icon material-symbols-outlined">lock</span>
+                    <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" aria-required="true" aria-label="Password" />
+                    <button type="button" class="auth-eye-btn" id="auth-eye" aria-label="Toggle password visibility" onclick="const i=document.getElementById('auth-password');const e=document.getElementById('auth-eye-icon');i.type=i.type==='password'?'text':'password';e.textContent=i.type==='password'?'visibility':'visibility_off'">
+                        <span class="material-symbols-outlined" id="auth-eye-icon">visibility</span>
+                    </button>
                 </div>
-                
+
                 <div id="auth-error" class="auth-error hidden" role="alert"></div>
-                
-                <button id="login-btn" class="intel-action-btn large" aria-label="Login to Terminal">LOGIN</button>
+
+                <button id="login-btn" class="intel-action-btn auth-submit" aria-label="Login to Terminal">
+                    <span class="material-symbols-outlined" style="font-size:1rem">login</span>
+                    <span id="auth-btn-label">SIGN IN</span>
+                </button>
+
+                <div class="auth-divider"><span>or</span></div>
+
                 <div class="auth-switch">
-                    NEED ACCESS? <a href="#" id="toggle-auth" aria-label="Toggle between Login and Registration">REQUEST REGISTRATION</a>
+                    <span id="auth-switch-text">Don't have an account?</span>
+                    <a href="#" id="toggle-auth" aria-label="Toggle between Login and Registration">Create account</a>
                 </div>
             </div>
-            
-            <div class="auth-footer">
-                <div class="security-badge" role="status">256-BIT ENCRYPTION ACTIVE</div>
-                <div class="system-status" aria-live="polite">BIOMETRIC SYNC WAITING</div>
+
+            <div class="auth-trust-strip">
+                <div class="trust-item">
+                    <span class="material-symbols-outlined">shield</span>
+                    <span>256-bit SSL</span>
+                </div>
+                <div class="trust-sep"></div>
+                <div class="trust-item">
+                    <span class="material-symbols-outlined">group</span>
+                    <span>2,400+ traders</span>
+                </div>
+                <div class="trust-sep"></div>
+                <div class="trust-item">
+                    <span class="material-symbols-outlined">bolt</span>
+                    <span>Live data</span>
+                </div>
             </div>
         </div>
     </div>
