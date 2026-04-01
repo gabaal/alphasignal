@@ -537,8 +537,9 @@ function openCmdChartModal(key) {
                 },
                 options: {
                     responsive: true, maintainAspectRatio: true, animation: { duration: 500 },
+                    layout: { padding: 0 },
                     plugins: {
-                        legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 11 } } },
+                        legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 11 }, padding: 8 } },
                         tooltip: {
                             backgroundColor: 'rgba(13,17,23,0.97)', titleColor: '#00f2ff',
                             bodyFont: { family: 'JetBrains Mono', size: 11 }, padding: 12,
@@ -550,7 +551,7 @@ function openCmdChartModal(key) {
                         ticks: { stepSize: 25, color: 'rgba(255,255,255,0.3)', backdropColor: 'transparent', font: { size: 10, family: 'JetBrains Mono' } },
                         grid: { color: 'rgba(255,255,255,0.08)' },
                         angleLines: { color: 'rgba(255,255,255,0.08)' },
-                        pointLabels: { color: 'rgba(255,255,255,0.8)', font: { size: 13, family: 'JetBrains Mono', weight: '700' } }
+                        pointLabels: { color: 'rgba(255,255,255,0.8)', font: { size: 13, family: 'JetBrains Mono', weight: '700' }, padding: 6 }
                     }}
                 }
             });
@@ -876,12 +877,13 @@ async function loadCmdRadar(ticker) {
             },
             options: {
                 responsive: true, maintainAspectRatio: true,
-                plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 8 } } } },
+                layout: { padding: 0 },
+                plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 8 }, padding: 4 } } },
                 scales: { r: {
                     min: 0, max: 100,
                     ticks: { stepSize: 25, color: 'rgba(255,255,255,0.25)', backdropColor: 'transparent', font: { size: 7 } },
                     grid: { color: 'rgba(255,255,255,0.06)' },
-                    pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 8.5, family: 'JetBrains Mono' } }
+                    pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 9, family: 'JetBrains Mono' }, padding: 4 }
                 }}
             }
         });
