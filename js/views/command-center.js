@@ -1,4 +1,4 @@
-﻿async function renderCommandCenter() {
+async function renderCommandCenter() {
     appEl.innerHTML = `
         <div class="view-header" style="margin-bottom:2rem">
             <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">dashboard</span> Institutional Command Center <span class="premium-badge">MASTER VIEW</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
@@ -533,60 +533,135 @@ async function initBTCSparkline() {
 }
 
 function initCommandGauges(macro, regime) {
-    const fgValue = document.getElementById('cmd-fear-val');
     const fgCanvas = document.getElementById('cmd-gauge-fear');
+    const fgValue  = document.getElementById('cmd-fear-val');
     if (!fgCanvas || !fgValue) return;
-    
-    // Using a simulated gauge for the dashboard summary
-    const score = 64; 
-    fgValue.innerText = score;
-    fgValue.style.color = "#86efac";
 
-    new Chart(fgCanvas.getContext('2d'), {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [score, 100 - score],
-                backgroundColor: ['#86efac', 'rgba(255,255,255,0.05)'],
-                borderWidth: 0,
-                circumference: 180,
-                rotation: 270
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '80%',
-            plugins: { tooltip: { enabled: false }, legend: { display: false } }
-        }
-    });
+    // Fetch real Fear & Greed score from /api/fear-greed
+    fetch('/api/fear-greed')
+        .then(r => r.ok ? r.json() : null)
+        .then(fg => {
+            const score = fg?.score ?? 50;
+            const label = fg?.label ?? 'NEUTRAL';
+            const color = score >= 75 ? '#22c55e'
+                        : score >= 55 ? '#86efac'
+                        : score >= 45 ? '#facc15'
+                        : score >= 25 ? '#fb923c'
+                        : '#ef4444';
+            fgValue.textContent = score;
+            fgValue.style.color = color;
+            // Small label below score
+            let lbl = document.getElementById('cmd-fear-label');
+            if (!lbl) {
+                lbl = document.createElement('div');
+                lbl.id = 'cmd-fear-label';
+                lbl.style.cssText = 'font-size:0.55rem;letter-spacing:2px;color:rgba(255,255,255,0.4);margin-top:2px';
+                fgValue.parentNode.appendChild(lbl);
+            }
+            lbl.textContent = label;
+            const existing = Chart.getChart('cmd-gauge-fear'); if (existing) existing.destroy();
+            new Chart(fgCanvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [score, 100 - score],
+                        backgroundColor: [color, 'rgba(255,255,255,0.05)'],
+                        borderWidth: 0,
+                        circumference: 180,
+                        rotation: 270
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: { tooltip: { enabled: false }, legend: { display: false } }
+                }
+            });
+        })
+        .catch(() => {
+            fgValue.textContent = '--';
+        });
 
-    document.getElementById('cmd-regime-status').innerText = (regime.current || 'VOL EXPANSION').replace(/_/g, ' ');
-    renderRegimeHeatmap('#cmd-regime-heatmap', regime.history || []);
+    if (regime) {
+        const regimeEl = document.getElementById('cmd-regime-status');
+        if (regimeEl) regimeEl.innerText = (regime.current || 'VOL EXPANSION').replace(/_/g, ' ');
+        renderRegimeHeatmap('#cmd-regime-heatmap', regime.history || []);
+    }
 }
 
-function renderCommandETF() {
-    const ctx = document.getElementById('cmd-etf-chart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['MON', 'TUE', 'WED', 'THU', 'FRI'],
-            datasets: [{
-                label: 'NET_FLOW ($M)',
-                data: [420, 150, -80, 600, 340],
-                backgroundColor: '#00f2ff',
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
-                x: { grid: { display: false }, ticks: { color: '#666' } }
+async function renderCommandETF() {
+    const ctx = document.getElementById('cmd-etf-chart');
+    if (!ctx) return;
+    try {
+        const r = await fetch('/api/etf-flows');
+        const data = r.ok ? await r.json() : null;
+        if (!data || !data.labels || !data.datasets) throw new Error('No ETF data');
+        const existing = Chart.getChart('cmd-etf-chart'); if (existing) existing.destroy();
+        new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [
+                    ...data.datasets.map(ds => ({
+                        label: ds.name,
+                        data: ds.data,
+                        backgroundColor: ds.color + 'cc',
+                        borderColor: ds.color,
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        stack: 'stack0'
+                    })),
+                    {
+                        label: 'CUMULATIVE ($M)',
+                        type: 'line',
+                        data: data.cumulative,
+                        borderColor: 'rgba(255,255,255,0.5)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#fff',
+                        yAxisID: 'y1',
+                        fill: false,
+                        tension: 0.3
+                    }
+                ]
             },
-            plugins: { legend: { display: false } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 9 }, boxWidth: 10 } },
+                    tooltip: {
+                        backgroundColor: 'rgba(13,17,23,0.95)', titleColor: '#00f2ff', bodyColor: '#e2e8f0',
+                        callbacks: { label: c => ` ${c.dataset.label}: ${c.raw >= 0 ? '+' : ''}${c.raw}M` }
+                    }
+                },
+                scales: {
+                    x: { stacked: true, grid: { display: false }, ticks: { color: '#666', font: { family: 'JetBrains Mono', size: 8 }, maxRotation: 35 } },
+                    y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666', callback: v => '$' + v + 'M' },
+                       title: { display: true, text: 'DAILY FLOW ($M)', color: '#00f2ff', font: { size: 9 } } },
+                    y1: { position: 'right', grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)', callback: v => '$' + v + 'M' } }
+                }
+            }
+        });
+        // Update 7D header label to say data source
+        const hdr = ctx.closest('.card')?.querySelector('h3');
+        if (hdr && data.source) {
+            const tag = data.source === 'yfinance_live' ? '● LIVE' : '● MODELLED';
+            const tagColor = data.source === 'yfinance_live' ? '#22c55e' : '#f59e0b';
+            if (!hdr.querySelector('.src-tag')) {
+                const span = document.createElement('span');
+                span.className = 'src-tag';
+                span.style.cssText = `font-size:0.5rem;margin-left:8px;color:${tagColor};letter-spacing:1px`;
+                span.textContent = tag;
+                hdr.appendChild(span);
+            }
         }
-    });
+    } catch(e) {
+        console.warn('ETF Flows chart error:', e);
+        // Graceful degradation
+        if (ctx) ctx.closest('.card') && (ctx.closest('.card').innerHTML += '<p style="color:var(--text-dim);font-size:0.7rem;text-align:center;padding:1rem">ETF flow data syncing...</p>');
+    }
 }
 
