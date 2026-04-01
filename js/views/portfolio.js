@@ -1,4 +1,4 @@
-﻿async function renderPortfolioLab(customBasket = null, tabs = null) {
+async function renderPortfolioLab(customBasket = null, tabs = null) {
     appEl.innerHTML = skeleton(1);
     const endpoint = customBasket ? `/portfolio-sim?basket=${customBasket}` : '/portfolio-sim';
     const [data, optData] = await Promise.all([
@@ -123,10 +123,15 @@
                             `).join('') : `<p style="font-size:0.7rem; color:var(--risk-high); opacity:0.8">${(optData && optData.error) ? optData.error : 'Data synchronization in progress...'}</p>`}
                         </div>
                         <!-- Phase 17-C: AI Rebalancer -->
-                        <button class="intel-action-btn secondary" style="margin-top:0.5rem; width:100%; background:linear-gradient(135deg,rgba(0,212,170,0.15),rgba(0,168,150,0.1)); border:1px solid rgba(0,212,170,0.3); color:#00d4aa" onclick="document.getElementById('ai-rebalancer-section').style.display='block'; renderAIRebalancer()">
+                        <button class="intel-action-btn secondary" style="margin-top:0.5rem; width:100%; background:linear-gradient(135deg,rgba(0,212,170,0.15),rgba(0,168,150,0.1)); border:1px solid rgba(0,212,170,0.3); color:#00d4aa" onclick="const s=document.getElementById('ai-rebalancer-section'); if(s){s.style.display='block';} renderAIRebalancer && renderAIRebalancer()">
                             <span class="material-symbols-outlined" style="font-size:1.1rem; vertical-align:middle; margin-right:8px">smart_toy</span>
                             AI REBALANCER (GPT MEMO)
-                        </button>                        <button class="intel-action-btn" style="margin-top:1.5rem; width:100%" onclick="executeRebalance()">
+                        </button>
+                        <div id="ai-rebalancer-section" style="display:none; margin-top:1rem; padding:1rem; background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.2); border-radius:8px; font-size:0.75rem; color:var(--text-dim)">
+                            <div style="display:flex;align-items:center;gap:8px;color:#00d4aa;font-weight:900;margin-bottom:0.5rem"><span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite">sync</span> Synthesizing rebalancing memo...</div>
+                            <div id="ai-rebalancer-output"></div>
+                        </div>
+                        <button class="intel-action-btn" style="margin-top:1.5rem; width:100%" onclick="executeRebalance()">
                             <span class="material-symbols-outlined" style="font-size:1.1rem; vertical-align:middle; margin-right:8px">sync_alt</span>
                             EXECUTE REBALANCE
                         </button>
