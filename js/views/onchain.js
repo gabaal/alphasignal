@@ -1066,6 +1066,7 @@ async function renderCustomAnalytics(tabs) {
     // â”€â”€ BTC Dominance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try {
         const dom = await fetchAPI('/dominance');
+        window._dominanceData = dom;
         if (dom && dom.labels) {
             containers.dominance.innerHTML = '';
             const c = LightweightCharts.createChart(containers.dominance, chartOpts(280));
@@ -1081,6 +1082,7 @@ async function renderCustomAnalytics(tabs) {
     // â”€â”€ Funding Rates (per-asset current rates + BTC 24h history) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try {
         const fr = await fetchAPI('/funding-rates');
+        window._fundingData = fr;
         if (fr && fr.rows && fr.rows.length) {
             containers.funding.innerHTML = '';
             // Render as a styled HTML bar table â€” more informative than a LW chart for point-in-time rates
