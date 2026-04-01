@@ -561,12 +561,12 @@ class InstitutionalRoutesMixin:
                 daily_issuance_usd = block_reward * 144 * pr   # ~144 blocks/day
                 puell = float(daily_issuance_usd / (mean_365 * block_reward * 144)) if mean_365 > 0 else 1.0
 
-                # ── NVT: market cap / on-chain tx volume proxy ───────
+                # ── NVT: market cap / daily tx volume (log-scaled) ───
                 vol = float(df['Volume'].iloc[i]) if 'Volume' in df.columns and float(df['Volume'].iloc[i]) > 0 else 1e8
-                vol_btc = vol / max(pr, 1)          # yfinance vol is USD → convert to BTC
-                nvt_raw = supply / max(vol_btc, 1)  # NVT = supply / tx volume
-                nvt = nvt_raw * 3.5 + z * 8         # scale to realistic 20-150 range + z variation
-                nvt = max(15.0, min(180.0, nvt))
+                mkt_cap = pr * supply
+                nvt_raw = mkt_cap / max(vol, 1e6)   # NVT = market cap / USD vol
+                nvt = float(np.log1p(nvt_raw) * 8 + z * 6)  # log-scale + z variation
+                nvt = max(8.0, min(150.0, nvt))
 
                 # ── Hashrate ─────────────────────────────────────────
                 if live_hashrate:
