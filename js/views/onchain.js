@@ -247,15 +247,19 @@ function openOnchainModal(type) {
     document.body.style.overflow = 'hidden';
 
     const configs = {
-        mvrv:      { title: 'MVRV Z-SCORE', sub: 'MARKET VALUE VS REALISED VALUE Ã¢â‚¬â€ 365D' },
-        realized:  { title: 'REALIZED PRICE VS SPOT', sub: 'ON-CHAIN COST BASIS vs CURRENT PRICE' },
-        sopr:      { title: 'SOPR Ã¢â‚¬â€ SPENT OUTPUT PROFIT RATIO', sub: '1.0 = BREAKEVEN THRESHOLD' },
-        puell:     { title: 'PUELL MULTIPLE', sub: 'MINER REVENUE / 365D MA' },
-        nvt:       { title: 'NVT RATIO', sub: 'NETWORK VALUE TO TRANSACTIONS (P/E OF CRYPTO)' },
-        hash:      { title: 'HASH RIBBONS', sub: '30D VS 60D HASHRATE Ã¢â‚¬â€ MINER CAPITULATION SIGNAL' },
-        sentiment: { title: 'INVESTOR SENTIMENT INDEX', sub: 'COMPOSITE SCORE: MVRV + SOPR + PUELL Ã¢â‚¬â€ ABOVE 0 = GREED, BELOW 0 = FEAR' },
-        cvd:       { title: 'CUMULATIVE VOLUME DELTA', sub: 'AGGREGATED BUY VS SELL PRESSURE OVER TIME' },
-        exchflow:  { title: 'EXCHANGE NET FLOW', sub: 'GREEN = OUTFLOW (BULLISH) Ã‚Â· RED = INFLOW (SELLING PRESSURE)' }
+        mvrv:        { title: 'MVRV Z-SCORE',               sub: 'MARKET VALUE VS REALISED VALUE' },
+        realized:    { title: 'REALIZED PRICE VS SPOT',     sub: 'ON-CHAIN COST BASIS vs CURRENT PRICE' },
+        sopr:        { title: 'SOPR',                       sub: '1.0 = BREAKEVEN THRESHOLD' },
+        puell:       { title: 'PUELL MULTIPLE',             sub: 'MINER REVENUE / 365D MA' },
+        nvt:         { title: 'NVT RATIO',                  sub: 'NETWORK VALUE TO TRANSACTIONS' },
+        hash:        { title: 'HASH RIBBONS',               sub: '30D VS 60D HASHRATE' },
+        sentiment:   { title: 'INVESTOR SENTIMENT INDEX',   sub: 'COMPOSITE SCORE: MVRV + SOPR + PUELL' },
+        cvd:         { title: 'CUMULATIVE VOLUME DELTA',    sub: 'AGGREGATED BUY VS SELL PRESSURE' },
+        exchflow:    { title: 'EXCHANGE NET FLOW',          sub: 'GREEN = OUTFLOW (BULLISH) / RED = INFLOW' },
+        dominance:   { title: 'BTC DOMINANCE',              sub: 'BTC vs ETH vs ALTS - 60D',           htmlOnly: false },
+        funding:     { title: 'FUNDING RATES',              sub: 'CURRENT 8H RATE - LIVE BINANCE FAPI', htmlOnly: true  },
+        'mvrv-sopr': { title: 'MVRV / SOPR OVERLAY',       sub: 'NORMALIZED 0-1',                      htmlOnly: false },
+        volatility:  { title: '30-DAY ROLLING VOLATILITY', sub: 'ANNUALISED',                          htmlOnly: false }
     };
     const cfg = configs[type] || { title: type.toUpperCase(), sub: '' };
     document.getElementById('onchain-modal-title').textContent = cfg.title;
@@ -323,6 +327,27 @@ function openOnchainModal(type) {
         chart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0.05)', lineColor: '#60a5fa', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.cvd})));
     } else if (type === 'exchflow') {
         chart.addHistogramSeries({ priceFormat: { type: 'price', precision: 0 } }).setData(data.map(d=>({ time:d.time, value:d.exch_flow, color: d.exch_flow < 0 ? '#10b981' : '#ef4444' })));
+    } else if (type === 'dominance') {
+        const dom = window._dominanceData;
+        if (dom && dom.labels) {
+            const ts = (l,v) => l.map((t,i) => ({ time:t, value:v[i] }));
+            chart.addAreaSeries({ topColor:'rgba(247,147,26,0.4)', bottomColor:'rgba(247,147,26,0.05)', lineColor:'#f7931a', lineWidth:2, title:'BTC %' }).setData(ts(dom.labels, dom.btc));
+            chart.addLineSeries({ color:'#6272a4', lineWidth:2, title:'ETH %' }).setData(ts(dom.labels, dom.eth));
+            chart.addLineSeries({ color:'rgba(255,255,255,0.35)', lineWidth:1, title:'Alts %' }).setData(ts(dom.labels, dom.alts));
+        }
+    } else if (type === 'mvrv-sopr') {
+        if (data) {
+            const norm = arr => { const lo=Math.min(...arr),hi=Math.max(...arr),r=hi-lo||1; return arr.map(v=>parseFloat(((v-lo)/r).toFixed(4))); };
+            const mvN=norm(data.map(x=>x.mvrv)), spN=norm(data.map(x=>x.sopr));
+            chart.addLineSeries({ color:'#ef5350', lineWidth:2, title:'MVRV (norm)' }).setData(data.map((d,i)=>({ time:d.time, value:mvN[i] })));
+            chart.addLineSeries({ color:'#10b981', lineWidth:2, title:'SOPR (norm)' }).setData(data.map((d,i)=>({ time:d.time, value:spN[i] })));
+        }
+    } else if (type === 'volatility') {
+        if (data) {
+            const prices=data.map(d=>d.price), rets=prices.map((p,i)=>i===0?0:Math.log(p/prices[i-1]));
+            const volData=data.map((d,i)=>{ if(i<30)return null; const sl=rets.slice(i-30,i),mean=sl.reduce((a,b)=>a+b,0)/30,v=sl.reduce((a,b)=>a+(b-mean)**2,0)/29; return { time:d.time, value:parseFloat((Math.sqrt(v*365)*100).toFixed(2)) }; }).filter(Boolean);
+            chart.addAreaSeries({ topColor:'rgba(188,19,254,0.3)', bottomColor:'rgba(188,19,254,0.02)', lineColor:'#bc13fe', lineWidth:2, title:'Vol %' }).setData(volData);
+        }
     }
     chart.timeScale().fitContent();
 
