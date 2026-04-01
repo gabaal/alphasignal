@@ -1,4 +1,4 @@
-async function renderOnChain(tabs = null) {
+﻿async function renderOnChain(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -19,7 +19,7 @@ async function renderOnChain(tabs = null) {
                         <div id="onchain-modal-title" style="font-size:0.9rem;font-weight:900;color:var(--accent);letter-spacing:1px"></div>
                         <div id="onchain-modal-sub" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-top:3px"></div>
                     </div>
-                    <button onclick="closeOnchainModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700">✕ CLOSE</button>
+                    <button onclick="closeOnchainModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700">âœ• CLOSE</button>
                 </div>
                 <div id="onchain-modal-chart" style="height:65vh;width:100%"></div>
             </div>
@@ -164,7 +164,7 @@ async function renderOnChain(tabs = null) {
         hashChart.addLineSeries({ color: 'rgba(255,255,255,0.4)', lineWidth: 2, title: '60D Hash Ribbon' })
                  .setData(data.map(d=>({time: d.time, value: d.hash_slow})));
 
-        // ── Investor Sentiment Index (composite: normalize MVRV + SOPR + Puell) ──
+        // â”€â”€ Investor Sentiment Index (composite: normalize MVRV + SOPR + Puell) â”€â”€
         const sentimentData = (() => {
             const mvrvVals  = data.map(d => d.mvrv);
             const soprVals  = data.map(d => d.sopr);
@@ -182,13 +182,13 @@ async function renderOnChain(tabs = null) {
         // Zero baseline
         sentimentChart.addLineSeries({ color: 'rgba(255,255,255,0.2)', lineWidth: 1, lineStyle: 2 }).setData(data.map(d => ({ time: d.time, value: 0 })));
 
-        // ── CVD ───────────────────────────────────────────────────────────────────
+        // â”€â”€ CVD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const cvdContainer = document.getElementById('cvd-chart');
         const cvdChart = LightweightCharts.createChart(cvdContainer, chartOpts(300));
         cvdChart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0.05)', lineColor: '#60a5fa', lineWidth: 2, title: 'CVD' })
                 .setData(data.map(d => ({ time: d.time, value: d.cvd })));
 
-        // ── Exchange Net Flow ─────────────────────────────────────────────────────
+        // â”€â”€ Exchange Net Flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const exchflowContainer = document.getElementById('exchflow-chart');
         const exchflowChart = LightweightCharts.createChart(exchflowContainer, chartOpts(250));
         exchflowChart.addHistogramSeries({ priceFormat: { type: 'price', precision: 0 } })
@@ -233,15 +233,15 @@ function openOnchainModal(type) {
     document.body.style.overflow = 'hidden';
 
     const configs = {
-        mvrv:      { title: 'MVRV Z-SCORE', sub: 'MARKET VALUE VS REALISED VALUE — 365D' },
+        mvrv:      { title: 'MVRV Z-SCORE', sub: 'MARKET VALUE VS REALISED VALUE â€” 365D' },
         realized:  { title: 'REALIZED PRICE VS SPOT', sub: 'ON-CHAIN COST BASIS vs CURRENT PRICE' },
-        sopr:      { title: 'SOPR — SPENT OUTPUT PROFIT RATIO', sub: '1.0 = BREAKEVEN THRESHOLD' },
+        sopr:      { title: 'SOPR â€” SPENT OUTPUT PROFIT RATIO', sub: '1.0 = BREAKEVEN THRESHOLD' },
         puell:     { title: 'PUELL MULTIPLE', sub: 'MINER REVENUE / 365D MA' },
         nvt:       { title: 'NVT RATIO', sub: 'NETWORK VALUE TO TRANSACTIONS (P/E OF CRYPTO)' },
-        hash:      { title: 'HASH RIBBONS', sub: '30D VS 60D HASHRATE — MINER CAPITULATION SIGNAL' },
-        sentiment: { title: 'INVESTOR SENTIMENT INDEX', sub: 'COMPOSITE SCORE: MVRV + SOPR + PUELL — ABOVE 0 = GREED, BELOW 0 = FEAR' },
+        hash:      { title: 'HASH RIBBONS', sub: '30D VS 60D HASHRATE â€” MINER CAPITULATION SIGNAL' },
+        sentiment: { title: 'INVESTOR SENTIMENT INDEX', sub: 'COMPOSITE SCORE: MVRV + SOPR + PUELL â€” ABOVE 0 = GREED, BELOW 0 = FEAR' },
         cvd:       { title: 'CUMULATIVE VOLUME DELTA', sub: 'AGGREGATED BUY VS SELL PRESSURE OVER TIME' },
-        exchflow:  { title: 'EXCHANGE NET FLOW', sub: 'GREEN = OUTFLOW (BULLISH) · RED = INFLOW (SELLING PRESSURE)' }
+        exchflow:  { title: 'EXCHANGE NET FLOW', sub: 'GREEN = OUTFLOW (BULLISH) Â· RED = INFLOW (SELLING PRESSURE)' }
     };
     const cfg = configs[type] || { title: type.toUpperCase(), sub: '' };
     document.getElementById('onchain-modal-title').textContent = cfg.title;
@@ -301,7 +301,7 @@ function closeOnchainModal() {
 
 
 // ================================================================
-// Phase 16-E: Backtester V2 — Real Signal History + Live Prices
+// Phase 16-E: Backtester V2 â€” Real Signal History + Live Prices
 // ================================================================
 
 async function renderBacktesterV2(tabs = null) {
@@ -358,7 +358,7 @@ async function renderBacktesterV2(tabs = null) {
             </div>
         </div>
     `;
-    // Don't auto-run — let the user click RUN BACKTEST (avoids blank chart when no data)
+    // Don't auto-run â€” let the user click RUN BACKTEST (avoids blank chart when no data)
 }
 
 async function loadBacktesterV2() {
@@ -505,7 +505,7 @@ async function renderOptionsFlow(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header">
             <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-            <p>Real-time BTC & ETH Deribit options data — Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
+            <p>Real-time BTC & ETH Deribit options data â€” Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
         </div>
         ${renderHubTabs('options', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Deribit Options Flow Scanner</h2>
@@ -520,7 +520,7 @@ async function renderOptionsFlow(tabs = null) {
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
             <div class="glass-card" style="padding:1.5rem">
-                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV SMILE (±30% STRIKES)</div>
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV SMILE (Â±30% STRIKES)</div>
                 <canvas id="opts-smile-chart" height="220"></canvas>
             </div>
             <div class="glass-card" style="padding:1.5rem">
@@ -639,17 +639,17 @@ async function renderAIRebalancer() {
                     <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:#00d4aa">AI REBALANCING MEMO</div>
                     <div style="display:flex;gap:12px;font-size:0.65rem">
                         <span>Current Sharpe: <b style="color:#ffd700">${data.current_sharpe}</b></span>
-                        <span>→ Proposed: <b style="color:#22c55e">${data.proposed_sharpe}</b></span>
+                        <span>â†’ Proposed: <b style="color:#22c55e">${data.proposed_sharpe}</b></span>
                         <span>Improvement: <b style="color:#00d4aa">${sharpeImprove}</b></span>
                     </div>
                 </div>
                 <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.7;white-space:pre-wrap;font-family:'JetBrains Mono',monospace">${data.memo}</div>
             </div>
             <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto">
-                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF — ${data.updated}</div>
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF â€” ${data.updated}</div>
                 <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
                     <thead><tr style="color:var(--text-dim)">
-                        ${['Ticker','ML Score','Current','→ Suggested','Action'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
+                        ${['Ticker','ML Score','Current','â†’ Suggested','Action'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
                     </tr></thead>
                     <tbody>
                         ${(data.weights || []).map(w => {
@@ -668,7 +668,7 @@ async function renderAIRebalancer() {
             </div>
             ${data.tickets && data.tickets.length ? (() => { window._arebTickets = data.tickets; return `
             <button onclick="executeAIRebalance(window._arebTickets)" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:10px 24px;border-radius:8px;font-weight:800;font-size:0.75rem;cursor:pointer;letter-spacing:1px;width:100%">
-                ⚡ EXECUTE ${data.tickets.length} REBALANCE TICKETS
+                âš¡ EXECUTE ${data.tickets.length} REBALANCE TICKETS
             </button>`; })() : ''}
         `;
     } catch(e) {
@@ -747,7 +747,7 @@ window.runAIRebalancerView = async function() {
             <!-- Memo -->
             <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(0,212,170,0.2)">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
-                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">⚡ AI REBALANCING MEMO</div>
+                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">âš¡ AI REBALANCING MEMO</div>
                     <div style="font-size:0.65rem;color:var(--text-dim)">${data.updated}</div>
                 </div>
                 <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.8;white-space:pre-wrap;font-family:'JetBrains Mono',monospace,serif">${data.memo}</div>
@@ -755,10 +755,10 @@ window.runAIRebalancerView = async function() {
 
             <!-- Allocation table -->
             <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto">
-                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF — ML MAX-SHARPE WEIGHTS</div>
+                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF â€” ML MAX-SHARPE WEIGHTS</div>
                 <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
                     <thead><tr style="color:var(--text-dim)">
-                        ${['Ticker','ML Score','Current Alloc','→ Suggested','Action'].map(h => `<th style="text-align:left;padding:8px 12px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
+                        ${['Ticker','ML Score','Current Alloc','â†’ Suggested','Action'].map(h => `<th style="text-align:left;padding:8px 12px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
                     </tr></thead>
                     <tbody>
                         ${(data.weights || []).sort((a,b) => parseFloat(b.suggested_pct) - parseFloat(a.suggested_pct)).map(w => {
@@ -786,7 +786,7 @@ window.runAIRebalancerView = async function() {
             ${data.tickets?.length ? (() => { window._arebTickets = data.tickets; return `
             <button onclick="executeAIRebalance(window._arebTickets)" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:12px 28px;border-radius:10px;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:1px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px">
                 <span class="material-symbols-outlined" style="font-size:1.1rem">sync_alt</span>
-                EXECUTE ${data.tickets.length} REBALANCE TICKET${data.tickets.length > 1 ? 'S' : ''} → TRADE LEDGER
+                EXECUTE ${data.tickets.length} REBALANCE TICKET${data.tickets.length > 1 ? 'S' : ''} â†’ TRADE LEDGER
             </button>`; })() : ''}
         `;
     } catch(e) {
@@ -820,7 +820,7 @@ async function renderMacroCalendar(tabs = null) {
         const tierBg = { HIGH: 'rgba(239,68,68,0.12)', MEDIUM: 'rgba(249,115,22,0.1)', LOW: 'rgba(255,255,255,0.04)' };
 
         calEl.innerHTML = `
-            <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:1rem">Updated ${data.updated} · Showing next 90 days</div>
+            <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:1rem">Updated ${data.updated} Â· Showing next 90 days</div>
             <div style="display:flex;flex-direction:column;gap:12px">
                 ${data.events.map(ev => {
                     const clr = typeColors[ev.type] || '#9ca3af';
@@ -853,7 +853,7 @@ async function renderMacroCalendar(tabs = null) {
                                 <span style="font-size:0.65rem;color:var(--text-dim)">Avg volatility: <b style="color:#bc13fe">${ev.avg_vol}%</b></span>
                                 <span style="font-size:0.65rem;color:var(--text-dim)">Bull bias: <b style="color:#ffd700">${ev.bull_bias}%</b></span>
                             </div>
-                            <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:6px">LAST 6 INSTANCES — BTC DAY-OF MOVE</div>
+                            <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:6px">LAST 6 INSTANCES â€” BTC DAY-OF MOVE</div>
                             ${barsHtml}
                         </div>
                         <div style="text-align:center;min-width:80px">
@@ -888,65 +888,63 @@ async function testFireAlert() {
     }
 }
 
-// ─── TradingView Hub ──────────────────────────────────────────────────────────
-async function renderTradingViewHub(tabs = null) {
+// --- TradingView Hub ---
+async function renderTradingViewHub(tabs) {
     if (!tabs) tabs = analyticsHubTabs;
-    appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#2196f3">show_chart</span>Analytics Hub <span class="premium-badge">TRADINGVIEW</span></h1>
-        </div>
-        ${renderHubTabs('tradingview', tabs)}
-        <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">TradingView Market Intelligence</h2>
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap:1rem; margin-bottom:1rem">
-            <div class="card" style="padding:1.5rem">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-                    <h3 style="margin:0">Technical Analysis — BTC</h3>
-                    <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span>
-                </div>
-                <div id="tv-ta-btc" class="tradingview-widget-container" style="min-height:460px"></div>
-            </div>
-            <div class="card" style="padding:1.5rem">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-                    <h3 style="margin:0">Technical Analysis — ETH</h3>
-                    <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span>
-                </div>
-                <div id="tv-ta-eth" class="tradingview-widget-container" style="min-height:460px"></div>
-            </div>
-        </div>
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap:1rem; margin-bottom:2rem">
-            <div class="card" style="padding:1.5rem">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-                    <h3 style="margin:0">Crypto Market Screener</h3>
-                    <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span>
-                </div>
-                <div id="tv-screener" class="tradingview-widget-container" style="min-height:460px"></div>
-            </div>
-            <div class="card" style="padding:1.5rem">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-                    <h3 style="margin:0">Economic Calendar</h3>
-                    <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span>
-                </div>
-                <div id="tv-calendar" class="tradingview-widget-container" style="min-height:460px"></div>
-            </div>
-        </div>
-    `;
+    const badge = '<span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span>';
+    const card = (id, title, h) => '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">' + title + '</h3>' + badge + '</div><div id="' + id + '" class="tradingview-widget-container" style="min-height:' + (h||460) + 'px"></div></div>';
 
-    function injectTVWidget(containerId, widgetType, config) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        const inner = document.createElement('div');
-        inner.className = 'tradingview-widget-container__widget';
-        container.appendChild(inner);
-        const s = document.createElement('script');
-        s.type = 'text/javascript';
-        s.src = `https://s3.tradingview.com/external-embedding/embed-widget-${widgetType}.js`;
-        s.async = true;
-        s.textContent = JSON.stringify(config);
-        container.appendChild(s);
+    appEl.innerHTML =
+        '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#2196f3">show_chart</span>Analytics Hub <span class="premium-badge">TRADINGVIEW</span></h1></div>' +
+        renderHubTabs('tradingview', tabs) +
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1rem">Market Overview</h2>' +
+        '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem">' + card('tv-market-overview','Global Market Overview \u2014 Crypto \u00b7 Indices \u00b7 Commodities', 420) + '</div>' +
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Symbol Comparison</h2>' +
+        '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem">' + card('tv-symbol-overview','BTC \u00b7 ETH \u00b7 SOL \u2014 12M Normalized Performance', 420) + '</div>' +
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Technical Analysis</h2>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:1rem;margin-bottom:1rem">' + card('tv-ta-btc','Technical Analysis \u2014 BTC') + card('tv-ta-eth','Technical Analysis \u2014 ETH') + '</div>' +
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Screener &amp; Calendar</h2>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:1rem;margin-bottom:1rem">' + card('tv-screener','Crypto Market Screener') + card('tv-calendar','Economic Calendar') + '</div>' +
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Market Hotlists</h2>' +
+        '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:2rem">' + card('tv-hotlists','Top Gainers \u00b7 Losers \u00b7 Most Active Volume', 420) + '</div>';
+
+    function injectTVWidget(id, type, cfg) {
+        var c = document.getElementById(id); if (!c) return;
+        var d = document.createElement('div'); d.className = 'tradingview-widget-container__widget'; c.appendChild(d);
+        var s = document.createElement('script'); s.type = 'text/javascript';
+        s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-' + type + '.js';
+        s.async = true; s.textContent = JSON.stringify(cfg); c.appendChild(s);
     }
 
-    injectTVWidget('tv-ta-btc',   'technical-analysis', { interval:'1D', width:'100%', isTransparent:true, height:460, symbol:'BINANCE:BTCUSDT', showIntervalTabs:true, displayMode:'multiple', locale:'en', colorTheme:'dark' });
-    injectTVWidget('tv-ta-eth',   'technical-analysis', { interval:'1D', width:'100%', isTransparent:true, height:460, symbol:'BINANCE:ETHUSDT', showIntervalTabs:true, displayMode:'multiple', locale:'en', colorTheme:'dark' });
-    injectTVWidget('tv-screener', 'screener',           { width:'100%', height:460, defaultColumn:'overview', screener_type:'crypto_mkt', displayCurrency:'USD', colorTheme:'dark', locale:'en', isTransparent:true });
-    injectTVWidget('tv-calendar', 'events',             { width:'100%', height:460, colorTheme:'dark', isTransparent:true, locale:'en', importanceFilter:'-1,0,1', countryFilter:'us,eu,gb,jp,cn' });
+    injectTVWidget('tv-market-overview', 'market-overview', {
+        colorTheme:'dark', dateRange:'12M', showChart:true, locale:'en', largeChartUrl:'',
+        isTransparent:true, showSymbolLogo:true, showFloatingTooltip:false, width:'100%', height:420,
+        tabs:[
+            {title:'Crypto', originalTitle:'Crypto', symbols:[
+                {s:'BINANCE:BTCUSDT',d:'Bitcoin'},{s:'BINANCE:ETHUSDT',d:'Ethereum'},
+                {s:'BINANCE:SOLUSDT',d:'Solana'},{s:'BINANCE:BNBUSDT',d:'BNB'},
+                {s:'BINANCE:XRPUSDT',d:'XRP'},{s:'BINANCE:ADAUSDT',d:'Cardano'}]},
+            {title:'Indices', originalTitle:'Indices', symbols:[
+                {s:'FOREXCOM:SPXUSD',d:'S&P 500'},{s:'FOREXCOM:NSXUSD',d:'Nasdaq'},
+                {s:'FOREXCOM:DJI',d:'Dow Jones'},{s:'INDEX:NKY',d:'Nikkei'}]},
+            {title:'Commodities', originalTitle:'Commodities', symbols:[
+                {s:'CME_MINI:GC1!',d:'Gold'},{s:'CME:SI1!',d:'Silver'},
+                {s:'NYMEX:CL1!',d:'Oil'},{s:'TVC:DXY',d:'DXY'}]}
+        ]
+    });
+
+    injectTVWidget('tv-symbol-overview', 'symbol-overview', {
+        symbols:[['Bitcoin','BINANCE:BTCUSDT|12M'],['Ethereum','BINANCE:ETHUSDT|12M'],['Solana','BINANCE:SOLUSDT|12M']],
+        chartOnly:false, width:'100%', height:420, locale:'en', colorTheme:'dark', autosize:false,
+        showVolume:false, showMA:false, hideDateRanges:false, hideMarketStatus:false, hideSymbolLogo:false,
+        scalePosition:'right', scaleMode:'Normal', fontFamily:'JetBrains Mono', fontSize:'10',
+        noTimeScale:false, valuesTracking:'1', changeMode:'price-and-percent', chartType:'area',
+        lineWidth:2, lineType:0, dateRanges:['1d|1','1m|30','3m|60','12m|1D','60m|1W'], isTransparent:true
+    });
+
+    injectTVWidget('tv-ta-btc','technical-analysis',{interval:'1D',width:'100%',isTransparent:true,height:460,symbol:'BINANCE:BTCUSDT',showIntervalTabs:true,displayMode:'multiple',locale:'en',colorTheme:'dark'});
+    injectTVWidget('tv-ta-eth','technical-analysis',{interval:'1D',width:'100%',isTransparent:true,height:460,symbol:'BINANCE:ETHUSDT',showIntervalTabs:true,displayMode:'multiple',locale:'en',colorTheme:'dark'});
+    injectTVWidget('tv-screener','screener',{width:'100%',height:460,defaultColumn:'overview',screener_type:'crypto_mkt',displayCurrency:'USD',colorTheme:'dark',locale:'en',isTransparent:true});
+    injectTVWidget('tv-calendar','events',{width:'100%',height:460,colorTheme:'dark',isTransparent:true,locale:'en',importanceFilter:'-1,0,1',countryFilter:'us,eu,gb,jp,cn'});
+    injectTVWidget('tv-hotlists','hotlists',{colorTheme:'dark',dateRange:'1D',exchange:'BINANCE',showChart:true,locale:'en',largeChartUrl:'',isTransparent:true,showSymbolLogo:false,showFloatingTooltip:false,width:'100%',height:420,plotLineColorGrowing:'rgba(41,98,255,1)',plotLineColorFalling:'rgba(41,98,255,1)',gridLineColor:'rgba(42,46,57,0)',scaleFontColor:'rgba(120,123,134,1)',belowLineFillColorGrowing:'rgba(41,98,255,0.12)',belowLineFillColorFalling:'rgba(41,98,255,0.12)',belowLineFillColorGrowingBottom:'rgba(41,98,255,0)',belowLineFillColorFallingBottom:'rgba(41,98,255,0)'});
 }
