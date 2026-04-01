@@ -188,7 +188,7 @@ async function renderCommandCenter() {
                     </div>`;
             }
 
-            document.getElementById('cmd-pulse-vals').innerHTML = corrRows + leadLagHTML;
+            document.getElementById('cmd-pulse-vals')?.innerHTML && (document.getElementById('cmd-pulse-vals').innerHTML = corrRows + leadLagHTML);
         }
 
         // 3. ETF Flows (Simplified version for dashboard)
@@ -206,7 +206,8 @@ async function renderCommandCenter() {
         // 5. Top Signals
         try {
             if (signals) {
-                document.getElementById('cmd-top-signals').innerHTML = signals.slice(0, 5).map(s => `
+                const csig = document.getElementById('cmd-top-signals');
+                if (csig) csig.innerHTML = signals.slice(0, 5).map(s => `
                     <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border)">
                         <span style="font-size:0.75rem; font-weight:800">${s.ticker}</span>
                         <span style="color:var(--accent); font-weight:900">+${s.alpha.toFixed(2)}%</span>
@@ -229,7 +230,8 @@ async function renderCommandCenter() {
                 { price: '63,450', dist: '+3.2%', status: 'UNFILLED' },
                 { price: '58,200', dist: '-4.5%', status: 'PARTIAL' }
             ];
-            document.getElementById('cmd-cme-gaps').innerHTML = gaps.map(g => `
+            const gapEl = document.getElementById('cmd-cme-gaps');
+            if (gapEl) gapEl.innerHTML = gaps.map(g => `
                 <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border)">
                     <span style="font-size:0.75rem">$${g.price}</span>
                     <span style="font-size:0.65rem; color:var(--text-dim)">${g.dist}</span>
