@@ -259,7 +259,8 @@ function openOnchainModal(type) {
         dominance:   { title: 'BTC DOMINANCE',              sub: 'BTC vs ETH vs ALTS - 60D',           htmlOnly: false },
         funding:     { title: 'FUNDING RATES',              sub: 'CURRENT 8H RATE - LIVE BINANCE FAPI', htmlOnly: true  },
         'mvrv-sopr': { title: 'MVRV / SOPR OVERLAY',       sub: 'NORMALIZED 0-1',                      htmlOnly: false },
-        volatility:  { title: '30-DAY ROLLING VOLATILITY', sub: 'ANNUALISED',                          htmlOnly: false }
+        volatility:  { title: '30-DAY ROLLING VOLATILITY', sub: 'ANNUALISED',                          htmlOnly: false },
+        correlation: { title: 'CORRELATION MATRIX',         sub: '90-DAY ROLLING — 10 ASSETS',          htmlOnly: true  }
     };
     const cfg = configs[type] || { title: type.toUpperCase(), sub: '' };
     document.getElementById('onchain-modal-title').textContent = cfg.title;
@@ -294,6 +295,21 @@ function openOnchainModal(type) {
             } else {
                 container.innerHTML = '<div class="error-msg" style="margin:2rem">Visit Custom Charts tab first to load data</div>';
             }
+        if (type === 'correlation') {
+            const cm = window._correlationData;
+            if (cm && cm.assets && cm.matrix) {
+                container.style.overflowX = 'auto';
+                container.style.padding = '1.5rem';
+                const lookup = {};
+                cm.matrix.forEach(c => { lookup[c.assetA + '_' + c.assetB] = c.correlation; });
+                const cell = (v) => { const abs=Math.abs(v); const alpha=(abs*0.8+0.1).toFixed(2); const bg=v>=0?'rgba(0,212,170,'+alpha+')':'rgba(239,68,68,'+alpha+')'; const txt=abs>0.5?'#000':'var(--text)'; return '<td style="min-width:52px;height:36px;text-align:center;font-size:0.7rem;font-weight:700;font-family:monospace;background:'+bg+';color:'+txt+';border:1px solid rgba(255,255,255,0.04);padding:2px 4px">'+(v===1?'--':v.toFixed(2))+'</td>'; };
+                const hdr = '<tr><th style="padding:6px 10px"></th>'+cm.assets.map(a=>'<th style="font-size:0.65rem;font-weight:800;color:var(--text-dim);padding:6px 8px;letter-spacing:1px;white-space:nowrap">'+a+'</th>').join('')+'</tr>';
+                const rows = cm.assets.map(a=>'<tr><td style="font-size:0.65rem;font-weight:800;color:var(--text);padding:6px 10px;white-space:nowrap;letter-spacing:1px">'+a+'</td>'+cm.assets.map(b=>cell(lookup[a+'_'+b]||0)).join('')+'</tr>').join('');
+                container.innerHTML = '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:12px;letter-spacing:2px">90-DAY ROLLING PEARSON CORRELATIONS</div><table style="border-collapse:collapse">'+hdr+rows+'</table>';
+            } else {
+                container.innerHTML = '<div class="error-msg" style="margin:2rem">Visit Custom Charts tab first to load data</div>';
+            }
+        }
         }
         return;
     }
@@ -1024,7 +1040,7 @@ async function renderCustomAnalytics(tabs) {
         '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Analytics Hub <span class="premium-badge">CUSTOM CHARTS</span></h1><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-custom-charts\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +
         renderHubTabs('custom', tabs) +
         '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Custom Built Analytics</h2>' +
-        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:1rem;margin-bottom:1rem">' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;margin-bottom:1rem">' +
             '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'dominance\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">BTC Dominance</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
                 '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">Bitcoin market cap dominance vs ETH and Alts over 60 days.</p>' +
@@ -1036,7 +1052,7 @@ async function renderCustomAnalytics(tabs) {
                 '<div id="custom-funding" style="width:100%;height:280px"></div>' +
             '</div>' +
         '</div>' +
-        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:1rem;margin-bottom:1rem">' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;margin-bottom:1rem">' +
             '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'mvrv-sopr\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">MVRV / SOPR Overlay</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
                 '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">MVRV Z-Score (red) and SOPR (green) normalized on the same axis â€” convergence zones signal inflection points.</p>' +
@@ -1047,7 +1063,15 @@ async function renderCustomAnalytics(tabs) {
                 '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">Annualised 30-day rolling price volatility. Spikes mark regime changes and liquidation cascades.</p>' +
                 '<div id="custom-volatility" style="width:100%;height:280px"></div>' +
             '</div>' +
-        '</div>';
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;margin-bottom:1rem">' +
+        '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'correlation\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">Correlation Matrix</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
+            '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">Rolling 90-day cross-asset correlations: BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK vs 10Y & SPX.</p>' +
+            '<div id="custom-correlation" style="width:100%;height:280px;overflow:auto"></div>' +
+        '</div>' +
+    '</div>';
+
+    ['custom-dominance','custom-funding','custom-mvrv-sopr','custom-volatility','custom-correlation'].forEach
 
     // â”€â”€ Loaders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     ['custom-dominance','custom-funding','custom-mvrv-sopr','custom-volatility'].forEach(id => {
@@ -1056,10 +1080,11 @@ async function renderCustomAnalytics(tabs) {
     });
 
     const containers = {
-        dominance:  document.getElementById('custom-dominance'),
-        funding:    document.getElementById('custom-funding'),
-        mvrvSopr:   document.getElementById('custom-mvrv-sopr'),
-        volatility: document.getElementById('custom-volatility')
+        dominance:    document.getElementById('custom-dominance'),
+        funding:      document.getElementById('custom-funding'),
+        mvrvSopr:     document.getElementById('custom-mvrv-sopr'),
+        volatility:   document.getElementById('custom-volatility'),
+        correlation:  document.getElementById('custom-correlation')
     };
     const charts = {};
 
@@ -1143,6 +1168,29 @@ async function renderCustomAnalytics(tabs) {
             c3.timeScale().fitContent();
         }
     } catch(e) { ['custom-mvrv-sopr','custom-volatility'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<div class="error-msg">Load failed</div>'; }); }
+
+    // -- Correlation Matrix ----------------------------------------------------
+    try {
+        const cm = await fetchAPI('/correlation-matrix');
+        window._correlationData = cm;
+        if (cm && cm.assets && cm.matrix && containers.correlation) {
+            const el = containers.correlation;
+            el.style.overflowX = 'auto';
+            const lookup = {};
+            cm.matrix.forEach(c => { lookup[c.assetA + '_' + c.assetB] = c.correlation; });
+            const cell = (v) => {
+                const abs = Math.abs(v);
+                const alpha = (abs * 0.8 + 0.1).toFixed(2);
+                const bg = v >= 0 ? 'rgba(0,212,170,' + alpha + ')' : 'rgba(239,68,68,' + alpha + ')';
+                const txt = abs > 0.5 ? '#000' : 'var(--text)';
+                return '<td style="width:44px;height:32px;text-align:center;font-size:0.58rem;font-weight:700;background:' + bg + ';color:' + txt + ';border:1px solid rgba(255,255,255,0.04)">' + (v === 1 ? '--' : v.toFixed(2)) + '</td>';
+            };
+            const headerRow = '<tr><th></th>' + cm.assets.map(a => '<th style="font-size:0.6rem;font-weight:700;color:var(--text-dim);padding:4px 6px">' + a + '</th>').join('') + '</tr>';
+            const rows = cm.assets.map(a => '<tr><td style="font-size:0.6rem;font-weight:700;color:var(--text);padding:4px 6px;white-space:nowrap">' + a + '</td>' + cm.assets.map(b => cell(lookup[a + '_' + b] || 0)).join('') + '</tr>').join('');
+            el.innerHTML = '<table style="border-collapse:collapse;width:100%;font-family:JetBrains Mono,monospace">' + headerRow + rows + '</table>';
+        }
+    } catch(e) { if (containers.correlation) containers.correlation.innerHTML = '<div class="error-msg">Correlation load failed</div>'; }
+
 
     // â”€â”€ Resize observer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const chartList = Object.values(charts);

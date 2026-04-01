@@ -1,4 +1,4 @@
-﻿import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -510,7 +510,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_portfolio_optimize()
             elif path.startswith('/api/efficient-frontier'):
                 self.handle_efficient_frontier()
-            elif path.startswith('/api/funding-rates'):
+            elif path.startswith('/api/funding-history'):
                 self.handle_funding_rate_history()
             elif path.startswith('/api/signal-radar'):
                 self.handle_signal_radar()
