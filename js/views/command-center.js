@@ -650,9 +650,12 @@ async function initBTCSparkline() {
             if (hr.ok) {
                 const hd = await hr.json();
                 if (hd && hd.history && hd.history.length >= 2) {
-                    prices = hd.history.map(p => p.close);
-                    latest = prices[prices.length - 1];
-                    prev = prices[0];
+                    const raw = hd.history.map(p => p.price ?? p.close).filter(v => v != null && !isNaN(v));
+                    if (raw.length >= 2) {
+                        prices = raw;
+                        latest = prices[prices.length - 1];
+                        prev = prices[0];
+                    }
                 }
             }
         } catch(e) { /* silent */ }
