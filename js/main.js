@@ -373,6 +373,20 @@ function renderRegimeHeatmap(containerId, history) {
     const colorScale = d3.scaleOrdinal()
         .domain(["High-Vol Expansion", "Low-Vol Compression", "Neutral / Accumulation"])
         .range(["#ef5350", "#26a69a", "#ffa726"]);
+
+    // Floating tooltip (replaces the erroneous showToast calls)
+    const tooltip = d3.select('body').append('div')
+        .style('position', 'fixed')
+        .style('background', 'rgba(13,17,23,0.95)')
+        .style('border', '1px solid rgba(255,255,255,0.1)')
+        .style('border-radius', '8px')
+        .style('padding', '6px 12px')
+        .style('font-size', '0.7rem')
+        .style('font-family', 'JetBrains Mono, monospace')
+        .style('color', '#fff')
+        .style('pointer-events', 'none')
+        .style('z-index', '9999')
+        .style('display', 'none');
         
     svg.selectAll("rect")
         .data(history)
@@ -386,10 +400,15 @@ function renderRegimeHeatmap(containerId, history) {
         .attr("opacity", 0.6)
         .on("mouseover", function(event, d) {
             d3.select(this).attr("opacity", 1);
-            showToast(`${d.date}: ${d.regime}`);
+            tooltip.style('display', 'block')
+                .html(`<span style="color:var(--accent,#00f2ff);font-weight:900">${d.date}</span><br/>${d.regime}`);
+        })
+        .on("mousemove", function(event) {
+            tooltip.style('left', (event.clientX + 14) + 'px').style('top', (event.clientY - 10) + 'px');
         })
         .on("mouseout", function() {
             d3.select(this).attr("opacity", 0.6);
+            tooltip.style('display', 'none');
         });
         
     // Abstract Axis
