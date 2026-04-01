@@ -188,7 +188,8 @@ async function renderCommandCenter() {
                     </div>`;
             }
 
-            document.getElementById('cmd-pulse-vals')?.innerHTML && (document.getElementById('cmd-pulse-vals').innerHTML = corrRows + leadLagHTML);
+            const pulseEl = document.getElementById('cmd-pulse-vals');
+            if (pulseEl) pulseEl.innerHTML = corrRows + leadLagHTML;
         }
 
         // 3. ETF Flows (Simplified version for dashboard)
