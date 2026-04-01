@@ -71,11 +71,12 @@ async function renderInstitutionalHub() {
 
 // ============= Analytics Hub =============
 const analyticsHubTabs = [
-    { id: 'whales', label: 'WHALE PULSE', view: 'whales', icon: 'waves' },
-    { id: 'velocity', label: 'CHAIN VELOCITY', view: 'velocity', icon: 'speed' },
-    { id: 'onchain', label: 'ON-CHAIN STATS', view: 'onchain', icon: 'link' },
-    { id: 'options', label: 'OPTIONS FLOW', view: 'options-flow', icon: 'ssid_chart' },
-    { id: 'newsroom', label: 'NEWSROOM', view: 'newsroom', icon: 'newspaper' }
+    { id: 'whales',        label: 'WHALE PULSE',    view: 'whales',          icon: 'waves' },
+    { id: 'velocity',      label: 'CHAIN VELOCITY', view: 'velocity',        icon: 'speed' },
+    { id: 'onchain',       label: 'ON-CHAIN STATS', view: 'onchain',         icon: 'link' },
+    { id: 'options',       label: 'OPTIONS FLOW',   view: 'options-flow',    icon: 'ssid_chart' },
+    { id: 'newsroom',      label: 'NEWSROOM',       view: 'newsroom',        icon: 'newspaper' },
+    { id: 'tradingview',   label: 'TRADINGVIEW',    view: 'tradingview-hub', icon: 'show_chart' }
 ];
 
 async function renderAnalyticsHub() {

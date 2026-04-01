@@ -2,6 +2,7 @@
 // ============= Initialization =============
 const viewMap = {
     'onchain': renderOnChain,
+    'tradingview-hub': renderTradingViewHub,
     'advanced-charting': renderAdvancedChart,
     signals: renderSignals,
     briefing: renderBriefing,
