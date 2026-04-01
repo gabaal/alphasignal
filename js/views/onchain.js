@@ -1010,18 +1010,29 @@ async function renderCustomAnalytics(tabs) {
         }
     } catch(e) { containers.dominance.innerHTML = '<div class="error-msg">Dominance load failed</div>'; }
 
-    // ── Funding Rate History ──────────────────────────────────────────────────────
+    // ── Funding Rates (per-asset current rates + BTC 24h history) ─────────────────
     try {
         const fr = await fetchAPI('/funding-rates');
-        if (fr && fr.labels) {
+        if (fr && fr.rows && fr.rows.length) {
             containers.funding.innerHTML = '';
-            const c = LightweightCharts.createChart(containers.funding, chartOpts(280));
-            charts.funding = { c, id: 'custom-funding', h: 280 };
-            c.addHistogramSeries({ priceFormat: { type: 'percent', precision: 3 } })
-             .setData(fr.labels.map((t, i) => ({ time: t, value: parseFloat((fr.funding_rates[i] * 100).toFixed(4)), color: fr.funding_rates[i] >= 0 ? 'rgba(0,212,170,0.8)' : 'rgba(239,68,68,0.8)' })));
-            c.addLineSeries({ color: 'rgba(255,255,255,0.2)', lineWidth: 1, lineStyle: 2 })
-             .setData(fr.labels.map(t => ({ time: t, value: 0 })));
-            c.timeScale().fitContent();
+            // Render as a styled HTML bar table — more informative than a LW chart for point-in-time rates
+            const rows = fr.rows;
+            const maxAbs = Math.max(...rows.map(r => Math.abs(r.current)));
+            containers.funding.innerHTML =
+                '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:8px;letter-spacing:1px">CURRENT 8H RATE — ' + (fr.source === 'binance_fapi' ? '<span style="color:#22c55e">LIVE BINANCE FAPI</span>' : 'SYNTHETIC') + '</div>' +
+                rows.map(r => {
+                    const pct = maxAbs > 0 ? Math.abs(r.current) / maxAbs * 100 : 0;
+                    const clr = r.current >= 0 ? '#00d4aa' : '#ef4444';
+                    const sign = r.current >= 0 ? '+' : '';
+                    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+                        '<div style="width:36px;font-size:0.65rem;font-weight:800;font-family:monospace;color:var(--text)">' + r.asset + '</div>' +
+                        '<div style="flex:1;height:14px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden">' +
+                            '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:' + clr + ';border-radius:4px;transition:width 0.4s"></div>' +
+                        '</div>' +
+                        '<div style="width:70px;text-align:right;font-size:0.7rem;font-weight:700;color:' + clr + ';font-family:monospace">' + sign + r.current + '%</div>' +
+                        '<div style="width:70px;text-align:right;font-size:0.6rem;color:var(--text-dim)">' + (r.current >= 0 ? '+' : '') + r.annual + '%/yr</div>' +
+                    '</div>';
+                }).join('');
         }
     } catch(e) { containers.funding.innerHTML = '<div class="error-msg">Funding rate load failed</div>'; }
 
