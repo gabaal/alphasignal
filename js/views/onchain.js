@@ -945,6 +945,24 @@ async function renderTradingViewHub(tabs) {
     injectTVWidget('tv-ta-btc','technical-analysis',{interval:'1D',width:'100%',isTransparent:true,height:460,symbol:'BINANCE:BTCUSDT',showIntervalTabs:true,displayMode:'multiple',locale:'en',colorTheme:'dark'});
     injectTVWidget('tv-ta-eth','technical-analysis',{interval:'1D',width:'100%',isTransparent:true,height:460,symbol:'BINANCE:ETHUSDT',showIntervalTabs:true,displayMode:'multiple',locale:'en',colorTheme:'dark'});
     injectTVWidget('tv-screener','screener',{width:'100%',height:460,defaultColumn:'overview',screener_type:'crypto_mkt',displayCurrency:'USD',colorTheme:'dark',locale:'en',isTransparent:true});
-    injectTVWidget('tv-calendar','events',{width:'100%',height:460,colorTheme:'dark',isTransparent:true,locale:'en',importanceFilter:'-1,0,1',countryFilter:'us,eu,gb,jp,cn'});
-    injectTVWidget('tv-hotlists','hotlists',{colorTheme:'dark',dateRange:'1D',exchange:'BINANCE',showChart:true,locale:'en',largeChartUrl:'',isTransparent:true,showSymbolLogo:false,showFloatingTooltip:false,width:'100%',height:420,plotLineColorGrowing:'rgba(41,98,255,1)',plotLineColorFalling:'rgba(41,98,255,1)',gridLineColor:'rgba(42,46,57,0)',scaleFontColor:'rgba(120,123,134,1)',belowLineFillColorGrowing:'rgba(41,98,255,0.12)',belowLineFillColorFalling:'rgba(41,98,255,0.12)',belowLineFillColorGrowingBottom:'rgba(41,98,255,0)',belowLineFillColorFallingBottom:'rgba(41,98,255,0)'});
+
+    // Additional sections: inject HTML first, then widgets
+    var appContent = document.querySelector('#app');
+    var extraHtml =
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Technical Analysis \u2014 SOL</h2>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:1rem;margin-bottom:1rem">' +
+        '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">Technical Analysis \u2014 SOL</h3><span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span></div><div id="tv-ta-sol" class="tradingview-widget-container" style="min-height:460px"></div></div>' +
+        '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">Technical Analysis \u2014 BNB</h3><span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span></div><div id="tv-ta-bnb" class="tradingview-widget-container" style="min-height:460px"></div></div>' +
+        '</div>' +
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Crypto Market Heatmap</h2>' +
+        '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem"><div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">Crypto Coins Heatmap \u2014 Market Cap \u00b7 Performance</h3><span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span></div><div id="tv-heatmap" class="tradingview-widget-container" style="min-height:500px"></div></div></div>' +
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Forex Cross Rates</h2>' +
+        '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:2rem"><div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">Forex Cross Rates \u2014 Macro Currency Matrix</h3><span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span></div><div id="tv-forex" class="tradingview-widget-container" style="min-height:420px"></div></div></div>';
+
+    appEl.innerHTML += extraHtml;
+
+    injectTVWidget('tv-ta-sol','technical-analysis',{interval:'1D',width:'100%',isTransparent:true,height:460,symbol:'BINANCE:SOLUSDT',showIntervalTabs:true,displayMode:'multiple',locale:'en',colorTheme:'dark'});
+    injectTVWidget('tv-ta-bnb','technical-analysis',{interval:'1D',width:'100%',isTransparent:true,height:460,symbol:'BINANCE:BNBUSDT',showIntervalTabs:true,displayMode:'multiple',locale:'en',colorTheme:'dark'});
+    injectTVWidget('tv-heatmap','crypto-coins-heatmap',{dataSource:'Crypto',blockSize:'market_cap_calc',blockColor:'change',locale:'en',symbolUrl:'',colorTheme:'dark',hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:'100%',height:500});
+    injectTVWidget('tv-forex','forex-cross-rates',{width:'100%',height:420,currencies:['EUR','USD','JPY','GBP','CHF','AUD','CAD','BTC','ETH'],isTransparent:true,colorTheme:'dark',locale:'en',backgroundColor:'rgba(0,0,0,0)'});
 }
