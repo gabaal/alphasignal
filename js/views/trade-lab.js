@@ -1,4 +1,4 @@
-﻿async function renderTradeLab(tabs = null) {
+async function renderTradeLab(tabs = null) {
     if (!tabs) tabs = institutionalHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -49,6 +49,7 @@
     // 1. Fetch Alpha Picks
     const picks = await fetchAPI('/trade-lab');
     const picksGrid = document.getElementById('alpha-picks-grid');
+    if (!picksGrid) return; // user navigated away during fetch
     if (picks && picks.length) {
         picksGrid.innerHTML = picks.map(p => `
             <div class="pick-mini-card">
@@ -114,7 +115,8 @@
     }
 
     // 3. Setup Generator Logic
-    document.getElementById('generate-setup-btn').onclick = async () => {
+    const setupBtn = document.getElementById('generate-setup-btn');
+    if (setupBtn) setupBtn.onclick = async () => {
         const ticker = document.getElementById('gen-ticker').value || 'BTC-USD';
         runNeuralSetup(ticker);
     };

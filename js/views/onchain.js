@@ -1,4 +1,4 @@
-﻿async function renderOnChain(tabs = null) {
+async function renderOnChain(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -492,10 +492,10 @@ async function renderAIRebalancer() {
                     </tbody>
                 </table>
             </div>
-            ${data.tickets && data.tickets.length ? `
-            <button onclick="executeAIRebalance(${JSON.stringify(data.tickets).replace(/"/g,"'")})" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:10px 24px;border-radius:8px;font-weight:800;font-size:0.75rem;cursor:pointer;letter-spacing:1px;width:100%">
+            ${data.tickets && data.tickets.length ? (() => { window._arebTickets = data.tickets; return `
+            <button onclick="executeAIRebalance(window._arebTickets)" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:10px 24px;border-radius:8px;font-weight:800;font-size:0.75rem;cursor:pointer;letter-spacing:1px;width:100%">
                 ⚡ EXECUTE ${data.tickets.length} REBALANCE TICKETS
-            </button>` : ''}
+            </button>`; })() : ''}
         `;
     } catch(e) {
         if (rebalEl) rebalEl.innerHTML = `<div class="error-msg">Rebalancer Error: ${e.message}</div>`;
@@ -609,11 +609,11 @@ window.runAIRebalancerView = async function() {
                 </table>
             </div>
 
-            ${data.tickets?.length ? `
-            <button onclick="executeAIRebalance(${JSON.stringify(data.tickets)})" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:12px 28px;border-radius:10px;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:1px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px">
+            ${data.tickets?.length ? (() => { window._arebTickets = data.tickets; return `
+            <button onclick="executeAIRebalance(window._arebTickets)" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:12px 28px;border-radius:10px;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:1px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px">
                 <span class="material-symbols-outlined" style="font-size:1.1rem">sync_alt</span>
                 EXECUTE ${data.tickets.length} REBALANCE TICKET${data.tickets.length > 1 ? 'S' : ''} → TRADE LEDGER
-            </button>` : ''}
+            </button>`; })() : ''}
         `;
     } catch(e) {
         showToast('AI REBALANCER', 'Error: ' + e.message, 'alert');
