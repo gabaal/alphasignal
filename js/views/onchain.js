@@ -226,9 +226,23 @@
 
 function openOnchainModal(type) {
     const data = window._onchainData;
-    if (!data) return;
+
+    // Ensure modal exists in DOM regardless of which view is active
+    if (!document.getElementById('onchain-modal')) {
+        const m = document.createElement('div');
+        m.id = 'onchain-modal';
+        m.setAttribute('onclick', "if(event.target===this)closeOnchainModal()");
+        m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(12px);z-index:3000;align-items:center;justify-content:center;padding:2rem';
+        m.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:1100px;position:relative">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
+                '<div><div id="onchain-modal-title" style="font-size:0.9rem;font-weight:900;color:var(--accent);letter-spacing:1px"></div>' +
+                '<div id="onchain-modal-sub" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-top:3px"></div></div>' +
+                '<button onclick="closeOnchainModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700">✕ CLOSE</button>' +
+            '</div><div id="onchain-modal-chart" style="height:65vh;width:100%"></div></div>';
+        document.body.appendChild(m);
+    }
+
     const modal = document.getElementById('onchain-modal');
-    if (!modal) return;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
