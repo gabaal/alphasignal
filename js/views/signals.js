@@ -1,4 +1,4 @@
-﻿async function renderSignals(category = 'ALL', tabs = null) {
+async function renderSignals(category = 'ALL', tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     currentSignalCategory = category;
     appEl.innerHTML = skeleton(8);
@@ -27,7 +27,7 @@
         </div>
         
         <!-- Signal Analytics Row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div class="signal-analytics-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
             <div class="card">
                 <div class="card-header" style="margin-bottom:10px">
                     <h2>Strategy Firing Density (30D)</h2>

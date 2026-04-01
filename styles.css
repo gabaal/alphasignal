@@ -769,8 +769,9 @@ select, option {
     /* Top bar completely hidden on mobile — bottom nav handles navigation */
     .top-bar { display: none !important; }
     
-    .signal-grid, .heatmap-grid, .skeleton-grid { 
-        grid-template-columns: 1fr; 
+    .signal-grid, .heatmap-grid, .skeleton-grid,
+    .signal-analytics-grid {
+        grid-template-columns: 1fr !important;
     }
     
     .overlay { padding: 0.5rem; }
