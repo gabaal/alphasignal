@@ -927,6 +927,9 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
             if (el) el.innerHTML = '<p style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:1rem">Walk-forward unavailable — requires 2y of data.</p>';
         }
     }, 800);
+
+    // Strategy Leaderboard — auto-run silently after walk-forward completes
+    setTimeout(() => { if (typeof runStrategyCompare === 'function') runStrategyCompare(ticker); }, 1400);
 }
 
 function shareStrategyResult(ticker, returns) {
