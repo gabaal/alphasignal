@@ -856,23 +856,113 @@ select, option {
     .news-article-panel { padding: 1.5rem; }
 }
 
+/* ——— Mobile: ≤600px — top-bar tightening ——— */
+@media (max-width: 600px) {
+    /* Hide BTC sparkline on very small screens to free space */
+    #btc-sparkline-wrap { display: none !important; }
+
+    /* Top-bar: row layout but wrap gracefully */
+    .top-bar {
+        flex-wrap: wrap;
+        padding: 0.6rem;
+        gap: 0.5rem;
+    }
+
+    /* Action buttons: shrink text, allow wrap */
+    .top-bar-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .action-btn-styled {
+        font-size: 0.65rem !important;
+        padding: 0.45rem 0.7rem !important;
+        letter-spacing: 0.5px;
+    }
+
+    /* RE-CALCULATE: full width so it doesn't clip */
+    #refresh-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* Search bar full width */
+    .search-container { width: 100%; }
+    #global-search { width: 100%; }
+
+    /* Hub sub-tabs: horizontal scroll instead of clip */
+    .hub-tabs, .sub-tabs, [class*="tab-row"], [class*="-tabs"] {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap !important;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+    }
+    .hub-tabs::-webkit-scrollbar,
+    .sub-tabs::-webkit-scrollbar { display: none; }
+}
+
+/* ——— Mobile: ≤480px — hero & landing ——— */
 @media (max-width: 480px) {
     .brand-title { font-size: 1.2rem; }
     .intel-action-btn.large { padding: 1rem; font-size: 0.9rem; }
     .auth-panel { padding: 2rem 1.5rem; }
-    
+
     /* Full screen modals for mobile */
     .overlay { padding: 0; align-items: flex-start; }
-    .overlay-content { 
-        height: 100%; 
-        width: 100%; 
-        max-height: 100vh; 
-        max-width: 100vw; 
-        border-radius: 0; 
+    .overlay-content {
+        height: 100%;
+        width: 100%;
+        max-height: 100vh;
+        max-width: 100vw;
+        border-radius: 0;
         border: none;
     }
     .close-overlay, .close-ai-modal { top: 1rem; right: 1rem; }
+
+    /* Signal feed: hide on tiny screens */
+    .signal-feed { display: none !important; }
+
+    /* Landing hero: stack image below text */
+    .hero-section {
+        flex-direction: column !important;
+        gap: 2rem !important;
+    }
+    .hero-visual { display: none; } /* hide hero image on tiny screens */
+
+    /* Hero CTA buttons: stack vertically, full width */
+    .hero-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+    }
+    .hero-actions button, .hero-actions a {
+        width: 100% !important;
+        justify-content: center;
+    }
+
+    /* Landing stats grid: 2 cols */
+    .stats-grid, .hub-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Hub cards: single column */
+    .hubs-grid, .hub-cards-grid, .features-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Typography scale down */
+    .hero-section h1 { font-size: clamp(1.4rem, 6vw, 2rem) !important; }
+    .hero-subtitle, .section-subtitle { font-size: 0.85rem !important; }
+
+    /* Bottom CTA flex wrap */
+    .bottom-cta-group, [style*="display:flex"][style*="justify-content:center"] {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
+
 /* Heatmap View */
 .heatmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
 .heatmap-sector { background: var(--bg-card); border: 1px solid var(--border); padding: 1.5rem; border-radius: 12px; height: 100%; }
