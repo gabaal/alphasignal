@@ -1,4 +1,4 @@
-﻿async function renderMacroView(tabs = null) {
+async function renderMacroView(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
     const tabHTML = tabs ? renderHubTabs('compass', tabs) : '';
     appEl.innerHTML = `<h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h1>${skeleton(2)}`;
@@ -215,7 +215,7 @@ async function renderAlerts(tabs = null) {
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <span id="alerts-live-pulse" style="font-size:0.55rem;color:var(--accent);letter-spacing:1px;font-weight:700;opacity:0.5;transition:opacity 0.5s">LIVE • Auto-sync every 60s</span>
-                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('explain-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <button class="intel-action-btn mini" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="renderAlerts(window._alertsHubTabs)"><span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH</button>
             </div>
         </div>
