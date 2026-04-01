@@ -498,12 +498,16 @@ function renderMultiTickerChart(tickers, results, colors) {
                 legend: { display: true, position: 'top', labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 } } },
                 tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', titleColor: '#00f2ff', bodyColor: '#e6edf3',
                     borderColor: '#30363d', borderWidth: 1, padding: 12,
-                    callbacks: { label: function(c){ return c.dataset.label + ': ' + (c.parsed.y>=0?'+':'') + c.parsed.y.toFixed(2) + '%'; } }
+                    callbacks: { label: function(c){ const v = c.parsed.y - 100; return c.dataset.label + ': ' + (v>=0?'+':'') + v.toFixed(2) + '%'; } }
                 }
             },
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 10 } } },
-                y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#8b949e', font: { size: 10 }, callback: function(v){ return (v>=0?'+':'') + v + '%'; } } }
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    title: { display: true, text: 'Cumulative Return (%)', color: '#8b949e', font: { size: 10, family: 'JetBrains Mono' } },
+                    ticks: { color: '#8b949e', font: { size: 10 }, callback: function(v){ const r = v - 100; return (r>=0?'+':'') + r.toFixed(0) + '%'; } }
+                }
             }
         }
     });
