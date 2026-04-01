@@ -1,4 +1,4 @@
-import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+﻿import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -13,7 +13,7 @@ from backend.routes.ai_engine import AIEngineRoutesMixin
 from backend.routes.personal import PersonalRoutesMixin
 from backend.routes.digest import DigestRoutesMixin
 from backend.routes.price_alerts import PriceAlertRoutesMixin, start_price_alert_checker as _pa_start
-from backend.routes.telegram_bot import start_bot as _tg_start  # noqa — imported here for reference
+from backend.routes.telegram_bot import start_bot as _tg_start  # noqa â€” imported here for reference
 import socketserver, http.server
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -327,9 +327,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/etf-flows', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge', '/api/telegram/link', '/api/signal-leaderboard']
+                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/etf-flows', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge', '/api/telegram/link', '/api/signal-leaderboard', '/api/history']
                 free_auth_routes = ['/api/watchlist', '/api/positions', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete']
-                # /api/signal/{id} is fully public — no auth gate for shared links
+                # /api/signal/{id} is fully public â€” no auth gate for shared links
                 if path.startswith('/api/signal/'):
                     pass  # skip gate, handle_signal_permalink does not require auth
                 elif path not in public_routes:
@@ -541,7 +541,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 if auth_info: self.handle_market_brief()
                 else: self.send_response(401); self.end_headers()
             elif path.startswith('/api/signal/'):
-                # Public: /api/signal/{id} — no auth required for sharing
+                # Public: /api/signal/{id} â€” no auth required for sharing
                 signal_id = path.split('/')[-1]
                 self.handle_signal_permalink(signal_id)
             elif path == '/api/telegram/link':
@@ -600,7 +600,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 conn.commit()
 
             action = 'SKIPPED' if skipped else 'COMPLETED'
-            print(f'[Onboarding] {email} {action} — watchlist_count={wcount}')
+            print(f'[Onboarding] {email} {action} â€” watchlist_count={wcount}')
             self.send_json({'success': True, 'action': action})
         except Exception as e:
             print(f'[Onboarding] Error: {e}')
