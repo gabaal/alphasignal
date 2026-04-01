@@ -108,6 +108,62 @@ async function renderOnChain(tabs = null) {
                 <div id="exchflow-chart" style="width:100%; height:250px"></div>
             </div>
         </div>
+
+        <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:2rem 0 1.5rem">
+            <span style="color:#2196f3">◈</span> TradingView Market Intelligence
+        </h2>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap:1rem; margin-bottom:1rem">
+            <div class="card" style="padding:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <h3 style="margin:0">Technical Analysis — BTC</h3>
+                    <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">TRADINGVIEW</span>
+                </div>
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
+                    {"interval":"1D","width":"100%","isTransparent":true,"height":425,"symbol":"BINANCE:BTCUSDT","showIntervalTabs":true,"displayMode":"multiple","locale":"en","colorTheme":"dark"}
+                    </script>
+                </div>
+            </div>
+            <div class="card" style="padding:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <h3 style="margin:0">Technical Analysis — ETH</h3>
+                    <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">TRADINGVIEW</span>
+                </div>
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
+                    {"interval":"1D","width":"100%","isTransparent":true,"height":425,"symbol":"BINANCE:ETHUSDT","showIntervalTabs":true,"displayMode":"multiple","locale":"en","colorTheme":"dark"}
+                    </script>
+                </div>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap:1rem; margin-bottom:2rem">
+            <div class="card" style="padding:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <h3 style="margin:0">Crypto Market Screener</h3>
+                    <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">TRADINGVIEW</span>
+                </div>
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
+                    {"width":"100%","height":425,"defaultColumn":"overview","screener_type":"crypto_mkt","displayCurrency":"USD","colorTheme":"dark","locale":"en","isTransparent":true}
+                    </script>
+                </div>
+            </div>
+            <div class="card" style="padding:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <h3 style="margin:0">Economic Calendar</h3>
+                    <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">TRADINGVIEW</span>
+                </div>
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+                    {"width":"100%","height":425,"colorTheme":"dark","isTransparent":true,"locale":"en","importanceFilter":"-1,0,1","countryFilter":"us,eu,gb,jp,cn"}
+                    </script>
+                </div>
+            </div>
+        </div>
     `;
 
     document.getElementById('mvrv-chart').innerHTML = '<div class="loader" style="margin:2rem auto"></div>';
