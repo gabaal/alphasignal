@@ -427,7 +427,11 @@ async function renderAlphaScore(tabs = null) {
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
                 <div>
                     ${renderHubTabs('score', tabs)}
-                    <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h2>
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                        <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h2>
+                        <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                        <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0;border-color:rgba(250,204,21,0.4);color:#facc15" onclick="switchView('docs-ml-engine')"><span class="material-symbols-outlined" style="font-size:13px">smart_toy</span> ML ENGINE</button>
+                    </div>
                     <p style="margin:0">Composite 0&ndash;100 ranking &middot; Updated ${data.updated} &middot; ${scores.length} assets scored</p>
                 </div>
                 <!-- Pagination Controls -->

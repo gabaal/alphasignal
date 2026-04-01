@@ -1,4 +1,4 @@
-﻿async function renderStrategyLab(tabs = null) {
+async function renderStrategyLab(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     // Restore last-used ticker & strategy from localStorage
     const savedTicker   = localStorage.getItem('sl_ticker')   || 'BTC-USD';
@@ -193,7 +193,7 @@ async function renderStressHub(tabs = null) {
             <div>
                 ${renderHubTabs('stress', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Macro Stress Lab</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">shield_with_heart</span>Risk & Stress <span class="premium-badge">RISK</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">shield_with_heart</span>Risk & Stress <span class="premium-badge">RISK</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-stress-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
            
             <p>Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
