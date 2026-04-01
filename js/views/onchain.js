@@ -947,3 +947,129 @@ async function renderTradingViewHub(tabs) {
         injectTVWidget('tv-stock-heat','stock-heatmap',{exchanges:[],dataSource:'SPX500',grouping:'sector',blockSize:'market_cap_basic',blockColor:'change',locale:'en',symbolUrl:'',colorTheme:'dark',hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:'100%',height:500});
     }, 0);
 }
+// ─── Custom Analytics Hub ─────────────────────────────────────────────────────
+async function renderCustomAnalytics(tabs) {
+    if (!tabs) tabs = analyticsHubTabs;
+    const chartOpts = (h) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }, height: h });
+
+    appEl.innerHTML =
+        '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Analytics Hub <span class="premium-badge">CUSTOM CHARTS</span></h1></div>' +
+        renderHubTabs('custom', tabs) +
+        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Custom Built Analytics</h2>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:1rem;margin-bottom:1rem">' +
+            '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'dominance\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">BTC Dominance</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
+                '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">Bitcoin market cap dominance vs ETH and Alts over 60 days.</p>' +
+                '<div id="custom-dominance" style="width:100%;height:280px"></div>' +
+            '</div>' +
+            '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'funding\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">Funding Rate History</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
+                '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">Daily funding rate proxy. Sustained positive = crowded longs, negative = shorts dominating.</p>' +
+                '<div id="custom-funding" style="width:100%;height:280px"></div>' +
+            '</div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:1rem;margin-bottom:1rem">' +
+            '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'mvrv-sopr\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">MVRV / SOPR Overlay</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
+                '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">MVRV Z-Score (red) and SOPR (green) normalized on the same axis — convergence zones signal inflection points.</p>' +
+                '<div id="custom-mvrv-sopr" style="width:100%;height:280px"></div>' +
+            '</div>' +
+            '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'volatility\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">30-Day Rolling Volatility</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
+                '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">Annualised 30-day rolling price volatility. Spikes mark regime changes and liquidation cascades.</p>' +
+                '<div id="custom-volatility" style="width:100%;height:280px"></div>' +
+            '</div>' +
+        '</div>';
+
+    // ── Loaders ──────────────────────────────────────────────────────────────────
+    ['custom-dominance','custom-funding','custom-mvrv-sopr','custom-volatility'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<div class="loader" style="margin:4rem auto"></div>';
+    });
+
+    const containers = {
+        dominance:  document.getElementById('custom-dominance'),
+        funding:    document.getElementById('custom-funding'),
+        mvrvSopr:   document.getElementById('custom-mvrv-sopr'),
+        volatility: document.getElementById('custom-volatility')
+    };
+    const charts = {};
+
+    // ── BTC Dominance ─────────────────────────────────────────────────────────────
+    try {
+        const dom = await fetchAPI('/dominance');
+        if (dom && dom.labels) {
+            containers.dominance.innerHTML = '';
+            const c = LightweightCharts.createChart(containers.dominance, chartOpts(280));
+            charts.dominance = { c, id: 'custom-dominance', h: 280 };
+            const toSeries = (labels, vals) => labels.map((t, i) => ({ time: t, value: vals[i] }));
+            c.addAreaSeries({ topColor: 'rgba(247,147,26,0.4)', bottomColor: 'rgba(247,147,26,0.05)', lineColor: '#f7931a', lineWidth: 2, title: 'BTC %' }).setData(toSeries(dom.labels, dom.btc));
+            c.addLineSeries({ color: '#6272a4', lineWidth: 1, title: 'ETH %' }).setData(toSeries(dom.labels, dom.eth));
+            c.addLineSeries({ color: 'rgba(255,255,255,0.3)', lineWidth: 1, title: 'Alts %' }).setData(toSeries(dom.labels, dom.alts));
+            c.timeScale().fitContent();
+        }
+    } catch(e) { containers.dominance.innerHTML = '<div class="error-msg">Dominance load failed</div>'; }
+
+    // ── Funding Rate History ──────────────────────────────────────────────────────
+    try {
+        const fr = await fetchAPI('/funding-rates');
+        if (fr && fr.labels) {
+            containers.funding.innerHTML = '';
+            const c = LightweightCharts.createChart(containers.funding, chartOpts(280));
+            charts.funding = { c, id: 'custom-funding', h: 280 };
+            c.addHistogramSeries({ priceFormat: { type: 'percent', precision: 3 } })
+             .setData(fr.labels.map((t, i) => ({ time: t, value: parseFloat((fr.funding_rates[i] * 100).toFixed(4)), color: fr.funding_rates[i] >= 0 ? 'rgba(0,212,170,0.8)' : 'rgba(239,68,68,0.8)' })));
+            c.addLineSeries({ color: 'rgba(255,255,255,0.2)', lineWidth: 1, lineStyle: 2 })
+             .setData(fr.labels.map(t => ({ time: t, value: 0 })));
+            c.timeScale().fitContent();
+        }
+    } catch(e) { containers.funding.innerHTML = '<div class="error-msg">Funding rate load failed</div>'; }
+
+    // ── MVRV + SOPR Overlay & Rolling Volatility (both from /onchain) ─────────────
+    try {
+        const oc = window._onchainData || await fetchAPI('/onchain');
+        if (oc && oc.length) {
+            window._onchainData = oc;
+
+            // Normalize helper: min-max to 0-1
+            const norm = (arr) => { const lo = Math.min(...arr), hi = Math.max(...arr), r = hi - lo || 1; return arr.map(v => parseFloat(((v - lo) / r).toFixed(4))); };
+            const mvrvN = norm(oc.map(d => d.mvrv));
+            const soprN = norm(oc.map(d => d.sopr));
+
+            containers.mvrvSopr.innerHTML = '';
+            const c2 = LightweightCharts.createChart(containers.mvrvSopr, chartOpts(280));
+            charts.mvrvSopr = { c: c2, id: 'custom-mvrv-sopr', h: 280 };
+            c2.addLineSeries({ color: '#ef5350', lineWidth: 2, title: 'MVRV (norm)' }).setData(oc.map((d, i) => ({ time: d.time, value: mvrvN[i] })));
+            c2.addLineSeries({ color: '#10b981', lineWidth: 2, title: 'SOPR (norm)' }).setData(oc.map((d, i) => ({ time: d.time, value: soprN[i] })));
+            c2.timeScale().fitContent();
+
+            // 30-day rolling volatility (annualised)
+            const prices = oc.map(d => d.price);
+            const returns = prices.map((p, i) => i === 0 ? 0 : Math.log(p / prices[i - 1]));
+            const window30 = 30;
+            const volData = oc.map((d, i) => {
+                if (i < window30) return null;
+                const slice = returns.slice(i - window30, i);
+                const mean = slice.reduce((a, b) => a + b, 0) / window30;
+                const variance = slice.reduce((a, b) => a + (b - mean) ** 2, 0) / (window30 - 1);
+                return { time: d.time, value: parseFloat((Math.sqrt(variance * 365) * 100).toFixed(2)) };
+            }).filter(Boolean);
+
+            containers.volatility.innerHTML = '';
+            const c3 = LightweightCharts.createChart(containers.volatility, chartOpts(280));
+            charts.volatility = { c: c3, id: 'custom-volatility', h: 280 };
+            c3.addAreaSeries({ topColor: 'rgba(188,19,254,0.3)', bottomColor: 'rgba(188,19,254,0.02)', lineColor: '#bc13fe', lineWidth: 2, title: 'Vol %' }).setData(volData);
+            c3.timeScale().fitContent();
+        }
+    } catch(e) { ['custom-mvrv-sopr','custom-volatility'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<div class="error-msg">Load failed</div>'; }); }
+
+    // ── Resize observer ──────────────────────────────────────────────────────────
+    const chartList = Object.values(charts);
+    const ro = new ResizeObserver(entries => {
+        entries.forEach(e => {
+            const match = chartList.find(x => x.id === e.target.id);
+            if (match) match.c.resize(e.contentRect.width, match.h);
+        });
+    });
+    Object.values(containers).forEach(cn => { if (cn) ro.observe(cn); });
+}

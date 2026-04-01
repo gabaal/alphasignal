@@ -3,6 +3,7 @@
 const viewMap = {
     'onchain': renderOnChain,
     'tradingview-hub': renderTradingViewHub,
+    'custom-analytics': renderCustomAnalytics,
     'advanced-charting': renderAdvancedChart,
     signals: renderSignals,
     briefing: renderBriefing,
