@@ -50,11 +50,33 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_positions_delete(auth_info, item_id)
             elif path.startswith('/api/price-alerts'):
                 self.handle_price_alerts_delete(auth_info, item_id)
+            elif path.startswith('/api/trade-ledger'):
+                self.handle_trade_ledger_delete(auth_info, item_id)
             else:
                 self.send_response(404)
                 self.end_headers()
         except Exception as e:
             print(f'[{datetime.now()}] DELETE Error: {e}')
+            self.send_error(500, str(e))
+
+    def do_PATCH(self):
+        try:
+            parsed = urllib.parse.urlparse(self.path)
+            path = parsed.path.rstrip('/')
+            auth_info = self.is_authenticated()
+            if not auth_info:
+                self.send_response(401); self.send_header('Content-Type','application/json'); self.end_headers()
+                self.wfile.write(json.dumps({'error':'Unauthorized'}).encode()); return
+            length = int(self.headers.get('Content-Length', 0))
+            body = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
+            parts = path.split('/')
+            item_id = parts[-1] if len(parts) > 1 else None
+            if path.startswith('/api/trade-ledger'):
+                self.handle_trade_ledger_patch(auth_info, item_id, body)
+            else:
+                self.send_response(404); self.end_headers()
+        except Exception as e:
+            print(f'[{datetime.now()}] PATCH Error: {e}')
             self.send_error(500, str(e))
 
     def send_json(self, data):

@@ -3399,6 +3399,58 @@ class InstitutionalRoutesMixin:
         finally:
             conn.close()
 
+    def handle_trade_ledger_delete(self, auth_info, item_id):
+        email = auth_info.get('email')
+        if not item_id or not item_id.isdigit():
+            return self.send_error_json('Invalid trade ledger ID')
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        try:
+            c.execute('DELETE FROM trade_ledger WHERE id = ? AND user_email = ?', (int(item_id), email))
+            conn.commit()
+            if c.rowcount == 0:
+                return self.send_error_json('Record not found or not authorised')
+            self.send_json({'status': 'deleted', 'id': int(item_id)})
+        except Exception as e:
+            self.send_error_json(f'Delete error: {e}')
+        finally:
+            conn.close()
+
+    def handle_trade_ledger_patch(self, auth_info, item_id, body):
+        email = auth_info.get('email')
+        if not item_id or not item_id.isdigit():
+            return self.send_error_json('Invalid trade ledger ID')
+        def cf(v):
+            try: return float(str(v).replace('%','').strip())
+            except: return 0.0
+        action  = body.get('action')
+        price   = cf(body.get('price', 0))
+        target  = cf(body.get('target', 0))
+        stop    = cf(body.get('stop', 0))
+        rr      = round(abs(target - price) / max(abs(price - stop), 0.01), 2) if target and stop and price else cf(body.get('rr', 0))
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        try:
+            fields, vals = [], []
+            if action: fields.append('action = ?'); vals.append(action)
+            if price:  fields.append('price = ?');  vals.append(price)
+            if target: fields.append('target = ?'); vals.append(target)
+            if stop:   fields.append('stop = ?');   vals.append(stop)
+            if rr:     fields.append('rr = ?');     vals.append(rr)
+            if not fields:
+                return self.send_error_json('No fields to update')
+            vals += [int(item_id), email]
+            c.execute(f'UPDATE trade_ledger SET {", ".join(fields)} WHERE id = ? AND user_email = ?', vals)
+            conn.commit()
+            if c.rowcount == 0:
+                return self.send_error_json('Record not found or not authorised')
+            self.send_json({'status': 'updated', 'id': int(item_id), 'rr': rr})
+        except Exception as e:
+            self.send_error_json(f'Update error: {e}')
+        finally:
+            conn.close()
+
+
     def _get_signals(self):
         try:
             all_tickers = list(dict.fromkeys([t for sub in UNIVERSE.values() for t in sub]))
