@@ -811,9 +811,6 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <button class="intel-action-btn" style="margin-top: 10px; width: 100%; background:rgba(0, 242, 255, 0.05); border-color:var(--accent); color:var(--accent)" onclick="window.downloadBacktestCSV('${ticker}', '${strategy}')">
                     <span class="material-symbols-outlined" style="font-size:16px">download</span> EXPORT CSV
                 </button>
-                <button class="intel-action-btn" style="margin-top: 10px; width: 100%; background:rgba(188,19,254,0.08); border-color:#bc13fe; color:#bc13fe" onclick="runStrategyCompare('${ticker}')">
-                    <span class="material-symbols-outlined" style="font-size:16px">leaderboard</span> COMPARE ALL STRATEGIES
-                </button>
                 <button class="intel-action-btn" id="multi-ticker-btn" style="margin-top: 10px; width: 100%; background:rgba(250,204,21,0.06); border-color:#facc15; color:#facc15" onclick="runMultiTickerCompare('${strategy}', document.getElementById('strat-fast')?.value||20, document.getElementById('strat-slow')?.value||50)">
                     <span class="material-symbols-outlined" style="font-size:16px">compare_arrows</span> COMPARE BTC / ETH / SOL
                 </button>
@@ -880,7 +877,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         <span class="label-tag" id="leaderboard-tag">SELECT ASSET</span>
                     </div>
                     <div id="strategy-leaderboard" style="min-height:80px;color:var(--text-dim);font-size:0.85rem;display:flex;align-items:center;justify-content:center">
-                        Click COMPARE ALL STRATEGIES to rank all 15 strategies on this asset.
+                        Use COMPARE BTC / ETH / SOL to benchmark this strategy across assets.
                     </div>
                 </div>
 

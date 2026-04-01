@@ -472,14 +472,14 @@ function renderMultiTickerChart(tickers, results, colors) {
     const ctx = canvas.getContext('2d');
     const datasets = tickers.map(function(t, i) {
         const r = results[i];
-        const curve = (r && (r.equity_curve || r.curve)) || [];
+        const curve = (r && (r.equityCurve || r.equity_curve || r.curve)) || [];
         return { label: t.replace('-USD',''), data: curve.map(function(p){return p.portfolio;}),
             borderColor: colors[t], borderWidth: 2, pointRadius: 0, tension: 0.1, fill: false };
     });
     const longestResult = results.reduce(function(a,b){
-        return ((b&&(b.equity_curve||b.curve)||[]).length > (a&&(a.equity_curve||a.curve)||[]).length ? b : a);
+        return ((b&&(b.equityCurve||b.equity_curve||b.curve)||[]).length > (a&&(a.equityCurve||a.equity_curve||a.curve)||[]).length ? b : a);
     }, results[0]);
-    const labels = ((longestResult&&(longestResult.equity_curve||longestResult.curve))||[]).map(function(p){return p.date;});
+    const labels = ((longestResult&&(longestResult.equityCurve||longestResult.equity_curve||longestResult.curve))||[]).map(function(p){return p.date;});
     new Chart(ctx, {
         type: 'line', data: { labels: labels, datasets: datasets },
         options: {
