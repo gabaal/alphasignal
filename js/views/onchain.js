@@ -920,9 +920,7 @@ async function renderTradingViewHub(tabs) {
         '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Forex Heat Map</h2>' +
         '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem">' + card('tv-forex-heat','Forex Heat Map \u2014 Currency Strength Matrix', 480) + '</div>' +
         '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Equity Sector Heatmap</h2>' +
-        '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem">' + card('tv-stock-heat','S\u0026P 500 Sector Heatmap \u2014 Macro Risk Context', 500) + '</div>' +
-        '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1.5rem 0 1rem">Live Ticker Strip</h2>' +
-        '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:2rem">' + card('tv-ticker','Live Prices \u2014 Crypto \u00b7 Indices \u00b7 Gold', 76) + '</div>';
+        '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem">' + card('tv-stock-heat','S\u0026P 500 Sector Heatmap \u2014 Macro Risk Context', 500) + '</div>';
 
     // Defer injection until after the browser has painted the containers
     function injectTVWidget(id, type, cfg) {
@@ -947,6 +945,5 @@ async function renderTradingViewHub(tabs) {
         injectTVWidget('tv-forex','forex-cross-rates',{width:'100%',height:420,currencies:['EUR','USD','JPY','GBP','CHF','AUD','CAD','BTC','ETH'],isTransparent:true,colorTheme:'dark',locale:'en',backgroundColor:'rgba(0,0,0,0)'});
         injectTVWidget('tv-forex-heat','forex-heat-map',{currencies:['EUR','USD','JPY','GBP','CHF','AUD','CAD','NZD'],isTransparent:true,colorTheme:'dark',locale:'en',backgroundColor:'rgba(0,0,0,0)',width:'100%',height:480});
         injectTVWidget('tv-stock-heat','stock-heatmap',{exchanges:[],dataSource:'SPX500',grouping:'sector',blockSize:'market_cap_basic',blockColor:'change',locale:'en',symbolUrl:'',colorTheme:'dark',hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:'100%',height:500});
-        injectTVWidget('tv-ticker','ticker-tape',{symbols:[{proName:'BINANCE:BTCUSDT',title:'BTC'},{proName:'BINANCE:ETHUSDT',title:'ETH'},{proName:'BINANCE:SOLUSDT',title:'SOL'},{proName:'FOREXCOM:SPXUSD',title:'S&P500'},{proName:'FOREXCOM:NSXUSD',title:'Nasdaq'},{proName:'CME_MINI:GC1!',title:'Gold'},{proName:'TVC:DXY',title:'DXY'},{proName:'BINANCE:BNBUSDT',title:'BNB'},{proName:'BINANCE:XRPUSDT',title:'XRP'}],showSymbolLogo:true,isTransparent:true,displayMode:'adaptive',colorTheme:'dark',locale:'en'});
     }, 0);
 }
