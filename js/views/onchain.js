@@ -294,7 +294,32 @@ function openOnchainModal(type) {
                         '</div>';
                     }).join('') + '</div>';
             } else {
-                container.innerHTML = '<div class="error-msg" style="margin:2rem">Visit Custom Charts tab first to load data</div>';
+                // Fetch on-demand if cache empty
+                container.innerHTML = '<div class="loader" style="margin:4rem auto"></div>';
+                fetchAPI('/funding-rates').then(fr => {
+                    if (fr && fr.rows) {
+                        // (cached above)
+                        const maxAbs = Math.max(...fr.rows.map(r => Math.abs(r.current)));
+                        container.style.overflowY = 'auto';
+                        container.innerHTML = '<div style="padding:2rem">' +
+                            '<div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:20px;letter-spacing:1px">CURRENT 8H RATE</div>' +
+                            fr.rows.map(r => {
+                                const pct = maxAbs > 0 ? Math.abs(r.current) / maxAbs * 100 : 0;
+                                const clr = r.current >= 0 ? '#00d4aa' : '#ef4444';
+                                const sign = r.current >= 0 ? '+' : '';
+                                return '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">' +
+                                    '<div style="width:52px;font-size:0.9rem;font-weight:800;font-family:monospace">' + r.asset + '</div>' +
+                                    '<div style="flex:1;height:22px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden">' +
+                                        '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:' + clr + ';border-radius:6px"></div>' +
+                                    '</div>' +
+                                    '<div style="width:100px;text-align:right;font-size:0.9rem;font-weight:700;color:' + clr + ';font-family:monospace">' + sign + r.current + '%</div>' +
+                                    '<div style="width:110px;text-align:right;font-size:0.7rem;color:var(--text-dim)">' + sign + r.annual + '%/yr</div>' +
+                                '</div>';
+                            }).join('') + '</div>';
+                    } else {
+                        container.innerHTML = '<div class="error-msg" style="margin:2rem">Failed to load funding rates</div>';
+                    }
+                }).catch(() => { container.innerHTML = '<div class="error-msg" style="margin:2rem">Failed to load funding rates</div>'; });
             }
         }
 
@@ -994,7 +1019,8 @@ async function renderTradingViewHub(tabs) {
     if (!tabs) tabs = analyticsHubTabs;
     var badge = '<span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span>';
     var card = function(id, title, h) {
-        return '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">' + title + '</h3>' + badge + '</div><div id="' + id + '" class="tradingview-widget-container" style="min-height:' + (h||460) + 'px"></div></div>';
+        var minH = (h || 460);
+        return '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">' + title + '</h3>' + badge + '</div><div id="' + id + '" class="tradingview-widget-container" style="min-height:' + minH + 'px;position:relative"><div class="tv-skeleton" style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,0.02) 0%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.02) 100%);background-size:200% 100%;animation:tvSkeleton 1.4s infinite;border-radius:8px"></div></div></div>';
     };
 
     // Build ALL HTML in one assignment so containers are in DOM before widgets inject
@@ -1103,10 +1129,27 @@ async function renderCustomAnalytics(tabs) {
     };
     const charts = {};
 
+
+    // -- Parallel data fetch (all sources simultaneously) ----------------------
+    const [_domR, _fundR, _ocR, _cmR] = await Promise.allSettled([
+        fetchAPI('/dominance'),
+        fetchAPI('/funding-rates'),
+        window._onchainData ? Promise.resolve(window._onchainData) : fetchAPI('/onchain'),
+        window._correlationData ? Promise.resolve(window._correlationData) : fetchAPI('/correlation-matrix'),
+    ]);
+    const _dom = _domR.status === 'fulfilled' ? _domR.value : null;
+    const _fr  = _fundR.status === 'fulfilled' ? _fundR.value : null;
+    const _oc  = _ocR.status  === 'fulfilled' ? _ocR.value  : null;
+    const _cm  = _cmR.status  === 'fulfilled' ? _cmR.value  : null;
+    if (_dom) window._dominanceData   = _dom;
+    if (_fr)  window._fundingData     = _fr;
+    if (_oc)  window._onchainData     = _oc;
+    if (_cm)  window._correlationData = _cm;
+
     // â”€â”€ BTC Dominance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try {
-        const dom = await fetchAPI('/dominance');
-        window._dominanceData = dom;
+        const dom = _dom;
+        // (cached above)
         if (dom && dom.labels) {
             containers.dominance.innerHTML = '';
             const c = LightweightCharts.createChart(containers.dominance, chartOpts(280));
@@ -1121,7 +1164,7 @@ async function renderCustomAnalytics(tabs) {
 
     // â”€â”€ Funding Rates (per-asset current rates + BTC 24h history) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try {
-        const fr = await fetchAPI('/funding-rates');
+        const fr = _fr;
         window._fundingData = fr;
         if (fr && fr.rows && fr.rows.length) {
             containers.funding.innerHTML = '';
@@ -1148,9 +1191,9 @@ async function renderCustomAnalytics(tabs) {
 
     // â”€â”€ MVRV + SOPR Overlay & Rolling Volatility (both from /onchain) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     try {
-        const oc = window._onchainData || await fetchAPI('/onchain');
+        const oc = _oc;
         if (oc && oc.length) {
-            window._onchainData = oc;
+            // (cached above)
 
             // Normalize helper: min-max to 0-1
             const norm = (arr) => { const lo = Math.min(...arr), hi = Math.max(...arr), r = hi - lo || 1; return arr.map(v => parseFloat(((v - lo) / r).toFixed(4))); };

@@ -970,6 +970,13 @@ function renderDocsViewCustomCharts() {
                 howToRead: 'Low flat volatility (< 30%) = compressed market, energy coiling — breakout imminent. Rising volatility (> 60%) = regime change in progress. Extreme spike (> 100%) = crisis event.',
                 signals: ['Volatility compressing to multi-year lows = major move imminent; direction unknown', 'Volatility spike then rapid collapse = false breakout or flash crash reversal setup', 'Sustained high volatility (> 60% for > 30 days) = trending regime; momentum strategies optimal', 'Volatility declining from peak = regime normalising; position sizes can increase']
             },
+            {
+                name: 'Correlation Matrix',
+                type: 'HEATMAP', icon: 'grid_on',
+                description: '10x10 colour-coded Pearson correlation heatmap across BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, 10Y Treasury, and S&P 500. Each cell = 90-day rolling Pearson coefficient. Green cells = positive correlation, red = negative. Diagonal is always 1.0. Sourced live from /api/correlation-matrix.',
+                howToRead: 'Read each row as how that asset moves with all others. Deep green = strong co-movement. Deep red = inverse relationship. Pale cells = low/no correlation. A row that has gone pale = decoupling event.',
+                signals: ['BTC-SPX correlation rising above 0.7 = risk-on regime, equity macro now driving BTC price', 'All crypto correlations converging toward 1.0 = systemic risk, liquidity squeeze ? reduce exposure', 'BTC-ETH correlation dropping below 0.5 = altcoin rotation underway, ETH diverging', 'BTC-10Y correlation turning deeply negative = dollar/yield headwind ? macro-driven selloff risk', 'Crypto vs macro correlation all near zero = idiosyncratic crypto-native market ? alpha environment']
+            },
         ]
     });
 }
