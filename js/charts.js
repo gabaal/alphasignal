@@ -555,14 +555,6 @@ function renderAdvancedChart() {
                     <option value="1h">1h</option>
                     <option value="1d">1d</option>
                 </select>
-                <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); padding:4px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.1)">
-                    <span style="font-size:0.7rem; color:var(--text-dim); font-weight:800; letter-spacing:1px">HEATMAP</span>
-                    <label class="switch" style="transform:scale(0.7)">
-                        <input type="checkbox" id="heatmap-toggle" onchange="toggleHeatmapOverlay()">
-                        <span class="slider round"></span>
-                    </label>
-                    <input type="range" id="heatmap-intensity" min="0" max="1" step="0.1" value="0.6" style="width:60px" oninput="updateHeatmapIntensity(this.value)">
-                </div>
             </div>
         </div>
         
