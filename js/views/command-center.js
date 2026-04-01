@@ -115,11 +115,12 @@ async function renderCommandCenter() {
 
     // Data Fetching & Rendering
     try {
-        const [macro, regime, etf, signals] = await Promise.all([
+        const [macro, regime, etf, signals, pulse] = await Promise.all([
             fetchAPI('/macro'),
             fetchAPI('/regime'),
             fetchAPI('/fear-greed'),
-            fetchAPI('/signals')
+            fetchAPI('/signals'),
+            fetch('/api/market-pulse').then(r => r.ok ? r.json() : null).catch(() => null)
         ]);
 
         // 1. Fear & Greed Dial
@@ -128,14 +129,43 @@ async function renderCommandCenter() {
             initCommandGauges(macro, regime);
         }
 
-        // 2. Market Pulse
+        // 2. Market Pulse — BTC macro correlations + lead-lag
         if (macro) {
-            document.getElementById('cmd-pulse-vals').innerHTML = macro.slice(0, 3).map(m => `
-                <div style="display:flex; justify-content:space-between; padding:8px; background:rgba(255,255,255,0.02); border-radius:6px">
-                    <span style="font-size:0.7rem; font-weight:700">${m.name}</span>
-                    <span style="font-size:0.7rem; font-weight:900; color:${m.correlation >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">${m.correlation.toFixed(2)}</span>
-                </div>
-            `).join('');
+            const corrItems = macro.slice(0, 4);
+            const statusColor = s => s === 'RISK-ON' ? '#22c55e' : s === 'RISK-OFF' ? '#ef4444' : '#94a3b8';
+            const corrColor  = v => v > 0.4 ? '#22c55e' : v < -0.4 ? '#ef4444' : '#94a3b8';
+            const corrRows = corrItems.map(m => {
+                const v = parseFloat(m.correlation) || 0;
+                const pct = Math.abs(v) * 100;
+                const bar = `<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;margin-top:4px"><div style="height:3px;width:${pct.toFixed(0)}%;background:${corrColor(v)};border-radius:2px"></div></div>`;
+                const badge = `<span style="font-size:0.45rem;padding:1px 5px;border-radius:3px;background:${statusColor(m.status)}22;color:${statusColor(m.status)};letter-spacing:1px">${m.status || 'NEUTRAL'}</span>`;
+                return `
+                    <div style="padding:7px 8px;background:rgba(255,255,255,0.02);border-radius:6px;margin-bottom:5px">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <span style="font-size:0.7rem;font-weight:700">BTC / ${m.name}</span>
+                            <div style="display:flex;align-items:center;gap:6px">
+                                ${badge}
+                                <span style="font-size:0.7rem;font-weight:900;color:${corrColor(v)};font-family:'JetBrains Mono'">${v >= 0 ? '+' : ''}${v.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        ${bar}
+                    </div>`;
+            }).join('');
+
+            // Lead-Lag strip from /api/market-pulse
+            let leadLagHTML = '';
+            if (pulse?.leadLag) {
+                const ll = pulse.leadLag;
+                const llColor = ll.leader === 'BTC' ? '#00f2ff' : '#a78bfa';
+                leadLagHTML = `
+                    <div style="margin-top:6px;padding:8px;background:rgba(0,0,0,0.2);border-radius:6px;border-left:3px solid ${llColor}">
+                        <div style="font-size:0.5rem;color:rgba(255,255,255,0.35);letter-spacing:2px;margin-bottom:3px">LEAD-LAG SIGNAL</div>
+                        <div style="font-size:0.75rem;font-weight:900;color:${llColor}">${ll.signal || ll.leader + ' LEADING'}</div>
+                        <div style="font-size:0.55rem;color:rgba(255,255,255,0.4);margin-top:2px">${ll.divergence ? Math.abs(ll.divergence).toFixed(2) + '% divergence' : ''}</div>
+                    </div>`;
+            }
+
+            document.getElementById('cmd-pulse-vals').innerHTML = corrRows + leadLagHTML;
         }
 
         // 3. ETF Flows (Simplified version for dashboard)
