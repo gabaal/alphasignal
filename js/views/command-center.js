@@ -102,29 +102,34 @@ async function renderCommandCenter() {
             </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:minmax(200px,280px) 320px 1fr;gap:1.5rem;align-items:start">
+        <div style="display:grid;grid-template-columns:minmax(180px,240px) 1fr minmax(160px,220px);gap:1.5rem;align-items:start">
             <div class="card">
                 <h3 style="margin-bottom:1rem">TOP INSTITUTIONAL ALPHA</h3>
                 <div id="cmd-top-signals"></div>
             </div>
-            <div class="card" style="background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12)">
+            <div class="card" style="background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);cursor:zoom-in;transition:border-color 0.15s"
+                onclick="openCmdChartModal('radar')"
+                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
                     <h3 style="margin:0;color:var(--accent);font-size:0.75rem;letter-spacing:1px">
                         <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:5px">radar</span>CONFIDENCE RADAR
                     </h3>
-                    <select id="cmd-radar-select" style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono'" onchange="loadCmdRadar(this.value)">
-                        <option value="BTC-USD">BTC</option><option value="ETH-USD">ETH</option>
-                        <option value="SOL-USD">SOL</option><option value="LINK-USD">LINK</option>
-                        <option value="ADA-USD">ADA</option>
-                    </select>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <select id="cmd-radar-select" style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono'" onchange="event.stopPropagation();loadCmdRadar(this.value)" onclick="event.stopPropagation()">
+                            <option value="BTC-USD">BTC</option><option value="ETH-USD">ETH</option>
+                            <option value="SOL-USD">SOL</option><option value="LINK-USD">LINK</option>
+                            <option value="ADA-USD">ADA</option>
+                        </select>
+                        <span class="label-tag" style="cursor:zoom-in;font-size:0.4rem">CLICK TO EXPAND</span>
+                    </div>
                 </div>
                 <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:0.75rem">6-DIMENSION ML SIGNAL DECOMPOSITION</div>
                 <div style="display:flex;justify-content:center">
-                    <div style="width:280px;height:280px"><canvas id="cmd-radar-chart"></canvas></div>
+                    <div style="width:min(420px,100%);height:360px"><canvas id="cmd-radar-chart"></canvas></div>
                 </div>
             </div>
             <div class="card">
-                <h3 style="margin-bottom:1rem">CME MAGNET GAPS</h3>
+                <h3 style="margin-bottom:0.75rem;font-size:0.7rem">CME MAGNET GAPS</h3>
                 <div id="cmd-cme-gaps"></div>
             </div>
         </div>
@@ -344,9 +349,10 @@ function openCmdChartModal(key) {
     const existing = Chart.getChart('cmdModalCanvas'); if (existing) existing.destroy();
     const el = document.getElementById('cmdModalCanvas');
     if (!el) return;
-    // For chart-based modals, require signals or etf data. Corr modal uses corrData instead.
-    if (key !== 'corr' && key !== 'etf' && !sigs.length) return;
-    if (key === 'etf' && !window._cmdEtfData) return;
+    // For chart-based modals, require signals/etf/radar data. Corr modal uses corrData instead.
+    if (key !== 'corr' && key !== 'etf' && key !== 'radar' && !sigs.length) return;
+    if (key === 'etf'   && !window._cmdEtfData)   return;
+    if (key === 'radar' && !window._cmdRadarData) return;
 
     const meta = {
         scatter:  { title: 'Alpha vs Z-Score',        subtitle: 'SCATTER · SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED' },
@@ -355,6 +361,7 @@ function openCmdChartModal(key) {
         alpha:    { title: 'Alpha Leaders',            subtitle: 'TOP 12 BY RELATIVE ALPHA — VS CRYPTO MARKET AVERAGE' },
         corr:     { title: 'Macro Correlation Matrix', subtitle: 'PAIRWISE PEARSON CORRELATION — CYAN=POSITIVE · RED=NEGATIVE · OPACITY=STRENGTH' },
         etf:      { title: '10D ETF Net Flows',        subtitle: 'IBIT · FBTC · ARKB · BITB — STACKED DAILY FLOWS ($M) + CUMULATIVE NET' },
+        radar:    { title: 'Signal Confidence Radar',  subtitle: '6-DIMENSION ML DECOMPOSITION — MOMENTUM · SENTIMENT · VOLATILITY · TREND · LIQUIDITY · NETWORK' },
     };
     titleEl.textContent    = meta[key]?.title    || '';
     subtitleEl.textContent = meta[key]?.subtitle || '';
@@ -508,6 +515,43 @@ function openCmdChartModal(key) {
                         x:{ grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.45)',font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
                         y:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.75)',font:{family:'JetBrains Mono',size:11,weight:'700'}} }
                     }
+                }
+            });
+        } else if (key === 'radar') {
+            const rd = window._cmdRadarData;
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: rd.labels,
+                    datasets: [{
+                        label: (rd.ticker || 'BTC').replace('-USD','') + ' Confidence',
+                        data: rd.values,
+                        borderColor: '#00f2ff',
+                        backgroundColor: 'rgba(0,242,255,0.1)',
+                        pointBackgroundColor: '#00f2ff',
+                        pointBorderColor: 'rgba(0,242,255,0.6)',
+                        pointRadius: 6,
+                        pointHoverRadius: 9,
+                        borderWidth: 2.5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: true, animation: { duration: 500 },
+                    plugins: {
+                        legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 11 } } },
+                        tooltip: {
+                            backgroundColor: 'rgba(13,17,23,0.97)', titleColor: '#00f2ff',
+                            bodyFont: { family: 'JetBrains Mono', size: 11 }, padding: 12,
+                            callbacks: { label: c => ` ${c.label}: ${c.raw}/100` }
+                        }
+                    },
+                    scales: { r: {
+                        min: 0, max: 100,
+                        ticks: { stepSize: 25, color: 'rgba(255,255,255,0.3)', backdropColor: 'transparent', font: { size: 10, family: 'JetBrains Mono' } },
+                        grid: { color: 'rgba(255,255,255,0.08)' },
+                        angleLines: { color: 'rgba(255,255,255,0.08)' },
+                        pointLabels: { color: 'rgba(255,255,255,0.8)', font: { size: 13, family: 'JetBrains Mono', weight: '700' } }
+                    }}
                 }
             });
         } else if (key === 'etf') {
@@ -812,6 +856,7 @@ async function loadCmdRadar(ticker) {
     try {
         const data = await fetchAPI(`/signal-radar?ticker=${ticker}`);
         if (!data || !data.values) return;
+        window._cmdRadarData = { ...data, ticker }; // cache for modal zoom
         const ctx = document.getElementById('cmd-radar-chart');
         if (!ctx) return;
         const existing = Chart.getChart('cmd-radar-chart'); if (existing) existing.destroy();

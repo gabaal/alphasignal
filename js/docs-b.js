@@ -763,34 +763,95 @@ function renderDocsViewCommandCenter() {
     renderViewDocPage({
         hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
         title: 'Command Center', viewId: 'command-center',
-        summary: 'The home screen of the AlphaSignal Terminal. A high-density command dashboard giving an instant read of all critical system metrics in a single view — market regime, conviction dials, top signals, and hub quick-access.',
+        summary: 'The home screen of the AlphaSignal Terminal. A high-density command dashboard giving an instant read of all critical system metrics in a single view — market regime, conviction dials, live ETF flows, BTC macro correlations, signal confidence, and hub quick-access.',
         components: [
             {
-                name: 'Alpha Score vs Z-Score Scatter Plot', type: 'CHART', icon: 'scatter_plot',
-                description: 'A scatter plot of all tracked assets positioned by their Alpha Score (X-axis) vs their Z-Score (Y-axis). Bubbles sized by market cap. Coloured by sector. The top-right quadrant (high Alpha Score + high Z-Score) is the highest-conviction opportunity zone.',
-                howToRead: 'Identify assets in the top-right quadrant for the best risk-adjusted setups. Assets in the top-left (high Z-Score, low Alpha Score) are extreme but lack quality. Bottom-right (high Alpha, low Z) = quality assets not yet at signal threshold — watchlist candidates.',
+                name: 'Fear & Greed Gauge', type: 'GAUGE', icon: 'speed',
+                description: 'A live semi-circle doughnut gauge showing the current BTC Fear & Greed score (0–100). Computed in real-time from BTC price deviation vs SMA-50 and 30-day annualised volatility. Color shifts from red (Extreme Fear) through yellow (Neutral) to green (Extreme Greed).',
+                howToRead: 'Scores above 75 = Extreme Greed — historically a reversal warning zone. Scores below 25 = Extreme Fear — historically a high-probability accumulation zone.',
                 signals: [
-                    'Multiple assets clustering in top-right simultaneously = broad high-conviction environment; scale up',
-                    'Top-right quadrant empty = no current high-conviction setups; wait patiently',
-                    'Single isolated bubble in top-right = concentrated opportunity; go deeper on that asset'
+                    'Score crossing 75 from below = sentiment overheat; consider reducing exposure',
+                    'Score crossing 25 from above = capitulation zone; historically strong risk/reward for entries',
+                    'Score pinned between 40–60 for 5+ days = consolidation regime; wait for directional break'
                 ]
             },
             {
-                name: 'Hub Quick-Link Grid', type: 'WIDGET', icon: 'dashboard',
-                description: 'An 11-tile grid of clickable hub icons providing single-click navigation to any major hub. Each tile shows the hub icon, name, and a live status badge (number of active signals or alerts).',
-                howToRead: 'Tiles with red numerical badges have active alerts or extreme readings. Check those hubs first when opening the terminal.',
+                name: '7D ETF Net Flows', type: 'CHART', icon: 'bar_chart',
+                description: 'Stacked bar chart showing 10 trading days of estimated institutional ETF inflows/outflows for IBIT (BlackRock), FBTC (Fidelity), ARKB (ARK), and BITB (Bitwise) sourced live from yfinance. A cumulative net flow line overlays on the right axis. Click to expand into a full-width zoom modal.',
+                howToRead: 'Consecutive positive stacked bars with rising cumulative line = sustained institutional accumulation. LIVE badge = real price data. MODELLED badge = seeded fallback (market closed or yfinance timeout).',
                 signals: [
-                    'Multiple hub tiles with red badges simultaneously = widespread system-level event',
-                    'Analytics Hub badge spiking while Price Alerts badge is quiet = on-chain event not yet reflected in price'
+                    'All four ETFs positive on the same day = coordinated institutional accumulation',
+                    'IBIT positive while others negative = BlackRock-only demand; institutional-grade signal',
+                    'Cumulative line turning down after sustained uptrend = distribution beginning'
+                ]
+            },
+            {
+                name: 'Volatility Regime', type: 'WIDGET', icon: 'area_chart',
+                description: 'Live regime classification from BTC SMA analysis. Returns TRENDING, VOLATILE, ACCUMULATION, DISTRIBUTION, or RANGING. Three pill badges show confidence %, trend (BULLISH/BEARISH), and volatility (LOW/MEDIUM/HIGH).',
+                howToRead: 'TRENDING + BULLISH + LOW volatility = ideal momentum environment. VOLATILE = widen stops. DISTRIBUTION + HIGH volatility = risk-off.',
+                signals: [
+                    'TRENDING to DISTRIBUTION shift = macro reversal; de-risk',
+                    'ACCUMULATION + LOW volatility = coiled spring; breakout incoming',
+                    'VOLATILE + BEARISH = worst environment; wait for re-classification'
+                ]
+            },
+            {
+                name: 'Market Pulse — BTC Macro Correlations', type: 'WIDGET', icon: 'pulse_alert',
+                description: 'Four live BTC correlations over 35 days: BTC/DXY (dollar), BTC/SPX (US equities), BTC/ETH (dominance), BTC/10Y (yield sensitivity). Each row shows a fill bar, RISK-ON/OFF/DECOUPLED badge, and signed Pearson coefficient. A LEAD-LAG strip shows whether BTC or alts are outperforming.',
+                howToRead: 'BTC/SPX > +0.6 = equities driving crypto. BTC/ETH dropping toward 0.6 = alt season rotation. BTC/10Y positive = rising yields pressuring crypto.',
+                signals: [
+                    'BTC/ETH drops from 0.9 to below 0.6 = alt season rotation; shift to altcoins',
+                    'BTC/SPX near zero while BTC rallies = BTC finding own narrative; strongest bull signal',
+                    'ALTS OUTPERFORMING in lead-lag + BTC/ETH falling = confirmed alt season'
+                ]
+            },
+            {
+                name: 'Alpha vs Z-Score Scatter', type: 'CHART', icon: 'scatter_plot',
+                description: 'All tracked assets plotted by Relative Alpha % (Y) vs Z-Score momentum (X). Four quadrants: top-right (green) = high conviction; top-left (cyan) = hidden gems; bottom-right (red) = overextended; bottom-left = avoid. Click to expand.',
+                howToRead: 'Focus on top-right quadrant for best risk-adjusted setups. Empty top-right = no current high-conviction opportunities; wait.',
+                signals: [
+                    'Multiple assets in top-right = broad high-conviction environment; scale up',
+                    'Top-right empty = no setups; reduce exposure',
+                    'Single bubble top-right = concentrated opportunity; go deep'
+                ]
+            },
+            {
+                name: 'Macro Correlation Matrix', type: 'CHART', icon: 'grid_on',
+                description: 'Pairwise Pearson heatmap for BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, 10Y, and SPX. Cyan = positive correlation, red = negative. Opacity = strength. Click to expand into a full labelled grid.',
+                howToRead: 'All-cyan crypto block = beta market, assets moving together. SPX/10Y rows turning red vs crypto = macro decoupling — bullish.',
+                signals: [
+                    'All crypto correlations above 0.7 = BTC dominance trade; alts suppressed',
+                    'SPX row going negative vs BTC = BTC decoupling from equities; bullish',
+                    '10Y row going negative = rate cuts priced in; bullish macro backdrop'
+                ]
+            },
+            {
+                name: 'Signal Confidence Radar', type: 'CHART', icon: 'radar',
+                description: 'A 6-axis radar chart scoring selected assets across Momentum, Sentiment, Volatility, Trend, Liquidity, and Network (0–100 each). Use the ticker dropdown (BTC / ETH / SOL / LINK / ADA) to switch assets. Click the card to expand into a full-size modal with enhanced labels and tooltips.',
+                howToRead: 'Wide, evenly-filled polygon = balanced high-confidence signal. Single axis spike = one-dimensional — less reliable. Sentiment + Momentum both above 70 = narrative-aligned momentum; highest probability setup.',
+                signals: [
+                    'All 6 dimensions above 70 = highest conviction setup; rare',
+                    'Momentum high + Sentiment low = price leading narrative; watch for confirmation or reversal',
+                    'Network high + Trend low = on-chain accumulation without price confirmation; delayed breakout watch'
+                ]
+            },
+            {
+                name: 'CME Magnet Gaps', type: 'WIDGET', icon: 'candlestick_chart',
+                description: 'Compact list of unfilled CME Bitcoin futures price gaps formed when spot crypto trades over weekends while futures markets are closed. UNFILLED = gap fully open. PARTIAL = price has partially entered the gap.',
+                howToRead: 'CME gaps above price = upside magnets. Gaps below = downside targets. Partial gaps are higher-probability next targets as price has already visited once.',
+                signals: [
+                    'Multiple unfilled gaps above price = bullish bias for gap-fill trades',
+                    'Gap immediately below + declining momentum = gap-fill pullback likely',
+                    'All gaps filled = neutral; next gap forms at next weekend open'
                 ]
             },
             {
                 name: 'BTC Price Sparkline', type: 'CHART', icon: 'show_chart',
-                description: 'A minimalist 24-hour BTC price sparkline with current price, 24h change %, and regime badge displayed in the header bar. Always visible regardless of which hub is active.',
-                howToRead: 'The sparkline provides contextual price awareness. A falling sparkline while all signals are bullish = potential divergence worth investigating. Sparkline and signals aligned = high-conviction environment.',
+                description: 'Minimalist 24-hour BTC price sparkline in the header bar. Shows current price, 24h change %, and volatility regime badge. Polls every 5 minutes from the live Binance WebSocket feed.',
+                howToRead: 'Falling sparkline while signals bullish = divergence — investigate. Flat sparkline + CRITICAL alerts = on-chain event not yet in price.',
                 signals: [
-                    'Sharp spike visible in sparkline = significant event in the last 24h; check the Alert Feed',
-                    'Flat sparkline with multiple CRITICAL alerts = alerts are on-chain driven, not price-driven; check on-chain data'
+                    'Sharp spike = significant 24h event; check Alert Feed',
+                    'Flat line + multiple alerts = on-chain driven, not price-driven'
                 ]
             }
         ]
