@@ -821,14 +821,15 @@ class InstitutionalRoutesMixin:
 
     def handle_correlation_matrix(self):
         try:
-            assets = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'AVAX', 'LINK', 'GOLD', 'SPX']
+            assets = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'AVAX', 'LINK', '10Y', 'SPX']
+            macro_assets = {'10Y', 'SPX', 'DXY'}
             matrix = []
             random.seed('correlation2026')
             for i, a in enumerate(assets):
                 for j, b in enumerate(assets):
                     if i == j:
                         corr = 1.0
-                    elif a in ['GOLD', 'SPX'] or b in ['GOLD', 'SPX']:
+                    elif a in macro_assets or b in macro_assets:
                         corr = random.uniform(-0.4, 0.6)
                     else:
                         corr = random.uniform(0.3, 0.95)
