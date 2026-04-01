@@ -539,10 +539,6 @@ function renderAdvancedChart() {
                         <option value="ETHUSDT">ETH/USDT</option>
                         <option value="SOLUSDT">SOL/USDT</option>
                     </optgroup>
-                    <optgroup label="High Volatility" style="background:#111">
-                        <option value="DOGEUSDT">DOGE/USDT</option>
-                        <option value="PEPEUSDT">PEPE/USDT</option>
-                    </optgroup>
                 </select>
                 <select id="adv-interval" style="background:var(--card-bg); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:4px; font-family:'JetBrains Mono'">
                     <option value="1m">1m</option>
