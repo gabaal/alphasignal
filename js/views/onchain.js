@@ -9,38 +9,71 @@ async function renderOnChain(tabs = null) {
         </div>
         ${tabs ? renderHubTabs('onchain', tabs) : ''}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">On-Chain Analytics Suite</h2>
-        
+
+        <!-- Zoom Modal -->
+        <div id="onchain-modal" onclick="if(event.target===this)closeOnchainModal()"
+            style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(12px);z-index:3000;align-items:center;justify-content:center;padding:2rem">
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:1100px;position:relative">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <div>
+                        <div id="onchain-modal-title" style="font-size:0.9rem;font-weight:900;color:var(--accent);letter-spacing:1px"></div>
+                        <div id="onchain-modal-sub" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-top:3px"></div>
+                    </div>
+                    <button onclick="closeOnchainModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700">✕ CLOSE</button>
+                </div>
+                <div id="onchain-modal-chart" style="height:65vh;width:100%"></div>
+            </div>
+        </div>
+
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap:1rem; margin-bottom:1rem">
-            <div class="card" style="padding:1.5rem">
-                <h3>MVRV Z-Score</h3>
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('mvrv')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">MVRV Z-Score</h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
                 <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Highlights periods where market value is significantly higher/lower than realized value.</p>
                 <div id="mvrv-chart" style="width:100%; height:300px"></div>
             </div>
-            <div class="card" style="padding:1.5rem">
-                <h3>Realized Price vs Spot</h3>
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('realized')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">Realized Price vs Spot</h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
                 <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Average on-chain cost basis vs current Spot price.</p>
                 <div id="realized-chart" style="width:100%; height:300px"></div>
             </div>
         </div>
 
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:1rem; margin-bottom:1rem">
-            <div class="card" style="padding:1.5rem">
-                <h3>SOPR (Spent Output Profit Ratio)</h3>
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('sopr')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">SOPR</h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
                 <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Aggregate profit/loss ratio of spent coins. 1.0 = Breakeven.</p>
                 <div id="sopr-chart" style="width:100%; height:250px"></div>
             </div>
-            <div class="card" style="padding:1.5rem">
-                <h3>Puell Multiple</h3>
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('puell')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">Puell Multiple</h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
                 <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Miner revenue compared to its 365-day moving average.</p>
                 <div id="puell-chart" style="width:100%; height:250px"></div>
             </div>
-            <div class="card" style="padding:1.5rem">
-                <h3>NVT Ratio</h3>
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('nvt')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">NVT Ratio</h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
                 <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">Network Value to Transactions (The P/E of Crypto).</p>
                 <div id="nvt-chart" style="width:100%; height:250px"></div>
             </div>
-            <div class="card" style="padding:1.5rem">
-                <h3>Hash Ribbons <span style="font-size:0.8rem; color:var(--text-dim)">(Miner Capitulation)</span></h3>
+            <div class="card" style="padding:1.5rem;cursor:zoom-in;transition:border-color 0.2s" onclick="openOnchainModal('hash')" onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor=''">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                    <h3 style="margin:0">Hash Ribbons <span style="font-size:0.8rem;color:var(--text-dim)">(Miner Capitulation)</span></h3>
+                    <span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span>
+                </div>
                 <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:1rem">When the 30D Hash (Orange) drops below 60D (White), Miners are capitulating.</p>
                 <div id="hash-chart" style="width:100%; height:250px"></div>
             </div>
@@ -55,6 +88,7 @@ async function renderOnChain(tabs = null) {
             document.getElementById('mvrv-chart').innerHTML = '<div class="error-msg">Authentication Required</div>';
             return;
         }
+        window._onchainData = data; // cache for modal
 
         // Clear loaders
         document.getElementById('mvrv-chart').innerHTML = '';
@@ -122,9 +156,72 @@ async function renderOnChain(tabs = null) {
         charts.forEach(ch => ch.c.timeScale().fitContent());
 
     } catch (e) {
-        document.getElementById('mvrv-chart').innerHTML = `<div class="error-msg">Failed to load On-Chain data: ${e.message}</div>`;
+        const el = document.getElementById('mvrv-chart');
+        if (el) el.innerHTML = `<div class="error-msg">Failed to load On-Chain data: ${e.message}</div>`;
     }
 }
+
+function openOnchainModal(type) {
+    const data = window._onchainData;
+    if (!data) return;
+    const modal = document.getElementById('onchain-modal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    const configs = {
+        mvrv:     { title: 'MVRV Z-SCORE', sub: 'MARKET VALUE VS REALISED VALUE — 365D' },
+        realized: { title: 'REALIZED PRICE VS SPOT', sub: 'ON-CHAIN COST BASIS vs CURRENT PRICE' },
+        sopr:     { title: 'SOPR — SPENT OUTPUT PROFIT RATIO', sub: '1.0 = BREAKEVEN THRESHOLD' },
+        puell:    { title: 'PUELL MULTIPLE', sub: 'MINER REVENUE / 365D MA' },
+        nvt:      { title: 'NVT RATIO', sub: 'NETWORK VALUE TO TRANSACTIONS (P/E OF CRYPTO)' },
+        hash:     { title: 'HASH RIBBONS', sub: '30D VS 60D HASHRATE — MINER CAPITULATION SIGNAL' }
+    };
+    const cfg = configs[type] || { title: type.toUpperCase(), sub: '' };
+    document.getElementById('onchain-modal-title').textContent = cfg.title;
+    document.getElementById('onchain-modal-sub').textContent = cfg.sub;
+
+    const container = document.getElementById('onchain-modal-chart');
+    container.innerHTML = '';
+    if (container._lwChart) { try { container._lwChart.remove(); } catch(e){} }
+
+    const opts = { layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }, width: container.clientWidth, height: container.clientHeight };
+    const chart = LightweightCharts.createChart(container, opts);
+    container._lwChart = chart;
+
+    if (type === 'mvrv') {
+        chart.addAreaSeries({ topColor: 'rgba(239,83,80,0.4)', bottomColor: 'rgba(38,166,154,0.1)', lineColor: '#ef5350', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.mvrv})));
+    } else if (type === 'realized') {
+        chart.addLineSeries({ color: 'rgba(255,255,255,0.8)', lineWidth: 2, title: 'Spot' }).setData(data.map(d=>({time:d.time,value:d.price})));
+        chart.addLineSeries({ color: '#f97316', lineWidth: 2, title: 'Realized' }).setData(data.map(d=>({time:d.time,value:d.realized})));
+    } else if (type === 'sopr') {
+        chart.addAreaSeries({ topColor: 'rgba(16,185,129,0.4)', bottomColor: 'rgba(16,185,129,0)', lineColor: '#10b981', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.sopr})));
+    } else if (type === 'puell') {
+        chart.addAreaSeries({ topColor: 'rgba(139,92,246,0.4)', bottomColor: 'rgba(139,92,246,0)', lineColor: '#8b5cf6', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.puell})));
+    } else if (type === 'nvt') {
+        chart.addLineSeries({ color: '#facc15', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.nvt})));
+    } else if (type === 'hash') {
+        chart.addLineSeries({ color: '#f7931a', lineWidth: 2, title: '30D' }).setData(data.map(d=>({time:d.time,value:d.hash_fast})));
+        chart.addLineSeries({ color: 'rgba(255,255,255,0.4)', lineWidth: 2, title: '60D' }).setData(data.map(d=>({time:d.time,value:d.hash_slow})));
+    }
+    chart.timeScale().fitContent();
+
+    // Resize on window resize
+    window._onchainModalRO = new ResizeObserver(() => {
+        chart.resize(container.clientWidth, container.clientHeight);
+    });
+    window._onchainModalRO.observe(container);
+}
+
+function closeOnchainModal() {
+    const modal = document.getElementById('onchain-modal');
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+    const container = document.getElementById('onchain-modal-chart');
+    if (container && container._lwChart) { try { container._lwChart.remove(); } catch(e){} container._lwChart = null; }
+    if (window._onchainModalRO) { window._onchainModalRO.disconnect(); window._onchainModalRO = null; }
+}
+
 
 // ================================================================
 // Phase 16-E: Backtester V2 — Real Signal History + Live Prices
