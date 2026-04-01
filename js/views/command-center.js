@@ -84,9 +84,11 @@ async function renderCommandCenter() {
         </div>
 
         <div class="command-main-grid" style="display:grid; grid-template-columns: 1fr 400px; gap:1.5rem; margin-bottom:1.5rem">
-            <div class="card">
+            <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('etf')"
+                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                 <div class="card-header" style="margin-bottom:1rem">
                     <h3>7D ETF NET FLOWS <span style="font-size:0.6rem; color:var(--text-dim)">($ Millions)</span></h3>
+                    <span class="label-tag" style="cursor:zoom-in">CLICK TO EXPAND</span>
                 </div>
                 <div style="height:350px"><canvas id="cmd-etf-chart"></canvas></div>
             </div>
@@ -323,15 +325,17 @@ function openCmdChartModal(key) {
     const existing = Chart.getChart('cmdModalCanvas'); if (existing) existing.destroy();
     const el = document.getElementById('cmdModalCanvas');
     if (!el) return;
-    // For chart-based modals, require signals. Corr modal uses corrData instead.
-    if (key !== 'corr' && !sigs.length) return;
+    // For chart-based modals, require signals or etf data. Corr modal uses corrData instead.
+    if (key !== 'corr' && key !== 'etf' && !sigs.length) return;
+    if (key === 'etf' && !window._cmdEtfData) return;
 
     const meta = {
-        scatter:  { title: 'Alpha vs Z-Score',       subtitle: 'SCATTER · SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED' },
-        donut:    { title: 'Category Mix',            subtitle: 'SECTOR BREAKDOWN — % DISTRIBUTION OF LIVE SIGNALS' },
-        btccorr:  { title: 'BTC Correlation',         subtitle: 'CORRELATION SPREAD — SIGNAL UNIVERSE VS BITCOIN' },
-        alpha:    { title: 'Alpha Leaders',           subtitle: 'TOP 12 BY RELATIVE ALPHA — VS CRYPTO MARKET AVERAGE' },
-        corr:     { title: 'Macro Correlation Matrix',subtitle: 'PAIRWISE PEARSON CORRELATION — CYAN=POSITIVE · RED=NEGATIVE · OPACITY=STRENGTH' },
+        scatter:  { title: 'Alpha vs Z-Score',        subtitle: 'SCATTER · SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED' },
+        donut:    { title: 'Category Mix',             subtitle: 'SECTOR BREAKDOWN — % DISTRIBUTION OF LIVE SIGNALS' },
+        btccorr:  { title: 'BTC Correlation',          subtitle: 'CORRELATION SPREAD — SIGNAL UNIVERSE VS BITCOIN' },
+        alpha:    { title: 'Alpha Leaders',            subtitle: 'TOP 12 BY RELATIVE ALPHA — VS CRYPTO MARKET AVERAGE' },
+        corr:     { title: 'Macro Correlation Matrix', subtitle: 'PAIRWISE PEARSON CORRELATION — CYAN=POSITIVE · RED=NEGATIVE · OPACITY=STRENGTH' },
+        etf:      { title: '10D ETF Net Flows',        subtitle: 'IBIT · FBTC · ARKB · BITB — STACKED DAILY FLOWS ($M) + CUMULATIVE NET' },
     };
     titleEl.textContent    = meta[key]?.title    || '';
     subtitleEl.textContent = meta[key]?.subtitle || '';
@@ -479,6 +483,60 @@ function openCmdChartModal(key) {
                     scales:{
                         x:{ grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.45)',font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
                         y:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.75)',font:{family:'JetBrains Mono',size:11,weight:'700'}} }
+                    }
+                }
+            });
+        } else if (key === 'etf') {
+            const etf = window._cmdEtfData;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: etf.labels,
+                    datasets: [
+                        ...etf.datasets.map(ds => ({
+                            label: ds.name,
+                            data: ds.data,
+                            backgroundColor: ds.color + 'cc',
+                            borderColor: ds.color,
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            stack: 'stack0'
+                        })),
+                        {
+                            label: 'CUMULATIVE ($M)',
+                            type: 'line',
+                            data: etf.cumulative,
+                            borderColor: 'rgba(255,255,255,0.6)',
+                            borderWidth: 2.5,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: 'rgba(0,242,255,0.8)',
+                            pointBorderWidth: 2,
+                            yAxisID: 'y1',
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, animation: { duration: 500 },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { labels: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 11 }, boxWidth: 12, padding: 16 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(13,17,23,0.97)', titleColor: '#00f2ff',
+                            titleFont: { family: 'JetBrains Mono', size: 13 }, bodyFont: { family: 'JetBrains Mono', size: 11 }, padding: 12,
+                            callbacks: { label: c => ` ${c.dataset.label}: ${c.raw >= 0 ? '+' : ''}${c.raw}M` }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, maxRotation: 35 } },
+                        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' },
+                             ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => '$' + v + 'M' },
+                             title: { display: true, text: 'DAILY FLOW ($M)', color: '#00f2ff', font: { size: 10 } } },
+                        y1: { position: 'right', grid: { display: false },
+                              ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 10 }, callback: v => '$' + v + 'M' },
+                              title: { display: true, text: 'CUMULATIVE ($M)', color: 'rgba(255,255,255,0.3)', font: { size: 10 } } }
                     }
                 }
             });
@@ -657,6 +715,7 @@ async function renderCommandETF() {
         const r = await fetch('/api/etf-flows');
         const data = r.ok ? await r.json() : null;
         if (!data || !data.labels || !data.datasets) throw new Error('No ETF data');
+        window._cmdEtfData = data; // cache for modal zoom
         const existing = Chart.getChart('cmd-etf-chart'); if (existing) existing.destroy();
         new Chart(ctx.getContext('2d'), {
             type: 'bar',
