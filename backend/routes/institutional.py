@@ -1048,18 +1048,31 @@ class InstitutionalRoutesMixin:
             self.send_json({'error': 'Failed to sync SSR macro data'})
 
     def handle_macro(self):
-        macro_tickers = {'DXY': 'DX-Y.NYB', 'SPX': 'IVV', 'GOLD': 'GC=F'}
+        macro_tickers = {
+            'DXY':  'DX-Y.NYB',   # Dollar strength — inverse crypto driver
+            'SPX':  'IVV',         # US equities risk-on/off proxy
+            'ETH':  'ETH-USD',     # BTC/ETH correlation — dominance signal
+            '10Y':  '^TNX',        # 10Y yield — rising = RISK-OFF for crypto
+        }
         results = []
         try:
             btc_data = CACHE.download('BTC-USD', period='35d', interval='1d', column='Close').squeeze()
             btc_rets = btc_data.pct_change().dropna()
             for name, tick in macro_tickers.items():
-                m_data = CACHE.download(tick, period='35d', interval='1d', column='Close').squeeze()
-                m_rets = m_data.pct_change().dropna()
-                common = btc_rets.index.intersection(m_rets.index)
-                if len(common) > 10:
-                    corr = btc_rets.loc[common].corr(m_rets.loc[common])
-                    results.append({'name': name, 'correlation': round(float(corr), 2), 'status': 'RISK-ON' if corr > 0.3 else 'RISK-OFF' if corr < -0.3 else 'DECOUPLED'})
+                try:
+                    m_data = CACHE.download(tick, period='35d', interval='1d', column='Close').squeeze()
+                    m_rets = m_data.pct_change().dropna()
+                    common = btc_rets.index.intersection(m_rets.index)
+                    if len(common) > 10:
+                        corr = float(btc_rets.loc[common].corr(m_rets.loc[common]))
+                        if name == '10Y':
+                            # Rising yields hurt crypto → positive corr = RISK-OFF
+                            status = 'RISK-OFF' if corr > 0.3 else 'RISK-ON' if corr < -0.3 else 'DECOUPLED'
+                        else:
+                            status = 'RISK-ON' if corr > 0.3 else 'RISK-OFF' if corr < -0.3 else 'DECOUPLED'
+                        results.append({'name': name, 'correlation': round(corr, 2), 'status': status})
+                except Exception as inner_e:
+                    print(f'[Macro] {name} error: {inner_e}')
             self.send_json(results)
         except Exception as e:
             print(f'Macro error: {e}')
