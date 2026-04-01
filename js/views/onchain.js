@@ -118,24 +118,14 @@ async function renderOnChain(tabs = null) {
                     <h3 style="margin:0">Technical Analysis — BTC</h3>
                     <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">TRADINGVIEW</span>
                 </div>
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
-                    {"interval":"1D","width":"100%","isTransparent":true,"height":425,"symbol":"BINANCE:BTCUSDT","showIntervalTabs":true,"displayMode":"multiple","locale":"en","colorTheme":"dark"}
-                    </script>
-                </div>
+                <div id="tv-ta-btc" class="tradingview-widget-container" style="min-height:425px"></div>
             </div>
             <div class="card" style="padding:1.5rem">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
                     <h3 style="margin:0">Technical Analysis — ETH</h3>
                     <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">TRADINGVIEW</span>
                 </div>
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
-                    {"interval":"1D","width":"100%","isTransparent":true,"height":425,"symbol":"BINANCE:ETHUSDT","showIntervalTabs":true,"displayMode":"multiple","locale":"en","colorTheme":"dark"}
-                    </script>
-                </div>
+                <div id="tv-ta-eth" class="tradingview-widget-container" style="min-height:425px"></div>
             </div>
         </div>
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap:1rem; margin-bottom:2rem">
@@ -144,30 +134,39 @@ async function renderOnChain(tabs = null) {
                     <h3 style="margin:0">Crypto Market Screener</h3>
                     <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">TRADINGVIEW</span>
                 </div>
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
-                    {"width":"100%","height":425,"defaultColumn":"overview","screener_type":"crypto_mkt","displayCurrency":"USD","colorTheme":"dark","locale":"en","isTransparent":true}
-                    </script>
-                </div>
+                <div id="tv-screener" class="tradingview-widget-container" style="min-height:425px"></div>
             </div>
             <div class="card" style="padding:1.5rem">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
                     <h3 style="margin:0">Economic Calendar</h3>
                     <span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">TRADINGVIEW</span>
                 </div>
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
-                    {"width":"100%","height":425,"colorTheme":"dark","isTransparent":true,"locale":"en","importanceFilter":"-1,0,1","countryFilter":"us,eu,gb,jp,cn"}
-                    </script>
-                </div>
+                <div id="tv-calendar" class="tradingview-widget-container" style="min-height:425px"></div>
             </div>
         </div>
     `;
 
     document.getElementById('mvrv-chart').innerHTML = '<div class="loader" style="margin:2rem auto"></div>';
-    
+
+    // ── Inject TradingView widgets via createElement (innerHTML scripts don't execute) ──
+    function injectTVWidget(containerId, widgetType, config) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const inner = document.createElement('div');
+        inner.className = 'tradingview-widget-container__widget';
+        container.appendChild(inner);
+        const s = document.createElement('script');
+        s.type = 'text/javascript';
+        s.src = `https://s3.tradingview.com/external-embedding/embed-widget-${widgetType}.js`;
+        s.async = true;
+        s.textContent = JSON.stringify(config);
+        container.appendChild(s);
+    }
+    injectTVWidget('tv-ta-btc',   'technical-analysis', { interval:'1D', width:'100%', isTransparent:true, height:425, symbol:'BINANCE:BTCUSDT', showIntervalTabs:true, displayMode:'multiple', locale:'en', colorTheme:'dark' });
+    injectTVWidget('tv-ta-eth',   'technical-analysis', { interval:'1D', width:'100%', isTransparent:true, height:425, symbol:'BINANCE:ETHUSDT', showIntervalTabs:true, displayMode:'multiple', locale:'en', colorTheme:'dark' });
+    injectTVWidget('tv-screener', 'screener',           { width:'100%', height:425, defaultColumn:'overview', screener_type:'crypto_mkt', displayCurrency:'USD', colorTheme:'dark', locale:'en', isTransparent:true });
+    injectTVWidget('tv-calendar', 'events',             { width:'100%', height:425, colorTheme:'dark', isTransparent:true, locale:'en', importanceFilter:'-1,0,1', countryFilter:'us,eu,gb,jp,cn' });
+
     try {
         const data = await fetchAPI('/onchain');
         if (!data) {
