@@ -1,4 +1,4 @@
-﻿async function renderOnChain(tabs = null) {
+async function renderOnChain(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -936,7 +936,7 @@ async function renderTradingViewHub(tabs) {
         injectTVWidget('tv-ta-bnb','technical-analysis',{interval:'1D',width:'100%',isTransparent:true,height:460,symbol:'BINANCE:BNBUSDT',showIntervalTabs:true,displayMode:'multiple',locale:'en',colorTheme:'dark'});
         injectTVWidget('tv-screener','screener',{width:'100%',height:460,defaultColumn:'overview',screener_type:'crypto_mkt',displayCurrency:'USD',colorTheme:'dark',locale:'en',isTransparent:true});
         injectTVWidget('tv-calendar','events',{width:'100%',height:460,colorTheme:'dark',isTransparent:true,locale:'en',importanceFilter:'-1,0,1',countryFilter:'us,eu,gb,jp,cn'});
-        injectTVWidget('tv-hotlists','hotlists',{colorTheme:'dark',dateRange:'1D',exchange:'BINANCE',showChart:true,locale:'en',largeChartUrl:'',isTransparent:true,showSymbolLogo:false,showFloatingTooltip:false,width:'100%',height:420,plotLineColorGrowing:'rgba(41,98,255,1)',plotLineColorFalling:'rgba(41,98,255,1)',gridLineColor:'rgba(42,46,57,0)',scaleFontColor:'rgba(120,123,134,1)',belowLineFillColorGrowing:'rgba(41,98,255,0.12)',belowLineFillColorFalling:'rgba(41,98,255,0.12)',belowLineFillColorGrowingBottom:'rgba(41,98,255,0)',belowLineFillColorFallingBottom:'rgba(41,98,255,0)'});
+        injectTVWidget('tv-hotlists','hotlists',{colorTheme:'dark',dateRange:'1D',showChart:true,locale:'en',largeChartUrl:'',isTransparent:true,showSymbolLogo:false,showFloatingTooltip:false,width:'100%',height:420,plotLineColorGrowing:'rgba(41,98,255,1)',plotLineColorFalling:'rgba(41,98,255,1)',gridLineColor:'rgba(42,46,57,0)',scaleFontColor:'rgba(120,123,134,1)',belowLineFillColorGrowing:'rgba(41,98,255,0.12)',belowLineFillColorFalling:'rgba(41,98,255,0.12)',belowLineFillColorGrowingBottom:'rgba(41,98,255,0)',belowLineFillColorFallingBottom:'rgba(41,98,255,0)'});
         injectTVWidget('tv-heatmap','crypto-coins-heatmap',{dataSource:'Crypto',blockSize:'market_cap_calc',blockColor:'change',locale:'en',symbolUrl:'',colorTheme:'dark',hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:'100%',height:500});
         injectTVWidget('tv-forex','forex-cross-rates',{width:'100%',height:420,currencies:['EUR','USD','JPY','GBP','CHF','AUD','CAD','BTC','ETH'],isTransparent:true,colorTheme:'dark',locale:'en',backgroundColor:'rgba(0,0,0,0)'});
     }, 0);
