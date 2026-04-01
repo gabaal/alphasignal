@@ -857,3 +857,119 @@ function renderDocsViewCommandCenter() {
         ]
     });
 }
+
+// ============= ANALYTICS HUB — TRADINGVIEW HUB =============
+function renderDocsViewTradingViewHub() {
+    renderViewDocPage({
+        hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
+        title: 'TradingView Hub', viewId: 'tradingview-hub',
+        relatedDocs: [
+            { name: 'On-Chain Analytics', route: 'docs-onchain', icon: 'link' },
+            { name: 'Custom Charts', route: 'docs-custom-charts', icon: 'bar_chart' },
+            { name: 'Charting Suite', route: 'docs-charting-suite', icon: 'candlestick_chart' },
+        ],
+        summary: 'A dedicated hub of 13 TradingView-powered market intelligence widgets covering global crypto, equity sector, forex, and macro market data. All widgets are live, interactive, and powered by TradingView\'s public embed API — no account required.',
+        components: [
+            {
+                name: 'Global Market Overview', type: 'WIDGET', icon: 'public',
+                description: 'Multi-tabbed TradingView Market Overview widget showing live price, change %, and sparklines for assets across three tabs: Crypto (BTC, ETH, SOL, BNB, XRP, ADA), Indices (S&P 500, Nasdaq, Dow, Nikkei), and Commodities (Gold, Silver, Crude Oil, DXY). Each row is clickable to open a TradingView chart for that symbol.',
+                howToRead: 'Switch tabs to compare different asset classes. Red = negative 24h change, green = positive. Use the Indices and Commodities tabs to gauge macro risk-on/risk-off environment.',
+                signals: ['Indices red + Crypto green = crypto decorrelating, internal demand driving', 'All tabs red = broad risk-off; reduce leverage', 'Gold green + Nasdaq red = flight to safety; bearish for BTC short-term']
+            },
+            {
+                name: 'BTC · ETH · SOL Symbol Comparison', type: 'WIDGET', icon: 'compare_arrows',
+                description: 'Normalized area chart comparing 12-month price performance for BTC, ETH, and SOL on the same axis (base = 0%). Shows relative outperformance and underperformance cycles across the L1 triad.',
+                howToRead: 'The divergence between lines reveals rotational opportunities. When ETH and SOL significantly lag BTC, an ETH/BTC or SOL/BTC long is a common rotation trade.',
+                signals: ['SOL diverging upward from BTC = altcoin season starting in L1 assets', 'All three lines converging downward = broad deleveraging; no safe haven in crypto', 'BTC dominant for >60 days while others flat = BTC accumulation cycle']
+            },
+            {
+                name: 'Technical Analysis Gauges (BTC / ETH / SOL / BNB)', type: 'WIDGET', icon: 'speed',
+                description: 'Four TradingView Technical Analysis summary gauges — one per asset (BTC, ETH, SOL, BNB). Each gauge aggregates 26 built-in indicators (RSI, MACD, Stochastic, CCI, ADX, and more) across all selected timeframes into one directional verdict: STRONG BUY, BUY, NEUTRAL, SELL, or STRONG SELL.',
+                howToRead: 'The gauge needle sweeps from deep red (STRONG SELL) through grey (NEUTRAL) to deep green (STRONG BUY). Click any timeframe tab (1D, 1W, 1M) to change the underlying aggregation window.',
+                signals: ['All 4 gauges on STRONG BUY = rare broad momentum; significant upside probable', 'BTC NEUTRAL + ETH/SOL STRONG BUY = altcoin rotation in progress', 'All 4 gauges SELL = systematic weakness; avoid longs']
+            },
+            {
+                name: 'Crypto Market Screener', type: 'WIDGET', icon: 'manage_search',
+                description: 'Full TradingView crypto screener table covering hundreds of assets with live data columns: Price, 24h Change %, Volume, Market Cap, RSI (14), Relative Volume, and EMA alignment. Sortable by any column. Click any row to open a TradingView chart.',
+                howToRead: 'Sort by 24h Change descending to find today\'s top movers. Sort by RSI to find oversold (<30) or overbought (>70) assets. Filter by Market Cap to focus on large-cap or small-cap opportunities.',
+                signals: ['Multiple large-caps appearing in oversold RSI screener = broad capitulation, recovery likely', 'Small-cap volume spike without news = whale accumulation or pump setup', 'Most assets showing green % but BTC red = late-stage altcoin rally; BTC catch-up likely']
+            },
+            {
+                name: 'Economic Calendar', type: 'WIDGET', icon: 'calendar_month',
+                description: 'TradingView\'s live Economic Calendar showing all scheduled macro events with impact rating (high/medium/low), previous reading, consensus estimate, and actual result once released. Filtered to US, EU, UK, Japan, and China events.',
+                howToRead: 'High-impact events (red) cause the most BTC volatility. The "Actual vs Forecast" comparison at release time is what drives price moves — not the absolute value.',
+                signals: ['Multiple high-impact events in one week = reduce leverage heading in', 'CPI Actual < Forecast = dovish surprise; bullish for BTC and risk assets', 'NFP miss = growth concerns; risk-off short-term']
+            },
+            {
+                name: 'Market Hotlists', type: 'WIDGET', icon: 'local_fire_department',
+                description: 'Three TradingView Hotlist panels showing real-time: Top Gainers (biggest % price increase), Top Losers (biggest % price decline), and Most Active Volume (highest trading volume). All on the same widget with tab switching. Each row shows a price sparkline of recent performance.',
+                howToRead: 'Top Gainers reveals what the market is chasing today. Most Active Volume shows where liquidity is concentrated — high volume = tighter spreads and more reliable signals.',
+                signals: ['Same asset appearing in both Gainers and High Volume = strong confirmed move', 'Losers dominated by large-caps = broad market weakness', 'Low-cap coin in Gainers with no news = potential pump; do not chase']
+            },
+            {
+                name: 'Crypto Coins Heatmap', type: 'WIDGET', icon: 'grid_view',
+                description: 'Treemap visualization of the crypto market where each cell = one asset. Cell size = market cap. Cell colour = 24h price change (dark green = strong positive, dark red = strong negative). Zoomable — click a sector to drill into constituent assets.',
+                howToRead: 'The overall colour of the heatmap gives an instant visual read on market breadth. Mostly green = broad rally. Large red BTC cell pulling everything down = systematic sell, not just altcoin weakness.',
+                signals: ['BTC green + most alts red = BTC dominance rising, risk-off for alts', 'Small-caps uniformly green while large-caps red = altcoin season early rotation', 'Dark green across the entire map = euphoria; historically precedes correction']
+            },
+            {
+                name: 'Forex Cross Rates Matrix', type: 'WIDGET', icon: 'currency_exchange',
+                description: 'Live cross-rate comparison table between EUR, USD, JPY, GBP, CHF, AUD, CAD, BTC, and ETH. Each cell shows the relative price of the row currency in terms of the column currency, colour-coded by 24h change.',
+                howToRead: 'Focus on the BTC and ETH rows. When BTC/USD is rising while BTC/EUR is flat, the USD is weakening — adding macro tailwind. If BTC is rising against all currencies simultaneously, it\'s genuine internal demand.',
+                signals: ['BTC outperforming all fiat pairs = genuine bullish, not just dollar-weakness narrative', 'JPY strengthening against USD = carry trade unwinding; risk-off event likely', 'AUD/USD rising = commodity demand up; positive environment for risk assets']
+            },
+            {
+                name: 'Forex Heat Map', type: 'WIDGET', icon: 'whatshot',
+                description: 'Currency strength visualizer showing EUR, USD, JPY, GBP, CHF, AUD, CAD, and NZD on a colour grid. Each cell shows percentage change vs every other currency. Strongest currency = darkest green column. Weakest = darkest red.',
+                howToRead: 'Find the strongest and weakest currencies quickly. A very strong USD (deep green USD column) is historically negative for BTC. A weak USD environment provides a crypto tailwind.',
+                signals: ['USD column all green = risk-off USD strength; headwind for BTC', 'CHF and JPY strong simultaneously = traditional safe-havens bid; global risk aversion', 'AUD dominant = commodity cycle positive; typically good for risk assets including crypto']
+            },
+            {
+                name: 'S&P 500 Sector Heatmap', type: 'WIDGET', icon: 'grid_on',
+                description: 'Treemap of the S&P 500 broken down by sector (Technology, Financials, Energy, Healthcare, Consumer Discretionary, etc.). Cell size = sector weight in the index. Colour = sector performance. Zoomable to individual stocks within each sector.',
+                howToRead: 'Technology sector performance is most correlated with crypto risk sentiment. If Tech is green, crypto typically follows. Energy green + Financials red = rotation from growth to value; risk-off for crypto.',
+                signals: ['Technology dark green = growth narrative strong; positive for BTC and high-beta alts', 'Defensive sectors (Utilities, Staples) outperforming = institutional risk-off rotation', 'Broad red across all sectors = systemic equity sell; crypto will feel the same pressure']
+            },
+        ]
+    });
+}
+
+// ============= ANALYTICS HUB — CUSTOM CHARTS =============
+function renderDocsViewCustomCharts() {
+    renderViewDocPage({
+        hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
+        title: 'Custom Charts', viewId: 'custom-analytics',
+        relatedDocs: [
+            { name: 'On-Chain Analytics', route: 'docs-onchain', icon: 'link' },
+            { name: 'TradingView Hub', route: 'docs-tradingview-hub', icon: 'show_chart' },
+            { name: 'OI Radar', route: 'docs-oi-radar', icon: 'track_changes' },
+        ],
+        summary: 'Four proprietary charts built on AlphaSignal\'s own backend data using LightweightCharts. Unlike the TradingView Hub, these charts use real data from our API — BTC dominance via proxy market cap calculation, live Binance FAPI funding rates, on-chain metrics (MVRV, SOPR), and price-derived rolling volatility. Each card is click-to-expand into a full-screen modal.',
+        components: [
+            {
+                name: 'BTC Dominance', type: 'CHART', icon: 'currency_bitcoin',
+                description: 'Area chart showing Bitcoin\'s share of a three-asset proxy market cap (BTC, ETH, SOL) over 60 days. BTC displayed as an orange area fill, ETH as a blue line, Alts (SOL proxy) as a grey line. Data sourced from the /api/dominance endpoint using yfinance price data multiplied by approximate circulating supply.',
+                howToRead: 'The BTC area fill rising = Bitcoin increasing its share of the crypto market. Falling BTC dominance = capital flowing into altcoins. Watch for the grey Alts line surging while BTC falls — this signals altcoin season.',
+                signals: ['BTC dominance rising above 60% = risk-off; institutional capital rotating into BTC only', 'Dominance falling while price rising = broad altcoin rally kicking in', 'ETH line crossing above historical average = ETH outperformance cycle; ETH/BTC long', 'All three converging = correlation spike; macro event likely driving all assets together']
+            },
+            {
+                name: 'Funding Rate Bar Chart', type: 'CHART', icon: 'percent',
+                description: 'Horizontal bar chart showing the current 8-hour perpetual funding rate for 8 assets: BTC, ETH, SOL, LINK, ADA, BNB, XRP, and DOGE. Bars are colour-coded: green = positive rate (longs paying shorts), red = negative rate (shorts paying longs). Each bar shows the absolute rate and the annualised equivalent. Data sourced live from Binance FAPI premiumIndex endpoint.',
+                howToRead: 'Longer green bars = market is heavily long on that asset — longs are paying a premium to hold positions. This is a crowded trade risk signal. Short red bars mean shorts are dominant — potential squeeze setup.',
+                signals: ['BTC funding > 0.05% (8h) = extremely crowded long; correction risk elevated', 'Negative funding across multiple assets = mass short positioning; potential squeeze setup', 'BTC positive while alts negative = divergence; alts at risk of being dragged down if BTC corrects', 'All bars near zero = balanced positioning; breakout more sustainable when it comes']
+            },
+            {
+                name: 'MVRV / SOPR Overlay', type: 'CHART', icon: 'stacked_line_chart',
+                description: 'Dual line chart with MVRV Z-Score (red) and SOPR (green) both normalized to 0–1 on the same axis using min-max scaling. This removes the different absolute scales of each metric and allows direct visual comparison of their cycle positioning. Data sourced from the /api/onchain endpoint.',
+                howToRead: 'When both lines converge near 0: market is at historical lows — classic accumulation zone. When both lines converge near 1: market is at historical highs — distribution zone. Divergence between the two (one high, one low) marks transitional periods.',
+                signals: ['Both near 0 simultaneously = extremely strong buy signal; highest historical confidence', 'MVRV near 1 while SOPR still rising = MVRV topping first; phased exit recommended', 'SOPR crossing above 0.5 from below = on-chain participants moving into profit; momentum confirming', 'Both crossing 0.8+ = late cycle; reduce exposure, set trailing stops']
+            },
+            {
+                name: '30-Day Rolling Volatility', type: 'CHART', icon: 'ssid_chart',
+                description: 'Annualised 30-day rolling volatility chart (purple area fill) computed from daily log-returns of BTC price data from the on-chain API. Formula: √(30-day variance × 365) × 100. Spikes in this chart historically align with liquidation cascades, macro shocks, and regime transitions.',
+                howToRead: 'Low flat volatility (< 30%) = compressed market, energy coiling — breakout imminent. Rising volatility (> 60%) = regime change in progress. Extreme spike (> 100%) = crisis event.',
+                signals: ['Volatility compressing to multi-year lows = major move imminent; direction unknown', 'Volatility spike then rapid collapse = false breakout or flash crash reversal setup', 'Sustained high volatility (> 60% for > 30 days) = trending regime; momentum strategies optimal', 'Volatility declining from peak = regime normalising; position sizes can increase']
+            },
+        ]
+    });
+}

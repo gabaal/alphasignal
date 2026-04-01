@@ -966,7 +966,7 @@ async function renderTradingViewHub(tabs) {
 
     // Build ALL HTML in one assignment so containers are in DOM before widgets inject
     appEl.innerHTML =
-        '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#2196f3">show_chart</span>Analytics Hub <span class="premium-badge">TRADINGVIEW</span></h1></div>' +
+        '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#2196f3">show_chart</span>Analytics Hub <span class="premium-badge">TRADINGVIEW</span></h1><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-tradingview-hub\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +
         renderHubTabs('tradingview', tabs) +
         '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1rem">Market Overview</h2>' +
         '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem">' + card('tv-market-overview', 'Global Market Overview \u2014 Crypto \u00b7 Indices \u00b7 Commodities', 420) + '</div>' +
@@ -1021,7 +1021,7 @@ async function renderCustomAnalytics(tabs) {
     const chartOpts = (h) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }, height: h });
 
     appEl.innerHTML =
-        '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Analytics Hub <span class="premium-badge">CUSTOM CHARTS</span></h1></div>' +
+        '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Analytics Hub <span class="premium-badge">CUSTOM CHARTS</span></h1><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-custom-charts\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +
         renderHubTabs('custom', tabs) +
         '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Custom Built Analytics</h2>' +
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:1rem;margin-bottom:1rem">' +

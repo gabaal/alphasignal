@@ -135,6 +135,8 @@ const viewMap = {
     'docs-whale-pulse': renderDocsViewWhalePulse,
     'docs-chain-velocity': renderDocsViewChainVelocity,
     'docs-onchain': renderDocsViewOnchain,
+    'docs-tradingview-hub': renderDocsViewTradingViewHub,
+    'docs-custom-charts': renderDocsViewCustomCharts,
     'docs-options-flow': renderDocsViewOptionsFlow,
     'docs-newsroom': renderDocsViewNewsroom,
     'docs-trade-ledger': renderDocsViewTradeLedger,

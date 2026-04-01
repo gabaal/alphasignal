@@ -1,4 +1,4 @@
-﻿// ============= Help Hub � Sidebar-Mirrored Index =============
+// ============= Help Hub � Sidebar-Mirrored Index =============
 function renderHelp() {
     const hubs = [
         { id: 'global-markets', name: 'Global Markets', icon: 'public', color: '#00f2ff', view: 'global-hub',
@@ -41,9 +41,11 @@ function renderHelp() {
           docs: [
             { name: 'Whale Pulse', desc: '3 components: Whale transaction feed, Execution time polar chart, Volume bubble scatter', route: 'docs-whale-pulse', icon: 'waves' },
             { name: 'Whale Pulse & Chain Velocity', desc: '2 components: Velocity time-series chart, Cross-chain Sankey diagram', route: 'docs-whale-pulse', icon: 'speed' },
-            { name: 'On-Chain Analytics', desc: '5 components: MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Realized Price overlay', route: 'docs-onchain', icon: 'link' },
+            { name: 'On-Chain Analytics', desc: '9 components: MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Realized Price, Hash Ribbons, Investor Sentiment Index, CVD, Exchange Net Flow', route: 'docs-onchain', icon: 'link' },
             { name: 'Options Flow', desc: '4 components: Put/Call ratio gauge, Max Pain chart, IV Smile, Top OI strikes table', route: 'docs-options-flow', icon: 'waterfall_chart' },
             { name: 'Newsroom', desc: '2 components: Live news feed with sentiment tags, Keyword frequency heatmap', route: 'docs-newsroom', icon: 'newspaper' },
+            { name: 'TradingView Hub', desc: '13 widgets: Market Overview, Symbol Comparison, Technical Analysis (BTC/ETH/SOL/BNB), Screener, Economic Calendar, Hotlists, Crypto Heatmap, Forex Cross Rates, Forex Heat Map, S&P 500 Sector Heatmap', route: 'docs-tradingview-hub', icon: 'show_chart' },
+            { name: 'Custom Charts', desc: '4 charts: BTC Dominance area chart, Funding Rate bar chart, MVRV/SOPR Overlay, 30-Day Rolling Volatility — all built on live backend data', route: 'docs-custom-charts', icon: 'bar_chart' },
           ]
         },
         { id: 'audit-hub', name: 'Audit & Performance', icon: 'trending_up', color: '#60a5fa', view: 'audit-hub',
