@@ -766,16 +766,8 @@ select, option {
     
     .content { padding: 1rem; padding-bottom: 80px; } /* Space for bottom nav */
     
-    .top-bar { 
-        flex-direction: column; 
-        align-items: stretch; 
-        padding: 1rem; 
-        gap: 0.8rem;
-    }
-    
-    .search-container { margin: 0; max-width: none; order: 2; }
-    .signal-feed { order: 1; }
-    .top-bar-actions { order: 3; display: flex; align-items: center; gap: 0.5rem; width: 100%; justify-content: space-between; }
+    /* Top bar completely hidden on mobile — bottom nav handles navigation */
+    .top-bar { display: none !important; }
     
     .signal-grid, .heatmap-grid, .skeleton-grid { 
         grid-template-columns: 1fr; 
@@ -856,44 +848,8 @@ select, option {
     .news-article-panel { padding: 1.5rem; }
 }
 
-/* ——— Mobile: ≤600px — top-bar tightening ——— */
+/* ——— Mobile: ≤600px — further tightening ——— */
 @media (max-width: 600px) {
-    /* Hide BTC sparkline on very small screens to free space */
-    #btc-sparkline-wrap { display: none !important; }
-
-    /* Top-bar: row layout but wrap gracefully */
-    .top-bar {
-        flex-wrap: wrap;
-        padding: 0.6rem;
-        gap: 0.5rem;
-    }
-
-    /* Action buttons: shrink text, allow wrap */
-    .top-bar-actions {
-        width: 100%;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-    }
-
-    .action-btn-styled {
-        font-size: 0.65rem !important;
-        padding: 0.45rem 0.7rem !important;
-        letter-spacing: 0.5px;
-    }
-
-    /* RE-CALCULATE: shrink text so it stays single-line */
-    #refresh-btn {
-        white-space: nowrap;
-        flex-shrink: 0;
-        font-size: 0.6rem !important;
-        padding: 0.45rem 0.65rem !important;
-        letter-spacing: 0;
-    }
-
-    /* Search bar full width */
-    .search-container { width: 100%; }
-    #global-search { width: 100%; }
-
     /* Hub sub-tabs: horizontal scroll instead of clip */
     .hub-tabs, .sub-tabs, [class*="tab-row"], [class*="-tabs"] {
         overflow-x: auto;
