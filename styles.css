@@ -514,6 +514,10 @@ select, option {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 
 .error-card {
     background: rgba(255, 59, 48, 0.05) !important;

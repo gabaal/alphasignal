@@ -330,7 +330,10 @@ async function runStrategyCompare(ticker) {
     const lb = document.getElementById('strategy-leaderboard');
     const tag = document.getElementById('leaderboard-tag');
     if (!lb) return;
-    lb.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-dim);font-size:0.85rem"><span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:18px">sync</span>Running all 15 strategies on ${ticker}...</div>`;
+    lb.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:6px;padding:4px 0">
+            ${[1,2,3,4,5].map(i => `<div style="height:18px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.4s ${i*0.1}s infinite"></div>`).join('')}
+        </div>`;
     if (tag) tag.textContent = ticker;
     try {
         const data = await fetchAPI(`/strategy-compare?ticker=${ticker}`);
@@ -446,15 +449,24 @@ async function runMultiTickerCompare(strategy, fast, slow) {
     try {
         // Stagger fetches 200ms apart to avoid yfinance rate-limiting dropping ETH
         const results = [];
-        for (const t of tickers) {
+        const tickerLabels = { 'BTC-USD': 'BTC', 'ETH-USD': 'ETH', 'SOL-USD': 'SOL' };
+        const progress = ['⟳', '⟳', '⟳'];
+        const updateBtn = () => {
+            if (btn) btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">compare_arrows</span> ' +
+                tickers.map((t,i) => `<span style="margin-left:6px;font-size:0.65rem">${tickerLabels[t]} ${progress[i]}</span>`).join('');
+        };
+        updateBtn();
+        for (let i = 0; i < tickers.length; i++) {
+            const t = tickers[i];
             let r = await fetchAPI('/backtest?ticker=' + t + '&strategy=' + strategy + '&fast=' + fast + '&slow=' + slow);
-            // Retry once if null (transient yfinance timeout)
             if (!r || !r.summary) {
                 await new Promise(res => setTimeout(res, 400));
                 r = await fetchAPI('/backtest?ticker=' + t + '&strategy=' + strategy + '&fast=' + fast + '&slow=' + slow);
             }
             results.push(r);
-            await new Promise(res => setTimeout(res, 200));
+            progress[i] = r && r.summary ? '✓' : '✗';
+            updateBtn();
+            if (i < tickers.length - 1) await new Promise(res => setTimeout(res, 200));
         }
         let existing = document.getElementById('multi-chart-panel');
         if (existing) existing.remove();

@@ -216,7 +216,12 @@ async function renderCommandCenter() {
         } catch(e) { console.error("Signals Error:", e); }
 
         // 5b. Confidence Radar — init with BTC
-        setTimeout(() => loadCmdRadar('BTC-USD'), 300);
+        const savedRadarTicker = localStorage.getItem('cmd_radar_ticker') || 'BTC-USD';
+    setTimeout(() => {
+        const sel = document.getElementById('cmd-radar-select');
+        if (sel) sel.value = savedRadarTicker;
+        loadCmdRadar(savedRadarTicker);
+    }, 300);
 
         // 6. CME Gaps (static placeholders — full data available in premium CME Gaps view)
         try {
@@ -854,6 +859,7 @@ async function renderCommandETF() {
 }
 
 async function loadCmdRadar(ticker) {
+    localStorage.setItem('cmd_radar_ticker', ticker);
     try {
         const data = await fetchAPI(`/signal-radar?ticker=${ticker}`);
         if (!data || !data.values) return;

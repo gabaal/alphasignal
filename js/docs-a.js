@@ -20,7 +20,7 @@ function renderHelp() {
         },
         { id: 'alpha-strategy', name: 'Alpha Strategy', icon: 'electric_bolt', color: '#facc15', view: 'alpha-hub',
           docs: [
-            { name: 'Signal Intelligence', desc: '4 components: Signal cards, Firing density histogram, Z-score bell curve, Confidence radar', route: 'docs-signals', icon: 'radar' },
+            { name: 'Signal Intelligence', desc: '3 components: Signal cards, Firing density histogram, Z-score bell curve (Confidence Radar now on Command Center)', route: 'docs-signals', icon: 'radar' },
             { name: 'ML Alpha Engine', desc: '3 components: Prediction table, Feature importance bar chart, Model accuracy gauge', route: 'docs-ml-engine', icon: 'smart_toy' },
             { name: 'Alpha Score', desc: '2 components: Composite ranking table with score bars, Grade distribution', route: 'docs-alpha-score', icon: 'electric_bolt' },
             { name: 'Strategy Lab', desc: '4 components: Strategy selector, Equity curve, Guppy ribbon, Monte Carlo bands', route: 'docs-strategy-lab', icon: 'science' },
