@@ -1,4 +1,4 @@
-// ============= Help Hub ï¿½ Sidebar-Mirrored Index =============
+// ============= Help Hub — Sidebar-Mirrored Index =============
 function renderHelp() {
     const hubs = [
         { id: 'global-markets', name: 'Global Markets', icon: 'public', color: '#00f2ff', view: 'global-hub',
@@ -91,7 +91,7 @@ function renderHelp() {
     appEl.innerHTML = `
         <div class="view-header">
             <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">help</span>Help &amp; Documentation</h1>
-            <p style="color:var(--text-dim)">View-level reference guides ï¿½ one document per view, explaining every chart, table, and widget. Organised by the left-hand navigation menu.</p>
+            <p style="color:var(--text-dim)">View-level reference guides — one document per view, explaining every chart, table, and widget. Organised by the left-hand navigation menu.</p>
         </div>
         <div style="max-width:960px;display:flex;flex-direction:column;gap:2rem;padding-bottom:5rem">
             ${hubs.map(hub => `
@@ -136,7 +136,7 @@ function renderDocsViewETFFlows() {
         components: [
             {
                 name: 'Bitcoin Spot ETF Daily Flows', type: 'CHART', icon: 'account_balance',
-                description: 'A stacked bar chart showing each ETF issuer\'s net daily flow in millions of dollars. Positive bars (above zero) indicate net inflows ï¿½ new capital entering the ETF. Negative bars indicate outflows ï¿½ capital being redeemed. A white line overlay tracks the cumulative running total across all issuers on the right Y-axis. Issuers tracked: BlackRock IBIT (cyan), Fidelity FBTC (green), ARK ARKB (yellow), and Bitwise BITB (purple).',
+                description: 'A stacked bar chart showing each ETF issuer\'s net daily flow in millions of dollars. Positive bars (above zero) indicate net inflows — new capital entering the ETF. Negative bars indicate outflows — capital being redeemed. A white line overlay tracks the cumulative running total across all issuers on the right Y-axis. Issuers tracked: BlackRock IBIT (cyan), Fidelity FBTC (green), ARK ARKB (yellow), and Bitwise BITB (purple).',
                 howToRead: 'The left Y-axis measures individual daily flow per issuer in $M. The right Y-axis (white line) measures the cumulative total across all ETFs. Each bar stack shows the composite picture: how many issuers are flowing in the same direction simultaneously.',
                 signals: [
                     'All bars green on the same day = broad institutional accumulation',
@@ -194,7 +194,7 @@ function renderDocsViewLiquidations() {
         components: [
             {
                 name: 'Liquidation Cascade Scanner', type: 'CHART', icon: 'local_fire_department',
-                description: 'A horizontal bar chart showing forced liquidations broken down by asset (BTC, ETH, SOL, XRP, DOGE, etc.) and direction. Red bars represent LONG liquidations ï¿½ traders who were betting on price increases and got forced out. Green bars represent SHORT liquidations ï¿½ traders betting on price falls who got squeezed out. The X-axis measures liquidations in millions of dollars.',
+                description: 'A horizontal bar chart showing forced liquidations broken down by asset (BTC, ETH, SOL, XRP, DOGE, etc.) and direction. Red bars represent LONG liquidations — traders who were betting on price increases and got forced out. Green bars represent SHORT liquidations — traders betting on price falls who got squeezed out. The X-axis measures liquidations in millions of dollars.',
                 howToRead: 'Longer red bars = longs being wiped out, price likely dropped sharply. Longer green bars = shorts being squeezed, price likely spiked sharply. The ratio of red to green bars reveals which side of the market is over-leveraged.',
                 signals: [
                     'BTC longs >$50M in 24h = aggressive long squeeze event, potential for further downside',
@@ -240,7 +240,7 @@ function renderDocsViewOIRadar() {
         components: [
             {
                 name: 'Exchange OI Spider Chart', type: 'CHART', icon: 'track_changes',
-                description: 'A radar/spider chart comparing Binance Perpetuals vs CME Futures across four dimensions: Open Interest ($B), 24h Delta (%), Funding Rate (ï¿½100), and Volume (relative). Each axis normalises to 100, allowing direct comparison of the two dominant trading venues. The cyan polygon represents CME; the yellow polygon represents Binance.',
+                description: 'A radar/spider chart comparing Binance Perpetuals vs CME Futures across four dimensions: Open Interest ($B), 24h Delta (%), Funding Rate (—100), and Volume (relative). Each axis normalises to 100, allowing direct comparison of the two dominant trading venues. The cyan polygon represents CME; the yellow polygon represents Binance.',
                 howToRead: 'When the CME polygon is larger than Binance on the OI axis, institutional futures positioning is dominant. When Binance dominates the Funding Rate axis, perpetual speculators are over-extended.',
                 signals: [
                     'CME OI leading Binance by >$2B = institutional hedging or ETF arbitrage in play',
@@ -261,8 +261,8 @@ function renderDocsViewOIRadar() {
             },
             {
                 name: 'Options Implied Volatility Smile Curve', type: 'CHART', icon: 'show_chart',
-                description: 'A line chart plotting Implied Volatility (IV%) against strike price moneyness ï¿½ from deep OTM Puts (-30%) through ATM (0%) to deep OTM Calls (+30%). A dashed baseline shows 30-day Historical Volatility for reference. The IV Smile is sourced from Deribit 30-day expiry options.',
-                howToRead: 'A steeper left tail (OTM Puts showing high IV) means institutions are aggressively buying downside protection. A flatter right tail (OTM Calls with lower or equal IV) means the market is not pricing in a large upside move. An inverted smile (higher IV at OTM calls) would indicate a call skew ï¿½ bullish.',
+                description: 'A line chart plotting Implied Volatility (IV%) against strike price moneyness — from deep OTM Puts (-30%) through ATM (0%) to deep OTM Calls (+30%). A dashed baseline shows 30-day Historical Volatility for reference. The IV Smile is sourced from Deribit 30-day expiry options.',
+                howToRead: 'A steeper left tail (OTM Puts showing high IV) means institutions are aggressively buying downside protection. A flatter right tail (OTM Calls with lower or equal IV) means the market is not pricing in a large upside move. An inverted smile (higher IV at OTM calls) would indicate a call skew — bullish.',
                 signals: [
                     'Left-tail IV >80% with right-tail <65% = institutional put-buying, fear of downside',
                     'IV Smile flatter than historical baseline = volatility compression; breakout imminent',
@@ -273,7 +273,7 @@ function renderDocsViewOIRadar() {
             {
                 name: 'OI Divergence Bubble Map', type: 'CHART', icon: 'bubble_chart',
                 description: 'A bubble scatter chart plotting 24h Price Change (X-axis) against 24h OI Change (Y-axis) for 8 assets simultaneously. Bubble size = absolute OI ($B). Colour coding: Orange = price up + OI up (long-squeeze risk), Red = price down + OI up (short-trap risk), Yellow = price up + OI down (long unwind), Grey = price down + OI down (de-leveraging).',
-                howToRead: 'Each bubble is one asset. Assets in the orange quadrant (top-right) are most vulnerable to a long squeeze ï¿½ OI is growing as price rises, meaning traders are adding longs into a rally. Assets in the red quadrant (top-left) are building a squeeze setup on the short side.',
+                howToRead: 'Each bubble is one asset. Assets in the orange quadrant (top-right) are most vulnerable to a long squeeze — OI is growing as price rises, meaning traders are adding longs into a rally. Assets in the red quadrant (top-left) are building a squeeze setup on the short side.',
                 signals: [
                     'Large BTC bubble in orange quadrant = high leverage long squeeze risk for the overall market',
                     'Multiple small-cap coins in red quadrant simultaneously = coordinated short-squeeze signal',
@@ -294,7 +294,7 @@ function renderDocsViewCMEGaps() {
             {
                 name: 'Active Magnet Levels Registry', type: 'TABLE', icon: 'candlestick_chart',
                 description: 'A structured list of all currently active (unfilled) CME Gap levels. Each entry shows the price range of the gap, whether it is an UPPER gap (above current price) or LOWER gap (below current price), its fill status (UNFILLED, PARTIAL, FILLED), and the current percentage distance from spot price. Colour coding: green for upper gaps, red/amber for lower gaps based on proximity.',
-                howToRead: 'UNFILLED gaps are open structural liquidity voids. The "Distance" column shows how far price needs to travel to fill each gap. PARTIAL gaps have been partially filled but the level still exerts magnetic pull. FILLED gaps are historical reference ï¿½ they no longer act as magnets.',
+                howToRead: 'UNFILLED gaps are open structural liquidity voids. The "Distance" column shows how far price needs to travel to fill each gap. PARTIAL gaps have been partially filled but the level still exerts magnetic pull. FILLED gaps are historical reference — they no longer act as magnets.',
                 signals: [
                     'A gap within 2-3% of current price = high probability of imminent gap fill, plan entries',
                     'Multiple unfilled lower gaps stacking = downside targets are well-defined; use as take-profit',
