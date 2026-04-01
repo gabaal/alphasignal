@@ -585,7 +585,30 @@ function initCommandGauges(macro, regime) {
 
     if (regime) {
         const regimeEl = document.getElementById('cmd-regime-status');
-        if (regimeEl) regimeEl.innerText = (regime.current || 'VOL EXPANSION').replace(/_/g, ' ');
+        if (regimeEl) {
+            const r = regime.current_regime || regime.current || 'UNKNOWN';
+            const rColors = {
+                'TRENDING':     '#22c55e',
+                'ACCUMULATION': '#00f2ff',
+                'DISTRIBUTION': '#ef4444',
+                'VOLATILE':     '#f59e0b',
+                'RANGING':      '#94a3b8',
+            };
+            regimeEl.textContent = r.replace(/_/g, ' ');
+            regimeEl.style.color = rColors[r] || 'var(--accent)';
+            // Sub-label: confidence + trend
+            let sub = document.getElementById('cmd-regime-sub');
+            if (!sub) {
+                sub = document.createElement('div');
+                sub.id = 'cmd-regime-sub';
+                sub.style.cssText = 'font-size:0.55rem;letter-spacing:2px;color:rgba(255,255,255,0.4);margin-top:4px';
+                regimeEl.parentNode.appendChild(sub);
+            }
+            const conf = regime.confidence ? `${Math.round(regime.confidence * 100)}% CONF` : '';
+            const trend = regime.trend ? `· ${regime.trend}` : '';
+            const vol = regime.volatility ? `· VOL ${regime.volatility}` : '';
+            sub.textContent = [conf, trend, vol].filter(Boolean).join(' ');
+        }
         renderRegimeHeatmap('#cmd-regime-heatmap', regime.history || []);
     }
 }
