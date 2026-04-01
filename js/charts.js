@@ -444,9 +444,18 @@ async function runMultiTickerCompare(strategy, fast, slow) {
     const tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD'];
     const colors  = { 'BTC-USD': '#00f2ff', 'ETH-USD': '#bc13fe', 'SOL-USD': '#22c55e' };
     try {
-        const results = await Promise.all(
-            tickers.map(t => fetchAPI('/backtest?ticker=' + t + '&strategy=' + strategy + '&fast=' + fast + '&slow=' + slow))
-        );
+        // Stagger fetches 200ms apart to avoid yfinance rate-limiting dropping ETH
+        const results = [];
+        for (const t of tickers) {
+            let r = await fetchAPI('/backtest?ticker=' + t + '&strategy=' + strategy + '&fast=' + fast + '&slow=' + slow);
+            // Retry once if null (transient yfinance timeout)
+            if (!r || !r.summary) {
+                await new Promise(res => setTimeout(res, 400));
+                r = await fetchAPI('/backtest?ticker=' + t + '&strategy=' + strategy + '&fast=' + fast + '&slow=' + slow);
+            }
+            results.push(r);
+            await new Promise(res => setTimeout(res, 200));
+        }
         let existing = document.getElementById('multi-chart-panel');
         if (existing) existing.remove();
         const panel = document.createElement('div');
