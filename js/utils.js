@@ -499,6 +499,10 @@ function skeleton(count = 6) {
 }
 
 function exportCSV(data, filename) {
+    if (!window.isPremiumUser) {
+        showPaywall(true);
+        return;
+    }
     if (!data || !data.length) return;
     const headers = Object.keys(data[0]);
     const csvContent = [

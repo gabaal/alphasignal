@@ -30,6 +30,7 @@ async function exportChartPNG(canvasOrId, filename = 'alphasignal-chart') {
  * Sections: Performance | Backtester | Top Signals | Macro Events | Signal Archive Snapshot
  */
 async function exportResearchReport() {
+    if (!window.isPremiumUser) { showPaywall(true); return; }
     if (typeof window.jspdf === 'undefined') {
         showToast('EXPORT', 'PDF library loading, please try again.', 'info'); return;
     }
@@ -323,6 +324,7 @@ async function exportResearchReport() {
  * @param {string} containerId - ID of the DOM element to capture (defaults to 'main-content')
  */
 async function exportViewPDF(title = 'AlphaSignal Report', containerId = 'main-content') {
+    if (!window.isPremiumUser) { showPaywall(true); return; }
     if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
         showToast('EXPORT', 'Export library loading, please try again in a moment.', 'info');
         return;
@@ -435,6 +437,34 @@ function showExportMenu(event, chartId, viewTitle) {
         box-shadow: 0 8px 32px rgba(0,0,0,0.6);
         animation: fadeInDown 0.15s ease;
     `;
+
+    // ── PAYWALL GATE ──────────────────────────────────────
+    if (!window.isPremiumUser) {
+        menu.innerHTML = `
+            <div style="padding:14px 16px 10px;text-align:center">
+                <span class="material-symbols-outlined" style="font-size:2rem;color:#facc15;display:block;margin-bottom:8px">workspace_premium</span>
+                <div style="font-size:0.75rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:4px">INSTITUTIONAL EXPORT</div>
+                <div style="font-size:0.65rem;color:rgba(255,255,255,0.45);margin-bottom:14px;line-height:1.5">CSV, PDF &amp; chart exports are<br>available on the Institutional plan.</div>
+                <button onclick="document.getElementById('export-action-sheet')?.remove(); showPaywall(true);"
+                    style="width:100%;padding:9px 0;background:linear-gradient(135deg,#facc15,#f59e0b);border:none;border-radius:8px;color:#000;font-size:0.7rem;font-weight:900;letter-spacing:1px;cursor:pointer">
+                    UPGRADE NOW
+                </button>
+                <button onclick="document.getElementById('export-action-sheet')?.remove();"
+                    style="width:100%;padding:6px 0;background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.65rem;cursor:pointer;margin-top:4px">
+                    Maybe later
+                </button>
+            </div>
+        `;
+        document.body.appendChild(menu);
+        // Reposition if off-screen right
+        const mr = menu.getBoundingClientRect();
+        if (mr.right > window.innerWidth - 16) {
+            menu.style.left = `${window.innerWidth - mr.width - 16}px`;
+        }
+        document.addEventListener('click', () => menu.remove(), { once: true });
+        return;
+    }
+    // ── PREMIUM: full export menu ─────────────────────────
     menu.innerHTML = `
         <button onclick="exportChartPNG('${chartId}', '${viewTitle.toLowerCase().replace(/\s+/g,'-')}');document.getElementById('export-action-sheet')?.remove();"
             style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"

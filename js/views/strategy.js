@@ -82,6 +82,7 @@ function renderGuppyRibbon(history) {
 }
 
 window.downloadBacktestCSV = function(ticker, strategy) {
+    if (!window.isPremiumUser) { showPaywall(true); return; }
     const data = window.lastBacktestData;
     if (!data || !data.length) return;
     let csv = "Date,Portfolio_Value,Benchmark_Value\n";
