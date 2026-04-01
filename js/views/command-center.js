@@ -537,7 +537,7 @@ function openCmdChartModal(key) {
                 },
                 options: {
                     responsive: true, maintainAspectRatio: true, animation: { duration: 500 },
-                    layout: { padding: 0 },
+                    layout: { padding: -15 },
                     plugins: {
                         legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 11 }, padding: 8 } },
                         tooltip: {
@@ -877,13 +877,13 @@ async function loadCmdRadar(ticker) {
             },
             options: {
                 responsive: true, maintainAspectRatio: true,
-                layout: { padding: 0 },
+                layout: { padding: -25 },
                 plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 8 }, padding: 4 } } },
                 scales: { r: {
                     min: 0, max: 100,
                     ticks: { stepSize: 25, color: 'rgba(255,255,255,0.25)', backdropColor: 'transparent', font: { size: 7 } },
                     grid: { color: 'rgba(255,255,255,0.06)' },
-                    pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 9, family: 'JetBrains Mono' }, padding: 4 }
+                    pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 9, family: 'JetBrains Mono' }, padding: 2 }
                 }}
             }
         });
