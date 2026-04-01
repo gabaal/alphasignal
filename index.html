@@ -71,6 +71,15 @@
     <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- Supabase JS client (for forgot-password / reset-password flows) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        window._supabase = supabase.createClient(
+            'https://rrfcjvpflbwtxlhkpooz.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZmNqdnBmbGJ3dHhsaGtwb296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NjYxMTksImV4cCI6MjA4OTI0MjExOX0.H_JJDYt9OsYR7CQfUAs6JeYACUFtMbWlWzEKN3aFNQc'
+        );
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
@@ -364,6 +373,10 @@
                     <span class="material-symbols-outlined" style="font-size:1rem">login</span>
                     <span id="auth-btn-label">SIGN IN</span>
                 </button>
+
+                <div style="text-align:center;margin-top:0.75rem">
+                    <a href="#" id="forgot-password-link" style="font-size:0.7rem;color:var(--text-dim);letter-spacing:0.5px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">Forgot password?</a>
+                </div>
 
                 <div class="auth-divider"><span>or</span></div>
 

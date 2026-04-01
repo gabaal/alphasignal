@@ -156,7 +156,8 @@ const viewMap = {
     'signal': () => {
         const id = new URLSearchParams(window.location.search).get('id');
         renderSignalPermalink(id);
-    }
+    },
+    'reset-password': renderResetPassword,
 };
 
 

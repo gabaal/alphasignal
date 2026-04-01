@@ -210,3 +210,175 @@ async function manageSubscription() {
     }
 }
 
+// ============================================================
+// Forgot Password — Supabase resetPasswordForEmail
+// ============================================================
+
+function initForgotPasswordLink() {
+    const link = document.getElementById('forgot-password-link');
+    if (!link) return;
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        showForgotPasswordPanel();
+    });
+}
+
+function showForgotPasswordPanel() {
+    const container = document.getElementById('auth-form-container');
+    if (!container) return;
+    container.innerHTML = `
+        <div style="text-align:center;margin-bottom:1.5rem">
+            <span class="material-symbols-outlined" style="font-size:2.5rem;color:var(--accent);display:block;margin-bottom:0.5rem">lock_reset</span>
+            <h3 style="font-size:1rem;font-weight:900;letter-spacing:1px;margin:0">RESET PASSWORD</h3>
+            <p style="font-size:0.75rem;color:var(--text-dim);margin:0.5rem 0 0">Enter your email and we'll send a reset link</p>
+        </div>
+
+        <div class="auth-input-wrap">
+            <span class="auth-input-icon material-symbols-outlined">mail</span>
+            <input type="email" id="reset-email" placeholder="Email address" autocomplete="email" aria-label="Email address" />
+        </div>
+
+        <div id="reset-msg" class="auth-error hidden" role="alert"></div>
+
+        <button id="send-reset-btn" class="intel-action-btn auth-submit" onclick="handleForgotPassword()">
+            <span class="material-symbols-outlined" style="font-size:1rem">send</span>
+            SEND RESET LINK
+        </button>
+
+        <div style="text-align:center;margin-top:1.25rem">
+            <a href="#" onclick="restoreAuthPanel()" style="font-size:0.7rem;color:var(--text-dim);letter-spacing:0.5px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">← Back to sign in</a>
+        </div>
+    `;
+}
+
+async function handleForgotPassword() {
+    const email = document.getElementById('reset-email')?.value?.trim();
+    const msgEl = document.getElementById('reset-msg');
+    const btn = document.getElementById('send-reset-btn');
+
+    if (!email) {
+        msgEl.textContent = 'REQUIRED: Please enter your email address.';
+        msgEl.style.color = 'var(--risk-high)';
+        msgEl.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'SENDING...';
+    msgEl.classList.add('hidden');
+
+    try {
+        const { error } = await window._supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: 'https://alphasignal.digital/?view=reset-password'
+        });
+
+        if (error) throw error;
+
+        msgEl.textContent = '✓ Reset link sent — check your inbox (including spam).';
+        msgEl.style.color = 'var(--risk-low)';
+        msgEl.classList.remove('hidden');
+        btn.textContent = 'SENT ✓';
+    } catch (err) {
+        msgEl.textContent = err.message || 'Failed to send reset email. Try again.';
+        msgEl.style.color = 'var(--risk-high)';
+        msgEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem">send</span> SEND RESET LINK';
+    }
+}
+
+function restoreAuthPanel() {
+    // Reload the page to restore the original auth panel cleanly
+    showAuth(true);
+    location.reload();
+}
+
+// ============================================================
+// Reset Password View — handles ?view=reset-password
+// reads Supabase token from URL hash automatically
+// ============================================================
+
+async function renderResetPassword() {
+    appEl.innerHTML = `
+        <div style="display:flex;justify-content:center;align-items:center;min-height:60vh;padding:2rem">
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:3rem;width:100%;max-width:440px;text-align:center">
+                <span class="material-symbols-outlined" style="font-size:3rem;color:var(--accent);display:block;margin-bottom:1rem">lock_reset</span>
+                <h1 style="font-size:1.2rem;font-weight:900;letter-spacing:2px;margin:0 0 0.5rem">SET NEW PASSWORD</h1>
+                <p style="font-size:0.8rem;color:var(--text-dim);margin:0 0 2rem">Choose a strong password for your AlphaSignal account</p>
+
+                <div class="auth-input-wrap" style="margin-bottom:1rem">
+                    <span class="auth-input-icon material-symbols-outlined">lock</span>
+                    <input type="password" id="new-password" placeholder="New password (min 8 chars)" aria-label="New password" style="background:transparent;border:none;color:white;width:100%;outline:none;font-family:inherit" />
+                </div>
+
+                <div class="auth-input-wrap" style="margin-bottom:1.5rem">
+                    <span class="auth-input-icon material-symbols-outlined">lock_clock</span>
+                    <input type="password" id="confirm-password" placeholder="Confirm new password" aria-label="Confirm password" style="background:transparent;border:none;color:white;width:100%;outline:none;font-family:inherit" />
+                </div>
+
+                <div id="reset-pw-msg" class="auth-error hidden" role="alert" style="margin-bottom:1rem"></div>
+
+                <button id="set-pw-btn" class="intel-action-btn auth-submit" style="width:100%" onclick="handleResetPassword()">
+                    <span class="material-symbols-outlined" style="font-size:1rem">check_circle</span>
+                    UPDATE PASSWORD
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+async function handleResetPassword() {
+    const newPw = document.getElementById('new-password')?.value;
+    const confirmPw = document.getElementById('confirm-password')?.value;
+    const msgEl = document.getElementById('reset-pw-msg');
+    const btn = document.getElementById('set-pw-btn');
+
+    msgEl.classList.add('hidden');
+
+    if (!newPw || newPw.length < 8) {
+        msgEl.textContent = 'Password must be at least 8 characters.';
+        msgEl.style.color = 'var(--risk-high)';
+        msgEl.classList.remove('hidden');
+        return;
+    }
+    if (newPw !== confirmPw) {
+        msgEl.textContent = 'Passwords do not match.';
+        msgEl.style.color = 'var(--risk-high)';
+        msgEl.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'UPDATING...';
+
+    try {
+        const { error } = await window._supabase.auth.updateUser({ password: newPw });
+        if (error) throw error;
+
+        msgEl.textContent = '✓ Password updated. Redirecting to sign in...';
+        msgEl.style.color = 'var(--risk-low)';
+        msgEl.classList.remove('hidden');
+
+        setTimeout(() => {
+            switchView('home');
+            showAuth(true);
+        }, 2000);
+    } catch (err) {
+        msgEl.textContent = err.message || 'Failed to update password. Link may have expired.';
+        msgEl.style.color = 'var(--risk-high)';
+        msgEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem">check_circle</span> UPDATE PASSWORD';
+    }
+}
+
+// Init forgot password link when auth panel is rendered
+document.addEventListener('DOMContentLoaded', () => {
+    initForgotPasswordLink();
+    // Re-init on auth toggle since panel can re-render
+    document.getElementById('toggle-auth')?.addEventListener('click', () => {
+        setTimeout(initForgotPasswordLink, 50);
+    });
+});
+
+
