@@ -881,10 +881,13 @@ select, option {
         letter-spacing: 0.5px;
     }
 
-    /* RE-CALCULATE: full width so it doesn't clip */
+    /* RE-CALCULATE: shrink text so it stays single-line */
     #refresh-btn {
-        flex: 1;
-        justify-content: center;
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 0.6rem !important;
+        padding: 0.45rem 0.65rem !important;
+        letter-spacing: 0;
     }
 
     /* Search bar full width */
@@ -955,6 +958,11 @@ select, option {
     /* Typography scale down */
     .hero-section h1 { font-size: clamp(1.4rem, 6vw, 2rem) !important; }
     .hero-subtitle, .section-subtitle { font-size: 0.85rem !important; }
+
+    /* Hero: collapse padding, hide image so text fills screen */
+    .hero-section { padding: 1.5rem !important; gap: 1rem !important; }
+    .hero-visual { display: none !important; }
+    .hero-content { text-align: left; }
 
     /* Bottom CTA flex wrap */
     .bottom-cta-group, [style*="display:flex"][style*="justify-content:center"] {
