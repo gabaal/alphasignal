@@ -539,11 +539,6 @@ function renderAdvancedChart() {
                         <option value="ETHUSDT">ETH/USDT</option>
                         <option value="SOLUSDT">SOL/USDT</option>
                     </optgroup>
-                    <optgroup label="Institutional Proxies" style="background:#111">
-                        <option value="MSTR">MSTR (MicroStrategy)</option>
-                        <option value="COIN">COIN (Coinbase)</option>
-                        <option value="MARA">MARA (Marathon)</option>
-                    </optgroup>
                     <optgroup label="High Volatility" style="background:#111">
                         <option value="DOGEUSDT">DOGE/USDT</option>
                         <option value="PEPEUSDT">PEPE/USDT</option>
