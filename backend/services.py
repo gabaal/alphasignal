@@ -346,19 +346,41 @@ class PortfolioSimulator:
                 predictions.sort(key=lambda x: x['score'], reverse=True)
                 top_5 = predictions[:5]
                 
-                # 3. Calculate "Equity" (Mocking a historical curve for initial value)
-                # In a real app, this would build over days. For launch, we'll back-fill some data.
+                # 3. Calculate Equity from ACTUAL weighted basket return
                 conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
                 c.execute("SELECT COUNT(*) FROM portfolio_history")
                 count = c.fetchone()[0]
-                
+
                 current_equity = self.initial_capital
                 if count > 0:
-                    c.execute("SELECT equity FROM portfolio_history ORDER BY timestamp DESC LIMIT 1")
-                    last_equity = c.fetchone()[0]
-                    # Calculate gain based on previous top assets (simplified)
-                    current_equity = last_equity * (1 + random.uniform(-0.02, 0.05)) # Mocked daily variance
+                    c.execute("SELECT equity, assets_json FROM portfolio_history ORDER BY timestamp DESC LIMIT 1")
+                    row = c.fetchone()
+                    last_equity = row[0]
+                    prev_assets = json.loads(row[1]) if row[1] else []
+
+                    # Compute equal-weight daily return of previous basket
+                    actual_return = 0.0
+                    valid_count = 0
+                    for asset_ticker in prev_assets:
+                        try:
+                            hist = yf.download(asset_ticker, period='2d', interval='1d', progress=False)
+                            if not hist.empty and len(hist) >= 2:
+                                if isinstance(hist.columns, pd.MultiIndex):
+                                    hist.columns = [col[0] for col in hist.columns]
+                                closes = hist['Close'].dropna()
+                                if len(closes) >= 2:
+                                    daily_ret = float(closes.iloc[-1] / closes.iloc[-2] - 1)
+                                    actual_return += daily_ret
+                                    valid_count += 1
+                        except: pass
+
+                    if valid_count > 0:
+                        avg_return = actual_return / valid_count
+                    else:
+                        avg_return = 0.0  # flat if no data
+
+                    current_equity = last_equity * (1 + avg_return)
                 
                 # 4. Record Snapshot
                 assets_bin = json.dumps([t['ticker'] for t in top_5])

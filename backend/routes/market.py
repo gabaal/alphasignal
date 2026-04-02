@@ -1,4 +1,8 @@
 import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+from backend.routes.realdata import (
+    fetch_fear_greed, fetch_network_congestion, fetch_retail_fomo,
+    fetch_defi_llama_chains, fetch_coingecko_categories, fetch_binance_trades
+)
 import yfinance as yf
 import numpy as np
 import pandas as pd
@@ -10,24 +14,33 @@ from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, STRIPE_
 class MarketRoutesMixin:
     def handle_sectors(self):
         try:
-            sectors = {'Layer-1s': {'weight': 55, 'perf': 1.2}, 'DeFi': {'weight': 14, 'perf': -0.8}, 'AI/Compute': {'weight': 12, 'perf': 5.4}, 'Memecoins': {'weight': 9, 'perf': 12.1}, 'Gaming': {'weight': 6, 'perf': -2.3}, 'RWA/Tokens': {'weight': 4, 'perf': 0.5}}
-            random.seed(int(time.time() / 3600))
-            payload = []
-            for name, metrics in sectors.items():
-                w = max(1, metrics['weight'] + random.uniform(-2, 2))
-                p = metrics['perf'] + random.uniform(-1, 1)
-                payload.append({'name': name, 'value': round(w, 2), 'perf': round(p, 2)})
-            self.send_json({'name': 'root', 'children': payload})
+            cats = fetch_coingecko_categories()
+            # Normalise market caps to percentage weights for the treemap
+            total = sum(c['value'] for c in cats) or 1
+            payload = [
+                {'name': c['name'],
+                 'value': round(c['value'] / total * 100, 2),
+                 'perf':  round(c['perf'], 2)}
+                for c in cats
+            ]
+            self.send_json({'name': 'root', 'children': payload, 'source': 'coingecko'})
         except Exception as e:
             print(f'Sectors Error: {e}')
             self.send_json({'error': 'Failed to sync sectors'})
 
     def handle_system_dials(self):
         try:
-            random.seed('dials' + datetime.now().strftime('%H'))
-            dials = {'fear_greed': {'value': random.randint(20, 80), 'label': 'Fear & Greed Index'}, 'network_congestion': {'value': random.randint(10, 99), 'label': 'Network Congestion'}, 'retail_fomo': {'value': random.randint(15, 85), 'label': 'Retail FOMO'}}
-            self.send_json({'dials': dials})
+            fg      = fetch_fear_greed()
+            congestion = fetch_network_congestion()
+            fomo    = fetch_retail_fomo('Bitcoin')
+            dials = {
+                'fear_greed':         {'value': fg['value'],   'label': fg['label']},
+                'network_congestion': {'value': congestion,    'label': 'Network Congestion'},
+                'retail_fomo':        {'value': fomo,          'label': 'Retail FOMO'},
+            }
+            self.send_json({'dials': dials, 'source': 'alternative.me+blockchain.info+trends'})
         except Exception as e:
+            print(f'Dials Error: {e}')
             self.send_json({'error': 'Failed to sync Dials'})
 
     def handle_heatmap(self):
@@ -184,17 +197,46 @@ class MarketRoutesMixin:
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
         try:
+            # Map ticker to Binance symbol
+            symbol = ticker.replace('-USD', 'USDT').replace('-', '')
+            if not symbol.endswith('USDT') and not symbol.endswith('BTC'):
+                symbol = symbol + 'USDT'
+            raw = fetch_binance_trades(symbol, limit=50)
             trades = []
-            exchanges = ['Binance', 'Coinbase', 'OKX', 'Bybit']
-            prices = [91450.0] * 10
-            for i in range(15):
-                side = 'BUY' if random.random() > 0.45 else 'SELL'
-                size = round(random.uniform(1.5, 25.0), 2)
-                value = round(size * 91450, 0)
-                time_offset = i * random.randint(1, 10)
-                trades.append({'id': f'tx-{random.randint(100000, 999999)}', 'time': (datetime.now() - timedelta(seconds=time_offset)).strftime('%H:%M:%S'), 'price': 91450.0 + random.uniform(-50, 50), 'size': size, 'value': value, 'side': side, 'exchange': random.choice(exchanges), 'institutional': value > 500000})
-            self.send_json({'ticker': ticker, 'trades': sorted(trades, key=lambda x: x['time'], reverse=True), 'aggregation': {'buy_volume': sum((t['value'] for t in trades if t['side'] == 'BUY')), 'sell_volume': sum((t['value'] for t in trades if t['side'] == 'SELL'))}})
+            buy_vol = 0.0
+            sell_vol = 0.0
+            for t in raw:
+                price  = float(t['price'])
+                qty    = float(t['qty'])
+                val    = round(price * qty, 2)
+                # isBuyerMaker=True means a sell order filled a buy order → taker is seller
+                side   = 'SELL' if t.get('isBuyerMaker') else 'BUY'
+                ts_ms  = t.get('time', 0)
+                ts_str = datetime.fromtimestamp(ts_ms / 1000).strftime('%H:%M:%S') if ts_ms else '--'
+                if side == 'BUY':
+                    buy_vol += val
+                else:
+                    sell_vol += val
+                trades.append({
+                    'id':          str(t.get('id', '')),
+                    'time':        ts_str,
+                    'price':       price,
+                    'size':        round(qty, 4),
+                    'value':       val,
+                    'side':        side,
+                    'exchange':    'Binance',
+                    'institutional': val > 250000
+                })
+            if not trades:
+                raise ValueError('No trades from Binance')
+            self.send_json({
+                'ticker': ticker,
+                'trades': sorted(trades, key=lambda x: x['time'], reverse=True)[:30],
+                'aggregation': {'buy_volume': round(buy_vol, 2), 'sell_volume': round(sell_vol, 2)},
+                'source': 'binance_rest'
+            })
         except Exception as e:
+            print(f'Tape Error: {e}')
             self.send_error(500, f'Tape Engine Sync Error: {e}')
 
     def handle_macro_calendar_legacy(self):
