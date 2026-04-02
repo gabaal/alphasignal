@@ -949,36 +949,72 @@ class InstitutionalRoutesMixin:
         """Narrative mindshare: uses real volume data and sentiment. No random."""
         all_tickers = [t for sub in UNIVERSE.values() for t in sub][:20]
         results = []
+
+        # Collect raw metrics first so we can normalise volumes across all tickers
+        raw = []
         for ticker in all_tickers:
             sentiment = get_sentiment(ticker)
             hist = CACHE.download(ticker, period='5d', interval='1d')
-            vol_proxy = 0.5
+            vol_proxy  = 0.5
             real_volume = 0.0
+            price_last  = 0.0
             if hist is not None and not hist.empty:
                 try:
-                    # Real volume from yfinance
-                    vol_series = self._get_volume_series(hist, ticker)
+                    vol_series   = self._get_volume_series(hist, ticker)
                     price_series = self._get_price_series(hist, ticker)
                     if vol_series is not None and price_series is not None:
-                        vol_series = vol_series.squeeze()
+                        vol_series   = vol_series.squeeze()
                         price_series = price_series.squeeze()
-                        # USD volume in millions
-                        real_volume = float((vol_series * price_series).mean() / 1e6)
+                        real_volume  = float((vol_series * price_series).mean() / 1e6)
+                        price_last   = float(price_series.iloc[-1])
                         rets = price_series.pct_change().dropna()
                         if len(rets) > 1:
                             vol_proxy = float(rets.std()) * 100
                 except: pass
-            # Narrative score: sentiment + vol proxy (all data-driven)
+            raw.append({
+                'ticker': ticker, 'sentiment': sentiment,
+                'vol_proxy': vol_proxy, 'real_volume': real_volume,
+                'price_last': price_last
+            })
+
+        # Normalise raw_volume across all tickers for consistent bubble sizing
+        all_vols = [r['real_volume'] for r in raw if r['real_volume'] > 0]
+        vol_max  = max(all_vols) if all_vols else 1.0
+        vol_p95  = sorted(all_vols)[int(len(all_vols) * 0.95)] if len(all_vols) > 4 else vol_max
+
+        _GITHUB_KNOWN = {'BTC', 'ETH', 'SOL', 'DOT', 'ADA', 'AVAX', 'LINK'}
+
+        for r in raw:
+            ticker    = r['ticker']
+            sentiment = r['sentiment']
+            vol_proxy = r['vol_proxy']
+            real_volume = r['real_volume']
+
+            # ── Narrative score: sentiment + volatility (data-driven) ──
             narrative = 20 + sentiment * 40 + vol_proxy * 20
             narrative = max(min(narrative, 99.0), 10.0)
-            # Engineer score: derived from GitHub dev activity
+
+            # ── Engineer score ──
             sym = ticker.replace('-USD', '')
-            dev = fetch_github_commits(sym)
-            engineer = max(min(float(dev), 99.0), 10.0)
-            # Volume bubble size: real USD 5d avg volume in millions
-            bubble_vol = max(1.0, min(50.0, real_volume))
+            if sym in _GITHUB_KNOWN:
+                # Real GitHub commit activity for known repos
+                dev_raw = fetch_github_commits(sym)
+                engineer = max(min(float(dev_raw), 99.0), 10.0)
+            else:
+                # Derive from real market signals:
+                # 1. Volume efficiency = daily USD vol relative to universe median
+                vol_rank = (real_volume / (vol_p95 or 1)) * 60  # 0-60 range
+                # 2. Price stability = lower volatility → higher engineering signal
+                stability = max(0, 40 - vol_proxy * 8)          # 0-40 range
+                engineer = max(10.0, min(99.0, vol_rank + stability))
+
+            # ── Bubble size: log-scaled real volume for visual clarity ──
+            import math
+            bubble_vol = max(4.0, min(48.0, math.log1p(real_volume) * 6)) if real_volume > 0 else 5.0
+
             results.append({
-                'ticker': ticker, 'label': ticker,
+                'ticker':    ticker,
+                'label':     ticker,
                 'narrative': round(narrative, 1),
                 'engineer':  round(engineer, 1),
                 'sentiment': round(sentiment, 2),
