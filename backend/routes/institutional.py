@@ -906,25 +906,24 @@ class InstitutionalRoutesMixin:
                 '10Y':  '^TNX',    'SPX':  'IVV',
             }
             assets = list(ticker_map.keys())
-            tickers = list(ticker_map.values())
 
-            # Download all at once and compute returns
-            import yfinance as yf
-            raw = CACHE.download(tickers, period='90d', interval='1d')
+            # Download each ticker individually — CACHE handles single-ticker correctly
             rets_dict = {}
             for sym, tk in ticker_map.items():
                 try:
-                    if raw is None or raw.empty:
+                    df = CACHE.download(tk, period='90d', interval='1d', column='Close')
+                    if df is None or df.empty:
                         continue
-                    if isinstance(raw.columns, pd.MultiIndex):
-                        col_data = raw.xs('Close', axis=1, level=0)[tk] if tk in raw.xs('Close', axis=1, level=0).columns else None
-                    else:
-                        col_data = raw[tk] if tk in raw.columns else None
-                    if col_data is not None:
-                        ret = col_data.dropna().pct_change().dropna()
-                        if len(ret) > 20:
-                            rets_dict[sym] = ret
-                except: pass
+                    # Flatten to 1-D series regardless of DataFrame shape
+                    s = df.squeeze()
+                    if isinstance(s, pd.DataFrame):
+                        s = s.iloc[:, 0]
+                    s = s.dropna()
+                    ret = s.pct_change().dropna()
+                    if len(ret) > 20:
+                        rets_dict[sym] = ret
+                except Exception as inner:
+                    print(f'[CorrelationMatrix/{sym}] {inner}')
 
             matrix = []
             for a in assets:
