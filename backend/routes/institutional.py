@@ -946,18 +946,18 @@ class InstitutionalRoutesMixin:
             self.send_json({'error': 'Failed to sync Correlation Matrix'})
 
     def handle_mindshare(self):
-        """Narrative mindshare: uses real volume data and sentiment. No random."""
+        """Narrative mindshare: fully normalised to spread across all 4 quadrants."""
+        import math
         all_tickers = [t for sub in UNIVERSE.values() for t in sub][:20]
-        results = []
+        _GITHUB_KNOWN = {'BTC', 'ETH', 'SOL', 'DOT', 'ADA', 'AVAX', 'LINK'}
 
-        # Collect raw metrics first so we can normalise volumes across all tickers
+        # ── Pass 1: collect raw metrics ──
         raw = []
         for ticker in all_tickers:
-            sentiment = get_sentiment(ticker)
-            hist = CACHE.download(ticker, period='5d', interval='1d')
-            vol_proxy  = 0.5
-            real_volume = 0.0
-            price_last  = 0.0
+            sentiment   = get_sentiment(ticker)
+            hist        = CACHE.download(ticker, period='10d', interval='1d')
+            vol_proxy   = 0.0   # daily return std (%), raw
+            real_volume = 0.0   # avg daily USD volume in millions
             if hist is not None and not hist.empty:
                 try:
                     vol_series   = self._get_volume_series(hist, ticker)
@@ -966,7 +966,6 @@ class InstitutionalRoutesMixin:
                         vol_series   = vol_series.squeeze()
                         price_series = price_series.squeeze()
                         real_volume  = float((vol_series * price_series).mean() / 1e6)
-                        price_last   = float(price_series.iloc[-1])
                         rets = price_series.pct_change().dropna()
                         if len(rets) > 1:
                             vol_proxy = float(rets.std()) * 100
@@ -974,50 +973,57 @@ class InstitutionalRoutesMixin:
             raw.append({
                 'ticker': ticker, 'sentiment': sentiment,
                 'vol_proxy': vol_proxy, 'real_volume': real_volume,
-                'price_last': price_last
             })
 
-        # Normalise raw_volume across all tickers for consistent bubble sizing
-        all_vols = [r['real_volume'] for r in raw if r['real_volume'] > 0]
-        vol_max  = max(all_vols) if all_vols else 1.0
-        vol_p95  = sorted(all_vols)[int(len(all_vols) * 0.95)] if len(all_vols) > 4 else vol_max
+        # ── Pass 2: compute percentile ranks (0-1) for each signal ──
+        def pct_rank(values, v):
+            """Fraction of list values strictly less than v → 0..1 percentile."""
+            n = len(values)
+            if n == 0: return 0.5
+            below = sum(1 for x in values if x < v)
+            return below / n
 
-        _GITHUB_KNOWN = {'BTC', 'ETH', 'SOL', 'DOT', 'ADA', 'AVAX', 'LINK'}
+        all_sentiments = [r['sentiment']   for r in raw]
+        all_vols_proxy = [r['vol_proxy']   for r in raw]
+        all_volumes    = [r['real_volume'] for r in raw]
 
+        # ── Pass 3: build scores ──
+        results = []
         for r in raw:
-            ticker    = r['ticker']
-            sentiment = r['sentiment']
-            vol_proxy = r['vol_proxy']
-            real_volume = r['real_volume']
+            ticker      = r['ticker']
+            sym         = ticker.replace('-USD', '')
 
-            # ── Narrative score: sentiment + volatility (data-driven) ──
-            narrative = 20 + sentiment * 40 + vol_proxy * 20
-            narrative = max(min(narrative, 99.0), 10.0)
+            # NARRATIVE = blend of sentiment rank + vol proxy rank
+            # Both signals contribute equally. High sentiment + high volume activity = dominant narrative.
+            s_rank = pct_rank(all_sentiments, r['sentiment'])
+            v_rank = pct_rank(all_vols_proxy,  r['vol_proxy'])
+            narrative = 10 + (s_rank * 0.5 + v_rank * 0.5) * 89  # 10..99
 
-            # ── Engineer score ──
-            sym = ticker.replace('-USD', '')
+            # ENGINEER SCORE
             if sym in _GITHUB_KNOWN:
-                # Real GitHub commit activity for known repos
-                dev_raw = fetch_github_commits(sym)
-                engineer = max(min(float(dev_raw), 99.0), 10.0)
+                dev_raw  = fetch_github_commits(sym)
+                # GitHub score is 0-100 already; re-centre around its percentile
+                # vs the universe so it competes fairly
+                git_pct  = dev_raw / 100.0
+                engineer = 10 + git_pct * 89
             else:
-                # Derive from real market signals:
-                # 1. Volume efficiency = daily USD vol relative to universe median
-                vol_rank = (real_volume / (vol_p95 or 1)) * 60  # 0-60 range
-                # 2. Price stability = lower volatility → higher engineering signal
-                stability = max(0, 40 - vol_proxy * 8)          # 0-40 range
-                engineer = max(10.0, min(99.0, vol_rank + stability))
+                # Volume rank = proxy for how much real infrastructure activity
+                # (high-volume assets tend to have more tooling, integrations, liquidity)
+                # Inverted vol_proxy rank = stability signal (less erratic = more engineered)
+                vol_r     = pct_rank(all_volumes,    r['real_volume'])
+                stab_r    = 1.0 - pct_rank(all_vols_proxy, r['vol_proxy'])  # calmer = more engineered
+                engineer  = 10 + (vol_r * 0.6 + stab_r * 0.4) * 89  # 10..99
 
-            # ── Bubble size: log-scaled real volume for visual clarity ──
-            import math
-            bubble_vol = max(4.0, min(48.0, math.log1p(real_volume) * 6)) if real_volume > 0 else 5.0
+            # BUBBLE SIZE: log-scaled, normalised to 5..40px
+            vol_r_full = pct_rank(all_volumes, r['real_volume'])
+            bubble_vol = 5 + vol_r_full * 35  # 5..40
 
             results.append({
                 'ticker':    ticker,
                 'label':     ticker,
                 'narrative': round(narrative, 1),
                 'engineer':  round(engineer, 1),
-                'sentiment': round(sentiment, 2),
+                'sentiment': round(r['sentiment'], 2),
                 'volume':    round(bubble_vol, 1)
             })
         self.send_json(results)
