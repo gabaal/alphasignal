@@ -976,7 +976,7 @@ async function renderMacroCalendar(tabs = null) {
             calEl.style.display = 'block'; return;
         }
         const typeColors = { FOMC: '#ef4444', CPI: '#f97316', NFP: '#22c55e', PCE: '#a78bfa', REBALANCE: '#60a5fa' };
-        const tierBg = { HIGH: 'rgba(239,68,68,0.12)', MEDIUM: 'rgba(249,115,22,0.1)', LOW: 'rgba(255,255,255,0.04)' };
+        const tierBg = { HIGH: 'rgba(255,255,255,0.04)', MEDIUM: 'rgba(255,255,255,0.03)', LOW: 'rgba(255,255,255,0.02)' };
 
         calEl.innerHTML = `
             <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:1rem">Updated ${data.updated} Ã‚· Showing next 90 days</div>
