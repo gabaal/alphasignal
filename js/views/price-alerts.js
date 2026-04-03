@@ -28,27 +28,27 @@ async function renderPriceAlerts(tabs = null) {
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
                 <div>
-                    <label style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">TICKER</label>
-                    <input id="pa-ticker" type="text" placeholder="e.g. BTC-USD" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
+                    <label for="pa-ticker" style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">TICKER</label>
+                    <input id="pa-ticker" type="text" placeholder="e.g. BTC-USD" aria-label="Ticker symbol e.g. BTC-USD" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
                 </div>
                 <div>
-                    <label style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">TARGET PRICE (USD)</label>
-                    <input id="pa-price" type="number" step="any" placeholder="e.g. 95000" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
+                    <label for="pa-price" style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">TARGET PRICE (USD)</label>
+                    <input id="pa-price" type="number" step="any" placeholder="e.g. 95000" aria-label="Target price in USD" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
                 </div>
                 <div>
-                    <label style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">DIRECTION</label>
-                    <select id="pa-dir" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
+                    <label for="pa-dir" style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">DIRECTION</label>
+                    <select id="pa-dir" aria-label="Alert direction: above or below target price" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
                         <option value="ABOVE">ABOVE — Price rises to target</option>
                         <option value="BELOW">BELOW — Price drops to target</option>
                     </select>
                 </div>
-                <button class="intel-action-btn" style="white-space:nowrap;height:40px;" onclick="submitPriceAlert()">
-                    <span class="material-symbols-outlined" style="font-size:14px;">add_alert</span> SET ALERT
+                <button class="intel-action-btn" style="white-space:nowrap;height:40px;" onclick="submitPriceAlert()" aria-label="Set new price alert">
+                    <span class="material-symbols-outlined" style="font-size:14px;" aria-hidden="true">add_alert</span> SET ALERT
                 </button>
             </div>
             <div style="margin-top:12px;">
-                <label style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">NOTE (OPTIONAL)</label>
-                <input id="pa-note" type="text" placeholder="e.g. Break above key resistance" maxlength="200" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;box-sizing:border-box;">
+                <label for="pa-note" style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">NOTE (OPTIONAL)</label>
+                <input id="pa-note" type="text" placeholder="e.g. Break above key resistance" maxlength="200" aria-label="Optional note for this alert" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;box-sizing:border-box;">
             </div>
             <div id="pa-status" style="margin-top:10px;font-size:0.75rem;display:none;"></div>
         </div>
@@ -89,8 +89,8 @@ async function renderPriceAlerts(tabs = null) {
                         <td style="${tdStyle()};color:var(--text-dim);font-style:italic;">${a.note || '—'}</td>
                         <td style="${tdStyle()};color:var(--text-dim);font-size:0.7rem;">${new Date(a.created_at).toLocaleDateString()}</td>
                         <td style="${tdStyle()}">
-                            <button onclick="deletePriceAlert(${a.id})" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--risk-high);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.65rem;font-family:var(--font);">
-                                <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">delete</span> REMOVE
+                            <button onclick="deletePriceAlert(${a.id})" aria-label="Remove price alert for ${a.ticker.replace('-USD','')}" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--risk-high);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.65rem;font-family:var(--font);">
+                                <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;" aria-hidden="true">delete</span> REMOVE
                             </button>
                         </td>
                     </tr>`).join('')}

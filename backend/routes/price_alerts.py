@@ -10,6 +10,12 @@ from datetime import datetime
 from backend.database import DB_PATH
 
 
+# PA1: HTML-safe escaping for Telegram (mirrors B5 fix in signal alerts)
+def _pa_escape(text):
+    """Escape HTML special chars for Telegram HTML parse mode."""
+    return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+
 # ─────────────────────────────────────────────────────────────
 # DB helpers
 # ─────────────────────────────────────────────────────────────
@@ -105,42 +111,84 @@ def _notify_price_alert(user_email, ticker, target_price, current_price, directi
     </td></tr>
   </table>
 </body></html>"""
-            requests.post(
+            # PA4: log HTTP status so delivery failures surface in server logs
+            resend_resp = requests.post(
                 'https://api.resend.com/emails',
                 headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
                 json={'from': from_addr, 'to': [user_email], 'subject': subject, 'html': html},
                 timeout=10
             )
-            print(f'[PriceAlert] Email sent to {user_email} for {ticker_clean}', flush=True)
+            print(f'[PriceAlert] Email -> {user_email} | status={resend_resp.status_code}', flush=True)
+            if resend_resp.status_code not in (200, 201):
+                print(f'[PriceAlert] Email FAILED: {resend_resp.text[:200]}', flush=True)
     except Exception as e:
         print(f'[PriceAlert] Email error: {e}', flush=True)
 
-    # Telegram
+    # PA1 fix: use HTML parse mode + escaped content (mirrors B5 fix for signal alerts)
+    # PA3 fix: check telegram_alerts_enabled before sending
     try:
         bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '')
         if bot_token:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute("SELECT telegram_chat_id FROM user_settings WHERE user_email=?", (user_email,))
+            c.execute(
+                "SELECT telegram_chat_id, COALESCE(telegram_alerts_enabled, 1) "
+                "FROM user_settings WHERE user_email=?",
+                (user_email,)
+            )
             row = c.fetchone()
             conn.close()
-            if row and row[0]:
-                icon = 'above' if direction == 'ABOVE' else 'below'
+            if row and row[0] and row[1]:  # has chat_id AND telegram not muted
+                icon = '\U0001f4c8' if direction == 'ABOVE' else '\U0001f4c9'
+                move_sign = '+' if move >= 0 else ''
+                # PA1: HTML mode — escape all user-supplied / computed content
                 msg = (
-                    f"*Price Alert: {ticker_clean}*\n\n"
-                    f"Your alert ({icon} ${target_price:,.4f}) was triggered.\n\n"
-                    f"*Current price:* ${current_price:,.4f}\n"
-                    f"*Move:* {'+' if move >= 0 else ''}{move:.2f}%\n"
-                    + (f"_Note: {note}_\n" if note else '') +
-                    f"\n[Open Terminal](https://alphasignal.digital/?view=signals)"
+                    f"{icon} <b>Price Alert: {_pa_escape(ticker_clean)}</b>\n\n"
+                    f"Your alert (<b>{'above' if direction == 'ABOVE' else 'below'}</b> "
+                    f"<code>${_pa_escape(f'{target_price:,.4f}')}</code>) was triggered.\n\n"
+                    f"<b>Current price:</b> <code>${_pa_escape(f'{current_price:,.4f}')}</code>\n"
+                    f"<b>Move:</b> <code>{_pa_escape(f'{move_sign}{move:.2f}%')}</code>\n"
+                    + (f"<i>Note: {_pa_escape(note)}</i>\n" if note else '') +
+                    f"\n<a href=\"https://alphasignal.digital/?view=signals\">Open Terminal</a>"
                 )
-                requests.post(
+                # PA4: log Telegram delivery status
+                tg_resp = requests.post(
                     f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                    json={"chat_id": row[0], "text": msg, "parse_mode": "Markdown"},
+                    json={"chat_id": row[0], "text": msg, "parse_mode": "HTML"},
                     timeout=8
                 )
+                print(f'[PriceAlert] Telegram -> chat_id={row[0]} | status={tg_resp.status_code}', flush=True)
+                if tg_resp.status_code != 200:
+                    print(f'[PriceAlert] Telegram FAILED: {tg_resp.text[:200]}', flush=True)
     except Exception as e:
         print(f'[PriceAlert] Telegram error: {e}', flush=True)
+
+
+# PA5: log triggered price alert to alerts_history so it appears in Signal Archive
+def _archive_price_alert(user_email, ticker, target_price, current_price, direction, note):
+    ticker_clean = ticker.replace('-USD', '')
+    move = ((current_price - target_price) / target_price) * 100
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute(
+            "INSERT INTO alerts_history (type, ticker, message, severity, triggered_at, user_email) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                'price_alert',
+                ticker_clean,
+                f"Price alert triggered: {ticker_clean} {'above' if direction == 'ABOVE' else 'below'} "
+                f"${target_price:,.4f} — current ${current_price:,.4f} ({'+' if move>=0 else ''}{move:.2f}%)"
+                + (f" | Note: {note}" if note else ""),
+                'HIGH',
+                datetime.utcnow().isoformat(),
+                user_email
+            )
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'[PriceAlert] Archive error: {e}', flush=True)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -158,7 +206,14 @@ def start_price_alert_checker():
                 conn = sqlite3.connect(DB_PATH)
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
-                c.execute("SELECT * FROM price_alerts")
+                # PA2 fix: join user_settings to gate on alerts_enabled
+                # Only fire for users who have alerts globally enabled
+                c.execute("""
+                    SELECT pa.*
+                    FROM price_alerts pa
+                    JOIN user_settings us ON pa.user_email = us.user_email
+                    WHERE us.alerts_enabled = 1
+                """)
                 alerts = [dict(r) for r in c.fetchall()]
                 conn.close()
 
@@ -168,7 +223,7 @@ def start_price_alert_checker():
                         current = _get_current_price(alert['ticker'])
                         if current is None:
                             continue
-                        target  = float(alert['target_price'])
+                        target    = float(alert['target_price'])
                         direction = alert['direction']
                         triggered = (
                             (direction == 'ABOVE' and current >= target) or
@@ -176,6 +231,11 @@ def start_price_alert_checker():
                         )
                         if triggered:
                             fired_ids.append(alert['id'])
+                            # PA5 fix: archive to alerts_history before dispatching
+                            _archive_price_alert(
+                                alert['user_email'], alert['ticker'], target, current,
+                                direction, alert.get('note', '')
+                            )
                             threading.Thread(
                                 target=_notify_price_alert,
                                 args=(alert['user_email'], alert['ticker'], target, current,
