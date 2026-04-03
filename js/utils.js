@@ -48,6 +48,52 @@ function showToast(title, message, type = 'alert') {
     }, 6000);
 }
 
+// ════════════════════════════════════════════════════════════════
+// v1.56 Feature: Live Signal Alert Toast
+// Fires a rich branded notification when a new signal is detected.
+// ════════════════════════════════════════════════════════════════
+function showSignalToast(signal) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const dir = (signal.direction || 'LONG').toUpperCase();
+    const ticker = (signal.ticker || signal.asset || 'BTC').toUpperCase();
+    const zscore = signal.z_score != null ? parseFloat(signal.z_score).toFixed(2) : '—';
+    const isLong = dir === 'LONG' || dir === 'BUY';
+    const dirColor = isLong ? '#00d4aa' : '#ef4444';
+    const dirArrow = isLong ? '▲' : '▼';
+    const dirBg   = isLong ? 'rgba(0,212,170,0.12)' : 'rgba(239,68,68,0.12)';
+
+    const toast = document.createElement('div');
+    toast.className = 'toast signal-toast';
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:${dirColor};box-shadow:0 0 8px ${dirColor};flex-shrink:0;animation:pulse-live 1.2s infinite"></div>
+            <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:${dirColor}">NEW SIGNAL DETECTED</span>
+            <span style="margin-left:auto;font-size:1rem;cursor:pointer;opacity:0.4;color:#fff" onclick="this.closest('.toast').remove()">✕</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+            <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0">${ticker}</div>
+            <div style="background:${dirBg};border:1px solid ${dirColor};border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:900;color:${dirColor}">${dirArrow} ${dir}</div>
+            <div style="background:rgba(188,19,254,0.12);border:1px solid rgba(188,19,254,0.35);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:#bc13fe;font-family:'JetBrains Mono',monospace">Z: ${zscore}</div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+            <span style="font-size:0.65rem;color:rgba(255,255,255,0.4);flex:1">High-confidence alpha detected by ML engine</span>
+            <button onclick="switchView('signals');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW SIGNAL →</button>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-dismiss after 8s
+    setTimeout(() => {
+        toast.style.animation = 'toastSlideOut 0.4s ease forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 8000);
+}
+
 // Feature 2: Notification Bell Panel
 async function openNotificationPanel() {
     const panel = document.getElementById('notif-panel');

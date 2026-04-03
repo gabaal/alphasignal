@@ -581,6 +581,8 @@ window.saveAlertSettings = async function() {
     });
     if (result?.success) {
         showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? '✓' : '✗'}  Telegram: ${result.has_telegram ? '✓' : '✗'}`, 'success');
+        // Refresh poller sensitivity immediately — new threshold takes effect on next poll
+        if (typeof _loadPollerSettings === 'function') _loadPollerSettings();
     } else {
         showToast('ALERT SETTINGS', result?.error || 'Save failed', 'alert');
     }

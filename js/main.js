@@ -886,3 +886,77 @@ function renderDocsAIEngine() {
 // exportChartPNG, exportResearchReport, exportViewPDF, showExportMenu -> js/export.js
 // renderDocs* (second block) -> js/docs-b.js
 
+// ════════════════════════════════════════════════════════════════
+// v1.56 Feature: Live Signal Poller — ambient toast notifications
+// PRO-gated. Polls /api/signals every 60s. Fires showSignalToast()
+// when a new signal ID appears vs localStorage._lastSignalId.
+// Respects the Alerts Hub sensitivity slider (z_threshold) and
+// the alerts_enabled toggle — both set via /alert-settings API.
+// ════════════════════════════════════════════════════════════════
+let _signalPollerInterval = null;
+let _pollerSettings = { z_threshold: 2.0, alerts_enabled: true }; // live cache from /alert-settings
+
+async function _loadPollerSettings() {
+    try {
+        const s = await fetchAPI('/alert-settings');
+        if (s && !s.error) {
+            _pollerSettings.z_threshold    = parseFloat(s.z_threshold  ?? 2.0);
+            _pollerSettings.alerts_enabled = s.alerts_enabled !== false;
+        }
+    } catch (e) { /* silent — keep defaults */ }
+}
+
+function startSignalPoller() {
+    // Gate: PRO only. Clear any existing poller first.
+    if (!isPremiumUser) return;
+    if (_signalPollerInterval) clearInterval(_signalPollerInterval);
+
+    // Show LIVE dot in top-bar
+    const liveDot = document.getElementById('signal-poller-dot');
+    if (liveDot) liveDot.style.display = 'inline-block';
+
+    // Load sensitivity settings from Alerts Hub before first poll
+    _loadPollerSettings();
+
+    const poll = async () => {
+        // Respect alerts_enabled toggle from Alerts Hub
+        if (!_pollerSettings.alerts_enabled) return;
+
+        try {
+            const data = await fetchAPI('/signals?limit=1');
+            if (!data || !data.signals || data.signals.length === 0) return;
+
+            const latest = data.signals[0];
+            const latestId = String(latest.id || latest.signal_id || '');
+            const lastSeen = localStorage.getItem('_lastSignalId');
+
+            if (latestId && latestId !== lastSeen) {
+                // New signal found — check against sensitivity threshold
+                if (lastSeen !== null) {
+                    // z_score on the signal vs user's configured threshold
+                    const signalZ = Math.abs(parseFloat(latest.z_score ?? latest.predicted_return ?? 99));
+                    if (signalZ >= _pollerSettings.z_threshold) {
+                        showSignalToast(latest);
+                    }
+                }
+                localStorage.setItem('_lastSignalId', latestId);
+            }
+        } catch (e) {
+            // Silent fail — poller must not break the terminal
+        }
+    };
+
+    // Run immediately on start, then every 60s
+    poll();
+    _signalPollerInterval = setInterval(poll, 60000);
+}
+
+function stopSignalPoller() {
+    if (_signalPollerInterval) {
+        clearInterval(_signalPollerInterval);
+        _signalPollerInterval = null;
+    }
+    const liveDot = document.getElementById('signal-poller-dot');
+    if (liveDot) liveDot.style.display = 'none';
+}
+

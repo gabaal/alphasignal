@@ -15,6 +15,8 @@ async function checkAuthStatus() {
         }
         
         updatePremiumUI();
+        // v1.56: Start ambient signal toast poller for PRO users
+        if (typeof startSignalPoller === 'function') startSignalPoller();
         return true;
     } else {
         isAuthenticatedUser = false;
