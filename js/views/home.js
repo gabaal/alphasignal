@@ -14,7 +14,7 @@ async function renderHome() {
                 <div class="hero-content">
                     <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1.5rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">
                         <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
-                        LIVE INSTITUTIONAL TERMINAL &mdash; v1.53
+                        LIVE INSTITUTIONAL TERMINAL &mdash; v1.54
                     </div>
                     <h1>Institutional Intelligence Terminal. <span>Live.</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                     <p class="hero-subtitle">
@@ -133,9 +133,9 @@ async function renderHome() {
             <section style="padding:4rem 2rem;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(188,19,254,0.04),rgba(0,0,0,0.4))">
                 <div style="max-width:1200px;margin:0 auto">
                     <div style="text-align:center;margin-bottom:3rem">
-                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 20 — GROWTH &amp; RETENTION · v1.53</span>
+                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 20 — GROWTH &amp; RETENTION · v1.54</span>
                         <h2 style="margin-top:1.5rem">Built for Traders Who Stay</h2>
-                        <p style="color:var(--text-dim)">My Terminal, real-time price alerts, viral signal sharing, and full PWA mobile support — all shipped in v1.53.</p>
+                        <p style="color:var(--text-dim)">My Terminal, real-time price alerts, viral signal sharing, and full PWA mobile support — all shipped in v1.53. Data quality, chart polish, and WebGL stability hardened in v1.54.</p>
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
                         ${[
