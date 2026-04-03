@@ -370,7 +370,7 @@ async function renderHome() {
                 <div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
                     <span style="color:var(--text-dim);letter-spacing:1px">TOP SIGNAL</span>
                     <span style="color:var(--accent);font-weight:800;margin-left:8px">${liveTop.ticker || 'BTC-USD'}</span>
-                    <span style="color:${parseFloat(liveTop.z_score) > 0 ? 'var(--risk-low)' : 'var(--risk-high)'};margin-left:6px">Z ${parseFloat(liveTop.z_score || 0).toFixed(2)}</span>
+                    <span style="color:${parseFloat(liveTop.zScore) > 0 ? 'var(--risk-low)' : 'var(--risk-high)'};margin-left:6px">Z ${parseFloat(liveTop.zScore || 0).toFixed(2)}</span>
                 </div>
                 <div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
                     <span style="color:var(--text-dim);letter-spacing:1px">SIGNALS LIVE</span>
