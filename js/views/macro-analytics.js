@@ -1,4 +1,4 @@
-﻿async function renderMacroSync(tabs = null) {
+async function renderMacroSync(tabs = null) {
     const tabHTML = tabs ? renderHubTabs('pulse', tabs) : '';
     appEl.innerHTML = skeleton(2);
     const [data, sectors, corrData] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors'), fetchAPI('/correlation-matrix')]);
@@ -349,12 +349,6 @@ async function renderRotation(tabs = null) {
             </div>
         </div>`;
     
-    // Inject TradingView Chart for Strategy Performance
-    const hist = await fetchAPI(`/history?ticker=${ticker}&period=180d`);
-    if (hist && hist.length > 0) {
-        const chart = createTradingViewChart('backtest-chart-container', hist);
-        // Add markers for trades if data.trades exist (optional enhancement)
-    }
     // Capital Rotation Sunburst — D3 hierarchical radial chart
     setTimeout(() => {
         const efSection = document.createElement('div');
