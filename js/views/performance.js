@@ -305,7 +305,7 @@ async function renderPerformanceDashboard(tabs = null) {
             const vals = labels.map(k => typeof mix[k] === 'number' && mix[k] < 1.5 ? Math.round(mix[k] * total) : (mix[k] || 0));
             new Chart(mixCtx.getContext('2d'), {
                 type: 'doughnut',
-                data: { labels, datasets: [{ data: vals, backgroundColor: ['#00f2ff','#bc13fe','#22c55e','#f59e0b','#60a5fa'], borderColor: 'rgba(13,17,23,0.5)', borderWidth: 2, hoverOffset: 6 }] },
+                data: { labels, datasets: [{ data: vals, backgroundColor: ['#7dd3fc','#bc13fe','#22c55e','#f59e0b','#60a5fa'], borderColor: 'rgba(13,17,23,0.5)', borderWidth: 2, hoverOffset: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
                     plugins: {
                         legend: { position: 'right', labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 }, padding: 12, boxWidth: 12 } },
@@ -457,7 +457,7 @@ async function renderFlows(tabs = null) {
                     labels,
                     datasets: [
                         { label: '2Y Treasury', data: rows.map(r => r.y2), borderColor: '#ef5350', borderWidth: 1.5, pointRadius: 0, fill: false },
-                        { label: '10Y Treasury', data: rows.map(r => r.y10), borderColor: '#00f2ff', borderWidth: 2, pointRadius: 0, fill: false },
+                        { label: '10Y Treasury', data: rows.map(r => r.y10), borderColor: '#7dd3fc', borderWidth: 2, pointRadius: 0, fill: false },
                         { label: '30Y Treasury', data: rows.map(r => r.y30), borderColor: '#26a69a', borderWidth: 1.5, pointRadius: 0, fill: false, borderDash: [4,2] },
                         { label: '2Y/10Y Spread', data: rows.map(r => r.spread), borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, fill: { target: 'origin', above: 'rgba(245,158,11,0.08)', below: 'rgba(239,83,80,0.12)' }, yAxisID: 'spread' }
                     ]
@@ -551,7 +551,7 @@ function renderDetailLiquidity(data) {
                     {
                         label: 'Bids (Support)',
                         data: bidData,
-                        borderColor: '#00f2ff',
+                        borderColor: '#7dd3fc',
                         backgroundColor: 'rgba(0, 242, 255, 0.2)',
                         showLine: true,
                         fill: true,

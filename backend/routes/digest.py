@@ -159,7 +159,7 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
                 </td>
                 <td align="right">
                   <span style="font-family:'JetBrains Mono',monospace,sans-serif;font-size:22px;
-                    font-weight:900;color:#00f2ff;">${btc_price:,.0f}</span>
+                    font-weight:900;color:#7dd3fc;">${btc_price:,.0f}</span>
                 </td>
               </tr>
             </table>
@@ -239,14 +239,14 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
                 <tr>
                   <td>
                     <span style="font-family:Arial,sans-serif;font-size:22px;font-weight:900;
-                      color:#f8fafc;letter-spacing:-0.5px;">Alpha<span style="color:#00f2ff;">Signal</span></span>
+                      color:#f8fafc;letter-spacing:-0.5px;">Alpha<span style="color:#7dd3fc;">Signal</span></span>
                     <span style="display:block;font-family:Arial,sans-serif;font-size:9px;
                       font-weight:700;letter-spacing:3px;color:#6b7280;margin-top:3px;">
                       INSTITUTIONAL INTELLIGENCE TERMINAL</span>
                   </td>
                   <td align="right" style="vertical-align:top;">
                     <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;
-                      letter-spacing:2px;color:#00f2ff;background:rgba(0,242,255,0.1);
+                      letter-spacing:2px;color:#7dd3fc;background:rgba(0,242,255,0.1);
                       border:1px solid rgba(0,242,255,0.25);padding:4px 10px;border-radius:20px;">
                       MORNING DIGEST</span>
                   </td>
@@ -305,7 +305,7 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
           <tr>
             <td style="padding:24px 28px;background:#0d1117;text-align:center;">
               <a href="{terminal_url}" target="_blank"
-                style="display:inline-block;background:#00f2ff;color:#000;font-family:Arial,sans-serif;
+                style="display:inline-block;background:#7dd3fc;color:#000;font-family:Arial,sans-serif;
                   font-size:12px;font-weight:900;letter-spacing:2px;padding:12px 28px;
                   border-radius:8px;text-decoration:none;">
                 OPEN TERMINAL &rarr;

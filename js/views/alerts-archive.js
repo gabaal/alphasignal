@@ -275,11 +275,11 @@ async function renderAlerts(tabs = null) {
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
                             <span>🐋 WHALE TXN MIN SIZE</span>
-                            <span id="whale-val-display" style="color:#00f2ff;font-weight:900">5M</span>
+                            <span id="whale-val-display" style="color:#7dd3fc;font-weight:900">5M</span>
                         </label>
                         <input type="range" id="whale-threshold-slider" min="1" max="50" step="1" value="5" aria-label="Whale transaction size threshold in million USD" aria-valuemin="1" aria-valuemax="50" aria-valuenow="5"
                             oninput="document.getElementById('whale-val-display').textContent=parseFloat(this.value).toFixed(0)+'M'"
-                            style="width:100%;accent-color:#00f2ff;cursor:pointer">
+                            style="width:100%;accent-color:#7dd3fc;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
                             <span>$1M</span><span>$50M+</span>
                         </div>
@@ -348,7 +348,7 @@ async function renderAlerts(tabs = null) {
             <span style="font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);font-weight:700">ACTIVE TRIGGERS</span>
             ${[
                 ['badge-z-trigger',    'Z-Score &gt; 2.0%',   '#22c55e', 'show_chart'],
-                ['badge-whale-trigger','Whale Txn &gt; $5M',   '#00f2ff', 'account_balance_wallet'],
+                ['badge-whale-trigger','Whale Txn &gt; $5M',   '#7dd3fc', 'account_balance_wallet'],
                 ['badge-depeg-trigger','De-peg &gt; 1.0%',     '#ef4444', 'warning'],
                 ['badge-vol-trigger',  'Vol Spike 2.0×',       '#f59e0b', 'bolt'],
                 ['badge-cme-trigger',  'CME Gap 1.0%',         '#bc13fe', 'pivot_table_chart']

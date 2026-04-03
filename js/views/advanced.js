@@ -246,7 +246,7 @@ function renderDepth2DFallback(container, symbol) {
         <div style="position:relative;width:100%;height:${H}px;background:#050508;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
             <!-- Header -->
             <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
-                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:#00f2ff;">ORDERBOOK DEPTH — ${symbol.replace('USDT','/USDT')}</span>
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">ORDERBOOK DEPTH — ${symbol.replace('USDT','/USDT')}</span>
                 <span id="depth2d-live" style="font-size:0.5rem;color:#22c55e;animation:pulse-live 1.5s infinite;">● LIVE</span>
                 <span style="font-size:0.45rem;font-weight:900;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;letter-spacing:1px;margin-left:auto;">CANVAS 2D MODE</span>
                 <span id="depth2d-spread" style="font-size:0.55rem;color:rgba(255,255,255,0.35);font-family:'JetBrains Mono',monospace;"></span>
@@ -408,7 +408,7 @@ async function renderAdvDepth(symbol) {
         <div style="position:relative; width:100%; height:520px; background:#050508; border-radius:12px; overflow:hidden;">
             <canvas id="depth3d-canvas" aria-hidden="true" style="width:100%; height:100%; display:block;"></canvas>
             <div style="position:absolute; top:14px; left:18px; display:flex; gap:16px; align-items:center; pointer-events:none;">
-                <span style="font-size:0.6rem; font-weight:900; letter-spacing:2px; color:#00f2ff;">3D ORDERBOOK TOPOLOGY</span>
+                <span style="font-size:0.6rem; font-weight:900; letter-spacing:2px; color:#7dd3fc;">3D ORDERBOOK TOPOLOGY</span>
                 <span style="display:flex;align-items:center;gap:5px;font-size:0.6rem;color:#26a69a;">
                     <span style="width:8px;height:8px;background:#26a69a;border-radius:1px;display:inline-block;box-shadow:0 0 6px #26a69a;"></span> BID DEPTH
                 </span>
@@ -844,7 +844,7 @@ async function renderAdvFundingHeatmap() {
     if (!container) return;
     container.innerHTML = `<div style="padding:1.5rem; width:100%; box-sizing:border-box;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-            <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bolt</span>PERPETUAL FUNDING RATE HEATMAP — 24H ROLLING</span>
+            <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bolt</span>PERPETUAL FUNDING RATE HEATMAP — 24H ROLLING</span>
             <div style="display:flex;gap:16px;font-size:0.55rem;color:var(--text-dim);">
                 <span style="color:#ef5350;">■ NEGATIVE (Shorts Pay)</span>
                 <span style="color:rgba(255,255,255,0.2);">■ NEUTRAL</span>
@@ -897,7 +897,7 @@ function renderAdvTapeImbalance(symbol) {
     container.innerHTML = `
         <div style="padding:1.5rem;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-shrink:0;">
-                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;">
+                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">
                     <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bar_chart</span>
                     LIVE TAPE IMBALANCE — ${symbol.replace('USDT','/USDT')} · 5S BUCKETS
                 </span>
@@ -1024,7 +1024,7 @@ async function renderAdvOptionsSurface(symbol) {
 
             <!-- Top-left: title + source badge -->
             <div style="position:absolute;top:14px;left:18px;pointer-events:none;display:flex;align-items:center;gap:14px;">
-                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;">
+                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">
                     <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">stacked_line_chart</span>
                     IMPLIED VOLATILITY SURFACE — ${currency}
                 </span>
@@ -1292,7 +1292,7 @@ async function renderAdvOptionsSurface(symbol) {
                 tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
                 tooltip.style.top  = (e.clientY - rect.top  - 14) + 'px';
                 const moneyDesc = money < 0.95 ? 'ITM Put / OTM Call' : money > 1.05 ? 'OTM Call / ITM Put' : 'ATM';
-                tooltip.innerHTML = `<div style="color:#00f2ff;margin-bottom:3px;">${exp} \u00b7 ${(money * 100).toFixed(0)}% moneyness</div><div>IV: <b style="color:${iv > 80 ? '#ef4444' : iv > 50 ? '#facc15' : '#22c55e'}">${iv.toFixed(1)}%</b></div><div style="color:rgba(255,255,255,0.4);font-size:0.55rem;margin-top:2px;">${moneyDesc}</div>`;
+                tooltip.innerHTML = `<div style="color:#7dd3fc;margin-bottom:3px;">${exp} \u00b7 ${(money * 100).toFixed(0)}% moneyness</div><div>IV: <b style="color:${iv > 80 ? '#ef4444' : iv > 50 ? '#facc15' : '#22c55e'}">${iv.toFixed(1)}%</b></div><div style="color:rgba(255,255,255,0.4);font-size:0.55rem;margin-top:2px;">${moneyDesc}</div>`;
             }
         } else {
             tooltip.style.display = 'none';

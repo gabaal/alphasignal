@@ -55,7 +55,7 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
 // ============= New Per-Chart Doc Template =============
 function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, viewId, summary, components, relatedDocs = [] }) {
     const typeStyles = {
-        'CHART':  { bg: 'rgba(0,242,255,0.08)',    color: '#00f2ff',  border: 'rgba(0,242,255,0.2)'    },
+        'CHART':  { bg: 'rgba(0,242,255,0.08)',    color: '#7dd3fc',  border: 'rgba(0,242,255,0.2)'    },
         'TABLE':  { bg: 'rgba(188,19,254,0.08)',   color: '#bc13fe',  border: 'rgba(188,19,254,0.2)'   },
         'WIDGET': { bg: 'rgba(250,204,21,0.08)',   color: '#facc15',  border: 'rgba(250,204,21,0.2)'   },
         'GAUGE':  { bg: 'rgba(34,197,94,0.08)',    color: '#22c55e',  border: 'rgba(34,197,94,0.2)'    },

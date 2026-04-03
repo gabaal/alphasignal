@@ -1362,7 +1362,7 @@ class InstitutionalRoutesMixin:
         try:
             results = []
             links = []
-            anchors = {'DEFI': {'x': 200, 'y': 200, 'color': '#00f2ff', 'topic': 'Liquidity Protocols'}, 'L1': {'x': 600, 'y': 200, 'color': '#a855f7', 'topic': 'Smart Contract War'}, 'STABLES': {'x': 400, 'y': 300, 'color': '#8b949e', 'topic': 'Fiat Backing'}, 'MEMES': {'x': 200, 'y': 450, 'color': '#ff3e3e', 'topic': 'Social Arbitrage'}, 'EXCHANGE': {'x': 600, 'y': 450, 'color': '#fffa00', 'topic': 'CeFi Compliance'}, 'MINERS': {'x': 400, 'y': 500, 'color': '#00ff88', 'topic': 'Hash Rate Growth'}}
+            anchors = {'DEFI': {'x': 200, 'y': 200, 'color': '#7dd3fc', 'topic': 'Liquidity Protocols'}, 'L1': {'x': 600, 'y': 200, 'color': '#a855f7', 'topic': 'Smart Contract War'}, 'STABLES': {'x': 400, 'y': 300, 'color': '#8b949e', 'topic': 'Fiat Backing'}, 'MEMES': {'x': 200, 'y': 450, 'color': '#ff3e3e', 'topic': 'Social Arbitrage'}, 'EXCHANGE': {'x': 600, 'y': 450, 'color': '#fffa00', 'topic': 'CeFi Compliance'}, 'MINERS': {'x': 400, 'y': 500, 'color': '#00ff88', 'topic': 'Hash Rate Growth'}}
             news = self.get_context_news()
             trending_keywords = {}
             for n in news:

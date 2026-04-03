@@ -84,7 +84,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                             <div style="font-size:0.55rem;font-weight:900;letter-spacing:1px;padding:2px 8px;border-radius:100px;
                                 background:${Math.abs(s.zScore)>=1.75?'rgba(239,68,68,0.15)':Math.abs(s.zScore)>=1.0?'rgba(251,146,60,0.15)':Math.abs(s.zScore)>=0.5?'rgba(0,242,255,0.1)':'rgba(148,163,184,0.1)'};
                                 border:1px solid ${Math.abs(s.zScore)>=1.75?'rgba(239,68,68,0.5)':Math.abs(s.zScore)>=1.0?'rgba(251,146,60,0.5)':Math.abs(s.zScore)>=0.5?'rgba(0,242,255,0.4)':'rgba(148,163,184,0.3)'};
-                                color:${Math.abs(s.zScore)>=1.75?'#ef4444':Math.abs(s.zScore)>=1.0?'#fb923c':Math.abs(s.zScore)>=0.5?'#00f2ff':'#94a3b8'}">
+                                color:${Math.abs(s.zScore)>=1.75?'#ef4444':Math.abs(s.zScore)>=1.0?'#fb923c':Math.abs(s.zScore)>=0.5?'#7dd3fc':'#94a3b8'}">
                                 Z ${s.zScore >= 0 ? '+' : ''}${s.zScore.toFixed(2)}σ
                             </div>
                         </div>
@@ -188,7 +188,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: 'rgba(13,17,23,0.95)',
-                        titleColor: '#00f2ff',
+                        titleColor: '#7dd3fc',
                         bodyColor: '#e2e8f0',
                         callbacks: {
                             title: items => items[0].label,
@@ -300,7 +300,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: 'rgba(13,17,23,0.95)',
-                        titleColor: '#00f2ff',
+                        titleColor: '#7dd3fc',
                         bodyColor: '#e2e8f0',
                         callbacks: {
                             title: items => `Z-Score: ${items[0].label}`,
@@ -390,9 +390,9 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     datasets: [{
                         label: radarData.ticker + ' Confidence',
                         data: radarData.values,
-                        borderColor: '#00f2ff',
+                        borderColor: '#7dd3fc',
                         backgroundColor: 'rgba(0,242,255,0.08)',
-                        pointBackgroundColor: '#00f2ff',
+                        pointBackgroundColor: '#7dd3fc',
                         pointRadius: 4,
                         borderWidth: 2
                     }]

@@ -59,7 +59,7 @@ async function renderMindshare() {
                 label: 'Asset Mindshare',
                 data: data.map(d => ({ x: d.engineer, y: d.narrative, r: d.volume, label: d.ticker })),
                 backgroundColor: 'rgba(0, 242, 255, 0.5)',
-                borderColor: '#00f2ff',
+                borderColor: '#7dd3fc',
                 borderWidth: 1,
                 hoverBackgroundColor: 'rgba(0, 242, 255, 0.8)',
                 datalabels: {
@@ -111,7 +111,7 @@ async function renderMindshare() {
             plugins: {
                 tooltip: { 
                     backgroundColor: 'rgba(13, 17, 23, 0.9)',
-                    titleColor: '#00f2ff',
+                    titleColor: '#7dd3fc',
                     borderColor: 'rgba(0, 242, 255, 0.2)',
                     borderWidth: 1,
                     callbacks: { label: ct => ` ${ct.raw.label}: Eng ${ct.raw.x} / Narr ${ct.raw.y} / Vol ${ct.raw.r}` } 

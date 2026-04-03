@@ -311,7 +311,7 @@ class MarketRoutesMixin:
             return
         try:
             etfs = [
-                {'ticker': 'IBIT',  'name': 'IBIT (BlackRock)',  'color': '#00f2ff', 'aum_b': 40.2},
+                {'ticker': 'IBIT',  'name': 'IBIT (BlackRock)',  'color': '#7dd3fc', 'aum_b': 40.2},
                 {'ticker': 'FBTC',  'name': 'FBTC (Fidelity)',   'color': '#86efac', 'aum_b': 16.8},
                 {'ticker': 'ARKB',  'name': 'ARKB (Ark)',        'color': '#facc15', 'aum_b': 3.4},
                 {'ticker': 'BITB',  'name': 'BITB (Bitwise)',    'color': '#a78bfa', 'aum_b': 2.1},
@@ -380,7 +380,7 @@ class MarketRoutesMixin:
                 d += _td(days=1)
             labels = [d.strftime('%a %d %b') for d in trading_days]
             etf_flows_data = [
-                {'name': 'IBIT (BlackRock)', 'color': '#00f2ff', 'base': 420},
+                {'name': 'IBIT (BlackRock)', 'color': '#7dd3fc', 'base': 420},
                 {'name': 'FBTC (Fidelity)',  'color': '#86efac', 'base': 210},
                 {'name': 'ARKB (Ark)',       'color': '#facc15', 'base': 52},
                 {'name': 'BITB (Bitwise)',   'color': '#a78bfa', 'base': 28},

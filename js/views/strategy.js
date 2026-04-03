@@ -484,7 +484,7 @@ function renderSankeyDiagram({ nodes, links }) {
             if (d.name.includes('Stablecoin')) return '#3b82f6';
             if (d.name.includes('SOL') || d.name.includes('Jup')) return '#14F195';
             if (d.name.includes('ETH')) return '#627eea';
-            return '#00f2ff';
+            return '#7dd3fc';
         })
         .style('stroke', 'rgba(255,255,255,0.2)');
 

@@ -100,7 +100,7 @@ async function renderMacroSync(tabs = null) {
                         datasets: [
                             { label: 'BTC Dominance', data: domData.btc, borderColor: '#f7931a', backgroundColor: 'rgba(247, 147, 26, 0.5)', fill: true },
                             { label: 'ETH Dominance', data: domData.eth, borderColor: '#627eea', backgroundColor: 'rgba(98, 126, 234, 0.5)', fill: '-1' },
-                            { label: 'ALT Dominance', data: domData.alts, borderColor: '#00f2ff', backgroundColor: 'rgba(0, 242, 255, 0.5)', fill: '-1' }
+                            { label: 'ALT Dominance', data: domData.alts, borderColor: '#7dd3fc', backgroundColor: 'rgba(0, 242, 255, 0.5)', fill: '-1' }
                         ]
                     },
                     options: {
@@ -166,7 +166,7 @@ async function renderMacroSync(tabs = null) {
                             {
                                 label: 'SSR (BTC Market Cap ÷ Stablecoin Supply)',
                                 data: ssrData.ssr,
-                                borderColor: '#00f2ff',
+                                borderColor: '#7dd3fc',
                                 backgroundColor: 'rgba(0, 242, 255, 0.1)',
                                 fill: true,
                                 tension: 0.4,
@@ -379,7 +379,7 @@ async function renderRotation(tabs = null) {
                 ]}
             ]
         };
-        const palettes = { 'Crypto': '#00f2ff', 'Equities': '#f59e0b', 'Bonds': '#a78bfa', 'Commodities': '#10b981' };
+        const palettes = { 'Crypto': '#7dd3fc', 'Equities': '#f59e0b', 'Bonds': '#a78bfa', 'Commodities': '#10b981' };
         const hierarchy = d3.hierarchy(root_data).sum(d => d.value).sort((a,b) => b.value - a.value);
         const partition = d3.partition().size([2*Math.PI, R]);
         partition(hierarchy);
@@ -406,7 +406,7 @@ async function renderRotation(tabs = null) {
             .attr('fill', 'white').attr('pointer-events', 'none')
             .text(d => d.data.name);
         g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.3em')
-            .attr('font-size', 11).attr('fill', '#00f2ff').attr('font-weight', 900).text('CAPITAL');
+            .attr('font-size', 11).attr('fill', '#7dd3fc').attr('font-weight', 900).text('CAPITAL');
         g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
             .attr('font-size', 10).attr('fill', 'rgba(255,255,255,0.5)').text('ROTATION');
     }, 400);

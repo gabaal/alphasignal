@@ -37,7 +37,7 @@ async function renderETFFlows(tabs = null) {
     // High-fidelity simulated ETF Flow data
     const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     const issuers = [
-        { name: 'IBIT (BlackRock)', color: '#00f2ff', data: [450, 120, -50, 800, 310, 0, 0] },
+        { name: 'IBIT (BlackRock)', color: '#7dd3fc', data: [450, 120, -50, 800, 310, 0, 0] },
         { name: 'FBTC (Fidelity)', color: '#86efac', data: [210, 90, -30, 400, 150, 0, 0] },
         { name: 'ARKB (Ark)', color: '#facc15', data: [50, 20, -10, 120, 45, 0, 0] },
         { name: 'BITB (Bitwise)', color: '#a78bfa', data: [30, 15, -5, 80, 25, 0, 0] }
@@ -76,7 +76,7 @@ async function renderETFFlows(tabs = null) {
             },
             scales: {
                 x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-                y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'DAILY FLOW ($M)', color: '#00f2ff' } },
+                y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'DAILY FLOW ($M)', color: '#7dd3fc' } },
                 y1: { position: 'right', grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'CUMULATIVE ($M)', color: 'rgba(255,255,255,0.5)' } }
             }
         }
@@ -149,7 +149,7 @@ async function renderETFFlows(tabs = null) {
                         borderWidth: 2,
                         borderDash: [4, 4],
                         pointRadius: 4,
-                        pointBackgroundColor: '#00f2ff',
+                        pointBackgroundColor: '#7dd3fc',
                         fill: false,
                         tension: 0.3,
                         yAxisID: 'y'
@@ -363,9 +363,9 @@ async function renderOIRadar(tabs = null) {
                     label: 'CME_FUTURES',
                     data: [12.1, 18, 0, 45],
                     backgroundColor: 'rgba(0, 242, 255, 0.2)',
-                    borderColor: '#00f2ff',
+                    borderColor: '#7dd3fc',
                     borderWidth: 2,
-                    pointBackgroundColor: '#00f2ff'
+                    pointBackgroundColor: '#7dd3fc'
                 }
             ]
         },
@@ -408,14 +408,14 @@ async function renderOIRadar(tabs = null) {
                         {
                             label: 'Implied Volatility (IV %)',
                             data: [82.4, 75.1, 64.2, 58.0, 61.5, 66.8, 72.3],
-                            borderColor: '#00f2ff',
+                            borderColor: '#7dd3fc',
                             backgroundColor: 'rgba(0, 242, 255, 0.1)',
                             borderWidth: 3,
                             fill: true,
                             tension: 0.4,
                             pointRadius: 4,
                             pointBackgroundColor: '#fff',
-                            pointBorderColor: '#00f2ff'
+                            pointBorderColor: '#7dd3fc'
                         },
                         {
                             label: 'Historical Volatility Benchmark (30D)',
@@ -435,7 +435,7 @@ async function renderOIRadar(tabs = null) {
                     interaction: { intersect: false, mode: 'index' },
                     plugins: {
                         legend: { labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 } } },
-                        tooltip: { backgroundColor: 'rgba(13, 17, 23, 0.95)', titleColor: '#00f2ff', bodyColor: '#e6edf3', padding: 12 }
+                        tooltip: { backgroundColor: 'rgba(13, 17, 23, 0.95)', titleColor: '#7dd3fc', bodyColor: '#e6edf3', padding: 12 }
                     },
                     scales: {
                         x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 } } },

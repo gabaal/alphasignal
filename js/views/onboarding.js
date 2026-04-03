@@ -66,7 +66,7 @@ window.showOnboardingModal = function() {
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2rem">
                     ${[
-                        ['electric_bolt', '#00f2ff', 'Live Signals', '50+ assets tracked 24/7'],
+                        ['electric_bolt', '#7dd3fc', 'Live Signals', '50+ assets tracked 24/7'],
                         ['add_circle', '#22c55e', 'My Watchlist', 'Track your favourite assets'],
                         ['notifications_active', '#f59e0b', 'Price Alerts', 'Get notified at your targets'],
                         ['psychology', '#bc13fe', 'AI Thesis', 'AI explains every signal']

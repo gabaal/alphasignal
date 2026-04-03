@@ -75,11 +75,11 @@ def _notify_price_alert(user_email, ticker, target_price, current_price, directi
     <tr><td align="center">
       <table width="600" style="background:#0d1117;border-radius:12px;border:1px solid #1e2433;overflow:hidden;max-width:600px;width:100%;">
         <tr><td style="padding:24px 28px;background:linear-gradient(135deg,#0d1117,#0a0f1e);border-bottom:1px solid #1e2433;">
-          <span style="font-size:22px;font-weight:900;color:#f8fafc;">Alpha<span style="color:#00f2ff;">Signal</span></span>
+          <span style="font-size:22px;font-weight:900;color:#f8fafc;">Alpha<span style="color:#7dd3fc;">Signal</span></span>
           <span style="display:block;font-size:9px;font-weight:700;letter-spacing:3px;color:#6b7280;margin-top:3px;">PRICE ALERT TRIGGERED</span>
         </td></tr>
         <tr><td style="padding:28px;background:#0d1117;">
-          <div style="font-size:32px;font-weight:900;color:#00f2ff;margin-bottom:4px;">{ticker_clean}</div>
+          <div style="font-size:32px;font-weight:900;color:#7dd3fc;margin-bottom:4px;">{ticker_clean}</div>
           <div style="font-size:14px;color:#94a3b8;margin-bottom:20px;">Your price alert has been triggered</div>
           <table width="100%" style="margin-bottom:20px;">
             <tr>
@@ -90,7 +90,7 @@ def _notify_price_alert(user_email, ticker, target_price, current_price, directi
               <td style="width:16px;"></td>
               <td style="padding:12px;background:#080b12;border-radius:8px;text-align:center;border:1px solid #1e2433;">
                 <div style="font-size:9px;color:#6b7280;letter-spacing:2px;margin-bottom:6px;">CURRENT PRICE</div>
-                <div style="font-size:20px;font-weight:900;color:#00f2ff;">${current_price:,.4f}</div>
+                <div style="font-size:20px;font-weight:900;color:#7dd3fc;">${current_price:,.4f}</div>
               </td>
               <td style="width:16px;"></td>
               <td style="padding:12px;background:#080b12;border-radius:8px;text-align:center;border:1px solid #1e2433;">
@@ -99,9 +99,9 @@ def _notify_price_alert(user_email, ticker, target_price, current_price, directi
               </td>
             </tr>
           </table>
-          {f'<p style="color:#94a3b8;font-size:13px;font-style:italic;border-left:3px solid #00f2ff;padding-left:12px;">{note}</p>' if note else ''}
+          {f'<p style="color:#94a3b8;font-size:13px;font-style:italic;border-left:3px solid #7dd3fc;padding-left:12px;">{note}</p>' if note else ''}
           <div style="text-align:center;margin-top:24px;">
-            <a href="https://alphasignal.digital/?view=signals" style="display:inline-block;background:#00f2ff;color:#000;font-weight:900;font-size:12px;letter-spacing:2px;padding:12px 28px;border-radius:8px;text-decoration:none;">OPEN TERMINAL &rarr;</a>
+            <a href="https://alphasignal.digital/?view=signals" style="display:inline-block;background:#7dd3fc;color:#000;font-weight:900;font-size:12px;letter-spacing:2px;padding:12px 28px;border-radius:8px;text-decoration:none;">OPEN TERMINAL &rarr;</a>
           </div>
         </td></tr>
         <tr><td style="padding:16px 28px;background:#080b12;border-top:1px solid #1e2433;text-align:center;">

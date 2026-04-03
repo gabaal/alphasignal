@@ -418,7 +418,7 @@ async function renderBriefing(tabs = null) {
                     datasets: [{
                         label: 'BTC Price',
                         data: prices,
-                        borderColor: '#00f2ff',
+                        borderColor: '#7dd3fc',
                         borderWidth: 2,
                         pointRadius: 0,
                         tension: 0.1,

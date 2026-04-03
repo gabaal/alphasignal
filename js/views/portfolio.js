@@ -215,9 +215,9 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     label: 'Allocation %',
                     data: Object.values(data.allocation),
                     backgroundColor: 'rgba(0, 242, 255, 0.2)',
-                    borderColor: '#00f2ff',
+                    borderColor: '#7dd3fc',
                     borderWidth: 2,
-                    pointBackgroundColor: '#00f2ff',
+                    pointBackgroundColor: '#7dd3fc',
                     pointBorderColor: 'rgba(255,255,255,0.8)',
                     pointRadius: 3,
                     pointHoverRadius: 5
@@ -342,7 +342,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                         ef.max_sharpe ? {
                             label: '★ Max Sharpe',
                             data: [{ x: ef.max_sharpe.vol, y: ef.max_sharpe.ret }],
-                            backgroundColor: '#00f2ff',
+                            backgroundColor: '#7dd3fc',
                             pointRadius: 12,
                             pointStyle: 'star',
                             pointHoverRadius: 14,
@@ -364,7 +364,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                         legend: { labels: { color: 'white', font: { family: 'JetBrains Mono', size: 10 } } },
                         tooltip: {
                             backgroundColor: 'rgba(5,5,30,0.95)',
-                            titleColor: '#00f2ff',
+                            titleColor: '#7dd3fc',
                             bodyColor: '#e6edf3',
                             callbacks: {
                                 label: ctx => `Vol: ${ctx.parsed.x.toFixed(1)}%  Ret: ${ctx.parsed.y.toFixed(1)}%`
@@ -406,7 +406,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                         </div>
                     </div>`;
                 cardsEl.innerHTML =
-                    renderWeights(ef.max_sharpe, '★ MAXIMUM SHARPE RATIO PORTFOLIO', '#00f2ff') +
+                    renderWeights(ef.max_sharpe, '★ MAXIMUM SHARPE RATIO PORTFOLIO', '#7dd3fc') +
                     renderWeights(ef.min_vol, '★ MINIMUM VOLATILITY PORTFOLIO', '#ffffff');
             }
         } catch (e) {

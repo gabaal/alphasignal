@@ -139,7 +139,7 @@ async function renderHome() {
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
                         ${[
-                            { icon: 'account_circle', view: 'my-terminal', color: '#00f2ff', title: 'My Terminal — Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
+                            { icon: 'account_circle', view: 'my-terminal', color: '#7dd3fc', title: 'My Terminal — Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
                             { icon: 'notifications_active', view: 'my-terminal', color: '#22c55e', title: 'Real-Time Price Alerts', desc: 'Target price crossing alerts fire as browser notifications the instant a watched asset hits your price — backed by the live WebSocket price stream.' },
                             { icon: 'link', view: 'alerts', color: '#bc13fe', title: 'Signal Permalinks', desc: 'Every signal gets a public shareable URL with live vs signal price performance, AI thesis analysis, and one-click Add to Watchlist for visitors.' },
                             { icon: 'install_mobile', view: 'home', color: '#f59e0b', title: 'PWA + Daily Digest', desc: 'Install AlphaSignal as a native app on iOS and Android. 07:30 UTC morning digest delivers top signals to Discord and Telegram automatically.' }
