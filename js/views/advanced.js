@@ -244,14 +244,15 @@ async function renderAdvDepth(symbol) {
     container.innerHTML = `
         <div style="position:relative; width:100%; height:520px; background:#050508; border-radius:12px; overflow:hidden;">
             <canvas id="depth3d-canvas" style="width:100%; height:100%; display:block;"></canvas>
-            <div style="position:absolute; top:14px; left:18px; display:flex; gap:20px; align-items:center; pointer-events:none;">
+            <div style="position:absolute; top:14px; left:18px; display:flex; gap:16px; align-items:center; pointer-events:none;">
                 <span style="font-size:0.6rem; font-weight:900; letter-spacing:2px; color:#00f2ff;">3D ORDERBOOK TOPOLOGY</span>
                 <span style="display:flex;align-items:center;gap:5px;font-size:0.6rem;color:#26a69a;">
-                    <span style="width:10px;height:10px;background:#26a69a;border-radius:2px;display:inline-block;"></span> BID DEPTH
+                    <span style="width:8px;height:8px;background:#26a69a;border-radius:1px;display:inline-block;box-shadow:0 0 6px #26a69a;"></span> BID DEPTH
                 </span>
                 <span style="display:flex;align-items:center;gap:5px;font-size:0.6rem;color:#ef5350;">
-                    <span style="width:10px;height:10px;background:#ef5350;border-radius:2px;display:inline-block;"></span> ASK DEPTH
+                    <span style="width:8px;height:8px;background:#ef5350;border-radius:1px;display:inline-block;box-shadow:0 0 6px #ef5350;"></span> ASK DEPTH
                 </span>
+                <span id="depth-spread-label" style="font-size:0.55rem;color:rgba(255,255,255,0.35);margin-left:8px;"></span>
             </div>
             <div style="position:absolute;bottom:14px;right:18px;font-size:0.55rem;color:rgba(255,255,255,0.25);pointer-events:none;">DRAG TO ROTATE • SCROLL TO ZOOM</div>
         </div>`;
@@ -274,118 +275,204 @@ async function renderAdvDepth(symbol) {
         return;
     }
 
-    // --- Three.js Scene Setup ---
+    // ── Three.js Scene ──────────────────────────────────────────────────────
     const W = container.clientWidth, H = 520;
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x050508, 1);
+    renderer.shadowMap.enabled = true;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 1000);
-    camera.position.set(0, 18, 30);
-    camera.lookAt(0, 0, 0);
+    scene.fog = new THREE.FogExp2(0x050508, 0.018);
 
-    // Lighting
-    scene.add(new THREE.AmbientLight(0x223355, 1.2));
-    const dirLight = new THREE.DirectionalLight(0x88bbff, 1.0);
-    dirLight.position.set(10, 30, 20);
+    const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 500);
+
+    // ── Lighting ─────────────────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0x112244, 0.8));
+    const hemi = new THREE.HemisphereLight(0x223366, 0x050508, 0.6);
+    scene.add(hemi);
+    const dirLight = new THREE.DirectionalLight(0x99ccff, 1.4);
+    dirLight.position.set(15, 40, 20);
+    dirLight.castShadow = true;
     scene.add(dirLight);
+    // Subtle fill from below (makes bars pop)
+    const fillLight = new THREE.DirectionalLight(0x004466, 0.5);
+    fillLight.position.set(-10, -5, -15);
+    scene.add(fillLight);
 
-    // Grid on floor
-    const grid = new THREE.GridHelper(60, 30, 0x0a1020, 0x0a1020);
-    grid.position.y = -0.1;
+    // ── Floor plane ───────────────────────────────────────────────────────
+    const floorGeo = new THREE.PlaneGeometry(80, 80);
+    const floorMat = new THREE.MeshStandardMaterial({
+        color: 0x080c14, metalness: 0.3, roughness: 0.9
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // Grid overlay
+    const grid = new THREE.GridHelper(70, 35, 0x0d1f33, 0x0d1f33);
+    grid.position.y = 0.02;
     scene.add(grid);
 
-    // --- Inline OrbitControls ---
-    let isDragging = false, lastMouse = { x: 0, y: 0 };
-    let theta = 0.3, phi = 0.55, radius = 35;
+    // ── Spread divider plane ──────────────────────────────────────────────
+    const divGeo = new THREE.PlaneGeometry(0.15, 22);
+    const divMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff, transparent: true, opacity: 0.25 });
+    const divider = new THREE.Mesh(divGeo, divMat);
+    divider.rotation.y = Math.PI / 2;
+    divider.position.y = 11;
+    scene.add(divider);
+
+    // ── Inline orbit controls ─────────────────────────────────────────────
+    let isDragging = false, lastMouse = { x: 0, y: 0 }, lastActivity = Date.now();
+    let theta = -0.45, phi = 0.62, radius = 42;
     function updateCamera() {
         camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
         camera.position.y = radius * Math.cos(phi);
         camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
-        camera.lookAt(0, 2, 0);
+        camera.lookAt(0, 4, 0);
     }
     updateCamera();
 
-    canvas.addEventListener('mousedown', e => { isDragging = true; lastMouse = { x: e.clientX, y: e.clientY }; });
-    canvas.addEventListener('mouseup', () => isDragging = false);
+    canvas.addEventListener('mousedown', e => { isDragging = true; lastMouse = { x: e.clientX, y: e.clientY }; lastActivity = Date.now(); });
+    canvas.addEventListener('mouseup',   () => { isDragging = false; });
+    canvas.addEventListener('mouseleave',() => { isDragging = false; });
     canvas.addEventListener('mousemove', e => {
         if (!isDragging) return;
-        theta -= (e.clientX - lastMouse.x) * 0.008;
-        phi = Math.max(0.1, Math.min(1.5, phi - (e.clientY - lastMouse.y) * 0.008));
+        theta -= (e.clientX - lastMouse.x) * 0.007;
+        phi = Math.max(0.15, Math.min(1.45, phi - (e.clientY - lastMouse.y) * 0.007));
         lastMouse = { x: e.clientX, y: e.clientY };
+        lastActivity = Date.now();
         updateCamera();
     });
     canvas.addEventListener('wheel', e => {
-        radius = Math.max(10, Math.min(80, radius + e.deltaY * 0.05));
+        radius = Math.max(15, Math.min(90, radius + e.deltaY * 0.05));
+        lastActivity = Date.now();
         updateCamera();
     }, { passive: true });
 
-    // --- Build 3D terrain mesh from depth data ---
-    function buildDepthMesh(levels, color, side) {
-        if (!levels || levels.length < 2) return null;
-        const n = Math.min(levels.length, 40);
-        const shape = new THREE.Shape();
-        const xScale = 20 / n;
-        const yScale = 0.018;
-        const xOffset = side === 'bid' ? -n * xScale : 0;
+    // ── Bar chart builder ─────────────────────────────────────────────────
+    // Returns a THREE.Group of BoxGeometry bars for one side of the book
+    const BAR_COUNT  = 30;   // levels to show
+    const BAR_WIDTH  = 0.62; // x width of each bar
+    const BAR_GAP    = 0.12; // gap between bars
+    const BAR_DEPTH  = 2.8;  // z depth of bar (fixed)
+    const SPREAD_GAP = 1.6;  // gap between bid/ask clusters
 
-        shape.moveTo(xOffset + (side === 'bid' ? n * xScale : 0), 0);
+    function buildSideBars(levels, side) {
+        // levels: array of cumulative depths (ascending for asks, descending from mid for bids)
+        const n = Math.min(levels.length, BAR_COUNT);
+        if (n < 1) return null;
+        const maxLevel = levels[n - 1] || 1;
+        const group = new THREE.Group();
+
         for (let i = 0; i < n; i++) {
-            const x = side === 'bid' ? xOffset + (n - i) * xScale : xOffset + i * xScale;
-            const y = levels[i] * yScale;
-            if (i === 0) shape.lineTo(x, y); else shape.lineTo(x, y);
+            const cumDepth = levels[i];
+            const heightNorm = cumDepth / maxLevel;             // 0‒1
+            const barH = Math.max(0.15, heightNorm * 20);       // 0.15–20 units
+
+            // X position: bid bars go left (negative x), ask bars go right (positive x)
+            const slot    = i * (BAR_WIDTH + BAR_GAP);
+            const xPos    = side === 'bid'
+                ? -(SPREAD_GAP / 2) - slot - BAR_WIDTH / 2
+                :  (SPREAD_GAP / 2) + slot + BAR_WIDTH / 2;
+            const yPos    = barH / 2;  // sit on floor
+
+            // Colour intensity scales with normalised height
+            // Bids: dark teal → bright cyan-green
+            // Asks: dark red  → bright red-orange
+            const t = Math.pow(heightNorm, 0.5);  // sqrt for better gradient spread
+            let barColor, emissiveColor, emissiveInt;
+            if (side === 'bid') {
+                // mix #0d3330 → #26a69a
+                barColor      = new THREE.Color().setHSL(0.49, 0.75, 0.08 + t * 0.28);
+                emissiveColor = new THREE.Color(0x26a69a);
+                emissiveInt   = 0.05 + t * 0.45;
+            } else {
+                // mix #3a0d0d → #ef5350
+                barColor      = new THREE.Color().setHSL(0.01, 0.85, 0.08 + t * 0.28);
+                emissiveColor = new THREE.Color(0xef5350);
+                emissiveInt   = 0.05 + t * 0.45;
+            }
+
+            const geo = new THREE.BoxGeometry(BAR_WIDTH, barH, BAR_DEPTH);
+            const mat = new THREE.MeshStandardMaterial({
+                color:            barColor,
+                emissive:         emissiveColor,
+                emissiveIntensity: emissiveInt,
+                metalness:        0.55,
+                roughness:        0.35,
+                transparent:      true,
+                opacity:          0.72 + t * 0.26
+            });
+            const bar = new THREE.Mesh(geo, mat);
+            bar.position.set(xPos, yPos, 0);
+            bar.castShadow = true;
+            group.add(bar);
+
+            // Top-cap glow plane (makes the bar top feel lit)
+            if (heightNorm > 0.3) {
+                const capGeo = new THREE.PlaneGeometry(BAR_WIDTH + 0.05, BAR_DEPTH + 0.05);
+                const capMat = new THREE.MeshBasicMaterial({
+                    color: side === 'bid' ? 0x26a69a : 0xef5350,
+                    transparent: true,
+                    opacity: 0.12 + t * 0.22,
+                    side: THREE.DoubleSide
+                });
+                const cap = new THREE.Mesh(capGeo, capMat);
+                cap.rotation.x = -Math.PI / 2;
+                cap.position.set(xPos, barH + 0.01, 0);
+                group.add(cap);
+            }
         }
-        shape.lineTo(side === 'bid' ? xOffset : xOffset + n * xScale, 0);
-        shape.closePath();
-
-        const extrudeSettings = { depth: 1.2, bevelEnabled: false };
-        const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-        const mat = new THREE.MeshPhongMaterial({
-            color: color,
-            emissive: color,
-            emissiveIntensity: 0.25,
-            transparent: true,
-            opacity: 0.82,
-            shininess: 60,
-            side: THREE.DoubleSide
-        });
-
-        // Rotate so the shape lies in the XZ plane
-        geo.rotateX(-Math.PI / 2);
-        return new THREE.Mesh(geo, mat);
+        return group;
     }
 
-    let bidMesh = null, askMesh = null;
+    let bidGroup = null, askGroup = null;
+    const spreadLabel = document.getElementById('depth-spread-label');
 
-    function rebuildMeshes(rawBids, rawAsksFull) {
-        if (bidMesh) { scene.remove(bidMesh); bidMesh.geometry.dispose(); }
-        if (askMesh) { scene.remove(askMesh); askMesh.geometry.dispose(); }
+    function rebuildBars(rawBids, rawAsks) {
+        if (bidGroup) { scene.remove(bidGroup); bidGroup.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); }
+        if (askGroup) { scene.remove(askGroup); askGroup.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); }
 
-        // Cumulative sum for depth chart
+        const n = Math.min(BAR_COUNT, rawBids.length, rawAsks.length);
+
         let bidCum = 0, askCum = 0;
-        const bidLevels = rawBids.map(b => { bidCum += parseFloat(b[1]); return bidCum; });
-        const askLevels = rawAsksFull.map(a => { askCum += parseFloat(a[1]); return askCum; });
+        const bidLevels = rawBids.slice(0, n).map(b => { bidCum += parseFloat(b[1]); return bidCum; });
+        const askLevels = rawAsks.slice(0, n).map(a => { askCum += parseFloat(a[1]); return askCum; });
 
-        bidMesh = buildDepthMesh(bidLevels, 0x26a69a, 'bid');
-        askMesh = buildDepthMesh(askLevels, 0xef5350, 'ask');
-        if (bidMesh) scene.add(bidMesh);
-        if (askMesh) scene.add(askMesh);
+        bidGroup = buildSideBars(bidLevels, 'bid');
+        askGroup = buildSideBars(askLevels, 'ask');
+        if (bidGroup) scene.add(bidGroup);
+        if (askGroup) scene.add(askGroup);
+
+        // Update spread label
+        if (spreadLabel && rawBids.length && rawAsks.length) {
+            const bestBid = parseFloat(rawBids[0][0]);
+            const bestAsk = parseFloat(rawAsks[0][0]);
+            const spread  = (bestAsk - bestBid).toFixed(2);
+            const pct     = ((bestAsk - bestBid) / bestBid * 100).toFixed(3);
+            spreadLabel.textContent = `SPREAD $${spread} (${pct}%)`;
+        }
     }
 
-    // --- Animation loop ---
-    let animId;
+    // ── Animation loop ────────────────────────────────────────────────────
+    const animRef = { id: null };
     function animate() {
-        animId = requestAnimationFrame(animate);
+        animRef.id = requestAnimationFrame(animate);
+        // Slow auto-rotate after 3s of inactivity
+        if (!isDragging && Date.now() - lastActivity > 3000) {
+            theta += 0.0015;
+            updateCamera();
+        }
         renderer.render(scene, camera);
     }
     animate();
 
-    // Store for cleanup
-    window.activeDepth3D = { animId, renderer };
+    window.activeDepth3D = { animId: animRef.id, renderer, _ref: animRef };
 
-    // --- Data source ---
+    // ── Data source ───────────────────────────────────────────────────────
     const isEquity = ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'].includes(symbol.toUpperCase());
 
     if (isEquity) {
@@ -395,19 +482,24 @@ async function renderAdvDepth(symbol) {
                 const latest = history.data[history.data.length - 1];
                 const rawBids = Object.entries(latest.bids || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a, b) => b[0] - a[0]);
                 const rawAsks = Object.entries(latest.asks || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a, b) => a[0] - b[0]);
-                rebuildMeshes(rawBids, rawAsks);
+                rebuildBars(rawBids, rawAsks);
             }
         } catch (e) { console.error('3D Depth fallback error:', e); }
     } else {
+        // Throttle rebuilds — order book fires at 100ms, rebuilding every frame wastes GPU
+        let lastRebuild = 0;
         window.BinanceSocketManager.subscribe(symbol, 'depth20@100ms', (data) => {
             if (!data.bids || !data.asks) return;
-            const rawBids = [...data.bids].reverse().map(b => [parseFloat(b[0]), parseFloat(b[1])]);
-            const rawAsks = data.asks.map(a => [parseFloat(a[0]), parseFloat(a[1])]);
-            rebuildMeshes(rawBids, rawAsks);
+            const now = Date.now();
+            if (now - lastRebuild < 250) return;  // max 4 rebuilds/s
+            lastRebuild = now;
+            const rawBids = [...data.bids].sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
+            const rawAsks = [...data.asks].sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+            rebuildBars(rawBids, rawAsks);
         });
     }
 
-    // Handle resize
+    // ── Resize handler ────────────────────────────────────────────────────
     const ro = new ResizeObserver(() => {
         const w = container.clientWidth;
         renderer.setSize(w, H);
@@ -418,6 +510,7 @@ async function renderAdvDepth(symbol) {
 }
 
 // TAB 3: Derivatives (Live CVD & Block Trades)
+
 async function renderAdvDerivatives(symbol, interval) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
