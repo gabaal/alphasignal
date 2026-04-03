@@ -153,6 +153,7 @@ const viewMap = {
     'docs-my-terminal': renderDocsViewMyTerminal,
     'docs-ask-terminal': renderDocsViewAskTerminal,
     'docs-command-center': renderDocsViewCommandCenter,
+    'docs-daily-workflow': renderDocsViewDailyWorkflow,
     'signal': () => {
         const id = new URLSearchParams(window.location.search).get('id');
         renderSignalPermalink(id);

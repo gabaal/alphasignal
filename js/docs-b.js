@@ -934,6 +934,78 @@ function renderDocsViewTradingViewHub() {
     });
 }
 
+// ============= PERSONAL — DAILY WORKFLOW PLAYBOOK =============
+function renderDocsViewDailyWorkflow() {
+    renderViewDocPage({
+        hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
+        title: 'Daily Workflow Playbook',
+        viewId: 'command-center',
+        relatedDocs: [
+            { name: 'Command Center',   route: 'docs-command-center',   icon: 'dashboard'      },
+            { name: 'Signal Intelligence', route: 'docs-signals',       icon: 'radar'          },
+            { name: 'Market Regime',    route: 'docs-regime',           icon: 'category'       },
+            { name: 'Charting Suite',   route: 'docs-charting-suite',   icon: 'candlestick_chart' },
+        ],
+        summary: 'A structured 20-minute daily session guide describing how to use the AlphaSignal Terminal from open to close — covering regime context, signal review, macro confirmation, trade entry, and end-of-day performance audit. Follow this sequence to ensure every trade decision is grounded in multi-factor confluence before execution.',
+        components: [
+            {
+                name: 'Phase 1 — Morning Brief (5 min)', type: 'WIDGET', icon: 'wb_sunny',
+                description: 'Open the Command Center first. The three critical reads on open are the Fear & Greed gauge (market risk posture), the Macro Regime Radar (is the underlying regime still intact from yesterday?), and the Sector Treemap (where is capital flowing right now?). These three together establish the day\'s strategic context before a single signal is evaluated. Fear & Greed below 30 combined with a Liquidity-positive regime is historically a strong accumulation environment — in this configuration, signals are weighted more aggressively. Fear & Greed above 75 combined with HIGH-VOL expansion demands tighter stops and smaller sizes regardless of signal quality.',
+                howToRead: 'Read left to right: Regime first (strategic context), Fear/Greed second (sentiment overlay), Sector Treemap third (capital flow direction). All three together tell you whether today is an offensive or defensive day.',
+                signals: [
+                    'Fear & Greed < 25 + Regime LIQUIDITY POSITIVE = aggressive accumulation environment',
+                    'Fear & Greed > 75 + HIGH-VOL EXPANSION = reduce all position sizes before reviewing signals',
+                    'Sector Treemap: L1s green while DeFi red = institutional base-layer accumulation, early bull stage',
+                    'All sectors red + regime DISTRIBUTION = cash is the correct position for the day'
+                ]
+            },
+            {
+                name: 'Phase 2 — Signal Review (10 min)', type: 'CHART', icon: 'radar',
+                description: 'Navigate to Signal Hub. Work through four screens in order: (1) Live Signals — scan the Z-Score bell curve, target signals with Z > 2.5 that are not tail outliers. Check the Firing Density histogram — a spike after a quiet period signals a breakout catalyst. (2) Alpha Score — sort descending, the top 5 assets above score 75 become today\'s watchlist. Cross-reference each against the Signal Confidence Radar to confirm multi-factor support rather than a single-indicator pop. (3) Strategy Lab — for any high-score asset, pull up the Guppy EMA ribbon. Short EMAs compressing above long EMAs signals tension before a breakout. (4) Signal Archive — filter ML_LONG + HIGH severity in the last 24h for the machine\'s highest-conviction calls of the session.',
+                howToRead: 'The sequence matters: Bell curve (market breadth) → Alpha Score (opportunity ranking) → Strategy Lab (entry timing) → Archive (ML confirmation). Do not jump to the Archive first — context from the previous steps prevents acting on isolated signals.',
+                signals: [
+                    'Z > 2.5 + Positive Alpha % = extreme bullish outlier, primary long candidate',
+                    'Alpha Score > 75 + ML_LONG in archive + HIGH severity = full-conviction setup',
+                    'Guppy: short EMAs above long EMAs, compressing = breakout imminent, time the entry',
+                    'Firing Density spike after 2-week grey plateau = market waking up, all signals more reliable'
+                ]
+            },
+            {
+                name: 'Phase 3 — Macro Context (5 min)', type: 'TABLE', icon: 'monitoring',
+                description: 'Navigate to Macro Intel then Institutional. The Macro Calendar is checked first — FOMC, CPI, and NFP events within 48 hours require position sizes to be halved regardless of signal quality, as scheduled macro volatility is not alpha. The Yield Curve chart confirms whether the bond market is pricing in stress that has not yet appeared in crypto price action. A deepening 2Y/10Y inversion indicates institutional risk-off that will eventually reach crypto. Finally, Institutional → Capital Flows reveals whether ETF net flow this week is positive or negative — institutional accumulation is the most reliable confirming signal for any bullish setup identified in Phase 2.',
+                howToRead: 'This phase is a filter, not a generator. It either confirms or veto-es setups from Phase 2. A perfect Phase 2 signal that collides with a FOMC event in 24h gets halved in size. A perfect Phase 2 signal with positive ETF flows and a normal yield curve gets full allocation.',
+                signals: [
+                    'FOMC within 48h = halve all position sizes; close leveraged trades before the event',
+                    'CPI below consensus = dovish surprise; accelerate entry on any high-conviction Phase 2 setup',
+                    'Yield 2Y/10Y deepening inversion = risk-off pressure building; favour stable assets over altcoins',
+                    'ETF net flow positive 3+ consecutive days = institutional accumulation confirmed; weight signals bullish'
+                ]
+            },
+            {
+                name: 'Phase 4 — Trade Decision (5 min)', type: 'CHART', icon: 'candlestick_chart',
+                description: 'For each shortlisted asset from Phase 2 that passed the Phase 3 filter, open Advanced Charting → TradingView to set the exact entry level. Then cross-reference two order-flow confirmations: (1) Market Depth 3D — if the bid wall is 3× the ask wall near current price, that represents real institutional support. Do not enter if asks dominate. (2) Order Flow → Whale Pulse — any large wallet accumulation in the last 6 hours confirms or contradicts the thesis. Contradicting whale data (selling into the Signal) is a veto. The final check is the Tape Imbalance rolling indicator — positive and rising rolling imbalance with buy pressure absorbing sells is the entry trigger. All four must align before committing capital.',
+                howToRead: 'Think of this phase as a traffic-light check: TradingView sets the price level (WHERE to enter), Market Depth confirms liquidity support (IS the level defended?), Whale Pulse confirms smart money direction (WHO is on the right side?), Tape Imbalance confirms execution timing (WHEN to pull the trigger).',
+                signals: [
+                    'Bid wall 3x ask wall near entry price = institutional support level, execute',
+                    'Whale Pulse: large accumulation in 6h matching signal direction = smart money aligned, add conviction',
+                    'Tape Imbalance rising and positive = buy pressure absorbing sellers, immediate entry signal',
+                    'Whale Pulse selling into a bullish signal = veto the trade; smart money disagrees'
+                ]
+            },
+            {
+                name: 'Phase 5 — End of Day (5 min)', type: 'STAT', icon: 'bar_chart',
+                description: 'Navigate to Audit & Performance. The Performance Dashboard shows whether today\'s signals generated alpha — check the equity curve and rolling Sharpe. Once per week (not daily), navigate to Institutional → AI Rebalancer and run a full rebalance plan. Accept EXECUTE → TRADE LEDGER tickets only for ADD actions with an ML score above 80% — lower-confidence additions are deferred until the next weekly rebalance. Finally, check the Risk Matrix — any position that now carries a high composite risk score due to the day\'s volatility should have its stop tightened or size reduced before close. The goal of this phase is not to make decisions but to measure and maintain discipline.',
+                howToRead: 'The audit phase is about honesty: did the system work today, and did you follow it? Compare the equity curve against BTC buy-and-hold. If you are underperforming after following the system, the regime may be misaligned — reduce sizes. If you are outperforming, increase systematic adherence and reduce discretionary overrides.',
+                signals: [
+                    'Rolling Sharpe declining over 5 sessions = current regime misaligning with strategy; reduce sizing until it recovers',
+                    'AI Rebalancer: ADD action with ML Score > 80% = execute ticket and log to Trade Ledger',
+                    'Risk Matrix: position VaR > 5% after a volatile day = tighten stop or reduce size before close',
+                    'Equity curve making new all-time high = system in strong regime; highest-conviction period to follow signals'
+                ]
+            }
+        ]
+    });
+}
 // ============= ANALYTICS HUB — CUSTOM CHARTS =============
 function renderDocsViewCustomCharts() {
     renderViewDocPage({

@@ -84,6 +84,7 @@ function renderHelp() {
             { name: 'My Terminal', desc: '3 components: Watchlist table with live P&L, Portfolio summary stats, Notification controls', route: 'docs-my-terminal', icon: 'bookmark_add' },
             { name: 'Ask Terminal', desc: '2 components: AI chat interface, Suggested query chips', route: 'docs-ask-terminal', icon: 'smart_toy' },
             { name: 'Command Center', desc: '9 live components: Fear/Greed gauge, ETF Net Flows, Volatility Regime, Market Pulse correlations, Scatter plot, Confidence Radar, Macro Correlation Matrix, CME Gaps, BTC sparkline', route: 'docs-command-center', icon: 'dashboard' },
+            { name: 'Daily Workflow Playbook', desc: 'A structured 20-minute daily session guide — Morning Brief, Signal Review, Macro Context, Trade Decision, End-of-Day review', route: 'docs-daily-workflow', icon: 'today' },
           ]
         },
     ];
