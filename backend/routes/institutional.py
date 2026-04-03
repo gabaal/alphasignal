@@ -363,10 +363,13 @@ class InstitutionalRoutesMixin:
                 return key, None
 
             series = {}
-            with ThreadPoolExecutor(max_workers=4) as pool:
-                for key, closes in pool.map(_fetch, ticker_map.items()):
-                    if closes is not None:
-                        series[key] = closes
+            try:
+                with ThreadPoolExecutor(max_workers=4) as pool:
+                    for key, closes in pool.map(_fetch, ticker_map.items(), timeout=12):
+                        if closes is not None:
+                            series[key] = closes
+            except Exception as pool_err:
+                print(f'[YieldCurve] Fetch pool error (falling back to synthetic): {pool_err}')
 
             # Build daily rows for past 365 days
             rows = []
@@ -397,9 +400,20 @@ class InstitutionalRoutesMixin:
             self.send_json({'data': rows, 'source': source,
                             'latest': rows[-1] if rows else {}})
         except Exception as e:
-            print(f'[YieldCurve] {e}')
+            print(f'[YieldCurve] Error: {e}')
             import traceback; traceback.print_exc()
-            self.send_json({'error': str(e)})
+            # Never return an error — always serve synthetic so the chart always renders
+            fallback = {'y2': 5.25, 'y5': 4.45, 'y10': 4.32, 'y30': 4.60}
+            import datetime as dt2
+            rows = []
+            today = dt2.date.today()
+            for i in range(365):
+                d = today - dt2.timedelta(days=364 - i)
+                row = {k: round(fallback[k] + float(np.random.default_rng(i + hash(k) % 999).normal(0, 0.015)), 3) for k in fallback}
+                row['date'] = d.strftime('%Y-%m-%d')
+                row['spread'] = round(row['y10'] - row['y2'], 3)
+                rows.append(row)
+            self.send_json({'data': rows, 'source': 'synthetic', 'latest': rows[-1]})
 
     def handle_portfolio_execute(self, post_data):
         try:

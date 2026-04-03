@@ -223,6 +223,10 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN alerts_last_seen TEXT")
     except: pass
+    # B7: separate Telegram-only mute flag so /unsub doesn't disable Discord/badge
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN telegram_alerts_enabled INTEGER DEFAULT 1")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS market_ticks (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, price REAL, volume REAL, open_interest REAL)''')
     # Ensure index on market_ticks for leaderboard lookups
     try:

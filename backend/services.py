@@ -104,12 +104,19 @@ class NotificationService:
         try:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute("SELECT discord_webhook, telegram_chat_id FROM user_settings WHERE user_email = ? AND alerts_enabled = 1", (user_email,))
+            c.execute(
+                "SELECT discord_webhook, telegram_chat_id, COALESCE(telegram_alerts_enabled, 1) "
+                "FROM user_settings WHERE user_email = ? AND alerts_enabled = 1",
+                (user_email,)
+            )
             row = c.fetchone()
             conn.close()
 
             if not row: return
-            discord, telegram_chat_id = row
+            discord, telegram_chat_id, tg_enabled = row
+            # B7: if user ran /unsub in the bot, suppress Telegram but keep Discord
+            if not tg_enabled:
+                telegram_chat_id = None
 
             # ── Discord Dispatch ──────────────────────────────────────────────
             if discord:

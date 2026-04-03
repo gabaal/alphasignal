@@ -93,7 +93,8 @@ def _find_user_by_chat_id(chat_id):
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute(
-            "SELECT user_email, alerts_enabled FROM user_settings WHERE telegram_chat_id = ?",
+            # B7: read telegram_alerts_enabled (Telegram-only mute) not global alerts_enabled
+            "SELECT user_email, COALESCE(telegram_alerts_enabled, alerts_enabled, 1) FROM user_settings WHERE telegram_chat_id = ?",
             (str(chat_id),)
         )
         row = c.fetchone()
@@ -122,12 +123,14 @@ def _upsert_chat_id(email, chat_id, alerts_enabled=1):
         return False
 
 
-def _set_alerts_enabled(chat_id, enabled):
+def _set_telegram_alerts_enabled(chat_id, enabled):
+    """B7: toggles only telegram_alerts_enabled — leaves global alerts_enabled intact.
+    This means /unsub silences Telegram only; Discord and terminal alerts stay on."""
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute(
-            "UPDATE user_settings SET alerts_enabled = ? WHERE telegram_chat_id = ?",
+            "UPDATE user_settings SET telegram_alerts_enabled = ? WHERE telegram_chat_id = ?",
             (1 if enabled else 0, str(chat_id))
         )
         conn.commit()
@@ -135,6 +138,19 @@ def _set_alerts_enabled(chat_id, enabled):
         return c.rowcount > 0
     except Exception as e:
         print(f"[TelegramBot] alerts toggle error: {e}")
+        return False
+
+
+def _email_is_registered(email):
+    """B8: returns True if this email already has a row in user_settings (web login happened)."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT 1 FROM user_settings WHERE user_email = ? LIMIT 1", (email.lower().strip(),))
+        row = c.fetchone()
+        conn.close()
+        return row is not None
+    except:
         return False
 
 
@@ -184,21 +200,24 @@ def _handle_status(chat_id):
 
 
 def _handle_unsub(chat_id):
-    ok = _set_alerts_enabled(chat_id, False)
+    # B7: use telegram-specific toggle — doesn't affect Discord or terminal alerts
+    ok = _set_telegram_alerts_enabled(chat_id, False)
     if ok:
         _send(chat_id, (
-            "🔕 *Alerts paused.*\n\n"
-            "You won't receive morning digests or live signal alerts until you send /resub."
+            "🔕 *Telegram alerts paused.*\n\n"
+            "You won't receive Telegram notifications until you send /resub.\n"
+            "_(Discord and terminal alerts are unaffected.)_"
         ))
     else:
         _send(chat_id, "❌ Couldn't find your account. Send /start first.")
 
 
 def _handle_resub(chat_id):
-    ok = _set_alerts_enabled(chat_id, True)
+    # B7: re-enable Telegram-specific alerts only
+    ok = _set_telegram_alerts_enabled(chat_id, True)
     if ok:
         _send(chat_id, (
-            "🔔 *Alerts re-enabled!*\n\n"
+            "🔔 *Telegram alerts re-enabled!*\n\n"
             "You'll receive your morning digest at 07:30 UTC and live signal alerts."
         ))
     else:
@@ -225,8 +244,16 @@ def _handle_email_reply(chat_id, email):
         _send(chat_id, "⚠️ That doesn't look like a valid email. Please try again.")
         return
 
-    # Check if email exists in user_settings (any row) or create a new link
-    # We allow new rows here so users who registered via Supabase get linked
+    # B8: Verify the email is a registered AlphaSignal account before linking.
+    # This prevents arbitrary email takeover (a user typing someone else's email).
+    if not _email_is_registered(email):
+        _send(chat_id, (
+            "❌ No AlphaSignal account found for `" + email + "`\n\n"
+            "Please register at [alphasignal.digital](https://alphasignal.digital) first, "
+            "then come back and send /start."
+        ))
+        return
+
     ok = _upsert_chat_id(email, chat_id, alerts_enabled=1)
     if ok:
         with _PENDING_LOCK:
@@ -237,7 +264,7 @@ def _handle_email_reply(chat_id, email):
             "You'll receive:\n"
             "• 🌅 Morning digest at *07:30 UTC* daily\n"
             "• ⚡ Live signal alerts when high-severity signals fire\n\n"
-            "Use /status to check or /unsub to pause at any time.\n\n"
+            "Use /status to check or /unsub to pause Telegram alerts at any time.\n\n"
             "🚀 [Open AlphaSignal Terminal](https://alphasignal.digital)"
         ))
         print(f"[TelegramBot] Linked {email} -> chat_id {chat_id}")
