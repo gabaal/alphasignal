@@ -21,9 +21,6 @@ async function renderHome() {
                         AlphaSignal is a multi-hub institutional intelligence terminal for Bitcoin, crypto, and macro markets. Real-time Z-score signals, AI portfolio rebalancing, options flow, whale tracking, macro calendars, and 60+ analytical views — synthesised by AI, verified by institutional order flow.
                     </p>
                     <div class="hero-actions">
-                        <button class="intel-action-btn large" onclick="switchView('signals')" title="Launch the AlphaSignal Crypto Trading Terminal" aria-label="Launch Terminal">
-                            <span class="material-symbols-outlined" style="margin-right:8px">radar</span> LAUNCH TERMINAL
-                        </button>
                         ${!isAuthenticatedUser ? `
                         <button class="intel-action-btn large" onclick="showAuth(true)" style="background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(0,242,255,0.1));border-color:rgba(34,197,94,0.5);color:#22c55e" title="Create a free account">
                             <span class="material-symbols-outlined" style="margin-right:8px">person_add</span> JOIN FREE
@@ -327,9 +324,6 @@ async function renderHome() {
                     <h2 style="font-size:2.5rem;font-weight:900;letter-spacing:-1px;margin-bottom:1rem">Start Trading with Institutional Intelligence</h2>
                     <p style="color:var(--text-dim);font-size:1.1rem;line-height:1.6;margin-bottom:2.5rem">60+ live analytical views. 8 intelligence hubs. AI-powered signals. Zero compromise on data quality.</p>
                     <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-                        <button class="intel-action-btn large" onclick="switchView('signals')" style="font-size:0.9rem;padding:14px 32px">
-                            <span class="material-symbols-outlined" style="margin-right:8px">radar</span> LAUNCH TERMINAL
-                        </button>
                         <button class="intel-action-btn large secondary" onclick="switchView('help')" style="font-size:0.9rem;padding:14px 32px">
                             <span class="material-symbols-outlined" style="margin-right:8px">menu_book</span> VIEW DOCUMENTATION
                         </button>
