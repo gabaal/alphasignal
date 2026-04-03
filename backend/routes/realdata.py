@@ -49,23 +49,78 @@ def fetch_fear_greed() -> dict:
     return {'value': 50, 'label': 'Neutral', 'history': [], 'source': 'fallback'}
 
 
-# ─── Network Congestion (BTC mempool) ─────────────────────────────────────────
+# ─── Network Congestion (BTC mempool fee rate + tx count) ─────────────────────
 def fetch_network_congestion() -> int:
-    """Returns 0-100 congestion score from BTC unconfirmed tx count — cached 5min."""
+    """
+    0-100 composite congestion score — cached 5 min.
+    Primary source: mempool.space (fee rates + mempool depth).
+    Fallback:       blockchain.info unconfirmed tx count.
+
+    Scoring model:
+      fee_score  = log-scaled 1h-confirmation fee rate (sat/vbyte), capped at 200
+                   1 sat/vb → ~13   20 sat/vb → ~57   100 sat/vb → ~87   200 sat/vb → 100
+      count_score = linear, capped at 150k unconfirmed txs   (150k → 100)
+      composite  = fee_score * 0.65 + count_score * 0.35
+    """
+    import math
     cached = _get('btc_congestion')
     if cached is not None:
         return cached
+
+    try:
+        # ── 1. Fee rates from mempool.space ──────────────────────────────────
+        fee_r = requests.get(
+            'https://mempool.space/api/v1/fees/recommended',
+            timeout=5,
+            headers={'Accept': 'application/json'}
+        )
+        # ── 2. Mempool depth (tx count + vsize) from mempool.space ───────────
+        mem_r = requests.get(
+            'https://mempool.space/api/mempool',
+            timeout=5,
+            headers={'Accept': 'application/json'}
+        )
+
+        if fee_r.status_code == 200 and mem_r.status_code == 200:
+            fees = fee_r.json()
+            mem  = mem_r.json()
+
+            # Use 1-hour confirmation fee as the primary congestion signal
+            # (represents what you need to pay to reliably confirm in ~1h)
+            hour_fee = float(fees.get('hourFee', fees.get('halfHourFee', 5)))
+
+            # Log-scale: 200 sat/vbyte = 100% congestion (Ordinals-era extreme)
+            # log1p(200) ≈ 5.298 — anchors the top of the scale
+            fee_score = min(100, int(math.log1p(hour_fee) / math.log1p(200) * 100))
+
+            # Linear tx-count score capped at 150k txs
+            tx_count   = int(mem.get('count', 0))
+            count_score = min(100, int(tx_count / 1500))
+
+            # Composite: fee rate carries 65% weight, tx count 35%
+            score = int(fee_score * 0.65 + count_score * 0.35)
+            score = max(0, min(100, score))
+
+            print(f'[NetworkCongestion/mempool.space] hourFee={hour_fee} sat/vb '
+                  f'txs={tx_count:,} → fee_score={fee_score} count_score={count_score} composite={score}')
+            _set('btc_congestion', score, ttl=300)
+            return score
+
+    except Exception as e:
+        print(f'[NetworkCongestion/mempool.space] {e}')
+
+    # ── Fallback: blockchain.info tx count only ───────────────────────────────
     try:
         r = requests.get('https://blockchain.info/q/unconfirmedcount', timeout=4)
         if r.status_code == 200:
             unconf = int(r.text.strip())
-            # Scale: 0 txs = 0%, ~150k txs = 100%
             score = min(100, int(unconf / 1500))
             _set('btc_congestion', score, ttl=300)
             return score
     except Exception as e:
         print(f'[NetworkCongestion/blockchain.info] {e}')
-    return 35  # conservative fallback
+
+    return 35  # conservative static fallback
 
 
 # ─── Retail FOMO (Google Trends via pytrends) ─────────────────────────────────
