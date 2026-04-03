@@ -305,7 +305,7 @@ async function renderPerformanceDashboard(tabs = null) {
             const vals = labels.map(k => typeof mix[k] === 'number' && mix[k] < 1.5 ? Math.round(mix[k] * total) : (mix[k] || 0));
             new Chart(mixCtx.getContext('2d'), {
                 type: 'doughnut',
-                data: { labels, datasets: [{ data: vals, backgroundColor: ['#7dd3fc','#bc13fe','#22c55e','#f59e0b','#60a5fa'], borderColor: 'rgba(13,17,23,0.5)', borderWidth: 2, hoverOffset: 6 }] },
+                data: { labels, datasets: [{ data: vals, backgroundColor: ['#7dd3fc','#8b5cf6','#22c55e','#f59e0b','#60a5fa'], borderColor: 'rgba(13,17,23,0.5)', borderWidth: 2, hoverOffset: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
                     plugins: {
                         legend: { position: 'right', labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 }, padding: 12, boxWidth: 12 } },
@@ -329,7 +329,7 @@ async function renderPerformanceDashboard(tabs = null) {
                 var ts = d.total_signals || 50;
                 tickers = ['BTC','ETH','SOL','AVAX','BNB'];
                 values  = [Math.round(ts*0.35), Math.round(ts*0.25), Math.round(ts*0.18), Math.round(ts*0.12), Math.round(ts*0.10)];
-                barColors = ['rgba(0,242,255,0.7)','rgba(188,19,254,0.7)','rgba(34,197,94,0.7)','rgba(245,158,11,0.7)','rgba(96,165,250,0.7)'];
+                barColors = ['rgba(0,242,255,0.7)','rgba(139,92,246,0.7)','rgba(34,197,94,0.7)','rgba(245,158,11,0.7)','rgba(96,165,250,0.7)'];
             }
             new Chart(tkCtx.getContext('2d'), {
                 type: 'bar',

@@ -7,7 +7,7 @@ async function renderETFFlows(tabs = null) {
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="intel-action-btn mini" onclick="showSignalDetail(null,'BTC-USD')" style="width:auto;padding:4px 12px;font-size:0.6rem;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border-color:rgba(0,242,255,0.3)">
+                <button class="intel-action-btn mini" onclick="showSignalDetail(null,'BTC-USD')" style="width:auto;padding:4px 12px;font-size:0.6rem;display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(139,92,246,0.1));border-color:rgba(0,242,255,0.3)">
                     <span class="material-symbols-outlined" style="font-size:13px">psychology</span> AI DEEP-DIVE
                 </button>
                 <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-macro-compass')">

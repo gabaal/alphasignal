@@ -532,7 +532,7 @@ async function renderSignalArchive(tabs = null) {
                                 <td style="padding:10px 12px; color:var(--text-dim)">${s.timestamp ? s.timestamp.split(' ')[0] : '-'}</td>
                                 <td style="padding:8px 12px; text-align:center; white-space:nowrap">
                                     <button onclick="openDetail('${s.ticker}','CRYPTO')" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
-                                    <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);color:#bc13fe;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="AI Analysis">AI</button>
+                                    <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="AI Analysis">AI</button>
                                 </td>
                             </tr>
                         `).join('')}

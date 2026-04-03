@@ -434,7 +434,7 @@ function openOnchainModal(type) {
         if (data) {
             const prices=data.map(d=>d.price), rets=prices.map((p,i)=>i===0?0:Math.log(p/prices[i-1]));
             const volData=data.map((d,i)=>{ if(i<30)return null; const sl=rets.slice(i-30,i),mean=sl.reduce((a,b)=>a+b,0)/30,v=sl.reduce((a,b)=>a+(b-mean)**2,0)/29; return { time:d.time, value:parseFloat((Math.sqrt(v*365)*100).toFixed(2)) }; }).filter(Boolean);
-            chart.addAreaSeries({ topColor:'rgba(188,19,254,0.3)', bottomColor:'rgba(188,19,254,0.02)', lineColor:'#bc13fe', lineWidth:2, title:'Vol %' }).setData(volData);
+            chart.addAreaSeries({ topColor:'rgba(139,92,246,0.3)', bottomColor:'rgba(139,92,246,0.02)', lineColor:'#8b5cf6', lineWidth:2, title:'Vol %' }).setData(volData);
         }
     }
     chart.timeScale().fitContent();
@@ -493,7 +493,7 @@ async function renderBacktesterV2(tabs = null) {
                 <div style="display:flex;gap:12px;font-size:0.65rem">
                     <span style="color:#00d4aa">&#9632; Strategy</span>
                     <span style="color:#f7931a">&#9632; BTC Benchmark</span>
-                    <span style="color:#bc13fe">&#9632; Rolling Sharpe</span>
+                    <span style="color:#8b5cf6">&#9632; Rolling Sharpe</span>
                 </div>
             </div>
             <canvas id="btv2-sharpe-chart" role="img" aria-label="Rolling Sharpe ratio chart" height="280"></canvas>
@@ -600,7 +600,7 @@ function renderBtv2Chart(rolling) {
             datasets: [
                 { label: 'Strategy (%)', data: rolling.map(function(r){return r.strat_cumulative;}), borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,0.08)', fill: true, tension: 0.4, pointRadius: 0, yAxisID: 'y1' },
                 { label: 'BTC (%)', data: rolling.map(function(r){return r.btc_cumulative;}), borderColor: '#f7931a', borderDash: [4,3], fill: false, tension: 0.4, pointRadius: 0, yAxisID: 'y1' },
-                { label: 'Rolling Sharpe', data: rolling.map(function(r){return r.sharpe;}), borderColor: '#bc13fe', fill: false, tension: 0.4, pointRadius: 0, yAxisID: 'y2' }
+                { label: 'Rolling Sharpe', data: rolling.map(function(r){return r.sharpe;}), borderColor: '#8b5cf6', fill: false, tension: 0.4, pointRadius: 0, yAxisID: 'y2' }
             ]
         },
         options: {
@@ -610,7 +610,7 @@ function renderBtv2Chart(rolling) {
             scales: {
                 x: { ticks: { color: '#6b7280', maxTicksLimit: 12, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Date', color: '#4b5563', font: { size: 9 } } },
                 y1: { position: 'left', ticks: { color: '#9ca3af', font: { size: 10 }, callback: function(v){return v+'%';} }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Cumulative Return (%)', color: '#9ca3af', font: { size: 9 } } },
-                y2: { position: 'right', ticks: { color: '#bc13fe', font: { size: 10 } }, grid: { display: false }, title: { display: true, text: 'Sharpe Ratio', color: '#bc13fe', font: { size: 9 } } }
+                y2: { position: 'right', ticks: { color: '#8b5cf6', font: { size: 10 } }, grid: { display: false }, title: { display: true, text: 'Sharpe Ratio', color: '#8b5cf6', font: { size: 9 } } }
             }
         }
     });
@@ -719,7 +719,7 @@ async function loadOptionsFlow(currency) {
 
         const ids = ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'];
         const vals = [d.pcr, '$' + (d.max_pain||0).toLocaleString(), d.atm_iv + '%', d.iv_pct_rank + 'th', d.call_oi, d.put_oi];
-        const colors = [d.pcr > 1 ? '#ef4444' : '#22c55e','#00d4aa','#bc13fe','#ffd700','#22c55e','#ef4444'];
+        const colors = [d.pcr > 1 ? '#ef4444' : '#22c55e','#00d4aa','#8b5cf6','#ffd700','#22c55e','#ef4444'];
         ids.forEach((id, i) => {
             const el = document.getElementById('opts-' + id);
             if (el) { el.textContent = vals[i]; el.style.color = colors[i]; }
@@ -736,7 +736,7 @@ async function loadOptionsFlow(currency) {
                         labels: d.iv_smile.map(p => (p.moneyness >= 0 ? '+' : '') + p.moneyness + '%'),
                         datasets: [{
                             label: 'IV %', data: d.iv_smile.map(p => p.iv),
-                            borderColor: '#bc13fe', backgroundColor: 'rgba(188,19,254,0.1)',
+                            borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)',
                             borderWidth: 2, tension: 0.4, pointRadius: 3, fill: true
                         }]
                     },
@@ -767,7 +767,7 @@ async function loadOptionsFlow(currency) {
                     <td style="padding:7px 10px;font-weight:700">$${s.strike.toLocaleString()}</td>
                     <td style="padding:7px 10px"><span style="font-size:0.6rem;padding:2px 7px;border-radius:10px;background:${s.type==='C'?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${s.type==='C'?'#22c55e':'#ef4444'}">${s.type==='C'?'CALL':'PUT'}</span></td>
                     <td style="padding:7px 10px;color:var(--text-dim);font-size:0.7rem">${s.expiry}</td>
-                    <td style="padding:7px 10px;color:#bc13fe;font-weight:700">${s.iv}%</td>
+                    <td style="padding:7px 10px;color:#8b5cf6;font-weight:700">${s.iv}%</td>
                     <td style="padding:7px 10px">${s.volume.toLocaleString()}</td>
                     <td style="padding:7px 10px;font-weight:700;color:var(--accent)">${s.oi.toLocaleString()}</td>
                 </tr>`).join('');
@@ -816,7 +816,7 @@ async function renderAIRebalancer() {
                             const clr = act === 'ADD' ? '#22c55e' : act === 'REDUCE' ? '#ef4444' : '#60a5fa';
                             return `<tr style="background:rgba(255,255,255,0.02)">
                                 <td style="padding:8px 10px;font-weight:700">${w.ticker}</td>
-                                <td style="padding:8px 10px;color:#bc13fe">${w.ml_score}%</td>
+                                <td style="padding:8px 10px;color:#8b5cf6">${w.ml_score}%</td>
                                 <td style="padding:8px 10px;color:var(--text-dim)">${w.current_pct}</td>
                                 <td style="padding:8px 10px;font-weight:700;color:#00d4aa">${w.suggested_pct}</td>
                                 <td style="padding:8px 10px"><span style="font-size:0.6rem;padding:2px 8px;border-radius:8px;background:${clr}22;color:${clr};font-weight:700">${act}</span></td>
@@ -927,7 +927,7 @@ window.runAIRebalancerView = async function() {
                             const bar = Math.min(pct * 2.5, 100);
                             return `<tr style="background:rgba(255,255,255,0.02)">
                                 <td style="padding:10px 12px;font-weight:800;font-family:monospace">${w.ticker}</td>
-                                <td style="padding:10px 12px;color:#bc13fe;font-weight:700">${w.ml_score}%</td>
+                                <td style="padding:10px 12px;color:#8b5cf6;font-weight:700">${w.ml_score}%</td>
                                 <td style="padding:10px 12px;color:var(--text-dim)">${w.current_pct}</td>
                                 <td style="padding:10px 12px">
                                     <span style="font-weight:800;color:#00d4aa">${w.suggested_pct}</span>
@@ -1009,7 +1009,7 @@ async function renderMacroCalendar(tabs = null) {
                             <div style="font-size:0.9rem;font-weight:800;color:var(--text);margin-bottom:4px">${ev.event}</div>
                             <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
                                 <span style="font-size:0.65rem;color:var(--text-dim)">Median BTC move: <b style="color:${ev.median_btc >= 0 ? '#22c55e' : '#ef4444'}">${dDir}${ev.median_btc}%</b></span>
-                                <span style="font-size:0.65rem;color:var(--text-dim)">Avg volatility: <b style="color:#bc13fe">${ev.avg_vol}%</b></span>
+                                <span style="font-size:0.65rem;color:var(--text-dim)">Avg volatility: <b style="color:#8b5cf6">${ev.avg_vol}%</b></span>
                                 <span style="font-size:0.65rem;color:var(--text-dim)">Bull bias: <b style="color:#ffd700">${ev.bull_bias}%</b></span>
                             </div>
                             <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:6px">LAST 6 INSTANCES Ã¢â‚¬” BTC DAY-OF MOVE</div>
@@ -1256,7 +1256,7 @@ async function renderCustomAnalytics(tabs) {
             containers.volatility.innerHTML = '';
             const c3 = LightweightCharts.createChart(containers.volatility, chartOpts(280));
             charts.volatility = { c: c3, id: 'custom-volatility', h: 280 };
-            c3.addAreaSeries({ topColor: 'rgba(188,19,254,0.3)', bottomColor: 'rgba(188,19,254,0.02)', lineColor: '#bc13fe', lineWidth: 2, title: 'Vol %' }).setData(volData);
+            c3.addAreaSeries({ topColor: 'rgba(139,92,246,0.3)', bottomColor: 'rgba(139,92,246,0.02)', lineColor: '#8b5cf6', lineWidth: 2, title: 'Vol %' }).setData(volData);
             c3.timeScale().fitContent();
             _lwAxisLabel(containers.volatility, 'VOL. (% ANN.)', 'DATE');
 

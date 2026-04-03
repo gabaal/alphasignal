@@ -101,16 +101,16 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     <div class="thesis-strip" id="${cardId}-strip"
                         onclick="event.stopPropagation(); toggleInlineThesis('${s.ticker}', '${dir}', '${zAbs}', '${cardId}')"
                         style="margin-top:10px;padding:7px 10px;border-radius:7px;cursor:pointer;
-                               background:rgba(188,19,254,0.07);border:1px solid rgba(188,19,254,0.2);
+                               background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);
                                display:flex;align-items:center;gap:7px;transition:background 0.2s;"
-                        onmouseover="this.style.background='rgba(188,19,254,0.14)'"
-                        onmouseout="this.style.background='rgba(188,19,254,0.07)'">
-                        <span class="material-symbols-outlined" style="font-size:14px;color:#bc13fe;flex-shrink:0;">psychology</span>
-                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:1px;color:#bc13fe;">AI THESIS</span>
-                        <span id="${cardId}-chevron" class="material-symbols-outlined" style="font-size:14px;color:rgba(188,19,254,0.5);margin-left:auto;transition:transform 0.2s;">expand_more</span>
+                        onmouseover="this.style.background='rgba(139,92,246,0.14)'"
+                        onmouseout="this.style.background='rgba(139,92,246,0.07)'">
+                        <span class="material-symbols-outlined" style="font-size:14px;color:#8b5cf6;flex-shrink:0;">psychology</span>
+                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:1px;color:#8b5cf6;">AI THESIS</span>
+                        <span id="${cardId}-chevron" class="material-symbols-outlined" style="font-size:14px;color:rgba(139,92,246,0.5);margin-left:auto;transition:transform 0.2s;">expand_more</span>
                     </div>
                     <div id="${cardId}-thesis" style="display:none;padding:8px 10px 2px;font-size:0.75rem;
-                        line-height:1.6;color:var(--text-dim);border-left:2px solid rgba(188,19,254,0.3);
+                        line-height:1.6;color:var(--text-dim);border-left:2px solid rgba(139,92,246,0.3);
                         margin-top:6px;"></div>
                 </div>
             `}).join('')}
@@ -285,7 +285,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         label: 'Gaussian Fit',
                         data: gaussian,
                         type: 'line',
-                        borderColor: 'rgba(188,19,254,0.85)',
+                        borderColor: 'rgba(139,92,246,0.85)',
                         borderWidth: 2,
                         pointRadius: 0,
                         tension: 0.45,

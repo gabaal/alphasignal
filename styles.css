@@ -90,7 +90,7 @@ select, option {
 /* Top Bar Base */
 .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.07); position: relative; z-index: 500; overflow: visible; }
 .signal-feed { display: flex; align-items: center; gap: 1rem; overflow: hidden; white-space: nowrap; flex: 1; min-width: 0; }
-.feed-label { background: #bc13fe; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 900; flex-shrink: 0; z-index: 2; }
+.feed-label { background: #8b5cf6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 900; flex-shrink: 0; z-index: 2; }
 .scroller-container { flex: 1; overflow: hidden; mask-image: linear-gradient(to right, transparent, black 20px); -webkit-mask-image: linear-gradient(to right, transparent, black 20px); display: flex; align-items: center; }
 .scroller { font-family: 'JetBrains Mono'; font-size: 0.85rem; animation: scroll 60s linear infinite; white-space: nowrap; }
 @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
@@ -213,9 +213,9 @@ select, option {
 .dim { color: var(--text-dim) !important; }
 
 /* Pack G5: AI Analyst Modal */
-.ai-analyst-panel { max-width: 600px; border-top: 4px solid #bc13fe; }
+.ai-analyst-panel { max-width: 600px; border-top: 4px solid #8b5cf6; }
 .ai-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-.ai-orb { width: 20px; height: 20px; background: #bc13fe; border-radius: 50%; animation: pulse-ai 2s infinite; }
+.ai-orb { width: 20px; height: 20px; background: #8b5cf6; border-radius: 50%; animation: pulse-ai 2s infinite; }
 @keyframes pulse-ai { 0% { box-shadow: 0 0 0 0 rgba(188, 19, 254, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(188, 19, 254, 0); } 100% { box-shadow: 0 0 0 0 rgba(188, 19, 254, 0); } }
 .ai-report-box { background: rgba(188, 19, 254, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(188, 19, 254, 0.2); line-height: 1.8; font-size: 0.95rem; color: #e6edf3; }
 
@@ -225,7 +225,7 @@ select, option {
 .zone { margin-bottom: 1.5rem; padding-left: 1rem; border-left: 3px solid transparent; font-size: 0.85rem; color: var(--text-dim); }
 .zone span { display: block; color: var(--text-main); font-weight: 700; margin-bottom: 0.2rem; }
 .zone-alpha { border-color: var(--accent); }
-.zone-hype { border-color: #bc13fe; }
+.zone-hype { border-color: #8b5cf6; }
 .zone-under { border-color: #ff9f00; }
 
 /* Pack G3: Risk Dashboard */
@@ -2840,7 +2840,7 @@ input[type="range"]::-webkit-slider-thumb {
     animation: toast-slide-out 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-.toast.regime { border-left-color: #bc13fe; }
+.toast.regime { border-left-color: #8b5cf6; }
 .toast.alert { border-left-color: var(--accent); }
 .toast.error { border-left-color: var(--risk-high); }
 
@@ -2881,7 +2881,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .premium-badge {
-    background: linear-gradient(135deg, #bc13fe 0%, #7000ff 100%);
+    background: linear-gradient(135deg, #8b5cf6 0%, #7000ff 100%);
     border: 1px solid rgba(139,92,246,0.3);
 }
 
@@ -3142,12 +3142,12 @@ h4 {
 
 /* ── AI Deep-Dive button glow ──────────────────────────────── */
 .intel-action-btn.ai-glow {
-    background: linear-gradient(135deg, rgba(0,242,255,0.15), rgba(188,19,254,0.1));
+    background: linear-gradient(135deg, rgba(0,242,255,0.15), rgba(139,92,246,0.1));
     border-color: rgba(0,242,255,0.3);
     transition: all 0.2s ease;
 }
 .intel-action-btn.ai-glow:hover {
-    box-shadow: 0 0 15px rgba(0,242,255,0.25), 0 0 30px rgba(188,19,254,0.1);
+    box-shadow: 0 0 15px rgba(0,242,255,0.25), 0 0 30px rgba(139,92,246,0.1);
     border-color: var(--accent);
 }
 
@@ -3495,4 +3495,94 @@ h4 {
     0%   { opacity: 1; box-shadow: 0 0 0 0 rgba(0,212,170,0.7); }
     70%  { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0,212,170,0); }
     100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,212,170,0); }
+}
+
+/* -- Hub Tab Refinement: underline tabs, not pill buttons ------------------- */
+.hub-tabs {
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    gap: 0;
+    padding-bottom: 0;
+    margin-bottom: 1.5rem;
+}
+.hub-tabs .intel-action-btn.mini,
+.hub-tabs .intel-action-btn.outline {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    color: var(--text-dim);
+    padding: 8px 16px 10px;
+    margin: 0;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: color 0.2s, border-color 0.2s;
+    transform: none !important;
+    box-shadow: none !important;
+}
+.hub-tabs .intel-action-btn.mini:not(.outline),
+.hub-tabs button:not(.outline).intel-action-btn {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 700;
+}
+.hub-tabs .intel-action-btn.mini:hover,
+.hub-tabs .intel-action-btn.outline:hover {
+    color: var(--text-main);
+    background: transparent;
+    border-bottom-color: rgba(255,255,255,0.2);
+}
+
+/* -- Delta values: white not accent-blue ------------------------------------ */
+.delta-value { color: var(--text-main) !important; }
+
+/* -- Feed label (LIVE ALPHA): less aggressive ------------------------------- */
+.feed-label {
+    background: rgba(139,92,246,0.15) !important;
+    color: rgba(167,139,250,0.9) !important;
+    border: 1px solid rgba(139,92,246,0.25) !important;
+    font-size: 0.6rem !important;
+}
+
+/* -- Premium/LIVE badge: same treatment ------------------------------------- */
+.premium-badge {
+    background: rgba(139,92,246,0.15) !important;
+    color: rgba(167,139,250,0.9) !important;
+    border: 1px solid rgba(139,92,246,0.2) !important;
+    box-shadow: none !important;
+}
+
+/* -- Signal card LONG/SHORT badges: muted ----------------------------------- */
+.label-tag {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--text-dim) !important;
+}
+.label-tag[style*="color: var(--risk-low)"],
+.label-tag[style*="LONG"] { color: var(--risk-low) !important; }
+
+/* -- BTC correlation big numbers: white --------------------------------------*/
+.correlation-val, .big-stat, .stat-hero { color: var(--text-main) !important; }
+
+/* -- Action button (top bar): subtle --------------------------------------- */
+.action-btn-styled.primary {
+    background: rgba(125,211,252,0.12) !important;
+    color: var(--accent) !important;
+    border: 1px solid rgba(125,211,252,0.3) !important;
+    box-shadow: none !important;
+}
+.action-btn-styled.primary:hover {
+    background: rgba(125,211,252,0.2) !important;
+    box-shadow: none !important;
+}
+/* -- Landing hero: remove image glow, use clean gradient depth --------------*/
+.landing-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(125,211,252,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
 }

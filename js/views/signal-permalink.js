@@ -88,7 +88,7 @@ async function renderSignalPermalink(signalId) {
 
         <!-- CTA for non-users -->
         ${!isAuthenticatedUser ? `
-        <div class="card" style="padding:1.5rem;text-align:center;margin-top:1rem;background:linear-gradient(135deg,rgba(0,242,255,0.08),rgba(188,19,254,0.06));border:1px solid rgba(0,242,255,0.2)">
+        <div class="card" style="padding:1.5rem;text-align:center;margin-top:1rem;background:linear-gradient(135deg,rgba(0,242,255,0.08),rgba(139,92,246,0.06));border:1px solid rgba(0,242,255,0.2)">
             <div style="font-size:0.6rem;color:var(--accent);letter-spacing:3px;margin-bottom:0.5rem">INSTITUTIONAL INTELLIGENCE</div>
             <h3 style="margin:0 0 0.5rem;font-size:1.1rem">Track 50+ assets live. Free to join.</h3>
             <p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">Real-time signals, on-chain alerts, AI analysis, and your personal watchlist.</p>

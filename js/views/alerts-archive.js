@@ -317,11 +317,11 @@ async function renderAlerts(tabs = null) {
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
                             <span>📐 CME GAP MIN SIZE</span>
-                            <span id="cme-val-display" style="color:#bc13fe;font-weight:900">1.0%</span>
+                            <span id="cme-val-display" style="color:#8b5cf6;font-weight:900">1.0%</span>
                         </label>
                         <input type="range" id="cme-gap-threshold-slider" min="0.1" max="5" step="0.1" value="1.0" aria-label="CME gap size threshold in percent" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="1.0"
                             oninput="document.getElementById('cme-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
-                            style="width:100%;accent-color:#bc13fe;cursor:pointer">
+                            style="width:100%;accent-color:#8b5cf6;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
                             <span>0.1%</span><span>5%</span>
                         </div>
@@ -334,7 +334,7 @@ async function renderAlerts(tabs = null) {
                 <button id="save-alert-settings-btn" onclick="saveAlertSettings()" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:10px 20px;border-radius:8px;font-weight:900;font-size:0.7rem;cursor:pointer;letter-spacing:1px;flex:1;min-width:120px">
                     <span class="material-symbols-outlined" style="vertical-align:middle;font-size:1rem;margin-right:4px">save</span>SAVE SETTINGS
                 </button>
-                <button onclick="testFireAlertSettings()" style="background:rgba(188,19,254,0.15);color:#bc13fe;border:1px solid rgba(188,19,254,0.3);padding:10px 20px;border-radius:8px;font-weight:800;font-size:0.7rem;cursor:pointer;letter-spacing:1px;flex:1;min-width:120px">
+                <button onclick="testFireAlertSettings()" style="background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);padding:10px 20px;border-radius:8px;font-weight:800;font-size:0.7rem;cursor:pointer;letter-spacing:1px;flex:1;min-width:120px">
                     <span class="material-symbols-outlined" style="vertical-align:middle;font-size:1rem;margin-right:4px">send</span>TEST FIRE ALERT
                 </button>
                 <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" style="background:rgba(88,101,242,0.15);color:#8c9eff;border:1px solid rgba(88,101,242,0.3);padding:10px 16px;border-radius:8px;font-weight:800;font-size:0.7rem;cursor:pointer;letter-spacing:1px;display:flex;align-items:center;gap:4px;text-decoration:none">
@@ -351,7 +351,7 @@ async function renderAlerts(tabs = null) {
                 ['badge-whale-trigger','Whale Txn &gt; $5M',   '#7dd3fc', 'account_balance_wallet'],
                 ['badge-depeg-trigger','De-peg &gt; 1.0%',     '#ef4444', 'warning'],
                 ['badge-vol-trigger',  'Vol Spike 2.0×',       '#f59e0b', 'bolt'],
-                ['badge-cme-trigger',  'CME Gap 1.0%',         '#bc13fe', 'pivot_table_chart']
+                ['badge-cme-trigger',  'CME Gap 1.0%',         '#8b5cf6', 'pivot_table_chart']
             ].map(([id, label, color, icon]) => `
                 <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.03);border:1px solid ${color}33;border-radius:6px;padding:4px 10px">
                     <span class="material-symbols-outlined" style="font-size:12px;color:${color}">${icon}</span>

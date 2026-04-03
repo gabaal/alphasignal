@@ -7,7 +7,7 @@ async function renderHome() {
 
     appEl.innerHTML = `
         <div class="landing-page">
-            <div class="landing-bg-overlay" style="background-image: url('landing_hero_abstract.png')"></div>
+            <div class="landing-bg-overlay" aria-hidden="true"></div>
 
             <!-- ===== HERO ===== -->
             <section class="hero-section">
@@ -130,18 +130,18 @@ async function renderHome() {
             </section>
 
             <!-- ===== PHASE 20 FEATURE SPOTLIGHT ===== -->
-            <section style="padding:4rem 2rem;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(188,19,254,0.04),rgba(0,0,0,0.4))">
+            <section style="padding:4rem 2rem;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(139,92,246,0.04),rgba(0,0,0,0.4))">
                 <div style="max-width:1200px;margin:0 auto">
                     <div style="text-align:center;margin-bottom:3rem">
-                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#bc13fe;background:rgba(188,19,254,0.1);border:1px solid rgba(188,19,254,0.3);border-radius:100px;padding:4px 14px">PHASE 20 — GROWTH &amp; RETENTION · v1.54</span>
+                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#8b5cf6;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:100px;padding:4px 14px">PHASE 20 — GROWTH &amp; RETENTION · v1.54</span>
                         <h2 style="margin-top:1.5rem">Built for Traders Who Stay</h2>
                         <p style="color:var(--text-dim)">My Terminal, real-time price alerts, viral signal sharing, and full PWA mobile support — all shipped in v1.53. Data quality, chart polish, and WebGL stability hardened in v1.54.</p>
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
                         ${[
-                            { icon: 'account_circle', view: 'my-terminal', color: '#7dd3fc', title: 'My Terminal — Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
+                            { icon: 'account_circle', view: 'my-terminal', color: '#00f2ff', title: 'My Terminal — Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
                             { icon: 'notifications_active', view: 'my-terminal', color: '#22c55e', title: 'Real-Time Price Alerts', desc: 'Target price crossing alerts fire as browser notifications the instant a watched asset hits your price — backed by the live WebSocket price stream.' },
-                            { icon: 'link', view: 'alerts', color: '#bc13fe', title: 'Signal Permalinks', desc: 'Every signal gets a public shareable URL with live vs signal price performance, AI thesis analysis, and one-click Add to Watchlist for visitors.' },
+                            { icon: 'link', view: 'alerts', color: '#8b5cf6', title: 'Signal Permalinks', desc: 'Every signal gets a public shareable URL with live vs signal price performance, AI thesis analysis, and one-click Add to Watchlist for visitors.' },
                             { icon: 'install_mobile', view: 'home', color: '#f59e0b', title: 'PWA + Daily Digest', desc: 'Install AlphaSignal as a native app on iOS and Android. 07:30 UTC morning digest delivers top signals to Discord and Telegram automatically.' }
                         ].map(f => `
                             <div class="glass-card" onclick="switchView('${f.view}')" style="cursor:pointer;padding:1.5rem;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s"
@@ -271,8 +271,8 @@ async function renderHome() {
                         </div>
 
                         <!-- PRO TIER -->
-                        <div style="background:linear-gradient(135deg,rgba(0,242,255,0.07),rgba(188,19,254,0.05));border:2px solid rgba(0,242,255,0.4);border-radius:16px;padding:2rem;display:flex;flex-direction:column;position:relative;box-shadow:0 0 40px rgba(0,242,255,0.08)">
-                            <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--accent),#bc13fe);color:#000;font-size:0.6rem;font-weight:900;letter-spacing:2px;padding:4px 16px;border-radius:100px;white-space:nowrap">MOST POPULAR</div>
+                        <div style="background:linear-gradient(135deg,rgba(0,242,255,0.07),rgba(139,92,246,0.05));border:1px solid rgba(125,211,252,0.25);border-radius:16px;padding:2rem;display:flex;flex-direction:column;position:relative;box-shadow:0 0 40px rgba(0,242,255,0.08)">
+                            <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:rgba(125,211,252,0.12);color:var(--accent);font-size:0.6rem;font-weight:900;letter-spacing:2px;padding:4px 16px;border-radius:100px;white-space:nowrap">MOST POPULAR</div>
                             <div style="font-size:0.65rem;letter-spacing:2px;color:var(--accent);font-weight:700;margin-bottom:0.5rem">PRO</div>
                             <div style="font-size:2.5rem;font-weight:900;margin-bottom:0.25rem;color:var(--accent)">$7.99<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
                             <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:2rem">Cancel anytime · Billed monthly</div>
@@ -296,7 +296,7 @@ async function renderHome() {
                                     ${label}
                                 </div>`).join('')}
                             </div>
-                            <button class="intel-action-btn large" style="width:100%;background:linear-gradient(90deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border-color:var(--accent);font-size:0.85rem" onclick="typeof handleSubscribe !== 'undefined' ? handleSubscribe() : switchView('signals')">
+                            <button class="intel-action-btn large" style="width:100%;background:linear-gradient(90deg,rgba(0,242,255,0.15),rgba(139,92,246,0.1));border-color:var(--accent);font-size:0.85rem" onclick="typeof handleSubscribe !== 'undefined' ? handleSubscribe() : switchView('signals')">
                                 <span class="material-symbols-outlined" style="margin-right:8px">bolt</span>
                                 UNLOCK PRO — $7.99/MO
                             </button>

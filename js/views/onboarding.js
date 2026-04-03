@@ -69,7 +69,7 @@ window.showOnboardingModal = function() {
                         ['electric_bolt', '#7dd3fc', 'Live Signals', '50+ assets tracked 24/7'],
                         ['add_circle', '#22c55e', 'My Watchlist', 'Track your favourite assets'],
                         ['notifications_active', '#f59e0b', 'Price Alerts', 'Get notified at your targets'],
-                        ['psychology', '#bc13fe', 'AI Thesis', 'AI explains every signal']
+                        ['psychology', '#8b5cf6', 'AI Thesis', 'AI explains every signal']
                     ].map(([icon, color, title, desc]) => `
                         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:1rem">
                             <span class="material-symbols-outlined" style="color:${color};font-size:1.5rem;display:block;margin-bottom:6px">${icon}</span>
@@ -132,7 +132,7 @@ window.showOnboardingModal = function() {
                         <span style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px">LATER</span>
                     </div>
                 </div>
-                <button class="intel-action-btn" style="width:100%;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1))" onclick="finishOnboarding()">
+                <button class="intel-action-btn" style="width:100%;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(139,92,246,0.1))" onclick="finishOnboarding()">
                     <span class="material-symbols-outlined" style="vertical-align:middle;margin-right:6px">check_circle</span>
                     FINISH SETUP → GO TO MY TERMINAL
                 </button>

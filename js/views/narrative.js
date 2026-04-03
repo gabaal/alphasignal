@@ -296,13 +296,13 @@ async function renderBriefing(tabs = null) {
 
 
                 <!-- AI Daily Memo -->
-                <div class="glass-card" id="ai-memo-card" style="margin-bottom:2rem;padding:1.5rem;border:1px solid rgba(188,19,254,0.3);background:linear-gradient(135deg,rgba(188,19,254,0.06),rgba(0,0,0,0.4))">
+                <div class="glass-card" id="ai-memo-card" style="margin-bottom:2rem;padding:1.5rem;border:1px solid rgba(139,92,246,0.3);background:linear-gradient(135deg,rgba(139,92,246,0.06),rgba(0,0,0,0.4))">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
                         <div style="display:flex;align-items:center;gap:10px">
-                            <span class="material-symbols-outlined" style="color:#bc13fe">smart_toy</span>
-                            <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:#bc13fe">AI INSTITUTIONAL MEMO</span>
+                            <span class="material-symbols-outlined" style="color:#8b5cf6">smart_toy</span>
+                            <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:#8b5cf6">AI INSTITUTIONAL MEMO</span>
                         </div>
-                        <button onclick="refreshAIMemo()" style="background:none;border:1px solid rgba(188,19,254,0.3);color:#bc13fe;padding:4px 10px;border-radius:6px;font-size:0.6rem;cursor:pointer;letter-spacing:1px">REFRESH</button>
+                        <button onclick="refreshAIMemo()" style="background:none;border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;padding:4px 10px;border-radius:6px;font-size:0.6rem;cursor:pointer;letter-spacing:1px">REFRESH</button>
                     </div>
                     <div id="ai-memo-body" style="font-size:0.9rem;line-height:1.7;color:var(--text);min-height:60px">
                         <div style="display:flex;align-items:center;gap:8px;color:var(--text-dim);font-size:0.85rem">

@@ -284,7 +284,7 @@ async function renderCommandCenter() {
                 const existing = Chart.getChart('cmd-categoryDonutChart'); if (existing) existing.destroy();
                 const cats = {}; _sigs.forEach(s=>{ cats[s.category]=(cats[s.category]||0)+1; });
                 const labels=Object.keys(cats), counts=labels.map(k=>cats[k]);
-                const palette=['#7dd3fc','#22c55e','#f59e0b','#bc13fe','#ef4444','#60a5fa','#fb923c','#a78bfa','#34d399'];
+                const palette=['#7dd3fc','#22c55e','#f59e0b','#8b5cf6','#ef4444','#60a5fa','#fb923c','#a78bfa','#34d399'];
                 new Chart(el.getContext('2d'), {
                     type:'doughnut',
                     data:{ labels, datasets:[{ data:counts, backgroundColor:labels.map((_,i)=>palette[i%palette.length]+'cc'), borderColor:'rgba(5,7,30,1)', borderWidth:2, hoverOffset:6 }]},
@@ -481,7 +481,7 @@ function openCmdChartModal(key) {
         } else if (key === 'donut') {
             const cats = {}; sigs.forEach(s=>{ cats[s.category]=(cats[s.category]||0)+1; });
             const labels=Object.keys(cats), counts=labels.map(k=>cats[k]);
-            const palette=['#7dd3fc','#22c55e','#f59e0b','#bc13fe','#ef4444','#60a5fa','#fb923c','#a78bfa','#34d399'];
+            const palette=['#7dd3fc','#22c55e','#f59e0b','#8b5cf6','#ef4444','#60a5fa','#fb923c','#a78bfa','#34d399'];
             new Chart(ctx, {
                 type:'doughnut',
                 data:{ labels, datasets:[{ data:counts, backgroundColor:labels.map((_,i)=>palette[i%palette.length]+'cc'), borderColor:'rgba(5,7,30,1)', borderWidth:3, hoverOffset:12 }]},
