@@ -404,16 +404,6 @@ async function renderHome() {
             renderSystemGauge('gauge-fear',       liveDials.fear_greed.value,        'rgba(239, 68, 68, 0.8)', 'rgba(34, 197, 94, 0.8)');
             renderSystemGauge('gauge-congestion', liveDials.network_congestion.value, 'rgba(34, 197, 94, 0.8)', 'rgba(239, 68, 68, 0.8)');
             renderSystemGauge('gauge-fomo',       liveDials.retail_fomo.value,        'rgba(0, 242, 255, 0.8)', 'rgba(168, 85, 247, 0.8)');
-
-            // Show ⚠ estimated badge if pytrends failed and FOMO is mirroring Fear & Greed
-            const fomoNote = document.getElementById('fomo-source-note');
-            if (fomoNote) {
-                if (liveDials.retail_fomo.source === 'fear_greed_fallback') {
-                    fomoNote.innerHTML = `Google Trends unavailable &nbsp;<span title="pytrends rate-limited — showing Fear &amp; Greed proxy" style="color:#f59e0b;font-size:0.65rem;font-weight:700;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:4px;padding:1px 6px;letter-spacing:1px">⚠ ESTIMATED</span>`;
-                } else {
-                    fomoNote.textContent = 'Google Trends + social search volume divergence from institutional accumulation patterns';
-                }
-            }
         }
     });
 }
