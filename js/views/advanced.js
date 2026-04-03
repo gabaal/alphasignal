@@ -875,9 +875,9 @@ async function renderAdvOptionsSurface(symbol) {
             <div id="iv-stats-bar" style="position:absolute;top:14px;right:18px;display:flex;gap:16px;pointer-events:none;"></div>
 
             <!-- Bottom-left: axis labels + controls hint -->
-            <div style="position:absolute;bottom:46px;left:18px;pointer-events:none;display:flex;flex-direction:column;gap:4px;">
-                <span style="font-size:0.5rem;color:rgba(255,255,255,0.22);letter-spacing:1px;">← MONEYNESS (% of spot) →</span>
-                <span style="font-size:0.5rem;color:rgba(255,255,255,0.22);letter-spacing:1px;">← DAYS TO EXPIRY →</span>
+            <div style="position:absolute;bottom:52px;left:18px;pointer-events:none;display:flex;flex-direction:column;gap:5px;">
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.32);letter-spacing:1.5px;">← MONEYNESS (% of spot) →</span>
+                <span style="font-size:0.72rem;color:rgba(255,255,255,0.32);letter-spacing:1.5px;">← DAYS TO EXPIRY →</span>
             </div>
             <div style="position:absolute;bottom:14px;left:18px;pointer-events:none;">
                 <span style="font-size:0.5rem;color:rgba(255,255,255,0.2);">DRAG TO ROTATE &nbsp;•&nbsp; SCROLL TO ZOOM &nbsp;•&nbsp; HOVER FOR IV</span>
@@ -887,7 +887,7 @@ async function renderAdvOptionsSurface(symbol) {
             <div id="iv-atm-strip" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);pointer-events:none;display:flex;gap:10px;align-items:flex-end;"></div>
 
             <!-- Right-side vertical colourbar (populated after data loads) -->
-            <div id="iv-colourbar" style="position:absolute;top:50px;right:14px;width:28px;display:flex;flex-direction:column;align-items:center;gap:0;pointer-events:none;">
+            <div id="iv-colourbar" style="position:absolute;top:46px;right:14px;width:56px;display:flex;flex-direction:column;align-items:center;gap:0;pointer-events:none;">
                 <!-- ticks injected by JS -->
             </div>
         </div>`;
@@ -948,25 +948,25 @@ async function renderAdvOptionsSurface(symbol) {
     const colourbar = document.getElementById('iv-colourbar');
     if (colourbar) {
         // Label at top
-        colourbar.innerHTML = `<span style="font-size:0.45rem;color:rgba(255,255,255,0.4);letter-spacing:0.5px;margin-bottom:3px;writing-mode:horizontal-tb;">IV %</span>`;
-        // Gradient bar — 120px tall canvas-like div
+        colourbar.innerHTML = `<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);letter-spacing:0.5px;margin-bottom:4px;writing-mode:horizontal-tb;font-weight:700;">IV %</span>`;
+        // Gradient bar
         const STEPS = 24;
-        const barH  = 160; // px total
+        const barH  = 220; // px total
         let gradient = 'linear-gradient(to bottom,';
         for (let i = STEPS; i >= 0; i--) {
             gradient += `${ivToHex(i / STEPS)}${i > 0 ? ',' : ''}`;
         }
         gradient += ')';
-        colourbar.innerHTML += `<div style="width:14px;height:${barH}px;background:${gradient};border-radius:4px;border:1px solid rgba(255,255,255,0.08);position:relative;">`
+        colourbar.innerHTML += `<div style="width:20px;height:${barH}px;background:${gradient};border-radius:4px;border:1px solid rgba(255,255,255,0.1);position:relative;">`
             // 5 tick marks at 0%, 25%, 50%, 75%, 100% of range
             + [0, 0.25, 0.5, 0.75, 1].map(frac => {
                 const ivVal = minIV + frac * (maxIV - minIV);
                 const topPct = (1 - frac) * 100;
                 const isHigh = ivVal >= 80;
                 const color  = isHigh ? '#ef4444' : ivVal >= 50 ? '#f59e0b' : ivVal >= 30 ? '#10b981' : '#3b82f6';
-                return `<div style="position:absolute;top:${topPct}%;right:-32px;transform:translateY(-50%);display:flex;align-items:center;gap:3px;">`
-                    + `<div style="width:5px;height:1px;background:rgba(255,255,255,0.25);"></div>`
-                    + `<span style="font-size:0.42rem;font-family:'JetBrains Mono',monospace;color:${color};white-space:nowrap;font-weight:700;">${ivVal.toFixed(0)}%</span>`
+                return `<div style="position:absolute;top:${topPct}%;right:-44px;transform:translateY(-50%);display:flex;align-items:center;gap:4px;">`
+                    + `<div style="width:7px;height:1px;background:rgba(255,255,255,0.3);"></div>`
+                    + `<span style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:${color};white-space:nowrap;font-weight:700;">${ivVal.toFixed(0)}%</span>`
                     + `</div>`;
             }).join('')
             + `</div>`;
@@ -976,7 +976,7 @@ async function renderAdvOptionsSurface(symbol) {
             { label:'MED',   color:'#f59e0b'  },
             { label:'NORM',  color:'#10b981'  },
             { label:'LOW',   color:'#3b82f6'  },
-        ].map(z => `<span style="font-size:0.38rem;color:${z.color};letter-spacing:0.5px;font-weight:900;margin-top:2px;">${z.label}</span>`).join('');
+        ].map(z => `<span style="font-size:0.6rem;color:${z.color};letter-spacing:0.5px;font-weight:900;margin-top:3px;">${z.label}</span>`).join('');
     }
 
     // ── Populate per-expiry ATM IV strip (bottom centre) ─────────────────────
@@ -989,14 +989,14 @@ async function renderAdvOptionsSurface(symbol) {
             if (iv == null) return '';
             const t = (iv - minIV) / ((maxIV - minIV) || 1);
             const col = ivToHex(t);
-            return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">`
-                + `<span style="font-size:0.5rem;font-weight:900;color:${col};font-family:'JetBrains Mono',monospace;">${iv.toFixed(1)}%</span>`
-                + `<div style="width:1px;height:8px;background:rgba(255,255,255,0.15);"></div>`
-                + `<span style="font-size:0.4rem;color:rgba(255,255,255,0.35);white-space:nowrap;">${exp}</span>`
+            return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">`
+                + `<span style="font-size:0.72rem;font-weight:900;color:${col};font-family:'JetBrains Mono',monospace;">${iv.toFixed(1)}%</span>`
+                + `<div style="width:1px;height:10px;background:rgba(255,255,255,0.2);"></div>`
+                + `<span style="font-size:0.62rem;color:rgba(255,255,255,0.5);white-space:nowrap;">${exp}</span>`
                 + `</div>`;
-        }).join(`<div style="width:1px;height:20px;background:rgba(255,255,255,0.06);align-self:center;"></div>`);
+        }).join(`<div style="width:1px;height:24px;background:rgba(255,255,255,0.08);align-self:center;"></div>`);
         // Prepend label
-        atmStrip.innerHTML = `<span style="font-size:0.42rem;color:rgba(255,255,255,0.25);letter-spacing:1px;align-self:flex-end;margin-bottom:2px;margin-right:4px;">ATM IV:</span>` + atmStrip.innerHTML;
+        atmStrip.innerHTML = `<span style="font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:1px;align-self:flex-end;margin-bottom:3px;margin-right:6px;font-weight:700;">ATM IV:</span>` + atmStrip.innerHTML;
     }
 
     // ── Three.js setup ────────────────────────────────────────────────────────
