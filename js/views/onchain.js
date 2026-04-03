@@ -1,3 +1,22 @@
+// ── LightweightCharts axis label helper ──────────────────────────────────────
+// Injects absolutely-positioned Y / X-axis titles onto any LW chart container.
+function _lwAxisLabel(container, yText, xText) {
+    if (!container) return;
+    container.style.position = 'relative';
+    if (yText) {
+        const yl = document.createElement('div');
+        yl.style.cssText = 'position:absolute;left:4px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center;font-size:0.52rem;font-weight:700;color:rgba(156,163,175,0.55);letter-spacing:1.5px;z-index:2;pointer-events:none;white-space:nowrap;font-family:"JetBrains Mono",monospace';
+        yl.textContent = yText;
+        container.appendChild(yl);
+    }
+    if (xText) {
+        const xl = document.createElement('div');
+        xl.style.cssText = 'position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:0.5rem;font-weight:700;color:rgba(156,163,175,0.45);letter-spacing:1.5px;z-index:2;pointer-events:none;white-space:nowrap;font-family:"JetBrains Mono",monospace';
+        xl.textContent = xText;
+        container.appendChild(xl);
+    }
+}
+
 async function renderOnChain(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = `
@@ -194,7 +213,7 @@ async function renderOnChain(tabs = null) {
         exchflowChart.addHistogramSeries({ priceFormat: { type: 'price', precision: 0 } })
             .setData(data.map(d => ({ time: d.time, value: d.exch_flow, color: d.exch_flow < 0 ? '#10b981' : '#ef4444' })));
         
-        // Resizing
+        // Resize
         const charts = [
             { c: mvrvChart,       id: 'mvrv-chart',      h: 300 },
             { c: realizedChart,   id: 'realized-chart',  h: 300 },
@@ -206,7 +225,18 @@ async function renderOnChain(tabs = null) {
             { c: cvdChart,        id: 'cvd-chart',       h: 300 },
             { c: exchflowChart,   id: 'exchflow-chart',  h: 250 }
         ];
-        
+
+        // ── Axis labels (HTML overlay — LightweightCharts has no native title API)
+        _lwAxisLabel(mvrvContainer,      'MVRV Z-SCORE',         'DATE');
+        _lwAxisLabel(realizedContainer,  'PRICE (USD)',           'DATE');
+        _lwAxisLabel(soprContainer,      'SOPR RATIO',           'DATE');
+        _lwAxisLabel(puellContainer,     'PUELL MULTIPLE',       'DATE');
+        _lwAxisLabel(nvtContainer,       'NVT RATIO',            'DATE');
+        _lwAxisLabel(hashContainer,      'HASH RATE (EH/s)',     'DATE');
+        _lwAxisLabel(sentimentContainer, 'SENTIMENT INDEX',      'DATE');
+        _lwAxisLabel(cvdContainer,       'CUM. VOL DELTA',       'DATE');
+        _lwAxisLabel(exchflowContainer,  'NET FLOW (BTC)',       'DATE');
+
         const ro = new ResizeObserver(entries => {
             entries.forEach(e => {
                 const target = charts.find(x => x.id === e.target.id);
@@ -247,20 +277,20 @@ function openOnchainModal(type) {
     document.body.style.overflow = 'hidden';
 
     const configs = {
-        mvrv:        { title: 'MVRV Z-SCORE',               sub: 'MARKET VALUE VS REALISED VALUE' },
-        realized:    { title: 'REALIZED PRICE VS SPOT',     sub: 'ON-CHAIN COST BASIS vs CURRENT PRICE' },
-        sopr:        { title: 'SOPR',                       sub: '1.0 = BREAKEVEN THRESHOLD' },
-        puell:       { title: 'PUELL MULTIPLE',             sub: 'MINER REVENUE / 365D MA' },
-        nvt:         { title: 'NVT RATIO',                  sub: 'NETWORK VALUE TO TRANSACTIONS' },
-        hash:        { title: 'HASH RIBBONS',               sub: '30D VS 60D HASHRATE' },
-        sentiment:   { title: 'INVESTOR SENTIMENT INDEX',   sub: 'COMPOSITE SCORE: MVRV + SOPR + PUELL' },
-        cvd:         { title: 'CUMULATIVE VOLUME DELTA',    sub: 'AGGREGATED BUY VS SELL PRESSURE' },
-        exchflow:    { title: 'EXCHANGE NET FLOW',          sub: 'GREEN = OUTFLOW (BULLISH) / RED = INFLOW' },
-        dominance:   { title: 'BTC DOMINANCE',              sub: 'BTC vs ETH vs ALTS - 60D',           htmlOnly: false },
-        funding:     { title: 'FUNDING RATES',              sub: 'CURRENT 8H RATE - LIVE BINANCE FAPI', htmlOnly: true  },
-        'mvrv-sopr': { title: 'MVRV / SOPR OVERLAY',       sub: 'NORMALIZED 0-1',                      htmlOnly: false },
-        volatility:  { title: '30-DAY ROLLING VOLATILITY', sub: 'ANNUALISED',                          htmlOnly: false },
-        correlation: { title: 'CORRELATION MATRIX',         sub: '90-DAY ROLLING — 10 ASSETS',          htmlOnly: true  }
+        mvrv:        { title: 'MVRV Z-SCORE',               sub: 'MARKET VALUE VS REALISED VALUE',          yLabel: 'Z-SCORE' },
+        realized:    { title: 'REALIZED PRICE VS SPOT',     sub: 'ON-CHAIN COST BASIS vs CURRENT PRICE',    yLabel: 'PRICE (USD)' },
+        sopr:        { title: 'SOPR',                       sub: '1.0 = BREAKEVEN THRESHOLD',               yLabel: 'SOPR RATIO' },
+        puell:       { title: 'PUELL MULTIPLE',             sub: 'MINER REVENUE / 365D MA',                 yLabel: 'PUELL MULTIPLE' },
+        nvt:         { title: 'NVT RATIO',                  sub: 'NETWORK VALUE TO TRANSACTIONS',           yLabel: 'NVT RATIO' },
+        hash:        { title: 'HASH RIBBONS',               sub: '30D VS 60D HASHRATE',                     yLabel: 'HASH RATE (EH/s)' },
+        sentiment:   { title: 'INVESTOR SENTIMENT INDEX',   sub: 'COMPOSITE SCORE: MVRV + SOPR + PUELL',    yLabel: 'SENTIMENT INDEX' },
+        cvd:         { title: 'CUMULATIVE VOLUME DELTA',    sub: 'AGGREGATED BUY VS SELL PRESSURE',         yLabel: 'CUM. VOL DELTA' },
+        exchflow:    { title: 'EXCHANGE NET FLOW',          sub: 'GREEN = OUTFLOW (BULLISH) / RED = INFLOW', yLabel: 'NET FLOW (BTC)' },
+        dominance:   { title: 'BTC DOMINANCE',              sub: 'BTC vs ETH vs ALTS - 60D',               yLabel: 'DOMINANCE (%)',    htmlOnly: false },
+        funding:     { title: 'FUNDING RATES',              sub: 'CURRENT 8H RATE - LIVE BINANCE FAPI',     yLabel: null,               htmlOnly: true  },
+        'mvrv-sopr': { title: 'MVRV / SOPR OVERLAY',       sub: 'NORMALIZED 0-1',                          yLabel: 'NORM. VALUE (0-1)', htmlOnly: false },
+        volatility:  { title: '30-DAY ROLLING VOLATILITY', sub: 'ANNUALISED',                              yLabel: 'VOL. (% ANN.)',    htmlOnly: false },
+        correlation: { title: 'CORRELATION MATRIX',         sub: '90-DAY ROLLING — 10 ASSETS',              yLabel: null,               htmlOnly: true  }
     };
     const cfg = configs[type] || { title: type.toUpperCase(), sub: '' };
     document.getElementById('onchain-modal-title').textContent = cfg.title;
@@ -408,6 +438,9 @@ function openOnchainModal(type) {
         }
     }
     chart.timeScale().fitContent();
+
+    // Inject axis labels (HTML overlay — LightweightCharts has no native title API)
+    if (cfg.yLabel) _lwAxisLabel(container, cfg.yLabel, 'DATE');
 
     // Resize on window resize
     window._onchainModalRO = new ResizeObserver(() => {
@@ -1159,6 +1192,7 @@ async function renderCustomAnalytics(tabs) {
             c.addLineSeries({ color: '#6272a4', lineWidth: 1, title: 'ETH %' }).setData(toSeries(dom.labels, dom.eth));
             c.addLineSeries({ color: 'rgba(255,255,255,0.3)', lineWidth: 1, title: 'Alts %' }).setData(toSeries(dom.labels, dom.alts));
             c.timeScale().fitContent();
+            _lwAxisLabel(containers.dominance, 'DOMINANCE (%)', 'DATE');
         }
     } catch(e) { containers.dominance.innerHTML = '<div class="error-msg">Dominance load failed</div>'; }
 
@@ -1224,6 +1258,10 @@ async function renderCustomAnalytics(tabs) {
             charts.volatility = { c: c3, id: 'custom-volatility', h: 280 };
             c3.addAreaSeries({ topColor: 'rgba(188,19,254,0.3)', bottomColor: 'rgba(188,19,254,0.02)', lineColor: '#bc13fe', lineWidth: 2, title: 'Vol %' }).setData(volData);
             c3.timeScale().fitContent();
+            _lwAxisLabel(containers.volatility, 'VOL. (% ANN.)', 'DATE');
+
+            // Also label MVRV/SOPR (created just above)
+            _lwAxisLabel(containers.mvrvSopr, 'NORM. VALUE (0-1)', 'DATE');
         }
     } catch(e) { ['custom-mvrv-sopr','custom-volatility'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<div class="error-msg">Load failed</div>'; }); }
 

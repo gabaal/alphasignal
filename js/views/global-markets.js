@@ -1,4 +1,4 @@
-﻿async function renderETFFlows(tabs = null) {
+async function renderETFFlows(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     const tabHTML = tabs ? renderHubTabs('etf', tabs) : '';
     appEl.innerHTML = `
@@ -171,10 +171,11 @@
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#8b949e' } },
+                    x: { grid: { display: false }, ticks: { color: '#8b949e' }, title: { display: true, text: 'Trading Day', color: '#555', font: { size: 9 } } },
                     y: {
                         grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: '#8b949e', callback: v => '$' + v + 'M' }
+                        ticks: { color: '#8b949e', callback: v => '$' + v + 'M' },
+                        title: { display: true, text: 'Flow / Running Total ($M)', color: '#8b949e', font: { size: 9 } }
                     }
                 }
             }
@@ -254,8 +255,8 @@ async function renderLiquidations(tabs = null) {
                 legend: { labels: { color: '#d1d5db', font: { family: 'JetBrains Mono', size: 10 } } }
             },
             scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-                y: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { weight: 'bold' } } }
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'Liquidations ($M)', color: '#8b949e', font: { size: 9 } } },
+                y: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { weight: 'bold' } }, title: { display: true, text: 'Asset', color: '#8b949e', font: { size: 9 } } }
             }
         }
     });
