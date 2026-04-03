@@ -34,7 +34,7 @@ async function renderMacroSync(tabs = null) {
                     <h3>Ecosystem Capital Dominance</h3>
                 </div>
                 <div class="chart-container" style="height:350px;">
-                    <canvas id="dominanceChart"></canvas>
+                    <canvas id="dominanceChart" role="img" aria-label="BTC market dominance chart"></canvas>
                 </div>
             </div>
 
@@ -64,7 +64,7 @@ async function renderMacroSync(tabs = null) {
                     <h3>Leveraged Funding Divergence (Perpetuals)</h3>
                 </div>
                 <div class="chart-container" style="height:350px;">
-                    <canvas id="fundingOscillatorChart"></canvas>
+                    <canvas id="fundingOscillatorChart" role="img" aria-label="Funding rate oscillator chart"></canvas>
                 </div>
             </div>
             <div class="card" style="margin-top:2rem">
@@ -72,7 +72,7 @@ async function renderMacroSync(tabs = null) {
                     <h3>Stablecoin Supply Ratio (SSR) <span style="font-size:0.8rem; color:var(--text-dim)">(Fiat Purchasing Power proxy)</span></h3>
                 </div>
                 <div class="chart-container" style="height:350px;">
-                    <canvas id="ssrChart"></canvas>
+                    <canvas id="ssrChart" role="img" aria-label="Stablecoin supply ratio chart"></canvas>
                 </div>
             </div>
             <div class="macro-education" style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid var(--border)">
@@ -302,7 +302,7 @@ async function renderRotation(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('rotation', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-rotation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-rotation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
            
             <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>

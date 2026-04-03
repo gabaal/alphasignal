@@ -34,7 +34,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     <span class="label-tag">VOLATILITY CLUSTER MAP</span>
                 </div>
                 <div style="height:220px; width:100%; position:relative;">
-                    <canvas id="signalDensityChart"></canvas>
+                    <canvas id="signalDensityChart" role="img" aria-label="Signal density distribution chart"></canvas>
                 </div>
             </div>
             <div class="card">
@@ -43,7 +43,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     <span class="label-tag">GAUSSIAN CURVE</span>
                 </div>
                 <div style="height:220px; width:100%; position:relative;">
-                    <canvas id="zscoreBellChart"></canvas>
+                    <canvas id="zscoreBellChart" role="img" aria-label="Z-score bell curve distribution"></canvas>
                 </div>
             </div>
         </div>
@@ -372,7 +372,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     <span style="font-size:0.55rem;color:var(--text-dim);">6-DIMENSION ML SIGNAL DECOMPOSITION</span>
                 </div>
                 <div style="display:flex;justify-content:center;padding-bottom:2rem;">
-                    <div style="width:340px;height:340px;"><canvas id="signalRadarChart"></canvas></div>
+                    <div style="width:340px;height:340px;"><canvas id="signalRadarChart" role="img" aria-label="Signal confidence radar chart"></canvas></div>
                 </div>
             </div>`;
         appEl.appendChild(radarSection);
@@ -424,7 +424,7 @@ async function renderAlphaScore(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">ML</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">ML</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Composite 0–100 ranking across momentum, sentiment, signal engine alerts & volatility.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>

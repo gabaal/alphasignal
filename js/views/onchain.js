@@ -470,7 +470,7 @@ async function renderBacktesterV2(tabs = null) {
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Signal Backtester V2</h2>
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-backtester')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">PRO</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-backtester')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>Walk-forward simulation on live institutional signals with real price data, rolling Sharpe, and BTC benchmark.</p>
             </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -496,7 +496,7 @@ async function renderBacktesterV2(tabs = null) {
                     <span style="color:#bc13fe">&#9632; Rolling Sharpe</span>
                 </div>
             </div>
-            <canvas id="btv2-sharpe-chart" height="280"></canvas>
+            <canvas id="btv2-sharpe-chart" role="img" aria-label="Rolling Sharpe ratio chart" height="280"></canvas>
         </div>
         <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
             <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">MONTHLY P&L CALENDAR</div>
@@ -510,7 +510,7 @@ async function renderBacktesterV2(tabs = null) {
                 </button>
             </div>
             <div style="overflow-x:auto">
-                <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
+                <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem" role="table">
                     <thead><tr style="color:var(--text-dim)">${['Ticker','Signal','Entry','Exit','Entry $','Exit $','Strat P&L','BTC P&L','Alpha'].map(h => '<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px;white-space:nowrap">' + h + '</th>').join('')}</tr></thead>
                     <tbody id="btv2-tbody"><tr><td colspan="9" style="padding:2rem;text-align:center;color:var(--text-dim)">Click RUN BACKTEST to load</td></tr></tbody>
                 </table>
@@ -663,7 +663,7 @@ async function renderOptionsFlow(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Real-time BTC & ETH Deribit options data Ã¢â‚¬” Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
         </div>
         ${renderHubTabs('options', tabs)}
@@ -680,17 +680,17 @@ async function renderOptionsFlow(tabs = null) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
             <div class="glass-card" style="padding:1.5rem">
                 <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV SMILE (Ã‚Â±30% STRIKES)</div>
-                <canvas id="opts-smile-chart" height="220"></canvas>
+                <canvas id="opts-smile-chart" role="img" aria-label="Options implied volatility smile chart" height="220"></canvas>
             </div>
             <div class="glass-card" style="padding:1.5rem">
                 <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">PUT / CALL VOLUME SPLIT</div>
-                <canvas id="opts-pcr-chart" height="220" style="max-width:220px;margin:0 auto;display:block"></canvas>
+                <canvas id="opts-pcr-chart" role="img" aria-label="Put/call ratio chart" height="220" style="max-width:220px;margin:0 auto;display:block"></canvas>
             </div>
         </div>
         <div class="glass-card" style="padding:1.5rem">
             <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">TOP STRIKES BY OPEN INTEREST</div>
             <div style="overflow-x:auto">
-                <table style="width:100%;border-collapse:separate;border-spacing:0 3px;font-size:0.75rem">
+                <table style="width:100%;border-collapse:separate;border-spacing:0 3px;font-size:0.75rem" role="table">
                     <thead><tr style="color:var(--text-dim)">
                         ${['Strike','Type','Expiry','IV %','Volume','Open Interest'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
                     </tr></thead>
@@ -806,7 +806,7 @@ async function renderAIRebalancer() {
             </div>
             <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto">
                 <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF &mdash; ${data.updated}</div>
-                <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
+                <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem" role="table">
                     <thead><tr style="color:var(--text-dim)">
                         ${['Ticker','ML Score','Current','&rarr; Suggested','Action'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
                     </tr></thead>
@@ -850,7 +850,7 @@ async function renderAIRebalancerView(tabs = null) {
     if (!tabs) tabs = institutionalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">smart_toy</span>AI Portfolio Rebalancer <span class="premium-badge">AI</span></h1>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">smart_toy</span>AI Portfolio Rebalancer <span class="premium-badge">AI</span></h2>
             <p>Max-Sharpe portfolio optimisation via Monte Carlo simulation across ML signal predictions. GPT-generated institutional memo.</p>
         </div>
         ${renderHubTabs('rebalancer', tabs)}
@@ -915,7 +915,7 @@ window.runAIRebalancerView = async function() {
             <!-- Allocation table -->
             <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto">
                 <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF &mdash; ML MAX-SHARPE WEIGHTS</div>
-                <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
+                <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem" role="table">
                     <thead><tr style="color:var(--text-dim)">
                         ${['Ticker','ML Score','Current Alloc','&rarr; Suggested','Action'].map(h => `<th style="text-align:left;padding:8px 12px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
                     </tr></thead>
@@ -960,7 +960,7 @@ async function renderMacroCalendar(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">event_note</span>Macro Event Calendar <span class="premium-badge">LIVE</span></h1>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">event_note</span>Macro Event Calendar <span class="premium-badge">LIVE</span></h2>
             <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
         </div>
         ${renderHubTabs('macro-cal', tabs)}
@@ -1058,7 +1058,7 @@ async function renderTradingViewHub(tabs) {
 
     // Build ALL HTML in one assignment so containers are in DOM before widgets inject
     appEl.innerHTML =
-        '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#2196f3">show_chart</span>Analytics Hub <span class="premium-badge">TRADINGVIEW</span></h1><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-tradingview-hub\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +
+        '<div class="view-header"><h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:#2196f3">show_chart</span>Analytics Hub <span class="premium-badge">TRADINGVIEW</span></h2><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-tradingview-hub\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +
         renderHubTabs('tradingview', tabs) +
         '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1rem">Market Overview</h2>' +
         '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem">' + card('tv-market-overview', 'Global Market Overview \u2014 Crypto \u00b7 Indices \u00b7 Commodities', 420) + '</div>' +
@@ -1113,7 +1113,7 @@ async function renderCustomAnalytics(tabs) {
     const chartOpts = (h) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }, height: h });
 
     appEl.innerHTML =
-        '<div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Analytics Hub <span class="premium-badge">CUSTOM CHARTS</span></h1><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-custom-charts\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +
+        '<div class="view-header"><h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Analytics Hub <span class="premium-badge">CUSTOM CHARTS</span></h2><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-custom-charts\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +
         renderHubTabs('custom', tabs) +
         '<h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Custom Built Analytics</h2>' +
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;margin-bottom:1rem">' +

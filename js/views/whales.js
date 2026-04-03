@@ -33,7 +33,7 @@ async function renderWhales(tabs = null) {
                     <span class="label-tag">AGGREGATED FLOW</span>
                 </div>
                 <div style="height: 200px; position: relative;">
-                    <canvas id="whale-flow-chart"></canvas>
+                    <canvas id="whale-flow-chart" role="img" aria-label="Whale transaction flow chart"></canvas>
                 </div>
             </div>
             <div class="glass-card" style="padding:1.5rem">
@@ -42,7 +42,7 @@ async function renderWhales(tabs = null) {
                     <span class="label-tag">BUBBLE MATRIX</span>
                 </div>
                 <div style="height: 200px; position: relative;">
-                    <canvas id="whale-tier-chart"></canvas>
+                    <canvas id="whale-tier-chart" role="img" aria-label="Whale tier distribution chart"></canvas>
                 </div>
             </div>
             <div class="glass-card" style="padding:1.5rem; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center">
@@ -67,7 +67,7 @@ async function renderWhales(tabs = null) {
                         </p>
                     </div>
                     <div style="flex:1; height: 350px; position: relative; min-width:300px">
-                        <canvas id="whale-polar-chart"></canvas>
+                        <canvas id="whale-polar-chart" role="img" aria-label="Whale activity polar chart"></canvas>
                     </div>
                 </div>
             </div>
@@ -89,7 +89,7 @@ async function renderWhales(tabs = null) {
                 <span style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e">● LIVE · whale-sankey</span>
             </div>
         </div>
-        <div style="height:260px;position:relative;"><canvas id="whaleSankeyCanvas"></canvas></div>
+        <div style="height:260px;position:relative;"><canvas id="whaleSankeyCanvas" role="img" aria-label="Whale capital flow sankey diagram"></canvas></div>
         <div style="display:flex;gap:2rem;margin-top:10px;font-size:0.6rem;color:var(--text-dim);">
             <span><span style="color:#22c55e">&#9632;</span> Inflow ($M)</span>
             <span><span style="color:#ef4444">&#9632;</span> Outflow ($M)</span>

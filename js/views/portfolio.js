@@ -52,7 +52,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
             <div style="display:flex; flex-direction:column; gap:2rem">
                 <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5); backdrop-filter:blur(10px)">
                     <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">EQUITY CURVE VS BENCHMARK (30D)</h3>
-                    <canvas id="portfolioChart" style="max-height:400px"></canvas>
+                    <canvas id="portfolioChart" role="img" aria-label="Portfolio allocation pie chart" style="max-height:400px"></canvas>
                 </div>
                 
                 <div class="card" style="padding:1.5rem; background:rgba(0, 242, 255, 0.03); border:1px solid var(--accent)">
@@ -98,7 +98,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                             </div>
                         `).join('')}
                     </div>
-                    <canvas id="allocationChart" style="max-height:160px"></canvas>
+                    <canvas id="allocationChart" role="img" aria-label="Target allocation doughnut chart" style="max-height:160px"></canvas>
                 </div>
             </div>
         </div>
@@ -137,7 +137,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                         </button>
                     </div>
                     <div style="width:160px; height:160px">
-                        <canvas id="optimizer-chart-lab"></canvas>
+                        <canvas id="optimizer-chart-lab" role="img" aria-label="Portfolio optimization chart"></canvas>
                     </div>
                 </div>
             </div>
@@ -294,7 +294,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                         <div class="loader" style="margin:0 auto 1rem;"></div>
                         Running Monte Carlo simulations...
                     </div>
-                    <canvas id="frontierChart" style="display:none; max-height:420px;"></canvas>
+                    <canvas id="frontierChart" role="img" aria-label="Efficient frontier portfolio chart" style="display:none; max-height:420px;"></canvas>
                     <div id="frontier-optimal-cards" style="display:none; display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:1.5rem;"></div>
                 </div>`;
             appEl.appendChild(efSection);

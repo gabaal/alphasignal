@@ -75,11 +75,11 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
                 <span>›</span>
                 <span style="color:var(--text)">${title}</span>
             </div>
-            <h1 style="display:flex;align-items:center;flex-wrap:wrap;gap:12px">
+            <h2 style="display:flex;align-items:center;flex-wrap:wrap;gap:12px">
                 <span class="material-symbols-outlined" style="vertical-align:middle;color:${hubColor};font-size:1.4rem">${hubIcon}</span>
                 ${title}
                 <span style="font-size:0.5rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,0.05);color:var(--text-dim);border:1px solid rgba(255,255,255,0.08)">VIEW REFERENCE</span>
-            </h1>
+            </h2>
             <p style="color:var(--text-dim);line-height:1.7;max-width:700px;margin-top:0.5rem">${summary}</p>
         </div>
 

@@ -1,4 +1,4 @@
-﻿async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
+async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI(`/narrative-clusters?chain=${filterChain}&v=${Date.now()}`);
@@ -32,7 +32,7 @@
         </div>
 
         <div class="galaxy-container" style="position:relative; width:100%; height:600px; background:radial-gradient(circle at center, #0a0b1e 0%, #000 100%); border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.05)">
-            <canvas id="galaxyCanvas" style="width:100%; height:100%"></canvas>
+            <canvas id="galaxyCanvas" role="img" aria-label="Narrative galaxy bubble chart � social mindshare visualization" style="width:100%; height:100%"></canvas>
             <div id="galaxyTooltip" class="galaxy-tooltip" style="display:none; position:absolute; pointer-events:none; z-index:1000"></div>
             
             <div class="galaxy-legend" style="position:absolute; bottom:20px; right:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; background:rgba(0,0,0,0.8); padding:1rem; border-radius:8px; border:1px solid var(--border)">
@@ -68,7 +68,7 @@
                         const anchor = data.anchors?.[cat] || {};
                         const color  = anchor.color || '#00d4aa';
                         const pct    = Math.round(count / max * 100);
-                        const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+                        const medal  = i === 0 ? '??' : i === 1 ? '??' : i === 2 ? '??' : `#${i+1}`;
                         return `<div style="margin-bottom:12px">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                                 <span style="font-size:0.65rem;font-weight:800;color:${color}">${medal} ${cat}</span>
@@ -111,7 +111,7 @@
         <!-- Sentiment Velocity Heatmap -->
         ${data.clusters && data.clusters.length ? `
         <div class="glass-card" style="padding:1.5rem;margin-top:1.5rem">
-            <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">NARRATIVE SENTIMENT VELOCITY — TOP 20 SIGNALS</div>
+            <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">NARRATIVE SENTIMENT VELOCITY � TOP 20 SIGNALS</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
                 ${(data.clusters || []).sort((a,b) => Math.abs(b.sentiment||0) - Math.abs(a.sentiment||0)).slice(0,20).map(c => {
                     const sent = c.sentiment || 0;
@@ -121,7 +121,7 @@
                     const bar   = Math.min(Math.abs(sent) * 100, 100);
                     const anchor = data.anchors?.[c.category] || {};
                     return `<div style="background:${bg};border:1px solid ${color}22;border-radius:8px;padding:10px">
-                        <div style="font-size:0.65rem;font-weight:800;color:white;margin-bottom:2px">${(c.ticker||'—').replace('-USD','')}</div>
+                        <div style="font-size:0.65rem;font-weight:800;color:white;margin-bottom:2px">${(c.ticker||'�').replace('-USD','')}</div>
                         <div style="font-size:0.5rem;color:var(--text-dim);margin-bottom:6px">${c.category || ''}</div>
                         <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:4px">
                             <div style="height:3px;background:${color};border-radius:2px;width:${bar}%"></div>
@@ -286,7 +286,7 @@ async function renderBriefing(tabs = null) {
 
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">AI</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">AI</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-briefing')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>AI-powered narrative synthesis across Mindshare, Flow, and Technical data streams.</p>
             </div>
             ${tabs ? renderHubTabs('briefing', tabs) : ''}
@@ -352,7 +352,7 @@ async function renderBriefing(tabs = null) {
                 <div class="glass-card" style="margin-bottom:2rem; padding:1.5rem; height:350px; position:relative">
                     <h3 style="color:var(--accent); font-size:0.8rem; margin-bottom:1.5rem; letter-spacing:1px">ALPHASIGNAL REGIME OVERLAY (BTC-USD)</h3>
                     <div style="height:250px">
-                        <canvas id="regimeChart"></canvas>
+                        <canvas id="regimeChart" role="img" aria-label="Market regime classification chart"></canvas>
                     </div>
                     <div style="display:flex; justify-content:center; gap:20px; margin-top:10px; font-size:0.6rem; color:var(--text-dim)">
                         <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(34,197,94,0.4); border:1px solid #22c55e88"></div> BULLISH</span>

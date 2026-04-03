@@ -63,7 +63,7 @@ async function renderMarketBrief(tabs = null) {
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
             <div>
                 ${tabs ? renderHubTabs('market-brief', tabs) : ''}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">article</span>AI Market Brief <span class="premium-badge">INSTITUTIONAL</span></h1>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">article</span>AI Market Brief <span class="premium-badge">INSTITUTIONAL</span></h2>
             </div>
             <button class="intel-action-btn mini outline" style="width:auto;padding:6px 14px;font-size:0.65rem;display:flex;align-items:center;gap:4px;" onclick="refreshMarketBrief()">
                 <span class="material-symbols-outlined" style="font-size:13px;">refresh</span> REFRESH

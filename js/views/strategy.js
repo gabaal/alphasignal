@@ -168,7 +168,7 @@ async function renderRiskMatrix(tabs = null) {
             <div>
                 ${renderHubTabs('risk', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Risk & Correlation Matrix</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">shield_with_heart</span>Risk & Stress <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-risk-matrix')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">shield_with_heart</span>Risk & Stress <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-risk-matrix')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
            
             <p>Real-time statistical synchronization across the institutional universe.</p>
@@ -199,7 +199,7 @@ async function renderStressHub(tabs = null) {
             <div>
                 ${renderHubTabs('stress', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Macro Stress Lab</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">shield_with_heart</span>Risk & Stress <span class="premium-badge">RISK</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-stress-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">shield_with_heart</span>Risk & Stress <span class="premium-badge">RISK</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-stress-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
            
             <p>Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
@@ -296,7 +296,7 @@ async function renderChainVelocity(tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-whale-pulse')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-whale-pulse')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Institutional capital rotation tracking across major L1 networks using volume acceleration and social heat.</p>
         </div>
         ${tabs ? renderHubTabs('velocity', tabs) : ''}
@@ -305,7 +305,7 @@ async function renderChainVelocity(tabs = null) {
             <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5); backdrop-filter:blur(10px)">
                 <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">VELOCITY RADAR (INSTITUTIONAL MOMENTUM)</h3>
                 <div style="position:relative; height:750px; width:100%">
-                    <canvas id="velocityRadar"></canvas>
+                    <canvas id="velocityRadar" role="img" aria-label="Chain velocity radar chart"></canvas>
                 </div>
             </div>
             <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">

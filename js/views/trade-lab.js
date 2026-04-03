@@ -130,7 +130,7 @@ async function renderTradeLedger(tabs = null) {
         if (!res || res.error) {
             appEl.innerHTML = `
                 <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">assignment</span>Audit &amp; Performance <span class="premium-badge">AUDIT</span></h1>
+                    <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">assignment</span>Audit &amp; Performance <span class="premium-badge">AUDIT</span></h2>
                 </div>
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Institutional Trade Ledger</h2>
                 <div class="paywall-feature-block">
@@ -192,9 +192,9 @@ async function renderTradeLedger(tabs = null) {
                         <p class="subtitle" style="margin:0">Auditable record of generated neural execution tickets.</p>
                     </div>
                     <div style="display:flex; align-items:center; gap:15px; margin-bottom:5px">
-                        <button class="filter-btn" id="btn-prev-ledger" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
+                        <button class="filter-btn" id="btn-prev-ledger" aria-label="Go to previous ledger page" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
                         <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
-                        <button class="filter-btn" id="btn-next-ledger" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
+                        <button class="filter-btn" id="btn-next-ledger" aria-label="Go to next ledger page" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
                         <button class="intel-action-btn mini" onclick="switchView('tradelab')" style="margin-left:10px">
                             <span class="material-symbols-outlined">add</span> NEW SETUP
                         </button>

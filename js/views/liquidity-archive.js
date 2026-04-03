@@ -151,7 +151,7 @@ async function renderLiquidityView(tabs = null) {
 
         display.innerHTML = `
             <div class="card">
-                <div style="height:380px"><canvas id="gommWallChart"></canvas></div>
+                <div style="height:380px"><canvas id="gommWallChart" role="img" aria-label="Order wall chart"></canvas></div>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.75rem 0;font-size:0.6rem">
                     <span style="color:var(--text-dim);letter-spacing:1px;margin-right:0.5rem">TOP BIDS:</span>
                     ${topBids.slice(0,4).map(w => `<span style="color:var(--risk-low);background:rgba(34,197,94,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> BTC</span>`).join('')}
@@ -254,7 +254,7 @@ async function renderLiquidityView(tabs = null) {
                     <span style="color:var(--accent);font-weight:900">$${(prices[prices.length-1]||0).toLocaleString(undefined,{maximumFractionDigits:0})}</span>
                     <span style="color:var(--text-dim);margin-left:auto">${history.length} candles · 5m interval</span>
                 </div>
-                <div style="height:360px"><canvas id="gommHeatChart"></canvas></div>
+                <div style="height:360px"><canvas id="gommHeatChart" role="img" aria-label="Order flow heatmap chart"></canvas></div>
                 <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.6rem">
                     <span style="color:rgba(34,197,94,0.9)">■ Bullish candle</span>
                     <span style="color:rgba(239,68,68,0.9)">■ Bearish candle</span>
@@ -297,7 +297,7 @@ async function renderLiquidityView(tabs = null) {
             return;
         }
         const sorted = [...liqData.clusters].sort((a, b) => a.price - b.price);
-        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommLiqChart"></canvas></div></div>`;
+        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommLiqChart" role="img" aria-label="Liquidity flux chart"></canvas></div></div>`;
         setTimeout(() => {
             const ctx = document.getElementById('gommLiqChart')?.getContext('2d');
             if (!ctx) return;
@@ -324,7 +324,7 @@ async function renderLiquidityView(tabs = null) {
     function renderVolatilityMode() {
         sectionTitle.textContent = 'Volatility Surface — Options IV Smile & Skew';
         if (!volData) { display.innerHTML = `<div class="empty-state">Options volatility data unavailable</div>`; return; }
-        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommVolChart"></canvas></div></div>`;
+        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommVolChart" role="img" aria-label="Volume surface chart"></canvas></div></div>`;
         setTimeout(() => {
             const ctx = document.getElementById('gommVolChart')?.getContext('2d');
             if (!ctx) return;
@@ -397,7 +397,7 @@ async function renderSignalArchive(tabs = null) {
     // 1. Initial skeleton and header
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-signal-archive')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-signal-archive')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
         </div>
         ${tabs ? renderHubTabs('archive', tabs) : ''}

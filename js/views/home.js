@@ -108,17 +108,17 @@ async function renderHome() {
                 <div class="dials-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:3rem">
                     <div class="glass-card" style="padding:2rem;text-align:center">
                         <h3 style="color:var(--accent);font-size:1rem;letter-spacing:1px;margin-bottom:1rem">FEAR & GREED</h3>
-                        <div style="position:relative;width:100%;height:200px"><canvas id="gauge-fear"></canvas></div>
+                        <div style="position:relative;width:100%;height:200px"><canvas id="gauge-fear" role="img" aria-label="Fear and greed index gauge"></canvas></div>
                         <p style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem">Composite sentiment from volume, volatility, social data, and dominance shifts</p>
                     </div>
                     <div class="glass-card" style="padding:2rem;text-align:center">
                         <h3 style="color:var(--accent);font-size:1rem;letter-spacing:1px;margin-bottom:1rem">NETWORK CONGESTION</h3>
-                        <div style="position:relative;width:100%;height:200px"><canvas id="gauge-congestion"></canvas></div>
+                        <div style="position:relative;width:100%;height:200px"><canvas id="gauge-congestion" role="img" aria-label="Network congestion gauge"></canvas></div>
                         <p style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem">Bitcoin mempool utilisation and fee rate velocity — a proxy for institutional urgency</p>
                     </div>
                     <div class="glass-card" style="padding:2rem;text-align:center">
                         <h3 style="color:var(--accent);font-size:1rem;letter-spacing:1px;margin-bottom:1rem">RETAIL FOMO</h3>
-                        <div style="position:relative;width:100%;height:200px"><canvas id="gauge-fomo"></canvas></div>
+                        <div style="position:relative;width:100%;height:200px"><canvas id="gauge-fomo" role="img" aria-label="Retail FOMO index gauge"></canvas></div>
                         <p id="fomo-source-note" style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem">Google Trends + social search volume divergence from institutional accumulation patterns</p>
                     </div>
                 </div>

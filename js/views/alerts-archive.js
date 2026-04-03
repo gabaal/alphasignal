@@ -127,7 +127,7 @@ async function renderMacroView(tabs = null) {
 async function renderDocsVelocity() {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Narrative Velocity Methodology</h1>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Narrative Velocity Methodology</h2>
             <p>Documentation on how AlphaSignal calculates institutional capital rotation and social attention.</p>
         </div>
         <div class="docs-container" style="max-width:800px; margin:0 auto; line-height:1.7; color:var(--text-dim); padding: 2rem 0">
@@ -210,7 +210,7 @@ async function renderAlerts(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${tabs ? renderHubTabs('alerts', tabs) : ''}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">notifications_active</span>Live Intelligence Alerts <span class="premium-badge">LIVE</span></h1>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">notifications_active</span>Live Intelligence Alerts <span class="premium-badge">LIVE</span></h2>
                 <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -226,7 +226,7 @@ async function renderAlerts(tabs = null) {
                 <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">⚙ NOTIFICATION SETTINGS</div>
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.7rem;color:var(--text-dim)">
                     <span>ALERTS ENABLED</span>
-                    <input type="checkbox" id="alerts-enabled-toggle" ${alertsOn ? 'checked' : ''} style="width:16px;height:16px;accent-color:#00d4aa;cursor:pointer">
+                    <input type="checkbox" id="alerts-enabled-toggle" aria-label="Enable or disable all alert notifications" ${alertsOn ? 'checked' : ''} style="width:16px;height:16px;accent-color:#00d4aa;cursor:pointer">
                 </label>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem">
@@ -257,7 +257,7 @@ async function renderAlerts(tabs = null) {
                     <span>⚡ ALERT SENSITIVITY — MIN. PREDICTED RETURN</span>
                     <span id="z-val-display" style="color:#ffd700;font-weight:900">${zThreshold.toFixed(1)}%</span>
                 </label>
-                <input type="range" id="z-threshold-slider" min="0.5" max="5" step="0.1" value="${zThreshold}"
+                <input type="range" id="z-threshold-slider" min="0.5" max="5" step="0.1" value="${zThreshold}" aria-label="Z-Score alert sensitivity threshold" aria-valuemin="0.5" aria-valuemax="5" aria-valuenow="${zThreshold}"
                     oninput="document.getElementById('z-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
                     style="width:100%;accent-color:#00d4aa;cursor:pointer">
                 <div style="display:flex;justify-content:space-between;font-size:0.55rem;color:var(--text-dim);margin-top:4px">
@@ -277,7 +277,7 @@ async function renderAlerts(tabs = null) {
                             <span>🐋 WHALE TXN MIN SIZE</span>
                             <span id="whale-val-display" style="color:#00f2ff;font-weight:900">5M</span>
                         </label>
-                        <input type="range" id="whale-threshold-slider" min="1" max="50" step="1" value="5"
+                        <input type="range" id="whale-threshold-slider" min="1" max="50" step="1" value="5" aria-label="Whale transaction size threshold in million USD" aria-valuemin="1" aria-valuemax="50" aria-valuenow="5"
                             oninput="document.getElementById('whale-val-display').textContent=parseFloat(this.value).toFixed(0)+'M'"
                             style="width:100%;accent-color:#00f2ff;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
@@ -291,7 +291,7 @@ async function renderAlerts(tabs = null) {
                             <span>⚠️ DE-PEG THRESHOLD</span>
                             <span id="depeg-val-display" style="color:#ef4444;font-weight:900">1.0%</span>
                         </label>
-                        <input type="range" id="depeg-threshold-slider" min="0.1" max="5" step="0.1" value="1.0"
+                        <input type="range" id="depeg-threshold-slider" min="0.1" max="5" step="0.1" value="1.0" aria-label="Stablecoin depeg deviation threshold" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="1.0"
                             oninput="document.getElementById('depeg-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
                             style="width:100%;accent-color:#ef4444;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
@@ -305,7 +305,7 @@ async function renderAlerts(tabs = null) {
                             <span>⚡ VOL SPIKE MIN σ</span>
                             <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0σ</span>
                         </label>
-                        <input type="range" id="vol-spike-threshold-slider" min="1" max="5" step="0.1" value="2.0"
+                        <input type="range" id="vol-spike-threshold-slider" min="1" max="5" step="0.1" value="2.0" aria-label="Volume spike multiplier threshold" aria-valuemin="1" aria-valuemax="5" aria-valuenow="2.0"
                             oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'σ'"
                             style="width:100%;accent-color:#f59e0b;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
@@ -319,7 +319,7 @@ async function renderAlerts(tabs = null) {
                             <span>📐 CME GAP MIN SIZE</span>
                             <span id="cme-val-display" style="color:#bc13fe;font-weight:900">1.0%</span>
                         </label>
-                        <input type="range" id="cme-gap-threshold-slider" min="0.1" max="5" step="0.1" value="1.0"
+                        <input type="range" id="cme-gap-threshold-slider" min="0.1" max="5" step="0.1" value="1.0" aria-label="CME gap size threshold in percent" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="1.0"
                             oninput="document.getElementById('cme-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
                             style="width:100%;accent-color:#bc13fe;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
@@ -661,7 +661,7 @@ async function showSignalDetail(alertId, ticker) {
 
 async function renderRegime(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
-    appEl.innerHTML = `<h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">ML</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-regime')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>${skeleton(1)}`;
+    appEl.innerHTML = `<h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">ML</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-regime')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>${skeleton(1)}`;
     const data = await fetchAPI('/regime?ticker=BTC-USD');
     if (!data) return;
 

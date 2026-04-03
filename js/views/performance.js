@@ -61,7 +61,7 @@ async function renderPerformanceDashboard(tabs = null) {
                 <span id="perf-live-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e;margin-left:6px">● LIVE · alerts_history</span>
             </div>
             <div style="height:350px; width:100%; position:relative;">
-                <canvas id="strategyEquityChart"></canvas>
+                <canvas id="strategyEquityChart" role="img" aria-label="Strategy equity curve chart"></canvas>
             </div>
         </div>
 
@@ -175,13 +175,13 @@ async function renderPerformanceDashboard(tabs = null) {
             <!-- Signal Type Donut -->
             <div class="card" style="padding:1.2rem">
                 <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">SIGNAL TYPE DISTRIBUTION</div>
-                <div style="height:220px;position:relative"><canvas id="signalMixChart"></canvas></div>
+                <div style="height:220px;position:relative"><canvas id="signalMixChart" role="img" aria-label="Signal category mix donut chart"></canvas></div>
             </div>
 
             <!-- Top Tickers Horizontal Bar -->
             <div class="card" style="padding:1.2rem">
                 <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">TOP 5 TICKERS BY SIGNAL COUNT</div>
-                <div style="height:220px;position:relative"><canvas id="topTickersChart"></canvas></div>
+                <div style="height:220px;position:relative"><canvas id="topTickersChart" role="img" aria-label="Top performing tickers bar chart"></canvas></div>
             </div>
 
         </div>
@@ -357,7 +357,7 @@ async function renderCorrelationMatrix(tabs = null) {
     const tabHTML = tabs ? renderHubTabs('correlation', tabs) : '';
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-onchain')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-onchain')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${tabHTML}
         <h2 class="section-heading" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-top:0.5rem">Cross-Asset Correlation Matrix</h2>
@@ -390,7 +390,7 @@ async function renderFlows(tabs = null) {
     if (!data) return;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-order-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-order-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Tracking the velocity of capital rotating into the ecosystem via spot ETFs and major aggregates.</p>
         </div>
         ${tabs ? renderHubTabs('flow', tabs) : ''}
@@ -435,7 +435,7 @@ async function renderFlows(tabs = null) {
                     <div id="yc-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text-dim);font-size:0.7rem;">
                         <div class="loader" style="width:24px;height:24px;"></div>Loading yield data...
                     </div>
-                    <canvas id="yieldCurveChart" style="display:none;"></canvas>
+                    <canvas id="yieldCurveChart" role="img" aria-label="US Treasury yield curve chart" style="display:none;"></canvas>
                 </div>
             </div>`;
 
@@ -500,7 +500,7 @@ function renderDetailLiquidity(data) {
 
     container.innerHTML = `
         <div style="height:180px; position:relative; margin-bottom:1.5rem">
-            <canvas id="liquidityDepthChart"></canvas>
+            <canvas id="liquidityDepthChart" role="img" aria-label="Liquidity depth profile chart"></canvas>
         </div>
         <div class="obd-meter-section" style="margin-bottom:1.5rem">
             <div style="display:flex; justify-content:space-between; font-size:0.6rem; margin-bottom:4px; font-weight:700">

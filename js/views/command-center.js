@@ -9,7 +9,7 @@ async function renderCommandCenter() {
             <div class="card" style="text-align:center">
                 <h3 style="font-size:0.7rem; color:var(--text-dim); letter-spacing:1px">SYSTEM CONVICTION</h3>
                 <div style="position:relative; height:180px; margin-top:10px">
-                    <canvas id="cmd-gauge-fear"></canvas>
+                    <canvas id="cmd-gauge-fear" role="img" aria-label="Fear and greed index gauge"></canvas>
                     <div id="cmd-fear-val" style="position:absolute; bottom:10px; width:100%; font-size:1.5rem; font-weight:900">--</div>
                 </div>
             </div>
@@ -34,7 +34,7 @@ async function renderCommandCenter() {
                         <h3 style="font-size:0.75rem">Alpha vs Z-Score</h3>
                         <span class="label-tag">QUALITY SCATTER</span>
                     </div>
-                    <div style="height:200px;position:relative"><canvas id="cmd-alphaVsZChart"></canvas></div>
+                    <div style="height:200px;position:relative"><canvas id="cmd-alphaVsZChart" role="img" aria-label="Alpha vs Z-score scatter chart"></canvas></div>
                 </div>
                 <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('donut')"
                     onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
@@ -42,7 +42,7 @@ async function renderCommandCenter() {
                         <h3 style="font-size:0.75rem">Category Mix</h3>
                         <span class="label-tag">SECTOR BREAKDOWN</span>
                     </div>
-                    <div style="height:200px;position:relative"><canvas id="cmd-categoryDonutChart"></canvas></div>
+                    <div style="height:200px;position:relative"><canvas id="cmd-categoryDonutChart" role="img" aria-label="Signal category distribution donut chart"></canvas></div>
                 </div>
                 <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('btccorr')"
                     onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
@@ -50,7 +50,7 @@ async function renderCommandCenter() {
                         <h3 style="font-size:0.75rem">BTC Correlation</h3>
                         <span class="label-tag">CORRELATION SPREAD</span>
                     </div>
-                    <div style="height:200px;position:relative"><canvas id="cmd-btcCorrChart"></canvas></div>
+                    <div style="height:200px;position:relative"><canvas id="cmd-btcCorrChart" role="img" aria-label="BTC correlation radar chart"></canvas></div>
                 </div>
                 <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('alpha')"
                     onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
@@ -58,7 +58,7 @@ async function renderCommandCenter() {
                         <h3 style="font-size:0.75rem">Alpha Leaders</h3>
                         <span class="label-tag">TOP 8 BY ALPHA</span>
                     </div>
-                    <div style="height:200px;position:relative"><canvas id="cmd-topAlphaChart"></canvas></div>
+                    <div style="height:200px;position:relative"><canvas id="cmd-topAlphaChart" role="img" aria-label="Top alpha signals bar chart"></canvas></div>
                 </div>
             </div>
         </div>
@@ -79,7 +79,7 @@ async function renderCommandCenter() {
                         color:#ef4444;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:0.7rem;font-weight:700
                         ">✕ CLOSE</button>
                 </div>
-                <div style="height:65vh;position:relative"><canvas id="cmdModalCanvas"></canvas></div>
+                <div style="height:65vh;position:relative"><canvas id="cmdModalCanvas" role="img" aria-label="Signal detail chart"></canvas></div>
             </div>
         </div>
 
@@ -90,7 +90,7 @@ async function renderCommandCenter() {
                     <h3>7D ETF NET FLOWS <span style="font-size:0.6rem; color:var(--text-dim)">($ Millions)</span></h3>
                     <span class="label-tag" style="cursor:zoom-in">CLICK TO EXPAND</span>
                 </div>
-                <div style="height:350px"><canvas id="cmd-etf-chart"></canvas></div>
+                <div style="height:350px"><canvas id="cmd-etf-chart" role="img" aria-label="ETF flows bar chart"></canvas></div>
             </div>
             <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('corr')"
                 onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
@@ -125,7 +125,7 @@ async function renderCommandCenter() {
                 </div>
                 <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:0.75rem">6-DIMENSION ML SIGNAL DECOMPOSITION</div>
                 <div style="display:flex;justify-content:center">
-                    <div style="width:min(420px,100%);height:360px"><canvas id="cmd-radar-chart"></canvas></div>
+                    <div style="width:min(420px,100%);height:360px"><canvas id="cmd-radar-chart" role="img" aria-label="Command center overview radar chart"></canvas></div>
                 </div>
             </div>
             <div class="card">

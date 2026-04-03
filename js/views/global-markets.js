@@ -18,7 +18,7 @@ async function renderETFFlows(tabs = null) {
         ${tabHTML}
         <h2 class="section-heading" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-top:0.5rem">Bitcoin Spot ETF Daily Flows</h2>
         <div class="card" style="margin-bottom:1.5rem">
-            <div style="height:450px; width:100%"><canvas id="etfFlowsChart"></canvas></div>
+            <div style="height:450px; width:100%"><canvas id="etfFlowsChart" role="img" aria-label="ETF capital flows chart"></canvas></div>
         </div>
         <div class="grid-2">
             <div class="card">
@@ -100,7 +100,7 @@ async function renderETFFlows(tabs = null) {
             <h3>Cumulative Net Flow Waterfall <span style="font-size:0.8rem;color:var(--text-dim)">(Week-over-Week)</span></h3>
             <span class="label-tag">INSTITUTIONAL WATERFALL</span>
         </div>
-        <div style="height:280px;width:100%;position:relative;"><canvas id="etfWaterfallChart"></canvas></div>
+        <div style="height:280px;width:100%;position:relative;"><canvas id="etfWaterfallChart" role="img" aria-label="ETF cumulative flows waterfall chart"></canvas></div>
         <div style="font-size:0.65rem;color:var(--text-dim);margin-top:8px">
             Each bar represents a day's net inflow/outflow. Green = net positive. Running total line shows cumulative institutional positioning.
         </div>
@@ -189,11 +189,11 @@ async function renderLiquidations(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-liquidations')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-liquidations')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('liquidations', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
-            <div style="height:450px; width:100%"><canvas id="liquidationsChart"></canvas></div>
+            <div style="height:450px; width:100%"><canvas id="liquidationsChart" role="img" aria-label="Liquidation heatmap chart"></canvas></div>
         </div>
         <div class="signal-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))">
             <div class="card">
@@ -267,7 +267,7 @@ async function renderCMEGaps(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-cme-gaps')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-cme-gaps')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('gaps', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
@@ -307,12 +307,12 @@ async function renderOIRadar(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-oi-radar')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">public</span>Global Markets <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-oi-radar')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('oi', tabs)}
         <div class="grid-2">
             <div class="card" style="height:450px; display:flex; align-items:center; justify-content:center">
-                <canvas id="oiRadarChart"></canvas>
+                <canvas id="oiRadarChart" role="img" aria-label="Open interest radar chart"></canvas>
             </div>
             <div class="card">
                 <h3>OI_FLOW_ATTRIBUTION</h3>
@@ -330,7 +330,7 @@ async function renderOIRadar(tabs = null) {
                 <span class="label-tag">DERIBIT_SKEW</span>
             </div>
             <div style="height:350px; width:100%; position:relative;">
-                <canvas id="ivSmileChart"></canvas>
+                <canvas id="ivSmileChart" role="img" aria-label="Implied volatility smile chart"></canvas>
             </div>
             <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
                 Steepening left-tail (OTM Puts) indicates aggressive institutional tail-risk hedging. Flatter right-tail (OTM Calls) suggests capped upside speculation.
@@ -459,7 +459,7 @@ async function renderOIRadar(tabs = null) {
             <h3>OI Divergence Bubble Map <span style="font-size:0.8rem;color:var(--text-dim)">(Price &Delta; vs OI &Delta;)</span></h3>
             <span class="label-tag">SQUEEZE DETECTOR</span>
         </div>
-        <div style="height:300px;width:100%;position:relative;"><canvas id="oiBubbleChart"></canvas></div>
+        <div style="height:300px;width:100%;position:relative;"><canvas id="oiBubbleChart" role="img" aria-label="Open interest bubble chart"></canvas></div>
         <div style="margin-top:8px;font-size:0.6rem;color:var(--text-dim)">Bubble size = absolute OI ($B). Orange = long squeeze risk. Red = short trap. Yellow = long unwind.</div>
     `;
     appEl.appendChild(oiBubbleEl);
@@ -522,7 +522,7 @@ async function renderTokenUnlocks(tabs = null) {
         <div class="view-header">
             ${renderHubTabs('unlocks', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Token Unlock Schedule</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-token-unlocks')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-token-unlocks')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p style="color:var(--text-dim); margin-top:0.5rem">Capital flow anticipation based on structural unlock schedules.</p>
         </div>
         <div class="card" style="overflow-x:auto">
@@ -586,7 +586,7 @@ async function renderYieldLab(tabs = null) {
         <div class="view-header">
             ${renderHubTabs('yield', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">DeFi Yield Lab</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">BETA</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-yield-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">BETA</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-yield-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p style="color:var(--text-dim); margin-top:0.5rem">Optimized capital efficiency markers across Tier-1 lending and restaking protocols.</p>
         </div>
         <div class="grid-2" style="margin-bottom:1.5rem">

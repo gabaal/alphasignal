@@ -10,7 +10,7 @@ async function renderMindshare() {
         
         <div style="display:grid; grid-template-columns: 1fr 350px; gap:20px; margin-bottom:20px;">
             <div class="mindshare-container" style="margin-bottom:0px; height: 100%;">
-                <div class="chart-container" style="height:550px"><canvas id="mindshareChart"></canvas></div>
+                <div class="chart-container" style="height:550px"><canvas id="mindshareChart" role="img" aria-label="Narrative mindshare bubble chart"></canvas></div>
                 <div class="mindshare-legend">
                     <div class="zone zone-alpha"><span>Alpha Quadrant</span>High Narrative, High Engineering</div>
                     <div class="zone zone-hype"><span>Hype Quadrant</span>High Narrative, Low Engineering</div>
@@ -25,7 +25,7 @@ async function renderMindshare() {
                     <span class="label-tag">LIQUIDITY</span>
                 </div>
                 <div style="height: 350px; position: relative; margin-top:20px; margin-bottom:20px;">
-                    <canvas id="tvl-doughnut-chart"></canvas>
+                    <canvas id="tvl-doughnut-chart" role="img" aria-label="Cross-chain TVL distribution chart"></canvas>
                 </div>
                 <div style="margin-top:20px; font-size:0.8rem; color:var(--text-dim); line-height:1.6">
                     <p>Tracking institutional baseline capital rotation out of archaic primary L1s natively into high-throughput parallel execution environments.</p>
@@ -172,7 +172,7 @@ async function renderCatalysts() {
     if (!catalystDataCache) {
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                <h1>Intelligence Catalyst Compass</h1>
+                <h2>Intelligence Catalyst Compass</h2>
                 <p>Tracking high-impact earnings and macro events across the digital asset ecosystem.</p>
             </div>
             <div class="card" style="padding:1rem">${skeleton(2)}</div>
@@ -251,7 +251,7 @@ async function renderMacroCalendar(tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-macro-calendar')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">monitoring</span>Macro Intel <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-macro-calendar')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
         </div>
         ${tabs ? renderHubTabs('calendar', tabs) : ''}
@@ -314,7 +314,7 @@ async function renderMacroCalendar(tabs = null) {
                     <div id="yc-loading-mcal" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text-dim);font-size:0.7rem">
                         <div class="loader" style="width:24px;height:24px"></div>Loading live yields…
                     </div>
-                    <canvas id="yieldCurveChart" style="display:none"></canvas>
+                    <canvas id="yieldCurveChart" role="img" aria-label="US Treasury yield curve chart" style="display:none"></canvas>
                 </div>
                 <div id="yc-footer" style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
                     Curve inversion (short-term yields &gt; long-term yields) often predicts liquidity contraction.

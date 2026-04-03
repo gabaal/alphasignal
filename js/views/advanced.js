@@ -258,7 +258,7 @@ function renderDepth2DFallback(container, symbol) {
             </div>
             <!-- Canvas -->
             <div style="flex:1;position:relative;padding:8px 18px 12px;">
-                <canvas id="depth2d-canvas" style="width:100%;height:100%;display:block;"></canvas>
+                <canvas id="depth2d-canvas" role="img" aria-label="2D orderbook depth chart fallback" style="width:100%;height:100%;display:block;"></canvas>
             </div>
         </div>`;
 
@@ -406,7 +406,7 @@ async function renderAdvDepth(symbol) {
 
     container.innerHTML = `
         <div style="position:relative; width:100%; height:520px; background:#050508; border-radius:12px; overflow:hidden;">
-            <canvas id="depth3d-canvas" style="width:100%; height:100%; display:block;"></canvas>
+            <canvas id="depth3d-canvas" aria-hidden="true" style="width:100%; height:100%; display:block;"></canvas>
             <div style="position:absolute; top:14px; left:18px; display:flex; gap:16px; align-items:center; pointer-events:none;">
                 <span style="font-size:0.6rem; font-weight:900; letter-spacing:2px; color:#00f2ff;">3D ORDERBOOK TOPOLOGY</span>
                 <span style="display:flex;align-items:center;gap:5px;font-size:0.6rem;color:#26a69a;">
@@ -907,7 +907,7 @@ function renderAdvTapeImbalance(symbol) {
                 </div>
             </div>
             <div style="flex:1;min-height:360px;position:relative;">
-                <canvas id="tape-canvas"></canvas>
+                <canvas id="tape-canvas" role="img" aria-label="Trade tape imbalance heatmap"></canvas>
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:10px;flex-shrink:0;">
                 <span style="font-size:0.55rem;color:rgba(38,166,154,0.8);">■ Buy Pressure</span>
@@ -1020,7 +1020,7 @@ async function renderAdvOptionsSurface(symbol) {
 
     container.innerHTML = `
         <div style="position:relative;width:100%;height:520px;background:#050508;border-radius:12px;overflow:hidden;">
-            <canvas id="volsurf-canvas" style="width:100%;height:100%;display:block;"></canvas>
+            <canvas id="volsurf-canvas" role="img" aria-label="Implied volatility surface 3D chart" style="width:100%;height:100%;display:block;"></canvas>
 
             <!-- Top-left: title + source badge -->
             <div style="position:absolute;top:14px;left:18px;pointer-events:none;display:flex;align-items:center;gap:14px;">

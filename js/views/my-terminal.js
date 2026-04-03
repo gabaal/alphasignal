@@ -1,4 +1,4 @@
-﻿async function renderMyTerminal() {
+async function renderMyTerminal() {
     // Use the same globals that the rest of the app uses (set by checkAuthStatus)
     if (!isAuthenticatedUser) {
         appEl.innerHTML = `
@@ -29,7 +29,7 @@
     appEl.innerHTML = `
         <div class="view-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">person</span>My Terminal</h1>
+                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">person</span>My Terminal</h2>
                 <p style="color:var(--text-dim);font-size:0.8rem">Personal watchlist and open positions &middot; ${userEmail}</p>
             </div>
             <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-my-terminal')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
@@ -54,9 +54,9 @@ window.myTerminalTab = async function(tab) {
     tab === 'watchlist' ? await renderWatchlistTab(el) : await renderPositionsTab(el);
 };
 
-// ══════════════════════════════════════════════════════════════
+// --------------------------------------------------------------
 // WATCHLIST TAB
-// ══════════════════════════════════════════════════════════════
+// --------------------------------------------------------------
 async function renderWatchlistTab(el) {
     const items = await fetchAPI('/watchlist') || [];
 
@@ -82,7 +82,7 @@ async function renderWatchlistTab(el) {
             ${items.length === 0
                 ? `<div class="card" style="padding:2rem;text-align:center;color:var(--text-dim)">
                     <span class="material-symbols-outlined" style="font-size:2rem;opacity:0.4">visibility_off</span>
-                    <p style="margin:0.5rem 0 0">Your watchlist is empty — add a ticker above.</p>
+                    <p style="margin:0.5rem 0 0">Your watchlist is empty � add a ticker above.</p>
                    </div>`
                 : renderWatchlistCards(items)
             }
@@ -90,7 +90,7 @@ async function renderWatchlistTab(el) {
 }
 
 function renderWatchlistCards(items) {
-    // Portfolio summary — aggregate SINCE ADDED performance
+    // Portfolio summary � aggregate SINCE ADDED performance
     const withPerf = items.filter(i => {
         const sym = i.ticker.replace('-USD','').toUpperCase();
         const live = window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
@@ -129,12 +129,12 @@ function renderWatchlistCards(items) {
     return perfSummary + items.map(item => {
         const sym = item.ticker.replace('-USD', '').toUpperCase();
         const livePx = window.livePrices?.[sym] ?? window.livePrices?.[item.ticker];
-        const pxStr = livePx ? `$${Number(livePx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
-        const targetStr = item.target_price ? `$${Number(item.target_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+        const pxStr = livePx ? `$${Number(livePx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '�';
+        const targetStr = item.target_price ? `$${Number(item.target_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '�';
         const dist = (livePx && item.target_price) ? (((item.target_price - livePx) / livePx) * 100).toFixed(2) : null;
         const distColor = dist !== null ? (dist >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
 
-        // % since added — uses price_at_add if stored, else shows target distance
+        // % since added � uses price_at_add if stored, else shows target distance
         const addedPx = item.price_at_add ? Number(item.price_at_add) : null;
         const sincePct = (addedPx && livePx) ? (((livePx - addedPx) / addedPx) * 100).toFixed(2) : null;
         const sinceColor = sincePct === null ? 'var(--text-dim)' : Number(sincePct) >= 0 ? '#22c55e' : '#ef4444';
@@ -156,7 +156,7 @@ function renderWatchlistCards(items) {
             </div>
             <div style="flex:1;min-width:80px">
                 <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">TO TARGET</div>
-                <div style="font-size:1rem;font-weight:700;color:${distColor}">${dist !== null ? (dist >= 0 ? '+' : '') + dist + '%' : '—'}</div>
+                <div style="font-size:1rem;font-weight:700;color:${distColor}">${dist !== null ? (dist >= 0 ? '+' : '') + dist + '%' : '�'}</div>
             </div>
             ${sincePct !== null ? `
             <div style="flex:1;min-width:80px">
@@ -165,11 +165,11 @@ function renderWatchlistCards(items) {
             </div>` : ''}
             ${item.note ? `<div style="flex:2;min-width:120px;font-size:0.72rem;color:var(--text-dim);font-style:italic">"${item.note}"</div>` : ''}
             <div style="display:flex;gap:6px;flex-shrink:0">
-                <button onclick="openDetail('${item.ticker}','WATCHLIST')" title="View chart"
+                <button onclick="openDetail('${item.ticker}','WATCHLIST')" title="View chart" aria-label="View ${item.ticker} chart"
                     style="background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);color:var(--accent);padding:6px 8px;border-radius:8px;cursor:pointer">
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">monitoring</span>
                 </button>
-                <button onclick="removeWatchlistItem(${item.id})"
+                <button onclick="removeWatchlistItem(${item.id})" aria-label="Remove ${item.ticker} from watchlist"
                     style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem">
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">delete</span>
                 </button>
@@ -204,9 +204,9 @@ window.removeWatchlistItem = async function(id) {
     }
 };
 
-// ══════════════════════════════════════════════════════════════
+// --------------------------------------------------------------
 // POSITIONS TAB
-// ══════════════════════════════════════════════════════════════
+// --------------------------------------------------------------
 async function renderPositionsTab(el) {
     const items = await fetchAPI('/positions') || [];
 
@@ -269,9 +269,9 @@ function renderPositionsSummary(items) {
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1rem">
         ${[
             ['OPEN POSITIONS', items.length, '#60a5fa', 'table_rows'],
-            ['PORTFOLIO VALUE', totalValue > 0 ? '$'+totalValue.toLocaleString(undefined,{maximumFractionDigits:0}) : '—', '#60a5fa', 'account_balance_wallet'],
-            ['UNREALISED P&L', totalValue > 0 ? (totalPnl >= 0 ? '+' : '') + '$'+ totalPnl.toLocaleString(undefined,{maximumFractionDigits:0}) : '—', pnlColor, 'trending_up'],
-            ['WIN RATE', items.length > 0 ? Math.round(winners/items.length*100)+'%' : '—', winners/items.length >= 0.5 ? '#22c55e' : '#ef4444', 'emoji_events'],
+            ['PORTFOLIO VALUE', totalValue > 0 ? '$'+totalValue.toLocaleString(undefined,{maximumFractionDigits:0}) : '�', '#60a5fa', 'account_balance_wallet'],
+            ['UNREALISED P&L', totalValue > 0 ? (totalPnl >= 0 ? '+' : '') + '$'+ totalPnl.toLocaleString(undefined,{maximumFractionDigits:0}) : '�', pnlColor, 'trending_up'],
+            ['WIN RATE', items.length > 0 ? Math.round(winners/items.length*100)+'%' : '�', winners/items.length >= 0.5 ? '#22c55e' : '#ef4444', 'emoji_events'],
         ].map(([label, val, color, icon]) => `
             <div class="card" style="padding:1rem;text-align:center">
                 <div style="font-size:1.2rem;color:${color};margin-bottom:8px"><span class="material-symbols-outlined">${icon}</span></div>
@@ -284,7 +284,7 @@ function renderPositionsSummary(items) {
 function renderPositionsCards(items) {
     return items.map(p => {
         const live = window.livePrices?.[p.ticker];
-        const liveStr = live ? `$${Number(live).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+        const liveStr = live ? `$${Number(live).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '�';
         const entryVal = p.qty * p.entry_price;
         const liveVal  = live ? p.qty * live : null;
         const pnl = liveVal !== null ? (p.side === 'SHORT' ? entryVal - liveVal : liveVal - entryVal) : null;
@@ -301,7 +301,7 @@ function renderPositionsCards(items) {
                     <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.55rem;font-weight:900;letter-spacing:1px;margin-top:4px;background:${sideColor}20;color:${sideColor};border:1px solid ${sideColor}40">${p.side}</div>
                 </div>
                 <div style="flex:1;min-width:80px">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">QTY × ENTRY</div>
+                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">QTY � ENTRY</div>
                     <div style="font-size:0.85rem;font-weight:700">${p.qty} @ $${Number(p.entry_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
                 </div>
                 <div style="flex:1;min-width:80px">
@@ -311,7 +311,7 @@ function renderPositionsCards(items) {
                 <div style="flex:1;min-width:80px">
                     <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">UNREALISED P&L</div>
                     <div style="font-size:0.85rem;font-weight:900;color:${pnlColor}">
-                        ${pnl !== null ? (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toLocaleString(undefined,{maximumFractionDigits:2}) : '—'}
+                        ${pnl !== null ? (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toLocaleString(undefined,{maximumFractionDigits:2}) : '�'}
                         ${pnlPct !== null ? `<span style="font-size:0.7rem;opacity:0.8">(${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%)</span>` : ''}
                     </div>
                 </div>
@@ -319,7 +319,7 @@ function renderPositionsCards(items) {
                     <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">R:R</div>
                     <div style="font-size:0.85rem;font-weight:700;color:var(--accent)">${rr}R</div>
                 </div>` : ''}
-                <button onclick="removePosition(${p.id})"
+                <button onclick="removePosition(${p.id})" aria-label="Remove ${p.ticker} position"
                     style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem;flex-shrink:0">
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">close</span>
                 </button>
@@ -359,9 +359,9 @@ window.removePosition = async function(id) {
     }
 };
 
-// ══════════════════════════════════════════════════════════════
-// PRICE ALERT ENGINE — runs on every WS tick
-// ══════════════════════════════════════════════════════════════
+// --------------------------------------------------------------
+// PRICE ALERT ENGINE � runs on every WS tick
+// --------------------------------------------------------------
 
 // Dedup set: tracks fired alerts so they don't repeat every tick
 // Key format: "TICKER:TARGET:direction" e.g. "BTC-USD:120000:above"
@@ -383,7 +383,7 @@ async function _refreshAlertCaches() {
         window._watchlistCache = wl || [];
         window._positionsCache = pos || [];
         window._alertCacheTs = now;
-    } catch(e) { /* silent fail — don't crash the WS loop */ }
+    } catch(e) { /* silent fail � don't crash the WS loop */ }
 }
 
 function _sendPriceAlert(title, body, type = 'success') {
@@ -393,11 +393,11 @@ function _sendPriceAlert(title, body, type = 'success') {
     // 2. Browser notification (fires even when tab is in background)
     if ('Notification' in window) {
         if (Notification.permission === 'granted') {
-            new Notification(`🎯 ${title}`, { body, icon: '/favicon.png', tag: title });
+            new Notification(`?? ${title}`, { body, icon: '/favicon.png', tag: title });
         } else if (Notification.permission === 'default') {
             Notification.requestPermission().then(perm => {
                 if (perm === 'granted') {
-                    new Notification(`🎯 ${title}`, { body, icon: '/favicon.png', tag: title });
+                    new Notification(`?? ${title}`, { body, icon: '/favicon.png', tag: title });
                 }
             });
         }
@@ -411,7 +411,7 @@ window.checkWatchlistAlerts = async function(prices) {
     const watchlist = window._watchlistCache || [];
     const positions = window._positionsCache || [];
 
-    // ── 1. Watchlist target alerts ─────────────────────────────
+    // -- 1. Watchlist target alerts -----------------------------
     watchlist.forEach(item => {
         if (!item.target_price) return;
 
@@ -428,8 +428,8 @@ window.checkWatchlistAlerts = async function(prices) {
             window._alertsFired.add(key);
             const pct = (((live - target) / target) * 100).toFixed(2);
             _sendPriceAlert(
-                `🎯 ${sym} HIT TARGET`,
-                `${sym} is at $${live.toLocaleString()} — your target of $${target.toLocaleString()} was reached! ${pct > 0 ? '+'+pct : pct}%`,
+                `?? ${sym} HIT TARGET`,
+                `${sym} is at $${live.toLocaleString()} � your target of $${target.toLocaleString()} was reached! ${pct > 0 ? '+'+pct : pct}%`,
                 'success'
             );
         }
@@ -440,7 +440,7 @@ window.checkWatchlistAlerts = async function(prices) {
         }
     });
 
-    // ── 2. Position target + stop alerts ──────────────────────
+    // -- 2. Position target + stop alerts ----------------------
     positions.forEach(pos => {
         const sym = pos.ticker.replace('-USD', '');
         const live = prices[sym] ?? prices[pos.ticker];
@@ -458,8 +458,8 @@ window.checkWatchlistAlerts = async function(prices) {
                 window._alertsFired.add(targetKey);
                 const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
                 _sendPriceAlert(
-                    `✅ ${sym} TARGET HIT`,
-                    `Your ${pos.side} hit $${target.toLocaleString()} — take profit? Entry: $${Number(pos.entry_price).toLocaleString()} · +${pnlPct}%`,
+                    `? ${sym} TARGET HIT`,
+                    `Your ${pos.side} hit $${target.toLocaleString()} � take profit? Entry: $${Number(pos.entry_price).toLocaleString()} � +${pnlPct}%`,
                     'success'
                 );
             }
@@ -475,8 +475,8 @@ window.checkWatchlistAlerts = async function(prices) {
                 window._alertsFired.add(stopKey);
                 const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
                 _sendPriceAlert(
-                    `🛑 ${sym} STOP BREACHED`,
-                    `Your ${pos.side} stop of $${stop.toLocaleString()} was hit. Entry: $${Number(pos.entry_price).toLocaleString()} · -${pnlPct}%`,
+                    `?? ${sym} STOP BREACHED`,
+                    `Your ${pos.side} stop of $${stop.toLocaleString()} was hit. Entry: $${Number(pos.entry_price).toLocaleString()} � -${pnlPct}%`,
                     'alert'
                 );
             }
