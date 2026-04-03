@@ -335,7 +335,7 @@ function renderDocsViewBriefing() {
 function renderDocsViewSectorRotation() {
     renderViewDocPage({
         hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
-        title: 'Sector Rotation', viewId: 'macro-hub',
+        title: 'Sector Rotation', viewId: 'rotation',
         summary: 'Track which crypto sectors are attracting capital and which are bleeding. Rotation patterns reveal where institutional money is moving before price confirms.',
         components: [
             { name: 'Sector Momentum Treemap', type: 'CHART', icon: 'grid_view',
@@ -373,7 +373,7 @@ function renderDocsViewMacroCompass() {
 function renderDocsViewMacroCalendar() {
     renderViewDocPage({
         hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
-        title: 'Macro Calendar', viewId: 'macro-hub',
+        title: 'Macro Calendar', viewId: 'macro-calendar',
         summary: 'Forward-looking calendar of high-impact economic events scored for their expected effect on Bitcoin. Prevents being caught off-guard by scheduled macro volatility.',
         components: [
             { name: 'Economic Event Calendar', type: 'WIDGET', icon: 'calendar_month',
@@ -390,7 +390,7 @@ function renderDocsViewMacroCalendar() {
 function renderDocsViewRegime() {
     renderViewDocPage({
         hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
-        title: 'Market Regime', viewId: 'macro-hub',
+        title: 'Market Regime', viewId: 'regime',
         summary: 'The AlphaSignal Regime Engine classifies the market into High-Volatility Expansion, Low-Volatility Compression, or Neutral/Accumulation. Each regime demands a completely different trading approach.',
         components: [
             { name: 'Current Regime Classifier', type: 'GAUGE', icon: 'category',

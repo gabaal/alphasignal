@@ -36,7 +36,7 @@ function renderDocsViewTokenUnlocks() {
 function renderDocsViewYieldLab() {
     renderViewDocPage({
         hub: 'Institutional Hub', hubIcon: 'key', hubColor: '#fb923c',
-        title: 'DeFi Yield Lab', viewId: 'institutional-hub',
+        title: 'DeFi Yield Lab', viewId: 'yield-lab',
         summary: 'Compare real yield opportunities across major DeFi protocols. Separates genuine yield (from protocol revenue) from inflationary token emissions that inflate APY numbers artificially.',
         components: [
             {
@@ -66,7 +66,7 @@ function renderDocsViewYieldLab() {
 function renderDocsViewPortfolioOptimizer() {
     renderViewDocPage({
         hub: 'Institutional Hub', hubIcon: 'key', hubColor: '#fb923c',
-        title: 'Portfolio Optimizer', viewId: 'institutional-hub',
+        title: 'Portfolio Optimizer', viewId: 'portfolio-optimizer',
         summary: 'ML-powered portfolio construction using Modern Portfolio Theory combined with regime-adaptive weights. Generates optimal allocations that maximise risk-adjusted return for the current market environment.',
         components: [
             {
@@ -96,7 +96,7 @@ function renderDocsViewPortfolioOptimizer() {
 function renderDocsViewTradeLab() {
     renderViewDocPage({
         hub: 'Institutional Hub', hubIcon: 'key', hubColor: '#fb923c',
-        title: 'Trade Idea Lab', viewId: 'institutional-hub',
+        title: 'Trade Idea Lab', viewId: 'tradelab',
         summary: 'Structure and evaluate trade ideas with institutional discipline. Build a complete trade thesis including entry rationale, risk/reward calculation, and position sizing before committing capital.',
         components: [
             {
@@ -157,7 +157,7 @@ function renderDocsViewWhalePulse() {
 function renderDocsViewChainVelocity() {
     renderViewDocPage({
         hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
-        title: 'Chain Velocity', viewId: 'analytics-hub',
+        title: 'Chain Velocity', viewId: 'velocity',
         relatedDocs: [
             { name: 'Whale Pulse', route: 'docs-whale-pulse', icon: 'waves' },
             { name: 'On-Chain Analytics', route: 'docs-onchain', icon: 'link' },
@@ -204,7 +204,7 @@ function renderDocsViewChainVelocity() {
 function renderDocsViewOnchain() {
     renderViewDocPage({
         hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
-        title: 'On-Chain Analytics', viewId: 'analytics-hub',
+        title: 'On-Chain Analytics', viewId: 'onchain',
         relatedDocs: [
             { name: 'Whale Pulse', route: 'docs-whale-pulse', icon: 'waves' },
             { name: 'Options Flow', route: 'docs-options-flow', icon: 'waterfall_chart' },
@@ -270,7 +270,7 @@ function renderDocsViewOnchain() {
 function renderDocsViewOptionsFlow() {
     renderViewDocPage({
         hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
-        title: 'Options Flow', viewId: 'analytics-hub',
+        title: 'Options Flow', viewId: 'options-flow',
         summary: 'Deribit options market structure analysis. Institutional options positioning reveals expected volatility, directional bias, and key price levels that large players are hedging around.',
         components: [
             {
@@ -310,7 +310,7 @@ function renderDocsViewOptionsFlow() {
 function renderDocsViewNewsroom() {
     renderViewDocPage({
         hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
-        title: 'Newsroom', viewId: 'analytics-hub',
+        title: 'Newsroom', viewId: 'newsroom',
         summary: 'Real-time crypto news with AI sentiment classification. News drives short-term price volatility. This view filters for high-impact stories and tags them for immediate relevance assessment.',
         components: [
             {
@@ -341,7 +341,7 @@ function renderDocsViewNewsroom() {
 function renderDocsViewTradeLedger() {
     renderViewDocPage({
         hub: 'Audit & Performance', hubIcon: 'trending_up', hubColor: '#60a5fa',
-        title: 'Trade Ledger', viewId: 'audit-hub',
+        title: 'Trade Ledger', viewId: 'trade-ledger',
         summary: 'A complete auditable log of all trades made using AlphaSignal recommendations. Tracks execution against signal, measures slippage, and builds a verifiable track record.',
         components: [
             {
@@ -462,7 +462,7 @@ function renderDocsViewRiskMatrix() {
 function renderDocsViewStressLab() {
     renderViewDocPage({
         hub: 'Risk & Stress', hubIcon: 'grid_on', hubColor: '#ef4444',
-        title: 'Stress Test Lab', viewId: 'risk-hub',
+        title: 'Stress Test Lab', viewId: 'stress',
         summary: 'Simulate how your current portfolio would perform under historical extreme market scenarios. Preparation is the difference between surviving a crash and being liquidated.',
         components: [
             {
@@ -634,7 +634,7 @@ function renderDocsViewAlerts() {
 function renderDocsViewPriceAlerts() {
     renderViewDocPage({
         hub: 'Alerts Hub', hubIcon: 'notifications_active', hubColor: '#f43f5e',
-        title: 'Price Alerts', viewId: 'alerts-hub',
+        title: 'Price Alerts', viewId: 'price-alerts-hub',
         summary: 'Set custom price trigger alerts for any tracked asset. Alerts fire via in-terminal notification and (if configured) browser push notification.',
         components: [
             {
@@ -663,7 +663,7 @@ function renderDocsViewPriceAlerts() {
 function renderDocsViewSignalLeaderboard() {
     renderViewDocPage({
         hub: 'Alerts Hub', hubIcon: 'notifications_active', hubColor: '#f43f5e',
-        title: 'Signal Leaderboard', viewId: 'alerts-hub',
+        title: 'Signal Leaderboard', viewId: 'leaderboard-hub',
         summary: 'A ranked leaderboard of the best-performing signals over selectable time horizons. Identifies which signal types, assets, and strategies have generated the most alpha.',
         components: [
             {
@@ -683,7 +683,7 @@ function renderDocsViewSignalLeaderboard() {
 function renderDocsViewMarketBrief() {
     renderViewDocPage({
         hub: 'Alerts Hub', hubIcon: 'notifications_active', hubColor: '#f43f5e',
-        title: 'Market Brief', viewId: 'alerts-hub',
+        title: 'Market Brief', viewId: 'market-brief-hub',
         summary: 'An AI-generated daily structured market brief synthesising all terminal data into a concise morning read. Updated at 06:00 UTC every day.',
         components: [
             {
