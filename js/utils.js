@@ -29,6 +29,15 @@ function showToast(title, message, type = 'alert') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
+    // B12: cap at 5 simultaneous toasts — evict oldest when full
+    const MAX_TOASTS = 5;
+    const existing = container.querySelectorAll('.toast');
+    if (existing.length >= MAX_TOASTS) {
+        existing[0].style.transition = 'opacity 0.2s';
+        existing[0].style.opacity = '0';
+        setTimeout(() => existing[0].remove(), 200);
+    }
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
@@ -55,6 +64,15 @@ function showToast(title, message, type = 'alert') {
 function showSignalToast(signal) {
     const container = document.getElementById('toast-container');
     if (!container) return;
+
+    // B12: cap at 5 simultaneous toasts — evict oldest when full
+    const MAX_TOASTS = 5;
+    const existing = container.querySelectorAll('.toast');
+    if (existing.length >= MAX_TOASTS) {
+        existing[0].style.transition = 'opacity 0.2s';
+        existing[0].style.opacity = '0';
+        setTimeout(() => existing[0].remove(), 200);
+    }
 
     const dir = (signal.direction || 'LONG').toUpperCase();
     const ticker = (signal.ticker || signal.asset || 'BTC').toUpperCase();

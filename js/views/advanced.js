@@ -236,6 +236,169 @@ async function renderAdvPulse(symbol) {
     ro.observe(chartContainer);
 }
 
+// ─── Canvas 2D Orderbook Fallback ────────────────────────────────────────────
+// Renders when WebGL context limit is hit. Full-featured live 2D orderbook chart.
+function renderDepth2DFallback(container, symbol) {
+    const H = 520;
+    const LEVELS = 25;
+
+    container.innerHTML = `
+        <div style="position:relative;width:100%;height:${H}px;background:#050508;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
+            <!-- Header -->
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:#00f2ff;">ORDERBOOK DEPTH — ${symbol.replace('USDT','/USDT')}</span>
+                <span id="depth2d-live" style="font-size:0.5rem;color:#22c55e;animation:pulse-live 1.5s infinite;">● LIVE</span>
+                <span style="font-size:0.45rem;font-weight:900;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;letter-spacing:1px;margin-left:auto;">CANVAS 2D MODE</span>
+                <span id="depth2d-spread" style="font-size:0.55rem;color:rgba(255,255,255,0.35);font-family:'JetBrains Mono',monospace;"></span>
+            </div>
+            <!-- Legend -->
+            <div style="display:flex;gap:20px;padding:6px 18px;flex-shrink:0;">
+                <span style="font-size:0.5rem;color:#26a69a;">■ BIDS (Cumulative)</span>
+                <span style="font-size:0.5rem;color:#ef5350;">■ ASKS (Cumulative)</span>
+            </div>
+            <!-- Canvas -->
+            <div style="flex:1;position:relative;padding:8px 18px 12px;">
+                <canvas id="depth2d-canvas" style="width:100%;height:100%;display:block;"></canvas>
+            </div>
+        </div>`;
+
+    const canvas2d = document.getElementById('depth2d-canvas');
+    if (!canvas2d) return;
+
+    function sizeCanvas() {
+        const rect = canvas2d.parentElement.getBoundingClientRect();
+        canvas2d.width  = Math.floor(rect.width);
+        canvas2d.height = Math.floor(rect.height);
+    }
+    sizeCanvas();
+
+    const ctx2d = canvas2d.getContext('2d');
+
+    // Shared state — updated by WS
+    let _rawBids = [], _rawAsks = [], _rafId = null;
+
+    function draw(rawBids, rawAsks) {
+        const W2 = canvas2d.width, H2 = canvas2d.height;
+        ctx2d.clearRect(0, 0, W2, H2);
+
+        const n = Math.min(LEVELS, rawBids.length, rawAsks.length);
+        if (n < 2) return;
+
+        // Build cumulative depth arrays
+        let bidCum = 0, askCum = 0;
+        const bids = rawBids.slice(0, n).map(b => { bidCum += parseFloat(b[1]); return { p: parseFloat(b[0]), c: bidCum }; });
+        const asks = rawAsks.slice(0, n).map(a => { askCum += parseFloat(a[1]); return { p: parseFloat(a[0]), c: askCum }; });
+        const maxDepth = Math.max(bidCum, askCum, 1);
+
+        const BAR_H      = Math.max(6, Math.floor((H2 - 10) / n) - 2);
+        const MID_X      = Math.floor(W2 / 2);
+        const MAX_BAR_W  = MID_X - 60;
+        const PRICE_PAD  = 55;
+
+        // Grid lines
+        ctx2d.strokeStyle = 'rgba(255,255,255,0.04)';
+        ctx2d.lineWidth = 1;
+        for (let g = 1; g <= 4; g++) {
+            const gx = MID_X - (MAX_BAR_W * g / 4);
+            ctx2d.beginPath(); ctx2d.moveTo(gx, 0); ctx2d.lineTo(gx, H2); ctx2d.stroke();
+            const gx2 = MID_X + (MAX_BAR_W * g / 4);
+            ctx2d.beginPath(); ctx2d.moveTo(gx2, 0); ctx2d.lineTo(gx2, H2); ctx2d.stroke();
+        }
+
+        // Centre divider
+        ctx2d.strokeStyle = 'rgba(0,242,255,0.2)';
+        ctx2d.lineWidth = 1;
+        ctx2d.beginPath(); ctx2d.moveTo(MID_X, 0); ctx2d.lineTo(MID_X, H2); ctx2d.stroke();
+
+        bids.forEach((b, i) => {
+            const barW  = Math.floor((b.c / maxDepth) * MAX_BAR_W);
+            const y     = i * (BAR_H + 2) + 4;
+            const t     = b.c / maxDepth;
+            const alpha = 0.25 + t * 0.65;
+
+            // Bar — bids go LEFT from centre
+            const grad = ctx2d.createLinearGradient(MID_X, 0, MID_X - barW, 0);
+            grad.addColorStop(0,   `rgba(38,166,154,${alpha})`);
+            grad.addColorStop(1,   `rgba(38,166,154,${alpha * 0.3})`);
+            ctx2d.fillStyle = grad;
+            ctx2d.beginPath();
+            ctx2d.roundRect(MID_X - barW, y, barW, BAR_H, 2);
+            ctx2d.fill();
+
+            // Price label
+            ctx2d.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx2d.font = `${Math.max(8, BAR_H - 4)}px JetBrains Mono, monospace`;
+            ctx2d.textAlign = 'left';
+            ctx2d.fillText(b.p.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}), MID_X - barW - PRICE_PAD, y + BAR_H - 3);
+        });
+
+        asks.forEach((a, i) => {
+            const barW  = Math.floor((a.c / maxDepth) * MAX_BAR_W);
+            const y     = i * (BAR_H + 2) + 4;
+            const t     = a.c / maxDepth;
+            const alpha = 0.25 + t * 0.65;
+
+            // Bar — asks go RIGHT from centre
+            const grad = ctx2d.createLinearGradient(MID_X, 0, MID_X + barW, 0);
+            grad.addColorStop(0,   `rgba(239,83,80,${alpha})`);
+            grad.addColorStop(1,   `rgba(239,83,80,${alpha * 0.3})`);
+            ctx2d.fillStyle = grad;
+            ctx2d.beginPath();
+            ctx2d.roundRect(MID_X, y, barW, BAR_H, 2);
+            ctx2d.fill();
+
+            // Price label
+            ctx2d.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx2d.font = `${Math.max(8, BAR_H - 4)}px JetBrains Mono, monospace`;
+            ctx2d.textAlign = 'right';
+            ctx2d.fillText(a.p.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}), MID_X + barW + PRICE_PAD, y + BAR_H - 3);
+        });
+
+        // Spread label update
+        if (rawBids[0] && rawAsks[0]) {
+            const bestBid = parseFloat(rawBids[0][0]);
+            const bestAsk = parseFloat(rawAsks[0][0]);
+            const spread  = (bestAsk - bestBid).toFixed(2);
+            const pct     = ((bestAsk - bestBid) / bestBid * 100).toFixed(3);
+            const el = document.getElementById('depth2d-spread');
+            if (el) el.textContent = `SPREAD $${spread} (${pct}%)`;
+        }
+    }
+
+    // ── Data sources (mirror renderAdvDepth logic) ───────────────────────────
+    const isEquity = ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'].includes(symbol.toUpperCase());
+
+    if (isEquity) {
+        fetchAPI(`/liquidity-history?ticker=${symbol}`).then(history => {
+            if (history && history.data && history.data.length > 0) {
+                const latest = history.data[history.data.length - 1];
+                _rawBids = Object.entries(latest.bids || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a, b) => b[0] - a[0]);
+                _rawAsks = Object.entries(latest.asks || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a, b) => a[0] - b[0]);
+                draw(_rawBids, _rawAsks);
+            }
+        }).catch(() => {});
+    } else {
+        let lastRebuild = 0;
+        window.BinanceSocketManager.subscribe(symbol, 'depth20@100ms', (data) => {
+            if (!data.bids || !data.asks) return;
+            const now = Date.now();
+            if (now - lastRebuild < 250) return;
+            lastRebuild = now;
+            _rawBids = [...data.bids].sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
+            _rawAsks = [...data.asks].sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+            if (_rafId) cancelAnimationFrame(_rafId);
+            _rafId = requestAnimationFrame(() => draw(_rawBids, _rawAsks));
+        });
+    }
+
+    // Resize observer
+    const ro2d = new ResizeObserver(() => { sizeCanvas(); draw(_rawBids, _rawAsks); });
+    ro2d.observe(canvas2d.parentElement);
+
+    // Expose to cleanupAdvChart
+    window.activeDepth3D = { animId: null, renderer: null, _ref: { alive: false }, _ro: ro2d, _rafId: () => { if (_rafId) cancelAnimationFrame(_rafId); } };
+}
+
 async function renderAdvDepth(symbol) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
@@ -266,12 +429,9 @@ async function renderAdvDepth(symbol) {
     // Check WebGL availability before touching THREE.WebGLRenderer
     const testCtx = canvas.getContext('webgl') || canvas.getContext('webgl2');
     if (!testCtx) {
-        container.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:center;height:520px;background:#050508;border-radius:12px;flex-direction:column;gap:12px;color:var(--text-dim)">
-                <span class="material-symbols-outlined" style="font-size:2.5rem;color:#ef4444">error</span>
-                <div style="font-size:0.8rem;font-weight:700">WebGL Unavailable</div>
-                <div style="font-size:0.65rem;text-align:center;max-width:280px">Your browser has exhausted its WebGL context limit. Close other tabs or refresh the page to reset.</div>
-            </div>`;
+        // ── Canvas 2D Fallback Orderbook ─────────────────────────────────────
+        // WebGL context exhausted — render a live 2D horizontal depth chart instead
+        renderDepth2DFallback(container, symbol);
         return;
     }
 
