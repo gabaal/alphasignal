@@ -1,22 +1,9 @@
-﻿async function renderHome() {
-    // Fetch live data in parallel for stats bar
-    const [dialsData, signalData, lbData] = await Promise.allSettled([
-        fetchAPI('/system-dials'),
-        fetchAPI('/signals'),
-        fetchAPI('/signal-leaderboard')
-    ]);
-    const dials = dialsData.status === 'fulfilled' && dialsData.value?.dials ? dialsData.value.dials : null;
-    const signals = signalData.status === 'fulfilled' && Array.isArray(signalData.value) ? signalData.value : [];
-    const lb = lbData.status === 'fulfilled' && lbData.value ? lbData.value : null;
-    const topSignal = signals[0] || null;
-    // Compute win rate from leaderboard rows
-    const lbRows = lb?.rows || lb?.leaderboard || lb?.data || [];
-    const lbWins = lbRows.filter(r => (r.win_rate ?? r.winRate ?? 0) > 0).length;
-    const lbTotal = lbRows.length;
-    const winRatePct = lbTotal > 0
-        ? Math.round(lbRows.reduce((a, r) => a + (r.win_rate ?? r.winRate ?? 0), 0) / lbTotal)
-        : null;
-    const wrColor = winRatePct === null ? '#94a3b8' : winRatePct >= 60 ? '#22c55e' : winRatePct >= 45 ? '#f59e0b' : '#ef4444';
+async function renderHome() {
+    // --- Phase 1: paint the shell immediately (no awaits) ---
+    // Live-stat chips start with loading placeholders and are hydrated below.
+    const dials = null, signals = [], lb = null;
+    const topSignal = null, winRatePct = null, wrColor = '#94a3b8';
+
 
     appEl.innerHTML = `
         <div class="landing-page">
@@ -49,29 +36,8 @@
                         </button>
                     </div>
 
-                    <!-- Live Mini-Stats -->
-                    ${topSignal ? `
-                    <div style="margin-top:2rem;display:flex;flex-wrap:wrap;gap:12px">
-                        <div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
-                            <span style="color:var(--text-dim);letter-spacing:1px">TOP SIGNAL</span>
-                            <span style="color:var(--accent);font-weight:800;margin-left:8px">${topSignal.ticker || 'BTC-USD'}</span>
-                            <span style="color:${parseFloat(topSignal.z_score) > 0 ? 'var(--risk-low)' : 'var(--risk-high)'};margin-left:6px">Z ${parseFloat(topSignal.z_score || 0).toFixed(2)}</span>
-                        </div>
-                        <div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
-                            <span style="color:var(--text-dim);letter-spacing:1px">SIGNALS LIVE</span>
-                            <span style="color:var(--accent);font-weight:800;margin-left:8px">${signals.length}</span>
-                        </div>
-                        ${dials ? `<div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
-                            <span style="color:var(--text-dim);letter-spacing:1px">FEAR &amp; GREED</span>
-                            <span style="color:var(--accent);font-weight:800;margin-left:8px">${Math.round(dials.fear_greed?.value || 50)}</span>
-                        </div>` : ''}
-                        ${winRatePct !== null ? `
-                        <div onclick="switchView('alerts-hub')" style="cursor:pointer;background:rgba(${wrColor==='#22c55e'?'34,197,94':'251,146,60'},0.08);border:1px solid rgba(${wrColor==='#22c55e'?'34,197,94':'251,146,60'},0.25);border-radius:8px;padding:8px 16px;font-size:0.7rem;transition:all 0.15s" onmouseover="this.style.background='rgba(${wrColor==='#22c55e'?'34,197,94':'251,146,60'},0.15)'" onmouseout="this.style.background='rgba(${wrColor==='#22c55e'?'34,197,94':'251,146,60'},0.08)'">
-                            <span style="color:var(--text-dim);letter-spacing:1px">SIGNAL WIN RATE</span>
-                            <span style="color:${wrColor};font-weight:900;font-size:0.85rem;margin-left:8px">${winRatePct}%</span>
-                            <span style="color:var(--text-dim);font-size:0.6rem;margin-left:4px">${lbTotal} signals →</span>
-                        </div>` : ''}
-                    </div>` : ''}
+                    <!-- Live Mini-Stats: populated after page renders via async hydration -->
+                    <div id="home-stats-chips" style="margin-top:2rem;display:flex;flex-wrap:wrap;gap:12px"></div>
                 </div>
                 <div class="hero-visual">
                     <div class="hero-img-wrapper">
@@ -97,11 +63,7 @@
                             <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">${label}</div>
                         </div>
                     `).join('')}
-                    ${winRatePct !== null ? `
-                    <div onclick="switchView('alerts-hub')" style="cursor:pointer" title="View Signal Leaderboard">
-                        <div style="font-size:2rem;font-weight:900;color:${wrColor};line-height:1">${winRatePct}%</div>
-                        <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">Signal Win Rate</div>
-                    </div>` : ''}
+                    <div id="home-wr-stat"></div>
                 </div>
             </section>
 
@@ -378,10 +340,71 @@
         </div>
     `;
 
-    // Render conviction dials
-    if (dials) {
-        renderSystemGauge('gauge-fear', dials.fear_greed.value, 'rgba(239, 68, 68, 0.8)', 'rgba(34, 197, 94, 0.8)');
-        renderSystemGauge('gauge-congestion', dials.network_congestion.value, 'rgba(34, 197, 94, 0.8)', 'rgba(239, 68, 68, 0.8)');
-        renderSystemGauge('gauge-fomo', dials.retail_fomo.value, 'rgba(0, 242, 255, 0.8)', 'rgba(168, 85, 247, 0.8)');
-    }
+    // Gauges need dials data — wire up placeholder canvases now, hydrate in background
+    // (gauge canvases are already in the DOM from the innerHTML above)
+
+    // --- Phase 2: fetch live data in background, hydrate without re-rendering ---
+    Promise.allSettled([
+        fetchAPI('/system-dials'),
+        fetchAPI('/signals'),
+        fetchAPI('/signal-leaderboard')
+    ]).then(([dialsData, signalData, lbData]) => {
+        // Only hydrate if the home view is still active (user hasn't navigated away)
+        if (!document.getElementById('home-stats-chips')) return;
+
+        const liveDials = dialsData.status === 'fulfilled' && dialsData.value?.dials ? dialsData.value.dials : null;
+        const liveSigs  = signalData.status === 'fulfilled' && Array.isArray(signalData.value) ? signalData.value : [];
+        const liveLb    = lbData.status === 'fulfilled' && lbData.value ? lbData.value : null;
+        const liveTop   = liveSigs[0] || null;
+        const lbRows    = liveLb?.rows || liveLb?.leaderboard || liveLb?.data || [];
+        const lbTotal   = lbRows.length;
+        const liveWR    = lbTotal > 0
+            ? Math.round(lbRows.reduce((a, r) => a + (r.win_rate ?? r.winRate ?? 0), 0) / lbTotal)
+            : null;
+        const liveColor = liveWR === null ? '#94a3b8' : liveWR >= 60 ? '#22c55e' : liveWR >= 45 ? '#f59e0b' : '#ef4444';
+
+        // Patch stat chips
+        const chipsEl = document.getElementById('home-stats-chips');
+        if (chipsEl) {
+            chipsEl.innerHTML = liveTop ? `
+                <div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
+                    <span style="color:var(--text-dim);letter-spacing:1px">TOP SIGNAL</span>
+                    <span style="color:var(--accent);font-weight:800;margin-left:8px">${liveTop.ticker || 'BTC-USD'}</span>
+                    <span style="color:${parseFloat(liveTop.z_score) > 0 ? 'var(--risk-low)' : 'var(--risk-high)'};margin-left:6px">Z ${parseFloat(liveTop.z_score || 0).toFixed(2)}</span>
+                </div>
+                <div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
+                    <span style="color:var(--text-dim);letter-spacing:1px">SIGNALS LIVE</span>
+                    <span style="color:var(--accent);font-weight:800;margin-left:8px">${liveSigs.length}</span>
+                </div>
+                ${liveDials ? `<div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
+                    <span style="color:var(--text-dim);letter-spacing:1px">FEAR &amp; GREED</span>
+                    <span style="color:var(--accent);font-weight:800;margin-left:8px">${Math.round(liveDials.fear_greed?.value || 50)}</span>
+                </div>` : ''}
+                ${liveWR !== null ? `
+                <div onclick="switchView('alerts-hub')" style="cursor:pointer;background:rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.08);border:1px solid rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.25);border-radius:8px;padding:8px 16px;font-size:0.7rem;transition:all 0.15s" onmouseover="this.style.background='rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.15)'" onmouseout="this.style.background='rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.08)'">
+                    <span style="color:var(--text-dim);letter-spacing:1px">SIGNAL WIN RATE</span>
+                    <span style="color:${liveColor};font-weight:900;font-size:0.85rem;margin-left:8px">${liveWR}%</span>
+                    <span style="color:var(--text-dim);font-size:0.6rem;margin-left:4px">${lbTotal} signals →</span>
+                </div>` : ''}
+            ` : '';
+        }
+
+        // Patch stats-bar win rate
+        const wrStatEl = document.getElementById('home-wr-stat');
+        if (wrStatEl && liveWR !== null) {
+            wrStatEl.innerHTML = `
+                <div onclick="switchView('alerts-hub')" style="cursor:pointer" title="View Signal Leaderboard">
+                    <div style="font-size:2rem;font-weight:900;color:${liveColor};line-height:1">${liveWR}%</div>
+                    <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">Signal Win Rate</div>
+                </div>`;
+        }
+
+        // Draw conviction gauges now data is available
+        if (liveDials) {
+            renderSystemGauge('gauge-fear',       liveDials.fear_greed.value,        'rgba(239, 68, 68, 0.8)', 'rgba(34, 197, 94, 0.8)');
+            renderSystemGauge('gauge-congestion', liveDials.network_congestion.value, 'rgba(34, 197, 94, 0.8)', 'rgba(239, 68, 68, 0.8)');
+            renderSystemGauge('gauge-fomo',       liveDials.retail_fomo.value,        'rgba(0, 242, 255, 0.8)', 'rgba(168, 85, 247, 0.8)');
+        }
+    });
 }
+
