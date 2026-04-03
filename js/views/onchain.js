@@ -765,17 +765,17 @@ async function renderAIRebalancer() {
                     <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:#00d4aa">AI REBALANCING MEMO</div>
                     <div style="display:flex;gap:12px;font-size:0.65rem">
                         <span>Current Sharpe: <b style="color:#ffd700">${data.current_sharpe}</b></span>
-                        <span>Ã¢€ ’ Proposed: <b style="color:#22c55e">${data.proposed_sharpe}</b></span>
+                        <span>&rarr; Proposed: <b style="color:#22c55e">${data.proposed_sharpe}</b></span>
                         <span>Improvement: <b style="color:#00d4aa">${sharpeImprove}</b></span>
                     </div>
                 </div>
                 <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.7;white-space:pre-wrap;font-family:'JetBrains Mono',monospace">${data.memo}</div>
             </div>
             <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto">
-                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF Ã¢â‚¬” ${data.updated}</div>
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF &mdash; ${data.updated}</div>
                 <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
                     <thead><tr style="color:var(--text-dim)">
-                        ${['Ticker','ML Score','Current','Ã¢€ ’ Suggested','Action'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
+                        ${['Ticker','ML Score','Current','&rarr; Suggested','Action'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
                     </tr></thead>
                     <tbody>
                         ${(data.weights || []).map(w => {
@@ -794,7 +794,7 @@ async function renderAIRebalancer() {
             </div>
             ${data.tickets && data.tickets.length ? (() => { window._arebTickets = data.tickets; return `
             <button onclick="executeAIRebalance(window._arebTickets)" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:10px 24px;border-radius:8px;font-weight:800;font-size:0.75rem;cursor:pointer;letter-spacing:1px;width:100%">
-                Ã¢Å¡Â¡ EXECUTE ${data.tickets.length} REBALANCE TICKETS
+                <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px">bolt</span> EXECUTE ${data.tickets.length} REBALANCE TICKETS
             </button>`; })() : ''}
         `;
     } catch(e) {
@@ -873,7 +873,7 @@ window.runAIRebalancerView = async function() {
             <!-- Memo -->
             <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(0,212,170,0.2)">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
-                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">Ã¢Å¡Â¡ AI REBALANCING MEMO</div>
+                    <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa"><span class="material-symbols-outlined" style="font-size:0.85rem;vertical-align:middle;margin-right:5px">smart_toy</span> AI REBALANCING MEMO</div>
                     <div style="font-size:0.65rem;color:var(--text-dim)">${data.updated}</div>
                 </div>
                 <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.8;white-space:pre-wrap;font-family:'JetBrains Mono',monospace,serif">${data.memo}</div>
@@ -881,10 +881,10 @@ window.runAIRebalancerView = async function() {
 
             <!-- Allocation table -->
             <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;overflow-x:auto">
-                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF Ã¢â‚¬” ML MAX-SHARPE WEIGHTS</div>
+                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">ALLOCATION DIFF &mdash; ML MAX-SHARPE WEIGHTS</div>
                 <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem">
                     <thead><tr style="color:var(--text-dim)">
-                        ${['Ticker','ML Score','Current Alloc','Ã¢€ ’ Suggested','Action'].map(h => `<th style="text-align:left;padding:8px 12px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
+                        ${['Ticker','ML Score','Current Alloc','&rarr; Suggested','Action'].map(h => `<th style="text-align:left;padding:8px 12px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
                     </tr></thead>
                     <tbody>
                         ${(data.weights || []).sort((a,b) => parseFloat(b.suggested_pct) - parseFloat(a.suggested_pct)).map(w => {
@@ -912,7 +912,7 @@ window.runAIRebalancerView = async function() {
             ${data.tickets?.length ? (() => { window._arebTickets = data.tickets; return `
             <button onclick="executeAIRebalance(window._arebTickets)" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:12px 28px;border-radius:10px;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:1px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px">
                 <span class="material-symbols-outlined" style="font-size:1.1rem">sync_alt</span>
-                EXECUTE ${data.tickets.length} REBALANCE TICKET${data.tickets.length > 1 ? 'S' : ''} Ã¢€ ’ TRADE LEDGER
+                EXECUTE ${data.tickets.length} REBALANCE TICKET${data.tickets.length > 1 ? 'S' : ''} &rarr; TRADE LEDGER
             </button>`; })() : ''}
         `;
     } catch(e) {
