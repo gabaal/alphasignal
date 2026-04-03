@@ -1140,11 +1140,44 @@ async function renderAdvOptionsSurface(symbol) {
     });
     canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
 
-    const _animRef = { id: null };
-    const _animate = () => { _animRef.id = requestAnimationFrame(_animate); renderer.render(scene, camera); };
-    _animate();
-    window.activeDepth3D = { animId: _animRef.id, renderer, _ref: _animRef };
+    // ── Animation loop — store ref BEFORE first RAF so cancelAnimationFrame works ─
+    const _animRef = { id: null, alive: true };
+    const _animate = () => {
+        if (!_animRef.alive) return;          // context lost — stop looping
+        _animRef.id = requestAnimationFrame(_animate);
+        renderer.render(scene, camera);
+    };
 
+    // Store on window immediately so cleanupAdvChart can reach it
+    window.activeDepth3D = { animId: null, renderer, _ref: _animRef, _ro: null };
+    _animate();  // kick off — _animRef.id now set correctly on first frame
+
+    // ── WebGL context loss guard ───────────────────────────────────────────────
+    canvas.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();  // REQUIRED: tells the browser we will handle recovery
+        _animRef.alive = false;
+        cancelAnimationFrame(_animRef.id);
+        // Show a non-blocking overlay so the user knows what happened
+        const overlay = document.createElement('div');
+        overlay.id = 'webgl-lost-overlay';
+        overlay.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,5,8,0.92);gap:10px;z-index:10;border-radius:12px;';
+        overlay.innerHTML = `
+            <span class="material-symbols-outlined" style="font-size:2rem;color:#f59e0b;">warning</span>
+            <span style="font-size:0.7rem;color:#f59e0b;font-weight:900;letter-spacing:2px;">GPU CONTEXT LOST</span>
+            <span style="font-size:0.6rem;color:rgba(255,255,255,0.4);">Recovering automatically…</span>`;
+        container.firstElementChild?.appendChild(overlay);
+        console.warn('[IV Surface] WebGL context lost — awaiting restoration');
+    }, false);
+
+    canvas.addEventListener('webglcontextrestored', () => {
+        console.info('[IV Surface] WebGL context restored — re-initialising surface');
+        document.getElementById('webgl-lost-overlay')?.remove();
+        _animRef.alive = false;  // ensure old loop is dead
+        // Re-render after a brief delay to let the driver settle
+        setTimeout(() => renderAdvVolSurface(symbol), 1000);
+    }, false);
+
+    // ── ResizeObserver — stored so cleanupAdvChart can disconnect it ───────────
     const _ro = new ResizeObserver(() => {
         const w = container.clientWidth;
         renderer.setSize(w, H);
@@ -1152,4 +1185,5 @@ async function renderAdvOptionsSurface(symbol) {
         camera.updateProjectionMatrix();
     });
     _ro.observe(container);
+    if (window.activeDepth3D) window.activeDepth3D._ro = _ro;
 }

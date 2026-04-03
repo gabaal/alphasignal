@@ -437,7 +437,11 @@ function cleanupAdvChart() {
     }
     if (window.activeDepth3D) {
         const ref = window.activeDepth3D;
+        // Kill animation loop — both via alive flag (immediate) and cancelAnimationFrame
+        if (ref._ref) ref._ref.alive = false;
         cancelAnimationFrame(ref._ref ? ref._ref.id : ref.animId);
+        // Disconnect ResizeObserver so it doesn't fire after navigation
+        if (ref._ro) { try { ref._ro.disconnect(); } catch(e) {} }
         try {
             ref.renderer.forceContextLoss();
             ref.renderer.dispose();
