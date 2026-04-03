@@ -184,7 +184,8 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     },
                     y: { 
                         grid: { color: 'rgba(255,255,255,0.05)' }, 
-                        ticks: { color: 'var(--text-dim)', font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' }
+                        ticks: { color: 'var(--text-dim)', font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' },
+                        title: { display: true, text: 'Portfolio Return (%)', color: 'var(--text-dim)', font: { size: 9 } }
                     }
                 },
                 plugins: {

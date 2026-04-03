@@ -575,9 +575,9 @@ function renderBtv2Chart(rolling) {
             interaction: { mode: 'index', intersect: false },
             plugins: { legend: { labels: { color: '#9ca3af', font: { size: 10 } } }, tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', borderColor: 'rgba(0,212,170,0.2)', borderWidth: 1 } },
             scales: {
-                x: { ticks: { color: '#6b7280', maxTicksLimit: 12, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                y1: { position: 'left', ticks: { color: '#9ca3af', font: { size: 10 }, callback: function(v){return v+'%';} }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                y2: { position: 'right', ticks: { color: '#bc13fe', font: { size: 10 } }, grid: { display: false } }
+                x: { ticks: { color: '#6b7280', maxTicksLimit: 12, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Date', color: '#4b5563', font: { size: 9 } } },
+                y1: { position: 'left', ticks: { color: '#9ca3af', font: { size: 10 }, callback: function(v){return v+'%';} }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Cumulative Return (%)', color: '#9ca3af', font: { size: 9 } } },
+                y2: { position: 'right', ticks: { color: '#bc13fe', font: { size: 10 } }, grid: { display: false }, title: { display: true, text: 'Sharpe Ratio', color: '#bc13fe', font: { size: 9 } } }
             }
         }
     });
