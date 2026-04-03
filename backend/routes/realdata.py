@@ -70,7 +70,8 @@ def fetch_network_congestion() -> int:
 
 # ─── Retail FOMO (Google Trends via pytrends) ─────────────────────────────────
 def fetch_retail_fomo(keyword: str = 'Bitcoin') -> int:
-    """Google Trends interest 0-100 — cached 4h. Falls back to BTC-sentiment proxy."""
+    """Google Trends interest 0-100 — cached 1h (Trends itself updates hourly).
+    Falls back to Fear & Greed if pytrends is rate-limited."""
     cache_key = f'fomo_{keyword}'
     cached = _get(cache_key)
     if cached is not None:
@@ -82,11 +83,11 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> int:
         df = pt.interest_over_time()
         if not df.empty and keyword in df.columns:
             score = int(df[keyword].iloc[-1])
-            _set(cache_key, score, ttl=14400)
+            _set(cache_key, score, ttl=3600)   # 1h — matches Google Trends update cadence
             return score
     except Exception as e:
         print(f'[FOMO/pytrends] {e}')
-    # Fallback: derive from Fear & Greed index
+    # Fallback: derive from Fear & Greed index (cached separately at 6h)
     fg = fetch_fear_greed()
     return fg['value']
 
