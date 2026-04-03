@@ -91,6 +91,11 @@ def get_orderbook_imbalance(ticker):
 
 class NotificationService:
     @staticmethod
+    def _tg_escape(text: str) -> str:
+        """Escape special chars for Telegram HTML mode: only &, <, > need escaping."""
+        return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+    @staticmethod
     def push_webhook(user_email, title, message, data=None, embed_color=0x00f2ff, fields=None):
         """Send a rich notification to Discord and/or Telegram for the given user.
         embed_color: 0x22c55e (green/long), 0xef4444 (red/short), 0x00f2ff (cyan/info)
@@ -106,7 +111,7 @@ class NotificationService:
             if not row: return
             discord, telegram_chat_id = row
 
-            # ── Discord Dispatch ──
+            # ── Discord Dispatch ──────────────────────────────────────────────
             if discord:
                 embed = {
                     "title": f"🚨 AlphaSignal: {title}",
@@ -119,29 +124,45 @@ class NotificationService:
                 if fields:
                     embed["fields"] = fields
                 try:
-                    requests.post(discord, json={"embeds": [embed]}, timeout=5)
+                    # B2: Add bot identity so embeds show branded sender
+                    resp = requests.post(discord, json={
+                        "username": "AlphaSignal",
+                        "avatar_url": "https://alphasignal.digital/assets/pwa-icon-192.png",
+                        "embeds": [embed]
+                    }, timeout=5)
+                    # B1: Log failed deliveries (e.g. 404 = deleted webhook)
+                    if not resp.ok:
+                        print(f"[NOTIFY] Discord delivery failed: HTTP {resp.status_code} — {resp.text[:200]}")
                 except Exception as de:
                     print(f"[NOTIFY] Discord error: {de}")
 
-            # ── Telegram Dispatch ──
+            # ── Telegram Dispatch (HTML mode — B5 fix) ─────────────────────────
+            # parse_mode: Markdown breaks silently on _, *, `, [ in messages.
+            # HTML mode only requires escaping &, <, > — far more robust.
             if telegram_chat_id and os.getenv("TELEGRAM_BOT_TOKEN"):
                 bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+                esc = NotificationService._tg_escape
                 field_lines = ''
                 if fields:
-                    field_lines = '\n' + '\n'.join(f"*{f['name']}:* {f['value']}" for f in fields)
+                    field_lines = '\n' + '\n'.join(
+                        f"<b>{esc(f['name'])}:</b> {esc(f['value'])}" for f in fields
+                    )
                 msg_text = (
-                    f"🚨 *{title}*\n\n"
-                    f"{message}"
+                    f"🚨 <b>{esc(title)}</b>\n\n"
+                    f"{esc(message)}"
                     f"{field_lines}\n\n"
-                    f"_AlphaSignal Institutional Engine_"
+                    f"<i>AlphaSignal Institutional Engine</i>"
                 )
                 tg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                 try:
-                    requests.post(tg_url, json={
+                    resp = requests.post(tg_url, json={
                         "chat_id": telegram_chat_id,
                         "text": msg_text,
-                        "parse_mode": "Markdown"
+                        "parse_mode": "HTML"          # B5: was "Markdown" — breaks on _, *, `
                     }, timeout=5)
+                    # B4: Log failed deliveries (e.g. 400 = invalid chat_id)
+                    if not resp.ok:
+                        print(f"[NOTIFY] Telegram delivery failed: HTTP {resp.status_code} — {resp.text[:200]}")
                 except Exception as te:
                     print(f"[NOTIFY] Telegram error: {te}")
 

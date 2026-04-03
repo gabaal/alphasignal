@@ -344,20 +344,21 @@ async function renderAlerts(tabs = null) {
         </div>
 
         <!-- Active Trigger Conditions -->
-        <div class="card" style="padding:1rem;margin-bottom:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center">
+        <div id="active-triggers-strip" class="card" style="padding:1rem;margin-bottom:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;transition:opacity 0.3s">
             <span style="font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);font-weight:700">ACTIVE TRIGGERS</span>
             ${[
-                ['Z-Score &gt; 2.5σ', '#22c55e', 'show_chart'],
-                ['Whale Txn &gt; $5M', '#00f2ff', 'account_balance_wallet'],
-                ['De-peg &gt; 1%', '#ef4444', 'warning'],
-                ['Vol Spike 3×', '#f59e0b', 'bolt'],
-                ['CME Gap Fill', '#bc13fe', 'pivot_table_chart']
-            ].map(([label, color, icon]) => `
+                ['badge-z-trigger',    'Z-Score &gt; 2.0%',   '#22c55e', 'show_chart'],
+                ['badge-whale-trigger','Whale Txn &gt; $5M',   '#00f2ff', 'account_balance_wallet'],
+                ['badge-depeg-trigger','De-peg &gt; 1.0%',     '#ef4444', 'warning'],
+                ['badge-vol-trigger',  'Vol Spike 2.0×',       '#f59e0b', 'bolt'],
+                ['badge-cme-trigger',  'CME Gap 1.0%',         '#bc13fe', 'pivot_table_chart']
+            ].map(([id, label, color, icon]) => `
                 <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.03);border:1px solid ${color}33;border-radius:6px;padding:4px 10px">
                     <span class="material-symbols-outlined" style="font-size:12px;color:${color}">${icon}</span>
-                    <span style="font-size:0.6rem;color:${color};font-weight:700">${label}</span>
+                    <span id="${id}" style="font-size:0.6rem;color:${color};font-weight:700">${label}</span>
                 </div>
             `).join('')}
+            <span id="alerts-paused-badge" style="display:none;font-size:0.55rem;font-weight:900;letter-spacing:1px;padding:3px 10px;border-radius:100px;background:rgba(255,62,62,0.12);color:var(--risk-high);border:1px solid rgba(255,62,62,0.3)">⏸ PAUSED</span>
             <span style="margin-left:auto;font-size:0.6rem;color:var(--text-dim)">Updated: ${new Date().toLocaleTimeString()}</span>
         </div>
 
@@ -559,6 +560,24 @@ async function renderAlerts(tabs = null) {
         setSlider('depeg-threshold-slider',     'depeg-val-display', s.depeg_threshold,      v => parseFloat(v).toFixed(1) + '%');
         setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + 'σ');
         setSlider('cme-gap-threshold-slider',   'cme-val-display',   s.cme_gap_threshold,    v => parseFloat(v).toFixed(1) + '%');
+
+        // B22 fix: Update Active Triggers chip labels with real saved thresholds
+        const badgeMap = {
+            'badge-z-trigger':    `Z-Score &gt; ${parseFloat(s.z_threshold || 2.0).toFixed(1)}%`,
+            'badge-whale-trigger':`Whale Txn &gt; $${parseFloat(s.whale_threshold || 5).toFixed(0)}M`,
+            'badge-depeg-trigger':`De-peg &gt; ${parseFloat(s.depeg_threshold || 1).toFixed(1)}%`,
+            'badge-vol-trigger':  `Vol Spike ${parseFloat(s.vol_spike_threshold || 2).toFixed(1)}×`,
+            'badge-cme-trigger':  `CME Gap ${parseFloat(s.cme_gap_threshold || 1).toFixed(1)}%`,
+        };
+        Object.entries(badgeMap).forEach(([id, label]) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = label;
+        });
+        // Dim the entire triggers strip if alerts are paused
+        const strip = document.getElementById('active-triggers-strip');
+        if (strip) strip.style.opacity = s.alerts_enabled !== false ? '1' : '0.35';
+        const pausedBadge = document.getElementById('alerts-paused-badge');
+        if (pausedBadge) pausedBadge.style.display = s.alerts_enabled !== false ? 'none' : 'inline-flex';
     }).catch(() => {});
 }
 
