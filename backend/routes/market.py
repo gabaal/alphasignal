@@ -34,11 +34,12 @@ class MarketRoutesMixin:
             congestion = fetch_network_congestion()
             fomo    = fetch_retail_fomo('Bitcoin')
             dials = {
-                'fear_greed':         {'value': fg['value'],   'label': fg['label']},
-                'network_congestion': {'value': congestion,    'label': 'Network Congestion'},
-                'retail_fomo':        {'value': fomo,          'label': 'Retail FOMO'},
+                'fear_greed':         {'value': fg['value'],       'label': fg['label']},
+                'network_congestion': {'value': congestion,        'label': 'Network Congestion'},
+                'retail_fomo':        {'value': fomo['value'],     'label': 'Retail FOMO',
+                                       'source': fomo['source']},
             }
-            self.send_json({'dials': dials, 'source': 'alternative.me+blockchain.info+trends'})
+            self.send_json({'dials': dials, 'source': 'alternative.me+mempool.space+trends'})
         except Exception as e:
             print(f'Dials Error: {e}')
             self.send_json({'error': 'Failed to sync Dials'})

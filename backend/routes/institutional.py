@@ -837,7 +837,7 @@ class InstitutionalRoutesMixin:
             # ── Network Activity: Google Trends or sentiment volume proxy ──
             try:
                 fomo = fetch_retail_fomo(sym)
-                network_act = min(99, max(20, fomo))
+                network_act = min(99, max(20, fomo.get('value', 60)))
             except:
                 network_act = 60
 

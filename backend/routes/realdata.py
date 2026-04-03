@@ -124,8 +124,9 @@ def fetch_network_congestion() -> int:
 
 
 # ─── Retail FOMO (Google Trends via pytrends) ─────────────────────────────────
-def fetch_retail_fomo(keyword: str = 'Bitcoin') -> int:
+def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
     """Google Trends interest 0-100 — cached 1h (Trends itself updates hourly).
+    Returns {'value': int, 'source': 'google_trends' | 'fear_greed_fallback'}.
     Falls back to Fear & Greed if pytrends is rate-limited."""
     cache_key = f'fomo_{keyword}'
     cached = _get(cache_key)
@@ -137,14 +138,16 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> int:
         pt.build_payload([keyword], timeframe='now 7-d')
         df = pt.interest_over_time()
         if not df.empty and keyword in df.columns:
-            score = int(df[keyword].iloc[-1])
-            _set(cache_key, score, ttl=3600)   # 1h — matches Google Trends update cadence
-            return score
+            result = {'value': int(df[keyword].iloc[-1]), 'source': 'google_trends'}
+            _set(cache_key, result, ttl=3600)   # 1h — matches Google Trends update cadence
+            return result
     except Exception as e:
         print(f'[FOMO/pytrends] {e}')
     # Fallback: derive from Fear & Greed index (cached separately at 6h)
     fg = fetch_fear_greed()
-    return fg['value']
+    result = {'value': fg['value'], 'source': 'fear_greed_fallback'}
+    _set(cache_key, result, ttl=900)  # cache fallback 15min so it retries pytrends sooner
+    return result
 
 
 # ─── DefiLlama — TVL by Chain ─────────────────────────────────────────────────
