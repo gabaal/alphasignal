@@ -81,7 +81,7 @@ function showSignalToast(signal) {
         </div>
         <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
             <span style="font-size:0.65rem;color:rgba(255,255,255,0.4);flex:1">High-confidence alpha detected by ML engine</span>
-            <button onclick="switchView('signals');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW SIGNAL →</button>
+            <button onclick="switchView('alerts');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW ALERT →</button>
         </div>
     `;
 

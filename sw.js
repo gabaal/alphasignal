@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alphasignal-v1.56';
+const CACHE_NAME = 'alphasignal-v1.57';
 
 // Core shell files to cache for offline use
 const SHELL_FILES = [
@@ -10,12 +10,12 @@ const SHELL_FILES = [
   '/icon-512.png',
   '/assets/pwa-icon-192.png',
   '/assets/pwa-icon-512.png',
-  '/js/utils.js?v=1.56',
-  '/js/auth.js?v=1.56',
-  '/js/core.js?v=1.56',
-  '/js/main.js?v=1.56',
-  '/js/router.js?v=1.56',
-  '/js/charts.js?v=1.56'
+  '/js/utils.js?v=1.57',
+  '/js/auth.js?v=1.57',
+  '/js/core.js?v=1.57',
+  '/js/main.js?v=1.57',
+  '/js/router.js?v=1.57',
+  '/js/charts.js?v=1.57'
 ];
 
 // Install: cache the app shell

@@ -625,8 +625,30 @@ function initLivePriceStream() {
                         // Feature 2: Bell badge removed per user feedback
                     } else if (msg.type === 'new_alert' || msg.type === 'alert') {
                         const d = msg.data;
-                        const ticker = d.ticker || d.signal_type || 'SIGNAL';
-                        showToast('\uD83D\uDD14 ' + ticker, d.content || d.message || '', 'alert');
+
+                        // B17 fix: fire showSignalToast immediately on WS push (was: generic showToast → ~60s delay).
+                        // Respect the same sensitivity gate as the 60s poller.
+                        const alertsOn = typeof _pollerSettings !== 'undefined' ? _pollerSettings.alerts_enabled : true;
+                        if (alertsOn && isPremiumUser) {
+                            const predReturn = d.predicted_return != null
+                                ? Math.abs(parseFloat(d.predicted_return)) * 100
+                                : Math.abs(parseFloat(d.z_score ?? 0));
+                            const userThresh = typeof _pollerSettings !== 'undefined' ? _pollerSettings.z_threshold : 2.0;
+                            if (predReturn >= userThresh || d.severity === 'critical' || d.severity === 'high') {
+                                // Map WS alert data to showSignalToast-compatible shape
+                                showSignalToast({
+                                    ticker: d.ticker || d.signal_type || 'SIGNAL',
+                                    direction: d.type && d.type.includes('BULL') ? 'LONG' :
+                                               d.type && d.type.includes('BEAR') ? 'SHORT' : 'ALERT',
+                                    z_score: d.z_score ?? null,
+                                    predicted_return: d.predicted_return ?? null
+                                });
+                            }
+                        } else if (!isPremiumUser) {
+                            // Free users: plain toast (no rich signal toast)
+                            const ticker = d.ticker || d.signal_type || 'SIGNAL';
+                            showToast('\uD83D\uDD14 ' + ticker, d.content || d.message || '', 'alert');
+                        }
 
                         // Bump the alerts badge
                         const alertBadge = document.getElementById('alerts-badge-count');
@@ -933,9 +955,13 @@ function startSignalPoller() {
             if (latestId && latestId !== lastSeen) {
                 // New signal found — check against sensitivity threshold
                 if (lastSeen !== null) {
-                    // z_score on the signal vs user's configured threshold
-                    const signalZ = Math.abs(parseFloat(latest.z_score ?? latest.predicted_return ?? 99));
-                    if (signalZ >= _pollerSettings.z_threshold) {
+                    // B14 fix: z_threshold is stored as % predicted alpha (e.g. 2.0 = 2%).
+                    // Compare predicted_return * 100 (primary) or z_score as a % fallback.
+                    // Do NOT compare z_score (σ) directly — unit mismatch with z_threshold (%).
+                    const predReturn = latest.predicted_return != null
+                        ? Math.abs(parseFloat(latest.predicted_return)) * 100   // decimal → %
+                        : Math.abs(parseFloat(latest.z_score ?? 0));            // σ fallback (approx)
+                    if (predReturn >= _pollerSettings.z_threshold) {
                         showSignalToast(latest);
                     }
                 }
