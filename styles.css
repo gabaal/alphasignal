@@ -3655,3 +3655,228 @@ body::before {
     pointer-events: none;
     z-index: 0;
 }
+/* ============================================================
+   GLASSMORPHISM OVERHAUL — AlphaSignal v1.7
+   Deep frosted glass, luminous borders, layered depth
+   ============================================================ */
+
+/* -- Background: richer deep navy with subtle nebula glow -- */
+body {
+    background: radial-gradient(ellipse 120% 80% at 10% -10%, rgba(14,18,40,1) 0%, #050710 60%, #020408 100%) !important;
+}
+
+/* Animated ambient orbs behind everything */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 600px 500px at 15% 20%, rgba(125,211,252,0.045) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 400px at 85% 75%, rgba(99,102,241,0.055) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 350px at 50% 50%, rgba(188,19,254,0.025) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* -- Root variable upgrades -- */
+:root {
+    --bg-deep:       #04060f;
+    --bg-card:       rgba(255,255,255,0.045);
+    --glass:         rgba(255,255,255,0.045);
+    --surface-1:     rgba(255,255,255,0.04);
+    --surface-2:     rgba(255,255,255,0.08);
+    --border:        rgba(255,255,255,0.10);
+    --border-glow:   rgba(125,211,252,0.18);
+    --accent-glow:   rgba(125,211,252,0.20);
+    --shadow-glass:  0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
+    --shadow-glow:   0 0 0 1px rgba(125,211,252,0.08), 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* -- Sidebar: deep frosted glass -- */
+.sidebar {
+    background: rgba(4,6,18,0.72) !important;
+    backdrop-filter: blur(48px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(48px) saturate(180%) !important;
+    border-right: 1px solid rgba(125,211,252,0.08) !important;
+    box-shadow: 4px 0 40px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.04) !important;
+}
+
+/* Sidebar inner glow top */
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 200px;
+    background: radial-gradient(ellipse at top, rgba(125,211,252,0.06), transparent 70%);
+    pointer-events: none;
+}
+
+/* -- Cards: true frosted glass with glow border -- */
+.card, .glass-card, .intel-card, .signal-card, .f-card {
+    background: rgba(255,255,255,0.048) !important;
+    backdrop-filter: blur(24px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    border-top-color: rgba(255,255,255,0.16) !important;
+    border-left-color: rgba(255,255,255,0.12) !important;
+    box-shadow: var(--shadow-glass),
+                inset 0 1px 0 rgba(255,255,255,0.08),
+                inset 0 -1px 0 rgba(0,0,0,0.2) !important;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease !important;
+}
+
+.card:hover, .glass-card:hover, .intel-card:hover {
+    border-color: rgba(125,211,252,0.22) !important;
+    border-top-color: rgba(125,211,252,0.30) !important;
+    box-shadow: 0 0 0 1px rgba(125,211,252,0.10),
+                0 12px 40px rgba(0,0,0,0.6),
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                0 0 60px rgba(125,211,252,0.06) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* -- Top bar: heavy frosted glass -- */
+.top-bar {
+    background: rgba(4,6,18,0.65) !important;
+    backdrop-filter: blur(40px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    border-top-color: rgba(255,255,255,0.14) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.07) !important;
+}
+
+/* -- Signal cards: deeper glass with accent tone -- */
+.signal-card {
+    background: linear-gradient(
+        135deg,
+        rgba(125,211,252,0.04) 0%,
+        rgba(255,255,255,0.03) 50%,
+        rgba(99,102,241,0.03) 100%
+    ) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    border-top-color: rgba(255,255,255,0.18) !important;
+}
+
+/* -- Hub tabs: frosted pill -- */
+.hub-tabs {
+    background: rgba(255,255,255,0.04) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+.hub-tabs button.active,
+.hub-tabs .intel-action-btn.active {
+    background: rgba(125,211,252,0.15) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(125,211,252,0.25) !important;
+    box-shadow: 0 0 20px rgba(125,211,252,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.1) !important;
+}
+
+/* -- Nav active state: glowing pill -- */
+.nav-item.active {
+    background: rgba(125,211,252,0.10) !important;
+    border-left: 2px solid var(--accent) !important;
+    box-shadow: inset 0 0 20px rgba(125,211,252,0.06) !important;
+}
+
+/* -- Overlay modal: ultra frosted -- */
+.overlay {
+    background: rgba(2,4,12,0.80) !important;
+    backdrop-filter: blur(20px) !important;
+}
+.overlay-content {
+    background: rgba(6,9,22,0.92) !important;
+    backdrop-filter: blur(40px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-top-color: rgba(255,255,255,0.20) !important;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7),
+                inset 0 1px 0 rgba(255,255,255,0.10),
+                0 0 0 1px rgba(125,211,252,0.06) !important;
+}
+
+/* -- Data table rows: subtle glass rows -- */
+.data-table tbody tr:hover {
+    background: rgba(125,211,252,0.06) !important;
+    backdrop-filter: blur(8px) !important;
+}
+.data-table th {
+    background: rgba(255,255,255,0.04) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+}
+
+/* -- Input fields and selects: glass inputs -- */
+input, select, textarea {
+    background: rgba(255,255,255,0.05) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: rgba(125,211,252,0.40) !important;
+    box-shadow: 0 0 0 3px rgba(125,211,252,0.10),
+                inset 0 1px 0 rgba(255,255,255,0.05) !important;
+    outline: none !important;
+}
+
+/* -- Buttons: frosted glass pill -- */
+.intel-action-btn, .action-btn-styled, .tf-btn {
+    background: rgba(255,255,255,0.06) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08) !important;
+    transition: all 0.2s ease !important;
+}
+.intel-action-btn:hover, .action-btn-styled:hover {
+    background: rgba(255,255,255,0.10) !important;
+    border-color: rgba(125,211,252,0.30) !important;
+    box-shadow: 0 0 16px rgba(125,211,252,0.10),
+                inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+.intel-action-btn.primary, .action-btn-styled.primary {
+    background: linear-gradient(135deg, rgba(125,211,252,0.9), rgba(99,102,241,0.8)) !important;
+    border: 1px solid rgba(125,211,252,0.5) !important;
+    box-shadow: 0 4px 20px rgba(125,211,252,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.2) !important;
+    color: #000 !important;
+}
+
+/* -- Premium badge: luminous glass -- */
+.premium-badge {
+    background: rgba(125,211,252,0.12) !important;
+    border: 1px solid rgba(125,211,252,0.30) !important;
+    box-shadow: 0 0 12px rgba(125,211,252,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.15) !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+/* -- Stat / metric cards inner glow -- */
+.stat-card, .heatmap-sector, .cat-card, .whale-row {
+    background: rgba(255,255,255,0.04) !important;
+    backdrop-filter: blur(16px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    border-top-color: rgba(255,255,255,0.15) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.07) !important;
+}
+
+/* -- Scrollbar: glass tinted -- */
+::-webkit-scrollbar-thumb {
+    background: rgba(125,211,252,0.15) !important;
+    border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(125,211,252,0.28) !important;
+}
+
+/* -- View header: subtle glass frosting -- */
+.view-header {
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}

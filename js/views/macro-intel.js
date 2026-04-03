@@ -79,17 +79,17 @@ async function renderMindshare() {
                 const midY = y.getPixelForValue(50);
 
                 ctx.save();
-                // Alpha Quadrant (Top Right)
-                ctx.fillStyle = 'rgba(0, 242, 255, 0.15)';
+                // Alpha Quadrant (Top Right) — cyan glass
+                ctx.fillStyle = 'rgba(125,211,252,0.07)';
                 ctx.fillRect(midX, top, right - midX, midY - top);
-                // Hype Quadrant (Top Left)
-                ctx.fillStyle = 'rgba(188, 19, 254, 0.15)';
+                // Hype Quadrant (Top Left) — purple glass
+                ctx.fillStyle = 'rgba(139,92,246,0.06)';
                 ctx.fillRect(left, top, midX - left, midY - top);
-                // Underlying Quadrant (Bottom Right)
-                ctx.fillStyle = 'rgba(255, 159, 0, 0.15)';
+                // Underlying Quadrant (Bottom Right) — emerald glass
+                ctx.fillStyle = 'rgba(52,211,153,0.05)';
                 ctx.fillRect(midX, midY, right - midX, bottom - midY);
-                // Developing Quadrant (Bottom Left)
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                // Developing Quadrant (Bottom Left) — neutral glass
+                ctx.fillStyle = 'rgba(148,163,184,0.04)';
                 ctx.fillRect(left, midY, midX - left, bottom - midY);
                 ctx.restore();
             }
@@ -362,8 +362,8 @@ async function renderMacroCalendar(tabs = null) {
 
         const yieldsData  = [y1M, y3M, y6M, y1Y, y2Y, y5Y, y10Y, y30Y];
         const labels      = ['1M', '3M', '6M', '1Y', '2Y', '5Y', '10Y', '30Y'];
-        const curveColor  = inverted ? '#ef4444' : '#22c55e';
-        const curveFill   = inverted ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)';
+        const curveColor  = inverted ? '#f87171' : '#22c55e';
+        const curveFill   = inverted ? 'rgba(248,113,113,0.06)' : 'rgba(34,197,94,0.06)';
         const yMin        = Math.floor(Math.min(...yieldsData) * 10) / 10 - 0.2;
         const yMax        = Math.ceil(Math.max(...yieldsData)  * 10) / 10 + 0.2;
 
@@ -400,7 +400,7 @@ async function renderMacroCalendar(tabs = null) {
                     fill: true,
                     tension: 0.4,
                     pointBackgroundColor: yieldsData.map((v, i) =>
-                        (i > 0 && yieldsData[i] > yieldsData[i-1]) ? '#ef4444' : curveColor
+                        (i > 0 && yieldsData[i] > yieldsData[i-1]) ? '#f87171' : curveColor
                     ),
                     pointBorderColor: curveColor,
                     pointRadius: 6,
