@@ -697,13 +697,37 @@ class HarvestService:
                             try:
                                 with sqlite3.connect(DB_PATH) as notify_conn:
                                     notify_c = notify_conn.cursor()
-                                    notify_c.execute("SELECT user_email, z_threshold FROM user_settings WHERE alerts_enabled = 1")
-                                    for (n_email, n_z) in notify_c.fetchall():
-                                        # Rule-based signals use severity as gate: high/critical always fires,
-                                        # medium only fires if user threshold <= 1.5%
-                                        user_z = float(n_z) if n_z else 2.0
-                                        if severity == 'medium' and user_z > 1.5:
-                                            continue
+                                    notify_c.execute("""SELECT user_email, z_threshold,
+                                                               whale_threshold, depeg_threshold,
+                                                               vol_spike_threshold, cme_gap_threshold
+                                                        FROM user_settings WHERE alerts_enabled = 1""")
+                                    for row in notify_c.fetchall():
+                                        (n_email, n_z, n_whale, n_depeg, n_vol, n_cme) = row
+                                        user_z    = float(n_z)     if n_z     else 2.0
+                                        user_whale= float(n_whale) if n_whale else 5.0
+                                        user_depeg= float(n_depeg) if n_depeg else 1.0
+                                        user_vol  = float(n_vol)   if n_vol   else 2.0
+                                        user_cme  = float(n_cme)   if n_cme   else 1.0
+
+                                        # Per-signal-type threshold gates
+                                        if sig_type in ('RSI_OVERSOLD', 'RSI_OVERBOUGHT', 'MACD_BULLISH_CROSS', 'MACD_BEARISH_CROSS', 'ML_ALPHA_PREDICTION'):
+                                            if severity == 'medium' and user_z > 1.5:
+                                                continue
+                                        elif sig_type == 'VOLUME_SPIKE':
+                                            # vol_spike_threshold is σ multiplier (default 2x)
+                                            # signal already fired at 2σ; only suppress if user wants >user_vol σ
+                                            if user_vol > 2.0:
+                                                continue  # they want a stricter vol spike
+                                        elif sig_type == 'WHALE_TXN':
+                                            txn_usd = curr_p  # curr_p carries txn size in $M for whale signals
+                                            if txn_usd < user_whale:
+                                                continue
+                                        elif sig_type == 'DEPEG':
+                                            if curr_p < user_depeg:  # curr_p carries depeg % for depeg signals
+                                                continue
+                                        elif sig_type == 'CME_GAP':
+                                            if curr_p < user_cme:  # curr_p carries gap % for CME signals
+                                                continue
                                         direction = 'BULLISH' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'BEARISH' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
                                         embed_color = 0x22c55e if direction == 'BULLISH' else 0xef4444 if direction == 'BEARISH' else 0x00f2ff
                                         NOTIFY.push_webhook(

@@ -1,4 +1,4 @@
-﻿async function renderMindshare() {
+async function renderMindshare() {
     appEl.innerHTML = skeleton(1);
     const [data, tvlData] = await Promise.all([
         fetchAPI(`/mindshare?v=${Date.now()}`),
@@ -308,52 +308,145 @@ async function renderMacroCalendar(tabs = null) {
                 <div class="card-header">
                     <h3>US Treasury Yield Curve (Inversion Monitor)</h3>
                     <span class="label-tag">BOND MARKET PROXY</span>
+                    <span id="yc-source-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING…</span>
                 </div>
                 <div style="height:300px; width:100%; position:relative;">
-                    <canvas id="yieldCurveChart"></canvas>
+                    <div id="yc-loading-mcal" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text-dim);font-size:0.7rem">
+                        <div class="loader" style="width:24px;height:24px"></div>Loading live yields…
+                    </div>
+                    <canvas id="yieldCurveChart" style="display:none"></canvas>
                 </div>
-                <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
-                    Curve inversion (short-term yields > long-term yields) often predicts liquidity contraction.
+                <div id="yc-footer" style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
+                    Curve inversion (short-term yields &gt; long-term yields) often predicts liquidity contraction.
                 </div>
             </div>
 
         </div>
     `;
 
-    setTimeout(() => {
-        const ycCtx = document.getElementById('yieldCurveChart');
-        if (ycCtx) {
-            new Chart(ycCtx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['1M', '3M', '6M', '1Y', '2Y', '5Y', '10Y', '30Y'],
-                    datasets: [{
-                        label: 'US Treasury Yield (%)',
-                        data: [4.81, 4.88, 4.86, 4.67, 4.31, 4.22, 4.28, 4.54],
-                        borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#22c55e',
-                        pointRadius: 5
-                    }]
+    // Live Yield Curve — fetch real anchor points and interpolate full 8-point curve
+    setTimeout(async () => {
+        const ycCtx  = document.getElementById('yieldCurveChart');
+        const loader = document.getElementById('yc-loading-mcal');
+        const badge  = document.getElementById('yc-source-badge');
+        const footer = document.getElementById('yc-footer');
+        if (!ycCtx) return;
+
+        // lerp helper
+        const lerp = (a, b, t) => +(a + (b - a) * t).toFixed(3);
+
+        let y1M, y3M, y6M, y1Y, y2Y, y5Y, y10Y, y30Y, source = 'synthetic', inverted = false;
+
+        try {
+            const ycData = await fetchAPI('/yield-curve');
+            if (ycData && ycData.latest && ycData.latest.y2 != null) {
+                const { y2: s, y5, y10, y30 } = ycData.latest; // y2 = ^IRX = short rate
+                source = ycData.source || 'yahoo_finance';
+                // Interpolate: short(0y) → 5Y → 10Y → 30Y
+                // Maturities in years: 1/12, 3/12, 6/12, 1, 2, 5, 10, 30
+                y1M  = lerp(s, y5, (1/12) / 5);   // ~0.017 of 0→5
+                y3M  = s;                           // ^IRX is 13-week ≈ 3M
+                y6M  = lerp(s, y5, 0.5 / 5);
+                y1Y  = lerp(s, y5, 1   / 5);
+                y2Y  = lerp(s, y5, 2   / 5);
+                y5Y  = y5;
+                y10Y = y10;
+                y30Y = y30;
+                inverted = (y2Y - y10Y) > 0;       // 2Y/10Y inversion check
+            } else throw new Error('no data');
+        } catch(e) {
+            // Fallback: static curve as of last known values
+            [y1M, y3M, y6M, y1Y, y2Y, y5Y, y10Y, y30Y] = [5.18, 5.22, 5.10, 4.90, 4.61, 4.32, 4.28, 4.52];
+            source = 'synthetic';
+        }
+
+        const yieldsData  = [y1M, y3M, y6M, y1Y, y2Y, y5Y, y10Y, y30Y];
+        const labels      = ['1M', '3M', '6M', '1Y', '2Y', '5Y', '10Y', '30Y'];
+        const curveColor  = inverted ? '#ef4444' : '#22c55e';
+        const curveFill   = inverted ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)';
+        const yMin        = Math.floor(Math.min(...yieldsData) * 10) / 10 - 0.2;
+        const yMax        = Math.ceil(Math.max(...yieldsData)  * 10) / 10 + 0.2;
+
+        // Update badge
+        if (badge) {
+            badge.textContent  = source === 'synthetic' ? '◌ SYNTHETIC' : '● LIVE Yahoo';
+            badge.style.background = source === 'synthetic' ? 'rgba(148,163,184,0.1)' : 'rgba(34,197,94,0.12)';
+            badge.style.color      = source === 'synthetic' ? '#94a3b8'               : '#22c55e';
+        }
+
+        // Update footer with inversion status
+        if (footer) {
+            const spread = +(y10Y - y2Y).toFixed(2);
+            const spreadDir = spread >= 0 ? `+${spread}%` : `${spread}%`;
+            footer.innerHTML = inverted
+                ? `<span style="color:#ef4444;font-weight:700">⚠ YIELD CURVE INVERTED — 2Y/10Y Spread: ${spreadDir}</span> · Short-term yields above long-term signals elevated recession risk.`
+                : `<span style="color:#22c55e;font-weight:700">✓ Normal Curve — 2Y/10Y Spread: +${spread}%</span> · 2Y: ${y2Y}% · 10Y: ${y10Y}% · 30Y: ${y30Y}%`;
+        }
+
+        // Hide loader, show canvas
+        if (loader) loader.style.display = 'none';
+        ycCtx.style.display = 'block';
+
+        new Chart(ycCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'US Treasury Yield (%)',
+                    data: yieldsData,
+                    borderColor: curveColor,
+                    backgroundColor: curveFill,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: yieldsData.map((v, i) =>
+                        (i > 0 && yieldsData[i] > yieldsData[i-1]) ? '#ef4444' : curveColor
+                    ),
+                    pointBorderColor: curveColor,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(13,17,23,0.95)',
+                        titleColor: curveColor,
+                        bodyColor: '#e6edf3',
+                        padding: 10,
+                        callbacks: {
+                            label: c => ` ${c.raw.toFixed(2)}%`,
+                            afterLabel: c => {
+                                const prev = c.dataIndex > 0 ? yieldsData[c.dataIndex - 1] : null;
+                                if (prev === null) return '';
+                                const diff = (c.raw - prev).toFixed(2);
+                                return diff > 0 ? ` ▲ +${diff}% vs prior` : ` ▼ ${diff}% vs prior`;
+                            }
+                        }
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(13, 17, 23, 0.95)', titleColor: '#22c55e', bodyColor: '#e6edf3', callbacks: { label: c => `${c.raw}%` } }
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 } }
                     },
-                    scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 } } },
-                        y: { title: { display: true, text: 'Yield (%)', color: '#8b949e'}, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v.toFixed(2) + '%' }, suggestedMin: 3.5, suggestedMax: 5.5 }
+                    y: {
+                        title: { display: true, text: 'Yield (%)', color: '#8b949e' },
+                        grid: { color: (ctx) => ctx.tick.value === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)' },
+                        ticks: {
+                            color: '#8b949e',
+                            font: { family: 'JetBrains Mono', size: 10 },
+                            callback: v => v.toFixed(2) + '%'
+                        },
+                        suggestedMin: yMin,
+                        suggestedMax: yMax
                     }
                 }
-            });
-        }
+            }
+        });
     }, 50);
 }
 

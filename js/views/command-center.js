@@ -635,70 +635,125 @@ function closeCmdChartModal() {
 
 // ============= BTC Top-Bar Sparkline =============
 let _btcSparkChartInst = null;
-async function initBTCSparkline() {
+let _sparkPriceHistory = [];  // rolling 48-point price buffer fed from WebSocket
+
+// Called from the WS price handler to feed the sparkline in real-time
+function pushSparklinePrice(price) {
+    if (!price || isNaN(price)) return;
+    _sparkPriceHistory.push(price);
+    if (_sparkPriceHistory.length > 60) _sparkPriceHistory.shift();
+    // Live-update without re-fetching if chart already exists
+    if (_btcSparkChartInst && _btcSparkChartInst.data) {
+        try {
+            const ds = _btcSparkChartInst.data.datasets[0];
+            ds.data = _sparkPriceHistory.slice();
+            _btcSparkChartInst.data.labels = _sparkPriceHistory.map((_, i) => i);
+            const isUp = _sparkPriceHistory[_sparkPriceHistory.length - 1] >= _sparkPriceHistory[0];
+            const color = isUp ? '#22c55e' : '#ef4444';
+            ds.borderColor = color;
+            ds.backgroundColor = isUp ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)';
+            _btcSparkChartInst.update('none');
+        } catch(e) {}
+    }
+}
+
+async function initBTCSparkline(_retries) {
     const canvas = document.getElementById('btcSparklineChart');
     const priceEl = document.getElementById('btc-spark-price');
     const changeEl = document.getElementById('btc-spark-change');
     if (!canvas) return;
 
+    // Guard: Chart.js must be loaded. Retry up to 5 times at 500ms intervals.
+    if (typeof Chart === 'undefined') {
+        if ((_retries || 0) < 5) setTimeout(() => initBTCSparkline((_retries || 0) + 1), 500);
+        return;
+    }
+
+    // Ensure canvas has a valid draw surface
+    canvas.width  = 80;
+    canvas.height = 36;
+
     try {
-        // Use raw fetch (not fetchAPI) so 401/402 never triggers showPaywall/showAuth
         let prices = null, latest = null, prev = null;
 
-        // Try premium history for a real sparkline shape
-        try {
-            const hr = await fetch('/api/history?ticker=BTC-USD&period=5d');
-            if (hr.ok) {
-                const hd = await hr.json();
-                if (hd && hd.history && hd.history.length >= 2) {
-                    const raw = hd.history.map(p => p.price ?? p.close).filter(v => v != null && !isNaN(v));
-                    if (raw.length >= 2) {
-                        prices = raw;
-                        latest = prices[prices.length - 1];
-                        prev = prices[0];
-                    }
-                }
+        // Priority 1: Use WebSocket live price cache (zero latency)
+        if (window.livePrices && window.livePrices.BTC) {
+            latest = window.livePrices.BTC;
+            // Build synthetic walk from rolling history or seed
+            if (_sparkPriceHistory.length >= 2) {
+                prices = _sparkPriceHistory.slice();
+                prev   = prices[0];
+            } else {
+                prev = latest * 0.99;  // assume +1% from yesterday as placeholder
+                prices = [];
+                let v = prev, seed = Math.floor(latest) % 9999;
+                const rng = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
+                const step = (latest - prev) / 48;
+                for (let i = 0; i < 48; i++) { v += step + (rng() - 0.5) * (latest * 0.003); prices.push(v); }
+                prices.push(latest);
             }
-        } catch(e) { /* silent */ }
-
-        // Always fall back to /api/btc (public) + synthetic 48-pt seeded walk
-        if (!prices || !latest) {
-            const br = await fetch('/api/btc');
-            if (!br.ok) return;
-            const bd = await br.json();
-            latest = bd.price || 70000;
-            const chg = bd.change || 0;
-            prev = latest / (1 + chg / 100);
-            let seed = Math.floor(latest) % 9999;
-            const rng = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
-            prices = [];
-            let v = prev;
-            const step = (latest - prev) / 48;
-            for (let i = 0; i < 48; i++) {
-                v += step + (rng() - 0.5) * (latest * 0.003);
-                prices.push(v);
-            }
-            prices.push(latest);
         }
 
-        const isUp = latest >= prev;
-        const pct = ((latest - prev) / prev * 100).toFixed(2);
+        // Priority 2: Public /api/btc (no auth required)
+        if (!latest) {
+            try {
+                const br = await fetch('/api/btc');
+                if (br.ok) {
+                    const bd = await br.json();
+                    latest = bd.price || 0;
+                    const chg = bd.change || 0;
+                    if (latest > 0) {
+                        prev = latest / (1 + chg / 100);
+                        let seed = Math.floor(latest) % 9999;
+                        const rng = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
+                        prices = [];
+                        let v = prev;
+                        const step = (latest - prev) / 48;
+                        for (let i = 0; i < 48; i++) { v += step + (rng() - 0.5) * (latest * 0.003); prices.push(v); }
+                        prices.push(latest);
+                    }
+                }
+            } catch(e) { /* silent */ }
+        }
+
+        // If neither source has data yet, retry in 1s (server might still be warming up)
+        if (!latest || !prices) {
+            if ((_retries || 0) < 8) setTimeout(() => initBTCSparkline((_retries || 0) + 1), 1000);
+            return;
+        }
+
+        const isUp = latest >= (prev || latest * 0.99);
+        const pct  = prev ? ((latest - prev) / prev * 100).toFixed(2) : '0.00';
         const color = isUp ? '#22c55e' : '#ef4444';
 
         if (priceEl) priceEl.textContent = '$' + Math.round(latest).toLocaleString('en-US');
         if (changeEl) { changeEl.textContent = (isUp ? '+' : '') + pct + '%'; changeEl.style.color = color; }
 
-        if (_btcSparkChartInst) { try { _btcSparkChartInst.destroy(); } catch(e) {} }
+        // Seed rolling history if empty
+        if (_sparkPriceHistory.length < 2) _sparkPriceHistory = prices.slice();
+
+        // Destroy any previous instance cleanly
+        if (_btcSparkChartInst) { try { _btcSparkChartInst.destroy(); } catch(e) {} _btcSparkChartInst = null; }
+        const existingChart = Chart.getChart ? Chart.getChart(canvas) : null;
+        if (existingChart) { try { existingChart.destroy(); } catch(e) {} }
+
         _btcSparkChartInst = new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: {
                 labels: prices.map((_, i) => i),
-                datasets: [{ data: prices, borderColor: color, borderWidth: 1.5, pointRadius: 0, fill: true, backgroundColor: isUp ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', tension: 0.35 }]
+                datasets: [{ data: prices, borderColor: color, borderWidth: 1.5, pointRadius: 0,
+                    fill: true, backgroundColor: isUp ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', tension: 0.35 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+            options: {
+                responsive: false, maintainAspectRatio: false, animation: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { display: false } }
+            }
         });
     } catch(e) { console.warn('BTC Sparkline:', e); }
 }
+
+
 
 function initCommandGauges(macro, regime) {
     const fgCanvas = document.getElementById('cmd-gauge-fear');

@@ -1,8 +1,8 @@
 import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 from backend.routes.realdata import (
     fetch_defi_llama_chains, fetch_binance_trades, fetch_volume_by_hour,
-    fetch_funding_rate_history, fetch_deribit_iv, fetch_github_commits,
-    fetch_binance_klines, fetch_retail_fomo
+    fetch_funding_rate_history, fetch_deribit_iv, fetch_deribit_iv_surface,
+    fetch_github_commits, fetch_binance_klines, fetch_retail_fomo
 )
 import yfinance as yf
 import numpy as np
@@ -340,41 +340,51 @@ class InstitutionalRoutesMixin:
         """Live 2Y/5Y/10Y/30Y treasury yields via Yahoo Finance, 365-day series."""
         try:
             import datetime as dt
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+
             ticker_map = {
-                'y2':  '^IRX',   # 13-week as 2Y proxy
+                'y2':  '^IRX',   # 13-week T-Bill as short-rate proxy
                 'y5':  '^FVX',
                 'y10': '^TNX',
                 'y30': '^TYX'
             }
-            series = {}
-            for key, sym in ticker_map.items():
+
+            def _fetch(key_sym):
+                key, sym = key_sym
                 try:
                     h = yf.Ticker(sym).history(period='1y')
                     if not h.empty:
-                        series[key] = h['Close'].dropna()
+                        closes = h['Close'].dropna()
+                        # Normalise tz-aware index → plain date strings for easy lookup
+                        closes.index = pd.to_datetime(closes.index).tz_localize(None).normalize()
+                        return key, closes
                 except Exception as e:
                     print(f'[YieldCurve/{sym}] {e}')
+                return key, None
+
+            series = {}
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                for key, closes in pool.map(_fetch, ticker_map.items()):
+                    if closes is not None:
+                        series[key] = closes
 
             # Build daily rows for past 365 days
             rows = []
             today = dt.date.today()
-            # Fill with real data where available, interpolate gaps
             fallback = {'y2': 5.25, 'y5': 4.45, 'y10': 4.32, 'y30': 4.60}
             for i in range(365):
-                d = (today - dt.timedelta(days=364 - i))
+                d = today - dt.timedelta(days=364 - i)
+                d_ts = pd.Timestamp(d)  # tz-naive, matches normalised index
                 d_str = d.strftime('%Y-%m-%d')
                 row = {'date': d_str}
                 for key in ['y2', 'y5', 'y10', 'y30']:
                     s = series.get(key)
                     val = None
                     if s is not None:
-                        # match by date
-                        d_ts = pd.Timestamp(d)
                         if d_ts in s.index:
                             val = round(float(s.loc[d_ts]), 3)
                         else:
-                            # get nearest prior value
-                            prior = s[s.index <= pd.Timestamp(d)]
+                            prior = s[s.index <= d_ts]
                             if not prior.empty:
                                 val = round(float(prior.iloc[-1]), 3)
                     if val is None:
@@ -388,6 +398,7 @@ class InstitutionalRoutesMixin:
                             'latest': rows[-1] if rows else {}})
         except Exception as e:
             print(f'[YieldCurve] {e}')
+            import traceback; traceback.print_exc()
             self.send_json({'error': str(e)})
 
     def handle_portfolio_execute(self, post_data):
@@ -1126,64 +1137,63 @@ class InstitutionalRoutesMixin:
         self.send_json({'ticker': ticker, 'fundingRate': round(funding, 4), 'openInterest': oi, 'oiChange': round(oi_change, 2), 'liquidations24h': liquidations, 'longShortRatio': round(ls_ratio, 2)})
 
     def handle_volatility_surface(self):
+        """Serve full IV surface grid from Deribit live options data."""
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            ticker = query.get('ticker', ['BTC-USD'])[0]
-            sym = ticker.replace('-USD', '').upper()
+            ticker  = query.get('ticker', ['BTC-USD'])[0]
+            sym     = ticker.replace('-USD', '').upper()
+            currency = 'ETH' if 'ETH' in sym else 'BTC'
 
-            # ── Compute realised vol from price history (always available) ──
-            data = CACHE.download(ticker, period='30d', interval='1d')
-            rv = 50.0
-            shape = 1.05
-            if data is not None and not data.empty:
-                prices = self._get_price_series(data, ticker)
-                if prices is not None:
-                    prices = prices.squeeze()
-                    rets = prices.pct_change().dropna()
-                    rv = float(rets.std()) * np.sqrt(365) * 100
-                    current = float(prices.iloc[-1])
-                    sma7 = float(prices.iloc[-7:].mean())
-                    if current < sma7 * 0.95:
-                        shape = 0.85
-                    elif current > sma7 * 1.05:
-                        shape = 1.15
+            # ── Try live Deribit grid ──────────────────────────────────────────
+            surface = fetch_deribit_iv_surface(currency)
+            if surface.get('source') == 'deribit_live' and surface.get('iv_grid'):
+                self.send_json(surface)
+                return
 
-            # ── Try to get real IV from Deribit (BTC/ETH only) ──
-            deribit_currency = 'BTC' if 'BTC' in sym else 'ETH' if 'ETH' in sym else None
-            if deribit_currency:
-                deribit = fetch_deribit_iv(deribit_currency)
-                if deribit['expiries']:
-                    structure = 'BACKWARDATION' if (len(deribit['atm_iv']) >= 2 and deribit['atm_iv'][0] > deribit['atm_iv'][-1]) else 'CONTANGO'
-                    self.send_json({
-                        'ticker': ticker,
-                        'expiries': deribit['expiries'],
-                        'atm_iv':  deribit['atm_iv'],
-                        'skew':    deribit['skew'],
-                        'structure': structure,
-                        'source':  'deribit'
-                    })
-                    return
+            # ── Fallback: generate parametric smile from realised vol ─────────
+            import yfinance as _yf
+            rv = 60.0
+            try:
+                hist = _yf.Ticker(ticker).history(period='30d')
+                if not hist.empty:
+                    rets = hist['Close'].pct_change().dropna()
+                    rv   = float(rets.std()) * (365 ** 0.5) * 100
+            except Exception:
+                pass
 
-            # ── Fallback: RV-derived term structure (no random) ──
+            N_STRIKES = 20
+            N_EXPIRIES = 6
+            money_steps    = [round(0.70 + i * (0.60 / (N_STRIKES - 1)), 4) for i in range(N_STRIKES)]
+            expiry_days    = [7, 14, 30, 60, 90, 180]
+            expiry_labels  = [f'{d}D' for d in expiry_days]
             base_iv = max(35.0, min(150.0, rv))
-            expiries = ['7D', '14D', '30D', '60D', '90D', '180D']
-            atm_iv = []
-            skew = []
-            for i, exp in enumerate(expiries):
-                t_factor = (i + 1) / len(expiries)
-                iv_val = base_iv * (shape ** t_factor)
-                atm_iv.append(round(iv_val, 1))
-                # Skew derived from shape slope (negative = bearish risk premium)
-                sk = (shape - 1.0) * 8 * t_factor
-                skew.append(round(sk, 1))
+
+            grid = []
+            for m in money_steps:
+                row = []
+                for t_days in expiry_days:
+                    t = t_days / 365
+                    # parabolic smile + log term structure
+                    smile  = base_iv * (1 + 1.5 * (m - 1.0) ** 2)
+                    term   = smile * (1 + 0.08 * (math.log(t + 0.05) + 3))
+                    row.append(round(max(10.0, term), 2))
+                grid.append(row)
+
             self.send_json({
-                'ticker': ticker, 'expiries': expiries, 'atm_iv': atm_iv, 'skew': skew,
-                'structure': 'BACKWARDATION' if shape < 1.0 else 'CONTANGO',
-                'source': 'realised_vol'
+                'currency':       currency,
+                'underlying':     None,
+                'moneyness_axis': money_steps,
+                'expiry_labels':  expiry_labels,
+                'expiry_days':    expiry_days,
+                'iv_grid':        grid,
+                'point_count':    0,
+                'source':         'parametric_fallback',
+                'timestamp':      None,
             })
         except Exception as e:
-            print(f'IV Surface Error: {e}')
-            self.send_json({'error': 'Failed to model volatility surface'})
+            print(f'[VolSurface] {e}')
+            import traceback; traceback.print_exc()
+            self.send_json({'error': 'Volatility surface unavailable'})
 
     def handle_funding_rate_history(self):
         """Real 8h funding rate snapshots from Binance FAPI."""
@@ -3976,7 +3986,7 @@ class InstitutionalRoutesMixin:
                 self.send_json({'error': 'No signal history', 'trades': [], 'stats': {}})
                 return
 
-            # 2. Fetch price data per ticker
+            # 2. Fetch price data per ticker — parallel downloads via ThreadPoolExecutor
             unique_tickers = list({r[0] for r in rows})
             price_cache = {}
 
@@ -3986,25 +3996,20 @@ class InstitutionalRoutesMixin:
                     return None
                 try:
                     if isinstance(df.columns, pd.MultiIndex):
-                        # Single ticker yfinance: MultiIndex ('Close', 'BTC-USD')
                         close_level = df.xs('Close', axis=1, level=0) if 'Close' in df.columns.get_level_values(0) else None
                         if close_level is not None:
                             if tk in close_level.columns:
                                 return close_level[tk]
                             if len(close_level.columns) == 1:
                                 return close_level.iloc[:, 0]
-                    # Handle tuple-string columns from JSON deserialization e.g. "('Close', 'BTC-USD')"
                     tuple_str = str(('Close', tk))
                     if tuple_str in df.columns:
                         return df[tuple_str]
-                    # Also try just 'Close' as a key directly
                     if 'Close' in df.columns:
                         return df['Close']
-                    # Case-insensitive close search
                     for col in df.columns:
                         if 'close' in str(col).lower():
                             return df[col]
-                    # Last resort: first numeric column
                     numeric_cols = df.select_dtypes(include='number').columns
                     if len(numeric_cols) > 0:
                         return df[numeric_cols[0]]
@@ -4012,45 +4017,43 @@ class InstitutionalRoutesMixin:
                     print(f'[Backtest] _extract_closes({tk}): {ex}')
                 return None
 
-            for tk in unique_tickers:
+            def _fetch_ticker_prices(tk):
+                """Download 2y daily closes for one ticker; return (tk, price_dict)."""
                 try:
                     df = CACHE.download(tk, period='2y', interval='1d')
-                    if df is not None and not df.empty:
-                        closes = _extract_closes(df, tk)
-                        if closes is None or closes.empty:
-                            print(f'[Backtest] No close data for {tk}')
+                    if df is None or df.empty:
+                        return tk, {}
+                    closes = _extract_closes(df, tk)
+                    if closes is None or closes.empty:
+                        return tk, {}
+                    result = {}
+                    for idx, v in zip(df.index, closes):
+                        if not pd.notna(v):
                             continue
-                        result = {}
-                        for idx, v in zip(df.index, closes):
-                            if not pd.notna(v): continue
-                            try:
-                                ts = pd.Timestamp(idx)
-                                unix = int(ts.timestamp())
-                                # JSON cache stores ms timestamps; normalize
-                                if unix > 1e12: unix = unix // 1000
-                            except Exception:
-                                continue
-                            result[unix] = float(v)
-                        price_cache[tk] = result
-                        print(f'[Backtest] {tk}: {len(result)} price bars')
-                except Exception as ex:
-                    print(f'[Backtest] Price fetch error for {tk}: {ex}')
-
-            # BTC benchmark
-            btc_df = CACHE.download('BTC-USD', period='2y', interval='1d')
-            btc_prices = {}
-            if btc_df is not None and not btc_df.empty:
-                btc_closes = _extract_closes(btc_df, 'BTC-USD')
-                if btc_closes is not None:
-                    for d, p in zip(btc_df.index, btc_closes):
-                        if not pd.notna(p): continue
                         try:
-                            ts = pd.Timestamp(d)
-                            unix = int(ts.timestamp())
-                            if unix > 1e12: unix = unix // 1000
-                            btc_prices[unix] = float(p)
+                            unix = int(pd.Timestamp(idx).timestamp())
+                            if unix > 1e12:
+                                unix //= 1000
                         except Exception:
                             continue
+                        result[unix] = float(v)
+                    print(f'[Backtest] {tk}: {len(result)} bars')
+                    return tk, result
+                except Exception as ex:
+                    print(f'[Backtest] Price fetch error for {tk}: {ex}')
+                    return tk, {}
+
+            # All tickers + BTC benchmark downloaded in parallel
+            all_tickers_to_fetch = unique_tickers + (['BTC-USD'] if 'BTC-USD' not in unique_tickers else [])
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            with ThreadPoolExecutor(max_workers=min(len(all_tickers_to_fetch), 8)) as pool:
+                futures = {pool.submit(_fetch_ticker_prices, tk): tk for tk in all_tickers_to_fetch}
+                for fut in as_completed(futures):
+                    tk, prices = fut.result()
+                    if prices:
+                        price_cache[tk] = prices
+
+            btc_prices = price_cache.get('BTC-USD', {})
             print(f'[Backtest] BTC benchmark: {len(btc_prices)} bars, price_cache tickers: {list(price_cache.keys())}')
 
             # 3. Simulate trades
@@ -4183,18 +4186,27 @@ class InstitutionalRoutesMixin:
             if post_data:
                 z = float(post_data.get('z_threshold', 2.0))
                 z = max(0.5, min(z, 10.0))
+                whale_t  = float(post_data.get('whale_threshold', 5.0))
+                depeg_t  = float(post_data.get('depeg_threshold', 1.0))
+                vol_t    = float(post_data.get('vol_spike_threshold', 2.0))
+                cme_t    = float(post_data.get('cme_gap_threshold', 1.0))
                 discord  = str(post_data.get('discord_webhook', '')).strip()
                 telegram = str(post_data.get('telegram_chat_id', '')).strip()
                 enabled  = bool(post_data.get('alerts_enabled', True))
                 # Upsert all settings, preserving existing webhook if new one not provided
-                c.execute("""INSERT INTO user_settings (user_email, z_threshold, alerts_enabled, discord_webhook, telegram_chat_id)
-                             VALUES (?, ?, ?, ?, ?)
+                c.execute("""INSERT INTO user_settings (user_email, z_threshold, alerts_enabled, discord_webhook, telegram_chat_id,
+                                                         whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                              ON CONFLICT(user_email) DO UPDATE SET
-                               z_threshold      = excluded.z_threshold,
-                               alerts_enabled   = excluded.alerts_enabled,
-                               discord_webhook  = CASE WHEN excluded.discord_webhook != '' THEN excluded.discord_webhook ELSE discord_webhook END,
-                               telegram_chat_id = CASE WHEN excluded.telegram_chat_id != '' THEN excluded.telegram_chat_id ELSE telegram_chat_id END""",
-                          (email, z, enabled, discord, telegram))
+                               z_threshold        = excluded.z_threshold,
+                               alerts_enabled     = excluded.alerts_enabled,
+                               whale_threshold    = excluded.whale_threshold,
+                               depeg_threshold    = excluded.depeg_threshold,
+                               vol_spike_threshold = excluded.vol_spike_threshold,
+                               cme_gap_threshold  = excluded.cme_gap_threshold,
+                               discord_webhook    = CASE WHEN excluded.discord_webhook != '' THEN excluded.discord_webhook ELSE discord_webhook END,
+                               telegram_chat_id   = CASE WHEN excluded.telegram_chat_id != '' THEN excluded.telegram_chat_id ELSE telegram_chat_id END""",
+                          (email, z, enabled, discord, telegram, whale_t, depeg_t, vol_t, cme_t))
                 conn.commit()
                 # Re-read to confirm
                 c.execute('SELECT discord_webhook, telegram_chat_id FROM user_settings WHERE user_email=?', (email,))
@@ -4208,31 +4220,44 @@ class InstitutionalRoutesMixin:
                         'Your webhook is configured correctly. Live signals above your threshold will appear here.',
                         embed_color=0x00f2ff,
                         fields=[
-                            {'name': 'Threshold Set', 'value': f'{z:.1f}% predicted alpha', 'inline': True},
-                            {'name': 'Status', 'value': '\u2705 Active', 'inline': True}
+                            {'name': 'ML Threshold',   'value': f'{z:.1f}% predicted alpha', 'inline': True},
+                            {'name': 'Whale Txn',      'value': f'>${whale_t:.0f}M',         'inline': True},
+                            {'name': 'De-peg',         'value': f'{depeg_t:.1f}%',           'inline': True},
+                            {'name': 'Vol Spike',      'value': f'{vol_t:.1f}x',            'inline': True},
+                            {'name': 'CME Gap',        'value': f'{cme_t:.1f}%',            'inline': True},
+                            {'name': 'Status',         'value': '\u2705 Active',            'inline': True}
                         ]
                     )
                 has_discord  = bool(saved[0]) if saved else bool(discord)
                 has_telegram = bool(saved[1]) if saved else bool(telegram)
-                self.send_json({'success': True, 'z_threshold': z, 'has_discord': has_discord, 'has_telegram': has_telegram})
+                self.send_json({'success': True, 'z_threshold': z, 'has_discord': has_discord, 'has_telegram': has_telegram,
+                                'whale_threshold': whale_t, 'depeg_threshold': depeg_t,
+                                'vol_spike_threshold': vol_t, 'cme_gap_threshold': cme_t})
             else:
-                c.execute('SELECT z_threshold, discord_webhook, telegram_chat_id, alerts_enabled FROM user_settings WHERE user_email=?', (email,))
+                c.execute('SELECT z_threshold, discord_webhook, telegram_chat_id, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold FROM user_settings WHERE user_email=?', (email,))
                 row = c.fetchone()
                 conn.close()
                 if row:
                     # Mask webhook for display: show last 8 chars only
-                    disc_masked = ('…' + row[1][-8:]) if row[1] else ''
-                    tg_masked   = ('…' + row[2][-6:]) if row[2] else ''
+                    disc_masked = ('\u2026' + row[1][-8:]) if row[1] else ''
+                    tg_masked   = ('\u2026' + row[2][-6:]) if row[2] else ''
                     self.send_json({
-                        'z_threshold':    row[0] or 2.0,
-                        'has_discord':    bool(row[1]),
-                        'has_telegram':   bool(row[2]),
-                        'alerts_enabled': bool(row[3]),
-                        'discord_masked': disc_masked,
-                        'telegram_masked': tg_masked
+                        'z_threshold':        row[0] if row[0] is not None else 2.0,
+                        'has_discord':        bool(row[1]),
+                        'has_telegram':       bool(row[2]),
+                        'alerts_enabled':     bool(row[3]),
+                        'discord_masked':     disc_masked,
+                        'telegram_masked':    tg_masked,
+                        'whale_threshold':    row[4] if row[4] is not None else 5.0,
+                        'depeg_threshold':    row[5] if row[5] is not None else 1.0,
+                        'vol_spike_threshold': row[6] if row[6] is not None else 2.0,
+                        'cme_gap_threshold':  row[7] if row[7] is not None else 1.0,
                     })
                 else:
-                    self.send_json({'z_threshold': 2.0, 'has_discord': False, 'has_telegram': False, 'alerts_enabled': True, 'discord_masked': '', 'telegram_masked': ''})
+                    self.send_json({'z_threshold': 2.0, 'has_discord': False, 'has_telegram': False, 'alerts_enabled': True,
+                                    'discord_masked': '', 'telegram_masked': '',
+                                    'whale_threshold': 5.0, 'depeg_threshold': 1.0,
+                                    'vol_spike_threshold': 2.0, 'cme_gap_threshold': 1.0})
         except Exception as e:
             print(f'[AlertSettings] {e}')
             import traceback; traceback.print_exc()

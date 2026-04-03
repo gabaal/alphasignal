@@ -368,6 +368,137 @@ def fetch_deribit_iv(currency: str = 'BTC') -> dict:
     return {'expiries': [], 'atm_iv': [], 'skew': [], 'source': 'unavailable'}
 
 
+# ─── Deribit Public — Full IV Surface Grid ───────────────────────────────────
+def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
+    """
+    Returns a full implied-volatility surface as a (moneyness × expiry) grid.
+    Moneyness bins: 0.70 → 1.30 in 20 steps (deep ITM put to deep OTM call).
+    Expiry bins: the next 6 calendar expiries listed on Deribit.
+    Cached 10 minutes.  Falls back to parametric smile on failure.
+    """
+    cache_key = f'deribit_surface_{currency}'
+    cached = _get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        r = requests.get(
+            'https://www.deribit.com/api/v2/public/get_book_summary_by_currency',
+            params={'currency': currency, 'kind': 'option'},
+            timeout=10,
+            headers={'Accept': 'application/json'}
+        )
+        if r.status_code != 200:
+            raise ValueError(f'Deribit HTTP {r.status_code}')
+
+        data = r.json().get('result', [])
+        if not data:
+            raise ValueError('Empty Deribit response')
+
+        from datetime import datetime as _dt
+        now = _dt.utcnow()
+
+        # Get underlying price (use first option that has it)
+        underlying = None
+        for opt in data:
+            if opt.get('underlying_price'):
+                underlying = float(opt['underlying_price'])
+                break
+        if not underlying or underlying <= 0:
+            raise ValueError('No underlying price from Deribit')
+
+        # ── Parse options into (expiry_dt, moneyness, iv) tuples ──────────────
+        points = []
+        for opt in data:
+            iv = opt.get('mark_iv')
+            if not iv or iv <= 0 or iv > 500:
+                continue
+            instr = opt.get('instrument_name', '')
+            parts = instr.split('-')
+            if len(parts) < 4:
+                continue
+            try:
+                exp_dt = _dt.strptime(parts[1], '%d%b%y')
+                strike = float(parts[2])
+            except Exception:
+                continue
+            days = (exp_dt - now).days
+            if days < 1 or days > 365:
+                continue
+            moneyness = round(strike / underlying, 4)
+            points.append({'exp_dt': exp_dt, 'days': days, 'moneyness': moneyness, 'iv': float(iv)})
+
+        if len(points) < 10:
+            raise ValueError(f'Not enough option points: {len(points)}')
+
+        # ── Choose the next 6 distinct expiry dates ───────────────────────────
+        seen_expiries = sorted(set(p['exp_dt'] for p in points))[:6]
+        expiry_labels = []
+        for ed in seen_expiries:
+            d = (ed - now).days
+            expiry_labels.append(f'{d}D')
+
+        # ── Define 20 moneyness buckets from 0.70 to 1.30 ───────────────────
+        N_STRIKES = 20
+        money_steps = [round(0.70 + i * (0.60 / (N_STRIKES - 1)), 4) for i in range(N_STRIKES)]
+
+        # ── Build grid: for each (expiry, moneyness_bin) find median IV ───────
+        TOLERANCE = 0.035  # ±3.5% moneyness bucket width
+        grid = []          # list of N_STRIKES lists, each of len(expiries)
+        for m in money_steps:
+            row = []
+            for exp_dt in seen_expiries:
+                # Find matching recorded points
+                candidates = [
+                    p['iv'] for p in points
+                    if p['exp_dt'] == exp_dt and abs(p['moneyness'] - m) <= TOLERANCE
+                ]
+                if candidates:
+                    row.append(round(float(np.median(candidates)), 2))
+                else:
+                    row.append(None)  # gap — will interpolate below
+            grid.append(row)
+
+        # ── Interpolate gaps along the moneyness axis per expiry ─────────────
+        for exp_idx in range(len(seen_expiries)):
+            col = [grid[mi][exp_idx] for mi in range(N_STRIKES)]
+            # Fill interior NaN with linear interpolation
+            known_x = [i for i, v in enumerate(col) if v is not None]
+            known_y = [col[i] for i in known_x]
+            if len(known_x) < 2:
+                # Fall back to ATM smile for this expiry
+                for mi in range(N_STRIKES):
+                    if grid[mi][exp_idx] is None:
+                        atm_iv = np.median(known_y) if known_y else 60.0
+                        smile = atm_iv * (1 + 0.5 * (money_steps[mi] - 1.0) ** 2)
+                        grid[mi][exp_idx] = round(smile, 2)
+            else:
+                for mi in range(N_STRIKES):
+                    if grid[mi][exp_idx] is None:
+                        grid[mi][exp_idx] = round(float(np.interp(mi, known_x, known_y)), 2)
+
+        result = {
+            'currency':       currency,
+            'underlying':     round(underlying, 2),
+            'moneyness_axis': money_steps,       # len=20
+            'expiry_labels':  expiry_labels,      # len=6
+            'expiry_days':    [(exp - now).days for exp in seen_expiries],
+            'iv_grid':        grid,               # grid[strike_idx][expiry_idx] = iv%
+            'point_count':    len(points),
+            'source':         'deribit_live',
+            'timestamp':      now.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        }
+        _set(cache_key, result, ttl=600)
+        print(f'[IVSurface/{currency}] OK — {len(points)} options → {N_STRIKES}×{len(seen_expiries)} grid, underlying=${underlying:,.0f}')
+        return result
+
+    except Exception as e:
+        print(f'[IVSurface/Deribit] {e}')
+        return {'source': 'unavailable', 'error': str(e)}
+
+
+
+
 # ─── GitHub — Dev Commit Activity ─────────────────────────────────────────────
 _GITHUB_REPOS = {
     'BTC': ('bitcoin', 'bitcoin'),

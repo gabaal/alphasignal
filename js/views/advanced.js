@@ -109,8 +109,15 @@ async function renderAdvOverview(symbol, interval) {
     }
     
     if (isCrypto) {
-        activeBinanceWS = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`);
-        activeBinanceWS.onmessage = (e) => {
+        // Close any previous kline socket before opening a new one
+        if (window.activeBinanceWS) {
+            try { window.activeBinanceWS.close(); } catch(e) {}
+            window.activeBinanceWS = null;
+        }
+        const wsUrl = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`;
+        window.activeBinanceWS = new WebSocket(wsUrl);
+        window.activeBinanceWS.onerror = () => {};  // suppress noisy browser warning
+        window.activeBinanceWS.onmessage = (e) => {
             const k = JSON.parse(e.data).k;
             const price = parseFloat(k.c);
             const tick = { time: Math.floor(k.t/1000), open: parseFloat(k.o), high: parseFloat(k.h), low: parseFloat(k.l), close: price };
@@ -252,6 +259,18 @@ async function renderAdvDepth(symbol) {
     const canvas = document.getElementById('depth3d-canvas');
     if (!canvas || typeof THREE === 'undefined') {
         container.innerHTML = '<div class="error-msg">WebGL renderer unavailable.</div>';
+        return;
+    }
+
+    // Check WebGL availability before touching THREE.WebGLRenderer
+    const testCtx = canvas.getContext('webgl') || canvas.getContext('webgl2');
+    if (!testCtx) {
+        container.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:center;height:520px;background:#050508;border-radius:12px;flex-direction:column;gap:12px;color:var(--text-dim)">
+                <span class="material-symbols-outlined" style="font-size:2.5rem;color:#ef4444">error</span>
+                <div style="font-size:0.8rem;font-weight:700">WebGL Unavailable</div>
+                <div style="font-size:0.65rem;text-align:center;max-width:280px">Your browser has exhausted its WebGL context limit. Close other tabs or refresh the page to reset.</div>
+            </div>`;
         return;
     }
 
@@ -613,128 +632,352 @@ function renderAdvTapeImbalance(symbol) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
     if (!container) return;
+
+    const BUCKET_COUNT = 30;
+    const BUCKET_MS    = 5000;   // 5-second buckets — shows data within 5s of opening
+
+    // Pre-seed with tiny noise so the chart is never flat/invisible on first render
+    const seed = (i) => (Math.sin(i * 2.3) * 0.4 + Math.cos(i * 1.7) * 0.2).toFixed(3) * 1;
+    const buckets = Array.from({ length: BUCKET_COUNT }, (_, i) => seed(i));
+    const labels  = Array.from({ length: BUCKET_COUNT }, (_, i) => `-${(BUCKET_COUNT - 1 - i) * 5}s`);
+
     container.innerHTML = `
-        <div style="padding:1.5rem;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
-                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bar_chart</span>LIVE TAPE IMBALANCE — 30S BUCKETS</span>
-                <span id="tape-live-badge" style="font-size:0.55rem;color:#26a69a;animation:pulse 1s infinite;">● LIVE</span>
+        <div style="padding:1.5rem;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-shrink:0;">
+                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;">
+                    <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bar_chart</span>
+                    LIVE TAPE IMBALANCE — ${symbol.replace('USDT','/USDT')} · 5S BUCKETS
+                </span>
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <span id="tape-running-label" style="font-size:0.6rem;color:var(--text-dim);font-family:'JetBrains Mono'">Accumulating...</span>
+                    <span id="tape-live-badge" style="font-size:0.55rem;color:#26a69a;animation:pulse 1.5s infinite;">● LIVE</span>
+                </div>
             </div>
-            <canvas id="tape-canvas" style="max-height:420px;"></canvas>
+            <div style="flex:1;min-height:360px;position:relative;">
+                <canvas id="tape-canvas"></canvas>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;flex-shrink:0;">
+                <span style="font-size:0.55rem;color:rgba(38,166,154,0.8);">■ Buy Pressure</span>
+                <span style="font-size:0.55rem;color:var(--text-dim);">Positive = more buys than sells in bucket</span>
+                <span style="font-size:0.55rem;color:rgba(239,83,80,0.8);">■ Sell Pressure</span>
+            </div>
         </div>`;
-    const buckets = Array(30).fill(0);
-    const labels = Array.from({length:30}, (_,i) => `-${(29-i)*30}s`);
-    const ctx = document.getElementById('tape-canvas').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'bar', data: {
+
+    const canvas = document.getElementById('tape-canvas');
+    if (!canvas) return;
+
+    // Explicitly size canvas to fill its parent
+    const wrapper = canvas.parentElement;
+    canvas.style.width  = '100%';
+    canvas.style.height = '100%';
+
+    const getBarColors = (data) => data.map(v =>
+        v > 0.5  ? 'rgba(38,166,154,0.85)' :
+        v > 0    ? 'rgba(38,166,154,0.5)'  :
+        v < -0.5 ? 'rgba(239,83,80,0.85)'  :
+                   'rgba(239,83,80,0.5)');
+
+    const chart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
             labels,
             datasets: [{
                 label: 'Buy/Sell Imbalance',
                 data: [...buckets],
-                backgroundColor: buckets.map(v => v >= 0 ? 'rgba(38,166,154,0.7)' : 'rgba(239,83,80,0.7)'),
-                borderRadius: 3
+                backgroundColor: getBarColors(buckets),
+                borderRadius: 4,
+                borderSkipped: false,
             }]
         },
         options: {
-            responsive: true, maintainAspectRatio: false, animation: false,
-            plugins: { legend: { labels: { color: 'white' } }, tooltip: { callbacks: { label: c => `Imbalance: ${c.raw > 0 ? '+' : ''}${c.raw.toFixed(2)} BTC` } } },
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 200 },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: c => {
+                            const v = c.raw;
+                            return `Imbalance: ${v > 0 ? '+' : ''}${parseFloat(v).toFixed(3)} ${symbol.replace('USDT','')}`;
+                        }
+                    }
+                }
+            },
             scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'var(--text-dim)', font: { size: 8 } } },
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 } } }
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 8, family: 'JetBrains Mono' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 9 } },
+                    title: { display: true, text: `Net Volume (${symbol.replace('USDT','')})`, color: 'rgba(255,255,255,0.25)', font: { size: 9 } }
+                }
             }
         }
     });
-    let buyVol = 0, sellVol = 0, lastBucket = Date.now();
-    window.BinanceSocketManager.subscribe(symbol.replace('USDT','').replace('USDT','') + 'USDT', 'aggTrade', trade => {
+
+    // Normalize symbol: BTCUSDT → BTCUSDT, BTC → BTCUSDT
+    const wsSymbol = symbol.toUpperCase().endsWith('USDT')
+        ? symbol.toUpperCase()
+        : symbol.toUpperCase().replace('-USD', '') + 'USDT';
+
+    let buyVol = 0, sellVol = 0, tradeCount = 0;
+    let lastBucket = Date.now();
+    const runningLabel = document.getElementById('tape-running-label');
+
+    window.BinanceSocketManager.subscribe(wsSymbol, 'aggTrade', trade => {
         const vol = parseFloat(trade.q || 0);
-        if (trade.m) sellVol += vol; else buyVol += vol;
+        tradeCount++;
+        if (trade.m) sellVol += vol;   // isBuyerMaker → taker is seller
+        else          buyVol  += vol;
+
+        // Update live running label every trade
+        const net = buyVol - sellVol;
+        if (runningLabel) {
+            const color = net >= 0 ? '#26a69a' : '#ef5350';
+            runningLabel.style.color = color;
+            runningLabel.textContent = `Current bucket: ${net >= 0 ? '+' : ''}${net.toFixed(3)} (${tradeCount} trades)`;
+        }
+
+        // Flush bucket every BUCKET_MS
         const now = Date.now();
-        if (now - lastBucket >= 30000) {
-            buckets.shift(); buckets.push(parseFloat((buyVol - sellVol).toFixed(3)));
+        if (now - lastBucket >= BUCKET_MS) {
+            const imbalance = parseFloat((buyVol - sellVol).toFixed(4));
+            buckets.shift();
+            buckets.push(imbalance);
             chart.data.datasets[0].data = [...buckets];
-            chart.data.datasets[0].backgroundColor = buckets.map(v => v >= 0 ? 'rgba(38,166,154,0.7)' : 'rgba(239,83,80,0.7)');
+            chart.data.datasets[0].backgroundColor = getBarColors(buckets);
             chart.update('none');
-            buyVol = 0; sellVol = 0; lastBucket = now;
+            buyVol = 0; sellVol = 0; tradeCount = 0;
+            lastBucket = now;
         }
     });
 }
 
+
 // ─── Options Volatility Surface ──────────────────────────────────────────────
-function renderAdvOptionsSurface(symbol) {
+async function renderAdvOptionsSurface(symbol) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
     if (!container) return;
+
+    const currency = symbol.replace('USDT','').replace('-USD','');
+
     container.innerHTML = `
         <div style="position:relative;width:100%;height:520px;background:#050508;border-radius:12px;overflow:hidden;">
             <canvas id="volsurf-canvas" style="width:100%;height:100%;display:block;"></canvas>
-            <div style="position:absolute;top:14px;left:18px;pointer-events:none;">
-                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">stacked_line_chart</span>IMPLIED VOLATILITY SURFACE — ${symbol.replace('USDT','')}</span>
+            <div style="position:absolute;top:14px;left:18px;pointer-events:none;display:flex;align-items:center;gap:14px;">
+                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;">
+                    <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">stacked_line_chart</span>
+                    IMPLIED VOLATILITY SURFACE — ${currency}
+                </span>
+                <span id="iv-source-badge" style="font-size:0.55rem;color:rgba(255,255,255,0.3);animation:pulse 2s infinite;">● LOADING...</span>
             </div>
+            <div id="iv-stats-bar" style="position:absolute;top:14px;right:18px;display:flex;gap:16px;pointer-events:none;"></div>
             <div style="position:absolute;bottom:14px;left:18px;display:flex;gap:12px;pointer-events:none;">
                 <span style="font-size:0.55rem;color:rgba(255,255,255,0.3);">DRAG TO ROTATE • SCROLL TO ZOOM</span>
             </div>
             <div style="position:absolute;bottom:14px;right:14px;display:flex;gap:8px;align-items:center;pointer-events:none;">
-                <div style="width:50px;height:8px;background:linear-gradient(to right,#3b82f6,#10b981,#f59e0b,#ef4444);border-radius:4px;"></div>
+                <div style="width:60px;height:8px;background:linear-gradient(to right,#3b82f6,#10b981,#f59e0b,#ef4444);border-radius:4px;"></div>
                 <span style="font-size:0.5rem;color:var(--text-dim);">LOW IV → HIGH IV</span>
             </div>
         </div>`;
+
     const canvas = document.getElementById('volsurf-canvas');
-    if (!canvas || typeof THREE === 'undefined') return;
+    if (!canvas || typeof THREE === 'undefined') {
+        container.querySelector('div').innerHTML += '<div style="color:#ef4444;text-align:center;padding:2rem;">WebGL unavailable</div>';
+        return;
+    }
+
+    // ── Fetch live IV surface ──────────────────────────────────────────────────
+    let surfaceData = null;
+    try {
+        const ticker = symbol.includes('USDT') ? symbol.replace('USDT', '-USD') : symbol;
+        surfaceData = await fetchAPI(`/volatility-surface?ticker=${ticker}`);
+    } catch(e) {}
+
+    const sourceBadge = document.getElementById('iv-source-badge');
+    const statsBar = document.getElementById('iv-stats-bar');
+
+    if (!surfaceData || surfaceData.error) {
+        if (sourceBadge) { sourceBadge.textContent = '⚠ UNAVAILABLE'; sourceBadge.style.color = '#ef4444'; sourceBadge.style.animation = 'none'; }
+        return;
+    }
+
+    const isLive = surfaceData.source === 'deribit_live';
+    if (sourceBadge) {
+        sourceBadge.textContent = isLive ? `● LIVE · DERIBIT · ${surfaceData.point_count} OPTIONS` : '● PARAMETRIC MODEL';
+        sourceBadge.style.color = isLive ? '#22c55e' : '#facc15';
+        sourceBadge.style.animation = isLive ? 'pulse 2s infinite' : 'none';
+    }
+    if (statsBar && isLive && surfaceData.underlying) {
+        statsBar.innerHTML = `
+            <div style="font-size:0.55rem;color:var(--text-dim);">Spot: <span style="color:white;font-weight:700;">$${surfaceData.underlying.toLocaleString('en-US',{maximumFractionDigits:0})}</span></div>
+            <div style="font-size:0.55rem;color:var(--text-dim);">Updated: <span style="color:rgba(255,255,255,0.5);">${surfaceData.timestamp ? surfaceData.timestamp.slice(11,16) + ' UTC' : '--'}</span></div>`;
+    }
+
+    const moneyAxis   = surfaceData.moneyness_axis;     // length 20
+    const expiryLabels = surfaceData.expiry_labels;      // length 6
+    const ivGrid      = surfaceData.iv_grid;             // ivGrid[strike][expiry]
+    const xS = moneyAxis.length;
+    const zS = expiryLabels.length;
+
+    // ── Three.js setup ────────────────────────────────────────────────────────
     const W = container.clientWidth, H = 520;
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setSize(W, H); renderer.setClearColor(0x050508, 1);
+    renderer.setSize(W, H);
+    renderer.setClearColor(0x050508, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(55, W/H, 0.1, 1000);
-    camera.position.set(15, 12, 22); camera.lookAt(0, 3, 0);
+
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 1000);
+    camera.position.set(15, 12, 22);
+    camera.lookAt(0, 3, 0);
+
     scene.add(new THREE.AmbientLight(0x334466, 1.5));
-    const dl = new THREE.DirectionalLight(0xaaddff, 1.2); dl.position.set(10, 20, 10); scene.add(dl);
-    // Build IV surface grid: 20 strikes × 6 expiries
-    const strikes = Array.from({length:20}, (_,i) => 0.7 + i * 0.03); // 70% to 130% moneyness
-    const expiries = [7, 14, 30, 60, 90, 180]; // days to expiry
-    const xS = 20, zS = 6;
-    const geo = new THREE.BufferGeometry();
+    const dl = new THREE.DirectionalLight(0xaaddff, 1.2);
+    dl.position.set(10, 20, 10);
+    scene.add(dl);
+
+    // ── Flatten min/max IV for colour normalisation ───────────────────────────
+    const allIVs = ivGrid.flat().filter(v => v != null && !isNaN(v));
+    const minIV  = Math.min(...allIVs);
+    const maxIV  = Math.max(...allIVs);
+    const ivRange = maxIV - minIV || 1;
+
+    // ── Build geometry ────────────────────────────────────────────────────────
     const positions = [], colors = [], indices = [];
-    const ivGrid = [];
+
     for (let z = 0; z < zS; z++) {
         for (let x = 0; x < xS; x++) {
-            const money = strikes[x], t = expiries[z] / 365;
-            const atm = -Math.pow(money - 1, 2) * 2.5;  // parabolic smile
-            const termStr = Math.log(t + 0.05) * 0.08;  // term structure
-            const iv = Math.max(0.1, 0.30 + atm + termStr + (Math.random() - 0.5) * 0.02);
-            ivGrid.push(iv);
-            const px = (x - xS/2) * 0.9, py = iv * 14, pz = (z - zS/2) * 2.5;
+            const iv = ivGrid[x][z] || minIV;
+            const px = (x - xS / 2) * 0.9;
+            const py = (iv / maxIV) * 12;          // height proportional to IV
+            const pz = (z - zS / 2) * 2.5;
             positions.push(px, py, pz);
-            // Color by IV: blue→green→yellow→red
-            const t2 = Math.min(1, (iv - 0.1) / 0.5);
-            const r = t2 < 0.5 ? t2 * 2 * 0.2 : 0.2 + (t2 - 0.5) * 2 * 0.8;
-            const g = t2 < 0.5 ? 0.2 + t2 * 2 * 0.6 : 0.8 - (t2 - 0.5) * 2 * 0.6;
-            const b = t2 < 0.5 ? 0.8 - t2 * 2 * 0.6 : 0.2;
+
+            // Colour map: blue(low IV) → green → yellow → red(high IV)
+            const t = (iv - minIV) / ivRange;
+            const r = t < 0.5 ? t * 2 * 0.2              : 0.2 + (t - 0.5) * 2 * 0.8;
+            const g = t < 0.5 ? 0.2 + t * 2 * 0.6        : 0.8 - (t - 0.5) * 2 * 0.6;
+            const b = t < 0.5 ? 0.8 - t * 2 * 0.6        : 0.2;
             colors.push(r, g, b);
         }
     }
-    for (let z = 0; z < zS-1; z++) for (let x = 0; x < xS-1; x++) {
-        const a = z*xS+x, b = z*xS+x+1, c = (z+1)*xS+x, d = (z+1)*xS+x+1;
-        indices.push(a,b,c); indices.push(b,d,c);
-    }
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    geo.setIndex(indices); geo.computeVertexNormals();
-    const mat = new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide, shininess: 80, transparent: true, opacity: 0.9 });
-    scene.add(new THREE.Mesh(geo, mat));
-    const wf = new THREE.WireframeGeometry(geo);
-    scene.add(new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.07, transparent: true })));
-    scene.add(new THREE.GridHelper(22, 20, 0x0a1020, 0x0a1020));
-    // OrbitControls inline
-    let dragging=false,lastM={x:0,y:0},theta=-0.3,phi=0.45,radius=30;
-    const upCam = () => { camera.position.set(radius*Math.sin(phi)*Math.sin(theta),radius*Math.cos(phi),radius*Math.sin(phi)*Math.cos(theta)); camera.lookAt(0,3,0); };
-    canvas.addEventListener('mousedown', e => { dragging=true; lastM={x:e.clientX,y:e.clientY}; });
-    canvas.addEventListener('mouseup', () => dragging=false);
-    canvas.addEventListener('mousemove', e => { if(!dragging) return; theta-=(e.clientX-lastM.x)*0.008; phi=Math.max(0.1,Math.min(1.5,phi-(e.clientY-lastM.y)*0.008)); lastM={x:e.clientX,y:e.clientY}; upCam(); });
-    canvas.addEventListener('wheel', e => { radius=Math.max(10,Math.min(60,radius+e.deltaY*0.05)); upCam(); }, { passive:true });
-    upCam();
-    let animId;
-    const animate = () => { animId = requestAnimationFrame(animate); renderer.render(scene, camera); };
-    animate();
-    window.activeDepth3D = { animId, renderer };
-}
 
+    for (let z = 0; z < zS - 1; z++) {
+        for (let x = 0; x < xS - 1; x++) {
+            const a = z * xS + x, b2 = z * xS + x + 1,
+                  c = (z + 1) * xS + x, d = (z + 1) * xS + x + 1;
+            indices.push(a, b2, c);
+            indices.push(b2, d, c);
+        }
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+
+    const mat = new THREE.MeshPhongMaterial({
+        vertexColors: true, side: THREE.DoubleSide, shininess: 80,
+        transparent: true, opacity: 0.92
+    });
+    scene.add(new THREE.Mesh(geo, mat));
+
+    // Wireframe overlay
+    const wf = new THREE.WireframeGeometry(geo);
+    scene.add(new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.06, transparent: true })));
+
+    // Grid floor
+    scene.add(new THREE.GridHelper(22, 20, 0x0a1020, 0x0a1020));
+
+    // ── Text labels for expiry axis ───────────────────────────────────────────
+    // (Three.js doesn't have native text — use sprites via CSS2D would need extra lib;
+    //  for now we annotate via canvas overlay drawn once after first render)
+
+    // ── Inline orbit controls ─────────────────────────────────────────────────
+    let dragging = false, lastM = { x: 0, y: 0 }, theta = -0.3, phi = 0.45, radius = 30;
+    const upCam = () => {
+        camera.position.set(
+            radius * Math.sin(phi) * Math.sin(theta),
+            radius * Math.cos(phi),
+            radius * Math.sin(phi) * Math.cos(theta)
+        );
+        camera.lookAt(0, 3, 0);
+    };
+    canvas.addEventListener('mousedown', e => { dragging = true; lastM = { x: e.clientX, y: e.clientY }; });
+    canvas.addEventListener('mouseup',   () => dragging = false);
+    canvas.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        theta -= (e.clientX - lastM.x) * 0.008;
+        phi = Math.max(0.1, Math.min(1.5, phi - (e.clientY - lastM.y) * 0.008));
+        lastM = { x: e.clientX, y: e.clientY };
+        upCam();
+    });
+    canvas.addEventListener('wheel', e => {
+        radius = Math.max(10, Math.min(60, radius + e.deltaY * 0.05));
+        upCam();
+    }, { passive: true });
+    upCam();
+
+    // ── Hover tooltip ─────────────────────────────────────────────────────────
+    const raycaster  = new THREE.Raycaster();
+    const mousePt    = new THREE.Vector2();
+    const mesh       = scene.children.find(c => c.isMesh);
+    const tooltip    = Object.assign(document.createElement('div'), {
+        style: 'position:absolute;pointer-events:none;background:rgba(9,9,11,0.9);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 10px;font-size:0.65rem;color:white;display:none;font-family:JetBrains Mono,monospace;'
+    });
+    container.firstElementChild.appendChild(tooltip);
+
+    canvas.addEventListener('mousemove', e => {
+        if (!mesh) return;
+        const rect = canvas.getBoundingClientRect();
+        mousePt.x = ((e.clientX - rect.left) / rect.width)  *  2 - 1;
+        mousePt.y = ((e.clientY - rect.top)  / rect.height) * -2 + 1;
+        raycaster.setFromCamera(mousePt, camera);
+        const hits = raycaster.intersectObject(mesh);
+        if (hits.length > 0) {
+            const face = hits[0].face;
+            if (!face) return;
+            // Snap to nearest vertex
+            const vIdx = [face.a, face.b, face.c];
+            const vi   = vIdx.reduce((best, v) => {
+                const bPos = new THREE.Vector3().fromBufferAttribute(geo.attributes.position, best);
+                const vPos = new THREE.Vector3().fromBufferAttribute(geo.attributes.position, v);
+                return hits[0].point.distanceTo(vPos) < hits[0].point.distanceTo(bPos) ? v : best;
+            });
+            const xi    = vi % xS;
+            const zi    = Math.floor(vi / xS);
+            const iv    = (ivGrid[xi] && ivGrid[xi][zi]) ? ivGrid[xi][zi] : null;
+            const money = moneyAxis[xi];
+            const exp   = expiryLabels[zi];
+            if (iv) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+                tooltip.style.top  = (e.clientY - rect.top  - 14) + 'px';
+                const moneyDesc = money < 0.95 ? 'ITM Put / OTM Call' : money > 1.05 ? 'OTM Call / ITM Put' : 'ATM';
+                tooltip.innerHTML = `<div style="color:#00f2ff;margin-bottom:3px;">${exp} \u00b7 ${(money * 100).toFixed(0)}% moneyness</div><div>IV: <b style="color:${iv > 80 ? '#ef4444' : iv > 50 ? '#facc15' : '#22c55e'}">${iv.toFixed(1)}%</b></div><div style="color:rgba(255,255,255,0.4);font-size:0.55rem;margin-top:2px;">${moneyDesc}</div>`;
+            }
+        } else {
+            tooltip.style.display = 'none';
+        }
+    });
+    canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+    const _animRef = { id: null };
+    const _animate = () => { _animRef.id = requestAnimationFrame(_animate); renderer.render(scene, camera); };
+    _animate();
+    window.activeDepth3D = { animId: _animRef.id, renderer, _ref: _animRef };
+
+    const _ro = new ResizeObserver(() => {
+        const w = container.clientWidth;
+        renderer.setSize(w, H);
+        camera.aspect = w / H;
+        camera.updateProjectionMatrix();
+    });
+    _ro.observe(container);
+}

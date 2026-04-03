@@ -591,6 +591,8 @@ function initLivePriceStream() {
 
                         if (p.BTC) {
                             currentBTCPrice = p.BTC;
+                            // Feed the header sparkline with every live tick
+                            if (typeof pushSparklinePrice === 'function') pushSparklinePrice(p.BTC);
                             const btcText = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                             
                             

@@ -254,15 +254,79 @@ async function renderAlerts(tabs = null) {
             <!-- Z-Threshold Slider -->
             <div style="margin-bottom:1.2rem">
                 <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span>⚡ ALERT SENSITIVITY — Z-SCORE THRESHOLD</span>
-                    <span id="z-val-display" style="color:#ffd700;font-weight:900">${zThreshold.toFixed(1)}σ</span>
+                    <span>⚡ ALERT SENSITIVITY — MIN. PREDICTED RETURN</span>
+                    <span id="z-val-display" style="color:#ffd700;font-weight:900">${zThreshold.toFixed(1)}%</span>
                 </label>
                 <input type="range" id="z-threshold-slider" min="0.5" max="5" step="0.1" value="${zThreshold}"
-                    oninput="document.getElementById('z-val-display').textContent=parseFloat(this.value).toFixed(1)+'σ'"
+                    oninput="document.getElementById('z-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
                     style="width:100%;accent-color:#00d4aa;cursor:pointer">
                 <div style="display:flex;justify-content:space-between;font-size:0.55rem;color:var(--text-dim);margin-top:4px">
-                    <span>0.5σ — Very Sensitive (many alerts)</span>
-                    <span>5σ — Only Extreme Events</span>
+                    <span>0.5% — Very Sensitive (many alerts)</span>
+                    <span>5% — Only High-Conviction Signals</span>
+                </div>
+            </div>
+
+            <!-- Per-Signal Fine-Tuning -->
+            <div style="margin-bottom:1.2rem">
+                <div style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px">🎛 PER-SIGNAL FINE-TUNING</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+
+                    <!-- Whale Txn -->
+                    <div>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span>🐋 WHALE TXN MIN SIZE</span>
+                            <span id="whale-val-display" style="color:#00f2ff;font-weight:900">5M</span>
+                        </label>
+                        <input type="range" id="whale-threshold-slider" min="1" max="50" step="1" value="5"
+                            oninput="document.getElementById('whale-val-display').textContent=parseFloat(this.value).toFixed(0)+'M'"
+                            style="width:100%;accent-color:#00f2ff;cursor:pointer">
+                        <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                            <span>$1M</span><span>$50M+</span>
+                        </div>
+                    </div>
+
+                    <!-- De-peg -->
+                    <div>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span>⚠️ DE-PEG THRESHOLD</span>
+                            <span id="depeg-val-display" style="color:#ef4444;font-weight:900">1.0%</span>
+                        </label>
+                        <input type="range" id="depeg-threshold-slider" min="0.1" max="5" step="0.1" value="1.0"
+                            oninput="document.getElementById('depeg-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
+                            style="width:100%;accent-color:#ef4444;cursor:pointer">
+                        <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                            <span>0.1%</span><span>5%</span>
+                        </div>
+                    </div>
+
+                    <!-- Vol Spike -->
+                    <div>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span>⚡ VOL SPIKE MIN σ</span>
+                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0σ</span>
+                        </label>
+                        <input type="range" id="vol-spike-threshold-slider" min="1" max="5" step="0.1" value="2.0"
+                            oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'σ'"
+                            style="width:100%;accent-color:#f59e0b;cursor:pointer">
+                        <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                            <span>1σ more alerts</span><span>5σ extreme only</span>
+                        </div>
+                    </div>
+
+                    <!-- CME Gap Fill -->
+                    <div>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span>📐 CME GAP MIN SIZE</span>
+                            <span id="cme-val-display" style="color:#bc13fe;font-weight:900">1.0%</span>
+                        </label>
+                        <input type="range" id="cme-gap-threshold-slider" min="0.1" max="5" step="0.1" value="1.0"
+                            oninput="document.getElementById('cme-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
+                            style="width:100%;accent-color:#bc13fe;cursor:pointer">
+                        <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                            <span>0.1%</span><span>5%</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             <!-- Action Buttons -->
@@ -481,10 +545,20 @@ async function renderAlerts(tabs = null) {
         const slider  = document.getElementById('z-threshold-slider');
         const zDisp   = document.getElementById('z-val-display');
         const toggle  = document.getElementById('alerts-enabled-toggle');
-        if (slider && s.z_threshold) { slider.value = s.z_threshold; if(zDisp) zDisp.textContent = parseFloat(s.z_threshold).toFixed(1) + 'σ'; }
+        if (slider && s.z_threshold) { slider.value = s.z_threshold; if(zDisp) zDisp.textContent = parseFloat(s.z_threshold).toFixed(1) + '%'; }
         if (toggle) toggle.checked = s.alerts_enabled !== false;
         if (discIn && s.has_discord) discIn.placeholder = (s.discord_masked || '…') + ' (enter new to update)';
         if (tgIn   && s.has_telegram) tgIn.placeholder  = (s.telegram_masked || '…') + ' (enter new to update)';
+        // Populate the 4 signal sliders
+        const setSlider = (id, dispId, val, fmt) => {
+            const el = document.getElementById(id);
+            const disp = document.getElementById(dispId);
+            if (el && val != null) { el.value = val; if (disp) disp.textContent = fmt(val); }
+        };
+        setSlider('whale-threshold-slider',     'whale-val-display', s.whale_threshold,      v => parseFloat(v).toFixed(0) + 'M');
+        setSlider('depeg-threshold-slider',     'depeg-val-display', s.depeg_threshold,      v => parseFloat(v).toFixed(1) + '%');
+        setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + 'σ');
+        setSlider('cme-gap-threshold-slider',   'cme-val-display',   s.cme_gap_threshold,    v => parseFloat(v).toFixed(1) + '%');
     }).catch(() => {});
 }
 
@@ -494,8 +568,17 @@ window.saveAlertSettings = async function() {
     const discord  = (document.getElementById('discord-webhook-input')?.value || '').trim();
     const telegram = (document.getElementById('telegram-chat-input')?.value || '').trim();
     const z        = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
+    const whale    = parseFloat(document.getElementById('whale-threshold-slider')?.value || 5.0);
+    const depeg    = parseFloat(document.getElementById('depeg-threshold-slider')?.value || 1.0);
+    const vol      = parseFloat(document.getElementById('vol-spike-threshold-slider')?.value || 2.0);
+    const cme      = parseFloat(document.getElementById('cme-gap-threshold-slider')?.value || 1.0);
     const enabled  = document.getElementById('alerts-enabled-toggle')?.checked !== false;
-    const result = await fetchAPI('/alert-settings', 'POST', { discord_webhook: discord, telegram_chat_id: telegram, z_threshold: z, alerts_enabled: enabled });
+    const result = await fetchAPI('/alert-settings', 'POST', {
+        discord_webhook: discord, telegram_chat_id: telegram,
+        z_threshold: z, alerts_enabled: enabled,
+        whale_threshold: whale, depeg_threshold: depeg,
+        vol_spike_threshold: vol, cme_gap_threshold: cme
+    });
     if (result?.success) {
         showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? '✓' : '✗'}  Telegram: ${result.has_telegram ? '✓' : '✗'}`, 'success');
     } else {
@@ -505,9 +588,16 @@ window.saveAlertSettings = async function() {
 };
 
 window.testFireAlertSettings = async function() {
-    const z = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
+    const z     = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
+    const whale = parseFloat(document.getElementById('whale-threshold-slider')?.value || 5.0);
+    const depeg = parseFloat(document.getElementById('depeg-threshold-slider')?.value || 1.0);
+    const vol   = parseFloat(document.getElementById('vol-spike-threshold-slider')?.value || 2.0);
+    const cme   = parseFloat(document.getElementById('cme-gap-threshold-slider')?.value || 1.0);
     showToast('ALERT CONFIG', 'Sending test notification...', 'info');
-    const data = await fetchAPI('/alert-settings', 'POST', { z_threshold: z, test_fire: true });
+    const data = await fetchAPI('/alert-settings', 'POST', {
+        z_threshold: z, whale_threshold: whale, depeg_threshold: depeg,
+        vol_spike_threshold: vol, cme_gap_threshold: cme, test_fire: true
+    });
     if (data?.success) {
         showToast('ALERT CONFIG', 'Test alert dispatched! Check Discord/Telegram.', 'success');
     } else {
@@ -628,6 +718,7 @@ async function renderRegime(tabs = null) {
 // ============================================================
 // Phase 7/8: Advanced Charting Suite (Tabs + Data Integrations)
 // ============================================================
-let activeBinanceWS = null;
+// NOTE: activeBinanceWS lives on window (set in advanced.js / cleaned in charts.js)
 let currentAdvTab = 'overview';
+
 

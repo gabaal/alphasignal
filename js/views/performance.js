@@ -1,4 +1,4 @@
-﻿async function renderPerformanceDashboard(tabs = null) {
+async function renderPerformanceDashboard(tabs = null) {
     if (!tabs) tabs = auditHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -421,9 +421,14 @@ async function renderFlows(tabs = null) {
                     <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">show_chart</span>US YIELD CURVE SPREAD MONITOR</h3>
                     <span style="font-size:0.55rem;color:var(--text-dim);">2Y / 10Y / 30Y TREASURY YIELDS · 365-DAY ROLLING</span>
                 </div>
-                <div id="yc-loading" style="text-align:center;padding:2rem;color:var(--text-dim);font-size:0.7rem;"><div class="loader" style="margin:0 auto 0.8rem;"></div>Loading yield data...</div>
-                <canvas id="yieldCurveChart" style="display:none; padding-bottom:2rem;"></canvas>
+                <div style="height:340px; width:100%; position:relative;">
+                    <div id="yc-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text-dim);font-size:0.7rem;">
+                        <div class="loader" style="width:24px;height:24px;"></div>Loading yield data...
+                    </div>
+                    <canvas id="yieldCurveChart" style="display:none;"></canvas>
+                </div>
             </div>`;
+
         appEl.appendChild(el);
         try {
             const ycData = await fetchAPI('/yield-curve');

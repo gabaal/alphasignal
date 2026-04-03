@@ -1227,9 +1227,9 @@ async function renderCustomAnalytics(tabs) {
         }
     } catch(e) { ['custom-mvrv-sopr','custom-volatility'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<div class="error-msg">Load failed</div>'; }); }
 
-    // -- Correlation Matrix ----------------------------------------------------
+    // -- Correlation Matrix (already fetched above in parallel block) ----------
     try {
-        const cm = await fetchAPI('/correlation-matrix');
+        const cm = _cm;
         window._correlationData = cm;
         if (cm && cm.assets && cm.matrix && containers.correlation) {
             const el = containers.correlation;

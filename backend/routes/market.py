@@ -98,6 +98,24 @@ class MarketRoutesMixin:
             self.send_json({'fgIndex': 50, 'fgLabel': 'Neutral', 'leadLag': {'leader': 'SYNC', 'divergence': 0, 'signal': 'Engine Warmup'}})
 
     def handle_fear_greed(self):
+        # ── 1. Try real alternative.me Fear & Greed Index ────────────────────
+        try:
+            fg = fetch_fear_greed()
+            if fg and fg.get('source') != 'fallback' and isinstance(fg.get('value'), int):
+                score = fg['value']
+                raw_label = fg.get('label', '')
+                # Normalise label to uppercase short form
+                label_map = {
+                    'Extreme Fear': 'EXTREME FEAR', 'Fear': 'FEAR',
+                    'Neutral': 'NEUTRAL', 'Greed': 'GREED', 'Extreme Greed': 'EXTREME GREED'
+                }
+                label = label_map.get(raw_label, raw_label.upper())
+                self.send_json({'score': score, 'label': label, 'source': 'alternative.me'})
+                return
+        except Exception as e:
+            print(f'[FearGreed/alternative.me] {e}')
+
+        # ── 2. Fallback: derive from BTC price deviation vs SMA-50 ───────────
         try:
             data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close')
             if data is not None and (not data.empty):
@@ -109,21 +127,16 @@ class MarketRoutesMixin:
                 vol = float(rets.std() if not hasattr(rets.std(), 'iloc') else rets.std().iloc[0]) * np.sqrt(365) * 100
                 score = 50 + dev * 2.5 - (vol - 40) * 0.5
                 score = max(0, min(100, int(score)))
-                if score < 25:
-                    label = 'EXTREME FEAR'
-                elif score < 45:
-                    label = 'FEAR'
-                elif score < 55:
-                    label = 'NEUTRAL'
-                elif score < 75:
-                    label = 'GREED'
-                else:
-                    label = 'EXTREME GREED'
-                self.send_json({'score': score, 'label': label})
+                if score < 25:   label = 'EXTREME FEAR'
+                elif score < 45: label = 'FEAR'
+                elif score < 55: label = 'NEUTRAL'
+                elif score < 75: label = 'GREED'
+                else:            label = 'EXTREME GREED'
+                self.send_json({'score': score, 'label': label, 'source': 'derived'})
                 return
         except Exception as e:
-            print(f'Fear/Greed Error: {e}')
-        self.send_json({'score': 50, 'label': 'NEUTRAL'})
+            print(f'[FearGreed/derived] {e}')
+        self.send_json({'score': 50, 'label': 'NEUTRAL', 'source': 'fallback'})
 
     # --- Phase 15-A: CryptoPanic news cache ---
     _news_cache = {'data': None, 'ts': 0}
@@ -395,6 +408,50 @@ class MarketRoutesMixin:
         except Exception as e:
             print(f'[ETF Flows] Fatal error: {e}')
             self.send_json({'error': 'ETF Flows unavailable', 'labels': [], 'datasets': [], 'cumulative': []})
+
+    def handle_signal_density(self):
+        """Return 30-day daily signal firing counts from alerts_history."""
+        try:
+            import datetime as dt
+            today = dt.date.today()
+            cutoff = (today - dt.timedelta(days=29)).isoformat()
+
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute(
+                """SELECT DATE(timestamp) as day, COUNT(*) as cnt
+                   FROM alerts_history
+                   WHERE timestamp >= ?
+                   GROUP BY day
+                   ORDER BY day ASC""",
+                (cutoff,)
+            )
+            rows = c.fetchall()
+            conn.close()
+
+            # Build a full 30-day series (0 for days with no signal)
+            counts_map = {r[0]: r[1] for r in rows}
+            labels, counts = [], []
+            for i in range(30):
+                d = today - dt.timedelta(days=29 - i)
+                d_str = d.strftime('%Y-%m-%d')
+                labels.append(f'D-{29 - i}')
+                counts.append(counts_map.get(d_str, 0))
+
+            has_real = any(v > 0 for v in counts)
+            # If no history yet, generate a plausible synthetic baseline
+            if not has_real:
+                import hashlib as _hl
+                seed = int(_hl.md5(str(today).encode()).hexdigest()[:8], 16)
+                rng = np.random.default_rng(seed)
+                counts = [int(v) for v in rng.integers(1, 8, 30)]
+                # Inject realistic cluster near end
+                counts[-6] = 9; counts[-5] = 22; counts[-4] = 17; counts[-3] = 11
+
+            self.send_json({'labels': labels, 'counts': counts, 'source': 'live' if has_real else 'synthetic'})
+        except Exception as e:
+            print(f'[SignalDensity] {e}')
+            self.send_json({'error': str(e)})
 
     def handle_config(self):
         self.send_response(200)

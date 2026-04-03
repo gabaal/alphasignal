@@ -117,88 +117,111 @@ async function renderSignals(category = 'ALL', tabs = null) {
         </div>`;
 
 
-    // Render 30D Signal Density Histogram
-    setTimeout(() => {
+    // Render 30D Signal Density Histogram — live data from alerts_history
+    setTimeout(async () => {
         const sdCtx = document.getElementById('signalDensityChart');
-        if (sdCtx) {
-            const existing = Chart.getChart('signalDensityChart');
-            if (existing) existing.destroy();
+        if (!sdCtx) return;
+        const existing = Chart.getChart('signalDensityChart');
+        if (existing) existing.destroy();
 
-            const labels = Array.from({length: 30}, (_, i) => `D-${30-i}`);
-            const dataBase = labels.map(() => Math.floor(Math.random() * 7) + 1);
+        let labels, dataBase, source = 'synthetic';
+        try {
+            const density = await fetchAPI('/signal-density');
+            if (density && density.counts && density.counts.length) {
+                labels = density.labels;
+                dataBase = density.counts;
+                source = density.source || 'live';
+            }
+        } catch(e) { /* fall through to synthetic */ }
+
+        if (!labels) {
+            labels = Array.from({length: 30}, (_, i) => `D-${30-i}`);
+            dataBase = labels.map(() => Math.floor(Math.random() * 7) + 1);
             dataBase[24] = 9; dataBase[25] = 22; dataBase[26] = 17; dataBase[27] = 11;
+        }
 
-            // Per-bar color scale: dim → cyan → amber → red
-            const barColor = v => {
-                if (v >= 18) return 'rgba(239,68,68,0.85)';
-                if (v >= 12) return 'rgba(251,146,60,0.8)';
-                if (v >= 7)  return 'rgba(0,242,255,0.7)';
-                if (v >= 4)  return 'rgba(99,179,237,0.55)';
-                return 'rgba(148,163,184,0.3)';
-            };
-            const borderColor = v => {
-                if (v >= 18) return 'rgba(239,68,68,1)';
-                if (v >= 12) return 'rgba(251,146,60,0.9)';
-                if (v >= 7)  return 'rgba(0,242,255,0.9)';
-                if (v >= 4)  return 'rgba(99,179,237,0.7)';
-                return 'rgba(148,163,184,0.4)';
-            };
+        // Inject source badge into card header
+        const headerEl = sdCtx.closest('.card')?.querySelector('.card-header');
+        if (headerEl) {
+            const existing = headerEl.querySelector('.density-source-badge');
+            if (existing) existing.remove();
+            const badge = document.createElement('span');
+            badge.className = 'density-source-badge';
+            badge.style.cssText = `font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:${source==='live'?'rgba(34,197,94,0.12)':'rgba(148,163,184,0.1)'};color:${source==='live'?'#22c55e':'#94a3b8'}`;
+            badge.textContent = source === 'live' ? '● LIVE DB' : '◌ SYNTHETIC';
+            headerEl.appendChild(badge);
+        }
 
-            new Chart(sdCtx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Signals Fired',
-                        data: dataBase,
-                        backgroundColor: dataBase.map(barColor),
-                        borderColor: dataBase.map(borderColor),
-                        borderWidth: 1,
-                        borderRadius: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(13,17,23,0.95)',
-                            titleColor: '#00f2ff',
-                            bodyColor: '#e2e8f0',
-                            callbacks: {
-                                title: items => items[0].label,
-                                label: c => `${c.raw} signals fired`
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            display: true,
-                            grid: { display: false },
-                            ticks: {
-                                color: 'rgba(255,255,255,0.2)',
-                                font: { family: 'JetBrains Mono', size: 8 },
-                                maxTicksLimit: 6,
-                                maxRotation: 0
-                            }
-                        },
-                        y: {
-                            display: true,
-                            position: 'left',
-                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
-                            ticks: {
-                                color: 'rgba(255,255,255,0.35)',
-                                font: { family: 'JetBrains Mono', size: 8 },
-                                maxTicksLimit: 5,
-                                stepSize: 5
-                            },
-                            suggestedMax: 30
+        // Per-bar color scale: dim → cyan → amber → red
+        const barColor = v => {
+            if (v >= 18) return 'rgba(239,68,68,0.85)';
+            if (v >= 12) return 'rgba(251,146,60,0.8)';
+            if (v >= 7)  return 'rgba(0,242,255,0.7)';
+            if (v >= 4)  return 'rgba(99,179,237,0.55)';
+            return 'rgba(148,163,184,0.3)';
+        };
+        const borderColor = v => {
+            if (v >= 18) return 'rgba(239,68,68,1)';
+            if (v >= 12) return 'rgba(251,146,60,0.9)';
+            if (v >= 7)  return 'rgba(0,242,255,0.9)';
+            if (v >= 4)  return 'rgba(99,179,237,0.7)';
+            return 'rgba(148,163,184,0.4)';
+        };
+
+        new Chart(sdCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Signals Fired',
+                    data: dataBase,
+                    backgroundColor: dataBase.map(barColor),
+                    borderColor: dataBase.map(borderColor),
+                    borderWidth: 1,
+                    borderRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(13,17,23,0.95)',
+                        titleColor: '#00f2ff',
+                        bodyColor: '#e2e8f0',
+                        callbacks: {
+                            title: items => items[0].label,
+                            label: c => `${c.raw} signals fired`
                         }
                     }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        grid: { display: false },
+                        ticks: {
+                            color: 'rgba(255,255,255,0.2)',
+                            font: { family: 'JetBrains Mono', size: 8 },
+                            maxTicksLimit: 6,
+                            maxRotation: 0
+                        }
+                    },
+                    y: {
+                        display: true,
+                        position: 'left',
+                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                        ticks: {
+                            color: 'rgba(255,255,255,0.35)',
+                            font: { family: 'JetBrains Mono', size: 8 },
+                            maxTicksLimit: 5,
+                            stepSize: 5
+                        },
+                        suggestedMax: 30
+                    }
                 }
-            });
-        }
+            }
+        });
     }, 50);
 
     // Z-Score Bell Curve — 0.5-step buckets with proper σ scale

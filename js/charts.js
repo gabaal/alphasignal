@@ -422,15 +422,35 @@ function renderStrategyChart(curve) {
 }
 
 function cleanupAdvChart() {
-    if (activeBinanceWS) { activeBinanceWS.close(); activeBinanceWS = null; }
+    // Close the kline socket — guard against CLOSING (2) / CLOSED (3) states
+    // to prevent the "Ping received after close" browser warning
+    const bws = window.activeBinanceWS;
+    if (bws && bws.readyState === WebSocket.OPEN) {
+        bws.onerror = () => {};  // silence any close-race error
+        bws.close();
+    }
+    window.activeBinanceWS = null;
+
     if (window.activeHeatmap) {
         window.activeHeatmap.destroy();
         window.activeHeatmap = null;
     }
     if (window.activeDepth3D) {
-        cancelAnimationFrame(window.activeDepth3D.animId);
-        window.activeDepth3D.renderer.dispose();
+        const ref = window.activeDepth3D;
+        cancelAnimationFrame(ref._ref ? ref._ref.id : ref.animId);
+        try {
+            ref.renderer.forceContextLoss();
+            ref.renderer.dispose();
+        } catch(e) {}
         window.activeDepth3D = null;
+    }
+    // Tear down BinanceSocketManager streams silently
+    if (window.BinanceSocketManager) {
+        Object.values(window.BinanceSocketManager.sockets || {}).forEach(ws => {
+            try { if (ws && ws.readyState === WebSocket.OPEN) ws.close(); } catch(e) {}
+        });
+        window.BinanceSocketManager.sockets = {};
+        window.BinanceSocketManager.callbacks = {};
     }
     const c = document.getElementById('advanced-chart-container');
     if (c) c.innerHTML = '<div class="loader" style="margin:4rem auto"></div>';

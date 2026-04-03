@@ -209,6 +209,18 @@ def init_db():
         c.execute("ALTER TABLE user_settings ADD COLUMN z_threshold REAL DEFAULT 2.0")
     except: pass
     try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN whale_threshold REAL DEFAULT 5.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN depeg_threshold REAL DEFAULT 1.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN vol_spike_threshold REAL DEFAULT 2.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN cme_gap_threshold REAL DEFAULT 1.0")
+    except: pass
+    try:
         c.execute("ALTER TABLE user_settings ADD COLUMN alerts_last_seen TEXT")
     except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS market_ticks (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, price REAL, volume REAL, open_interest REAL)''')
