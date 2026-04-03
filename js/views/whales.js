@@ -1,4 +1,4 @@
-﻿async function renderWhales(tabs = null) {
+async function renderWhales(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = skeleton(5);
     const [data, entityData, execData] = await Promise.all([
@@ -84,7 +84,10 @@
     sankeyEl.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
             <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">account_balance_wallet</span>WHALE WALLET FLOW NETWORK</h3>
-            <span style="font-size:0.55rem;color:var(--text-dim);">BTC/ETH 24H NET FLOWS BETWEEN ENTITY TYPES</span>
+            <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:0.55rem;color:var(--text-dim);">BTC/ETH 24H NET FLOWS BETWEEN ENTITY TYPES</span>
+                <span style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e">● LIVE · whale-sankey</span>
+            </div>
         </div>
         <div style="height:260px;position:relative;"><canvas id="whaleSankeyCanvas"></canvas></div>
         <div style="display:flex;gap:2rem;margin-top:10px;font-size:0.6rem;color:var(--text-dim);">
@@ -143,7 +146,11 @@
                     }
                 },
                 scales: {
-                    x: { grid:{ color:'rgba(255,255,255,0.05)' }, ticks:{ color:'#8b949e', callback: v => '$' + Math.abs(v) + 'M' } },
+                    x: {
+                        grid:{ color:'rgba(255,255,255,0.05)' },
+                        ticks:{ color:'#8b949e', callback: v => '$' + Math.abs(v) + 'M' },
+                        title: { display: true, text: '24H Flow ($M)', color: 'rgba(255,255,255,0.25)', font: { size: 9 } }
+                    },
                     y: { grid:{ display:false }, ticks:{ color:'#e6edf3', font:{ family:'JetBrains Mono', size:11 } } }
                 }
             }
@@ -227,7 +234,11 @@
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { 
-                    legend: { display:false },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { color: '#8b949e', font: { family: 'Outfit', size: 10 }, boxWidth: 10, padding: 10 }
+                    },
                     tooltip: {
                         callbacks: {
                             label: (c) => ` ${c.raw.type}: ${c.raw.y} BTC (${c.raw.rawUsd})`
@@ -239,6 +250,7 @@
                     y: { 
                         grid: { color: 'rgba(255,255,255,0.05)' }, 
                         ticks: { color: 'var(--text-dim)' },
+                        title: { display: true, text: 'Transaction Size (BTC, log)', color: 'rgba(255,255,255,0.2)', font: { size: 9 } },
                         type: 'logarithmic'
                     }
                 }

@@ -217,6 +217,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                             maxTicksLimit: 5,
                             stepSize: 5
                         },
+                        title: { display: true, text: 'Signals Fired', color: 'rgba(255,255,255,0.2)', font: { size: 8 } },
                         suggestedMax: 30
                     }
                 }
@@ -326,7 +327,8 @@ async function renderSignals(category = 'ALL', tabs = null) {
                             font: { family: 'JetBrains Mono', size: 8 },
                             maxRotation: 0,
                             maxTicksLimit: 9  // show every other label to avoid crowding
-                        }
+                        },
+                        title: { display: true, text: 'Z-Score (σ)', color: 'rgba(255,255,255,0.2)', font: { size: 8 } }
                     },
                     y: {
                         display: true,
@@ -336,7 +338,8 @@ async function renderSignals(category = 'ALL', tabs = null) {
                             color: 'rgba(255,255,255,0.3)',
                             font: { family: 'JetBrains Mono', size: 8 },
                             maxTicksLimit: 4
-                        }
+                        },
+                        title: { display: true, text: 'Count', color: 'rgba(255,255,255,0.2)', font: { size: 8 } }
                     }
                 }
             }

@@ -58,6 +58,7 @@ async function renderPerformanceDashboard(tabs = null) {
             <div class="card-header" style="margin-bottom:15px">
                 <h3>Cumulative Strategy Return <span style="font-size:0.8rem; color:var(--text-dim)">(Model Portfolio Equity Curve)</span></h3>
                 <span class="label-tag">P&L_TRAJECTORY</span>
+                <span id="perf-live-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e;margin-left:6px">● LIVE · alerts_history</span>
             </div>
             <div style="height:350px; width:100%; position:relative;">
                 <canvas id="strategyEquityChart"></canvas>
@@ -282,7 +283,12 @@ async function renderPerformanceDashboard(tabs = null) {
                     },
                     scales: {
                         x: { display: false },
-                        y: { position:'left', grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#8b949e',font:{family:'JetBrains Mono',size:10},callback:v=>v+'%'} },
+                        y: {
+                            position:'left',
+                            grid:{color:'rgba(255,255,255,0.05)'},
+                            ticks:{color:'#8b949e',font:{family:'JetBrains Mono',size:10},callback:v=>v+'%'},
+                            title:{ display:true, text:'Portfolio Return (%)', color:'rgba(255,255,255,0.25)', font:{size:9} }
+                        },
                         yDD: { position:'right', display:false, min: Math.min(...drawdown) * 1.2, max: 0 }
                     }
                 }
@@ -331,7 +337,11 @@ async function renderPerformanceDashboard(tabs = null) {
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', bodyColor: '#e6edf3', padding: 10, callbacks: { label: function(c){ return ' ' + c.raw + ' signals'; } } } },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8b949e', font: { size: 10 } } },
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: { color: '#8b949e', font: { size: 10 } },
+                            title: { display: true, text: 'Signal Count', color: 'rgba(255,255,255,0.25)', font: { size: 9 } }
+                        },
                         y: { grid: { display: false }, ticks: { color: '#e6edf3', font: { family: 'Outfit', size: 11, weight: '700' } } }
                     }
                 }

@@ -75,7 +75,12 @@ function renderGuppyRibbon(history) {
             plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
             scales: {
                 x: { grid: { display:false }, ticks: { color: '#888', maxTicksLimit: 10, font: { family: 'JetBrains Mono', size:10 } } },
-                y: { position: 'right', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: function(val) { return '$' + val.toLocaleString(); } } }
+                y: {
+                    position: 'right',
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: function(val) { return '$' + val.toLocaleString(); } },
+                    title: { display: true, text: 'Price (USD)', color: 'rgba(255,255,255,0.2)', font: { size: 9 } }
+                }
             }
         }
     });
