@@ -861,6 +861,8 @@ async function renderAdvOptionsSurface(symbol) {
     container.innerHTML = `
         <div style="position:relative;width:100%;height:520px;background:#050508;border-radius:12px;overflow:hidden;">
             <canvas id="volsurf-canvas" style="width:100%;height:100%;display:block;"></canvas>
+
+            <!-- Top-left: title + source badge -->
             <div style="position:absolute;top:14px;left:18px;pointer-events:none;display:flex;align-items:center;gap:14px;">
                 <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#00f2ff;">
                     <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">stacked_line_chart</span>
@@ -868,13 +870,25 @@ async function renderAdvOptionsSurface(symbol) {
                 </span>
                 <span id="iv-source-badge" style="font-size:0.55rem;color:rgba(255,255,255,0.3);animation:pulse 2s infinite;">● LOADING...</span>
             </div>
+
+            <!-- Top-right: spot price + timestamp -->
             <div id="iv-stats-bar" style="position:absolute;top:14px;right:18px;display:flex;gap:16px;pointer-events:none;"></div>
-            <div style="position:absolute;bottom:14px;left:18px;display:flex;gap:12px;pointer-events:none;">
-                <span style="font-size:0.55rem;color:rgba(255,255,255,0.3);">DRAG TO ROTATE • SCROLL TO ZOOM</span>
+
+            <!-- Bottom-left: axis labels + controls hint -->
+            <div style="position:absolute;bottom:46px;left:18px;pointer-events:none;display:flex;flex-direction:column;gap:4px;">
+                <span style="font-size:0.5rem;color:rgba(255,255,255,0.22);letter-spacing:1px;">← MONEYNESS (% of spot) →</span>
+                <span style="font-size:0.5rem;color:rgba(255,255,255,0.22);letter-spacing:1px;">← DAYS TO EXPIRY →</span>
             </div>
-            <div style="position:absolute;bottom:14px;right:14px;display:flex;gap:8px;align-items:center;pointer-events:none;">
-                <div style="width:60px;height:8px;background:linear-gradient(to right,#3b82f6,#10b981,#f59e0b,#ef4444);border-radius:4px;"></div>
-                <span style="font-size:0.5rem;color:var(--text-dim);">LOW IV → HIGH IV</span>
+            <div style="position:absolute;bottom:14px;left:18px;pointer-events:none;">
+                <span style="font-size:0.5rem;color:rgba(255,255,255,0.2);">DRAG TO ROTATE &nbsp;•&nbsp; SCROLL TO ZOOM &nbsp;•&nbsp; HOVER FOR IV</span>
+            </div>
+
+            <!-- Bottom-centre: per-expiry ATM IV strip (populated after data loads) -->
+            <div id="iv-atm-strip" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);pointer-events:none;display:flex;gap:10px;align-items:flex-end;"></div>
+
+            <!-- Right-side vertical colourbar (populated after data loads) -->
+            <div id="iv-colourbar" style="position:absolute;top:50px;right:14px;width:28px;display:flex;flex-direction:column;align-items:center;gap:0;pointer-events:none;">
+                <!-- ticks injected by JS -->
             </div>
         </div>`;
 
@@ -911,11 +925,79 @@ async function renderAdvOptionsSurface(symbol) {
             <div style="font-size:0.55rem;color:var(--text-dim);">Updated: <span style="color:rgba(255,255,255,0.5);">${surfaceData.timestamp ? surfaceData.timestamp.slice(11,16) + ' UTC' : '--'}</span></div>`;
     }
 
-    const moneyAxis   = surfaceData.moneyness_axis;     // length 20
-    const expiryLabels = surfaceData.expiry_labels;      // length 6
-    const ivGrid      = surfaceData.iv_grid;             // ivGrid[strike][expiry]
+    const moneyAxis    = surfaceData.moneyness_axis;     // length 20
+    const expiryLabels  = surfaceData.expiry_labels;      // length 6
+    const ivGrid        = surfaceData.iv_grid;            // ivGrid[strike][expiry]
     const xS = moneyAxis.length;
     const zS = expiryLabels.length;
+
+    // ── Compute real IV range ─────────────────────────────────────────────────
+    const allIVs = ivGrid.flat().filter(v => v > 0);
+    const minIV  = Math.min(...allIVs);
+    const maxIV  = Math.max(...allIVs);
+
+    // ── Populate right-side colourbar ─────────────────────────────────────────
+    // Colour function matching the vertex shader below: blue→green→yellow→red
+    function ivToHex(t) {
+        const r = t < 0.5 ? t * 2 * 0.2              : 0.2 + (t - 0.5) * 2 * 0.8;
+        const g = t < 0.5 ? 0.2 + t * 2 * 0.6        : 0.8 - (t - 0.5) * 2 * 0.6;
+        const b = t < 0.5 ? 0.8 - t * 2 * 0.6        : 0.2;
+        const toHex = c => Math.round(c * 255).toString(16).padStart(2,'0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+    const colourbar = document.getElementById('iv-colourbar');
+    if (colourbar) {
+        // Label at top
+        colourbar.innerHTML = `<span style="font-size:0.45rem;color:rgba(255,255,255,0.4);letter-spacing:0.5px;margin-bottom:3px;writing-mode:horizontal-tb;">IV %</span>`;
+        // Gradient bar — 120px tall canvas-like div
+        const STEPS = 24;
+        const barH  = 160; // px total
+        let gradient = 'linear-gradient(to bottom,';
+        for (let i = STEPS; i >= 0; i--) {
+            gradient += `${ivToHex(i / STEPS)}${i > 0 ? ',' : ''}`;
+        }
+        gradient += ')';
+        colourbar.innerHTML += `<div style="width:14px;height:${barH}px;background:${gradient};border-radius:4px;border:1px solid rgba(255,255,255,0.08);position:relative;">`
+            // 5 tick marks at 0%, 25%, 50%, 75%, 100% of range
+            + [0, 0.25, 0.5, 0.75, 1].map(frac => {
+                const ivVal = minIV + frac * (maxIV - minIV);
+                const topPct = (1 - frac) * 100;
+                const isHigh = ivVal >= 80;
+                const color  = isHigh ? '#ef4444' : ivVal >= 50 ? '#f59e0b' : ivVal >= 30 ? '#10b981' : '#3b82f6';
+                return `<div style="position:absolute;top:${topPct}%;right:-32px;transform:translateY(-50%);display:flex;align-items:center;gap:3px;">`
+                    + `<div style="width:5px;height:1px;background:rgba(255,255,255,0.25);"></div>`
+                    + `<span style="font-size:0.42rem;font-family:'JetBrains Mono',monospace;color:${color};white-space:nowrap;font-weight:700;">${ivVal.toFixed(0)}%</span>`
+                    + `</div>`;
+            }).join('')
+            + `</div>`;
+        // Zone labels below bar
+        colourbar.innerHTML += [
+            { label:'HIGH',  color:'#ef4444'  },
+            { label:'MED',   color:'#f59e0b'  },
+            { label:'NORM',  color:'#10b981'  },
+            { label:'LOW',   color:'#3b82f6'  },
+        ].map(z => `<span style="font-size:0.38rem;color:${z.color};letter-spacing:0.5px;font-weight:900;margin-top:2px;">${z.label}</span>`).join('');
+    }
+
+    // ── Populate per-expiry ATM IV strip (bottom centre) ─────────────────────
+    const atmStrip = document.getElementById('iv-atm-strip');
+    if (atmStrip && expiryLabels && ivGrid) {
+        // ATM is the moneyness index closest to 1.0
+        const atmIdx = moneyAxis.reduce((best, m, i) => Math.abs(m - 1) < Math.abs(moneyAxis[best] - 1) ? i : best, 0);
+        atmStrip.innerHTML = expiryLabels.map((exp, zi) => {
+            const iv = ivGrid[atmIdx]?.[zi];
+            if (iv == null) return '';
+            const t = (iv - minIV) / ((maxIV - minIV) || 1);
+            const col = ivToHex(t);
+            return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">`
+                + `<span style="font-size:0.5rem;font-weight:900;color:${col};font-family:'JetBrains Mono',monospace;">${iv.toFixed(1)}%</span>`
+                + `<div style="width:1px;height:8px;background:rgba(255,255,255,0.15);"></div>`
+                + `<span style="font-size:0.4rem;color:rgba(255,255,255,0.35);white-space:nowrap;">${exp}</span>`
+                + `</div>`;
+        }).join(`<div style="width:1px;height:20px;background:rgba(255,255,255,0.06);align-self:center;"></div>`);
+        // Prepend label
+        atmStrip.innerHTML = `<span style="font-size:0.42rem;color:rgba(255,255,255,0.25);letter-spacing:1px;align-self:flex-end;margin-bottom:2px;margin-right:4px;">ATM IV:</span>` + atmStrip.innerHTML;
+    }
 
     // ── Three.js setup ────────────────────────────────────────────────────────
     const W = container.clientWidth, H = 520;
@@ -934,10 +1016,7 @@ async function renderAdvOptionsSurface(symbol) {
     dl.position.set(10, 20, 10);
     scene.add(dl);
 
-    // ── Flatten min/max IV for colour normalisation ───────────────────────────
-    const allIVs = ivGrid.flat().filter(v => v != null && !isNaN(v));
-    const minIV  = Math.min(...allIVs);
-    const maxIV  = Math.max(...allIVs);
+    // ── IV range already computed above for colourbar ──────────────────────────
     const ivRange = maxIV - minIV || 1;
 
     // ── Build geometry ────────────────────────────────────────────────────────
