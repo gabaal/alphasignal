@@ -2,6 +2,7 @@ import json
 import time
 import sqlite3
 import threading
+import requests
 import pandas as pd
 import yfinance as yf
 import io
@@ -163,4 +164,92 @@ class DataCache:
         return t
 
 CACHE = DataCache(ttl=300)
+
+
+class BinanceCache:
+    """Lightweight in-process TTL cache for Binance FAPI, Binance spot, and blockchain.info calls.
+
+    Each cache bucket has its own TTL tuned to the data's natural update frequency:
+    - Order book (spot:depth)     →   5s  (near-real-time for liquidity view)
+    - Mark price / premium index  →  30s  (funding changes each 8h, mark price semi-live)
+    - Open interest               →  60s  (slow-moving)
+    - Long/Short ratio            →  60s  (5-min Binance resolution)
+    - 24h ticker stats            → 120s  (rolling window, very stable)
+    - Mempool unconfirmed count   → 120s  (mempool resolves in minutes)
+    - BTC price (blockchain.info) →  60s  (use as fallback only)
+    - Funding rate history        → 300s  (8h snapshots, fully static between payouts)
+    - Hashrate / tx count         → 300s  (~10-min blockchain.info update cadence)
+    """
+
+    _TTLS = {
+        'fapi:premium':           30,
+        'fapi:oi':                60,
+        'fapi:ls':                60,
+        'fapi:funding_hist':     300,
+        'spot:depth':              5,
+        'spot:ticker24h':        120,
+        'blockchain:unconfirmed':120,
+        'blockchain:price':       60,
+        'blockchain:hashrate':   300,
+        'blockchain:txcount':    300,
+    }
+
+    def __init__(self):
+        self._store = {}          # key -> (data, expires_at)
+        self._lock  = threading.Lock()
+
+    def _key(self, bucket, sym=''):
+        return f'{bucket}:{sym}' if sym else bucket
+
+    def get(self, bucket, sym=''):
+        key = self._key(bucket, sym)
+        with self._lock:
+            entry = self._store.get(key)
+            if entry and time.time() < entry[1]:
+                return entry[0]
+        return None
+
+    def set(self, bucket, data, sym=''):
+        key = self._key(bucket, sym)
+        ttl = self._TTLS.get(bucket, 60)
+        with self._lock:
+            self._store[key] = (data, time.time() + ttl)
+
+    def fetch(self, bucket, sym, url, params=None, timeout=6):
+        """Return cached data if fresh, otherwise GET the URL, cache and return.
+
+        Returns the parsed JSON on success, None on error/miss.
+        """
+        cached = self.get(bucket, sym)
+        if cached is not None:
+            return cached
+        try:
+            r = requests.get(url, params=params,
+                             headers={'User-Agent': 'AlphaSignal/1.25'},
+                             timeout=timeout)
+            if r.ok:
+                data = r.json()
+                self.set(bucket, data, sym)
+                return data
+        except Exception as e:
+            print(f'[BinanceCache/{bucket}/{sym}] {e}')
+        return None
+
+    def fetch_text(self, bucket, sym, url, timeout=5):
+        """Like fetch() but returns raw text (for blockchain.info simple endpoints)."""
+        cached = self.get(bucket, sym)
+        if cached is not None:
+            return cached
+        try:
+            r = requests.get(url, headers={'User-Agent': 'AlphaSignal/1.25'}, timeout=timeout)
+            if r.ok:
+                data = r.text.strip()
+                self.set(bucket, data, sym)
+                return data
+        except Exception as e:
+            print(f'[BinanceCache/{bucket}/{sym}] {e}')
+        return None
+
+
+BCACHE = BinanceCache()
 

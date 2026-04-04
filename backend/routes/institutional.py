@@ -9,7 +9,7 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from backend.caching import CACHE
+from backend.caching import CACHE, BCACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, get_ticker_name, get_sentiment
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
 
@@ -215,34 +215,25 @@ class InstitutionalRoutesMixin:
         try:
             # Fetch current funding rate from Binance FAPI (public, no auth)
             live_rates = {}
-            try:
-                resp = requests.get(
-                    'https://fapi.binance.com/fapi/v1/premiumIndex',
-                    timeout=5,
-                    headers={'User-Agent': 'AlphaSignal/1.25'}
-                )
-                if resp.status_code == 200:
-                    for item in resp.json():
-                        sym = item.get('symbol', '')
-                        rate = item.get('lastFundingRate')
-                        if sym in symbols and rate is not None:
-                            live_rates[sym.replace('USDT', '')] = round(float(rate) * 100, 4)
-            except Exception as e:
-                print(f'[FundingRates/Binance] {e}')
+            items = BCACHE.fetch('fapi:premium', 'ALL',
+                                'https://fapi.binance.com/fapi/v1/premiumIndex', timeout=5)
+            if items:
+                for item in items:
+                    sym = item.get('symbol', '')
+                    rate = item.get('lastFundingRate')
+                    if sym in symbols and rate is not None:
+                        live_rates[sym.replace('USDT', '')] = round(float(rate) * 100, 4)
 
             # Fetch real 8h funding rate snapshots from Binance FAPI (3 periods = 24h)
             hist_rates_cache = {}
             for asset in assets:
                 sym_usdt = f'{asset}USDT'
                 try:
-                    hr = requests.get(
-                        'https://fapi.binance.com/fapi/v1/fundingRate',
-                        params={'symbol': sym_usdt, 'limit': 24},
-                        headers={'User-Agent': 'AlphaSignal/1.25'},
-                        timeout=5
-                    )
-                    if hr.status_code == 200 and hr.json():
-                        hist_rates_cache[asset] = [round(float(x.get('fundingRate', 0)) * 100, 4) for x in hr.json()]
+                    hr = BCACHE.fetch('fapi:funding_hist', sym_usdt,
+                                      'https://fapi.binance.com/fapi/v1/fundingRate',
+                                      params={'symbol': sym_usdt, 'limit': 24})
+                    if hr:
+                        hist_rates_cache[asset] = [round(float(x.get('fundingRate', 0)) * 100, 4) for x in hr]
                 except Exception:
                     pass
 
@@ -332,12 +323,12 @@ class InstitutionalRoutesMixin:
             btc_price = 90000.0
             unconfirmed = 0
             try:
-                r = requests.get('https://blockchain.info/q/unconfirmedcount', timeout=4)
-                if r.status_code == 200:
-                    unconfirmed = int(r.text.strip())
-                r2 = requests.get('https://blockchain.info/q/24hrprice', timeout=4)
-                if r2.status_code == 200:
-                    btc_price = float(r2.text.strip())
+                _uc = BCACHE.fetch_text('blockchain:unconfirmed', '',
+                                        'https://blockchain.info/q/unconfirmedcount')
+                if _uc: unconfirmed = int(_uc)
+                _bp = BCACHE.fetch_text('blockchain:price', '',
+                                        'https://blockchain.info/q/24hrprice')
+                if _bp: btc_price = float(_bp)
             except Exception as e:
                 print(f'[WhaleSankey/Blockchain] {e}')
 
@@ -349,11 +340,10 @@ class InstitutionalRoutesMixin:
             buy_vol = 0.0
             sell_vol = 0.0
             try:
-                rv = requests.get('https://api.binance.com/api/v3/ticker/24hr',
-                                  params={'symbol': 'BTCUSDT'},
-                                  headers={'User-Agent': 'AlphaSignal/1.25'}, timeout=5)
-                if rv.ok:
-                    vd = rv.json()
+                vd = BCACHE.fetch('spot:ticker24h', 'BTCUSDT',
+                                  'https://api.binance.com/api/v3/ticker/24hr',
+                                  params={'symbol': 'BTCUSDT'})
+                if vd:
                     btc_vol_24h = float(vd.get('quoteVolume', 0))  # USDT volume
                     # taker buy base vol available; derive sell as remainder
                     buy_base = float(vd.get('takerBuyBaseVolume', 0))
@@ -613,9 +603,9 @@ class InstitutionalRoutesMixin:
             if not is_equity and 'BTC' in symbol.upper():
                 try:
                     # Hashrate: single live value from Blockchain.info
-                    r = requests.get('https://blockchain.info/q/hashrate', timeout=4)
-                    if r.status_code == 200:
-                        live_hashrate = float(r.text.strip())   # TH/s
+                    _hr = BCACHE.fetch_text('blockchain:hashrate', '',
+                                             'https://blockchain.info/q/hashrate')
+                    if _hr: live_hashrate = float(_hr)   # TH/s
                 except Exception as e:
                     print(f'[OnChain/hashrate] {e}')
 
@@ -755,19 +745,22 @@ class InstitutionalRoutesMixin:
         else:
             # Standard Binance Crypto Derivatives Feed
             try:
-                # Funding
-                r = requests.get(f'https://fapi.binance.com/fapi/v1/premiumIndex?symbol={symbol}', timeout=1.5)
-                if r.status_code == 200: funding = float(r.json().get('lastFundingRate', 0.0001)) * 100
-                
-                # OI
-                r = requests.get(f'https://fapi.binance.com/fapi/v1/openInterest?symbol={symbol}', timeout=1.5)
-                if r.status_code == 200:
-                    val = float(r.json().get('openInterest', 100000000))
+                _pm = BCACHE.fetch('fapi:premium', symbol,
+                                   f'https://fapi.binance.com/fapi/v1/premiumIndex',
+                                   params={'symbol': symbol}, timeout=5)
+                if _pm: funding = float(_pm.get('lastFundingRate', 0.0001)) * 100
+
+                _oi = BCACHE.fetch('fapi:oi', symbol,
+                                   f'https://fapi.binance.com/fapi/v1/openInterest',
+                                   params={'symbol': symbol}, timeout=5)
+                if _oi:
+                    val = float(_oi.get('openInterest', 100000000))
                     oi = f'{val/1000000:.1f}M'
-                
-                # L/S Ratio
-                r = requests.get(f'https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol={symbol}&period=5m&limit=1', timeout=1.5)
-                if r.status_code == 200 and r.json(): ls_ratio = float(r.json()[0].get('longShortRatio', 1.0))
+
+                _ls = BCACHE.fetch('fapi:ls', symbol,
+                                   'https://fapi.binance.com/futures/data/globalLongShortAccountRatio',
+                                   params={'symbol': symbol, 'period': '5m', 'limit': 1}, timeout=5)
+                if _ls: ls_ratio = float(_ls[0].get('longShortRatio', 1.0))
             except: pass
 
         self.send_json({
@@ -960,10 +953,12 @@ class InstitutionalRoutesMixin:
             # -- Liquidity: OI proxy from Binance FAPI --
             try:
                 binance_sym = ticker.replace('-USD', 'USDT').replace('-', '')
-                r = requests.get(f'https://fapi.binance.com/fapi/v1/openInterest?symbol={binance_sym}', timeout=2)
-                if r.status_code == 200:
-                    oi_val = float(r.json().get('openInterest', 0))
-                    # Normalise: BTC OI ~10B ? score 99; <1M ? score 20
+                _oi = BCACHE.fetch('fapi:oi', binance_sym,
+                                   'https://fapi.binance.com/fapi/v1/openInterest',
+                                   params={'symbol': binance_sym}, timeout=5)
+                if _oi:
+                    oi_val = float(_oi.get('openInterest', 0))
+                    # Normalise: BTC OI ~10B → score 99; <1M → score 20
                     liquidity = min(99, max(20, int(50 + (oi_val / 1e8))))
             except:
                 liquidity = 90 if ticker in ['BTC-USD', 'ETH-USD'] else 50
@@ -1013,9 +1008,9 @@ class InstitutionalRoutesMixin:
         try:
             unconfirmed = 0
             try:
-                r = requests.get('https://blockchain.info/q/unconfirmedcount', timeout=4)
-                if r.status_code == 200:
-                    unconfirmed = int(r.text.strip())
+                _uc = BCACHE.fetch_text('blockchain:unconfirmed', '',
+                                        'https://blockchain.info/q/unconfirmedcount')
+                if _uc: unconfirmed = int(_uc)
             except: pass
             # Scale factor: 0 txs = 0.5?, ~100k txs = 2?
             cf = min(2.5, max(0.5, unconfirmed / 40000)) if unconfirmed > 0 else 1.0
@@ -1243,25 +1238,22 @@ class InstitutionalRoutesMixin:
         ls_ratio = 1.0
         liquidations = '0M'
         try:
-            try:
-                r = requests.get(f'https://fapi.binance.com/fapi/v1/premiumIndex?symbol={symbol}', timeout=2)
-                if r.status_code == 200:
-                    funding = float(r.json().get('lastFundingRate', 0.01)) * 100
-            except:
-                pass
-            try:
-                r = requests.get(f'https://fapi.binance.com/fapi/v1/openInterest?symbol={symbol}', timeout=2)
-                if r.status_code == 200:
-                    val = float(r.json().get('openInterest', 100000000))
-                    oi = f'{val / 1000000:.1f}M'
-            except:
-                pass
-            try:
-                r = requests.get(f'https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol={symbol}&period=5m&limit=1', timeout=2)
-                if r.status_code == 200 and r.json():
-                    ls_ratio = float(r.json()[0].get('longShortRatio', 1.0))
-            except:
-                pass
+            _pm = BCACHE.fetch('fapi:premium', symbol,
+                               'https://fapi.binance.com/fapi/v1/premiumIndex',
+                               params={'symbol': symbol}, timeout=5)
+            if _pm: funding = float(_pm.get('lastFundingRate', 0.01)) * 100
+
+            _oi = BCACHE.fetch('fapi:oi', symbol,
+                               'https://fapi.binance.com/fapi/v1/openInterest',
+                               params={'symbol': symbol}, timeout=5)
+            if _oi:
+                val = float(_oi.get('openInterest', 100000000))
+                oi = f'{val / 1000000:.1f}M'
+
+            _ls = BCACHE.fetch('fapi:ls', symbol,
+                               'https://fapi.binance.com/futures/data/globalLongShortAccountRatio',
+                               params={'symbol': symbol, 'period': '5m', 'limit': 1}, timeout=5)
+            if _ls: ls_ratio = float(_ls[0].get('longShortRatio', 1.0))
             try:
                 hist = CACHE.download(ticker, period='1d', interval='1h')
                 if hist is not None and (not hist.empty):
@@ -1441,10 +1433,11 @@ class InstitutionalRoutesMixin:
             exchange_flow_signal = 0.0
             if 'BTC' in ticker.upper():
                 try:
-                    r = requests.get('https://blockchain.info/q/24hrtransactioncount', timeout=4)
-                    if r.status_code == 200:
-                        tx_count = int(r.text.strip())
-                        # More txs ? more retail activity
+                    _tc = BCACHE.fetch_text('blockchain:txcount', '',
+                                            'https://blockchain.info/q/24hrtransactioncount')
+                    if _tc:
+                        tx_count = int(_tc)
+                        # More txs → more retail activity
                         exchange_flow_signal = min(1.0, tx_count / 400000)
                 except: pass
 
@@ -3008,12 +3001,13 @@ class InstitutionalRoutesMixin:
             else:
                 try:
                     symbol = ticker.replace('-USD', 'USDT').replace('-', '')
-                    r = requests.get(f'https://fapi.binance.com/fapi/v1/depth?symbol={symbol}&limit=50', timeout=2)
-                    if r.status_code == 200:
-                        data = r.json()
-                        for ask in data.get('asks', []):
+                    _dep = BCACHE.fetch('spot:depth', symbol,
+                                        'https://fapi.binance.com/fapi/v1/depth',
+                                        params={'symbol': symbol, 'limit': 50}, timeout=5)
+                    if _dep:
+                        for ask in _dep.get('asks', []):
                             walls.append({'price': float(ask[0]), 'size': float(ask[1]), 'side': 'ask', 'exchange': 'Binance'})
-                        for bid in data.get('bids', []):
+                        for bid in _dep.get('bids', []):
                             walls.append({'price': float(bid[0]), 'size': float(bid[1]), 'side': 'bid', 'exchange': 'Binance'})
                             redis_bid_count += 1
                 except Exception as e:
@@ -3025,11 +3019,10 @@ class InstitutionalRoutesMixin:
                 binance_sym += 'USDT'
             binance_book_fetched = False
             try:
-                rb = requests.get('https://api.binance.com/api/v3/depth',
-                                  params={'symbol': binance_sym, 'limit': 20},
-                                  headers={'User-Agent': 'AlphaSignal/1.25'}, timeout=5)
-                if rb.ok:
-                    book = rb.json()
+                book = BCACHE.fetch('spot:depth', binance_sym,
+                                    'https://api.binance.com/api/v3/depth',
+                                    params={'symbol': binance_sym, 'limit': 20}, timeout=5)
+                if book:
                     for ask in book.get('asks', [])[:10]:
                         walls.append({'exchange': 'Binance',
                                       'price': round(float(ask[0]), 2),
@@ -3186,29 +3179,23 @@ class InstitutionalRoutesMixin:
             ls_ratio = 1.0
             vol_proxy = 0.008
 
-            try:
-                rp = requests.get(f'https://fapi.binance.com/fapi/v1/premiumIndex?symbol={sym}', headers=hdr, timeout=6)
-                if rp.ok:
-                    pd_ = rp.json()
-                    base_price = float(pd_.get('markPrice', base_price))
-                    funding_rate_pct = float(pd_.get('lastFundingRate', 0)) * 100
-            except Exception as ex:
-                print(f'[Liquidations/price] {ex}')
+            _pm = BCACHE.fetch('fapi:premium', sym,
+                               'https://fapi.binance.com/fapi/v1/premiumIndex',
+                               params={'symbol': sym}, timeout=6)
+            if _pm:
+                base_price = float(_pm.get('markPrice', base_price))
+                funding_rate_pct = float(_pm.get('lastFundingRate', 0)) * 100
 
-            try:
-                roi = requests.get(f'https://fapi.binance.com/fapi/v1/openInterest?symbol={sym}', headers=hdr, timeout=6)
-                if roi.ok:
-                    open_interest = float(roi.json().get('openInterest', 0)) * base_price
-            except Exception as ex:
-                print(f'[Liquidations/oi] {ex}')
+            _oi = BCACHE.fetch('fapi:oi', sym,
+                               'https://fapi.binance.com/fapi/v1/openInterest',
+                               params={'symbol': sym}, timeout=6)
+            if _oi:
+                open_interest = float(_oi.get('openInterest', 0)) * base_price
 
-            try:
-                rls = requests.get('https://fapi.binance.com/futures/data/globalLongShortAccountRatio',
-                                   params={'symbol': sym, 'period': '5m', 'limit': 1}, headers=hdr, timeout=6)
-                if rls.ok and rls.json():
-                    ls_ratio = float(rls.json()[0].get('longShortRatio', 1.0))
-            except Exception as ex:
-                print(f'[Liquidations/ls] {ex}')
+            _ls = BCACHE.fetch('fapi:ls', sym,
+                               'https://fapi.binance.com/futures/data/globalLongShortAccountRatio',
+                               params={'symbol': sym, 'period': '5m', 'limit': 1}, timeout=6)
+            if _ls: ls_ratio = float(_ls[0].get('longShortRatio', 1.0))
 
             try:
                 hist = CACHE.download(ticker, period='2d', interval='1h', column='Close')
