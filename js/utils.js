@@ -1,4 +1,45 @@
 const API_BASE = '/api';
+// ================================================================
+// THEME MANAGER — Light / Dark mode
+// ================================================================
+(function initTheme() {
+    const saved = localStorage.getItem('alpha-theme') || 'dark';
+    applyTheme(saved, false);
+})();
+
+function applyTheme(theme, animate) {
+    const root = document.documentElement;
+    if (animate) {
+        root.style.transition = 'background 0.3s, color 0.3s';
+        setTimeout(() => { root.style.transition = ''; }, 400);
+    }
+    if (theme === 'light') {
+        root.setAttribute('data-theme', 'light');
+    } else {
+        root.removeAttribute('data-theme');
+    }
+    // Update toggle button UI
+    const icon  = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon)  icon.textContent  = theme === 'light' ? 'dark_mode'  : 'light_mode';
+    if (label) label.textContent = theme === 'light' ? 'DARK MODE'  : 'LIGHT MODE';
+
+    // Persist
+    localStorage.setItem('alpha-theme', theme);
+    window._currentTheme = theme;
+}
+
+window.toggleTheme = function() {
+    const current = localStorage.getItem('alpha-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next, true);
+    showToast('THEME', next === 'light' ? 'Light mode activated' : 'Dark mode activated', 'success');
+};
+
+// Expose current theme for TradingView widget colour injection
+window.getTVTheme = function() {
+    return (localStorage.getItem('alpha-theme') || 'dark') === 'light' ? 'light' : 'dark';
+};
 const appEl = document.getElementById('app-view');
 let lastNeuralSetup = null;
 

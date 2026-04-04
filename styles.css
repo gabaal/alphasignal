@@ -4251,3 +4251,109 @@ input:focus, select:focus, textarea:focus {
     border-radius: 4px !important;
 }
 .sidebar::-webkit-scrollbar-track { background: transparent !important; }
+
+
+/* ================================================================== */
+/* LIGHT THEME                                                         */
+/* ================================================================== */
+[data-theme="light"] {
+    --bg-body:    #f0f4f8;
+    --bg-deep:    #e8edf3;
+    --bg-card:    rgba(0,0,0,0.04);
+    --bg-sidebar: rgba(240,244,248,0.97);
+    --bg-modal:   #ffffff;
+    --bg-input:   rgba(0,0,0,0.05);
+
+    --glass:     rgba(0,0,0,0.03);
+    --surface-1: rgba(0,0,0,0.03);
+    --surface-2: rgba(0,0,0,0.06);
+
+    --text-main: #0f172a;
+    --text-dim:  #475569;
+    --text:      var(--text-main);
+
+    --border:    rgba(0,0,0,0.1);
+
+    --on-accent:     #000;
+    --on-accent-inv: #ffffff;
+    --btn-text:      #0a3a5c;
+
+    --shadow-color:  rgba(0,0,0,0.12);
+
+    --accent:      #0ea5e9;
+    --accent-glow: rgba(14,165,233,0.2);
+    --purple:      #7c3aed;
+    --purple-glow: rgba(124,58,237,0.2);
+
+    --risk-high: #dc2626;
+    --risk-med:  #ea580c;
+    --risk-low:  #16a34a;
+
+    --card-bg: var(--bg-card);
+
+    --regime-accumulation: #6366f1;
+    --regime-trending:     #0ea5e9;
+    --regime-distribution: #ea580c;
+    --regime-volatile:     #dc2626;
+}
+
+/* Light mode overrides for elements with hardcoded dark colours */
+[data-theme="light"] body {
+    background: var(--bg-body);
+}
+
+[data-theme="light"] .sidebar {
+    border-right-color: rgba(0,0,0,0.08);
+    box-shadow: 2px 0 20px rgba(0,0,0,0.06);
+}
+
+[data-theme="light"] .card,
+[data-theme="light"] .glass-card {
+    border-color: rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .nav-item:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+[data-theme="light"] .nav-item.active {
+    background: rgba(14,165,233,0.12);
+}
+
+[data-theme="light"] .top-bar {
+    border-bottom-color: rgba(0,0,0,0.08);
+    background: rgba(240,244,248,0.9);
+}
+
+[data-theme="light"] select,
+[data-theme="light"] option {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+}
+
+[data-theme="light"] .input-group input,
+[data-theme="light"] .auth-input-wrap input {
+    background: var(--bg-input);
+    color: var(--text-main);
+}
+
+[data-theme="light"] .intel-action-btn.outline {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+[data-theme="light"] .heatmap-box {
+    color: var(--on-accent-inv);
+}
+
+[data-theme="light"] .fear-greed-value,
+[data-theme="light"] #fearGreedValue {
+    color: var(--text-main) !important;
+    text-shadow: none;
+}
+
+[data-theme="light"] .theme-toggle-btn {
+    background: rgba(14,165,233,0.1);
+    color: var(--accent);
+}
