@@ -83,13 +83,13 @@ class AuthRoutesMixin:
         if self.command == 'GET':
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled FROM user_settings WHERE user_email = ?', (email,))
+            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1) FROM user_settings WHERE user_email = ?', (email,))
             row = c.fetchone()
             conn.close()
             if row:
-                self.send_json({'discord_webhook': row[0], 'telegram_webhook': row[1], 'telegram_chat_id': row[2], 'alerts_enabled': bool(row[3])})
+                self.send_json({'discord_webhook': row[0], 'telegram_webhook': row[1], 'telegram_chat_id': row[2], 'alerts_enabled': bool(row[3]), 'digest_enabled': bool(row[4])})
             else:
-                self.send_json({'discord_webhook': '', 'telegram_webhook': '', 'telegram_chat_id': '', 'alerts_enabled': True})
+                self.send_json({'discord_webhook': '', 'telegram_webhook': '', 'telegram_chat_id': '', 'alerts_enabled': True, 'digest_enabled': True})
         elif self.command == 'POST':
             if post_data is None:
                 length = int(self.headers.get('Content-Length', 0))
@@ -97,10 +97,11 @@ class AuthRoutesMixin:
             discord = post_data.get('discord_webhook', '')
             telegram = post_data.get('telegram_webhook', '')
             tg_chat_id = post_data.get('telegram_chat_id', '')
-            enabled = 1 if post_data.get('alerts_enabled', True) else 0
+            enabled   = 1 if post_data.get('alerts_enabled', True) else 0
+            digest_on = 1 if post_data.get('digest_enabled', True) else 0
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute('INSERT OR REPLACE INTO user_settings (user_email, discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled) VALUES (?, ?, ?, ?, ?)', (email, discord, telegram, tg_chat_id, enabled))
+            c.execute('''INSERT OR REPLACE INTO user_settings (user_email, discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, digest_enabled) VALUES (?, ?, ?, ?, ?, ?)''', (email, discord, telegram, tg_chat_id, enabled, digest_on))
             conn.commit()
             conn.close()
             self.send_json({'success': True})

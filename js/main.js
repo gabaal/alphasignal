@@ -311,7 +311,8 @@ async function saveNotificationSettings() {
     console.log('[AlphaSignal] Persisting Alert Configuration...');
     const discord = document.getElementById('discord-webhook').value.trim();
     const telegram = document.getElementById('telegram-chat-id').value.trim();
-    const enabled = document.getElementById('alerts-enabled').checked;
+    const enabled    = document.getElementById('alerts-enabled').checked;
+    const digestOn   = document.getElementById('digest-enabled')?.checked ?? true;
     const errorEl = document.getElementById('notif-error');
     
     if (errorEl) errorEl.classList.add('hidden');
@@ -331,7 +332,8 @@ async function saveNotificationSettings() {
         const res = await fetchAPI('/user/settings', 'POST', {
             discord_webhook: discord,
             telegram_chat_id: telegram,
-            alerts_enabled: enabled
+            alerts_enabled: enabled,
+            digest_enabled: digestOn
         });
         // Also persist z_threshold via Phase 17-A endpoint
         await fetchAPI('/alert-settings', 'POST', { z_threshold: z });

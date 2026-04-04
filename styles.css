@@ -19,7 +19,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 .hidden { display: none !important; }
-body { font-family: 'Outfit', sans-serif; background: #090c14; color: var(--text-main); }
+body { font-family: 'Outfit', sans-serif; background: #090c14; color: var(--text-main); }
 h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
 .material-symbols-outlined { vertical-align: middle; display: inline-flex; justify-content: center; align-items: center; line-height: 1; }
 
@@ -3367,7 +3367,7 @@ h4 {
 /* Submit button */
 .intel-action-btn.auth-submit {
     background: var(--accent);
-    color: #000;
+    color: rgb(107, 182, 219);
     border: none;
     padding: 1rem;
     border-radius: 12px;

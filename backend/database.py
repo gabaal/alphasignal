@@ -227,6 +227,10 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN telegram_alerts_enabled INTEGER DEFAULT 1")
     except: pass
+    # Digest-specific opt-out: separate from alerts_enabled
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN digest_enabled INTEGER DEFAULT 1")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS market_ticks (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, price REAL, volume REAL, open_interest REAL)''')
     # Ensure index on market_ticks for leaderboard lookups
     try:
