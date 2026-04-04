@@ -1,11 +1,38 @@
+// ── Signals localStorage cache (stale-while-revalidate, 3-min TTL) ──
+const _SIG_CACHE_KEY = 'as_signals_v1';
+const _SIG_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
+function _getSigCache() {
+    try {
+        const raw = localStorage.getItem(_SIG_CACHE_KEY);
+        if (!raw) return null;
+        const { data, ts } = JSON.parse(raw);
+        if (Date.now() - ts > _SIG_CACHE_TTL) { localStorage.removeItem(_SIG_CACHE_KEY); return null; }
+        return data;
+    } catch { return null; }
+}
+function _setSigCache(data) {
+    try { localStorage.setItem(_SIG_CACHE_KEY, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
+
 async function renderSignals(category = 'ALL', tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     currentSignalCategory = category;
-    appEl.innerHTML = skeleton(8);
-    let signals = await fetchAPI('/signals');
-    if (!signals) {
-        appEl.innerHTML = '<div class="error-msg">Fail to sync with intelligence streams. Check connection.</div>';
-        return;
+
+    // Fast path: render immediately from cache, refresh in background
+    const _cached = _getSigCache();
+    let signals;
+    if (_cached) {
+        signals = _cached;
+        // Silent background refresh — update cache without blocking render
+        fetchAPI('/signals').then(fresh => { if (fresh) _setSigCache(fresh); }).catch(() => {});
+    } else {
+        appEl.innerHTML = skeleton(8);
+        signals = await fetchAPI('/signals');
+        if (!signals) {
+            appEl.innerHTML = '<div class="error-msg">Fail to sync with intelligence streams. Check connection.</div>';
+            return;
+        }
+        _setSigCache(signals);
     }
     
 

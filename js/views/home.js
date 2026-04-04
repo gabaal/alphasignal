@@ -38,7 +38,7 @@ async function renderHome() {
                 </div>
                 <div class="hero-visual">
                     <div class="hero-img-wrapper">
-                        <img src="terminal_interface_mockup.png" alt="AlphaSignal Institutional Terminal Interface" class="hero-img" width="800" height="450" loading="lazy">
+                        <img src="terminal_interface_mockup.png" alt="AlphaSignal Institutional Terminal Interface" class="hero-img" width="800" height="450" loading="eager" fetchpriority="high">
                         <div class="hero-img-glow"></div>
                     </div>
                 </div>
