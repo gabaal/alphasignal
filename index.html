@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -477,8 +477,6 @@
     <div id="notifications"></div>
     <div id="toast-container"></div>
     <script src="tape.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
     <!-- Phase 16-C: TradingView Advanced Chart Widget -->
     <script src="https://s3.tradingview.com/tv.js" async></script>
     <!-- Phase 15-C: Export libraries -->
@@ -523,6 +521,9 @@
     <script src="js/seo-meta.js?v=1.67" defer></script>
     <script src="js/router.js?v=1.67" defer></script>
     <script src="js/main.js?v=1.67" defer></script>
+    <!-- Heavy vis libs: after app scripts so they don't block DOMContentLoaded -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->

@@ -1,4 +1,4 @@
-import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math, gzip as _gzip, io as _io
+import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -24,47 +24,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         self.send_header('Access-Control-Allow-Origin', '*')
         super().end_headers()
 
-    # -- Gzip compression + Cache-Control for static assets ---------------
-    _GZIP_TYPES = {'text/css', 'application/javascript', 'text/html', 'text/javascript'}
-
-    def copyfile(self, source, outputfile):
-        """Gzip text assets on-the-fly when client supports it."""
-        accepts_gzip = 'gzip' in self.headers.get('Accept-Encoding', '')
-        ctype = ''
-        for hdr in getattr(self, '_headers_buffer', []):
-            h = hdr.decode('latin-1') if isinstance(hdr, bytes) else hdr
-            if h.lower().startswith('content-type:'):
-                ctype = h.split(':', 1)[1].strip().split(';')[0].strip()
-                break
-        if accepts_gzip and ctype in self._GZIP_TYPES:
-            raw = source.read()
-            buf = _io.BytesIO()
-            with _gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=6) as gz:
-                gz.write(raw)
-            compressed = buf.getvalue()
-            self.send_header('Content-Encoding', 'gzip')
-            self.send_header('Content-Length', str(len(compressed)))
-            self.send_header('Vary', 'Accept-Encoding')
-            self.end_headers()
-            outputfile.write(compressed)
-        else:
-            super().copyfile(source, outputfile)
-
-    def send_head(self):
-        """Inject Cache-Control for versioned static assets before serving."""
-        import os, mimetypes
-        path = self.translate_path(self.path)
-        _, ext = os.path.splitext(path)
-        result = super().send_head()
-        return result
-
-    def guess_type(self, path):
-        """Pass through; override hook for future mime additions."""
-        return super().guess_type(path)
-
     def log_message(self, fmt, *args):
-        """Suppress static asset logs (JS/CSS) to reduce noise."""
-        if any(args[0].endswith(x) for x in ('.js', '.css', '.png', '.ico', '.woff2') if args):
+        """Suppress static asset log noise."""
+        if args and any(str(args[0]).endswith(x) for x in ('.js', '.css', '.png', '.ico', '.woff2')):
             return
         super().log_message(fmt, *args)
 
