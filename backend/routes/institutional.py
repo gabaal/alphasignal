@@ -1,4 +1,4 @@
-﻿import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 from backend.routes.realdata import (
     fetch_defi_llama_chains, fetch_binance_trades, fetch_volume_by_hour,
     fetch_funding_rate_history, fetch_deribit_iv, fetch_deribit_iv_surface,
@@ -235,7 +235,7 @@ class InstitutionalRoutesMixin:
                 # Build 24h history by jittering around the real current rate
                 rates = [round(base_rate + float(rng.normal(0, 0.008)), 4) for _ in hours]
                 rates[-1] = base_rate  # most recent = real value
-                annual = round(base_rate * 3 * 365, 2)  # 8h rate × 3 × 365
+                annual = round(base_rate * 3 * 365, 2)  # 8h rate � 3 � 365
                 rows.append({'asset': asset, 'rates': rates, 'current': base_rate, 'annual': annual,
                              'live': asset in live_rates})
             source = 'binance_fapi' if live_rates else 'synthetic'
@@ -355,7 +355,7 @@ class InstitutionalRoutesMixin:
                     h = yf.Ticker(sym).history(period='1y')
                     if not h.empty:
                         closes = h['Close'].dropna()
-                        # Normalise tz-aware index → plain date strings for easy lookup
+                        # Normalise tz-aware index ? plain date strings for easy lookup
                         closes.index = pd.to_datetime(closes.index).tz_localize(None).normalize()
                         return key, closes
                 except Exception as e:
@@ -506,7 +506,7 @@ class InstitutionalRoutesMixin:
             print(f'Execution Error: {e}')
             self.send_error(500, str(e))
 
-    # ─── Phase 16-D: On-Chain cache ─────────────────────────────────
+    # --- Phase 16-D: On-Chain cache ---------------------------------
     _onchain_cache = {}
 
     def handle_onchain(self):
@@ -532,7 +532,7 @@ class InstitutionalRoutesMixin:
             closes = self._get_price_series(df, ticker).values
             times  = [int(x.timestamp()) for x in df.index]
 
-            # ── Real data fetches (BTC only) ──────────────────────────
+            # -- Real data fetches (BTC only) --------------------------
             real_hashrate_series = {}
             real_mktcap_series   = {}
             live_hashrate        = None
@@ -561,7 +561,7 @@ class InstitutionalRoutesMixin:
                 except Exception as e:
                     print(f'[OnChain/CoinGecko] {e}')
 
-            # ── Build per-day series ───────────────────────────────────
+            # -- Build per-day series -----------------------------------
             res       = []
             hash_arr  = []
             supply    = 19_700_000      # approximate current BTC supply
@@ -575,30 +575,30 @@ class InstitutionalRoutesMixin:
                 z        = (pr - mean_50) / std_50
                 mean_365 = closes[max(0, i-365):i+1].mean()
 
-                # ── MVRV: market cap / realized cap ──────────────────
-                # Realized cap proxy = 200-day avg price × supply
+                # -- MVRV: market cap / realized cap ------------------
+                # Realized cap proxy = 200-day avg price � supply
                 mean_200   = closes[max(0, i-200):i+1].mean()
                 market_cap = real_mktcap_series.get(ts) or (pr * supply)
                 realized_cap = mean_200 * supply
                 mvrv = float(market_cap / realized_cap) if realized_cap > 0 else (1.5 + z * 0.5)
 
-                # ── SOPR proxy: current price / realized price ────────
+                # -- SOPR proxy: current price / realized price --------
                 # Realized price = realized cap / supply
                 realized_price = mean_200 if mean_200 > 0 else (pr * 0.85)
                 sopr = float(pr / realized_price) if realized_price > 0 else (1.0 + z * 0.05)
 
-                # ── Puell Multiple: daily issuance USD / 365d MA ──────
+                # -- Puell Multiple: daily issuance USD / 365d MA ------
                 daily_issuance_usd = block_reward * 144 * pr   # ~144 blocks/day
                 puell = float(daily_issuance_usd / (mean_365 * block_reward * 144)) if mean_365 > 0 else 1.0
 
-                # ── NVT: market cap / daily tx volume (log-scaled) ───
+                # -- NVT: market cap / daily tx volume (log-scaled) ---
                 vol = float(df['Volume'].iloc[i]) if 'Volume' in df.columns and float(df['Volume'].iloc[i]) > 0 else 1e8
                 mkt_cap = pr * supply
                 nvt_raw = mkt_cap / max(vol, 1e6)   # NVT = market cap / USD vol
                 nvt = float(np.log1p(nvt_raw) * 8 + z * 6)  # log-scale + z variation
                 nvt = max(8.0, min(150.0, nvt))
 
-                # ── Hashrate ─────────────────────────────────────────
+                # -- Hashrate -----------------------------------------
                 if live_hashrate:
                     # Ramp from 300 EH/s a year ago to live value today (linear interp)
                     base_hash = 300_000   # TH/s a year ago (300 EH/s equivalent)
@@ -610,14 +610,14 @@ class InstitutionalRoutesMixin:
                 hash_fast = float(np.mean(hash_arr[-30:])) if hash_arr else hashrate
                 hash_slow = float(np.mean(hash_arr[-60:])) if hash_arr else hashrate
 
-                # ── CVD (price-momentum derived) ──────────────────────
+                # -- CVD (price-momentum derived) ----------------------
                 vol_factor = 1000 if not is_equity else 5000
                 cvd = (res[-1]['cvd'] + z * vol_factor + random.uniform(-vol_factor/2, vol_factor/2)) if res else 0
 
-                # ── Exchange flow (net outflow = negative → bullish) ──
+                # -- Exchange flow (net outflow = negative ? bullish) --
                 exch_flow = -abs(mvrv - 1.5) * 3000 * z - z * 2000
 
-                # ── Realized cap USD ──────────────────────────────────
+                # -- Realized cap USD ----------------------------------
                 realized = float(max(1, realized_price))
 
                 res.append({
@@ -818,7 +818,7 @@ class InstitutionalRoutesMixin:
         ticker = query.get('ticker', ['BTC-USD'])[0]
         try:
             sym = ticker.replace('-USD', '')
-            # ── Momentum: 5d price return scaled 0-100 ──
+            # -- Momentum: 5d price return scaled 0-100 --
             df5 = CACHE.download(ticker, period='10d', interval='1d')
             momentum = 50.0
             vol_score = 50.0
@@ -829,33 +829,33 @@ class InstitutionalRoutesMixin:
                     closes = closes.squeeze()
                     ret5 = float(closes.iloc[-1] / closes.iloc[-5] - 1) * 100
                     momentum = min(100, max(0, 50 + ret5 * 5))
-                    # Volatility: annualised daily vol → inverted so low vol = high score
+                    # Volatility: annualised daily vol ? inverted so low vol = high score
                     ann_vol = float(closes.pct_change().dropna().std()) * (365 ** 0.5) * 100
                     vol_score = min(100, max(0, 100 - ann_vol * 1.5))
 
-            # ── Liquidity: OI proxy from Binance FAPI ──
+            # -- Liquidity: OI proxy from Binance FAPI --
             try:
                 binance_sym = ticker.replace('-USD', 'USDT').replace('-', '')
                 r = requests.get(f'https://fapi.binance.com/fapi/v1/openInterest?symbol={binance_sym}', timeout=2)
                 if r.status_code == 200:
                     oi_val = float(r.json().get('openInterest', 0))
-                    # Normalise: BTC OI ~10B → score 99; <1M → score 20
+                    # Normalise: BTC OI ~10B ? score 99; <1M ? score 20
                     liquidity = min(99, max(20, int(50 + (oi_val / 1e8))))
             except:
                 liquidity = 90 if ticker in ['BTC-USD', 'ETH-USD'] else 50
 
-            # ── Social Hype: sentiment score ──
+            # -- Social Hype: sentiment score --
             senti = get_sentiment(ticker)
             social = min(99, max(10, int(50 + senti * 45)))
 
-            # ── Network Activity: Google Trends or sentiment volume proxy ──
+            # -- Network Activity: Google Trends or sentiment volume proxy --
             try:
                 fomo = fetch_retail_fomo(sym)
                 network_act = min(99, max(20, fomo.get('value', 60)))
             except:
                 network_act = 60
 
-            # ── Dev Commit: GitHub weekly commits ──
+            # -- Dev Commit: GitHub weekly commits --
             dev_commit = fetch_github_commits(sym)
 
             factors = {
@@ -893,7 +893,7 @@ class InstitutionalRoutesMixin:
                 if r.status_code == 200:
                     unconfirmed = int(r.text.strip())
             except: pass
-            # Scale factor: 0 txs = 0.5×, ~100k txs = 2×
+            # Scale factor: 0 txs = 0.5�, ~100k txs = 2�
             cf = min(2.5, max(0.5, unconfirmed / 40000)) if unconfirmed > 0 else 1.0
             def s(base): return round(base * cf)
             nodes = [
@@ -976,7 +976,7 @@ class InstitutionalRoutesMixin:
         all_tickers = [t for sub in UNIVERSE.values() for t in sub][:20]
         _GITHUB_KNOWN = {'BTC', 'ETH', 'SOL', 'DOT', 'ADA', 'AVAX', 'LINK'}
 
-        # ── Pass 1: collect raw metrics ──
+        # -- Pass 1: collect raw metrics --
         raw = []
         for ticker in all_tickers:
             sentiment   = get_sentiment(ticker)
@@ -1000,9 +1000,9 @@ class InstitutionalRoutesMixin:
                 'vol_proxy': vol_proxy, 'real_volume': real_volume,
             })
 
-        # ── Pass 2: compute percentile ranks (0-1) for each signal ──
+        # -- Pass 2: compute percentile ranks (0-1) for each signal --
         def pct_rank(values, v):
-            """Fraction of list values strictly less than v → 0..1 percentile."""
+            """Fraction of list values strictly less than v ? 0..1 percentile."""
             n = len(values)
             if n == 0: return 0.5
             below = sum(1 for x in values if x < v)
@@ -1012,7 +1012,7 @@ class InstitutionalRoutesMixin:
         all_vols_proxy = [r['vol_proxy']   for r in raw]
         all_volumes    = [r['real_volume'] for r in raw]
 
-        # ── Pass 3: build scores ──
+        # -- Pass 3: build scores --
         results = []
         for r in raw:
             ticker      = r['ticker']
@@ -1158,13 +1158,13 @@ class InstitutionalRoutesMixin:
             sym     = ticker.replace('-USD', '').upper()
             currency = 'ETH' if 'ETH' in sym else 'BTC'
 
-            # ── Try live Deribit grid ──────────────────────────────────────────
+            # -- Try live Deribit grid ------------------------------------------
             surface = fetch_deribit_iv_surface(currency)
             if surface.get('source') == 'deribit_live' and surface.get('iv_grid'):
                 self.send_json(surface)
                 return
 
-            # ── Fallback: generate parametric smile from realised vol ─────────
+            # -- Fallback: generate parametric smile from realised vol ---------
             import yfinance as _yf
             rv = 60.0
             try:
@@ -1188,7 +1188,7 @@ class InstitutionalRoutesMixin:
                 for t_days in expiry_days:
                     t = t_days / 365
                     # parabolic smile + log term structure
-                    smile  = base_iv * (1 + 1.5 * (m - 1.0) ** 2)
+                    smile  = base_iv * (1 + 1.5 * (m - 1.0) ** 2 - 0.35 * (m - 1.0))
                     term   = smile * (1 + 0.08 * (math.log(t + 0.05) + 3))
                     row.append(round(max(10.0, term), 2))
                 grid.append(row)
@@ -1280,7 +1280,7 @@ class InstitutionalRoutesMixin:
                     if len(common) > 10:
                         corr = float(btc_rets.loc[common].corr(m_rets.loc[common]))
                         if name == '10Y':
-                            # Rising yields hurt crypto → positive corr = RISK-OFF
+                            # Rising yields hurt crypto ? positive corr = RISK-OFF
                             status = 'RISK-OFF' if corr > 0.3 else 'RISK-ON' if corr < -0.3 else 'DECOUPLED'
                         else:
                             status = 'RISK-ON' if corr > 0.3 else 'RISK-OFF' if corr < -0.3 else 'DECOUPLED'
@@ -1320,7 +1320,7 @@ class InstitutionalRoutesMixin:
                     r = requests.get('https://blockchain.info/q/24hrtransactioncount', timeout=4)
                     if r.status_code == 200:
                         tx_count = int(r.text.strip())
-                        # More txs → more retail activity
+                        # More txs ? more retail activity
                         exchange_flow_signal = min(1.0, tx_count / 400000)
                 except: pass
 
@@ -1627,7 +1627,7 @@ class InstitutionalRoutesMixin:
                     <div class="analysis-stats" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0">
                         <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">
                             <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">Z-SCORE (MOMENTUM)</div>
-                            <div style="font-size:1.2rem; font-weight:900; color:{'var(--risk-low)' if z_score > 0 else 'var(--risk-high)'}">{z_score:.2f}σ</div>
+                            <div style="font-size:1.2rem; font-weight:900; color:{'var(--risk-low)' if z_score > 0 else 'var(--risk-high)'}">{z_score:.2f}s</div>
                         </div>
                         <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">
                             <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">NARRATIVE MINDSHARE</div>
@@ -2411,7 +2411,7 @@ class InstitutionalRoutesMixin:
                         last_signal = current_signal
                     signals[i] = last_signal
                 df['Signal'] = signals
-            # ── 5 new Phase 15-E strategies ─────────────────────────────────
+            # -- 5 new Phase 15-E strategies ---------------------------------
             elif strategy == 'pairs_trading':
                 # BTC/ETH spread z-score mean reversion
                 eth = yf.download('ETH-USD', period='180d', interval='1d', progress=False)
@@ -2485,7 +2485,7 @@ class InstitutionalRoutesMixin:
                         last_signal = current_signal
                     signals[i] = last_signal
                 df['Signal'] = signals
-            # ── end new strategies ───────────────────────────────────────────
+            # -- end new strategies -------------------------------------------
             else:
                 df['EMA_Fast'] = df['Close'].ewm(span=fast, adjust=False).mean()
                 df['EMA_Slow'] = df['Close'].ewm(span=slow, adjust=False).mean()
@@ -2900,7 +2900,7 @@ class InstitutionalRoutesMixin:
             # Always generate fresh synthetic walls from all exchanges.
             # For bid side: only synthesise if Redis/API returned no real bids
             # (so when Redis is mocked, bids update every poll just like asks).
-            rng_seed = int(time.time() / 5)  # changes every 5s → live-feeling updates
+            rng_seed = int(time.time() / 5)  # changes every 5s ? live-feeling updates
             rng = np.random.default_rng(rng_seed)
             exchanges = [{'name': 'Coinbase', 'bias': 0.8}, {'name': 'OKX', 'bias': 1.0}]
             for exch in exchanges:
@@ -3013,33 +3013,19 @@ class InstitutionalRoutesMixin:
             self.send_error_json(str(e))
 
     def handle_whales_entity(self):
+        """Real large on-chain transactions from Blockstream Esplora API (BTC)."""
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
         try:
-            entities = []
-            known_ids = list(WHALE_WALLETS.keys())
-            random.seed(hash(ticker + datetime.now().strftime('%Y-%m-%d-%H')))
-            sample_ids = random.sample(known_ids, min(3, len(known_ids)))
-            for addr in sample_ids:
-                name = WHALE_WALLETS[addr]
-                entities.append({'name': name, 'address': addr, 'type': 'INSTITUTIONAL' if 'Trading' in name or 'Labs' in name or 'Liquidity' in name else 'CUSTODIAL', 'status': random.choice(['Accumulating', 'Distributing', 'Neutral']), 'confidence': round(0.85 + random.random() * 0.1, 2), 'last_tx': f'{random.randint(5, 55)}s ago'})
-            new_addr = f'0x{random.randint(1000, 9999)}...{random.randint(100, 999)}'
-            entities.append({'name': f'High-Freq Whale {random.randint(10, 99)}', 'address': new_addr, 'type': 'UNKNOWN_WHALE', 'status': 'Aggressive Buying', 'confidence': 0.72, 'last_tx': '12s ago'})
-            flow_history = []
-            base_seed = hash(ticker) + int(time.time() / 3600)
-            random.seed(base_seed)
-            current_flow = random.randint(-100, 100)
-            for h in range(24):
-                change = random.randint(-20, 20)
-                current_flow += change
-                flow_history.append({'hour': h, 'flow': current_flow})
-            random.seed(base_seed + 1)
-            tier_retail = random.randint(10, 25)
-            tier_pro = random.randint(25, 45)
-            tier_whale = 100 - tier_retail - tier_pro
-            self.send_json({'ticker': ticker, 'entities': entities, 'institutional_sentiment': 'BULLISH' if random.random() > 0.4 else 'NEUTRAL', 'net_flow_24h': f"{('+' if current_flow > 0 else '')}{current_flow} {ticker.split('-')[0]}", 'flow_history': flow_history, 'volume_tiers': [tier_retail, tier_pro, tier_whale]})
+            entities = fetch_blockstream_whales(ticker)
+            # Always return something - fall back to simulated if API fails
+            self.send_json({
+                'ticker':   ticker,
+                'entities': entities,
+                'source':   'blockstream_esplora' if entities else 'simulated',
+            })
         except Exception as e:
-            print(f'Entity Error: {e}')
+            print(f'[WhaleEntity] {e}')
             self.send_json({'ticker': ticker, 'entities': []})
 
     def handle_liquidations(self):
@@ -3429,8 +3415,8 @@ class InstitutionalRoutesMixin:
             conn.close()
             notifs = []
             for row_id, sig_type, ticker, message, severity, price, ts in rows:
-                icon = 'ðŸš€' if sig_type == 'SENTIMENT_SPIKE' else 'ðŸ“ˆ' if sig_type == 'MOMENTUM_BREAKOUT' else 'âš¡'
-                notifs.append({'id': row_id, 'icon': icon, 'title': f"{ticker} â€” {sig_type.replace('_', ' ')}", 'body': message, 'timestamp': ts, 'type': sig_type})
+                icon = '🚀' if sig_type == 'SENTIMENT_SPIKE' else '📈' if sig_type == 'MOMENTUM_BREAKOUT' else '⚡'
+                notifs.append({'id': row_id, 'icon': icon, 'title': f"{ticker} — {sig_type.replace('_', ' ')}", 'body': message, 'timestamp': ts, 'type': sig_type})
             self.send_json({'notifications': notifs, 'unread': unread})
         except Exception as e:
             print(f'Notifications Error: {e}')
@@ -3464,7 +3450,7 @@ class InstitutionalRoutesMixin:
             c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]
 
-            # Join with latest market_ticks price for each ticker � no HTTP calls
+            # Join with latest market_ticks price for each ticker ? no HTTP calls
             sql = f"""
                 SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
                        ah.price, ah.timestamp,
@@ -4016,7 +4002,7 @@ class InstitutionalRoutesMixin:
             self.send_json([])
 
     def handle_backtest_v2(self):
-        """Phase 16-E: Signal Backtester v2 â€” live signal history + real price data."""
+        """Phase 16-E: Signal Backtester v2 — live signal history + real price data."""
         try:
             query     = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             hold_bars = int(query.get('hold', ['5'])[0])

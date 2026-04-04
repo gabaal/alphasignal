@@ -392,17 +392,33 @@ async function renderLiquidityView(tabs = null) {
 
     function buildWhaleHTML(entities) {
         return entities.map(e => {
-            const statusClass = e.status.toLowerCase().replace(/\s+/g, '-');
             const statusColor = e.status.includes('Accumul') ? 'var(--risk-low)'
                               : e.status.includes('Distrib') ? 'var(--risk-high)'
                               : e.status.includes('Buying')  ? 'var(--accent)'
                               : 'var(--text-dim)';
+            const isLive     = e.source === 'blockstream';
+            const liveBadge  = isLive
+                ? '<span style="font-size:0.42rem;background:rgba(34,197,94,0.15);color:var(--risk-low);padding:1px 4px;border-radius:3px;margin-left:4px;letter-spacing:1px">LIVE</span>'
+                : '';
+            const explorerLink = e.tx_hash
+                ? `<a href="https://blockstream.info/tx/${e.tx_hash}" target="_blank" rel="noopener" style="font-size:0.55rem;color:var(--accent);text-decoration:none;opacity:0.7;margin-left:4px" title="View on Blockstream">↗</a>`
+                : '';
+            const valueLine = e.value_usd
+                ? `<div style="margin-top:3px;display:flex;gap:6px;align-items:center">
+                     <span style="font-size:0.65rem;font-weight:800;color:var(--text-main)">${e.value_usd}</span>
+                     <span style="font-size:0.5rem;color:var(--text-dim)">${e.value_btc} BTC</span>
+                   </div>`
+                : '';
             return `<div class="whale-item" data-addr="${e.address}">
-                <div class="whale-header"><span class="whale-name">${e.name}</span><span class="whale-type">${e.type}</span></div>
+                <div class="whale-header">
+                    <span class="whale-name">${e.name}${liveBadge}${explorerLink}</span>
+                    <span class="whale-type">${e.type}</span>
+                </div>
                 <div class="whale-status">
                     <span style="color:${statusColor};font-weight:700">${e.status.toUpperCase()}</span>
-                    <span style="color:var(--text-dim);font-size:0.65rem">${e.last_tx}</span>
+                    <span style="color:var(--text-dim);font-size:0.6rem">${e.last_tx}</span>
                 </div>
+                ${valueLine}
             </div>`;
         }).join('');
     }
