@@ -1053,7 +1053,7 @@ async function renderTradingViewHub(tabs) {
     var badge = '<span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span>';
     var card = function(id, title, h) {
         var minH = (h || 460);
-        return '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">' + title + '</h3>' + badge + '</div><div id="' + id + '" class="tradingview-widget-container" style="min-height:' + minH + 'px;position:relative"><div class="tv-skeleton" style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,0.02) 0%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.02) 100%);background-size:200% 100%;animation:tvSkeleton 1.4s infinite;border-radius:8px"></div></div></div>';
+        return '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">' + title + '</h3>' + badge + '</div><div id="' + id + '" class="tradingview-widget-container" style="min-height:' + minH + 'px;position:relative"><div class="tv-skeleton" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0.02) 0%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.02) 100%);background-size:200% 100%;animation:tvSkeleton 1.4s infinite;border-radius:8px"></div></div></div>';
     };
 
     // Build ALL HTML in one assignment so containers are in DOM before widgets inject
