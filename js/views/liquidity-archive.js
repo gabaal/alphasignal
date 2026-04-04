@@ -411,9 +411,26 @@ async function renderSignalArchive(tabs = null) {
                 <label style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px; display:block">SIGNAL TYPE</label>
                 <select id="filter-type" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:0.75rem">
                     <option value="">ALL TYPES</option>
+                    <option value="ML_LONG">ML LONG</option>
+                    <option value="ML_SHORT">ML SHORT</option>
+                    <option value="RSI_OVERSOLD">RSI OVERSOLD</option>
+                    <option value="RSI_OVERBOUGHT">RSI OVERBOUGHT</option>
+                    <option value="MACD_CROSS_UP">MACD CROSS UP</option>
+                    <option value="MACD_CROSS_DOWN">MACD CROSS DOWN</option>
+                    <option value="WHALE_ACCUMULATION">WHALE ACCUMULATION</option>
+                    <option value="FUNDING_EXTREME">FUNDING EXTREME</option>
+                    <option value="VOLUME_SPIKE">VOLUME SPIKE</option>
+                    <option value="REGIME_BULL">REGIME BULL</option>
+                    <option value="REGIME_BEAR">REGIME BEAR</option>
+                    <option value="Z_SCORE_HIGH">Z-SCORE HIGH</option>
                     <option value="SENTIMENT_SPIKE">SENTIMENT SPIKE</option>
                     <option value="MOMENTUM_BREAKOUT">MOMENTUM BREAKOUT</option>
-                    <option value="VOLATILITY_EXPANSION">VOLATILITY EXPANSION</option>
+                    <option value="ALPHA_DIVERGENCE_LONG">ALPHA DIVERGENCE LONG</option>
+                    <option value="ALPHA_DIVERGENCE_SHORT">ALPHA DIVERGENCE SHORT</option>
+                    <option value="REGIME_SHIFT_LONG">REGIME SHIFT LONG</option>
+                    <option value="REGIME_SHIFT_SHORT">REGIME SHIFT SHORT</option>
+                    <option value="ML_ALPHA_PREDICTION">ML ALPHA PREDICTION</option>
+                    <option value="LIQUIDITY_VACUUM">LIQUIDITY VACUUM</option>
                 </select>
             </div>
             <div class="form-group" style="margin:0">
@@ -475,23 +492,19 @@ async function renderSignalArchive(tabs = null) {
         const active = data.filter(s => s.state === 'ACTIVE').length;
         const hitRate = wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(0) : '--';
         const avgRet = data.length > 0 ? (data.reduce((sum, s) => sum + parseFloat(s.return || 0), 0) / data.length).toFixed(2) : '--';
-        const summaryEl = document.createElement('div');
-        summaryEl.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.5rem';
-        summaryEl.innerHTML = [
-            ['WIN RATE', hitRate + (hitRate !== '--' ? '%' : ''), hitRate >= 50 ? '#22c55e' : '#ef4444'],
-            ['WINS', wins, '#22c55e'],
-            ['LOSSES', losses, '#ef4444'],
-            ['ACTIVE', active, '#60a5fa'],
-            ['AVG RETURN', (avgRet >= 0 ? '+' : '') + avgRet + '%', avgRet >= 0 ? '#22c55e' : '#ef4444']
-        ].map(([label, val, color]) =>
-            `<div class="glass-card" style="padding:0.75rem 1rem;text-align:center">
-                <div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${label}</div>
-                <div style="font-size:1.2rem;font-weight:800;color:${color}">${val}</div>
-            </div>`
-        ).join('');
-        container.prepend(summaryEl);
+        const summaryHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.5rem">${
+            [
+                ['WIN RATE', hitRate + (hitRate !== '--' ? '%' : ''), hitRate >= 50 ? '#22c55e' : '#ef4444'],
+                ['WINS', wins, '#22c55e'],
+                ['LOSSES', losses, '#ef4444'],
+                ['ACTIVE', active, '#60a5fa'],
+                ['AVG RETURN', (avgRet >= 0 ? '+' : '') + avgRet + '%', avgRet >= 0 ? '#22c55e' : '#ef4444']
+            ].map(([label, val, color]) =>
+                `<div class="glass-card" style="padding:0.75rem 1rem;text-align:center"><div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${label}</div><div style="font-size:1.2rem;font-weight:800;color:${color}">${val}</div></div>`
+            ).join('')
+        }</div>`;
 
-        container.innerHTML = `
+        container.innerHTML = summaryHTML + `
             <div class="card" style="overflow-x:auto">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:15px">
                     <span style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1} &bull; ${pageInfo?.total || 0} TOTAL)</span>

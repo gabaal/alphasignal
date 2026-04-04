@@ -1,4 +1,4 @@
-import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+﻿import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 from backend.routes.realdata import (
     fetch_defi_llama_chains, fetch_binance_trades, fetch_volume_by_hour,
     fetch_funding_rate_history, fetch_deribit_iv, fetch_deribit_iv_surface,
@@ -35,7 +35,7 @@ class InstitutionalRoutesMixin:
         return None
 
     def handle_signal_permalink(self, signal_id):
-        """Public: GET /api/signal/{id} — returns a single signal for permalink sharing."""
+        """Public: GET /api/signal/{id} - returns a single signal for permalink sharing."""
         try:
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
@@ -132,7 +132,7 @@ class InstitutionalRoutesMixin:
             self.wfile.write(json.dumps({'error': str(e)}).encode())
 
     def handle_efficient_frontier(self):
-        """Monte Carlo Markowitz Efficient Frontier — 2,000 simulations."""
+        """Monte Carlo Markowitz Efficient Frontier - 2,000 simulations."""
         try:
             import urllib.parse as up
             qs = up.urlparse(self.path).query
@@ -280,7 +280,7 @@ class InstitutionalRoutesMixin:
             self.send_json({'error': str(e)})
 
     def handle_whale_sankey(self):
-        """Whale flow network — real exchange reserve signal via Blockchain.info mempool stats."""
+        """Whale flow network - real exchange reserve signal via Blockchain.info mempool stats."""
         try:
             # Try to get mempool/exchange flow signal from Blockchain.info
             btc_price = 90000.0
@@ -402,7 +402,7 @@ class InstitutionalRoutesMixin:
         except Exception as e:
             print(f'[YieldCurve] Error: {e}')
             import traceback; traceback.print_exc()
-            # Never return an error — always serve synthetic so the chart always renders
+            # Never return an error - always serve synthetic so the chart always renders
             fallback = {'y2': 5.25, 'y5': 4.45, 'y10': 4.32, 'y30': 4.60}
             import datetime as dt2
             rows = []
@@ -510,7 +510,7 @@ class InstitutionalRoutesMixin:
     _onchain_cache = {}
 
     def handle_onchain(self):
-        """Phase 16-D: Real on-chain metrics — CoinGecko + Blockchain.info, synthetic fallback."""
+        """Phase 16-D: Real on-chain metrics - CoinGecko + Blockchain.info, synthetic fallback."""
         try:
             parsed = urllib.parse.urlparse(self.path)
             query = urllib.parse.parse_qs(parsed.query)
@@ -932,7 +932,7 @@ class InstitutionalRoutesMixin:
             }
             assets = list(ticker_map.keys())
 
-            # Download each ticker individually — CACHE handles single-ticker correctly
+            # Download each ticker individually - CACHE handles single-ticker correctly
             rets_dict = {}
             for sym, tk in ticker_map.items():
                 try:
@@ -1263,10 +1263,10 @@ class InstitutionalRoutesMixin:
 
     def handle_macro(self):
         macro_tickers = {
-            'DXY':  'DX-Y.NYB',   # Dollar strength — inverse crypto driver
+            'DXY':  'DX-Y.NYB',   # Dollar strength - inverse crypto driver
             'SPX':  'IVV',         # US equities risk-on/off proxy
-            'ETH':  'ETH-USD',     # BTC/ETH correlation — dominance signal
-            '10Y':  '^TNX',        # 10Y yield — rising = RISK-OFF for crypto
+            'ETH':  'ETH-USD',     # BTC/ETH correlation - dominance signal
+            '10Y':  '^TNX',        # 10Y yield - rising = RISK-OFF for crypto
         }
         results = []
         try:
@@ -1396,7 +1396,7 @@ class InstitutionalRoutesMixin:
                         if not is_match and cat != 'L1':
                             continue
                     sentiment = get_sentiment(ticker)
-                    # Data-driven angle: atan2(sentiment, momentum_proxy) — no random
+                    # Data-driven angle: atan2(sentiment, momentum_proxy) - no random
                     # Pre-compute a stable momentum proxy from ticker hash for positioning
                     _hash_angle = (abs(hash(ticker)) % 1000) / 1000.0 * 2 * np.pi
                     radius = 40 + abs(sentiment) * 120
@@ -1749,7 +1749,7 @@ class InstitutionalRoutesMixin:
             self.send_json([])
 
     def handle_signal_leaderboard(self):
-        """Signal performance leaderboard — win rate and avg return per signal type."""
+        """Signal performance leaderboard - win rate and avg return per signal type."""
         try:
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
@@ -2582,7 +2582,7 @@ class InstitutionalRoutesMixin:
                 oos_sharpe = round(float(ret.mean() / ret.std() * np.sqrt(252)) if ret.std() != 0 else 0, 2)
                 folds.append({
                     'fold': fold + 1,
-                    'period': f"{train_p.index[0].strftime('%b %y')} – {test_p.index[-1].strftime('%b %y')}",
+                    'period': f"{train_p.index[0].strftime('%b %y')} - {test_p.index[-1].strftime('%b %y')}",
                     'best_fast': best_f, 'best_slow': best_s,
                     'in_sample_sharpe': round(float(best_sharpe), 2),
                     'out_sample_sharpe': oos_sharpe
@@ -3437,62 +3437,98 @@ class InstitutionalRoutesMixin:
             self.send_json({'notifications': [], 'unread': 0})
 
     def handle_signal_history(self):
-        """Phase B: Return all alerts from alerts_history with current PnL and filters."""
+        """Return alerts_history with state computed from market_ticks (no live yfinance calls)."""
         try:
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            query    = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             f_ticker = query.get('ticker', [None])[0]
-            f_type = query.get('type', [None])[0]
-            f_days = int(query.get('days', [30])[0])
-            page = int(query.get('page', [1])[0])
-            limit = int(query.get('limit', [25])[0])
-            offset = (page - 1) * limit
+            f_type   = query.get('type',   [None])[0]
+            f_days   = int(query.get('days',  [30])[0])
+            page     = int(query.get('page',   [1])[0])
+            limit    = int(query.get('limit', [25])[0])
+            offset   = (page - 1) * limit
+
             conn = sqlite3.connect(DB_PATH)
-            c = conn.cursor()
-            count_sql = "SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', ?)"
-            sql = "SELECT id, type, ticker, message, severity, price, timestamp FROM alerts_history WHERE timestamp > datetime('now', ?)"
-            params = [f'-{f_days} day']
-            count_params = [f'-{f_days} day']
+            c    = conn.cursor()
+
+            base_where  = "WHERE ah.timestamp > datetime('now', ?)"
+            params      = [f'-{f_days} day']
+            count_params = list(params)
+
             if f_ticker:
-                sql += ' AND ticker = ?'
-                count_sql += ' AND ticker = ?'
-                params.append(f_ticker)
-                count_params.append(f_ticker)
+                base_where  += ' AND ah.ticker = ?'
+                params.append(f_ticker);  count_params.append(f_ticker)
             if f_type:
-                sql += ' AND type = ?'
-                count_sql += ' AND type = ?'
-                params.append(f_type)
-                count_params.append(f_type)
-            c.execute(count_sql, count_params)
+                base_where  += ' AND ah.type = ?'
+                params.append(f_type);    count_params.append(f_type)
+
+            c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]
-            sql += ' ORDER BY timestamp DESC LIMIT ? OFFSET ?'
+
+            # Join with latest market_ticks price for each ticker � no HTTP calls
+            sql = f"""
+                SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
+                       ah.price, ah.timestamp,
+                       (SELECT mt.price FROM market_ticks mt
+                        WHERE mt.symbol = ah.ticker
+                        ORDER BY mt.timestamp DESC LIMIT 1) AS curr_price
+                FROM alerts_history ah
+                {base_where}
+                ORDER BY ah.timestamp DESC
+                LIMIT ? OFFSET ?
+            """
             params.extend([limit, offset])
             c.execute(sql, params)
             rows = c.fetchall()
             conn.close()
+
+            # Bullish signal types ? positive direction expected
+            BULLISH = {'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
+                       'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
+                       'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
+                       'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
+
             results = []
-            for row_id, sig_type, ticker, message, severity, entry_p, ts in rows:
-                curr_p = entry_p
-                roi = 0.0
+            for row_id, sig_type, ticker, message, severity, entry_p, ts, curr_p in rows:
+                roi   = 0.0
                 state = 'ACTIVE'
-                try:
-                    data = CACHE.download(ticker, period='1d', interval='1m', column='Close')
-                    if data is not None and (not data.empty) and entry_p and (entry_p > 0):
-                        curr_p = round(float(data.iloc[-1]), 4)
-                        roi = round((curr_p - entry_p) / entry_p * 100, 2)
-                        if roi > 10:
-                            state = 'HIT_TP2'
-                        elif roi > 5:
-                            state = 'HIT_TP1'
-                        elif roi < -3:
-                            state = 'STOPPED'
-                except:
-                    pass
-                results.append({'id': row_id, 'type': sig_type, 'ticker': ticker, 'message': message, 'severity': severity, 'entry': round(entry_p, 4) if entry_p else None, 'current': curr_p, 'return': roi, 'state': state, 'timestamp': ts})
-            self.send_json({'data': results, 'pagination': {'page': page, 'limit': limit, 'total': total_count, 'pages': math.ceil(total_count / limit) if limit > 0 else 1}})
+                if entry_p and entry_p > 0 and curr_p and curr_p > 0:
+                    direction = 1 if sig_type in BULLISH else -1
+                    roi   = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
+                    curr_p = round(float(curr_p), 4)
+                    if roi > 10:
+                        state = 'HIT_TP2'
+                    elif roi > 5:
+                        state = 'HIT_TP1'
+                    elif roi < -3:
+                        state = 'STOPPED'
+                else:
+                    curr_p = entry_p  # no tick data yet
+
+                results.append({
+                    'id':       row_id,
+                    'type':     sig_type,
+                    'ticker':   ticker,
+                    'message':  message,
+                    'severity': severity,
+                    'entry':    round(entry_p, 4) if entry_p else None,
+                    'current':  curr_p,
+                    'return':   roi,
+                    'state':    state,
+                    'timestamp': ts
+                })
+
+            self.send_json({
+                'data': results,
+                'pagination': {
+                    'page':  page,
+                    'limit': limit,
+                    'total': total_count,
+                    'pages': math.ceil(total_count / limit) if limit > 0 else 1
+                }
+            })
         except Exception as e:
             print(f'Signal History Error: {e}')
             self.send_json([])
-
     def handle_live_portfolio_sim(self, custom_basket):
         try:
             selected = [t.strip() for t in custom_basket.split(',')]
@@ -3747,7 +3783,7 @@ class InstitutionalRoutesMixin:
             return []
 
     def handle_stress_test(self):
-        """Phase 7: Systematic Stress Test Engine — Enhanced for UI Compatibility."""
+        """Phase 7: Systematic Stress Test Engine - Enhanced for UI Compatibility."""
         try:
             all_tickers = [t for sub in UNIVERSE.values() for t in sub][:15]
             data = CACHE.download(all_tickers + ['BTC-USD'], period='180d', interval='1d', column='Close')
@@ -4000,7 +4036,7 @@ class InstitutionalRoutesMixin:
                 self.send_json({'error': 'No signal history', 'trades': [], 'stats': {}})
                 return
 
-            # 2. Fetch price data per ticker — parallel downloads via ThreadPoolExecutor
+            # 2. Fetch price data per ticker - parallel downloads via ThreadPoolExecutor
             unique_tickers = list({r[0] for r in rows})
             price_cache = {}
 
@@ -4092,7 +4128,22 @@ class InstitutionalRoutesMixin:
                 exit_ts   = future_ts[exit_idx]
                 entry_pr  = prices_dict[future_ts[0]]
                 exit_pr   = prices_dict[exit_ts]
-                direction = 1 if any(k in sig_type.upper() for k in ('LONG', 'BULL', 'BUY')) else -1
+                # Direction map: bullish signal types ? long (+1), bearish ? short (-1)
+                _BULLISH = {'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
+                             'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
+                             'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
+                             'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
+                _BEARISH = {'ML_SHORT','RSI_OVERBOUGHT','MACD_CROSS_DOWN','MACD_BEARISH_CROSS',
+                             'REGIME_BEAR','Z_SCORE_HIGH','FUNDING_EXTREME',
+                             'REGIME_SHIFT_SHORT','ALPHA_DIVERGENCE_SHORT'}
+                if sig_type in _BULLISH:
+                    direction = 1
+                elif sig_type in _BEARISH:
+                    direction = -1
+                elif any(k in sig_type.upper() for k in ('LONG','BULL','BUY','ACCUM','OVERSOLD')):
+                    direction = 1
+                else:
+                    direction = -1  # conservative: unknown bearish
                 pnl_pct   = direction * (exit_pr - entry_pr) / entry_pr * 100
 
                 btc_entry = min(btc_prices, key=lambda t: abs(t - entry_ts), default=None)
@@ -4508,7 +4559,7 @@ class InstitutionalRoutesMixin:
 
             if not memo:
                 memo = (
-                    f"Rebalancing Analysis — {datetime.utcnow().strftime('%d %b %Y')}\n\n"
+                    f"Rebalancing Analysis - {datetime.utcnow().strftime('%d %b %Y')}\n\n"
                     f"The ML Alpha Engine has identified an optimal allocation across {len(valid)} assets. "
                     f"The proposed max-Sharpe portfolio concentrates exposure in {top3_str}, "
                     f"selected for their superior risk-adjusted return profiles over the trailing 90 days.\n\n"
@@ -4542,7 +4593,7 @@ class InstitutionalRoutesMixin:
     _macro_cal_ts    = 0
 
     def handle_macro_calendar(self):
-        """Upcoming FOMC/CPI/NFP events with historical BTC impact scoring — 6hr cached."""
+        """Upcoming FOMC/CPI/NFP events with historical BTC impact scoring - 6hr cached."""
         try:
             now = time.time()
             if now - self._macro_cal_ts < 21600 and self._macro_cal_cache:
@@ -4672,7 +4723,7 @@ class InstitutionalRoutesMixin:
             self.send_json({'events': [], 'error': str(e)})
 
     def handle_health(self):
-        """GET /health — Railway health probe & monitoring endpoint."""
+        """GET /health - Railway health probe & monitoring endpoint."""
         import time as _time
         try:
             conn = sqlite3.connect(DB_PATH)
