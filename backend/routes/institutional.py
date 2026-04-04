@@ -341,13 +341,40 @@ class InstitutionalRoutesMixin:
             except Exception as e:
                 print(f'[WhaleSankey/Blockchain] {e}')
 
-            # Scale flow magnitudes based on real mempool congestion
-            # More unconfirmed txs = more exchange flow activity
+            # Scale flow magnitudes based on real Binance 24h BTC volume + mempool congestion
             congestion_factor = min(3.0, max(0.5, unconfirmed / 5000)) if unconfirmed > 0 else 1.0
-            rng = np.random.default_rng(int(time.time() // 7200))
 
-            def flow(lo, hi):
-                return round(float(rng.uniform(lo, hi)) * congestion_factor, 1)
+            # Fetch real 24h BTC trading volume from Binance spot
+            btc_vol_24h = 0.0
+            buy_vol = 0.0
+            sell_vol = 0.0
+            try:
+                rv = requests.get('https://api.binance.com/api/v3/ticker/24hr',
+                                  params={'symbol': 'BTCUSDT'},
+                                  headers={'User-Agent': 'AlphaSignal/1.25'}, timeout=5)
+                if rv.ok:
+                    vd = rv.json()
+                    btc_vol_24h = float(vd.get('quoteVolume', 0))  # USDT volume
+                    # taker buy base vol available; derive sell as remainder
+                    buy_base = float(vd.get('takerBuyBaseVolume', 0))
+                    total_base = float(vd.get('volume', 1))
+                    buy_frac = buy_base / total_base if total_base > 0 else 0.5
+                    sell_frac = 1.0 - buy_frac
+                    buy_vol  = btc_vol_24h * buy_frac
+                    sell_vol = btc_vol_24h * sell_frac
+            except Exception as _ve:
+                print(f'[WhaleSankey/Volume] {_ve}')
+
+            # Derive deterministic flow weights from real volume fractions
+            # Fallback magnitudes when no volume data
+            vol_base = btc_vol_24h / 1e9 if btc_vol_24h > 0 else 1.0  # billions
+            bull = buy_frac if btc_vol_24h > 0 else 0.52
+            bear = sell_frac if btc_vol_24h > 0 else 0.48
+            cf = congestion_factor
+
+            def flow_det(base, direction_frac):
+                """Deterministic flow: vol_base * direction * congestion, clamped."""
+                return round(max(5.0, min(500.0, base * direction_frac * cf * 100)), 1)
 
             nodes = [
                 {'id': 0, 'name': 'Exchange Hot Wallets'},
@@ -359,15 +386,15 @@ class InstitutionalRoutesMixin:
                 {'id': 6, 'name': 'Institutional Custody'},
             ]
             links = [
-                {'source': 0, 'target': 1, 'value': flow(80, 250)},
-                {'source': 0, 'target': 5, 'value': flow(30, 120)},
-                {'source': 1, 'target': 2, 'value': flow(60, 180)},
-                {'source': 1, 'target': 6, 'value': flow(40, 150)},
-                {'source': 3, 'target': 0, 'value': flow(20, 90)},
-                {'source': 3, 'target': 2, 'value': flow(15, 60)},
-                {'source': 2, 'target': 6, 'value': flow(50, 200)},
-                {'source': 4, 'target': 0, 'value': flow(25, 100)},
-                {'source': 5, 'target': 4, 'value': flow(10, 50)},
+                {'source': 0, 'target': 1, 'value': flow_det(vol_base * 2.5, bull)},
+                {'source': 0, 'target': 5, 'value': flow_det(vol_base * 1.0, bear)},
+                {'source': 1, 'target': 2, 'value': flow_det(vol_base * 1.8, bull)},
+                {'source': 1, 'target': 6, 'value': flow_det(vol_base * 1.5, bull)},
+                {'source': 3, 'target': 0, 'value': flow_det(vol_base * 0.8, 0.5)},
+                {'source': 3, 'target': 2, 'value': flow_det(vol_base * 0.5, 0.5)},
+                {'source': 2, 'target': 6, 'value': flow_det(vol_base * 2.0, bull)},
+                {'source': 4, 'target': 0, 'value': flow_det(vol_base * 0.9, bear)},
+                {'source': 5, 'target': 4, 'value': flow_det(vol_base * 0.4, bear)},
             ]
             self.send_json({
                 'nodes': nodes, 'links': links,
@@ -656,9 +683,10 @@ class InstitutionalRoutesMixin:
                 hash_fast = float(np.mean(hash_arr[-30:])) if hash_arr else hashrate
                 hash_slow = float(np.mean(hash_arr[-60:])) if hash_arr else hashrate
 
-                # -- CVD (price-momentum derived) ----------------------
+                # -- CVD (price-momentum derived, deterministic) --------
                 vol_factor = 1000 if not is_equity else 5000
-                cvd = (res[-1]['cvd'] + z * vol_factor + random.uniform(-vol_factor/2, vol_factor/2)) if res else 0
+                # Pure z-score accumulation — no random jitter
+                cvd = (res[-1]['cvd'] + z * vol_factor) if res else 0
 
                 # -- Exchange flow (net outflow = negative ? bullish) --
                 exch_flow = -abs(mvrv - 1.5) * 3000 * z - z * 2000
@@ -2952,9 +2980,7 @@ class InstitutionalRoutesMixin:
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
         try:
-            seed_price = 91450.0
-            random.seed(int(time.time() / 60))
-            current_price = seed_price * (1 + random.uniform(-0.005, 0.005))
+            current_price = 91450.0  # static fallback; overwritten by live fetch below
             try:
                 asset_ticker = ticker if '-' in ticker else f'{ticker}-USD'
                 btc_data = CACHE.download(asset_ticker, period='1d', interval='1m', column='Close')
@@ -2993,27 +3019,48 @@ class InstitutionalRoutesMixin:
                 except Exception as e:
                     print(f'Liquidity API Error (Binance): {e}')
 
-            # Always generate fresh synthetic walls from all exchanges.
-            # For bid side: only synthesise if Redis/API returned no real bids
-            # (so when Redis is mocked, bids update every poll just like asks).
-            rng_seed = int(time.time() / 5)  # changes every 5s ? live-feeling updates
-            rng = np.random.default_rng(rng_seed)
-            exchanges = [{'name': 'Coinbase', 'bias': 0.8}, {'name': 'OKX', 'bias': 1.0}]
-            for exch in exchanges:
-                for _ in range(6):
-                    ask_offset = 0.001 + float(rng.uniform(0, 0.012))
-                    walls.append({'exchange': exch['name'],
-                                  'price': round(current_price * (1 + ask_offset), 2),
-                                  'size': round(float(rng.uniform(30, 400)) * exch['bias'], 1),
-                                  'side': 'ask',
-                                  'type': 'Institutional Ask' if rng.random() > 0.5 else 'Retail Sell Wall'})
-                    if redis_bid_count == 0:  # only synthesise bids when no real data
-                        bid_offset = 0.001 + float(rng.uniform(0, 0.012))
-                        walls.append({'exchange': exch['name'],
-                                      'price': round(current_price * (1 - bid_offset), 2),
-                                      'size': round(float(rng.uniform(30, 400)) * exch['bias'], 1),
+            # Fetch real Binance spot order book for ask/bid walls
+            binance_sym = ticker.replace('-USD', 'USDT').replace('-', '')
+            if not binance_sym.endswith('USDT'):
+                binance_sym += 'USDT'
+            binance_book_fetched = False
+            try:
+                rb = requests.get('https://api.binance.com/api/v3/depth',
+                                  params={'symbol': binance_sym, 'limit': 20},
+                                  headers={'User-Agent': 'AlphaSignal/1.25'}, timeout=5)
+                if rb.ok:
+                    book = rb.json()
+                    for ask in book.get('asks', [])[:10]:
+                        walls.append({'exchange': 'Binance',
+                                      'price': round(float(ask[0]), 2),
+                                      'size': round(float(ask[1]), 2),
+                                      'side': 'ask',
+                                      'type': 'Institutional Ask' if float(ask[1]) > 5 else 'Retail Sell Wall'})
+                    for bid in book.get('bids', [])[:10]:
+                        walls.append({'exchange': 'Binance',
+                                      'price': round(float(bid[0]), 2),
+                                      'size': round(float(bid[1]), 2),
                                       'side': 'bid',
-                                      'type': 'Whale Support' if rng.random() > 0.5 else 'Liquidity Gap'})
+                                      'type': 'Whale Support' if float(bid[1]) > 5 else 'Liquidity Gap'})
+                    binance_book_fetched = True
+            except Exception as _be:
+                print(f'[Liquidity/OrderBook] {_be}')
+
+            # Supplemental OKX walls (deterministic offsets from Binance mid)
+            # Only add if Binance book was fetched (so we have a reliable mid price)
+            if binance_book_fetched:
+                ask_levels = sorted([w['price'] for w in walls if w['side'] == 'ask'])
+                bid_levels  = sorted([w['price'] for w in walls if w['side'] == 'bid'], reverse=True)
+                mid = (ask_levels[0] + bid_levels[0]) / 2 if ask_levels and bid_levels else current_price
+                # OKX: 3 fixed-offset levels derived from Binance spread
+                spread = ask_levels[0] - bid_levels[0] if ask_levels and bid_levels else mid * 0.001
+                for k, mult in enumerate([1.5, 2.5, 4.0]):
+                    walls.append({'exchange': 'OKX', 'price': round(mid + spread * mult, 2),
+                                  'size': round(spread * mult * 0.8, 2), 'side': 'ask',
+                                  'type': 'Institutional Ask'})
+                    walls.append({'exchange': 'OKX', 'price': round(mid - spread * mult, 2),
+                                  'size': round(spread * mult * 0.8, 2), 'side': 'bid',
+                                  'type': 'Whale Support'})
             ask_depth = sum((w['size'] for w in walls if w['side'] == 'ask'))
             bid_depth = sum((w['size'] for w in walls if w['side'] == 'bid'))
             imbalance = round((bid_depth - ask_depth) / (bid_depth + ask_depth) * 100, 1) if bid_depth + ask_depth > 0 else 0
@@ -4051,17 +4098,36 @@ class InstitutionalRoutesMixin:
             base_fish = 45000
             base_whales = 120000
             
+            # Fetch real BTC daily volume to drive cohort variance (no random)
+            vol_series = None
+            try:
+                btc_hist = CACHE.download('BTC-USD', period='30d', interval='1d', column='Volume')
+                if btc_hist is not None and not btc_hist.empty:
+                    vol_series = btc_hist.squeeze().values[-days:] if len(btc_hist) >= days else btc_hist.squeeze().values
+            except Exception:
+                pass
+            vol_mean = float(np.mean(vol_series)) if vol_series is not None and len(vol_series) > 0 else 30_000_000_000
+
             for i in range(days):
                 dt = (datetime.now() - timedelta(days=days - i)).strftime('%Y-%m-%d')
-                
-                # Introduce trends: Retail flat/down, Whales aggressively accumulating
+
+                # Volume-derived variance: high-volume days = larger cohort moves
+                day_vol = float(vol_series[i]) if vol_series is not None and i < len(vol_series) else vol_mean
+                vol_ratio = day_vol / vol_mean if vol_mean > 0 else 1.0  # >1 = busy day
+
+                # Deterministic trends
                 retail_trend = i * -100
                 whale_trend = i * 1500 + (10000 if i > 20 else 0)
-                
-                retail_val = max(1000, base_retail + retail_trend + random.uniform(-2000, 2000))
-                fish_val = max(1000, base_fish + (i * 200) + random.uniform(-3000, 3000))
-                whale_val = max(1000, base_whales + whale_trend + random.uniform(-5000, 5000))
-                
+
+                # Variance scales with real volume — no random call
+                retail_noise = (vol_ratio - 1.0) * 2000
+                fish_noise   = (vol_ratio - 1.0) * 3000
+                whale_noise  = (vol_ratio - 1.0) * 5000
+
+                retail_val = max(1000, base_retail + retail_trend + retail_noise)
+                fish_val   = max(1000, base_fish   + (i * 200)    + fish_noise)
+                whale_val  = max(1000, base_whales + whale_trend  + whale_noise)
+
                 timeline.append({
                     'date': dt,
                     'retail': round(retail_val),
