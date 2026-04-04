@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://js.stripe.com">
     <link rel="dns-prefetch" href="https://s3.tradingview.com">
@@ -79,7 +80,118 @@
     </script>
     <script type="application/ld+json" id="ld-json-dynamic">{ }</script>
 
-    <link rel="stylesheet" href="styles.css?v=1.67">
+    <style id="critical-css">
+/* Critical above-fold CSS — inlined to unblock FCP */
+:root { /* == Core backgrounds ============================================== */ --bg-deep: #090c14; --bg-body: #090c14; --bg-card: rgba(255,255,255,0.04); --bg-sidebar: rgba(9,12,20,0.92); --bg-modal: #0d1117; --bg-input: rgba(0,0,0,0.3); /* == Surfaces / Glass ============================================== */ --glass: rgba(255,255,255,0.04); --surface-1: rgba(255,255,255,0.04); --surface-2: rgba(255,255,255,0.07); /* == Accent ======================================================== */ --accent: #7dd3fc; --accent-glow: rgba(125,211,252,0.15); /* == Risk / Status ================================================= */ --risk-high: #f87171; --risk-med: #fb923c; --risk-low: #4ade80; /* == Text ========================================================== */ --text-main: #e2e8f0; --text-dim: #94a3b8; --text: var(--text-main); /* == On-colour text (text placed ON a coloured surface) ============ */ --on-accent: #000; --on-accent-inv: #fff; --btn-text: rgb(121, 204, 244); /* text on gradient CTA buttons */ /* == Border and Shadow ============================================= */ --border: rgba(255,255,255,0.08); --shadow-color: rgba(0,0,0,0.5); /* == Purple secondary accent ======================================= */ --purple: #8b5cf6; --purple-glow: rgba(139,92,246,0.15); /* == Aliases ======================================================= */ --card-bg: var(--bg-card); /* == Layout ======================================================== */ --sidebar-w: 260px; /* == Market regime colours ========================================= */ --regime-accumulation: #818cf8; --regime-trending: #7dd3fc; --regime-distribution: #fb923c; --regime-volatile: #f87171; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.hidden { display: none !important; }
+body { font-family: 'Outfit', sans-serif; background: var(--bg-body); color: var(--text-main); }
+h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
+.material-symbols-outlined { vertical-align: middle; display: inline-flex; justify-content: center; align-items: center; line-height: 1; }
+select, option { background-color: var(--bg-card); color: var(--text-main); }
+/* Layout */ .layout { display: flex; min-height: 100vh; width: 100%; overflow: hidden; }
+.sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); border-right: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px); padding: 1.5rem; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; z-index: 1000; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.content { flex: 1; min-width: 0; padding: 2rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.layout.collapsed .sidebar { width: 0; padding: 0; opacity: 0; pointer-events: none; }
+.layout.collapsed .content { margin-left: 0; }
+/* Brand */ .brand { display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; padding: 0.5rem 0; }
+.logo-orb { width: 32px; height: 32px; background: radial-gradient(135deg, rgba(125,211,252,0.6), rgba(99,102,241,0.4)); border-radius: 50%; border: 1px solid rgba(125,211,252,0.3); }
+.brand-title { font-size: 1.5rem; font-weight: 900; }
+.brand-title span { color: var(--accent); }
+.nav-item { padding: 0.5rem 0.8rem; margin-bottom: 0.2rem; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.6rem; color: var(--text-dim); font-size: 0.85rem; }
+.nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+.nav-item.active { background: rgba(125, 211, 252, 0.1); color: var(--accent); font-weight: 600; border-left: none; border-radius: 8px; }
+/* Top Bar Base */ .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.07); position: relative; z-index: 500; overflow: visible; }
+/* Top Bar Actions & Groups */ .top-bar-actions { display: flex; align-items: center; gap: 1rem; }
+.action-group { display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.02); padding: 2px 4px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
+/* Styled Action Buttons */ .action-btn-styled { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Outfit', sans-serif; position: relative; /* Anchor for internal absolute elements if needed */ }
+.action-btn-styled:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--text-dim); transform: translateY(-1.5px); }
+.action-btn-styled:active { transform: translateY(0); }
+.top-bar { flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.8rem; }
+.top-bar-actions { justify-content: space-between; }
+/* ============================================================ */ /* MOBILE RESPONSIVE ENHANCEMENTS */ /* ============================================================ */ .mobile-nav { display: none; }
+.sidebar .brand { justify-content: center; margin-bottom: 3rem; }
+.sidebar .brand-title { font-size: 1.2rem; }
+.sidebar .hamburger { display: none; }
+.nav-item::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: var(--accent); transform: scaleY(0); transition: transform 0.2s ease; }
+.nav-item.active::before { transform: scaleY(1); }
+.nav-item .icon { font-size: 1.5rem; display: block; margin: 0 auto; }
+.user-profile-card { position: absolute; bottom: 2rem; left: 2rem; right: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem; background: var(--bg-deep); margin: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: none; }
+/* Space for bottom nav */ /* Top bar completely hidden on mobile â€” bottom nav handles navigation */ .top-bar { display: none !important; }
+/* Bottom Navigation */ .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(13, 17, 23, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); height: 70px; z-index: 1001; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
+.mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-dim); font-size: 0.7rem; font-weight: 700; cursor: pointer; padding: 10px; flex: 1; transition: 0.2s; }
+/* Typography scale down */ .hero-section h1 { font-size: clamp(1.4rem, 6vw, 2rem) !important; }
+.heatmap-sector h3 { font-size: 0.8rem; color: var(--accent); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
+.auth-header h2 { font-family: 'Outfit'; font-size: 1.8rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 0.5rem; }
+.auth-header h2 span { color: var(--accent); font-weight: 400; opacity: 0.8; }
+.paywall-header h2 span { color: var(--accent); }
+/* User Profile Card */ .user-profile-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 16px; padding: 1.2rem; margin-top: auto; margin-bottom: 2rem; transition: 0.3s; position: relative; cursor: pointer; }
+.user-profile-card:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(125, 211, 252, 0.3); }
+.hero-section h1 { font-size: 5rem; font-weight: 950; margin-bottom: 1.5rem; line-height: 0.95; letter-spacing: -3px; position: relative; z-index: 1; }
+.hero-section h1 span { background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.f-card h3 { font-size: 1.25rem; margin-bottom: 1rem; color: var(--accent); font-weight: 800; letter-spacing: 1px; }
+.section-title-wrap h2 { font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.faq-section h2 { font-size: 2.5rem; background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.seo-content-extra div h2 { position: relative; padding-bottom: 0.5rem; }
+.seo-content-extra div h2::after { content: ''; position: absolute; bottom: 0; left: 0; width: 40px; height: 2px; background: var(--accent); }
+.strat-select option { background: var(--bg-card); color: var(--text-main); padding: 10px; }
+.locked-nav .material-symbols-outlined:not(.premium-lock) { filter: grayscale(1) opacity(0.5); }
+/* Phase 15-D placeholder */ /* Phase 15-D: Mobile / PWA Polish */ * { -webkit-overflow-scrolling: touch; }
+button, .intel-action-btn, .nav-item, .signal-card, .glass-card, .hub-tabs button { touch-action: manipulation; }
+.strategy-controls select, .strategy-controls input, .strategy-controls button { width: 100% !important; min-height: 44px; }
+.view-header h1 { font-size: 1.3rem !important; }
+.mobile-nav { padding-bottom: max(10px, env(safe-area-inset-bottom)); height: calc(70px + env(safe-area-inset-bottom)); }
+/* =================================================== HEADING HIERARCHY â€” Consistent across all views H1 = View/page title (one per view) H2 = Major chart / section heading within a view H3 = Panel / card / metric label within a section =================================================== */ /* View title: always styled as terminal header */ .view-header h1, .landing-page h1, h1 { font-size: clamp(1.2rem, 2.5vw, 1.8rem); font-weight: 900; letter-spacing: -0.5px; color: var(--text); margin: 0; line-height: 1.2; }
+/* Section headings: chart titles, data panel labels */ h2 { font-size: clamp(0.85rem, 1.5vw, 1.1rem); font-weight: 800; letter-spacing: 0.5px; color: var(--text); margin-top: 0; margin-bottom: 1rem; }
+/* Inside view-header, h2 used for sub-title line */ .view-header h2 { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); letter-spacing: 1px; }
+/* Card / panel headings */ h3 { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-top: 0; margin-bottom: 0.5rem; }
+.auth-eye-btn .material-symbols-outlined { font-size: 1rem; }
+.trust-item .material-symbols-outlined { font-size: 0.85rem; }
+/* === v1.65 DE-AI STRUCTURAL OVERRIDES === */ body, .nav-item, button, select, input, .brand-title, h1, h2, h3 { font-family: 'Inter', system-ui, -apple-system, sans-serif !important; }
+/* Headings: lighter weight, tighter tracking */ h1 { font-weight: 600 !important; letter-spacing: -0.025em; }
+h2 { font-weight: 500 !important; letter-spacing: -0.015em; }
+/* Nav items: normal weight, no forced caps */ .nav-item { font-size: 0.82rem !important; font-weight: 400 !important; letter-spacing: 0 !important; }
+/* Body: subtle top radial depth */ body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 300px; background: radial-gradient(ellipse 80% 100% at 50% -20%, rgba(99,102,241,0.05) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+/* ============================================================ GLASSMORPHISM OVERHAUL — AlphaSignal v1.7 Deep frosted glass, luminous borders, layered depth ============================================================ */ /* -- Background: richer deep navy with subtle nebula glow -- */ body { background: radial-gradient(ellipse 120% 80% at 10% -10%, rgba(14,18,40,1) 0%, #050710 60%, #020408 100%) !important; }
+/* Animated ambient orbs behind everything */ body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 600px 500px at 15% 20%, rgba(125,211,252,0.045) 0%, transparent 70%), radial-gradient(ellipse 500px 400px at 85% 75%, rgba(99,102,241,0.055) 0%, transparent 70%), radial-gradient(ellipse 400px 350px at 50% 50%, rgba(188,19,254,0.025) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+/* -- Root variable upgrades -- */ :root { /* == Core backgrounds ============================================== */ --bg-deep: #090c14; --bg-body: #090c14; --bg-card: rgba(255,255,255,0.04); --bg-sidebar: rgba(9,12,20,0.92); --bg-modal: #0d1117; --bg-input: rgba(0,0,0,0.3); /* == Surfaces / Glass ============================================== */ --glass: rgba(255,255,255,0.04); --surface-1: rgba(255,255,255,0.04); --surface-2: rgba(255,255,255,0.07); /* == Accent ======================================================== */ --accent: #7dd3fc; --accent-glow: rgba(125,211,252,0.15); /* == Risk / Status ================================================= */ --risk-high: #f87171; --risk-med: #fb923c; --risk-low: #4ade80; /* == Text ========================================================== */ --text-main: #e2e8f0; --text-dim: #94a3b8; --text: var(--text-main); /* == On-colour text (text placed ON a coloured surface) ============ */ --on-accent: #000; --on-accent-inv: #fff; --btn-text: rgb(121, 204, 244); /* text on gradient CTA buttons */ /* == Border and Shadow ============================================= */ --border: rgba(255,255,255,0.08); --shadow-color: rgba(0,0,0,0.5); /* == Purple secondary accent ======================================= */ --purple: #8b5cf6; --purple-glow: rgba(139,92,246,0.15); /* == Aliases ======================================================= */ --card-bg: var(--bg-card); /* == Layout ======================================================== */ --sidebar-w: 260px; /* == Market regime colours ========================================= */ --regime-accumulation: #818cf8; --regime-trending: #7dd3fc; --regime-distribution: #fb923c; --regime-volatile: #f87171; }
+/* -- Sidebar: deep frosted glass -- */ .sidebar { background: rgba(4,6,18,0.72) !important; backdrop-filter: blur(48px) saturate(180%) !important; -webkit-backdrop-filter: blur(48px) saturate(180%) !important; border-right: 1px solid rgba(125,211,252,0.08) !important; box-shadow: 4px 0 40px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.04) !important; }
+/* Sidebar inner glow top */ .sidebar::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 200px; background: radial-gradient(ellipse at top, rgba(125,211,252,0.06), transparent 70%); pointer-events: none; }
+/* -- Top bar: heavy frosted glass -- */ .top-bar { background: rgba(4,6,18,0.65) !important; backdrop-filter: blur(40px) saturate(180%) !important; -webkit-backdrop-filter: blur(40px) saturate(180%) !important; border: 1px solid rgba(255,255,255,0.09) !important; border-top-color: rgba(255,255,255,0.14) !important; box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07) !important; }
+/* -- Nav active state: glowing pill -- */ .nav-item.active { background: rgba(125,211,252,0.10) !important; border-left: 2px solid var(--accent) !important; box-shadow: inset 0 0 20px rgba(125,211,252,0.06) !important; }
+/* -- Input fields and selects: glass inputs -- */ input, select, textarea { background: rgba(255,255,255,0.05) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.10) !important; transition: border-color 0.2s, box-shadow 0.2s !important; }
+input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40) !important; box-shadow: 0 0 0 3px rgba(125,211,252,0.10), inset 0 1px 0 rgba(255,255,255,0.05) !important; outline: none !important; }
+/* -- Buttons: frosted glass pill -- */ .intel-action-btn, .action-btn-styled, .tf-btn { background: rgba(255,255,255,0.06) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.12) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08) !important; transition: all 0.2s ease !important; }
+.intel-action-btn:hover, .action-btn-styled:hover { background: rgba(255,255,255,0.10) !important; border-color: rgba(125,211,252,0.30) !important; box-shadow: 0 0 16px rgba(125,211,252,0.10), inset 0 1px 0 rgba(255,255,255,0.12) !important; }
+/* ============================================================ SIDEBAR GLASSMORPHISM — Premium Frosted Glass Sidebar ============================================================ */ /* Reset sidebar to true glass */ .sidebar { background: rgba(6, 8, 20, 0.55) !important; backdrop-filter: blur(60px) saturate(200%) brightness(1.1) !important; -webkit-backdrop-filter: blur(60px) saturate(200%) brightness(1.1) !important; border-right: 1px solid rgba(125,211,252,0.10) !important; box-shadow: 4px 0 60px rgba(0,0,0,0.6), inset -1px 0 0 rgba(255,255,255,0.05), inset 1px 0 0 rgba(255,255,255,0.02) !important; position: relative !important; }
+/* Ambient glow bands inside the sidebar */ .sidebar::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 180px 300px at 50% 0%, rgba(125,211,252,0.08) 0%, transparent 70%), radial-gradient(ellipse 160px 200px at 30% 85%, rgba(99,102,241,0.06) 0%, transparent 70%), linear-gradient(180deg, rgba(125,211,252,0.025) 0%, transparent 30%, rgba(99,102,241,0.02) 100%); pointer-events: none; z-index: 0; }
+/* Sidebar content above pseudo-elements */ .sidebar > * { position: relative; z-index: 1; }
+/* Brand logo orb — glowing glass sphere */ .logo-orb { width: 34px !important; height: 34px !important; background: radial-gradient(circle at 35% 35%, rgba(125,211,252,0.9), rgba(99,102,241,0.6)) !important; border-radius: 50% !important; border: 1px solid rgba(125,211,252,0.4) !important; box-shadow: 0 0 20px rgba(125,211,252,0.35), 0 0 60px rgba(125,211,252,0.15), inset 0 1px 0 rgba(255,255,255,0.4) !important; }
+/* Section labels */ .sidebar .nav-section-label, .sidebar [style*="letter-spacing"][style*="font-size:0.6"] { color: rgba(125,211,252,0.5) !important; letter-spacing: 2.5px !important; }
+/* Nav items: glass pill on hover and active */ .nav-item { border-radius: 10px !important; transition: all 0.2s ease !important; border: 1px solid transparent !important; position: relative !important; }
+/* Active indicator — glowing left accent line */ .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 2px; background: linear-gradient(180deg, rgba(125,211,252,0) 0%, var(--accent) 50%, rgba(125,211,252,0) 100%); border-radius: 0 2px 2px 0; box-shadow: 0 0 8px rgba(125,211,252,0.6), 0 0 20px rgba(125,211,252,0.3); }
+/* Hub section separators: frosted divider */ .sidebar hr, .sidebar [style*="border-top"] { border-color: rgba(255,255,255,0.06) !important; }
+/* Section header labels in sidebar */ .sidebar .nav-section { font-size: 0.58rem !important; letter-spacing: 2px; color: rgba(125,211,252,0.40) !important; padding: 0.8rem 0.8rem 0.3rem !important; text-transform: uppercase; }
+/* User account card at bottom: glass pill */ .sidebar [class*="user"], .sidebar [style*="border-radius:12px"][style*="background"] { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.09) !important; border-top-color: rgba(255,255,255,0.14) !important; backdrop-filter: blur(16px) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07) !important; }
+/* Fear & Greed at bottom: glowing glass badge */ .sidebar [style*="FEAR"] { text-shadow: 0 0 12px currentColor !important; }
+/* Sidebar scrollbar: accent-tinted */ .sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(125,211,252,0.20) !important; border-radius: 4px !important; }
+.sidebar::-webkit-scrollbar-track { background: transparent !important; }
+/* Light mode overrides for elements with hardcoded dark colours */ [data-theme="light"] body { background: var(--bg-body) !important; }
+[data-theme="light"] .sidebar { background: rgba(240,244,248,0.97) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border-right-color: rgba(0,0,0,0.08); box-shadow: 2px 0 20px rgba(0,0,0,0.06); }
+[data-theme="light"] .nav-item:hover { background: rgba(0,0,0,0.05); }
+[data-theme="light"] .nav-item.active { background: rgba(14,165,233,0.12); }
+[data-theme="light"] .top-bar { border-bottom-color: rgba(0,0,0,0.08); background: rgba(240,244,248,0.9); }
+[data-theme="light"] select, [data-theme="light"] option { background-color: var(--bg-input); color: var(--text-main); }
+[data-theme="light"] body::before, [data-theme="light"] body::after { display: none !important; }
+[data-theme="light"] .sidebar::before { display: none !important; }
+[data-theme="light"] .nav-item.active::before { background: var(--accent) !important; box-shadow: 0 0 8px rgba(14,165,233,0.4) !important; }
+@keyframes scroll { 0% { transform: translateX(100%); }
+@keyframes scroll-left { 0% { transform: translateX(0); }
+@keyframes scroll-left-landing { from { transform: translateX(0); }
+@keyframes scroll-left-global { from { transform: translateX(0); }
+</style>
+    <link rel="stylesheet" href="styles.css?v=1.68" fetchpriority="high">
     <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
