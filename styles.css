@@ -1,25 +1,59 @@
 :root {
-    --bg-deep: #090c14;
-    --bg-card: rgba(255,255,255,0.04);
-    --accent: #7dd3fc;
+    /* == Core backgrounds ============================================== */
+    --bg-deep:    #090c14;
+    --bg-body:    #090c14;
+    --bg-card:    rgba(255,255,255,0.04);
+    --bg-sidebar: rgba(9,12,20,0.92);
+    --bg-modal:   #0d1117;
+    --bg-input:   rgba(0,0,0,0.3);
+
+    /* == Surfaces / Glass ============================================== */
+    --glass:     rgba(255,255,255,0.04);
+    --surface-1: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+
+    /* == Accent ======================================================== */
+    --accent:      #7dd3fc;
     --accent-glow: rgba(125,211,252,0.15);
+
+    /* == Risk / Status ================================================= */
     --risk-high: #f87171;
-    --risk-med: #fb923c;
-    --risk-low: #4ade80;
+    --risk-med:  #fb923c;
+    --risk-low:  #4ade80;
+
+    /* == Text ========================================================== */
     --text-main: #e2e8f0;
-    --text-dim: #94a3b8;
+    --text-dim:  #94a3b8;
+    --text:      var(--text-main);
+
+    /* == On-colour text (text placed ON a coloured surface) ============ */
+    --on-accent:     #000;
+    --on-accent-inv: #fff;
+
+    /* == Border and Shadow ============================================= */
+    --border:       rgba(255,255,255,0.08);
+    --shadow-color: rgba(0,0,0,0.5);
+
+    /* == Purple secondary accent ======================================= */
+    --purple:      #8b5cf6;
+    --purple-glow: rgba(139,92,246,0.15);
+
+    /* == Aliases ======================================================= */
+    --card-bg:  var(--bg-card);
+
+    /* == Layout ======================================================== */
     --sidebar-w: 260px;
-    --glass: rgba(255,255,255,0.04); --surface-1: rgba(255,255,255,0.04); --surface-2: rgba(255,255,255,0.07);
-    --border: rgba(255,255,255,0.08);
+
+    /* == Market regime colours ========================================= */
     --regime-accumulation: #818cf8;
-    --regime-trending: #7dd3fc;
+    --regime-trending:     #7dd3fc;
     --regime-distribution: #fb923c;
-    --regime-volatile: #f87171;
+    --regime-volatile:     #f87171;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 .hidden { display: none !important; }
-body { font-family: 'Outfit', sans-serif; background: #090c14; color: var(--text-main); }
+body { font-family: 'Outfit', sans-serif; background: var(--bg-body); color: var(--text-main); }
 h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
 .material-symbols-outlined { vertical-align: middle; display: inline-flex; justify-content: center; align-items: center; line-height: 1; }
 
@@ -32,7 +66,7 @@ select, option {
 .layout { display: flex; min-height: 100vh; width: 100%; overflow: hidden; }
 .sidebar { 
     width: var(--sidebar-w); 
-    background: rgba(9,12,20,0.92); 
+    background: var(--bg-sidebar); 
     border-right: 1px solid rgba(255,255,255,0.06);
     backdrop-filter: blur(32px);
     -webkit-backdrop-filter: blur(32px); 
@@ -90,7 +124,7 @@ select, option {
 /* Top Bar Base */
 .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.07); position: relative; z-index: 500; overflow: visible; }
 .signal-feed { display: flex; align-items: center; gap: 1rem; overflow: hidden; white-space: nowrap; flex: 1; min-width: 0; }
-.feed-label { background: #8b5cf6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 900; flex-shrink: 0; z-index: 2; }
+.feed-label { background: var(--purple); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 900; flex-shrink: 0; z-index: 2; }
 .scroller-container { flex: 1; overflow: hidden; mask-image: linear-gradient(to right, transparent, black 20px); -webkit-mask-image: linear-gradient(to right, transparent, black 20px); display: flex; align-items: center; }
 .scroller { font-family: 'JetBrains Mono'; font-size: 0.85rem; animation: scroll 60s linear infinite; white-space: nowrap; }
 @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
@@ -129,8 +163,8 @@ select, option {
 .action-btn-styled:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--text-dim); transform: translateY(-1.5px); }
 .action-btn-styled:active { transform: translateY(0); }
 .action-btn-styled.outline { border-color: var(--border); background: transparent; }
-.action-btn-styled.primary { background: var(--accent); color: #000; border: none; }
-.action-btn-styled.primary:hover { background: #fff;  }
+.action-btn-styled.primary { background: var(--accent); color: var(--on-accent); border: none; }
+.action-btn-styled.primary:hover { background: var(--on-accent-inv);  }
 
 /* Notification Wrapper & Badge */
 .notif-wrapper { position: relative; display: flex; align-items: center; margin-right: 4px; }
@@ -215,9 +249,9 @@ select, option {
 /* Pack G5: AI Analyst Modal */
 .ai-analyst-panel { max-width: 600px; border-top: 4px solid #8b5cf6; }
 .ai-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-.ai-orb { width: 20px; height: 20px; background: #8b5cf6; border-radius: 50%; animation: pulse-ai 2s infinite; }
+.ai-orb { width: 20px; height: 20px; background: var(--purple); border-radius: 50%; animation: pulse-ai 2s infinite; }
 @keyframes pulse-ai { 0% { box-shadow: 0 0 0 0 rgba(188, 19, 254, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(188, 19, 254, 0); } 100% { box-shadow: 0 0 0 0 rgba(188, 19, 254, 0); } }
-.ai-report-box { background: rgba(188, 19, 254, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(188, 19, 254, 0.2); line-height: 1.8; font-size: 0.95rem; color: #e6edf3; }
+.ai-report-box { background: rgba(188, 19, 254, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(188, 19, 254, 0.2); line-height: 1.8; font-size: 0.95rem; color: var(--text-main); }
 
 /* Pack G2: Mindshare View */
 .mindshare-container { display: grid; grid-template-columns: 1fr 300px; gap: 2rem; margin-top: 2rem; min-width: 0; }
@@ -225,7 +259,7 @@ select, option {
 .zone { margin-bottom: 1.5rem; padding-left: 1rem; border-left: 3px solid transparent; font-size: 0.85rem; color: var(--text-dim); }
 .zone span { display: block; color: var(--text-main); font-weight: 700; margin-bottom: 0.2rem; }
 .zone-alpha { border-color: var(--accent); }
-.zone-hype { border-color: #8b5cf6; }
+.zone-hype { border-color: var(--purple); }
 .zone-under { border-color: #ff9f00; }
 
 /* Pack G3: Risk Dashboard */
@@ -608,11 +642,113 @@ select, option {
 
 /* Mobile Responsiveness */
 @media (max-width: 1024px) {
-    :root { --sidebar-w: 200px; }
+    :root {
+    /* == Core backgrounds ============================================== */
+    --bg-deep:    #090c14;
+    --bg-body:    #090c14;
+    --bg-card:    rgba(255,255,255,0.04);
+    --bg-sidebar: rgba(9,12,20,0.92);
+    --bg-modal:   #0d1117;
+    --bg-input:   rgba(0,0,0,0.3);
+
+    /* == Surfaces / Glass ============================================== */
+    --glass:     rgba(255,255,255,0.04);
+    --surface-1: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+
+    /* == Accent ======================================================== */
+    --accent:      #7dd3fc;
+    --accent-glow: rgba(125,211,252,0.15);
+
+    /* == Risk / Status ================================================= */
+    --risk-high: #f87171;
+    --risk-med:  #fb923c;
+    --risk-low:  #4ade80;
+
+    /* == Text ========================================================== */
+    --text-main: #e2e8f0;
+    --text-dim:  #94a3b8;
+    --text:      var(--text-main);
+
+    /* == On-colour text (text placed ON a coloured surface) ============ */
+    --on-accent:     #000;
+    --on-accent-inv: #fff;
+
+    /* == Border and Shadow ============================================= */
+    --border:       rgba(255,255,255,0.08);
+    --shadow-color: rgba(0,0,0,0.5);
+
+    /* == Purple secondary accent ======================================= */
+    --purple:      #8b5cf6;
+    --purple-glow: rgba(139,92,246,0.15);
+
+    /* == Aliases ======================================================= */
+    --card-bg:  var(--bg-card);
+
+    /* == Layout ======================================================== */
+    --sidebar-w: 260px;
+
+    /* == Market regime colours ========================================= */
+    --regime-accumulation: #818cf8;
+    --regime-trending:     #7dd3fc;
+    --regime-distribution: #fb923c;
+    --regime-volatile:     #f87171;
+}
 }
 
 @media (max-width: 768px) {
-    :root { --sidebar-w: 0px; }
+    :root {
+    /* == Core backgrounds ============================================== */
+    --bg-deep:    #090c14;
+    --bg-body:    #090c14;
+    --bg-card:    rgba(255,255,255,0.04);
+    --bg-sidebar: rgba(9,12,20,0.92);
+    --bg-modal:   #0d1117;
+    --bg-input:   rgba(0,0,0,0.3);
+
+    /* == Surfaces / Glass ============================================== */
+    --glass:     rgba(255,255,255,0.04);
+    --surface-1: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+
+    /* == Accent ======================================================== */
+    --accent:      #7dd3fc;
+    --accent-glow: rgba(125,211,252,0.15);
+
+    /* == Risk / Status ================================================= */
+    --risk-high: #f87171;
+    --risk-med:  #fb923c;
+    --risk-low:  #4ade80;
+
+    /* == Text ========================================================== */
+    --text-main: #e2e8f0;
+    --text-dim:  #94a3b8;
+    --text:      var(--text-main);
+
+    /* == On-colour text (text placed ON a coloured surface) ============ */
+    --on-accent:     #000;
+    --on-accent-inv: #fff;
+
+    /* == Border and Shadow ============================================= */
+    --border:       rgba(255,255,255,0.08);
+    --shadow-color: rgba(0,0,0,0.5);
+
+    /* == Purple secondary accent ======================================= */
+    --purple:      #8b5cf6;
+    --purple-glow: rgba(139,92,246,0.15);
+
+    /* == Aliases ======================================================= */
+    --card-bg:  var(--bg-card);
+
+    /* == Layout ======================================================== */
+    --sidebar-w: 260px;
+
+    /* == Market regime colours ========================================= */
+    --regime-accumulation: #818cf8;
+    --regime-trending:     #7dd3fc;
+    --regime-distribution: #fb923c;
+    --regime-volatile:     #f87171;
+}
     .sidebar {
         position: fixed;
         left: -100%;
@@ -659,7 +795,58 @@ select, option {
 .mobile-nav { display: none; }
 
 @media (max-width: 900px) {
-    :root { --sidebar-w: 0px; }
+    :root {
+    /* == Core backgrounds ============================================== */
+    --bg-deep:    #090c14;
+    --bg-body:    #090c14;
+    --bg-card:    rgba(255,255,255,0.04);
+    --bg-sidebar: rgba(9,12,20,0.92);
+    --bg-modal:   #0d1117;
+    --bg-input:   rgba(0,0,0,0.3);
+
+    /* == Surfaces / Glass ============================================== */
+    --glass:     rgba(255,255,255,0.04);
+    --surface-1: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+
+    /* == Accent ======================================================== */
+    --accent:      #7dd3fc;
+    --accent-glow: rgba(125,211,252,0.15);
+
+    /* == Risk / Status ================================================= */
+    --risk-high: #f87171;
+    --risk-med:  #fb923c;
+    --risk-low:  #4ade80;
+
+    /* == Text ========================================================== */
+    --text-main: #e2e8f0;
+    --text-dim:  #94a3b8;
+    --text:      var(--text-main);
+
+    /* == On-colour text (text placed ON a coloured surface) ============ */
+    --on-accent:     #000;
+    --on-accent-inv: #fff;
+
+    /* == Border and Shadow ============================================= */
+    --border:       rgba(255,255,255,0.08);
+    --shadow-color: rgba(0,0,0,0.5);
+
+    /* == Purple secondary accent ======================================= */
+    --purple:      #8b5cf6;
+    --purple-glow: rgba(139,92,246,0.15);
+
+    /* == Aliases ======================================================= */
+    --card-bg:  var(--bg-card);
+
+    /* == Layout ======================================================== */
+    --sidebar-w: 260px;
+
+    /* == Market regime colours ========================================= */
+    --regime-accumulation: #818cf8;
+    --regime-trending:     #7dd3fc;
+    --regime-distribution: #fb923c;
+    --regime-volatile:     #f87171;
+}
     
     .sidebar { 
         position: fixed; 
@@ -734,7 +921,7 @@ select, option {
 
     .nav-item:hover {
         background: rgba(255, 255, 255, 0.05);
-        color: #fff;
+        color: var(--text-main);
     }
     .nav-item.active { background: rgba(125, 211, 252, 0.1); color: var(--accent); font-weight: 600; border-left: none; border-radius: 8px; }
     
@@ -936,8 +1123,8 @@ select, option {
 .heatmap-sector { background: var(--bg-card); border: 1px solid var(--border); padding: 1.5rem; border-radius: 12px; height: 100%; }
 .heatmap-sector h3 { font-size: 0.8rem; color: var(--accent); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
 .heatmap-assets { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; }
-.heatmap-box { height: 50px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; font-family: 'JetBrains Mono'; color: #000; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border); }
-.heatmap-box:hover { transform: scale(1.1); z-index: 10; font-size: 0.8rem; border-color: #fff !important; }
+.heatmap-box { height: 50px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; font-family: 'JetBrains Mono'; color: var(--on-accent); cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border); }
+.heatmap-box:hover { transform: scale(1.1); z-index: 10; font-size: 0.8rem; border-color: var(--on-accent-inv) !important; }
 
 .heatmap-legend { margin-bottom: 2rem; background: rgba(0,0,0,0.2); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border); }
 .legend-labels { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; }
@@ -992,7 +1179,7 @@ select, option {
 }
 .filter-btn.active, .tf-btn.active {
     background: var(--accent);
-    color: #000;
+    color: var(--on-accent);
     
 }
 
@@ -1012,7 +1199,7 @@ select, option {
     letter-spacing: 1px;
 }
 .timeframe-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
-.timeframe-btn.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+.timeframe-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
 
 .z-outlier { border-color: var(--risk-high) !important; position: relative; }
 .z-outlier::after { content: 'STAT OUTLIER'; position: absolute; top: -10px; right: 10px; font-size: 0.5rem; background: var(--risk-high); color: white; padding: 2px 6px; border-radius: 4px; font-weight: 900; box-shadow: 0 0 10px rgba(255, 62, 62, 0.4); z-index: 10; }
@@ -1053,7 +1240,7 @@ select, option {
 .status-stable { background: rgba(125, 211, 252, 0.1); color: var(--risk-low); border: 1px solid var(--risk-low); }
 
 /* Category Specific Branding */
-.label-tag.cat-defi { color: #7dd3fc; border-color: rgba(125,211,252,0.3); background: rgba(125,211,252,0.06); }
+.label-tag.cat-defi { color: var(--accent); border-color: rgba(125,211,252,0.3); background: rgba(125,211,252,0.06); }
 .label-tag.cat-exchange { color: #fffa00; border-color: rgba(255, 250, 0, 0.4); background: rgba(255, 250, 0, 0.05); }
 .label-tag.cat-memes { color: #ff3e3e; border-color: rgba(255, 62, 62, 0.4); background: rgba(255, 62, 62, 0.05); }
 .label-tag.cat-custom { color: var(--accent); border-color: rgba(125,211,252,0.3); background: rgba(125,211,252,0.06); }
@@ -1068,7 +1255,7 @@ select, option {
 .rotation-matrix-container { overflow-x: auto; padding: 2rem; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .matrix-grid { display: grid; gap: 6px; min-width: 900px; }
 .matrix-cell { height: 60px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono'; font-size: 0.85rem; font-weight: 800; border-radius: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: crosshair; }
-.matrix-cell:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 0 20px rgba(255,255,255,0.2); border-color: #fff !important; }
+.matrix-cell:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 0 20px rgba(255,255,255,0.2); border-color: var(--on-accent-inv) !important; }
 .matrix-label { display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--accent); font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
 .matrix-label.vertical { justify-content: flex-end; padding-right: 1.5rem; color: var(--text-dim); }
 .matrix-label.horizontal { padding-bottom: 1rem; }
@@ -1105,7 +1292,7 @@ select, option {
 
 /* Divergence Visuals */
 .heatmap-box { position: relative; }
-.divergence-dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: pulseDiv 1s infinite; }
+.divergence-dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; background: var(--on-accent-inv); border-radius: 50%; box-shadow: 0 0 8px var(--on-accent-inv); animation: pulseDiv 1s infinite; }
 @keyframes pulseDiv { 0% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.2; transform: scale(0.8); } }
 
 .div-meter { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; margin-top: 5px; overflow: hidden; border: 1px solid var(--border); }
@@ -1189,7 +1376,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 .article-header { border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2rem; }
 .article-meta { display: flex; gap: 15px; align-items:center; margin-bottom: 1rem; }
-.article-title { font-family: 'Outfit'; font-size: 2.2rem; font-weight: 900; line-height: 1.2; color: #fff; }
+.article-title { font-family: 'Outfit'; font-size: 2.2rem; font-weight: 900; line-height: 1.2; color: var(--on-accent-inv); }
 .article-content { font-size: 1.1rem; line-height: 1.8; color: var(--text-main); font-family: 'Inter', sans-serif; }
 .article-content p { margin-bottom: 1.5rem; }
 .article-footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--text-dim); font-size: 0.8rem; }
@@ -1236,7 +1423,7 @@ input[type="range"]::-webkit-slider-thumb {
 .alert-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .alert-type { font-family: 'JetBrains Mono'; font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
 .alert-timestamp { font-size: 0.7rem; color: var(--text-dim); }
-.alert-msg { font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.3; }
+.alert-msg { font-size: 1.2rem; font-weight: 700; color: var(--on-accent-inv); margin-bottom: 1rem; line-height: 1.3; }
 .alert-footer { display: flex; justify-content: space-between; align-items: center; }
 .ticker-chip { background: var(--border); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; color: var(--text-main); }
 .severity-status { font-size: 0.65rem; font-weight: 900; letter-spacing: 1px; }
@@ -1257,7 +1444,7 @@ input[type="range"]::-webkit-slider-thumb {
     transition: 0.2s;
 }
 .whale-row:hover { border-color: var(--accent); background: rgba(125, 211, 252, 0.02); }
-.w-amount { font-family: 'Outfit'; font-size: 1.3rem; font-weight: 900; color: #fff; }
+.w-amount { font-family: 'Outfit'; font-size: 1.3rem; font-weight: 900; color: var(--on-accent-inv); }
 .usd-val { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--text-dim); margin-left: 10px; }
 .w-meta { display: flex; gap: 15px; margin-top: 5px; font-size: 0.7rem; color: var(--text-dim); }
 .w-hash { color: var(--accent); font-family: 'JetBrains Mono'; }
@@ -1375,7 +1562,7 @@ input[type="range"]::-webkit-slider-thumb {
     border: 1px solid var(--border);
     padding: 1rem 1.2rem;
     border-radius: 12px;
-    color: #fff;
+    color: var(--text-main);
     font-family: 'JetBrains Mono';
     font-size: 0.9rem;
     outline: none;
@@ -1401,7 +1588,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .intel-action-btn {
     background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
-    color: #fff;
+    color: var(--on-accent-inv);
     border: none;
     padding: 0.8rem 1.5rem;
     margin: 1rem 0;
@@ -1639,13 +1826,13 @@ input[type="range"]::-webkit-slider-thumb {
 .user-avatar {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, var(--accent), #7000ff);
+    background: linear-gradient(135deg, var(--accent), var(--purple));
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    color: #000;
+    color: var(--on-accent);
     font-size: 0.9rem;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
@@ -2077,7 +2264,7 @@ input[type="range"]::-webkit-slider-thumb {
     transform: translateY(-50%);
     font-size: 0.7rem;
     font-weight: 950;
-    color: #fff;
+    color: var(--on-accent-inv);
 }
 
 /* Phase 5: Narrative Galaxy V2 Ticker */
@@ -2842,7 +3029,7 @@ input[type="range"]::-webkit-slider-thumb {
     animation: toast-slide-out 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-.toast.regime { border-left-color: #8b5cf6; }
+.toast.regime { border-left-color: var(--purple); }
 .toast.alert { border-left-color: var(--accent); }
 .toast.error { border-left-color: var(--risk-high); }
 
@@ -2948,7 +3135,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* Phase 7.4: Trade Ticket Styles */
-.trade-ticket { background: rgba(9,12,20,0.92); border: 1px solid var(--border); border-left: 4px solid var(--accent); padding: 1.5rem; border-radius: 8px; font-family: var(--font-mono), monospace; position: relative; overflow: hidden; margin-top: 1rem; }
+.trade-ticket { background: var(--bg-sidebar); border: 1px solid var(--border); border-left: 4px solid var(--accent); padding: 1.5rem; border-radius: 8px; font-family: var(--font-mono), monospace; position: relative; overflow: hidden; margin-top: 1rem; }
 .trade-ticket::before { content: " INSTITUTIONAL EXECUTION TICKET "; position: absolute; top: 10px; right: 10px; font-size: 0.5rem; opacity: 0.2; letter-spacing: 2px; }
 .ticket-id { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 1rem; }
 .ticket-main { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
@@ -2963,7 +3150,7 @@ input[type="range"]::-webkit-slider-thumb {
 .ticket-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 1rem; }
 .ticket-meta { font-size: 0.65rem; color: var(--text-dim); }
 .ticket-copy-btn { background: var(--accent); color: white; border: none; padding: 0.4rem 1rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; font-weight: 700; }
-.ticket-copy-btn:hover { background: #7000ff; box-shadow: 0 0 10px var(--accent-glow); }
+.ticket-copy-btn:hover { background: var(--purple); box-shadow: 0 0 10px var(--accent-glow); }
 .ticket-copy-btn.copied { background: var(--pos); }
 
 
@@ -3294,7 +3481,7 @@ h4 {
     border: 1px solid var(--border);
     padding: 0.9rem 2.8rem 0.9rem 2.8rem;
     border-radius: 12px;
-    color: #fff;
+    color: var(--text-main);
     font-family: 'JetBrains Mono';
     font-size: 0.875rem;
     outline: none;
@@ -3351,7 +3538,7 @@ h4 {
     border: 1px solid var(--border);
     padding: 1rem 1.2rem;
     border-radius: 12px;
-    color: #fff;
+    color: var(--text-main);
     font-family: 'JetBrains Mono';
     font-size: 0.9rem;
     outline: none;
@@ -3388,7 +3575,7 @@ h4 {
 .intel-action-btn.auth-submit:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px rgba(125, 211, 252, 0.4);
-    background: #fff;
+    background: var(--on-accent-inv);
 }
 
 /* Divider */
@@ -3682,16 +3869,56 @@ body::before {
 
 /* -- Root variable upgrades -- */
 :root {
-    --bg-deep:       #04060f;
-    --bg-card:       rgba(255,255,255,0.045);
-    --glass:         rgba(255,255,255,0.045);
-    --surface-1:     rgba(255,255,255,0.04);
-    --surface-2:     rgba(255,255,255,0.08);
-    --border:        rgba(255,255,255,0.10);
-    --border-glow:   rgba(125,211,252,0.18);
-    --accent-glow:   rgba(125,211,252,0.20);
-    --shadow-glass:  0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
-    --shadow-glow:   0 0 0 1px rgba(125,211,252,0.08), 0 8px 32px rgba(0,0,0,0.5);
+    /* == Core backgrounds ============================================== */
+    --bg-deep:    #090c14;
+    --bg-body:    #090c14;
+    --bg-card:    rgba(255,255,255,0.04);
+    --bg-sidebar: rgba(9,12,20,0.92);
+    --bg-modal:   #0d1117;
+    --bg-input:   rgba(0,0,0,0.3);
+
+    /* == Surfaces / Glass ============================================== */
+    --glass:     rgba(255,255,255,0.04);
+    --surface-1: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+
+    /* == Accent ======================================================== */
+    --accent:      #7dd3fc;
+    --accent-glow: rgba(125,211,252,0.15);
+
+    /* == Risk / Status ================================================= */
+    --risk-high: #f87171;
+    --risk-med:  #fb923c;
+    --risk-low:  #4ade80;
+
+    /* == Text ========================================================== */
+    --text-main: #e2e8f0;
+    --text-dim:  #94a3b8;
+    --text:      var(--text-main);
+
+    /* == On-colour text (text placed ON a coloured surface) ============ */
+    --on-accent:     #000;
+    --on-accent-inv: #fff;
+
+    /* == Border and Shadow ============================================= */
+    --border:       rgba(255,255,255,0.08);
+    --shadow-color: rgba(0,0,0,0.5);
+
+    /* == Purple secondary accent ======================================= */
+    --purple:      #8b5cf6;
+    --purple-glow: rgba(139,92,246,0.15);
+
+    /* == Aliases ======================================================= */
+    --card-bg:  var(--bg-card);
+
+    /* == Layout ======================================================== */
+    --sidebar-w: 260px;
+
+    /* == Market regime colours ========================================= */
+    --regime-accumulation: #818cf8;
+    --regime-trending:     #7dd3fc;
+    --regime-distribution: #fb923c;
+    --regime-volatile:     #f87171;
 }
 
 /* -- Sidebar: deep frosted glass -- */
@@ -3844,7 +4071,7 @@ input:focus, select:focus, textarea:focus {
     border: 1px solid rgba(125,211,252,0.5) !important;
     box-shadow: 0 4px 20px rgba(125,211,252,0.25),
                 inset 0 1px 0 rgba(255,255,255,0.2) !important;
-    color: #000 !important;
+    color: var(--on-accent) !important;
 }
 
 /* -- Premium badge: luminous glass -- */
