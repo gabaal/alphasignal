@@ -1,9 +1,54 @@
+// ── Fast-auth cache: skip network round-trip for returning users ──────────
+const AUTH_CACHE_KEY = 'as_auth_v1';
+const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCachedAuth() {
+    try {
+        const raw = localStorage.getItem(AUTH_CACHE_KEY);
+        if (!raw) return null;
+        const { data, ts } = JSON.parse(raw);
+        if (Date.now() - ts > AUTH_CACHE_TTL) { localStorage.removeItem(AUTH_CACHE_KEY); return null; }
+        return data;
+    } catch { return null; }
+}
+function setCachedAuth(data) {
+    try { localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
+function clearCachedAuth() {
+    try { localStorage.removeItem(AUTH_CACHE_KEY); } catch {}
+}
+
+
 async function checkAuthStatus() {
+    // Fast path: use cached auth for returning users (skip network round-trip)
+    const cached = getCachedAuth();
+    if (cached && cached.authenticated) {
+        isAuthenticatedUser = true;
+        isPremiumUser = cached.is_premium || false;
+        hasStripeId = cached.has_stripe_id || false;
+        showAuth(false);
+        const emailEl = document.getElementById('display-user-email');
+        const initialsEl = document.getElementById('user-initials');
+        if (cached.email) {
+            if (emailEl) emailEl.textContent = cached.email;
+            if (initialsEl) initialsEl.textContent = cached.email.substring(0, 2).toUpperCase();
+        }
+        updatePremiumUI();
+        if (typeof startSignalPoller === 'function') startSignalPoller();
+        // Validate & refresh cache silently in background
+        fetchAPI('/auth/status').then(s => {
+            if (s && s.authenticated) setCachedAuth(s);
+            else { clearCachedAuth(); location.reload(); }
+        }).catch(() => {});
+        return true;
+    }
+
     const status = await fetchAPI('/auth/status');
     if (status && status.authenticated) {
         isAuthenticatedUser = true;
         isPremiumUser = status.is_premium || false;
         hasStripeId = status.has_stripe_id || false;
+        setCachedAuth(status);
         showAuth(false);
         
         // Populate New Profile Card
@@ -15,18 +60,17 @@ async function checkAuthStatus() {
         }
         
         updatePremiumUI();
-        // v1.56: Start ambient signal toast poller for PRO users
         if (typeof startSignalPoller === 'function') startSignalPoller();
         return true;
     } else {
         isAuthenticatedUser = false;
         isPremiumUser = false;
-        // Don't force auth immediately, allow viewing signals
         showAuth(false); 
         updatePremiumUI();
         return false;
     }
 }
+
 
 function updatePremiumUI() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -120,6 +164,12 @@ function showAuth(visible) {
         if (layout) {
             layout.classList.remove('hidden');
             layout.style.filter = 'none';
+        }
+        // Dismiss the initial loading screen
+        const loader = document.getElementById('app-loader');
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => { if (loader.parentNode) loader.parentNode.removeChild(loader); }, 380);
         }
     }
 }
