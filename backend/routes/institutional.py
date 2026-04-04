@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 from backend.routes.realdata import (
     fetch_defi_llama_chains, fetch_binance_trades, fetch_volume_by_hour,
@@ -235,7 +236,7 @@ class InstitutionalRoutesMixin:
                 # Build 24h history by jittering around the real current rate
                 rates = [round(base_rate + float(rng.normal(0, 0.008)), 4) for _ in hours]
                 rates[-1] = base_rate  # most recent = real value
-                annual = round(base_rate * 3 * 365, 2)  # 8h rate × 3 × 365
+                annual = round(base_rate * 3 * 365, 2)  # 8h rate * 3 * 365
                 rows.append({'asset': asset, 'rates': rates, 'current': base_rate, 'annual': annual,
                              'live': asset in live_rates})
             source = 'binance_fapi' if live_rates else 'synthetic'
@@ -576,7 +577,7 @@ class InstitutionalRoutesMixin:
                 mean_365 = closes[max(0, i-365):i+1].mean()
 
                 # -- MVRV: market cap / realized cap ------------------
-                # Realized cap proxy = 200-day avg price × supply
+                # Realized cap proxy = 200-day avg price ?? supply
                 mean_200   = closes[max(0, i-200):i+1].mean()
                 market_cap = real_mktcap_series.get(ts) or (pr * supply)
                 realized_cap = mean_200 * supply
@@ -893,7 +894,7 @@ class InstitutionalRoutesMixin:
                 if r.status_code == 200:
                     unconfirmed = int(r.text.strip())
             except: pass
-            # Scale factor: 0 txs = 0.5×, ~100k txs = 2×
+            # Scale factor: 0 txs = 0.5??, ~100k txs = 2??
             cf = min(2.5, max(0.5, unconfirmed / 40000)) if unconfirmed > 0 else 1.0
             def s(base): return round(base * cf)
             nodes = [
@@ -3415,8 +3416,8 @@ class InstitutionalRoutesMixin:
             conn.close()
             notifs = []
             for row_id, sig_type, ticker, message, severity, price, ts in rows:
-                icon = 'ðŸš€' if sig_type == 'SENTIMENT_SPIKE' else 'ðŸ“ˆ' if sig_type == 'MOMENTUM_BREAKOUT' else 'âš¡'
-                notifs.append({'id': row_id, 'icon': icon, 'title': f"{ticker} â€” {sig_type.replace('_', ' ')}", 'body': message, 'timestamp': ts, 'type': sig_type})
+                icon = '????????' if sig_type == 'SENTIMENT_SPIKE' else '????????' if sig_type == 'MOMENTUM_BREAKOUT' else '??????'
+                notifs.append({'id': row_id, 'icon': icon, 'title': f"{ticker} ?????? {sig_type.replace('_', ' ')}", 'body': message, 'timestamp': ts, 'type': sig_type})
             self.send_json({'notifications': notifs, 'unread': unread})
         except Exception as e:
             print(f'Notifications Error: {e}')
@@ -4002,7 +4003,7 @@ class InstitutionalRoutesMixin:
             self.send_json([])
 
     def handle_backtest_v2(self):
-        """Phase 16-E: Signal Backtester v2 â€” live signal history + real price data."""
+        """Phase 16-E: Signal Backtester v2 ?????? live signal history + real price data."""
         try:
             query     = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             hold_bars = int(query.get('hold', ['5'])[0])
