@@ -230,13 +230,38 @@ class InstitutionalRoutesMixin:
             except Exception as e:
                 print(f'[FundingRates/Binance] {e}')
 
-            rng = np.random.default_rng(int(time.time() // 3600))
+            # Fetch real 8h funding rate snapshots from Binance FAPI (3 periods = 24h)
+            hist_rates_cache = {}
             for asset in assets:
-                base_rate = live_rates.get(asset, round(float(rng.normal(0.01, 0.03)), 4))
-                # Build 24h history by jittering around the real current rate
-                rates = [round(base_rate + float(rng.normal(0, 0.008)), 4) for _ in hours]
-                rates[-1] = base_rate  # most recent = real value
-                annual = round(base_rate * 3 * 365, 2)  # 8h rate ? 3 ? 365
+                sym_usdt = f'{asset}USDT'
+                try:
+                    hr = requests.get(
+                        'https://fapi.binance.com/fapi/v1/fundingRate',
+                        params={'symbol': sym_usdt, 'limit': 24},
+                        headers={'User-Agent': 'AlphaSignal/1.25'},
+                        timeout=5
+                    )
+                    if hr.status_code == 200 and hr.json():
+                        hist_rates_cache[asset] = [round(float(x.get('fundingRate', 0)) * 100, 4) for x in hr.json()]
+                except Exception:
+                    pass
+
+            for asset in assets:
+                base_rate = live_rates.get(asset, 0.0)
+                real_hist = hist_rates_cache.get(asset)
+                if real_hist and len(real_hist) >= len(hours):
+                    # Use the last len(hours) real snapshots, most-recent last
+                    rates = real_hist[-len(hours):]
+                elif real_hist:
+                    # Pad front with the oldest known real rate
+                    pad = [real_hist[0]] * (len(hours) - len(real_hist))
+                    rates = pad + real_hist
+                else:
+                    # No history: flat-fill with the live rate (deterministic, no jitter)
+                    rates = [base_rate] * len(hours)
+                # Ensure the most recent slot always equals the live current rate
+                rates[-1] = base_rate
+                annual = round(base_rate * 3 * 365, 2)  # 8h rate × 3 × 365
                 rows.append({'asset': asset, 'rates': rates, 'current': base_rate, 'annual': annual,
                              'live': asset in live_rates})
             source = 'binance_fapi' if live_rates else 'synthetic'
@@ -270,7 +295,27 @@ class InstitutionalRoutesMixin:
             except: pass
             sentiment = float(get_sentiment(sym)) if sym else 50.0
             regime_score = min(100, max(0, momentum * 0.6 + (100 - volatility) * 0.4))
-            corr_div = round(float(np.random.default_rng(abs(hash(sym)) % 2**32).uniform(30, 85)), 1)
+            # Derive corr_div from real 30d Pearson correlation vs BTC (crypto) or SPY (equity)
+            corr_div = 50.0  # neutral default
+            try:
+                ref_ticker = 'SPY' if sym.upper() in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'] else 'BTC-USD'
+                if ticker == ref_ticker:
+                    corr_div = 0.0  # self-correlation → fully correlated → zero divergence
+                else:
+                    ref_df = CACHE.download(ref_ticker, period='30d', interval='1d')
+                    ref_closes = self._get_price_series(ref_df, ref_ticker)
+                    if ref_closes is not None and closes is not None and len(ref_closes) > 5 and len(closes) > 5:
+                        ref_s = ref_closes.squeeze().pct_change().dropna()
+                        tick_s = closes.squeeze().pct_change().dropna()
+                        min_len = min(len(ref_s), len(tick_s))
+                        if min_len > 4:
+                            with np.errstate(invalid='ignore', divide='ignore'):
+                                corr_val = float(np.corrcoef(tick_s.values[-min_len:], ref_s.values[-min_len:])[0, 1])
+                            if not np.isnan(corr_val):
+                                # divergence: high corr → low score, low corr → high score
+                                corr_div = round((1.0 - abs(corr_val)) * 100, 1)
+            except Exception as _ce:
+                print(f'[SignalRadar/CorrDiv] {_ce}')
             self.send_json({
                 'ticker': sym,
                 'labels': ['Momentum', 'Volume Confirmation', 'Sentiment', 'ML Confidence', 'Regime Alignment', 'Corr. Divergence'],
@@ -375,7 +420,7 @@ class InstitutionalRoutesMixin:
             # Build daily rows for past 365 days
             rows = []
             today = dt.date.today()
-            fallback = {'y2': 4.25, 'y5': 3.95, 'y10': 4.31, 'y30': 4.89}  # Apr 2025 approx
+            fallback = {'y2': 3.88, 'y5': 3.94, 'y10': 4.19, 'y30': 4.61}  # Apr 2026
             for i in range(365):
                 d = today - dt.timedelta(days=364 - i)
                 d_ts = pd.Timestamp(d)  # tz-naive, matches normalised index
@@ -404,7 +449,7 @@ class InstitutionalRoutesMixin:
             print(f'[YieldCurve] Error: {e}')
             import traceback; traceback.print_exc()
             # Never return an error - always serve synthetic so the chart always renders
-            fallback = {'y2': 4.25, 'y5': 3.95, 'y10': 4.31, 'y30': 4.89}  # Apr 2025 approx
+            fallback = {'y2': 3.88, 'y5': 3.94, 'y10': 4.19, 'y30': 4.61}  # Apr 2026
             import datetime as dt2
             rows = []
             today = dt2.date.today()
@@ -667,7 +712,16 @@ class InstitutionalRoutesMixin:
                     
                     # Synthetic Funding (Relative to Risk-Free Rate / Lending)
                     funding = 0.005 + vol * 0.1
-                    ls_ratio = 1.0 + random.uniform(-0.15, 0.45) # Skewed bullish for proxies
+                    # Derive L/S ratio from 20d price momentum — no random
+                    try:
+                        hist_close_20d = self._get_price_series(hist, ticker).squeeze()
+                        if len(hist_close_20d) >= 20:
+                            pct_20d = float((hist_close_20d.iloc[-1] - hist_close_20d.iloc[-20]) / hist_close_20d.iloc[-20])
+                        else:
+                            pct_20d = float((hist_close_20d.iloc[-1] - hist_close_20d.iloc[0]) / hist_close_20d.iloc[0])
+                        ls_ratio = round(max(0.4, min(2.5, 1.0 + pct_20d * 2.5)), 2)
+                    except Exception:
+                        ls_ratio = 1.0
                     liquidations = f'${oi_val * vol / 20:.1f}M'
             except: pass
         else:
@@ -698,64 +752,105 @@ class InstitutionalRoutesMixin:
         })
 
     def handle_liquidations_map(self):
-        """Phase 11: Quantitative Liquidation Bubble Map Generator."""
+        """Deterministic liquidation cluster map from Binance FAPI mark price + OI."""
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             symbol = query.get('symbol', ['BTCUSDT'])[0]
-            
-            # Universal Ticker Mapping
+
             is_equity = symbol.upper() in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK']
             ticker = symbol if is_equity else symbol.replace('USDT', '-USD')
-            
-            # Fetch 1h data for enough resolution for a map
+            sym_usdt = symbol if symbol.upper().endswith('USDT') else f"{symbol}USDT"
+
+            hdr = {'User-Agent': 'AlphaSignal/1.25'}
+            base_price = None
+            open_interest = 0.0
+            ls_ratio = 1.0
+            vol_proxy = 0.01
+
+            # 1. Live mark price + current funding rate
+            if not is_equity:
+                try:
+                    rp = requests.get(f'https://fapi.binance.com/fapi/v1/premiumIndex?symbol={sym_usdt}',
+                                      headers=hdr, timeout=6)
+                    if rp.ok:
+                        base_price = float(rp.json().get('markPrice', 0)) or None
+                except Exception as _e:
+                    print(f'[LiqMap/price] {_e}')
+
+                # 2. Open interest (raw contract units × mark price = notional)
+                try:
+                    roi = requests.get(f'https://fapi.binance.com/fapi/v1/openInterest?symbol={sym_usdt}',
+                                       headers=hdr, timeout=6)
+                    if roi.ok and base_price:
+                        open_interest = float(roi.json().get('openInterest', 0)) * base_price
+                except Exception as _e:
+                    print(f'[LiqMap/oi] {_e}')
+
+                # 3. Long/short ratio
+                try:
+                    rls = requests.get('https://fapi.binance.com/futures/data/globalLongShortAccountRatio',
+                                       params={'symbol': sym_usdt, 'period': '5m', 'limit': 1},
+                                       headers=hdr, timeout=6)
+                    if rls.ok and rls.json():
+                        ls_ratio = float(rls.json()[0].get('longShortRatio', 1.0))
+                except Exception as _e:
+                    print(f'[LiqMap/ls] {_e}')
+
+            # 4. Historical volatility from yfinance (for cluster sizing)
             df = CACHE.download(ticker, period='2d', interval='1h')
             if df is None or df.empty:
                 self.send_json([])
                 return
-            
-            closes = self._get_price_series(df, ticker).values
+            closes = self._get_price_series(df, ticker)
+            if closes is None or len(closes) < 2:
+                self.send_json([])
+                return
+            closes = closes.squeeze()
             times = [int(x.timestamp()) for x in df.index]
-            
+            if base_price is None:
+                base_price = float(closes.iloc[-1])
+            vol_proxy = max(0.003, float(closes.pct_change().dropna().std()))
+
+            oi_b = open_interest / 1e9 if open_interest > 1e6 else 1.0
+            long_bias  = min(1.0, ls_ratio / 2.0)
+            short_bias = min(1.0, 1.0 / max(ls_ratio, 0.5))
+
+            # 5. Build deterministic cluster events pinned to hourly candles
+            # Each candle gets a fixed set of cluster "bubbles" at ±1std, ±2std, ±3std offsets
             liquidations = []
-            random.seed(symbol + str(len(closes)))
-            
-            # Liquidation Pulse Model: 
-            # - Triggered at "Pain Points" (Standard Deviations away from Mean)
-            # - Size linked to Absolute Return
+            rolling_std = closes.rolling(12).std().fillna(closes.std())
+
             for i in range(1, len(closes)):
-                pr = float(closes[i])
-                prev_pr = float(closes[i-1])
-                ret = (pr - prev_pr) / prev_pr
-                
-                # Probability of liquidations increases with volatility
-                vol_proxy = np.std(np.diff(closes[max(0, i-24):i+1]) / closes[max(0, i-24):i]) if i > 5 else 0.01
-                
-                # 20% chance per hour to have a "Pulse Event"
-                if random.random() < (0.2 + vol_proxy * 5):
-                    # Multi-event Pulse (Institutional markets have tiered stop clusters)
-                    events = random.randint(1, 4)
-                    for _ in range(events):
-                        # Price is slightly offset around the candle range to simulate "Hunting"
-                        offset = random.uniform(-0.002, 0.002)
-                        liq_price = pr * (1 + offset)
-                        
-                        # Side: High price jump liquidates SHORTS (BUY to cover), Crash liquidates LONGS (SELL)
-                        side = "buy" if ret > 0.005 else "sell" if ret < -0.005 else random.choice(["buy", "sell"])
-                        
-                        # Size: $0.1M to $5.0M
-                        size = abs(ret) * 100 * random.uniform(0.5, 2.0)
-                        size = max(0.1, min(size, 5.0))
-                        
-                        liquidations.append({
-                            'time': times[i],
-                            'price': round(liq_price, 2),
-                            'side': side,
-                            'size': round(size, 2)
-                        })
-            
+                pr = float(closes.iloc[i])
+                std_val = float(rolling_std.iloc[i])
+                ret = (pr - float(closes.iloc[i - 1])) / float(closes.iloc[i - 1])
+                t = times[i]
+
+                # Cluster levels: deterministic offsets in std units
+                for std_mult, side_bias in [(1.0, 'buy'), (2.0, 'buy'), (3.0, 'buy'),
+                                             (-1.0, 'sell'), (-2.0, 'sell'), (-3.0, 'sell')]:
+                    liq_price = round(pr + std_mult * std_val, 2)
+                    # Only emit event if candle closed on the same side as the cluster
+                    if std_mult > 0 and ret > 0.002:
+                        side = 'buy'
+                    elif std_mult < 0 and ret < -0.002:
+                        side = 'sell'
+                    else:
+                        continue  # no liquidation this candle at this level
+
+                    # Notional: OI-scaled by std distance, no random
+                    size = max(0.05, round(oi_b * (1 / abs(std_mult)) * vol_proxy * 20, 2))
+                    size = min(size, 8.0)
+                    liquidations.append({
+                        'time': t,
+                        'price': liq_price,
+                        'side': side,
+                        'size': round(size, 2)
+                    })
+
             self.send_json(liquidations)
         except Exception as e:
-            print(f'[{datetime.now()}] Liquidation Map Error: {e}')
+            print(f'[{datetime.now()}] LiquidationMap Error: {e}')
             self.send_json([])
 
     def handle_chain_velocity(self):
