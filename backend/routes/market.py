@@ -324,7 +324,7 @@ class MarketRoutesMixin:
                 # Fetch 15 days to guarantee 10 trading days
                 tickers = [e['ticker'] for e in etfs]
                 raw = yf.download(tickers, period='15d', interval='1d', auto_adjust=True, progress=False)
-                close = raw['Close'] if 'Close' in raw else raw
+                close = raw['Close'] if isinstance(raw.columns, pd.MultiIndex) else raw
                 close = close.dropna(how='all').tail(10)
                 labels = [d.strftime('%a %d %b') for d in close.index]
                 cumulative_net = [0.0] * len(labels)
