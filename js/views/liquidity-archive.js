@@ -324,23 +324,46 @@ async function renderLiquidityView(tabs = null) {
     function renderVolatilityMode() {
         sectionTitle.textContent = 'Volatility Surface — Options IV Smile & Skew';
         if (!volData) { display.innerHTML = `<div class="empty-state">Options volatility data unavailable</div>`; return; }
-        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommVolChart" role="img" aria-label="Volume surface chart"></canvas></div></div>`;
+
+        // Map backend fields → chart fields
+        // Backend sends: expiry_labels (string[]), moneyness_axis (float[]), iv_grid (float[][])
+        const labels  = volData.expiries      || volData.expiry_labels || [];
+        const grid    = volData.iv_grid       || [];
+        const money   = volData.moneyness_axis|| [];
+
+        // ATM IV: row whose moneyness is closest to 1.0
+        let atmRow = volData.atm_iv || null;
+        if (!atmRow && grid.length && money.length) {
+            const atmIdx = money.reduce((best, m, i) => Math.abs(m - 1.0) < Math.abs(money[best] - 1.0) ? i : best, 0);
+            atmRow = grid[atmIdx] || [];
+        }
+
+        // 25Δ skew: (OTM put IV - OTM call IV) per expiry
+        // Put side ≈ moneyness 0.75, Call side ≈ moneyness 1.25
+        let skew = volData.skew || null;
+        if (!skew && grid.length && money.length) {
+            const putIdx  = money.reduce((b, m, i) => Math.abs(m - 0.75) < Math.abs(money[b] - 0.75) ? i : b, 0);
+            const callIdx = money.reduce((b, m, i) => Math.abs(m - 1.25) < Math.abs(money[b] - 1.25) ? i : b, 0);
+            skew = (grid[putIdx] || []).map((iv, i) => parseFloat((iv - (grid[callIdx]?.[i] || iv)).toFixed(2)));
+        }
+
+        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommVolChart" role="img" aria-label="Volatility surface chart"></canvas></div></div>`;
         setTimeout(() => {
             const ctx = document.getElementById('gommVolChart')?.getContext('2d');
             if (!ctx) return;
             new Chart(ctx, {
                 type: 'line',
-                data: { labels: volData.expiries,
+                data: { labels,
                     datasets: [
-                        { label: 'ATM IV (%)', data: volData.atm_iv, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.1)', borderWidth: 3, tension: 0.3, fill: true },
-                        { label: '25Δ Skew',   data: volData.skew,   borderColor: '#ff0055', borderDash: [5,5], borderWidth: 2, tension: 0.3, yAxisID: 'y1' }
+                        { label: 'ATM IV (%)', data: atmRow, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.1)', borderWidth: 3, tension: 0.3, fill: true },
+                        { label: '25Δ Skew',   data: skew,   borderColor: '#ff0055', borderDash: [5,5], borderWidth: 2, tension: 0.3, yAxisID: 'y1' }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Expiry Date', color: '#666', font: { size: 9 } } },
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Expiry', color: '#666', font: { size: 9 } } },
                         y:  { type: 'linear', position: 'left',  grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Implied Volatility (%)', color: '#f7931a', font: { size: 9 } } },
-                        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: '25Δ Skew', color: '#ff0055', font: { size: 9 } } }
+                        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: '25Δ Skew (%)', color: '#ff0055', font: { size: 9 } } }
                     }
                 }
             });
