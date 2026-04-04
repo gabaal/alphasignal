@@ -194,8 +194,15 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <link rel="stylesheet" href="styles.css?v=1.68" media="print" onload="this.media='all'" fetchpriority="high">
     <noscript><link rel="stylesheet" href="styles.css?v=1.68"></noscript>
     <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Fonts: non-render-blocking — inline critical CSS handles skeleton -->
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"></noscript>
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
     <!-- Supabase JS client (for forgot-password / reset-password flows) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- NOTE: D3 and jsPDF loaded once in body with defer. No duplicates here. -->
