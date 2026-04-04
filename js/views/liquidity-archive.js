@@ -387,15 +387,74 @@ async function renderLiquidityView(tabs = null) {
     // Render active sub-view
     window._gommSwitch(activeMode);
 
-    // Populate whale watch
-    if (whaleData && whaleData.entities) {
-        const el = document.getElementById('whale-watch-content');
-        if (el) el.innerHTML = whaleData.entities.map(e => `
-            <div class="whale-item">
+    // ── Live Whale Watch Poller ────────────────────────────────────
+    const WHALE_POLL = 15000; // 15s — hourly backend seed, but last_tx + HFW addr change
+
+    function buildWhaleHTML(entities) {
+        return entities.map(e => {
+            const statusClass = e.status.toLowerCase().replace(/\s+/g, '-');
+            const statusColor = e.status.includes('Accumul') ? 'var(--risk-low)'
+                              : e.status.includes('Distrib') ? 'var(--risk-high)'
+                              : e.status.includes('Buying')  ? 'var(--accent)'
+                              : 'var(--text-dim)';
+            return `<div class="whale-item" data-addr="${e.address}">
                 <div class="whale-header"><span class="whale-name">${e.name}</span><span class="whale-type">${e.type}</span></div>
-                <div class="whale-status"><span class="status-${e.status.toLowerCase()}">${e.status.toUpperCase()}</span><span style="color:var(--text-dim)">${e.last_tx}</span></div>
-            </div>`).join('');
+                <div class="whale-status">
+                    <span style="color:${statusColor};font-weight:700">${e.status.toUpperCase()}</span>
+                    <span style="color:var(--text-dim);font-size:0.65rem">${e.last_tx}</span>
+                </div>
+            </div>`;
+        }).join('');
     }
+
+    // Render initial batch
+    const whaleEl = document.getElementById('whale-watch-content');
+    if (whaleEl && whaleData?.entities) {
+        whaleEl.innerHTML = buildWhaleHTML(whaleData.entities);
+    }
+
+    // Add pulse dot to WHALE WATCH label
+    const whaleLabel = document.querySelector('[id="whale-watch-content"]')?.previousElementSibling
+        || document.evaluate('//*[contains(text(),"WHALE WATCH")]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null)?.singleNodeValue;
+    if (whaleLabel) {
+        whaleLabel.insertAdjacentHTML('afterbegin',
+            '<span style="display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:5px;animation:livePulse 1.5s infinite;box-shadow:0 0 6px var(--accent)"></span>');
+    }
+
+    let prevWhaleEntities = whaleData?.entities || [];
+
+    const whaleTimer = setInterval(async () => {
+        const el = document.getElementById('whale-watch-content');
+        if (!el) { clearInterval(whaleTimer); return; }
+        try {
+            const fresh = await fetchAPI('/whales_entity?ticker=BTC-USD');
+            if (!fresh?.entities) return;
+
+            // Detect status changes by comparing with previous snapshot
+            const prevMap = new Map(prevWhaleEntities.map(e => [e.name, e.status]));
+            const changed = new Set(fresh.entities
+                .filter(e => prevMap.has(e.name) && prevMap.get(e.name) !== e.status)
+                .map(e => e.name));
+
+            el.innerHTML = buildWhaleHTML(fresh.entities);
+
+            // Flash changed rows
+            if (changed.size) {
+                el.querySelectorAll('.whale-item').forEach(row => {
+                    const name = row.querySelector('.whale-name')?.textContent;
+                    if (changed.has(name)) {
+                        row.style.animation = 'none';
+                        row.style.transition = 'background 0.4s';
+                        row.style.background = 'rgba(125,211,252,0.08)';
+                        setTimeout(() => { row.style.background = ''; }, 1200);
+                    }
+                });
+            }
+
+            prevWhaleEntities = fresh.entities;
+        } catch(e) { /* silent */ }
+    }, WHALE_POLL);
+
 
     // ── Live Tape Poller ────────────────────────────────────────────
     const TAPE_MAX   = 40;       // max pills kept in strip
