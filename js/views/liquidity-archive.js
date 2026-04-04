@@ -65,7 +65,7 @@ async function renderLiquidityView(tabs = null) {
         <!-- Full-width Institutional Tape strip -->
         <div class="glass-card" style="margin-top:1rem;padding:0.6rem 1rem">
             <div style="display:flex;align-items:center;gap:1rem;overflow:hidden">
-                <div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);white-space:nowrap;flex-shrink:0">⚡ INST. TAPE</div>
+                <div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);white-space:nowrap;flex-shrink:0"><span style="display:inline-block;width:6px;height:6px;background:#22c55e;border-radius:50%;margin-right:5px;animation:livePulse 1.5s infinite;box-shadow:0 0 6px #22c55e"></span>INST. TAPE</div>
                 <div id="tape-content" style="display:flex;gap:0.5rem;overflow-x:auto;flex:1;scrollbar-width:none;padding-bottom:2px"></div>
             </div>
         </div>`;
@@ -397,23 +397,61 @@ async function renderLiquidityView(tabs = null) {
             </div>`).join('');
     }
 
-    // Populate tape — compact horizontal pills
-    if (tapeData && tapeData.trades) {
-        const el = document.getElementById('tape-content');
-        if (el) el.innerHTML = tapeData.trades.map(t => {
-            const isBuy  = t.side === 'BUY';
-            const color  = isBuy ? 'rgba(34,197,94,1)' : 'rgba(239,68,68,1)';
-            const bg     = isBuy ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
-            const inst   = t.institutional ? '<span style="font-size:0.45rem;background:rgba(0,242,255,0.15);color:var(--accent);padding:1px 4px;border-radius:3px;margin-left:3px">INST</span>' : '';
-            return '<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;background:' + bg + ';border:1px solid ' + color + '33;white-space:nowrap;flex-shrink:0">'
-                + '<span style="font-size:0.55rem;color:var(--text-dim)">' + (t.time||'').slice(-5) + '</span>'
-                + '<span style="font-size:0.6rem;font-weight:900;color:' + color + '">' + t.side + '</span>'
-                + '<span style="font-size:0.65rem;font-weight:700;color:var(--text)">' + t.size + '</span>'
-                + '<span style="font-size:0.55rem;color:var(--text-dim)">@ ' + Math.round(t.price).toLocaleString() + '</span>'
-                + '<span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">' + (t.exchange||'').toUpperCase() + '</span>'
-                + inst + '</div>';
-        }).join('');
+    // ── Live Tape Poller ────────────────────────────────────────────
+    const TAPE_MAX   = 40;       // max pills kept in strip
+    const TAPE_POLL  = 3000;     // ms between refreshes
+    const seenIds    = new Set((tapeData?.trades || []).map(t => t.id));
+
+    function buildTapePill(t, flash) {
+        const isBuy = t.side === 'BUY';
+        const color = isBuy ? 'rgba(34,197,94,1)' : 'rgba(239,68,68,1)';
+        const bg    = isBuy ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
+        const inst  = t.institutional ? '<span style="font-size:0.45rem;background:rgba(0,242,255,0.15);color:var(--accent);padding:1px 4px;border-radius:3px;margin-left:3px">INST</span>' : '';
+        const anim  = flash ? 'animation:tapePillIn 0.35s ease;' : '';
+        return '<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;background:' + bg
+            + ';border:1px solid ' + color + '33;white-space:nowrap;flex-shrink:0;' + anim + '">'
+            + '<span style="font-size:0.55rem;color:var(--text-dim)">' + (t.time||'').slice(-5) + '</span>'
+            + '<span style="font-size:0.6rem;font-weight:900;color:' + color + '">' + t.side + '</span>'
+            + '<span style="font-size:0.65rem;font-weight:700;color:var(--text)">' + t.size + '</span>'
+            + '<span style="font-size:0.55rem;color:var(--text-dim)">@ ' + Math.round(t.price).toLocaleString() + '</span>'
+            + '<span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">' + (t.exchange||'').toUpperCase() + '</span>'
+            + inst + '</div>';
     }
+
+    // Render initial batch
+    const tapeEl = document.getElementById('tape-content');
+    if (tapeEl && tapeData?.trades) {
+        tapeEl.innerHTML = tapeData.trades.map(t => buildTapePill(t, false)).join('');
+    }
+
+    // Inject keyframe if not already present
+    if (!document.getElementById('tape-kf')) {
+        const s = document.createElement('style');
+        s.id = 'tape-kf';
+        s.textContent = '@keyframes tapePillIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}';
+        document.head.appendChild(s);
+    }
+
+    // Live polling loop — stops when tape-content is removed from DOM
+    const tapeTimer = setInterval(async () => {
+        const el = document.getElementById('tape-content');
+        if (!el) { clearInterval(tapeTimer); return; }
+        try {
+            const fresh = await fetchAPI('/tape?ticker=BTC-USD');
+            if (!fresh?.trades) return;
+            // Find genuinely new trades
+            const newTrades = fresh.trades.filter(t => !seenIds.has(t.id));
+            if (!newTrades.length) return;
+            newTrades.forEach(t => seenIds.add(t.id));
+            // Prepend new pills (newest at left)
+            const frag = newTrades.map(t => buildTapePill(t, true)).join('');
+            el.insertAdjacentHTML('afterbegin', frag);
+            // Trim excess pills
+            while (el.children.length > TAPE_MAX) el.removeChild(el.lastChild);
+            // Scroll new pills into view
+            el.scrollLeft = 0;
+        } catch(e) { /* silent — keep polling */ }
+    }, TAPE_POLL);
 }
 async function renderSignalArchive(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
