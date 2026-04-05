@@ -103,6 +103,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                                     border:1px solid ${dir==='LONG'?'rgba(34,197,94,0.35)':'rgba(239,68,68,0.35)'};
                                     color:${dir==='LONG'?'#22c55e':'#ef4444'}">${dir}</div>
                             </div>
+                        </div>
                         <div class="metrics" style="align-items:flex-end;min-width:110px">
                             <div class="metric-line">
                                 <span>Price</span>
