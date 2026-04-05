@@ -98,7 +98,7 @@ async function openAIAnalyst(ticker) {
                     <span class="material-symbols-outlined" style="font-size:0.9rem">radar</span>SIGNAL CONFIDENCE RADAR
                 </div>
                 <div style="display:flex;justify-content:center;">
-                    <div style="width:260px;height:260px;"><canvas id="ai-modal-radar"></canvas></div>
+                    <div style="width:340px;height:340px;"><canvas id="ai-modal-radar"></canvas></div>
                 </div>`;
             content.appendChild(radarWrap);
 
