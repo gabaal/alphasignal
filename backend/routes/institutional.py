@@ -4803,18 +4803,37 @@ class InstitutionalRoutesMixin:
                     print(f'[CapRot] {ticker}: {ex}')
                     return 0.0
 
-            # ── Fetch all returns in parallel ──────────────────────────────
-            from concurrent.futures import ThreadPoolExecutor, as_completed
-            all_tickers = [(name, sym, sect)
-                           for sect, assets in SECTORS.items()
-                           for name, sym in assets]
+            # ── Fetch all returns in a single batch download (thread-safe) ─────
+            all_syms  = [sym  for _, assets in SECTORS.items() for _, sym  in assets]
+            name_syms = [(name, sym, sect)
+                         for sect, assets in SECTORS.items() for name, sym in assets]
+
+            try:
+                raw = yf.download(all_syms, period='35d', interval='1d',
+                                  auto_adjust=True, progress=False, group_by='ticker')
+            except Exception as dl_err:
+                print(f'[CapRot] batch download error: {dl_err}')
+                raw = None
+
             returns_map = {}
-            with ThreadPoolExecutor(max_workers=8) as ex:
-                fut_map = {ex.submit(_get_30d_return, sym): (name, sym, sect)
-                           for name, sym, sect in all_tickers}
-                for fut in as_completed(fut_map):
-                    name, sym, sect = fut_map[fut]
-                    returns_map[(sect, name)] = fut.result()
+            for name, sym, sect in name_syms:
+                try:
+                    if raw is None:
+                        returns_map[(sect, name)] = 0.0
+                        continue
+                    # Multi-ticker download → MultiIndex (field, ticker) or (ticker, field)
+                    try:
+                        closes = raw['Close'][sym].dropna()
+                    except (KeyError, TypeError):
+                        closes = raw[sym]['Close'].dropna()
+                    if len(closes) < 2:
+                        returns_map[(sect, name)] = 0.0
+                    else:
+                        returns_map[(sect, name)] = round(
+                            float((closes.iloc[-1] / closes.iloc[0] - 1) * 100), 2)
+                except Exception as ex:
+                    print(f'[CapRot] {sym}: {ex}')
+                    returns_map[(sect, name)] = 0.0
 
             # ── Build hierarchy with offset-normalised sector weights ────────
             # Use actual mean return + large offset (50) so negatives still
