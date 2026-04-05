@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -202,10 +202,12 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- d3.v7 and jsPDF loaded with defer in body â€” no blocking duplicates -->
 </head>
 <body class="cyber-theme">
-    <!-- â”Œâ”€ APP LOADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+    <!-- â”Œâ”€ APP LOADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” 
          â”‚ Visible immediately at HTML parse time â€” gives FCP at ~335ms      â”‚
          â”‚ before any JS runs. Dismissed by showAuth() in auth.js.           â”‚
          â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ -->
@@ -458,9 +460,18 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <div id="ai-modal" class="overlay hidden">
         <div class="overlay-content ai-analyst-panel">
             <button class="close-ai-modal" aria-label="Close AI Analyst Modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">&times;</button>
-            <div class="ai-header">
-                <div class="ai-orb"></div>
-                <h2>Alpha Intelligence Analyst</h2>
+            <div class="ai-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="display:flex;align-items:center;gap:10px;flex:1;">
+                    <div class="ai-orb"></div>
+                    <h2 style="margin:0;">Alpha Intelligence Analyst</h2>
+                </div>
+                <button onclick="exportDeepDivePDF()" aria-label="Export Deep-Dive to PDF"
+                    style="background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.25);color:#7dd3fc;
+                           padding:4px 14px;border-radius:6px;cursor:pointer;font-size:0.62rem;font-weight:900;
+                           letter-spacing:1px;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;">
+                    <span class="material-symbols-outlined" style="font-size:14px;">picture_as_pdf</span>EXPORT PDF
+                </button>
+                <div style="flex:1;"></div>
             </div>
             <div id="ai-synthesis-content" class="ai-text-flow">
                 <!-- AI text/synthesis injected here -->

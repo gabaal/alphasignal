@@ -65,6 +65,79 @@ function generateAssetReport(ticker) {
 
 
 
+// ============= Export Deep-Dive PDF =============
+async function exportDeepDivePDF() {
+    const content = document.getElementById('ai-synthesis-content');
+    if (!content) return;
+
+    const btn = document.querySelector('[onclick="exportDeepDivePDF()"]');
+    if (btn) { btn.textContent = 'GENERATING...'; btn.disabled = true; }
+
+    try {
+        const canvas = await html2canvas(content, {
+            backgroundColor: '#0d1117',
+            scale: 2,
+            useCORS: true,
+            logging: false
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 12;
+        const contentW = pageW - margin * 2;
+
+        // Header bar
+        pdf.setFillColor(13, 17, 23);
+        pdf.rect(0, 0, pageW, pageH, 'F');
+        pdf.setFillColor(30, 37, 54);
+        pdf.rect(0, 0, pageW, 16, 'F');
+        pdf.setTextColor(0, 242, 255);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('ALPHASIGNAL // INTELLIGENCE DEEP-DIVE', margin, 10);
+        pdf.setTextColor(100, 120, 150);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(new Date().toLocaleString(), pageW - margin, 10, { align: 'right' });
+
+        // Content image
+        const imgData = canvas.toDataURL('image/png');
+        const imgW = contentW;
+        const imgH = (canvas.height / canvas.width) * imgW;
+        let yPos = 20;
+        let remainH = imgH;
+
+        while (remainH > 0) {
+            const sliceH = Math.min(remainH, pageH - yPos - margin);
+            const srcY = (imgH - remainH) / imgH * canvas.height;
+            const srcH = sliceH / imgH * canvas.height;
+
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = srcH;
+            sliceCanvas.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+            pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, yPos, imgW, sliceH);
+
+            remainH -= sliceH;
+            if (remainH > 0) { pdf.addPage(); yPos = margin; }
+        }
+
+        // Footer
+        pdf.setTextColor(60, 80, 100);
+        pdf.setFontSize(6);
+        pdf.text('AlphaSignal Intelligence Desk · AI Analysis Layer v2.1 · alphasignal.digital', pageW / 2, pageH - 5, { align: 'center' });
+
+        const ticker = content.querySelector('h3')?.textContent?.replace('Intelligence Deep-Dive: ', '') || 'report';
+        pdf.save(`AlphaSignal_DeepDive_${ticker}_${Date.now()}.pdf`);
+    } catch (e) {
+        console.error('PDF export failed:', e);
+        showToast('EXPORT FAILED', 'Could not generate PDF. Try again.', 'alert');
+    } finally {
+        if (btn) { btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">picture_as_pdf</span>EXPORT PDF'; btn.disabled = false; }
+    }
+}
+
 // ============= AI Analyst =============
 async function openAIAnalyst(ticker, dir = null, zscore = null) {
     if (!isAuthenticatedUser) {
