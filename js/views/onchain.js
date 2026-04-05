@@ -722,9 +722,13 @@ async function loadOptionsFlow(currency) {
     });
     try {
         const data = await fetchAPI('/options-flow', 'GET');
-        if (!data || data.error) { showToast('OPTIONS FLOW', data.error || 'API unavailable', 'alert'); return; }
+        if (!data || data.error) { showToast('OPTIONS FLOW', data?.error || 'API unavailable', 'alert'); return; }
         const d = data[currency];
-        if (!d || d.error) { showToast('OPTIONS FLOW', d && d.error || 'No data for ' + currency, 'alert'); return; }
+        if (!d || d.error) {
+            const spotTxt = d?.spot ? ` (Spot: $${Number(d.spot).toLocaleString()})` : '';
+            showToast('OPTIONS FLOW', `${currency}: ${d?.error || 'No options data'}${spotTxt}`, 'info');
+            return;
+        }
 
         const ids = ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'];
         const vals = [d.pcr, '$' + (d.max_pain||0).toLocaleString(), d.atm_iv + '%', d.iv_pct_rank + 'th', d.call_oi, d.put_oi];

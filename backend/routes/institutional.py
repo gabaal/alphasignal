@@ -4742,98 +4742,140 @@ class InstitutionalRoutesMixin:
         threading.Thread(target=_fetch_equities, daemon=True).start()
 
     def handle_options_flow(self):
-        """Real-time BTC + ETH options flow from Deribit public API, 15-min cached."""
+        """BTC/ETH/SOL/XRP options from Deribit. BTC+ETH are native-settled;
+        SOL+XRP are USDC-settled — fetched from the USDC book and filtered by prefix."""
         try:
             now = time.time()
             if now - self._options_cache_ts < 900 and self._options_cache:
                 self.send_json(self._options_cache); return
 
-            base = 'https://www.deribit.com/api/v2/public'
+            base   = 'https://www.deribit.com/api/v2/public'
             result = {}
+
+            # ── Fetch USDC book once (covers SOL, XRP instruments) ──────────
+            try:
+                usdc_r = requests.get(
+                    f'{base}/get_book_summary_by_currency?currency=USDC&kind=option',
+                    timeout=10)
+                usdc_instruments = usdc_r.json().get('result', []) if usdc_r.ok else []
+            except Exception:
+                usdc_instruments = []
+
+            # ── Spot price index map ─────────────────────────────────────────
+            INDEX_MAP = {
+                'BTC': 'btc_usd', 'ETH': 'eth_usd',
+                'SOL': 'sol_usd', 'XRP': 'xrp_usd',
+            }
+            # Settlement currency: native for BTC/ETH, USDC pool for SOL/XRP
+            NATIVE_CURRENCIES = {'BTC', 'ETH'}
+
+            def _parse_instruments(instruments, underlying_prefix=None):
+                """Shared parser for both native and USDC-settled option books."""
+                calls, puts = [], []
+                tv = tp = to_c = to_p = 0
+                for inst in instruments:
+                    name = inst.get('instrument_name', '')
+                    if underlying_prefix and not name.startswith(underlying_prefix):
+                        continue
+                    parts = name.split('-')
+                    if len(parts) < 4: continue
+                    try:
+                        strike      = float(parts[2])
+                        option_type = parts[3]
+                        vol  = inst.get('volume', 0) or 0
+                        oi   = inst.get('open_interest', 0) or 0
+                        iv   = inst.get('mark_iv', 0) or 0
+                        expiry = parts[1]
+                        entry = {'strike': strike, 'expiry': expiry,
+                                 'iv': round(iv, 1), 'volume': round(vol, 1),
+                                 'oi': round(oi, 1), 'type': option_type}
+                        if option_type == 'C':
+                            calls.append(entry); tv += vol; to_c += oi
+                        else:
+                            puts.append(entry);  tp += vol; to_p += oi
+                    except (ValueError, IndexError):
+                        continue
+                return calls, puts, tv, tp, to_c, to_p
+
+            def _build_result(calls, puts, total_call_vol, total_put_vol,
+                              total_call_oi, total_put_oi, spot):
+                pcr = round(total_put_vol / max(total_call_vol, 1), 3)
+
+                all_strikes = sorted(set(e['strike'] for e in calls + puts))
+                max_pain_strike = spot
+                min_pain = float('inf')
+                for s in all_strikes:
+                    pain = (sum(max(0, e['strike'] - s) * e['oi'] for e in calls) +
+                            sum(max(0, s - e['strike']) * e['oi'] for e in puts))
+                    if pain < min_pain:
+                        min_pain = pain; max_pain_strike = s
+
+                atm_ivs = [e['iv'] for e in calls + puts
+                           if e['iv'] > 0 and spot > 0
+                           and abs(e['strike'] - spot) / spot < 0.05]
+                atm_iv  = round(sum(atm_ivs) / len(atm_ivs), 1) if atm_ivs else 0
+                all_ivs = [e['iv'] for e in calls + puts if e['iv'] > 0]
+                iv_rank = round(
+                    sorted(all_ivs).index(min(all_ivs, key=lambda x: abs(x - atm_iv)))
+                    / max(len(all_ivs), 1) * 100, 0) if all_ivs else 50
+
+                top_strikes  = sorted(calls + puts, key=lambda x: x['oi'], reverse=True)[:12]
+                smile_calls  = sorted(
+                    [e for e in calls if spot > 0 and 0.7 < e['strike'] / spot < 1.3 and e['iv'] > 0],
+                    key=lambda x: x['strike'])
+                smile = [{'strike': e['strike'], 'iv': e['iv'],
+                          'moneyness': round((e['strike'] - spot) / spot * 100, 1)}
+                         for e in smile_calls[:20]]
+
+                return {
+                    'spot': round(spot, 2), 'pcr': pcr,
+                    'max_pain': round(max_pain_strike, 0), 'atm_iv': atm_iv,
+                    'iv_pct_rank': iv_rank,
+                    'call_volume': round(total_call_vol, 1),
+                    'put_volume':  round(total_put_vol, 1),
+                    'call_oi':     round(total_call_oi, 1),
+                    'put_oi':      round(total_put_oi, 1),
+                    'top_strikes': top_strikes, 'iv_smile': smile,
+                    'updated':     datetime.utcnow().strftime('%H:%M UTC')
+                }
 
             for currency in ['BTC', 'ETH', 'SOL', 'XRP']:
                 try:
-                    # Spot reference
-                    idx_r = requests.get(f'{base}/get_index_price?index_name={currency.lower()}_usd', timeout=5)
+                    # Spot price
+                    idx_r = requests.get(
+                        f'{base}/get_index_price?index_name={INDEX_MAP[currency]}',
+                        timeout=5)
                     spot = idx_r.json()['result']['index_price'] if idx_r.ok else 0
 
-                    # Book summary
-                    book_r = requests.get(f'{base}/get_book_summary_by_currency?currency={currency}&kind=option', timeout=8)
-                    if not book_r.ok:
-                        result[currency] = {'error': 'Deribit unavailable', 'spot': spot}
-                        continue
-                    instruments = book_r.json().get('result', [])
+                    if currency in NATIVE_CURRENCIES:
+                        # Native-settled: query their own currency book
+                        book_r = requests.get(
+                            f'{base}/get_book_summary_by_currency'
+                            f'?currency={currency}&kind=option', timeout=8)
+                        if not book_r.ok:
+                            result[currency] = {'error': 'Deribit unavailable', 'spot': spot}
+                            continue
+                        instruments = book_r.json().get('result', [])
+                        calls, puts, tv, tp, to_c, to_p = _parse_instruments(instruments)
+                    else:
+                        # USDC-settled (SOL, XRP): filter the shared USDC book
+                        prefix = f'{currency}-'
+                        calls, puts, tv, tp, to_c, to_p = _parse_instruments(
+                            usdc_instruments, underlying_prefix=prefix)
+                        if not calls and not puts:
+                            result[currency] = {
+                                'error': f'No {currency} options listed on Deribit currently',
+                                'spot': round(spot, 2)
+                            }
+                            continue
 
-                    calls, puts = [], []
-                    total_call_vol = total_put_vol = 0
-                    total_call_oi = total_put_oi = 0
+                    result[currency] = _build_result(calls, puts, tv, tp, to_c, to_p, spot)
 
-                    for inst in instruments:
-                        name = inst.get('instrument_name', '')
-                        parts = name.split('-')
-                        if len(parts) < 4: continue
-                        strike = float(parts[2])
-                        option_type = parts[3]  # 'C' or 'P'
-                        vol = inst.get('volume', 0) or 0
-                        oi  = inst.get('open_interest', 0) or 0
-                        iv  = inst.get('mark_iv', 0) or 0
-                        expiry = parts[1]
-                        entry = {'strike': strike, 'expiry': expiry, 'iv': round(iv, 1), 'volume': round(vol, 1), 'oi': round(oi, 1), 'type': option_type}
-                        if option_type == 'C':
-                            calls.append(entry)
-                            total_call_vol += vol
-                            total_call_oi  += oi
-                        else:
-                            puts.append(entry)
-                            total_put_vol += vol
-                            total_put_oi  += oi
-
-                    pcr = round(total_put_vol / max(total_call_vol, 1), 3)
-
-                    # Max Pain: strike that minimises total payout to option buyers
-                    all_strikes = sorted(set(e['strike'] for e in calls + puts))
-                    max_pain_strike = spot
-                    min_pain = float('inf')
-                    for s in all_strikes:
-                        call_pain = sum(max(0, e['strike'] - s) * e['oi'] for e in calls)
-                        put_pain  = sum(max(0, s - e['strike']) * e['oi'] for e in puts)
-                        total_pain = call_pain + put_pain
-                        if total_pain < min_pain:
-                            min_pain = total_pain
-                            max_pain_strike = s
-
-                    # ATM IV percentile (rough approximation)
-                    atm_ivs = [e['iv'] for e in calls + puts if e['iv'] > 0 and abs(e['strike'] - spot) / max(spot, 1) < 0.05]
-                    atm_iv = round(sum(atm_ivs) / len(atm_ivs), 1) if atm_ivs else 0
-                    all_ivs = [e['iv'] for e in calls + puts if e['iv'] > 0]
-                    iv_pct_rank = round(sorted(all_ivs).index(min(all_ivs, key=lambda x: abs(x - atm_iv))) / max(len(all_ivs), 1) * 100, 0) if all_ivs else 50
-
-                    # Top strikes by OI
-                    top_strikes = sorted(calls + puts, key=lambda x: x['oi'], reverse=True)[:12]
-
-                    # IV smile: ATM +-30% range, calls only
-                    smile_calls = sorted([e for e in calls if spot > 0 and 0.7 < e['strike'] / spot < 1.3 and e['iv'] > 0], key=lambda x: x['strike'])
-                    smile = [{'strike': e['strike'], 'iv': e['iv'], 'moneyness': round((e['strike'] - spot) / spot * 100, 1)} for e in smile_calls[:20]]
-
-                    result[currency] = {
-                        'spot':           round(spot, 2),
-                        'pcr':            pcr,
-                        'max_pain':       round(max_pain_strike, 0),
-                        'atm_iv':         atm_iv,
-                        'iv_pct_rank':    iv_pct_rank,
-                        'call_volume':    round(total_call_vol, 1),
-                        'put_volume':     round(total_put_vol, 1),
-                        'call_oi':        round(total_call_oi, 1),
-                        'put_oi':         round(total_put_oi, 1),
-                        'top_strikes':    top_strikes,
-                        'iv_smile':       smile,
-                        'updated':        datetime.utcnow().strftime('%H:%M UTC')
-                    }
                 except Exception as ce:
                     print(f'[OptionsFlow] {currency} error: {ce}')
                     result[currency] = {'error': str(ce), 'spot': 0}
 
-            InstitutionalRoutesMixin._options_cache = result
+            InstitutionalRoutesMixin._options_cache    = result
             InstitutionalRoutesMixin._options_cache_ts = now
             self.send_json(result)
         except Exception as e:
