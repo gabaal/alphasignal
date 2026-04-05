@@ -54,7 +54,8 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 .hidden { display: none !important; }
-body { font-family: 'Outfit', sans-serif; background: var(--bg-body); color: var(--text-main); }
+body { font-family: 'Outfit', sans-serif; background: var(--bg-body); color: var(--text-main); }
+
 h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
 .material-symbols-outlined { vertical-align: middle; display: inline-flex; justify-content: center; align-items: center; line-height: 1; }
 
@@ -2859,7 +2860,201 @@ input[type="range"]::-webkit-slider-thumb {
 
 .strat-select {
     width: 100%;
-    background: var(--bg-card);
+    background: #0d1117;
+.pulse-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.5); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.5; }
+}
+
+.pulse-header label {
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+}
+
+.pulse-item {
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.pulse-item:hover {
+    transform: translateX(4px);
+}
+
+.pulse-pair {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+
+.p-ticker {
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.p-alpha {
+    font-size: 0.8rem;
+}
+
+.pulse-meta {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+}
+
+/* Regime Hub Styles */
+.regime-hero-card {
+    padding: 2.5rem;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 2rem;
+}
+
+.regime-hero-card.accumulation { border-left: 6px solid var(--regime-accumulation); background: linear-gradient(135deg, rgba(123, 44, 191, 0.1), transparent); }
+.regime-hero-card.steady-trending { border-left: 6px solid var(--regime-trending); background: linear-gradient(135deg, rgba(125, 211, 252, 0.1), transparent); }
+.regime-hero-card.distribution { border-left: 6px solid var(--regime-distribution); background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), transparent); }
+.regime-hero-card.volatile-breakout { border-left: 6px solid var(--regime-volatile); background: linear-gradient(135deg, rgba(255, 62, 62, 0.1), transparent); }
+
+.regime-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.regime-main-stat {
+    margin-bottom: 2rem;
+}
+
+.regime-label {
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+.regime-confidence {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+
+.regime-metrics-row {
+    display: flex;
+    gap: 3rem;
+}
+
+.r-metric label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+}
+
+.r-metric span {
+    font-weight: 900;
+    font-size: 1.1rem;
+}
+
+.regime-timeline {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+}
+
+.timeline-point {
+    min-width: 140px;
+    padding: 1rem;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.tp-date {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+}
+
+.tp-label {
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.guide-card {
+    padding: 1.5rem;
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.guide-card h4 {
+    margin-bottom: 8px;
+    color: var(--accent);
+    font-size: 0.9rem;
+}
+
+.guide-card p {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--text-dim);
+}
+
+.btc-live-ticker {
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btc-live-ticker label {
+    font-size: 0.7rem;
+    font-weight: 900;
+    color: var(--text-dim);
+}
+
+#btc-price {
+    font-family: 'JetBrains Mono';
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* Strategy Lab V2 */
+.strategy-workspace {
+    margin-top: 2rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.strat-select {
+    width: 100%;
+    background: #0d1117;
     border: 1px solid var(--border);
     color: var(--text-main);
     padding: 0.8rem;
@@ -2878,7 +3073,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .strat-select option {
-    background: var(--bg-card);
+    background: #0d1117;
     color: var(--text-main);
     padding: 10px;
 }
@@ -3051,54 +3246,6 @@ input[type="range"]::-webkit-slider-thumb {
     color: #e2e8f0;
     opacity: 1;
     font-family: 'JetBrains Mono', monospace;
-}
-
-@keyframes pulse-ring {
-    0% { transform: scale(1); opacity: 0.5; }
-    100% { transform: scale(1.5); opacity: 0; }
-}
-
-.live-dot {
-    animation: pulse-opacity 1.5s infinite alternate;
-}
-
-@keyframes pulse-opacity {
-    from { opacity: 0.3; shadow: 0 0 0px var(--accent-glow); }
-    to { opacity: 1; shadow: 0 0 10px var(--accent-glow); }
-}
-
-/* Smoother Card Transitions */
-.signal-card, .f-card, .card {
-    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.premium-badge {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7000ff 100%);
-    border: 1px solid rgba(139,92,246,0.3);
-}
-
-/* Phase 2: Terminal Expansion Styles */
-.sector-puck {
-    transition: transform 0.2s ease, background 0.2s ease;
-    cursor: default;
-}
-.sector-puck:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.05) !important;
-}
-
-.intensity-bar {
-    overflow: hidden;
-}
-
-.strat-select {
-    background: var(--sidebar-bg);
-    border: 1px solid var(--border);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 700;
     cursor: pointer;
     outline: none;
     transition: border-color 0.2s;
@@ -4386,4 +4533,15 @@ input:focus, select:focus, textarea:focus {
 [data-theme="light"] .nav-item.active::before {
     background: var(--accent) !important;
     box-shadow: 0 0 8px rgba(14,165,233,0.4) !important;
+}
+
+/* Strategy Lab & Trade Lab: force dark background on all selects *
+.strategy-controls select, .tf-btn[class],
+select.tf-btn, select.strat-select {
+    background-color: #0d1117 !important;
+    color: var(--text-main) !important;
+}
+select option {
+    background-color: #0d1117 !important;
+    color: var(--text-main) !important;
 }
