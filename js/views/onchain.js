@@ -38,7 +38,7 @@ async function renderOnChain(tabs = null) {
                         <div id="onchain-modal-title" style="font-size:0.9rem;font-weight:900;color:var(--accent);letter-spacing:1px"></div>
                         <div id="onchain-modal-sub" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-top:3px"></div>
                     </div>
-                    <button onclick="closeOnchainModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700">Ã¢Å“• CLOSE</button>
+                    <button onclick="closeOnchainModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700">&times; CLOSE</button>
                 </div>
                 <div id="onchain-modal-chart" style="height:65vh;width:100%"></div>
             </div>
@@ -664,7 +664,7 @@ async function renderOptionsFlow(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header">
             <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-            <p>Real-time BTC & ETH Deribit options data Ã¢â‚¬” Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
+            <p>Real-time BTC & ETH Deribit options data &mdash; Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
         </div>
         ${renderHubTabs('options', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Deribit Options Flow Scanner</h2>
@@ -679,7 +679,7 @@ async function renderOptionsFlow(tabs = null) {
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
             <div class="glass-card" style="padding:1.5rem">
-                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV SMILE (Ã‚Â±30% STRIKES)</div>
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV SMILE (&plusmn;30% STRIKES)</div>
                 <canvas id="opts-smile-chart" role="img" aria-label="Options implied volatility smile chart" height="220"></canvas>
             </div>
             <div class="glass-card" style="padding:1.5rem">
