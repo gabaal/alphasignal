@@ -1717,7 +1717,10 @@ class InstitutionalRoutesMixin:
             if data is None or data.empty:
                 self.send_json({'summary': f'<h3>AI Synthesis: {ticker} Interrupted</h3><p>Terminal sync in progress. Data streams for {ticker} are currently being calibrated.</p>', 'outlook': 'NEUTRAL'})
                 return
-            prices = data.squeeze()
+            prices = data.squeeze().dropna()  # dropna: guard against NaN trailing rows (yfinance equity quirk)
+            if len(prices) < 2:
+                self.send_json({'summary': f'<h3>AI Synthesis: {ticker} Interrupted</h3><p>Insufficient price history for {ticker}.</p>', 'outlook': 'NEUTRAL'})
+                return
             price = float(prices.iloc[-1])
             prev = float(prices.iloc[-2])
             change = (price - prev) / prev * 100
@@ -1731,12 +1734,14 @@ class InstitutionalRoutesMixin:
             try:
                 import numpy as np
                 btc_data = CACHE.download('BTC-USD', period='30d', interval='1d', column='Close')
-                btc_prices = btc_data.squeeze()
+                btc_prices = btc_data.squeeze().dropna()
                 asset_ret = (prices.iloc[-1] - prices.iloc[-14]) / prices.iloc[-14] * 100 if len(prices) >= 14 else 0
                 btc_ret   = (btc_prices.iloc[-1] - btc_prices.iloc[-14]) / btc_prices.iloc[-14] * 100 if len(btc_prices) >= 14 else 0
                 alpha = float(asset_ret - btc_ret)
+                if not np.isfinite(alpha): alpha = 0.0
             except Exception:
                 alpha = 0.0
+
 
             # Sentiment label
             if sentiment > 0.3:   sent_label, sent_col = 'Bullish', 'var(--risk-low)'
