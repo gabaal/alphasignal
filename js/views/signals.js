@@ -424,7 +424,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         const _radarOpts = [...new Map(signals.map(s => [s.ticker, s])).values()]
             .map(s => {
                 const lbl = s.ticker.replace('-USD','');
-                return '<div class="radar-opt" data-val="' + s.ticker + '" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:JetBrains Mono,monospace;font-size:0.7rem;" onmouseover="this.style.background=rgba(0,242,255,0.1)" onmouseout="this.style.background=transparent">' + lbl + '</div>';
+                return '<div class="radar-opt" data-val="' + s.ticker + '" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:JetBrains Mono,monospace;font-size:0.7rem;transition:background 0.15s">' + lbl + '</div>';
             }).join('');
         radarSection.innerHTML = `
             <div class="card" style="padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
@@ -485,6 +485,8 @@ async function renderSignals(category = 'ALL', tabs = null) {
                 _radarList.style.display = _radarList.style.display === 'none' ? 'block' : 'none';
             });
             _radarList.querySelectorAll('.radar-opt').forEach(opt => {
+                opt.addEventListener('mouseover', () => { opt.style.background = 'rgba(0,242,255,0.1)'; });
+                opt.addEventListener('mouseout',  () => { opt.style.background = 'transparent'; });
                 opt.addEventListener('click', () => {
                     _radarBtn.childNodes[0].textContent = opt.textContent.trim();
                     _radarList.style.display = 'none';
