@@ -103,18 +103,23 @@ async function renderSignals(category = 'ALL', tabs = null) {
                                     border:1px solid ${dir==='LONG'?'rgba(34,197,94,0.35)':'rgba(239,68,68,0.35)'};
                                     color:${dir==='LONG'?'#22c55e':'#ef4444'}">${dir}</div>
                             </div>
-                        </div>
-                        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-                            <div style="font-weight:700">${formatPrice(s.price)}</div>
-                            <div class="${s.change >= 0 ? 'pos' : 'neg'}">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</div>
-                            <!-- Z-score badge -->
-                            <div style="font-size:0.55rem;font-weight:900;letter-spacing:1px;padding:2px 8px;border-radius:100px;
-                                background:${Math.abs(s.zScore)>=1.75?'rgba(239,68,68,0.15)':Math.abs(s.zScore)>=1.0?'rgba(251,146,60,0.15)':Math.abs(s.zScore)>=0.5?'rgba(0,242,255,0.1)':'rgba(148,163,184,0.1)'};
-                                border:1px solid ${Math.abs(s.zScore)>=1.75?'rgba(239,68,68,0.5)':Math.abs(s.zScore)>=1.0?'rgba(251,146,60,0.5)':Math.abs(s.zScore)>=0.5?'rgba(0,242,255,0.4)':'rgba(148,163,184,0.3)'};
-                                color:${Math.abs(s.zScore)>=1.75?'#ef4444':Math.abs(s.zScore)>=1.0?'#fb923c':Math.abs(s.zScore)>=0.5?'#7dd3fc':'#94a3b8'}">
-                                Z ${s.zScore >= 0 ? '+' : ''}${s.zScore.toFixed(2)}σ
+                                           <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px">PRICE</span>
+                                <span style="font-weight:700;font-size:0.85rem">${formatPrice(s.price)}</span>
                             </div>
-                        </div>
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px">24H CHG</span>
+                                <span class="${s.change >= 0 ? 'pos' : 'neg'}" style="font-size:0.85rem">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px">Z-SCORE</span>
+                                <span style="font-size:0.85rem;font-weight:900;
+                                    color:${Math.abs(s.zScore)>=1.75?'#ef4444':Math.abs(s.zScore)>=1.0?'#fb923c':Math.abs(s.zScore)>=0.5?'#7dd3fc':'#94a3b8'}">
+                                    ${s.zScore >= 0 ? '+' : ''}${s.zScore.toFixed(2)}s
+                                </span>
+                            </div>
+                        </div>        </div>
                     </div>
                     <div class="delta-stat">
                         <div class="delta-label">BTC CORRELATION</div>
@@ -390,7 +395,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
             <div class="card" style="padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
                     <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">radar</span>SIGNAL CONFIDENCE RADAR
-                        <select id="radar-ticker-select" style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.7rem;padding:2px 8px;border-radius:4px;margin-left:12px;font-family:'JetBrains Mono';" onchange="loadSignalRadar(this.value)">
+                        <select id="radar-ticker-select" style="background:#0d1117;border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.7rem;padding:2px 8px;border-radius:4px;margin-left:12px;font-family:'JetBrains Mono';" onchange="loadSignalRadar(this.value)">
                             <option value="BTC-USD">BTC</option><option value="ETH-USD">ETH</option>
                             <option value="SOL-USD">SOL</option><option value="LINK-USD">LINK</option>
                             <option value="ADA-USD">ADA</option>

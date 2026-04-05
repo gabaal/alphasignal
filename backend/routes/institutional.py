@@ -1722,42 +1722,117 @@ class InstitutionalRoutesMixin:
             prev = float(prices.iloc[-2])
             change = (price - prev) / prev * 100
             rets = prices.pct_change().dropna()
-            z_score = (rets.iloc[-1] - rets.mean()) / rets.std() if len(rets) > 10 else 0
+            z_score = float((rets.iloc[-1] - rets.mean()) / rets.std()) if len(rets) > 10 else 0.0
             sentiment = get_sentiment(ticker)
             conviction = 'High' if abs(z_score) > 2.0 or abs(sentiment) > 0.4 else 'Moderate'
-            
-            # Dynamic reasoning based on price/sentiment alignment
+
+            # --- Extra metrics ---
+            # Alpha vs BTC (relative return over 14d)
+            try:
+                import numpy as np
+                btc_data = CACHE.download('BTC-USD', period='30d', interval='1d', column='Close')
+                btc_prices = btc_data.squeeze()
+                asset_ret = (prices.iloc[-1] - prices.iloc[-14]) / prices.iloc[-14] * 100 if len(prices) >= 14 else 0
+                btc_ret   = (btc_prices.iloc[-1] - btc_prices.iloc[-14]) / btc_prices.iloc[-14] * 100 if len(btc_prices) >= 14 else 0
+                alpha = float(asset_ret - btc_ret)
+            except Exception:
+                alpha = 0.0
+
+            # Sentiment label
+            if sentiment > 0.3:   sent_label, sent_col = 'Bullish', 'var(--risk-low)'
+            elif sentiment > 0.0: sent_label, sent_col = 'Mild Bull', '#60a5fa'
+            elif sentiment > -0.3:sent_label, sent_col = 'Mild Bear', '#fb923c'
+            else:                 sent_label, sent_col = 'Bearish', 'var(--risk-high)'
+
+            # RSI-14
+            try:
+                delta = rets * prices.shift(1).fillna(method='bfill')
+                gains = delta.clip(lower=0)
+                losses = (-delta).clip(lower=0)
+                avg_gain = gains.rolling(14).mean().iloc[-1]
+                avg_loss = losses.rolling(14).mean().iloc[-1]
+                rsi = float(100 - 100 / (1 + avg_gain / avg_loss)) if avg_loss > 0 else 50.0
+            except Exception:
+                rsi = 50.0
+
+            # 30D Volatility (annualised)
+            try:
+                vol_30 = float(rets.tail(30).std() * (365 ** 0.5) * 100)
+            except Exception:
+                vol_30 = 0.0
+
+            # EMA Trend (EMA10 vs EMA20)
+            try:
+                ema10 = float(prices.ewm(span=10).mean().iloc[-1])
+                ema20 = float(prices.ewm(span=20).mean().iloc[-1])
+                trend_str = 'Bullish' if ema10 > ema20 else 'Bearish'
+                trend_col  = 'var(--risk-low)' if ema10 > ema20 else 'var(--risk-high)'
+            except Exception:
+                trend_str, trend_col = 'N/A', 'var(--text-dim)'
+
+            # ML Signal
+            try:
+                import sqlite3 as _sq
+                _c = _sq.connect(DB_PATH)
+                _row = _c.execute(
+                    "SELECT direction, confidence FROM ml_predictions WHERE ticker=? ORDER BY created_at DESC LIMIT 1",
+                    (ticker,)
+                ).fetchone()
+                _c.close()
+                ml_dir  = _row[0] if _row else 'N/A'
+                ml_conf = f'{float(_row[1])*100:.0f}%' if _row and _row[1] else '-'
+                ml_col  = 'var(--risk-low)' if ml_dir == 'LONG' else 'var(--risk-high)' if ml_dir == 'SHORT' else 'var(--text-dim)'
+            except Exception:
+                ml_dir, ml_conf, ml_col = 'N/A', '-', 'var(--text-dim)'
+
+            # Dynamic reasoning
             if change > 0 and sentiment > 0:
                 stance, flow = "Accumulation", "rotating into"
             elif change < 0 and sentiment < 0:
                 stance, flow = "Distribution", "exiting"
             else:
                 stance, flow = "Consolidation", "hedging within"
-                
+
+            _stat = lambda label, val, col='var(--text-main)': (
+                f'<div style="background:rgba(255,255,255,0.03);padding:0.6rem 0.8rem;border-radius:6px;min-width:0">'
+                f'<div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:3px">{label}</div>'
+                f'<div style="font-size:0.95rem;font-weight:900;color:{col};font-family:\'JetBrains Mono\',monospace">{val}</div>'
+                f'</div>'
+            )
+
+            row1 = (
+                _stat('Z-SCORE', f'{z_score:+.2f}s', 'var(--risk-low)' if z_score > 0 else 'var(--risk-high)') +
+                _stat('MINDSHARE', f'{int(sentiment*100)}%', 'var(--risk-low)' if sentiment > 0 else 'var(--risk-high)') +
+                _stat('ALPHA vs BTC', f'{alpha:+.1f}%', 'var(--risk-low)' if alpha > 0 else 'var(--risk-high)') +
+                _stat('SENTIMENT', sent_label, sent_col)
+            )
+            row2 = (
+                _stat('RSI (14)', f'{rsi:.0f}', 'var(--risk-high)' if rsi > 70 else 'var(--risk-low)' if rsi < 30 else 'var(--text-main)') +
+                _stat('30D VOL', f'{vol_30:.1f}%') +
+                _stat('TREND', trend_str, trend_col) +
+                _stat('ML SIGNAL', f'{ml_dir} {ml_conf}', ml_col)
+            )
+
+            stats_html = (
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:1rem 0 0.5rem">{row1}</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:0 0 1.5rem">{row2}</div>'
+            )
+
             analysis = f"""
                 <div class="ai-report-body">
                     <h3 style="color:var(--accent); margin-bottom:0.5rem">Intelligence Deep-Dive: {ticker}</h3>
                     {alert_context}
-                    
-                    <p>Terminal Synthesis Engine identifies a <strong>{conviction} Conviction {stance}</strong> regime. {ml_context}</p>
-                    
-                    <div class="analysis-stats" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0">
-                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">
-                            <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">Z-SCORE (MOMENTUM)</div>
-                            <div style="font-size:1.2rem; font-weight:900; color:{'var(--risk-low)' if z_score > 0 else 'var(--risk-high)'}">{z_score:.2f}s</div>
-                        </div>
-                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px">
-                            <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">NARRATIVE MINDSHARE</div>
-                            <div style="font-size:1.2rem; font-weight:900; color:{'var(--risk-low)' if sentiment > 0 else 'var(--risk-high)'}">{int(sentiment * 100)}%</div>
-                        </div>
-                    </div>
 
-                    <p><strong>Institutional Logic:</strong> {ticker} price action is currently {flow} its local liquidity cluster. 
+                    <p>Terminal Synthesis Engine identifies a <strong>{conviction} Conviction {stance}</strong> regime. {ml_context}</p>
+
+                    {stats_html}
+
+                    <p><strong>Institutional Logic:</strong> {ticker} price action is currently {flow} its local liquidity cluster.
                     The {('positive' if change > 0 else 'negative')} correlation with the broader index suggests that {('idiosyncratic' if abs(z_score) > 2 else 'systemic')} drivers are primary.</p>
-                    
-                    <p><strong>Execution Strategy:</strong> Position sizing should be adjusted for a <strong>{('Bullish' if sentiment > 0 else 'Cautionary')} Reversal</strong> as price approaches ${price:,.2f}. 
+
+                    <p><strong>Execution Strategy:</strong> Position sizing should be adjusted for a <strong>{('Bullish' if sentiment > 0 else 'Cautionary')} Reversal</strong> as price approaches ${price:,.2f}.
                     Neural models suggest a {('continuation' if abs(z_score) > 1 else 'mean-reversion')} bias over the next 4-hour window.</p>
-                    
+
                     <p style="font-size:0.7rem; color:var(--text-dim); border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem">
                         <i>AlphaSignal Intelligence Desk // AI Analysis Layer v2.1 // {datetime.now().strftime('%H:%M:%S')}</i>
                     </p>
