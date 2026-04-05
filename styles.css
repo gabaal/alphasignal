@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     /* == Core backgrounds ============================================== */
     --bg-deep:    #090c14;
     --bg-body:    #090c14;
@@ -960,7 +960,7 @@ select, option {
     
     .content { padding: 1rem; padding-bottom: 80px; } /* Space for bottom nav */
     
-    /* Top bar completely hidden on mobile — bottom nav handles navigation */
+    /* Top bar completely hidden on mobile â€” bottom nav handles navigation */
     .top-bar { display: none !important; }
     
     .signal-grid, .heatmap-grid, .skeleton-grid,
@@ -1043,7 +1043,7 @@ select, option {
     .news-article-panel { padding: 1.5rem; }
 }
 
-/* ——— Mobile: ≤600px — further tightening ——— */
+/* â€”â€”â€” Mobile: â‰¤600px â€” further tightening â€”â€”â€” */
 @media (max-width: 600px) {
     /* Hub sub-tabs: horizontal scroll instead of clip */
     .hub-tabs, .sub-tabs, [class*="tab-row"], [class*="-tabs"] {
@@ -1057,7 +1057,7 @@ select, option {
     .sub-tabs::-webkit-scrollbar { display: none; }
 }
 
-/* ——— Mobile: ≤480px — hero & landing ——— */
+/* â€”â€”â€” Mobile: â‰¤480px â€” hero & landing â€”â€”â€” */
 @media (max-width: 480px) {
     .brand-title { font-size: 1.2rem; }
     .intel-action-btn.large { padding: 1rem; font-size: 0.9rem; }
@@ -3047,11 +3047,10 @@ input[type="range"]::-webkit-slider-thumb {
 .toast-title {
     font-size: 0.75rem;
     font-weight: 900;
-    inset: -2px;
-    border-radius: inherit;
-    border: 1px solid currentColor;
-    animation: pulse-ring 2s infinite;
-    opacity: 0;
+    letter-spacing: 1px;
+    color: #e2e8f0;
+    opacity: 1;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 @keyframes pulse-ring {
@@ -3184,7 +3183,7 @@ input[type="range"]::-webkit-slider-thumb {
 .scroller:hover { animation-play-state: paused; }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-/* ─── Phase 14: Chart Legend Clipping Fix ───────────────────────────────────
+/* â”€â”€â”€ Phase 14: Chart Legend Clipping Fix â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Prevents Chart.js bottom legend rows being cut off by fixed-height containers.
    Applies a minimum bottom padding to all chart card wrappers.               */
 .card canvas,
@@ -3257,7 +3256,7 @@ button, .intel-action-btn, .nav-item, .signal-card, .glass-card, .hub-tabs butto
 }
 
 /* ===================================================
-   HEADING HIERARCHY — Consistent across all views
+   HEADING HIERARCHY â€” Consistent across all views
    H1 = View/page title (one per view)
    H2 = Major chart / section heading within a view
    H3 = Panel / card / metric label within a section
@@ -3313,7 +3312,7 @@ h4 {
     letter-spacing: 1px;
 }
 
-/* ── Momentum Heatmap Table ────────────────────────────────── */
+/* â”€â”€ Momentum Heatmap Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #momentum-heatmap-grid table { min-width: 480px; }
 #momentum-heatmap-grid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -3333,7 +3332,7 @@ h4 {
     .alert-card .intel-action-btn { font-size: 0.55rem !important; padding: 3px 8px !important; }
 }
 
-/* ── AI Deep-Dive button glow ──────────────────────────────── */
+/* â”€â”€ AI Deep-Dive button glow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .intel-action-btn.ai-glow {
     background: linear-gradient(135deg, rgba(0,242,255,0.15), rgba(139,92,246,0.1));
     border-color: rgba(0,242,255,0.3);
@@ -3345,10 +3344,10 @@ h4 {
 }
 
 /* ============================================================ */
-/* PHASE 17 — Alerts, Search Dropdown, Live Dot                 */
+/* PHASE 17 â€” Alerts, Search Dropdown, Live Dot                 */
 /* ============================================================ */
 
-/* Live dot — animated green pulse dot */
+/* Live dot â€” animated green pulse dot */
 .live-dot {
     display: inline-block;
     width: 7px;
@@ -3367,7 +3366,7 @@ h4 {
     100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);   transform: scale(1); }
 }
 
-/* Alert badge — high-severity pulse (red) */
+/* Alert badge â€” high-severity pulse (red) */
 .alert-badge {
     background: var(--risk-high);
     color: white;
@@ -3658,7 +3657,7 @@ h4 {
 }
 
 /* ============================================================
-   v1.56 � Signal Toast & Animation Additions
+   v1.56 — Signal Toast & Animation Additions
    ============================================================ */
 
 @keyframes toast-slide-in {
@@ -3674,7 +3673,7 @@ h4 {
     to   { opacity: 0; transform: translateX(110%) scale(0.9); }
 }
 
-/* Signal Alert Toast � premium wider variant */
+/* Signal Alert Toast — premium wider variant */
 .signal-toast {
     border-left: 4px solid #00d4aa !important;
     min-width: 340px;
@@ -3849,7 +3848,7 @@ body::before {
     z-index: 0;
 }
 /* ============================================================
-   GLASSMORPHISM OVERHAUL � AlphaSignal v1.7
+   GLASSMORPHISM OVERHAUL — AlphaSignal v1.7
    Deep frosted glass, luminous borders, layered depth
    ============================================================ */
 
@@ -4116,7 +4115,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ============================================================
-   SIDEBAR GLASSMORPHISM � Premium Frosted Glass Sidebar
+   SIDEBAR GLASSMORPHISM — Premium Frosted Glass Sidebar
    ============================================================ */
 
 /* Reset sidebar to true glass */
@@ -4148,7 +4147,7 @@ input:focus, select:focus, textarea:focus {
 /* Sidebar content above pseudo-elements */
 .sidebar > * { position: relative; z-index: 1; }
 
-/* Brand logo orb � glowing glass sphere */
+/* Brand logo orb — glowing glass sphere */
 .logo-orb {
     width: 34px !important;
     height: 34px !important;
@@ -4201,7 +4200,7 @@ input:focus, select:focus, textarea:focus {
     backdrop-filter: blur(12px) !important;
 }
 
-/* Active indicator � glowing left accent line */
+/* Active indicator — glowing left accent line */
 .nav-item.active::before {
     content: '';
     position: absolute;

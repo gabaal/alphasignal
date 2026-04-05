@@ -1,7 +1,17 @@
-﻿import sqlite3, os, requests, threading, time
+import sqlite3, os, requests, threading, time
 from datetime import datetime, timedelta
 from backend.database import DB_PATH, SUPABASE_URL, SUPABASE_HEADERS
 from backend.services import NOTIFY
+
+def _fix(s):
+    """Decode mojibake: UTF-8 bytes that were mis-read as Latin-1 and re-encoded.
+    e.g. â€" -> — (em-dash), ðŸ"Š -> 📊 (emoji).
+    Falls back to original string if decoding fails."""
+    try:
+        return s.encode('latin-1').decode('utf-8')
+    except Exception:
+        return s
+
 
 # â”€â”€ Configurable send time (UTC) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 DIGEST_HOUR_UTC   = int(os.getenv('DIGEST_HOUR_UTC',   '7'))
@@ -406,36 +416,37 @@ def _send_resend_email(to_email, subject, html_body):
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # TELEGRAM DIGEST
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ----------------------------------------------------------------------------
 
 def _build_telegram_digest(user_email, signals, btc_price):
     """Build Telegram digest message using HTML parse_mode (safer than Markdown)."""
     now = datetime.utcnow().strftime('%d %b %Y')
     parts = [
-        f"<b>?? AlphaSignal Morning Digest — {now}</b>",
-        "?????????????????????????",
+        f"<b>AlphaSignal Morning Digest - {now}</b>",
+        "-------------------------",
     ]
     if btc_price:
-        parts.append(f"? <b>BTC:</b> ${btc_price:,.0f}")
+        parts.append(f"- <b>BTC:</b> ${btc_price:,.0f}")
         parts.append("")
     if signals:
-        parts.append("?? <b>Top Signals (Last 24h)</b>")
+        parts.append("- <b>Top Signals (Last 24h)</b>")
         for s in signals[:3]:
             sev      = s.get('severity', 'MEDIUM')
-            icon     = {'CRITICAL': '??', 'HIGH': '??', 'MEDIUM': '??'}.get(sev, '?')
+            icon     = {'CRITICAL': '[CRITICAL]', 'HIGH': '[HIGH]', 'MEDIUM': '[MED]'}.get(sev, '[LOW]')
             ticker   = (s.get('ticker') or '?').replace('-USD', '')
             sig_type = (s.get('type') or '').replace('_', ' ')
             price_str = f"@ ${s['price']:,.2f}" if s.get('price') else ''
-            parts.append(f"{icon} <b>{ticker}</b> — {sig_type} {price_str}".strip())
+            parts.append(f"{icon} <b>{ticker}</b> - {sig_type} {price_str}".strip())
             msg = s.get('message') or ''
             if msg:
                 safe_msg = msg[:80] + ('...' if len(msg) > 80 else '')
                 parts.append(f"   <i>{safe_msg}</i>")
     else:
-        parts.append("?? No signals in the last 24h — markets are quiet.")
+        parts.append("- No signals in the last 24h - markets are quiet.")
     parts += [
         "",
-        "?????????????????????????",
-        "?? <a href='https://alphasignal.digital'>Open AlphaSignal Terminal</a>",
+        "-------------------------",
+        "- <a href='https://alphasignal.digital'>Open AlphaSignal Terminal</a>",
         "<i>Unsubscribe: disable Daily Digest in Settings</i>",
     ]
     return "\n".join(parts)
@@ -446,12 +457,12 @@ def _build_discord_digest(user_email, signals, btc_price):
         fields.append({"name": "BTC Price", "value": f"`${btc_price:,.0f}`", "inline": True})
     for s in signals[:3]:
         sev    = s.get('severity', 'MEDIUM')
-        icon   = {'CRITICAL': 'ðŸ”´', 'HIGH': 'ðŸŸ ', 'MEDIUM': 'ðŸŸ¡'}.get(sev, 'âšª')
+        icon   = {'CRITICAL': '[!!]', 'HIGH': '[!]', 'MEDIUM': '[-]'}.get(sev, '[ok]')
         ticker = s.get('ticker', '?').replace('-USD', '')
         price_str = f"@ ${s['price']:,.2f}" if s.get('price') else ''
         msg    = (s.get('message', '') or '')[:100]
         fields.append({
-            "name": f"{icon} {ticker} â€” {s.get('type','')} {price_str}",
+            "name": f"{icon} {ticker} - {s.get('type','')} {price_str}",
             "value": msg or "No details",
             "inline": False
         })
@@ -459,18 +470,18 @@ def _build_discord_digest(user_email, signals, btc_price):
         fields.append({"name": "No Signals", "value": "Markets were quiet in the last 24h.", "inline": False})
     return {
         "embeds": [{
-            "title": f"ðŸ“Š Morning Digest â€” {now}",
+            "title": f"AlphaSignal Morning Digest - {now}",
             "color": 0x00f2ff,
             "fields": fields,
-            "footer": {"text": "AlphaSignal Terminal â€¢ alphasignal.digital"},
+            "footer": {"text": "AlphaSignal Terminal - alphasignal.digital"},
             "timestamp": datetime.utcnow().isoformat()
         }]
     }
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ----------------------------------------------------------------------------
 # MAIN SEND FUNCTION
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ----------------------------------------------------------------------------
 
 def send_digest_to_user(user_email):
     """Send daily digest to one user: Email + Telegram + Discord."""
@@ -480,16 +491,16 @@ def send_digest_to_user(user_email):
         lb      = _get_leaderboard_stats()
         brief   = _get_market_brief_excerpt()
 
-        # â”€â”€ Email (Resend) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # --- Email (Resend) ---------------------------------------------------
         try:
             now_str = datetime.utcnow().strftime('%d %b %Y')
-            subject = f"AlphaSignal Morning Digest â€” {now_str}"
+            subject = f"AlphaSignal Morning Digest - {now_str}"
             html    = _build_email_html(user_email, signals, btc, lb_stats=lb, brief_excerpt=brief)
             _send_resend_email(user_email, subject, html)
         except Exception as e:
             print(f"[Digest] Email build error for {user_email}: {e}")
 
-        # â”€â”€ Telegram â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # --- Telegram ---------------------------------------------------------
         bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
         if bot_token:
             try:
