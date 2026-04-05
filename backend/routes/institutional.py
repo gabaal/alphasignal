@@ -4766,7 +4766,10 @@ class InstitutionalRoutesMixin:
                 'BTC': 'btc_usd', 'ETH': 'eth_usd',
                 'SOL': 'sol_usd', 'XRP': 'xrp_usd',
             }
-            # Settlement currency: native for BTC/ETH, USDC pool for SOL/XRP
+            # USDC-settled instruments use 'ASSET_USDC-' prefix
+            USDC_PREFIX_MAP = {
+                'SOL': 'SOL_USDC-', 'XRP': 'XRP_USDC-',
+            }
             NATIVE_CURRENCIES = {'BTC', 'ETH'}
 
             def _parse_instruments(instruments, underlying_prefix=None):
@@ -4780,7 +4783,9 @@ class InstitutionalRoutesMixin:
                     parts = name.split('-')
                     if len(parts) < 4: continue
                     try:
-                        strike      = float(parts[2])
+                        # XRP strikes use 'd' as decimal separator (e.g. '1d45' = 1.45)
+                        raw_strike = parts[2].replace('d', '.')
+                        strike      = float(raw_strike)
                         option_type = parts[3]
                         vol  = inst.get('volume', 0) or 0
                         oi   = inst.get('open_interest', 0) or 0
@@ -4858,8 +4863,8 @@ class InstitutionalRoutesMixin:
                         instruments = book_r.json().get('result', [])
                         calls, puts, tv, tp, to_c, to_p = _parse_instruments(instruments)
                     else:
-                        # USDC-settled (SOL, XRP): filter the shared USDC book
-                        prefix = f'{currency}-'
+                        # USDC-settled (SOL, XRP): use correct 'ASSET_USDC-' prefix
+                        prefix = USDC_PREFIX_MAP.get(currency, f'{currency}_USDC-')
                         calls, puts, tv, tp, to_c, to_p = _parse_instruments(
                             usdc_instruments, underlying_prefix=prefix)
                         if not calls and not puts:
