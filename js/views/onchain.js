@@ -669,7 +669,7 @@ async function renderOptionsFlow(tabs = null) {
         ${renderHubTabs('options', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Deribit Options Flow Scanner</h2>
         <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
-            <button id="opts-btc-btn" class="intel-action-btn mini" onclick="loadOptionsFlow('BTC')" style="background:linear-gradient(135deg,#f7931a,#ff6b00);color:#000">BTC OPTIONS</button>
+            <button id="opts-btc-btn" class="intel-action-btn mini" onclick="loadOptionsFlow('BTC')" style="background:linear-gradient(135deg,#f7931a,#ff6b00);color:#fff">BTC OPTIONS</button>
             <button id="opts-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH')">ETH OPTIONS</button>
             <button id="opts-sol-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('SOL')" style="border-color:rgba(20,241,149,0.5);color:#14f195">SOL OPTIONS</button>
             <button id="opts-xrp-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('XRP')" style="border-color:rgba(0,160,255,0.5);color:#00a0ff">XRP OPTIONS</button>
@@ -716,7 +716,7 @@ async function loadOptionsFlow(currency) {
         if (!el) return;
         el.className = `intel-action-btn mini${sym === currency ? '' : ' outline'}`;
         if (sym === 'BTC') el.style.background = sym === currency ? 'linear-gradient(135deg,#f7931a,#ff6b00)' : '';
-        if (sym === 'BTC') el.style.color = sym === currency ? '#000' : '';
+        if (sym === 'BTC') el.style.color = sym === currency ? '#fff' : '';
     });
     ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'].forEach(id => {
         const el = document.getElementById('opts-' + id);
