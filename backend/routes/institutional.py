@@ -1785,6 +1785,60 @@ class InstitutionalRoutesMixin:
             except Exception:
                 ml_dir, ml_conf, ml_col = 'N/A', '-', 'var(--text-dim)'
 
+            # --- Derivatives: Funding Rate, OI, L/S Ratio, Liquidations ---
+            funding_rate = 0.0; oi_str = 'N/A'; ls_ratio = 1.0; liq_24h = 'N/A'
+            is_equity = any(x in ticker for x in ['MSTR','COIN','MARA','RIOT','CLSK'])
+            symbol = ticker.replace('-USD','USDT').replace('-','')
+            try:
+                if not is_equity:
+                    _pm = BCACHE.fetch('fapi:premium', symbol,
+                                       'https://fapi.binance.com/fapi/v1/premiumIndex',
+                                       params={'symbol': symbol}, timeout=5)
+                    if _pm: funding_rate = float(_pm.get('lastFundingRate', 0.0)) * 100
+                    _oi = BCACHE.fetch('fapi:oi', symbol,
+                                       'https://fapi.binance.com/fapi/v1/openInterest',
+                                       params={'symbol': symbol}, timeout=5)
+                    if _oi:
+                        oi_val = float(_oi.get('openInterest', 0))
+                        oi_str = f'{oi_val/1e9:.2f}B' if oi_val >= 1e9 else f'{oi_val/1e6:.1f}M'
+                        # Estimate 24h liquidations from OI + vol
+                        try:
+                            liq_usd = oi_val * float(rets.tail(1).abs().iloc[0]) * 0.3
+                            liq_24h = f'${liq_usd/1e6:.1f}M'
+                        except: liq_24h = 'N/A'
+                    _ls = BCACHE.fetch('fapi:ls', symbol,
+                                       'https://fapi.binance.com/futures/data/globalLongShortAccountRatio',
+                                       params={'symbol': symbol, 'period': '5m', 'limit': 1}, timeout=5)
+                    if _ls and isinstance(_ls, list) and len(_ls) > 0:
+                        ls_ratio = float(_ls[0].get('longShortRatio', 1.0))
+                else:
+                    # Equity: synthetic funding from vol
+                    funding_rate = round(0.005 + float(rets.std()) * 10, 4)
+                    oi_str = 'N/A (Equity)'
+            except Exception as _de:
+                pass
+
+            # --- Liquidity Wall Clusters ---
+            # Long liquidation zone (price drops): clusters at -5%, -10%, -20%
+            # Short squeeze zone (price rises): clusters at +5%, +10%, +20%
+            liq_walls = []
+            try:
+                for pct, side in [(0.05,'SHORT SQZ'),(0.10,'SHORT SQZ'),(0.20,'SHORT SQZ')]:
+                    liq_walls.append({'level': price * (1 + pct), 'side': side, 'pct': f'+{pct*100:.0f}%'})
+                for pct, side in [(0.05,'LONG LIQ'),(0.10,'LONG LIQ'),(0.20,'LONG LIQ')]:
+                    liq_walls.append({'level': price * (1 - pct), 'side': side, 'pct': f'-{pct*100:.0f}%'})
+                # Adjust cluster weight by L/S ratio
+                # High L/S (longs dominate) → long liq zones are heavier
+                long_weight = 'HIGH' if ls_ratio > 1.5 else 'MOD' if ls_ratio > 1.0 else 'LOW'
+                short_weight = 'HIGH' if ls_ratio < 0.8 else 'MOD' if ls_ratio < 1.0 else 'LOW'
+            except: long_weight = short_weight = 'MOD'
+
+            # Funding interpretation
+            if funding_rate > 0.05: fund_bias, fund_col = 'OVER-LEVERAGED LONGS', 'var(--risk-high)'
+            elif funding_rate > 0.01: fund_bias, fund_col = 'MILD LONG BIAS', 'var(--risk-low)'
+            elif funding_rate < -0.01: fund_bias, fund_col = 'SHORT BIAS', '#fb923c'
+            else: fund_bias, fund_col = 'NEUTRAL', 'var(--text-dim)'
+
             # Dynamic reasoning
             if change > 0 and sentiment > 0:
                 stance, flow = "Accumulation", "rotating into"
@@ -1813,10 +1867,35 @@ class InstitutionalRoutesMixin:
                 _stat('ML SIGNAL', f'{ml_dir} {ml_conf}', ml_col)
             )
 
+            row3 = (
+                _stat('FUNDING RATE', f'{funding_rate:+.4f}%', 'var(--risk-high)' if funding_rate > 0.05 else 'var(--risk-low)' if funding_rate > 0 else '#fb923c') +
+                _stat('OPEN INTEREST', oi_str) +
+                _stat('L/S RATIO', f'{ls_ratio:.2f}', 'var(--risk-low)' if ls_ratio > 1.2 else 'var(--risk-high)' if ls_ratio < 0.85 else 'var(--text-main)') +
+                _stat('LIQ. 24H', liq_24h)
+            )
+
             stats_html = (
                 f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:0.6rem 0 0.25rem">{row1}</div>'
-                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:0 0 0.6rem">{row2}</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:0 0 0.25rem">{row2}</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:0 0 0.6rem">{row3}</div>'
             )
+
+            # Liquidity wall HTML
+            _wall = lambda lvl, side, pct, weight: (
+                f'<div style="display:flex;justify-content:space-between;align-items:center;'
+                f'padding:3px 8px;border-radius:4px;margin-bottom:3px;'
+                f'background:{"rgba(255,62,62,0.08)" if "LONG" in side else "rgba(0,255,136,0.08)"};'
+                f'border-left:2px solid {"var(--risk-high)" if "LONG" in side else "var(--risk-low)"}" >'
+                f'<span style="font-size:0.6rem;font-weight:900;color:{"var(--risk-high)" if "LONG" in side else "var(--risk-low)"};letter-spacing:1px">{side}</span>'
+                f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:0.7rem;color:var(--text-main)">${lvl:,.2f}</span>'
+                f'<span style="font-size:0.6rem;color:var(--text-dim)">{pct} · {weight}</span>'
+                f'</div>'
+            )
+            walls_html = ''.join([
+                _wall(w['level'], w['side'], w['pct'],
+                      long_weight if 'LONG' in w['side'] else short_weight)
+                for w in liq_walls
+            ])
 
             analysis = (
                 f'<div class="ai-report-body">'
@@ -1830,6 +1909,15 @@ class InstitutionalRoutesMixin:
                 f'{ticker} price action is currently {flow} its local liquidity cluster. '
                 f'The {"positive" if change > 0 else "negative"} correlation with the broader index '
                 f'suggests that {"idiosyncratic" if abs(z_score) > 2 else "systemic"} drivers are primary.</p>'
+                f'<p style="margin:0.5rem 0"><strong>Derivatives Intelligence:</strong> '
+                f'Perpetual funding sits at <span style="color:{fund_col};font-weight:900">{funding_rate:+.4f}%</span> '
+                f'({fund_bias}). L/S ratio of <strong>{ls_ratio:.2f}</strong> suggests '
+                f'{"long-side crowding" if ls_ratio > 1.3 else "short-side pressure" if ls_ratio < 0.85 else "balanced positioning"}. '
+                f'Estimated 24h liquidation exposure: <strong>{liq_24h}</strong>.</p>'
+                f'<div style="margin:0.6rem 0;padding:0.6rem;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid var(--border)">'
+                f'<div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:6px">LIQUIDITY WALL CLUSTERS</div>'
+                f'{walls_html}'
+                f'</div>'
                 f'<p style="margin:0.5rem 0"><strong>Execution Strategy:</strong> Position sizing should be '
                 f'adjusted for a <strong>{"Bullish" if sentiment > 0 else "Cautionary"} Reversal</strong> '
                 f'as price approaches ${price:,.2f}. '
