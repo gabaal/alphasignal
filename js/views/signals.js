@@ -44,7 +44,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
     // Funding rate map: fetch once in background (non-blocking - fails gracefully)
     let fundingMap = {};
     try {
-        const fr = await fetchAPI('/api/funding-rates');
+        const fr = await fetchAPI('/funding-rates');
         if (fr && fr.rows) {
             fr.rows.forEach(r => { fundingMap[r.asset] = r.current; });
         }
