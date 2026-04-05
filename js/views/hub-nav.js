@@ -61,7 +61,7 @@ const institutionalHubTabs = [
     { id: 'unlocks', label: 'TOKEN UNLOCKS', view: 'token-unlocks', icon: 'key' },
     { id: 'yield', label: 'YIELD LAB', view: 'yield-lab', icon: 'biotech' },
     { id: 'optimizer', label: 'PORTFOLIO OPTIMIZER', view: 'portfolio-optimizer', icon: 'auto_mode' },
-    { id: 'portfolio', label: 'PORTFOLIO SIM', view: 'portfolio', icon: 'pie_chart' },
+
     { id: 'tradelab', label: 'TRADE IDEA LAB', view: 'tradelab', icon: 'experiment' },
     { id: 'rebalancer', label: 'AI REBALANCER', view: 'ai-rebalancer', icon: 'smart_toy' }
 ];
