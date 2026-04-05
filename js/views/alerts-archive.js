@@ -189,18 +189,23 @@ async function _fetchFallbackPrices() {
     const pending = document.querySelectorAll('.pnl-pending');
     if (!pending.length) return;
     const unique = [...new Set([...pending].map(el => el.dataset.ticker).filter(Boolean))];
-    for (const ticker of unique) {
-        const sym = ticker.replace('-USD','').toUpperCase();
+    for (const rawTicker of unique) {
+        const sym = rawTicker.replace(/-USD$/i,'').toUpperCase();
         if ((window.livePrices || {})[sym]) continue; // already known
+        // Normalise to yfinance format: bare tickers need -USD for crypto
+        const yfTicker = rawTicker.includes('-USD') ? rawTicker : `${rawTicker}-USD`;
         try {
-            const d = await fetchAPI(`/history?ticker=${encodeURIComponent(ticker)}&period=5d`);
-            if (d && d.history && d.history.length) {
+            const d = await fetchAPI(`/history?ticker=${encodeURIComponent(yfTicker)}&period=5d`);
+            let liveP = null;
+            if (d && d.price) {
+                liveP = d.price; // direct price field
+            } else if (d && d.history && d.history.length) {
                 const last = d.history[d.history.length - 1];
-                const liveP = last.close || last.price || last[1];
-                if (liveP) {
-                    if (!window.livePrices) window.livePrices = {};
-                    window.livePrices[sym] = parseFloat(liveP);
-                }
+                liveP = last.close ?? last.price ?? (Array.isArray(last) ? last[1] : null);
+            }
+            if (liveP && parseFloat(liveP) > 0) {
+                if (!window.livePrices) window.livePrices = {};
+                window.livePrices[sym] = parseFloat(liveP);
             }
         } catch(_) {}
     }
