@@ -390,20 +390,23 @@ async function renderSignals(category = 'ALL', tabs = null) {
     // Signal Confidence Radar — loads after signals are painted
     setTimeout(async () => {
         const radarSection = document.createElement('div');
+        // Build radar options from all loaded signals (deduped by ticker)
+        const _radarFirstTicker = signals[0] ? signals[0].ticker.replace('-USD','') : 'BTC';
+        const _radarOpts = [...new Map(signals.map(s => [s.ticker, s])).values()]
+            .map(s => {
+                const lbl = s.ticker.replace('-USD','');
+                return '<div class="radar-opt" data-val="' + s.ticker + '" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:JetBrains Mono,monospace;font-size:0.7rem;" onmouseover="this.style.background=rgba(0,242,255,0.1)" onmouseout="this.style.background=transparent">' + lbl + '</div>';
+            }).join('');
         radarSection.innerHTML = `
             <div class="card" style="padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
                     <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">radar</span>SIGNAL CONFIDENCE RADAR
                         <div id="radar-custom-select" style="position:relative;display:inline-block;margin-left:10px;font-size:0.7rem;font-weight:normal;vertical-align:middle;">
                             <div id="radar-select-btn" style="background:#0d1117;border:1px solid rgba(0,242,255,0.25);color:#e2e8f0;padding:3px 26px 3px 10px;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;min-width:54px;user-select:none;position:relative;">
-                                BTC<span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);opacity:0.5;font-size:0.55rem;">&#9660;</span>
+                                ${_radarFirstTicker}<span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);opacity:0.5;font-size:0.55rem;">&#9660;</span>
                             </div>
-                            <div id="radar-select-list" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#0d1117;border:1px solid rgba(0,242,255,0.25);border-radius:6px;z-index:9999;min-width:80px;box-shadow:0 8px 24px rgba(0,0,0,0.7);overflow:hidden;">
-                                <div class="radar-opt" data-val="BTC-USD" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.7rem;" onmouseover="this.style.background='rgba(0,242,255,0.1)'" onmouseout="this.style.background='transparent'">BTC</div>
-                                <div class="radar-opt" data-val="ETH-USD" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.7rem;" onmouseover="this.style.background='rgba(0,242,255,0.1)'" onmouseout="this.style.background='transparent'">ETH</div>
-                                <div class="radar-opt" data-val="SOL-USD" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.7rem;" onmouseover="this.style.background='rgba(0,242,255,0.1)'" onmouseout="this.style.background='transparent'">SOL</div>
-                                <div class="radar-opt" data-val="LINK-USD" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.7rem;" onmouseover="this.style.background='rgba(0,242,255,0.1)'" onmouseout="this.style.background='transparent'">LINK</div>
-                                <div class="radar-opt" data-val="ADA-USD" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.7rem;" onmouseover="this.style.background='rgba(0,242,255,0.1)'" onmouseout="this.style.background='transparent'">ADA</div>
+                            <div id="radar-select-list" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#0d1117;border:1px solid rgba(0,242,255,0.25);border-radius:6px;z-index:9999;min-width:80px;max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(0,242,255,0.3) transparent;box-shadow:0 8px 24px rgba(0,0,0,0.7);">
+                                ${_radarOpts}
                             </div>
                         </div>
                 </div>
