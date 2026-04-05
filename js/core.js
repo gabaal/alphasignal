@@ -66,7 +66,7 @@ function generateAssetReport(ticker) {
 
 
 // ============= AI Analyst =============
-async function openAIAnalyst(ticker) {
+async function openAIAnalyst(ticker, dir = null, zscore = null) {
     if (!isAuthenticatedUser) {
         showAuth(true);
         showToast("AUTHENTICATION REQUIRED", "Please login to run AI research deep-dives.", "alert");
@@ -87,7 +87,31 @@ async function openAIAnalyst(ticker) {
         content.innerHTML = `<p style="color:var(--risk-high);text-align:center">Synthesis failed for ${ticker}. Try again.</p>`;
     }
 
-    // Append Signal Confidence Radar for this ticker
+    // AI Thesis section (if dir/zscore provided)
+    if (dir && zscore) {
+        try {
+            const thesisWrap = document.createElement('div');
+            thesisWrap.style.cssText = 'margin-top:1.2rem;padding:0.9rem 1rem;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:8px;border-left:3px solid rgba(139,92,246,0.5);';
+            thesisWrap.innerHTML = `<div style="font-size:0.6rem;color:#8b5cf6;letter-spacing:1.5px;font-weight:900;margin-bottom:0.5rem;display:flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:0.9rem">psychology</span>AI THESIS
+            </div>
+            <div id="ai-modal-thesis-body" style="font-size:0.88rem;line-height:1.7;color:var(--text-dim);">
+                <span style="display:flex;align-items:center;gap:6px;color:rgba(139,92,246,0.6)">
+                    <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:14px">sync</span>
+                    <span style="font-size:0.72rem;letter-spacing:1px">GENERATING THESIS...</span>
+                </span>
+            </div>`;
+            content.appendChild(thesisWrap);
+
+            const thesisData = await fetchAPI(`/signal-thesis?ticker=${ticker}&signal=${dir}&zscore=${zscore}`);
+            const thesisBody = document.getElementById('ai-modal-thesis-body');
+            if (thesisBody) {
+                const text = thesisData?.thesis || 'Analysis unavailable.';
+                thesisBody.innerHTML = `<span style="color:rgba(139,92,246,0.8);font-size:0.72rem;font-weight:900;letter-spacing:1px;display:block;margin-bottom:6px">${ticker} · ${dir} · Z: ${zscore}s</span>${text}`;
+            }
+        } catch(e) { /* thesis non-critical */ }
+    }
+
     try {
         const radarData = await fetchAPI(`/signal-radar?ticker=${ticker}`);
         if (radarData && radarData.values) {
