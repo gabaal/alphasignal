@@ -4688,7 +4688,8 @@ class InstitutionalRoutesMixin:
     _opt_signal_ts = 0
 
     def handle_options_signal(self):
-        """Compact options signal badges for signal cards. BTC/ETH from Deribit cache, equities from yfinance. 15-min cache."""
+        """Compact options signal badges. BTC/ETH from Deribit cache (instant), equities updated in background thread."""
+        import threading
         cls = InstitutionalRoutesMixin
         now = time.time()
         if now - cls._opt_signal_ts < 900 and cls._opt_signal_cache:
@@ -4699,39 +4700,46 @@ class InstitutionalRoutesMixin:
             elif pcr > 1.1: label, col = 'PUT HEAVY', '#fb923c'
             elif pcr < 0.7: label, col = 'CALL SWEEP', '#22c55e'
             elif pcr < 0.9: label, col = 'CALL HEAVY', '#60a5fa'
-            else: return None  # Neutral — no badge
+            else: return None
             return {'pcr': round(pcr, 3), 'label': label, 'color': col,
                     'iv_rank': int(iv_rank), 'high_iv': iv_rank > 80}
 
-        result = {}
-        # BTC + ETH from existing 15-min Deribit cache
+        # Build result instantly from Deribit cache + previously cached equity data
+        result = dict(cls._opt_signal_cache)  # preserve any equity data from last bg run
         try:
             for currency in ['BTC', 'ETH']:
                 d = cls._options_cache.get(currency, {})
                 if d and 'pcr' in d:
                     sig = _sig(d['pcr'], d.get('iv_pct_rank', 50))
                     if sig: result[f'{currency}-USD'] = sig
+                    elif f'{currency}-USD' in result:
+                        del result[f'{currency}-USD']
         except Exception as e:
             print(f'[OptionsSignal] Deribit read: {e}')
 
-        # Equity tickers via yfinance options chain (nearest expiry, volume-based PCR)
-        for sym in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK']:
-            try:
-                tk = CACHE._yf_ticker(sym) if hasattr(CACHE, '_yf_ticker') else __import__('yfinance').Ticker(sym)
-                dates = tk.options
-                if dates:
-                    chain = tk.option_chain(dates[0])
-                    call_vol = float(chain.calls['volume'].fillna(0).sum())
-                    put_vol  = float(chain.puts['volume'].fillna(0).sum())
-                    if call_vol + put_vol > 10:
-                        sig = _sig(put_vol / max(call_vol, 1))
-                        if sig: result[sym] = sig
-            except Exception as e:
-                print(f'[OptionsSignal] {sym}: {e}')
-
+        # Return immediately — don't wait for equity fetches
         cls._opt_signal_cache = result
         cls._opt_signal_ts = now
         self.send_json(result)
+
+        # Fetch equity options in background daemon thread (updates cache for next call)
+        def _fetch_equities():
+            import yfinance as yf
+            for sym in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK']:
+                try:
+                    tk = yf.Ticker(sym)
+                    dates = tk.options
+                    if dates:
+                        chain = tk.option_chain(dates[0])
+                        call_vol = float(chain.calls['volume'].fillna(0).sum())
+                        put_vol  = float(chain.puts['volume'].fillna(0).sum())
+                        if call_vol + put_vol > 10:
+                            sig = _sig(put_vol / max(call_vol, 1))
+                            if sig: cls._opt_signal_cache[sym] = sig
+                            elif sym in cls._opt_signal_cache: del cls._opt_signal_cache[sym]
+                except Exception as e:
+                    print(f'[OptionsSignal] {sym}: {e}')
+        threading.Thread(target=_fetch_equities, daemon=True).start()
 
     def handle_options_flow(self):
         """Real-time BTC + ETH options flow from Deribit public API, 15-min cached."""
