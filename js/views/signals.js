@@ -41,13 +41,15 @@ async function renderSignals(category = 'ALL', tabs = null) {
     updateScroller(signals);
     startCountdown(); // Reset timer on successful fetch
 
-    // Funding rate map: fetch once in background (non-blocking - fails gracefully)
-    let fundingMap = {};
+    // Funding rate map + options signal map: fetch both in parallel
+    let fundingMap = {}, optionsMap = {};
     try {
-        const fr = await fetchAPI('/funding-rates');
-        if (fr && fr.rows) {
-            fr.rows.forEach(r => { fundingMap[r.asset] = r.current; });
-        }
+        const [fr, os] = await Promise.all([
+            fetchAPI('/funding-rates').catch(() => null),
+            fetchAPI('/options-signal').catch(() => null)
+        ]);
+        if (fr && fr.rows) fr.rows.forEach(r => { fundingMap[r.asset] = r.current; });
+        if (os) optionsMap = os;
     } catch (_) {}
 
     const filtered = category === 'ALL' ? signals : signals.filter(s => s.category === category);
@@ -107,6 +109,17 @@ async function renderSignals(category = 'ALL', tabs = null) {
                             background:${bg};border:1px solid ${col}33;color:${col};white-space:nowrap">⚡ ${sign}${fRate.toFixed(4)}%</div>`;
                     })()
                     : '';
+                // Options flow badge (BTC-USD, ETH-USD from Deribit; MSTR/COIN/MARA from yfinance)
+                const optKey = s.ticker.replace(/-USD$/,'').replace(/USDT$/,'');
+                const optSig = optionsMap[s.ticker] || optionsMap[optKey];
+                const optionsBadge = optSig
+                    ? (() => {
+                        const ivTag = optSig.high_iv ? ' ⚠ HIGH IV' : '';
+                        const arrow = optSig.label.includes('CALL') ? '▲' : '▼';
+                        return `<div title="Options Flow: P/C Ratio ${optSig.pcr}" style="font-size:0.48rem;font-weight:900;letter-spacing:1px;padding:2px 6px;border-radius:100px;
+                            background:${optSig.color}18;border:1px solid ${optSig.color}44;color:${optSig.color};white-space:nowrap">${arrow} ${optSig.label}${ivTag}</div>`;
+                    })()
+                    : '';
                 return `
                 <div class="signal-card ${Math.abs(s.zScore) > 2 ? 'z-outlier' : ''}" onclick="openDetail('${s.ticker}', '${s.category}', ${s.btcCorrelation}, ${s.alpha}, ${s.sentiment}, '60d', ${s.category === 'TRACKED'})">
                     <div class="card-controls" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10">
@@ -124,6 +137,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                                     border:1px solid ${dir==='LONG'?'rgba(34,197,94,0.35)':'rgba(239,68,68,0.35)'};
                                     color:${dir==='LONG'?'#22c55e':'#ef4444'}">${dir}</div>
                                 ${fundingBadge}
+                                ${optionsBadge}
                             </div>
                         </div>
                         <div class="metrics" style="align-items:flex-end;min-width:110px">
