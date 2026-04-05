@@ -722,7 +722,6 @@ async function renderOptionsFlow(tabs = null) {
 
 const ALL_OPTS_BTNS = {
     deribit: { BTC:'opts-btc-btn', ETH:'opts-eth-btn', SOL:'opts-sol-btn', XRP:'opts-xrp-btn', AVAX:'opts-avax-btn', TRX:'opts-trx-btn' },
-    okx:     { BTC:'opts-okx-btc-btn', ETH:'opts-okx-eth-btn' },
     equity:  { MARA:'opts-mara-btn', COIN:'opts-coin-btn', MSTR:'opts-mstr-btn', HOOD:'opts-hood-btn' },
 };
 
