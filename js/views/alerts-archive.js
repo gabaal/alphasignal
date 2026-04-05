@@ -154,6 +154,59 @@ async function renderDocsVelocity() {
     `;
 }
 
+
+// ── P&L pending helpers ───────────────────────────────────────────────────
+function _pnlHtml(entryPrice, liveP) {
+    const pct = ((liveP - entryPrice) / entryPrice * 100);
+    const color = pct > 0 ? 'var(--risk-low)' : pct < 0 ? 'var(--risk-high)' : 'var(--text-dim)';
+    return `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
+        <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">ENTRY</span><br>
+        <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
+        <span style="color:var(--text-dim);font-size:0.8rem">→</span>
+        <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">NOW</span><br>
+        <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${liveP.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
+        <div style="margin-left:auto;text-align:right">
+            <div style="font-size:1rem;font-weight:900;color:${color};font-family:var(--font-mono)">${pct > 0 ? '+' : ''}${pct.toFixed(2)}%</div>
+            <div style="font-size:0.55rem;color:var(--text-dim)">since signal</div>
+        </div>
+    </div>`;
+}
+
+function _upgradePendingPnl() {
+    document.querySelectorAll('.pnl-pending').forEach(el => {
+        const ticker = el.dataset.ticker;
+        const entryPrice = parseFloat(el.dataset.entry);
+        const sym = ticker ? ticker.replace('-USD','').toUpperCase() : null;
+        const liveP = sym ? (window.livePrices || {})[sym] : null;
+        if (!liveP || !entryPrice) return;
+        el.innerHTML = _pnlHtml(entryPrice, liveP);
+        el.classList.remove('pnl-pending');
+    });
+}
+
+async function _fetchFallbackPrices() {
+    // Find all still-pending elements whose tickers aren't seeded yet
+    const pending = document.querySelectorAll('.pnl-pending');
+    if (!pending.length) return;
+    const unique = [...new Set([...pending].map(el => el.dataset.ticker).filter(Boolean))];
+    for (const ticker of unique) {
+        const sym = ticker.replace('-USD','').toUpperCase();
+        if ((window.livePrices || {})[sym]) continue; // already known
+        try {
+            const d = await fetchAPI(`/history?ticker=${encodeURIComponent(ticker)}&period=5d`);
+            if (d && d.history && d.history.length) {
+                const last = d.history[d.history.length - 1];
+                const liveP = last.close || last.price || last[1];
+                if (liveP) {
+                    if (!window.livePrices) window.livePrices = {};
+                    window.livePrices[sym] = parseFloat(liveP);
+                }
+            }
+        } catch(_) {}
+    }
+    _upgradePendingPnl();
+}
+
 // ============= Core Features =============
 async function renderAlerts(tabs = null) {
     appEl.innerHTML = skeleton(3);
@@ -177,29 +230,14 @@ async function renderAlerts(tabs = null) {
             });
             window._livePricesSeedDone = true;
             // Re-paint P&L rows that were rendered with no live price
-            document.querySelectorAll('.pnl-pending').forEach(el => {
-                const ticker = el.dataset.ticker;
-                const entryPrice = parseFloat(el.dataset.entry);
-                const sym = ticker ? ticker.replace('-USD','').toUpperCase() : null;
-                const liveP = sym ? window.livePrices[sym] : null;
-                if (!liveP || !entryPrice) return;
-                const pct = ((liveP - entryPrice) / entryPrice * 100);
-                const color = pct > 0 ? 'var(--risk-low)' : pct < 0 ? 'var(--risk-high)' : 'var(--text-dim)';
-                el.innerHTML = `
-                <div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
-                    <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">ENTRY</span><br>
-                    <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
-                    <span style="color:var(--text-dim);font-size:0.8rem">→</span>
-                    <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">NOW</span><br>
-                    <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${liveP.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
-                    <div style="margin-left:auto;text-align:right">
-                        <div style="font-size:1rem;font-weight:900;color:${color};font-family:var(--font-mono)">${pct > 0 ? '+' : ''}${pct.toFixed(2)}%</div>
-                        <div style="font-size:0.55rem;color:var(--text-dim)">since signal</div>
-                    </div>
-                </div>`;
-                el.classList.remove('pnl-pending');
-            });
-        }).catch(() => {});
+            _upgradePendingPnl();
+            // Fallback: for any still-pending elements (tickers not in signals universe),
+            // fetch price individually via /history endpoint
+            _fetchFallbackPrices();
+        }).catch(() => { _fetchFallbackPrices(); });
+    } else {
+        // Already seeded — just handle any remaining pending (e.g. after re-render)
+        setTimeout(_fetchFallbackPrices, 300);
     }
 
     // Default settings — panel always renders with these, then updates when real data arrives
