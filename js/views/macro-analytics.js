@@ -439,7 +439,21 @@ async function renderCapitalRotation(tabs = null) {
 
         const W = Math.min(520, window.innerWidth - 80), R = W / 2;
         const palettes = { 'Crypto': '#7dd3fc', 'Equities': '#f59e0b', 'Bonds': '#a78bfa', 'Commodities': '#10b981' };
-        const getColor = d => { const anc = d.ancestors().find(a => palettes[a.data.name]); return anc ? palettes[anc.data.name] : '#555'; };
+        const childRanges = { 'Crypto': ['#1e6fa8','#b8eaff'], 'Equities': ['#92510a','#fcd786'], 'Bonds': ['#5630b5','#d9c8ff'], 'Commodities': ['#065c3c','#6dffc4'] };
+        const childColorMap = new Map();
+        const getColor = d => {
+            if (childColorMap.has(d)) return childColorMap.get(d);
+            const sect = d.ancestors().find(a => palettes[a.data.name]);
+            if (!sect) return '#555';
+            if (d === sect) return palettes[sect.data.name];
+            const siblings = sect.children || [];
+            const idx = siblings.findIndex(s => s === d);
+            const range = childRanges[sect.data.name] || ['#333','#eee'];
+            const t = siblings.length > 1 ? idx / (siblings.length - 1) : 0.5;
+            const col = d3.interpolateRgb(range[0], range[1])(t);
+            childColorMap.set(d, col);
+            return col;
+        };
 
         const hierarchy = d3.hierarchy(root_data).sum(d => d.value).sort((a, b) => b.value - a.value);
         const partition  = d3.partition().size([2 * Math.PI, R]);
@@ -451,8 +465,8 @@ async function renderCapitalRotation(tabs = null) {
             .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
             .innerRadius(d => d.y0 + 8).outerRadius(d => Math.max(d.y0 + 8, d.y1 - 3));
 
-        const arcVisible = d => d.y1 <= R && d.y0 >= 0 && d.x1 > d.x0;
-        const labelVisible = d => d.y1 <= R && d.y0 >= 0 && (d.x1 - d.x0) > 0.22;
+        const arcVisible   = d => d.y1 <= R && d.y0 >= 0 && d.x1 > d.x0;
+        const labelVisible = d => d.y1 <= R && d.y0 >= 0 && (d.x1 - d.x0) > 0.12;
         const labelTransform = d => {
             const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
             const y = (d.y0 + d.y1) / 2;
@@ -485,9 +499,11 @@ async function renderCapitalRotation(tabs = null) {
             .enter().append('text').attr('class', 'arc-label')
             .attr('transform', d => labelTransform(d.current))
             .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
-            .attr('font-size', d => d.depth === 1 ? 9 : 7.5)
-            .attr('font-weight', d => d.depth === 1 ? 900 : 600)
-            .attr('fill', 'white').attr('pointer-events', 'none')
+            .attr('font-size', d => d.depth === 1 ? 11 : 9.5)
+            .attr('font-weight', d => d.depth === 1 ? 900 : 700)
+            .attr('fill', 'white')
+            .attr('stroke', 'rgba(0,0,0,0.55)').attr('stroke-width', 2.5).attr('paint-order', 'stroke')
+            .attr('pointer-events', 'none')
             .style('opacity', d => labelVisible(d.current) ? 1 : 0)
             .text(d => d.data.name);
 
