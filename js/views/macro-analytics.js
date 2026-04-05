@@ -362,7 +362,8 @@ async function renderRotation(tabs = null) {
             </div>`;
         appEl.appendChild(efSection);
         if (typeof d3 === 'undefined') return;
-        const W = Math.min(540, window.innerWidth - 60), R = W / 2;
+
+        const W = Math.min(520, window.innerWidth - 80), R = W / 2;
         const root_data = {
             name: 'Total Capital', value: 0, children: [
                 { name: 'Crypto', value: 40, perf: 12.4, children: [
@@ -380,35 +381,156 @@ async function renderRotation(tabs = null) {
             ]
         };
         const palettes = { 'Crypto': '#7dd3fc', 'Equities': '#f59e0b', 'Bonds': '#a78bfa', 'Commodities': '#10b981' };
-        const hierarchy = d3.hierarchy(root_data).sum(d => d.value).sort((a,b) => b.value - a.value);
-        const partition = d3.partition().size([2*Math.PI, R]);
+        const getColor = d => { const anc = d.ancestors().find(a => palettes[a.data.name]); return anc ? palettes[anc.data.name] : '#555'; };
+
+        const hierarchy = d3.hierarchy(root_data).sum(d => d.value).sort((a, b) => b.value - a.value);
+        const partition  = d3.partition().size([2 * Math.PI, R]);
         partition(hierarchy);
-        const arc = d3.arc().startAngle(d => d.x0).endAngle(d => d.x1).innerRadius(d => d.y0 + 10).outerRadius(d => d.y1 - 2);
+
+        // Store starting position as .current on each node
+        hierarchy.each(d => d.current = { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 });
+
+        const arc = d3.arc()
+            .startAngle(d => d.x0).endAngle(d => d.x1)
+            .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+            .innerRadius(d => d.y0 + 8).outerRadius(d => Math.max(d.y0 + 8, d.y1 - 3));
+
+        const arcVisible = d => d.y1 <= R && d.y0 >= 0 && d.x1 > d.x0;
+        const labelVisible = d => d.y1 <= R && d.y0 >= 0 && (d.x1 - d.x0) > 0.22;
+        const labelTransform = d => {
+            const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
+            const y = (d.y0 + d.y1) / 2;
+            return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
+        };
+
         const svg = d3.select('#sunburst-container').append('svg')
+            .attr('viewBox', `0 0 ${W} ${W}`)
             .attr('width', W).attr('height', W)
-            .style('font-family', 'JetBrains Mono');
+            .style('font-family', 'JetBrains Mono, monospace');
+
         const g = svg.append('g').attr('transform', `translate(${R},${R})`);
-        const getColor = d => { const anc = d.ancestors().find(a => palettes[a.data.name]); return anc ? palettes[anc.data.name] : '#666'; };
-        const paths = g.selectAll('path').data(hierarchy.descendants().filter(d => d.depth > 0))
+
+        // Arcs
+        const paths = g.selectAll('path')
+            .data(hierarchy.descendants().filter(d => d.depth > 0))
             .enter().append('path')
-            .attr('d', arc)
+            .attr('d', d => arc(d.current))
             .attr('fill', d => getColor(d))
-            .attr('fill-opacity', d => 1 - d.depth * 0.25)
-            .attr('stroke', '#0a0a1a').attr('stroke-width', 1.5)
-            .style('cursor', 'pointer')
-            .on('mouseover', function(e,d) { d3.select(this).attr('fill-opacity', 0.9); })
-            .on('mouseout', function(e,d) { d3.select(this).attr('fill-opacity', 1 - d.depth * 0.25); })
-            .append('title').text(d => `${d.data.name}\n${d.value}% allocation\n${d.data.perf >= 0 ? '+' : ''}${d.data.perf?.toFixed(1) || 0}% 30d`);
-        g.selectAll('text').data(hierarchy.descendants().filter(d => d.depth > 0 && (d.x1-d.x0) > 0.2))
-            .enter().append('text')
-            .attr('transform', d => { const [x,y] = arc.centroid(d); return `translate(${x},${y})`; })
-            .attr('text-anchor', 'middle').attr('font-size', d => d.depth === 1 ? 10 : 8)
-            .attr('fill', 'white').attr('pointer-events', 'none')
+            .attr('fill-opacity', d => arcVisible(d.current) ? (1 - d.depth * 0.2) : 0)
+            .attr('stroke', '#0a0e1a').attr('stroke-width', 1.5)
+            .style('cursor', 'pointer');
+
+        // Tooltips via title
+        paths.append('title').text(d =>
+            `${d.ancestors().map(d => d.data.name).reverse().slice(1).join(' › ')}\n` +
+            `${d.value}% allocation\n${(d.data.perf >= 0 ? '+' : '')}${d.data.perf?.toFixed(1) || 0}% 30D`
+        );
+
+        // Labels
+        const labels = g.selectAll('text.arc-label')
+            .data(hierarchy.descendants().filter(d => d.depth > 0))
+            .enter().append('text').attr('class', 'arc-label')
+            .attr('transform', d => labelTransform(d.current))
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+            .attr('font-size', d => d.depth === 1 ? 9 : 7.5)
+            .attr('font-weight', d => d.depth === 1 ? 900 : 600)
+            .attr('fill', 'white')
+            .attr('pointer-events', 'none')
+            .style('opacity', d => labelVisible(d.current) ? 1 : 0)
             .text(d => d.data.name);
-        g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.3em')
-            .attr('font-size', 11).attr('fill', '#7dd3fc').attr('font-weight', 900).text('CAPITAL');
-        g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
-            .attr('font-size', 10).attr('fill', 'rgba(255,255,255,0.5)').text('ROTATION');
+
+        // Center text (interactive — click to zoom out)
+        const centerGroup = g.append('g').style('cursor', 'pointer').on('click', () => clicked(null, hierarchy));
+        const centerName = centerGroup.append('text')
+            .attr('text-anchor', 'middle').attr('dy', '-0.5em')
+            .attr('font-size', 11).attr('font-weight', 900).attr('fill', '#7dd3fc').text('CAPITAL');
+        const centerSub = centerGroup.append('text')
+            .attr('text-anchor', 'middle').attr('dy', '1em')
+            .attr('font-size', 9).attr('fill', 'rgba(255,255,255,0.45)').text('ROTATION');
+
+        // Detail panel (shows on drill-down)
+        const detailId = 'sunburst-detail';
+        let detailEl = document.getElementById(detailId);
+        if (!detailEl) {
+            detailEl = document.createElement('div');
+            detailEl.id = detailId;
+            detailEl.style.cssText = 'margin-top:1rem;padding:1rem 1.2rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;font-size:0.72rem;display:none;';
+            document.getElementById('sunburst-container').parentElement.appendChild(detailEl);
+        }
+
+        let focusNode = hierarchy;
+
+        function clicked(event, p) {
+            // Toggle: click same node → go to parent; click new → zoom in
+            const next = (focusNode === p && p.parent) ? p.parent : p;
+            focusNode = next;
+
+            // Compute target positions relative to focused node
+            const xScale = d3.scaleLinear().domain([next.x0, next.x1]).range([0, 2 * Math.PI]);
+            const yScale = d3.scaleLinear().domain([next.y0, R]).range([0, R]);
+
+            hierarchy.each(d => d.target = {
+                x0: xScale(Math.max(next.x0, Math.min(next.x1, d.x0))),
+                x1: xScale(Math.max(next.x0, Math.min(next.x1, d.x1))),
+                y0: yScale(d.y0),
+                y1: yScale(d.y1)
+            });
+
+            const t = g.transition().duration(500);
+
+            paths.transition(t)
+                .tween('data', d => {
+                    const i = d3.interpolate(d.current, d.target);
+                    return t => { d.current = i(t); };
+                })
+                .attrTween('d', d => () => arc(d.current))
+                .attr('fill-opacity', d => arcVisible(d.target) ? (1 - d.depth * 0.2) : 0)
+                .attr('pointer-events', d => arcVisible(d.target) ? 'auto' : 'none');
+
+            labels.transition(t)
+                .tween('data', d => {
+                    const i = d3.interpolate(d.current, d.target);
+                    return t => { d.current = i(t); };
+                })
+                .attrTween('transform', d => () => labelTransform(d.current))
+                .style('opacity', d => labelVisible(d.target) ? 1 : 0);
+
+            // Update center text
+            if (next === hierarchy) {
+                centerName.text('CAPITAL');
+                centerSub.text('ROTATION');
+                detailEl.style.display = 'none';
+            } else {
+                const perfStr = (next.data.perf >= 0 ? '+' : '') + (next.data.perf?.toFixed(1) || '0') + '%';
+                const col = (next.data.perf >= 0) ? '#22c55e' : '#ef4444';
+                centerName.text(next.data.name).attr('fill', getColor(next));
+                centerSub.text(`${next.value}% · ${perfStr}`).attr('fill', col);
+
+                // Detail panel
+                const rows = (next.children || []).map(c => {
+                    const cp = (c.data.perf >= 0 ? '+' : '') + (c.data.perf?.toFixed(1) || '0') + '%';
+                    const cc = c.data.perf >= 0 ? '#22c55e' : '#ef4444';
+                    return `<tr>
+                        <td style="padding:5px 10px 5px 0;font-weight:700;color:var(--text)">${c.data.name}</td>
+                        <td style="padding:5px 10px;color:var(--text-dim)">${c.value}% alloc</td>
+                        <td style="padding:5px 0;font-weight:700;color:${cc};font-family:monospace">${cp} 30D</td>
+                    </tr>`;
+                }).join('');
+                detailEl.style.display = 'block';
+                detailEl.innerHTML = `
+                    <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px;font-weight:700">
+                        ${next.data.name.toUpperCase()} BREAKDOWN · CLICK CENTER TO RESET
+                    </div>
+                    <table style="width:100%;border-collapse:collapse">${rows}</table>`;
+            }
+        }
+
+        // Attach click to paths
+        paths.on('click', clicked)
+             .on('mouseover', function(e, d) { d3.select(this).attr('fill-opacity', 0.95); })
+             .on('mouseout', function(e, d) { d3.select(this).attr('fill-opacity', arcVisible(d.current) ? (1 - d.depth * 0.2) : 0); });
+
     }, 400);
 }
 
