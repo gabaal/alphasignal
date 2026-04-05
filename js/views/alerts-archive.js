@@ -185,6 +185,9 @@ function _upgradePendingPnl() {
 }
 
 async function _fetchFallbackPrices() {
+    // Rebranded / deprecated ticker aliases for yfinance
+    const ALIASES = { 'MATIC': 'POL-USD', 'MATIC-USD': 'POL-USD' };
+
     // Find all still-pending elements whose tickers aren't seeded yet
     const pending = document.querySelectorAll('.pnl-pending');
     if (!pending.length) return;
@@ -192,22 +195,31 @@ async function _fetchFallbackPrices() {
     for (const rawTicker of unique) {
         const sym = rawTicker.replace(/-USD$/i,'').toUpperCase();
         if ((window.livePrices || {})[sym]) continue; // already known
-        // Normalise to yfinance format: bare tickers need -USD for crypto
-        const yfTicker = rawTicker.includes('-USD') ? rawTicker : `${rawTicker}-USD`;
-        try {
-            const d = await fetchAPI(`/history?ticker=${encodeURIComponent(yfTicker)}&period=5d`);
-            let liveP = null;
-            if (d && d.price) {
-                liveP = d.price; // direct price field
-            } else if (d && d.history && d.history.length) {
-                const last = d.history[d.history.length - 1];
-                liveP = last.close ?? last.price ?? (Array.isArray(last) ? last[1] : null);
-            }
-            if (liveP && parseFloat(liveP) > 0) {
-                if (!window.livePrices) window.livePrices = {};
-                window.livePrices[sym] = parseFloat(liveP);
-            }
-        } catch(_) {}
+
+        // Build list of tickers to try (alias first if known)
+        const alias = ALIASES[rawTicker] || ALIASES[sym];
+        const toTry = alias
+            ? [alias]
+            : [rawTicker.includes('-USD') ? rawTicker : `${rawTicker}-USD`];
+
+        let liveP = null;
+        for (const yfTicker of toTry) {
+            try {
+                const d = await fetchAPI(`/history?ticker=${encodeURIComponent(yfTicker)}&period=5d`);
+                if (d && d.price && parseFloat(d.price) > 0) {
+                    liveP = parseFloat(d.price);
+                } else if (d && d.history && d.history.length) {
+                    const last = d.history[d.history.length - 1];
+                    const p = last.close ?? last.price ?? (Array.isArray(last) ? last[1] : null);
+                    if (p && parseFloat(p) > 0) liveP = parseFloat(p);
+                }
+                if (liveP) break;
+            } catch(_) {}
+        }
+        if (liveP) {
+            if (!window.livePrices) window.livePrices = {};
+            window.livePrices[sym] = liveP;
+        }
     }
     _upgradePendingPnl();
 }

@@ -145,11 +145,17 @@ UNIVERSE = {
     'PROXY': ['MSTR', 'GLXY.TO'],
     'ETF': ['IBIT', 'FBTC', 'ARKB', 'BITO'],
     'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD'],
-    'L1': ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD'],
-    'L2': ['ARB-USD', 'OP-USD', 'ALGO-USD'],
+    'L1': ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD'],
+    'L2': ['ARB-USD', 'OP-USD', 'ALGO-USD', 'POL-USD'],
     'AI': ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'AGIX-USD', 'WLD-USD'],
     'STABLES': ['USDC-USD', 'USDT-USD', 'DAI-USD'],
     'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD', 'PEOPLE-USD']
+}
+
+# Aliases for rebranded/deprecated tickers (MATIC → POL after Polygon rebrand)
+TICKER_ALIASES = {
+    'MATIC-USD': 'POL-USD',
+    'MATIC':     'POL-USD',
 }
 
 WHALE_WALLETS = {
