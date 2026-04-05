@@ -1,4 +1,4 @@
-﻿async function renderMacroSync(tabs = null) {
+async function renderMacroSync(tabs = null) {
     const tabHTML = tabs ? renderHubTabs('pulse', tabs) : '';
     appEl.innerHTML = skeleton(2);
     const [data, sectors, corrData] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors'), fetchAPI('/correlation-matrix')]);
@@ -319,7 +319,7 @@ async function renderRotation(tabs = null) {
 
         <div class="intel-guide-card" style="margin-bottom: 2rem">
             <div style="display:flex; gap:1.5rem; align-items:flex-start">
-                <div class="guide-icon">â„¹ï¸</div>
+                <div class="guide-icon"><span class="material-symbols-outlined" style="font-size:1.4rem;color:var(--accent)">info</span></div>
                 <div class="guide-text">
                     <h4 style="color:var(--accent); margin-bottom:0.5rem">How to Read Correlation Dynamics</h4>
                     <p style="font-size:0.85rem; line-height:1.6; color:var(--text-dim)">
