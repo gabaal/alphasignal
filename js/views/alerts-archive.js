@@ -225,8 +225,10 @@ async function renderAlerts(tabs = null) {
     if (!window._livePricesSeedDone) {
         // Non-blocking: don't await, let the UI paint first
         fetchAPI('/signals').then(sigs => {
-            if (!sigs || !sigs.signals) return;
-            sigs.signals.forEach(s => {
+            // /signals returns a flat array; guard both shapes
+            const arr = Array.isArray(sigs) ? sigs : (sigs?.signals || []);
+            if (!arr.length) return;
+            arr.forEach(s => {
                 if (s.ticker && s.price) {
                     // Normalise: strip -USD suffix for lookup key
                     const key = s.ticker.replace('-USD','').toUpperCase();
