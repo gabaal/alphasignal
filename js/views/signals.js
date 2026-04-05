@@ -140,8 +140,8 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         <span style="font-size:0.6rem;font-weight:900;letter-spacing:1px;color:#8b5cf6;">AI THESIS</span>
                         <span id="${cardId}-chevron" class="material-symbols-outlined" style="font-size:14px;color:rgba(139,92,246,0.5);margin-left:auto;transition:transform 0.2s;">expand_more</span>
                     </div>
-                    <div id="${cardId}-thesis" style="display:none;padding:8px 10px 2px;font-size:0.75rem;
-                        line-height:1.6;color:var(--text-dim);border-left:2px solid rgba(139,92,246,0.3);
+                    <div id="${cardId}-thesis" style="display:none;padding:8px 10px 2px;font-size:0.88rem;
+                        line-height:1.7;color:var(--text-dim);border-left:2px solid rgba(139,92,246,0.3);
                         margin-top:6px;"></div>
                 </div>
             `}).join('')}

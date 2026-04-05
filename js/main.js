@@ -219,12 +219,12 @@ async function toggleInlineThesis(ticker, dir, zscore, cardId) {
     try {
         const data = await fetchAPI(`/signal-thesis?ticker=${ticker}&signal=${dir}&zscore=${zscore}`);
         const text = data?.thesis || 'Analysis unavailable.';
-        const html = `<span style="color:rgba(188,19,254,0.7);font-size:0.6rem;font-weight:900;letter-spacing:1px;display:block;margin-bottom:4px">
+        const html = `<span style="color:rgba(188,19,254,0.7);font-size:0.72rem;font-weight:900;letter-spacing:1px;display:block;margin-bottom:6px">
             ${ticker} · ${dir} · Z: ${zscore}σ</span>${text}`;
         window._thesisCache[cacheKey] = html;
         bodyEl.innerHTML = html;
     } catch (e) {
-        bodyEl.innerHTML = `<span style="color:#ef4444;font-size:0.72rem">Thesis unavailable</span>`;
+        bodyEl.innerHTML = `<span style="color:#ef4444;font-size:0.85rem">Thesis unavailable</span>`;
     }
 }
 
