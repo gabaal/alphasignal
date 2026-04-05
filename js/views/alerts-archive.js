@@ -462,13 +462,7 @@ async function renderAlerts(tabs = null) {
                             <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px;color:#22c55e">add_circle</span>
                             WATCH
                         </button>
-                        ${a.id ? `<button class="intel-action-btn mini outline" onclick="history.pushState(null,'','?view=signal&id=${a.id}'); switchView('signal')" style="font-size:0.6rem;padding:4px 10px">
-                            <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px">link</span>
-                            PERMALINK
-                        </button>` : ''}
-                        <button onclick="navigator.clipboard.writeText('${a.ticker}')" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:4px 10px;border-radius:6px;font-size:0.6rem;cursor:pointer;font-family:var(--font-mono)" title="Copy ticker">
-                            ${a.ticker.replace('-USD','')}
-                        </button>` : ''}
+` : ''}
                     </div>
                 </div>
                 `;
