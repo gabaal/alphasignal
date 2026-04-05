@@ -671,6 +671,9 @@ async function renderOptionsFlow(tabs = null) {
         <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
             <button id="opts-btc-btn" class="intel-action-btn mini" onclick="loadOptionsFlow('BTC')" style="background:linear-gradient(135deg,#f7931a,#ff6b00);color:#000">BTC OPTIONS</button>
             <button id="opts-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH')">ETH OPTIONS</button>
+            <button id="opts-sol-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('SOL')" style="border-color:rgba(20,241,149,0.5);color:#14f195">SOL OPTIONS</button>
+            <button id="opts-xrp-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('XRP')" style="border-color:rgba(0,160,255,0.5);color:#00a0ff">XRP OPTIONS</button>
+            <span style="font-size:0.55rem;color:var(--text-dim);align-self:center;margin-left:4px;letter-spacing:1px">VIA DERIBIT LIVE</span>
         </div>
         <div id="opts-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
             ${['Put/Call Ratio','Max Pain','ATM IV','IV Rank','Call OI','Put OI'].map(s =>
@@ -705,8 +708,14 @@ async function renderOptionsFlow(tabs = null) {
 
 async function loadOptionsFlow(currency) {
     window._optsCurrency = currency;
-    document.getElementById('opts-btc-btn').className = `intel-action-btn mini ${currency === 'BTC' ? '' : 'outline'}`;
-    document.getElementById('opts-eth-btn').className = `intel-action-btn mini ${currency === 'ETH' ? '' : 'outline'}`;
+    const allBtns = { BTC: 'opts-btc-btn', ETH: 'opts-eth-btn', SOL: 'opts-sol-btn', XRP: 'opts-xrp-btn' };
+    Object.entries(allBtns).forEach(([sym, id]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = `intel-action-btn mini${sym === currency ? '' : ' outline'}`;
+        if (sym === 'BTC') el.style.background = sym === currency ? 'linear-gradient(135deg,#f7931a,#ff6b00)' : '';
+        if (sym === 'BTC') el.style.color = sym === currency ? '#000' : '';
+    });
     ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'].forEach(id => {
         const el = document.getElementById('opts-' + id);
         if (el) el.innerHTML = '<span style="font-size:0.8rem;color:var(--text-dim)">...</span>';

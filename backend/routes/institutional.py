@@ -4751,7 +4751,7 @@ class InstitutionalRoutesMixin:
             base = 'https://www.deribit.com/api/v2/public'
             result = {}
 
-            for currency in ['BTC', 'ETH']:
+            for currency in ['BTC', 'ETH', 'SOL', 'XRP']:
                 try:
                     # Spot reference
                     idx_r = requests.get(f'{base}/get_index_price?index_name={currency.lower()}_usd', timeout=5)
