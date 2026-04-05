@@ -51,6 +51,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         if (fr && fr.rows) fr.rows.forEach(r => { fundingMap[r.asset] = r.current; });
         if (os) optionsMap = os;
     } catch (_) {}
+    _checkFundingSpikes(fundingMap);
 
     const filtered = category === 'ALL' ? signals : signals.filter(s => s.category === category);
     const cats = ['ALL', 'EXCHANGE', 'PROXY', 'MINERS', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
@@ -660,3 +661,110 @@ async function renderAlphaScore(tabs = null) {
 // ============================================================
 // Feature 4: Performance Dashboard
 // ============================================================
+
+// ── Funding Rate Spike Alerts ────────────────────────────────────────────────
+// Fires toast notifications when funding rates breach institutional thresholds.
+// 5-min per-asset cooldown prevents spam on every 30s refresh cycle.
+window._fundingAlertTs = window._fundingAlertTs || {};
+
+function _checkFundingSpikes(fundingMap) {
+    if (!fundingMap || !Object.keys(fundingMap).length) return;
+    const now = Date.now();
+    const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes per asset
+
+    // Threshold tiers
+    const EXTREME_LONG  =  0.10;  // >+0.10% → over-leveraged longs, de-risking risk
+    const HIGH_LONG     =  0.05;  // >+0.05% → elevated cost of carry
+    const NEG_FUNDING   = -0.03;  // <-0.03% → shorts paying longs, squeeze risk
+
+    Object.entries(fundingMap).forEach(([asset, rate]) => {
+        if (typeof rate !== 'number' || !isFinite(rate)) return;
+
+        // Determine severity
+        let level = null, icon = '', color = '', bg = '', msg = '';
+        if (rate >= EXTREME_LONG) {
+            level = 'EXTREME';
+            icon  = '🔴';
+            color = '#ef4444';
+            bg    = 'rgba(239,68,68,0.12)';
+            msg   = `Over-leveraged longs — elevated liquidation cascade risk.`;
+        } else if (rate >= HIGH_LONG) {
+            level = 'HIGH';
+            icon  = '🟠';
+            color = '#fb923c';
+            bg    = 'rgba(251,146,60,0.12)';
+            msg   = `Elevated carry cost — watch for mean-reversion.`;
+        } else if (rate <= NEG_FUNDING) {
+            level = 'NEG';
+            icon  = '🟢';
+            color = '#22c55e';
+            bg    = 'rgba(34,197,94,0.12)';
+            msg   = `Shorts paying longs — short squeeze setup forming.`;
+        }
+        if (!level) return;
+
+        // Cooldown check — don't repeat same asset+level within 5 min
+        const key = `${asset}_${level}`;
+        if (now - (window._fundingAlertTs[key] || 0) < COOLDOWN_MS) return;
+        window._fundingAlertTs[key] = now;
+
+        // Fire custom styled toast
+        _showFundingToast(asset, rate, icon, color, bg, msg);
+    });
+}
+
+function _showFundingToast(asset, rate, icon, color, bg, msg) {
+    const sign   = rate >= 0 ? '+' : '';
+    const rateStr = `${sign}${rate.toFixed(4)}%`;
+    const id     = `ft-${asset}-${Date.now()}`;
+
+    const toast = document.createElement('div');
+    toast.id = id;
+    toast.style.cssText = `
+        position:fixed; bottom:88px; right:20px; z-index:9999;
+        min-width:300px; max-width:380px;
+        background:rgba(10,14,20,0.95);
+        border:1px solid ${color}55;
+        border-left:3px solid ${color};
+        border-radius:10px;
+        padding:12px 14px;
+        box-shadow:0 8px 32px rgba(0,0,0,0.5);
+        display:flex; gap:10px; align-items:flex-start;
+        animation:slideInRight 0.3s ease;
+        cursor:pointer;
+        backdrop-filter:blur(12px);
+        transition:opacity 0.4s, transform 0.4s;
+    `;
+    toast.innerHTML = `
+        <div style="font-size:1.2rem;line-height:1;padding-top:2px">${icon}</div>
+        <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:${color}">⚡ FUNDING SPIKE · ${asset}</span>
+                <span style="font-size:0.75rem;font-weight:900;font-family:var(--font-mono);color:${color}">${rateStr}</span>
+            </div>
+            <div style="font-size:0.72rem;color:var(--text);line-height:1.4">${msg}</div>
+            <div style="font-size:0.58rem;color:var(--text-dim);margin-top:5px">8h funding rate · Click to view signals</div>
+        </div>
+        <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:var(--text-dim);font-size:1rem;cursor:pointer;padding:0;line-height:1;flex-shrink:0">✕</button>
+    `;
+    toast.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') return;
+        switchView('signals');
+        toast.remove();
+    });
+
+    // Stack above existing toasts
+    const existing = document.querySelectorAll('[id^="ft-"]');
+    let offset = 88;
+    existing.forEach(el => { offset += el.offsetHeight + 8; });
+    toast.style.bottom = offset + 'px';
+
+    document.body.appendChild(toast);
+
+    // Auto-dismiss after 12s
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        setTimeout(() => toast.remove(), 400);
+    }, 12000);
+}
