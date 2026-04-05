@@ -392,17 +392,18 @@ async function renderChainVelocity(tabs = null) {
             maintainAspectRatio: false,
             scales: {
                 r: {
-                    angleLines: { color: 'rgba(255,255,255,0.1)' },
-                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    angleLines: { color: 'rgba(255,255,255,0.2)' },
+                    grid: { color: 'rgba(255,255,255,0.12)' },
                     pointLabels: { 
-                        color: 'var(--text-dim)', 
-                        font: { size: 10, weight: '900', family: 'Inter' },
-                        padding: 10
+                        color: '#ffffff',
+                        font: { size: 13, weight: '900', family: 'JetBrains Mono' },
+                        padding: 16,
+                        backdropColor: 'rgba(0,0,0,0)'
                     },
                     ticks: { display: false, stepSize: 2 },
                     min: 0,
                     max: 10,
-                    backgroundColor: 'rgba(0,0,0,0.2)'
+                    backgroundColor: 'rgba(0,0,0,0.25)'
                 }
             },
             plugins: {
