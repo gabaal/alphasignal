@@ -41,6 +41,15 @@ async function renderSignals(category = 'ALL', tabs = null) {
     updateScroller(signals);
     startCountdown(); // Reset timer on successful fetch
 
+    // Funding rate map: fetch once in background (non-blocking - fails gracefully)
+    let fundingMap = {};
+    try {
+        const fr = await fetchAPI('/api/funding-rates');
+        if (fr && fr.rows) {
+            fr.rows.forEach(r => { fundingMap[r.asset] = r.current; });
+        }
+    } catch (_) {}
+
     const filtered = category === 'ALL' ? signals : signals.filter(s => s.category === category);
     const cats = ['ALL', 'EXCHANGE', 'PROXY', 'MINERS', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
 
@@ -86,6 +95,18 @@ async function renderSignals(category = 'ALL', tabs = null) {
                 const dir = s.alpha >= 0 ? 'LONG' : 'SHORT';
                 const zAbs = Math.abs(s.zScore).toFixed(1);
                 const cardId = `sc-${s.ticker.replace(/[^a-z0-9]/gi,'')}`;
+                // Funding rate badge
+                const asset = s.ticker.replace(/-USD$|-USDT$/i,'').replace(/USDT$/i,'');
+                const fRate = fundingMap[asset];
+                const fundingBadge = (fRate !== undefined)
+                    ? (() => {
+                        const col = fRate > 0.05 ? '#ef4444' : fRate > 0.01 ? '#fb923c' : fRate < -0.01 ? '#22c55e' : '#64748b';
+                        const bg  = fRate > 0.05 ? 'rgba(239,68,68,0.1)' : fRate > 0.01 ? 'rgba(251,146,60,0.1)' : fRate < -0.01 ? 'rgba(34,197,94,0.1)' : 'rgba(100,116,139,0.1)';
+                        const sign = fRate >= 0 ? '+' : '';
+                        return `<div title="Perpetual Funding Rate" style="font-size:0.48rem;font-weight:900;letter-spacing:1px;padding:2px 6px;border-radius:100px;
+                            background:${bg};border:1px solid ${col}33;color:${col};white-space:nowrap">⚡ ${sign}${fRate.toFixed(4)}%</div>`;
+                    })()
+                    : '';
                 return `
                 <div class="signal-card ${Math.abs(s.zScore) > 2 ? 'z-outlier' : ''}" onclick="openDetail('${s.ticker}', '${s.category}', ${s.btcCorrelation}, ${s.alpha}, ${s.sentiment}, '60d', ${s.category === 'TRACKED'})">
                     <div class="card-controls" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10">
@@ -102,6 +123,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                                     background:${dir==='LONG'?'rgba(34,197,94,0.12)':'rgba(239,68,68,0.12)'};
                                     border:1px solid ${dir==='LONG'?'rgba(34,197,94,0.35)':'rgba(239,68,68,0.35)'};
                                     color:${dir==='LONG'?'#22c55e':'#ef4444'}">${dir}</div>
+                                ${fundingBadge}
                             </div>
                         </div>
                         <div class="metrics" style="align-items:flex-end;min-width:110px">
