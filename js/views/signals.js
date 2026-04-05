@@ -1,4 +1,4 @@
-﻿// ── Signals localStorage cache (stale-while-revalidate, 3-min TTL) ──
+// ── Signals localStorage cache (stale-while-revalidate, 3-min TTL) ──
 const _SIG_CACHE_KEY = 'as_signals_v1';
 const _SIG_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
 function _getSigCache() {
@@ -199,7 +199,35 @@ async function renderSignals(category = 'ALL', tabs = null) {
             return 'rgba(148,163,184,0.4)';
         };
 
+        // Plugin: draw a slim amber line for zero-signal days
+        const zeroDayPlugin = {
+            id: 'zeroDayMarker',
+            afterDraw(chart) {
+                const { ctx, data, scales: { x, y } } = chart;
+                const dataset = data.datasets[0].data;
+                const y0 = y.getPixelForValue(0);
+                ctx.save();
+                dataset.forEach((val, i) => {
+                    if (val === 0) {
+                        const meta = chart.getDatasetMeta(0).data[i];
+                        const barWidth = meta.width || 8;
+                        const cx = meta.x;
+                        ctx.beginPath();
+                        ctx.moveTo(cx - barWidth / 2, y0);
+                        ctx.lineTo(cx + barWidth / 2, y0);
+                        ctx.strokeStyle = 'rgba(251,146,60,0.9)';
+                        ctx.lineWidth = 2.5;
+                        ctx.shadowColor = 'rgba(251,146,60,0.5)';
+                        ctx.shadowBlur = 4;
+                        ctx.stroke();
+                    }
+                });
+                ctx.restore();
+            }
+        };
+
         new Chart(sdCtx.getContext('2d'), {
+
             type: 'bar',
             data: {
                 labels,
@@ -252,7 +280,8 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         suggestedMax: 30
                     }
                 }
-            }
+            },
+            plugins: [zeroDayPlugin]
         });
     }, 50);
 
