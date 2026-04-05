@@ -74,18 +74,63 @@ async function openAIAnalyst(ticker) {
     }
 
     const modal = document.getElementById('ai-modal');
-    const content = document.getElementById('ai-synthesis-content');  // correct ID
+    const content = document.getElementById('ai-synthesis-content');
     if (!content) return;
 
     modal.classList.remove('hidden');
     content.innerHTML = '<div class="loader"></div><p style="text-align:center">Synthesizing multidimensional intelligence for <strong>' + ticker + '</strong>...</p>';
-    
+
     const data = await fetchAPI(`/ai_analyst?ticker=${ticker}`);
     if (data) {
         content.innerHTML = `<div class="ai-report-box">${data.summary.replace(/\n/g, '<br>')}</div>`;
     } else {
         content.innerHTML = `<p style="color:var(--risk-high);text-align:center">Synthesis failed for ${ticker}. Try again.</p>`;
     }
+
+    // Append Signal Confidence Radar for this ticker
+    try {
+        const radarData = await fetchAPI(`/signal-radar?ticker=${ticker}`);
+        if (radarData && radarData.values) {
+            const radarWrap = document.createElement('div');
+            radarWrap.style.cssText = 'margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(0,242,255,0.12);';
+            radarWrap.innerHTML = `
+                <div style="font-size:0.6rem;color:var(--accent);letter-spacing:1.5px;font-weight:900;margin-bottom:0.8rem;display:flex;align-items:center;gap:6px;">
+                    <span class="material-symbols-outlined" style="font-size:0.9rem">radar</span>SIGNAL CONFIDENCE RADAR
+                </div>
+                <div style="display:flex;justify-content:center;">
+                    <div style="width:260px;height:260px;"><canvas id="ai-modal-radar"></canvas></div>
+                </div>`;
+            content.appendChild(radarWrap);
+
+            const existing = Chart.getChart('ai-modal-radar');
+            if (existing) existing.destroy();
+            new Chart(document.getElementById('ai-modal-radar').getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: radarData.labels,
+                    datasets: [{
+                        label: ticker.replace('-USD','') + ' Confidence',
+                        data: radarData.values,
+                        borderColor: '#00f2ff',
+                        backgroundColor: 'rgba(0,242,255,0.07)',
+                        pointBackgroundColor: '#00f2ff',
+                        pointRadius: 3,
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: true,
+                    plugins: { legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 9 } } } },
+                    scales: { r: {
+                        min: 0, max: 100,
+                        ticks: { stepSize: 25, color: 'rgba(255,255,255,0.25)', backdropColor: 'transparent', font: { size: 7 } },
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 9, family: 'JetBrains Mono' } }
+                    }}
+                }
+            });
+        }
+    } catch(e) { /* radar is non-critical, fail silently */ }
 }
 
 
