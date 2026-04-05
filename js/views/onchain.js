@@ -679,13 +679,6 @@ async function renderOptionsFlow(tabs = null) {
                 <button id="opts-trx-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('TRX','deribit')" style="border-color:rgba(255,6,10,0.5);color:#ff060a">TRX</button>
             </div>
         </div>
-        <div style="margin-bottom:0.5rem">
-            <div style="font-size:0.55rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px">OKX <span style="color:#00f2ff">LIVE</span></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button id="opts-okx-btc-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('BTC','okx')" style="border-color:rgba(0,242,255,0.4);color:#00f2ff">BTC</button>
-                <button id="opts-okx-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH','okx')" style="border-color:rgba(98,126,234,0.4);color:#627eea">ETH</button>
-            </div>
-        </div>
         <div style="margin-bottom:1rem">
             <div style="font-size:0.55rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px">EQUITY PROXIES <span style="color:#f59e0b">CBOE · yfinance</span></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
