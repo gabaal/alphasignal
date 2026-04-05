@@ -6,7 +6,11 @@ async function renderSignalPermalink(signalId) {
         </div>
         <div id="signal-permalink-content">${skeleton(1)}</div>`;
 
+    if (!signalId || signalId === 'null' || signalId === 'undefined') {
+        switchView('signals'); return;
+    }
     const data = await fetchAPI(`/signal/${signalId}`);
+
 
     const el = document.getElementById('signal-permalink-content');
     if (!el) return;
