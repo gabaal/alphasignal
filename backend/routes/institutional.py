@@ -4794,10 +4794,13 @@ class InstitutionalRoutesMixin:
                     df = yf.download(ticker, period='35d', interval='1d',
                                      auto_adjust=True, progress=False)
                     if df is None or df.empty: return 0.0
-                    closes = df['Close'].dropna()
-                    if len(closes) < 2: return 0.0
+                    # yfinance returns MultiIndex columns: ('Close', 'TICKER')
+                    # .squeeze() collapses a single-ticker DataFrame to a Series
+                    closes = df['Close'].squeeze().dropna()
+                    if not hasattr(closes, 'iloc') or len(closes) < 2: return 0.0
                     return round(float((closes.iloc[-1] / closes.iloc[0] - 1) * 100), 2)
-                except Exception:
+                except Exception as ex:
+                    print(f'[CapRot] {ticker}: {ex}')
                     return 0.0
 
             # ── Fetch all returns in parallel ──────────────────────────────
