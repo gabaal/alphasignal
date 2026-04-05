@@ -388,6 +388,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_signal_history()
             elif path == '/api/macro-calendar':
                 self.handle_macro_calendar()
+            elif path == '/api/capital-rotation':
+                self.handle_capital_rotation()
             elif path == '/api/options-flow':
                 self.handle_options_flow()
             elif path == '/api/options-signal':

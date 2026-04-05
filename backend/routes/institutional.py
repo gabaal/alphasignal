@@ -4741,6 +4741,139 @@ class InstitutionalRoutesMixin:
                     print(f'[OptionsSignal] {sym}: {e}')
         threading.Thread(target=_fetch_equities, daemon=True).start()
 
+    # ── Capital Rotation live cache ─────────────────────────────────────────
+    _cap_rotation_cache    = {}
+    _cap_rotation_cache_ts = 0
+
+    def handle_capital_rotation(self):
+        """Live 30D momentum-weighted cross-asset capital rotation tree.
+        Uses yfinance for real prices; cached 30 min."""
+        try:
+            now = time.time()
+            if now - InstitutionalRoutesMixin._cap_rotation_cache_ts < 1800 and InstitutionalRoutesMixin._cap_rotation_cache:
+                self.send_json(InstitutionalRoutesMixin._cap_rotation_cache); return
+
+            import yfinance as yf
+
+            # ── Asset map: (display_name, yfinance_ticker) ─────────────────
+            SECTORS = {
+                'Crypto': [
+                    ('BTC',  'BTC-USD'),
+                    ('ETH',  'ETH-USD'),
+                    ('SOL',  'SOL-USD'),
+                    ('BNB',  'BNB-USD'),
+                    ('AVAX', 'AVAX-USD'),
+                ],
+                'Equities': [
+                    ('Tech',    'QQQ'),
+                    ('Energy',  'XLE'),
+                    ('Finance', 'XLF'),
+                    ('Health',  'XLV'),
+                ],
+                'Bonds': [
+                    ('2Y UST',  'SHY'),
+                    ('10Y UST', 'IEF'),
+                    ('HY Corp', 'HYG'),
+                ],
+                'Commodities': [
+                    ('Gold',   'GLD'),
+                    ('Oil',    'USO'),
+                    ('Silver', 'SLV'),
+                ],
+            }
+
+            SECTOR_COLORS = {
+                'Crypto':      '#7dd3fc',
+                'Equities':    '#f59e0b',
+                'Bonds':       '#a78bfa',
+                'Commodities': '#10b981',
+            }
+
+            def _get_30d_return(ticker):
+                try:
+                    df = yf.download(ticker, period='35d', interval='1d',
+                                     auto_adjust=True, progress=False)
+                    if df is None or df.empty: return 0.0
+                    closes = df['Close'].dropna()
+                    if len(closes) < 2: return 0.0
+                    return round(float((closes.iloc[-1] / closes.iloc[0] - 1) * 100), 2)
+                except Exception:
+                    return 0.0
+
+            # ── Fetch all returns in parallel ──────────────────────────────
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            all_tickers = [(name, sym, sect)
+                           for sect, assets in SECTORS.items()
+                           for name, sym in assets]
+            returns_map = {}
+            with ThreadPoolExecutor(max_workers=8) as ex:
+                fut_map = {ex.submit(_get_30d_return, sym): (name, sym, sect)
+                           for name, sym, sect in all_tickers}
+                for fut in as_completed(fut_map):
+                    name, sym, sect = fut_map[fut]
+                    returns_map[(sect, name)] = fut.result()
+
+            # ── Build hierarchy with momentum-weighted sector allocations ──
+            sector_scores = {}
+            for sect, assets in SECTORS.items():
+                perfs = [returns_map.get((sect, name), 0) for name, _ in assets]
+                # Momentum score: mean of positive returns, floored at 1
+                pos = [max(p, 0) for p in perfs]
+                sector_scores[sect] = sum(pos) / len(pos) + 1.0
+
+            total_score = sum(sector_scores.values())
+            sector_weights = {s: round(v / total_score * 100, 1)
+                              for s, v in sector_scores.items()}
+
+            def _children(sect, assets):
+                raw_perfs = {name: returns_map.get((sect, name), 0) for name, _ in assets}
+                pos_vals = {n: max(p, 0) + 0.5 for n, p in raw_perfs.items()}
+                tot = sum(pos_vals.values()) or 1
+                parent_w = sector_weights[sect]
+                return [
+                    {
+                        'name':  name,
+                        'value': round(pos_vals[name] / tot * parent_w, 1),
+                        'perf':  raw_perfs[name],
+                    }
+                    for name, _ in assets
+                ]
+
+            children = []
+            summary = []
+            for sect, assets in SECTORS.items():
+                kids = _children(sect, assets)
+                sect_perf = round(sum(k['perf'] for k in kids) / len(kids), 2)
+                children.append({
+                    'name':     sect,
+                    'value':    sector_weights[sect],
+                    'perf':     sect_perf,
+                    'color':    SECTOR_COLORS[sect],
+                    'children': kids,
+                })
+                summary.append({
+                    'label': sect,
+                    'pct':   f"{sector_weights[sect]:.0f}%",
+                    'perf':  f"{'+' if sect_perf >= 0 else ''}{sect_perf:.1f}%",
+                    'col':   SECTOR_COLORS[sect],
+                })
+
+            result = {
+                'name':     'Total Capital',
+                'value':    0,
+                'children': children,
+                'summary':  summary,
+                'updated':  datetime.utcnow().strftime('%d %b %Y %H:%M UTC'),
+                'source':   'yfinance · 30D live returns',
+            }
+
+            InstitutionalRoutesMixin._cap_rotation_cache    = result
+            InstitutionalRoutesMixin._cap_rotation_cache_ts = now
+            self.send_json(result)
+        except Exception as e:
+            print(f'[CapitalRotation] {e}')
+            self.send_json({'error': str(e)})
+
     def handle_options_flow(self):
         """BTC/ETH/SOL/XRP options from Deribit. BTC+ETH are native-settled;
         SOL+XRP are USDC-settled — fetched from the USDC book and filtered by prefix."""

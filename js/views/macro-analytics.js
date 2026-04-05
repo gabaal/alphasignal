@@ -365,23 +365,35 @@ async function renderCapitalRotation(tabs = null) {
                     Cross-Asset Capital Rotation <span class="premium-badge">LIVE</span>
                 </h1>
                 <p style="color:var(--text-dim);font-size:0.8rem;margin-top:6px">
-                    30-day momentum-weighted allocation map across Crypto, Equities, Bonds & Commodities.
-                    Click any segment to drill into its sub-allocation â€” click the centre label to reset.
+                    30-day momentum-weighted allocation map across Crypto, Equities, Bonds &amp; Commodities.
+                    Click any segment to drill into its sub-allocation — click the centre label to reset.
                 </p>
             </div>
         </div>
 
         <div class="card" style="padding:1.5rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px">
+            <div id="cr-summary-bar" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px">
+                <div style="display:flex;gap:6px;align-items:center">
+                    <div class="loader" style="width:14px;height:14px;border-width:2px"></div>
+                    <span style="font-size:0.65rem;color:var(--text-dim)">Loading live market data…</span>
+                </div>
+            </div>
+            <div id="sunburst-container" style="width:100%;display:flex;justify-content:center;padding-bottom:1.5rem;"></div>
+        </div>
+    `;
+
+    // ── Fetch live data ──────────────────────────────────────────────────
+    let root_data;
+    try {
+        const data = await fetchAPI('/capital-rotation');
+        if (data && data.children) {
+            root_data = data;
+            // Populate summary bar from API
+            document.getElementById('cr-summary-bar').innerHTML = `
                 <div>
-                    <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:6px">ALLOCATION INTELLIGENCE</div>
+                    <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:6px">ALLOCATION INTELLIGENCE · LIVE 30D</div>
                     <div style="display:flex;gap:20px;flex-wrap:wrap">
-                        ${[
-                            { label:'Crypto', pct:'40%', perf:'+12.4%', col:'#7dd3fc' },
-                            { label:'Equities', pct:'35%', perf:'âˆ’2.1%', col:'#f59e0b' },
-                            { label:'Bonds', pct:'15%', perf:'âˆ’0.8%', col:'#a78bfa' },
-                            { label:'Commodities', pct:'10%', perf:'+4.5%', col:'#10b981' }
-                        ].map(s => `
+                        ${(data.summary || []).map(s => `
                             <div style="text-align:center">
                                 <div style="width:10px;height:10px;border-radius:50%;background:${s.col};margin:0 auto 4px"></div>
                                 <div style="font-size:0.65rem;color:${s.col};font-weight:900">${s.label}</div>
@@ -393,34 +405,39 @@ async function renderCapitalRotation(tabs = null) {
                 </div>
                 <div style="font-size:0.55rem;color:var(--text-dim);text-align:right;line-height:1.8">
                     Model: 30D Momentum-Weighted<br>
-                    Source: Synthetic Institutional Proxy<br>
-                    Rebalance: Daily
+                    Source: ${data.source || 'yfinance · Live'}<br>
+                    Updated: ${data.updated || '—'}
                 </div>
-            </div>
-            <div id="sunburst-container" style="width:100%;display:flex;justify-content:center;padding-bottom:1.5rem;"></div>
-        </div>
-    `;
+            `;
+        } else {
+            throw new Error(data?.error || 'No data');
+        }
+    } catch(e) {
+        document.getElementById('cr-summary-bar').innerHTML =
+            `<div style="color:#ef4444;font-size:0.75rem">⚠ Live data unavailable: ${e.message}. Using last-known allocation model.</div>`;
+        // Fallback to static model
+        root_data = {
+            name: 'Total Capital', value: 0, children: [
+                { name: 'Crypto',      value: 40, perf: 0, children: [
+                    { name: 'BTC', value: 22, perf: 0 }, { name: 'ETH', value: 12, perf: 0 }, { name: 'Alts', value: 6, perf: 0 }
+                ]},
+                { name: 'Equities',    value: 35, perf: 0, children: [
+                    { name: 'Tech', value: 14, perf: 0 }, { name: 'Energy', value: 11, perf: 0 }, { name: 'Finance', value: 10, perf: 0 }
+                ]},
+                { name: 'Bonds',       value: 15, perf: 0, children: [
+                    { name: '2Y UST', value: 8, perf: 0 }, { name: '10Y UST', value: 7, perf: 0 }
+                ]},
+                { name: 'Commodities', value: 10, perf: 0, children: [
+                    { name: 'Gold', value: 6, perf: 0 }, { name: 'Oil', value: 4, perf: 0 }
+                ]}
+            ]
+        };
+    }
 
     setTimeout(() => {
         if (typeof d3 === 'undefined') return;
 
         const W = Math.min(520, window.innerWidth - 80), R = W / 2;
-        const root_data = {
-            name: 'Total Capital', value: 0, children: [
-                { name: 'Crypto', value: 40, perf: 12.4, children: [
-                    { name: 'BTC', value: 22, perf: 15.2 }, { name: 'ETH', value: 12, perf: 8.7 }, { name: 'Alts', value: 6, perf: 18.1 }
-                ]},
-                { name: 'Equities', value: 35, perf: -2.1, children: [
-                    { name: 'Tech', value: 14, perf: 3.2 }, { name: 'Energy', value: 11, perf: -8.4 }, { name: 'Finance', value: 10, perf: 1.1 }
-                ]},
-                { name: 'Bonds', value: 15, perf: -0.8, children: [
-                    { name: '2Y UST', value: 8, perf: -0.4 }, { name: '10Y UST', value: 7, perf: -1.2 }
-                ]},
-                { name: 'Commodities', value: 10, perf: 4.5, children: [
-                    { name: 'Gold', value: 6, perf: 6.1 }, { name: 'Oil', value: 4, perf: 1.8 }
-                ]}
-            ]
-        };
         const palettes = { 'Crypto': '#7dd3fc', 'Equities': '#f59e0b', 'Bonds': '#a78bfa', 'Commodities': '#10b981' };
         const getColor = d => { const anc = d.ancestors().find(a => palettes[a.data.name]); return anc ? palettes[anc.data.name] : '#555'; };
 
@@ -459,7 +476,7 @@ async function renderCapitalRotation(tabs = null) {
             .style('cursor', 'pointer');
 
         paths.append('title').text(d =>
-            `${d.ancestors().map(d => d.data.name).reverse().slice(1).join(' â€º ')}\n` +
+            `${d.ancestors().map(d => d.data.name).reverse().slice(1).join(' › ')}\n` +
             `${d.value}% allocation\n${(d.data.perf >= 0 ? '+' : '')}${d.data.perf?.toFixed(1) || 0}% 30D`
         );
 
@@ -524,7 +541,7 @@ async function renderCapitalRotation(tabs = null) {
                 const perfStr = (next.data.perf >= 0 ? '+' : '') + (next.data.perf?.toFixed(1) || '0') + '%';
                 const col = next.data.perf >= 0 ? '#22c55e' : '#ef4444';
                 centerName.text(next.data.name).attr('fill', getColor(next));
-                centerSub.text(`${next.value}% Â· ${perfStr}`).attr('fill', col);
+                centerSub.text(`${next.value}% · ${perfStr}`).attr('fill', col);
                 const rows = (next.children || []).map(c => {
                     const cp = (c.data.perf >= 0 ? '+' : '') + (c.data.perf?.toFixed(1) || '0') + '%';
                     const cc = c.data.perf >= 0 ? '#22c55e' : '#ef4444';
@@ -537,7 +554,7 @@ async function renderCapitalRotation(tabs = null) {
                 detailEl.style.display = 'block';
                 detailEl.innerHTML = `
                     <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px;font-weight:700">
-                        ${next.data.name.toUpperCase()} BREAKDOWN Â· CLICK CENTRE TO RESET
+                        ${next.data.name.toUpperCase()} BREAKDOWN · CLICK CENTRE TO RESET
                     </div>
                     <table style="width:100%;border-collapse:collapse">${rows}</table>`;
             }
@@ -549,4 +566,3 @@ async function renderCapitalRotation(tabs = null) {
 
     }, 200);
 }
-
