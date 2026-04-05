@@ -670,7 +670,7 @@ async function renderOptionsFlow(tabs = null) {
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Deribit Options Flow Scanner</h2>
         <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
             <button id="opts-btc-btn" class="intel-action-btn mini" onclick="loadOptionsFlow('BTC')" style="background:linear-gradient(135deg,#f7931a,#ff6b00);color:#fff">BTC OPTIONS</button>
-            <button id="opts-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH')">ETH OPTIONS</button>
+            <button id="opts-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH')" style="border-color:rgba(98,126,234,0.5);color:#627eea">ETH OPTIONS</button>
             <button id="opts-sol-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('SOL')" style="border-color:rgba(20,241,149,0.5);color:#14f195">SOL OPTIONS</button>
             <button id="opts-xrp-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('XRP')" style="border-color:rgba(0,160,255,0.5);color:#00a0ff">XRP OPTIONS</button>
             <button id="opts-avax-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('AVAX')" style="border-color:rgba(232,65,66,0.5);color:#e84142">AVAX OPTIONS</button>
