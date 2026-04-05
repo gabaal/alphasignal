@@ -4910,7 +4910,7 @@ class InstitutionalRoutesMixin:
             if now - InstitutionalRoutesMixin._okx_cache_ts < 900 and InstitutionalRoutesMixin._okx_cache:
                 self.send_json(InstitutionalRoutesMixin._okx_cache); return
 
-            asset = (self.query_params.get('asset') or ['BTC'])[0].upper()
+            asset = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get('asset', ['BTC'])[0].upper()
             if asset not in ('BTC', 'ETH'):
                 self.send_json({'error': f'OKX only supports BTC/ETH options'}); return
 
@@ -5034,7 +5034,8 @@ class InstitutionalRoutesMixin:
         Returns same shape as Deribit handler."""
         try:
             import yfinance as yf
-            ticker = (self.query_params.get('ticker') or ['MARA'])[0].upper()
+            query  = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            ticker = query.get('ticker', ['MARA'])[0].upper()
             ALLOWED = {'MARA', 'COIN', 'MSTR', 'HOOD'}
             if ticker not in ALLOWED:
                 self.send_json({'error': f'{ticker} not in equity options universe'}); return
