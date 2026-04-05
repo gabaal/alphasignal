@@ -4816,13 +4816,14 @@ class InstitutionalRoutesMixin:
                     name, sym, sect = fut_map[fut]
                     returns_map[(sect, name)] = fut.result()
 
-            # ── Build hierarchy with momentum-weighted sector allocations ──
+            # ── Build hierarchy with offset-normalised sector weights ────────
+            # Use actual mean return + large offset (50) so negatives still
+            # differentiate — avoids the floor-at-zero collapse in bear markets
+            BASE = 50.0
             sector_scores = {}
             for sect, assets in SECTORS.items():
                 perfs = [returns_map.get((sect, name), 0) for name, _ in assets]
-                # Momentum score: mean of positive returns, floored at 1
-                pos = [max(p, 0) for p in perfs]
-                sector_scores[sect] = sum(pos) / len(pos) + 1.0
+                sector_scores[sect] = (sum(perfs) / len(perfs)) + BASE
 
             total_score = sum(sector_scores.values())
             sector_weights = {s: round(v / total_score * 100, 1)
@@ -4830,13 +4831,14 @@ class InstitutionalRoutesMixin:
 
             def _children(sect, assets):
                 raw_perfs = {name: returns_map.get((sect, name), 0) for name, _ in assets}
-                pos_vals = {n: max(p, 0) + 0.5 for n, p in raw_perfs.items()}
-                tot = sum(pos_vals.values()) or 1
+                # Weight by (return + BASE) so even negative returners differentiate
+                scored = {n: p + BASE for n, p in raw_perfs.items()}
+                tot = sum(scored.values()) or 1
                 parent_w = sector_weights[sect]
                 return [
                     {
                         'name':  name,
-                        'value': round(pos_vals[name] / tot * parent_w, 1),
+                        'value': round(scored[name] / tot * parent_w, 1),
                         'perf':  raw_perfs[name],
                     }
                     for name, _ in assets
