@@ -103,24 +103,22 @@ async function renderSignals(category = 'ALL', tabs = null) {
                                     border:1px solid ${dir==='LONG'?'rgba(34,197,94,0.35)':'rgba(239,68,68,0.35)'};
                                     color:${dir==='LONG'?'#22c55e':'#ef4444'}">${dir}</div>
                             </div>
-                                           <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-                            <div style="display:flex;align-items:center;gap:6px">
-                                <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px">PRICE</span>
-                                <span style="font-weight:700;font-size:0.85rem">${formatPrice(s.price)}</span>
+                        <div class="metrics" style="align-items:flex-end;min-width:110px">
+                            <div class="metric-line">
+                                <span>Price</span>
+                                <span>${formatPrice(s.price)}</span>
                             </div>
-                            <div style="display:flex;align-items:center;gap:6px">
-                                <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px">24H CHG</span>
-                                <span class="${s.change >= 0 ? 'pos' : 'neg'}" style="font-size:0.85rem">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</span>
+                            <div class="metric-line">
+                                <span>24h Change</span>
+                                <span class="${s.change >= 0 ? 'pos' : 'neg'}">${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%</span>
                             </div>
-                            <div style="display:flex;align-items:center;gap:6px">
-                                <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px">Z-SCORE</span>
-                                <span style="font-size:0.85rem;font-weight:900;
-                                    color:${Math.abs(s.zScore)>=1.75?'#ef4444':Math.abs(s.zScore)>=1.0?'#fb923c':Math.abs(s.zScore)>=0.5?'#7dd3fc':'#94a3b8'}">
-                                    ${s.zScore >= 0 ? '+' : ''}${s.zScore.toFixed(2)}s
-                                </span>
+                            <div class="metric-line">
+                                <span>Z-Score</span>
+                                <span style="color:${Math.abs(s.zScore)>=1.75?'#ef4444':Math.abs(s.zScore)>=1.0?'#fb923c':Math.abs(s.zScore)>=0.5?'#7dd3fc':'#94a3b8'}">${s.zScore >= 0 ? '+' : ''}${s.zScore.toFixed(2)}s</span>
                             </div>
-                        </div>        </div>
+                        </div>
                     </div>
+
                     <div class="delta-stat">
                         <div class="delta-label">BTC CORRELATION</div>
                         <div class="delta-value">${s.btcCorrelation.toFixed(2)}</div>
