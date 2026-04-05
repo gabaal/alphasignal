@@ -1,6 +1,6 @@
-const API_BASE = '/api';
+ï»¿const API_BASE = '/api';
 // ================================================================
-// THEME MANAGER — Light / Dark mode
+// THEME MANAGER ï¿½ Light / Dark mode
 // ================================================================
 (function initTheme() {
     const saved = localStorage.getItem('alpha-theme') || 'dark';
@@ -50,7 +50,7 @@ var hasStripeId = false;
 
 var currentBTCPrice = 70000;
 var alertCount = 0;
-var countdownSeconds = 300;
+var countdownSeconds = 30;
 var countdownInterval = null;
 
 function updateOnlineStatus() {
@@ -540,7 +540,7 @@ async function manageSubscription() {
 
 function startCountdown() {
     if (countdownInterval) clearInterval(countdownInterval);
-    countdownSeconds = 300;
+    countdownSeconds = 30;
     updateCountdownDisplay();
     
     countdownInterval = setInterval(() => {
@@ -556,7 +556,7 @@ function startCountdown() {
                 clearInterval(countdownInterval);
                 renderSignals();
             } else {
-                countdownSeconds = 300; // Reset timer silently in background
+                countdownSeconds = 30; // Reset timer silently in background
             }
             return;
         }

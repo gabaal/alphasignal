@@ -1,6 +1,6 @@
 // ── Signals localStorage cache (stale-while-revalidate, 3-min TTL) ──
 const _SIG_CACHE_KEY = 'as_signals_v1';
-const _SIG_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
+const _SIG_CACHE_TTL = 30 * 1000; // 30 seconds
 function _getSigCache() {
     try {
         const raw = localStorage.getItem(_SIG_CACHE_KEY);
