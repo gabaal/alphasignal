@@ -4765,11 +4765,12 @@ class InstitutionalRoutesMixin:
             INDEX_MAP = {
                 'BTC': 'btc_usd', 'ETH': 'eth_usd',
                 'SOL': 'sol_usd', 'XRP': 'xrp_usd',
-                'AVAX': 'avax_usd',
+                'AVAX': 'avax_usd', 'TRX': 'trx_usd',
             }
             # USDC-settled instruments use 'ASSET_USDC-' prefix
             USDC_PREFIX_MAP = {
-                'SOL': 'SOL_USDC-', 'XRP': 'XRP_USDC-', 'AVAX': 'AVAX_USDC-',
+                'SOL': 'SOL_USDC-', 'XRP': 'XRP_USDC-',
+                'AVAX': 'AVAX_USDC-', 'TRX': 'TRX_USDC-',
             }
             NATIVE_CURRENCIES = {'BTC', 'ETH'}
 
@@ -4845,7 +4846,7 @@ class InstitutionalRoutesMixin:
                     'updated':     datetime.utcnow().strftime('%H:%M UTC')
                 }
 
-            for currency in ['BTC', 'ETH', 'SOL', 'XRP', 'AVAX']:
+            for currency in ['BTC', 'ETH', 'SOL', 'XRP', 'AVAX', 'TRX']:
                 try:
                     # Spot price
                     idx_r = requests.get(
