@@ -979,7 +979,7 @@ async function renderMacroCalendar(tabs = null) {
         const tierBg = { HIGH: 'rgba(255,255,255,0.04)', MEDIUM: 'rgba(255,255,255,0.03)', LOW: 'rgba(255,255,255,0.02)' };
 
         calEl.innerHTML = `
-            <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:1rem">Updated ${data.updated} Ã‚· Showing next 90 days</div>
+            <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:1rem">Updated ${data.updated} &middot; Showing next 90 days</div>
             <div style="display:flex;flex-direction:column;gap:12px">
                 ${data.events.map(ev => {
                     const clr = typeColors[ev.type] || '#9ca3af';
@@ -1012,7 +1012,7 @@ async function renderMacroCalendar(tabs = null) {
                                 <span style="font-size:0.65rem;color:var(--text-dim)">Avg volatility: <b style="color:#8b5cf6">${ev.avg_vol}%</b></span>
                                 <span style="font-size:0.65rem;color:var(--text-dim)">Bull bias: <b style="color:#ffd700">${ev.bull_bias}%</b></span>
                             </div>
-                            <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:6px">LAST 6 INSTANCES Ã¢â‚¬” BTC DAY-OF MOVE</div>
+                            <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:6px">LAST 6 INSTANCES &mdash; BTC DAY-OF MOVE</div>
                             ${barsHtml}
                         </div>
                         <div style="text-align:center;min-width:80px">
