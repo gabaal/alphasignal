@@ -667,15 +667,33 @@ async function renderOptionsFlow(tabs = null) {
             <p>Real-time BTC & ETH Deribit options data &mdash; Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
         </div>
         ${renderHubTabs('options', tabs)}
-            <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Deribit Options Flow Scanner</h2>
-        <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
-            <button id="opts-btc-btn" class="intel-action-btn mini" onclick="loadOptionsFlow('BTC')" style="background:linear-gradient(135deg,#f7931a,#ff6b00);color:#fff">BTC OPTIONS</button>
-            <button id="opts-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH')" style="border-color:rgba(98,126,234,0.5);color:#627eea">ETH OPTIONS</button>
-            <button id="opts-sol-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('SOL')" style="border-color:rgba(20,241,149,0.5);color:#14f195">SOL OPTIONS</button>
-            <button id="opts-xrp-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('XRP')" style="border-color:rgba(0,160,255,0.5);color:#00a0ff">XRP OPTIONS</button>
-            <button id="opts-avax-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('AVAX')" style="border-color:rgba(232,65,66,0.5);color:#e84142">AVAX OPTIONS</button>
-            <button id="opts-trx-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('TRX')" style="border-color:rgba(255,6,10,0.5);color:#ff060a">TRX OPTIONS</button>
-            <span style="font-size:0.55rem;color:var(--text-dim);align-self:center;margin-left:4px;letter-spacing:1px">VIA DERIBIT LIVE</span>
+            <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1rem">Institutional Options Flow Scanner</h2>
+        <div style="margin-bottom:0.5rem">
+            <div style="font-size:0.55rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px">DERIBIT <span style="color:#00f2ff">LIVE</span></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button id="opts-btc-btn" class="intel-action-btn mini" onclick="loadOptionsFlow('BTC','deribit')" style="background:linear-gradient(135deg,#f7931a,#ff6b00);color:#fff">BTC</button>
+                <button id="opts-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH','deribit')" style="border-color:rgba(98,126,234,0.5);color:#627eea">ETH</button>
+                <button id="opts-sol-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('SOL','deribit')" style="border-color:rgba(20,241,149,0.5);color:#14f195">SOL</button>
+                <button id="opts-xrp-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('XRP','deribit')" style="border-color:rgba(0,160,255,0.5);color:#00a0ff">XRP</button>
+                <button id="opts-avax-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('AVAX','deribit')" style="border-color:rgba(232,65,66,0.5);color:#e84142">AVAX</button>
+                <button id="opts-trx-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('TRX','deribit')" style="border-color:rgba(255,6,10,0.5);color:#ff060a">TRX</button>
+            </div>
+        </div>
+        <div style="margin-bottom:0.5rem">
+            <div style="font-size:0.55rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px">OKX <span style="color:#00f2ff">LIVE</span></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button id="opts-okx-btc-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('BTC','okx')" style="border-color:rgba(0,242,255,0.4);color:#00f2ff">BTC</button>
+                <button id="opts-okx-eth-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('ETH','okx')" style="border-color:rgba(98,126,234,0.4);color:#627eea">ETH</button>
+            </div>
+        </div>
+        <div style="margin-bottom:1rem">
+            <div style="font-size:0.55rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px">EQUITY PROXIES <span style="color:#f59e0b">CBOE · yfinance</span></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button id="opts-mara-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('MARA','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">MARA</button>
+                <button id="opts-coin-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('COIN','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">COIN</button>
+                <button id="opts-mstr-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('MSTR','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">MSTR</button>
+                <button id="opts-hood-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('HOOD','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">HOOD</button>
+            </div>
         </div>
         <div id="opts-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
             ${['Put/Call Ratio','Max Pain','ATM IV','IV Rank','Call OI','Put OI'].map(s =>
@@ -705,27 +723,61 @@ async function renderOptionsFlow(tabs = null) {
         </div>
     `;
     window._optsCurrency = 'BTC';
-    loadOptionsFlow('BTC');
+    window._optsSource = 'deribit';
+    loadOptionsFlow('BTC', 'deribit');
 }
 
-async function loadOptionsFlow(currency) {
+const ALL_OPTS_BTNS = {
+    deribit: { BTC:'opts-btc-btn', ETH:'opts-eth-btn', SOL:'opts-sol-btn', XRP:'opts-xrp-btn', AVAX:'opts-avax-btn', TRX:'opts-trx-btn' },
+    okx:     { BTC:'opts-okx-btc-btn', ETH:'opts-okx-eth-btn' },
+    equity:  { MARA:'opts-mara-btn', COIN:'opts-coin-btn', MSTR:'opts-mstr-btn', HOOD:'opts-hood-btn' },
+};
+
+async function loadOptionsFlow(currency, source) {
+    source = source || window._optsSource || 'deribit';
     window._optsCurrency = currency;
-    const allBtns = { BTC: 'opts-btc-btn', ETH: 'opts-eth-btn', SOL: 'opts-sol-btn', XRP: 'opts-xrp-btn', AVAX: 'opts-avax-btn', TRX: 'opts-trx-btn' };
-    Object.entries(allBtns).forEach(([sym, id]) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.className = `intel-action-btn mini${sym === currency ? '' : ' outline'}`;
-        if (sym === 'BTC') el.style.background = sym === currency ? 'linear-gradient(135deg,#f7931a,#ff6b00)' : '';
-        if (sym === 'BTC') el.style.color = sym === currency ? '#fff' : '';
-    });
+    window._optsSource   = source;
+
+    // Reset all buttons across all groups
+    Object.values(ALL_OPTS_BTNS).forEach(group =>
+        Object.entries(group).forEach(([sym, id]) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.className = 'intel-action-btn mini outline';
+            if (sym === 'BTC' && id === 'opts-btc-btn') {
+                el.style.background = ''; el.style.color = '#fff';
+            }
+        })
+    );
+    // Highlight active button
+    const activeId = (ALL_OPTS_BTNS[source] || {})[currency];
+    if (activeId) {
+        const el = document.getElementById(activeId);
+        if (el) {
+            el.className = 'intel-action-btn mini';
+            if (source === 'deribit' && currency === 'BTC')
+                el.style.background = 'linear-gradient(135deg,#f7931a,#ff6b00)';
+        }
+    }
     ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'].forEach(id => {
         const el = document.getElementById('opts-' + id);
         if (el) el.innerHTML = '<span style="font-size:0.8rem;color:var(--text-dim)">...</span>';
     });
     try {
-        const data = await fetchAPI('/options-flow', 'GET');
-        if (!data || data.error) { showToast('OPTIONS FLOW', data?.error || 'API unavailable', 'alert'); return; }
-        const d = data[currency];
+        let data, d;
+        if (source === 'okx') {
+            data = await fetchAPI(`/okx-options-flow?asset=${currency}`, 'GET');
+            if (!data || data.error) { showToast('OKX OPTIONS', data?.error || 'API unavailable', 'alert'); return; }
+            d = data[currency];
+        } else if (source === 'equity') {
+            data = await fetchAPI(`/equity-options-flow?ticker=${currency}`, 'GET');
+            if (!data || data.error) { showToast('EQUITY OPTIONS', data?.error || 'API unavailable', 'alert'); return; }
+            d = data[currency];
+        } else {
+            data = await fetchAPI('/options-flow', 'GET');
+            if (!data || data.error) { showToast('OPTIONS FLOW', data?.error || 'API unavailable', 'alert'); return; }
+            d = data[currency];
+        }
         if (!d || d.error) {
             const spotTxt = d?.spot ? ` (Spot: $${Number(d.spot).toLocaleString()})` : '';
             showToast('OPTIONS FLOW', `${currency}: ${d?.error || 'No options data'}${spotTxt}`, 'info');

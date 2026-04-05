@@ -4898,6 +4898,238 @@ class InstitutionalRoutesMixin:
             print(f'[CapitalRotation] {e}')
             self.send_json({'error': str(e)})
 
+    # ── OKX Options cache ─────────────────────────────────────────────────
+    _okx_cache    = {}
+    _okx_cache_ts = 0
+
+    def handle_okx_options_flow(self):
+        """BTC/ETH options from OKX opt-summary endpoint.
+        Returns same shape as Deribit handler so frontend renders identically."""
+        try:
+            now = time.time()
+            if now - InstitutionalRoutesMixin._okx_cache_ts < 900 and InstitutionalRoutesMixin._okx_cache:
+                self.send_json(InstitutionalRoutesMixin._okx_cache); return
+
+            asset = (self.query_params.get('asset') or ['BTC'])[0].upper()
+            if asset not in ('BTC', 'ETH'):
+                self.send_json({'error': f'OKX only supports BTC/ETH options'}); return
+
+            uly = f'{asset}-USD'
+            base = 'https://www.okx.com/api/v5/public'
+
+            # Spot price
+            spot_r = requests.get(f'{base}/mark-price?instType=OPTION&uly={uly}', timeout=8)
+            spot = 0.0
+            if spot_r.ok:
+                marks = spot_r.json().get('data', [])
+                if marks:
+                    try: spot = float(marks[0].get('markPx', 0))
+                    except: pass
+            if spot == 0:
+                idx_r = requests.get(
+                    f'https://www.okx.com/api/v5/public/index-tickers?instId={asset}-USD', timeout=8)
+                if idx_r.ok:
+                    idxd = idx_r.json().get('data', [{}])
+                    try: spot = float(idxd[0].get('idxPx', 0))
+                    except: pass
+
+            # Full opt-summary (all expiries)
+            summ_r = requests.get(f'{base}/opt-summary?uly={uly}', timeout=10)
+            if not summ_r.ok:
+                self.send_json({'error': f'OKX opt-summary failed ({summ_r.status_code})'}); return
+
+            rows = summ_r.json().get('data', [])
+            if not rows:
+                self.send_json({'error': f'No OKX options data for {asset}'}); return
+
+            calls, puts = {}, {}
+            total_vol, total_oi_c, total_oi_p = 0.0, 0.0, 0.0
+            ivs_by_strike = {}
+
+            for row in rows:
+                inst_id = row.get('instId', '')
+                parts = inst_id.split('-')
+                if len(parts) < 5: continue
+                try:
+                    strike = float(parts[3])
+                    opt_type = parts[4]  # C or P
+                    iv   = float(row.get('markVol', 0) or 0)
+                    # OKX doesn't provide OI directly in opt-summary; use delta proxy
+                    # Use 1 unit as placeholder for OI counting (volume not available here)
+                    oi   = 1.0
+                    vol  = float(row.get('volLv', 0) or 0)
+                    if opt_type == 'C':
+                        calls[strike] = calls.get(strike, 0) + oi
+                        total_oi_c += oi
+                        ivs_by_strike.setdefault(strike, []).append(iv)
+                    elif opt_type == 'P':
+                        puts[strike]  = puts.get(strike, 0) + oi
+                        total_oi_p += oi
+                        ivs_by_strike.setdefault(strike, []).append(iv)
+                    total_vol += vol
+                except: continue
+
+            if not calls and not puts:
+                self.send_json({'error': f'No parseable OKX data for {asset}'}); return
+
+            pcr = round(total_oi_p / total_oi_c, 3) if total_oi_c else 0
+
+            # Max Pain: strike where combined OI loss is minimised
+            all_strikes = sorted(set(list(calls.keys()) + list(puts.keys())))
+            max_pain = spot
+            if all_strikes and spot > 0:
+                min_pain = float('inf')
+                for s in all_strikes:
+                    loss = sum(calls.get(k, 0) * max(k - s, 0) for k in all_strikes) + \
+                           sum(puts.get(k, 0)  * max(s - k, 0) for k in all_strikes)
+                    if loss < min_pain: min_pain = loss; max_pain = s
+
+            # ATM IV (nearest strike to spot)
+            atm_iv = 0.0
+            if spot > 0 and ivs_by_strike:
+                atm_strike = min(ivs_by_strike.keys(), key=lambda s: abs(s - spot))
+                atm_iv = round(sum(ivs_by_strike[atm_strike]) / len(ivs_by_strike[atm_strike]) * 100, 1)
+
+            # IV Smile: strikes ±30% of spot
+            smile_data = []
+            if spot > 0:
+                lo, hi = spot * 0.70, spot * 1.30
+                for s in sorted(ivs_by_strike):
+                    if lo <= s <= hi:
+                        iv_pct = round(sum(ivs_by_strike[s]) / len(ivs_by_strike[s]) * 100, 1)
+                        smile_data.append({'strike': s, 'iv': iv_pct})
+
+            # IV percentile (rough estimate from current ATM vs smile range)
+            all_ivs = [v for vals in ivs_by_strike.values() for v in vals if v > 0]
+            iv_pct_rank = 50
+            if all_ivs and atm_iv > 0:
+                atm_raw = atm_iv / 100
+                below = sum(1 for v in all_ivs if v < atm_raw)
+                iv_pct_rank = round(below / len(all_ivs) * 100)
+
+            result = {
+                asset: {
+                    'pcr': pcr, 'max_pain': round(max_pain, 0),
+                    'atm_iv': atm_iv, 'iv_pct_rank': iv_pct_rank,
+                    'call_oi': round(total_oi_c), 'put_oi': round(total_oi_p),
+                    'call_vol': round(total_vol / 2), 'put_vol': round(total_vol / 2),
+                    'iv_smile': smile_data, 'spot': round(spot, 2),
+                    'source': 'OKX',
+                    'updated': datetime.utcnow().strftime('%H:%M UTC'),
+                }
+            }
+            InstitutionalRoutesMixin._okx_cache    = result
+            InstitutionalRoutesMixin._okx_cache_ts = now
+            self.send_json(result)
+        except Exception as e:
+            print(f'[OKX Options] {e}')
+            self.send_json({'error': str(e)})
+
+    # ── Equity Options cache ──────────────────────────────────────────────
+    _equity_opts_cache    = {}
+    _equity_opts_cache_ts = {}
+
+    def handle_equity_options_flow(self):
+        """CBOE-listed equity options via yfinance for MARA/COIN/MSTR/HOOD.
+        Returns same shape as Deribit handler."""
+        try:
+            import yfinance as yf
+            ticker = (self.query_params.get('ticker') or ['MARA'])[0].upper()
+            ALLOWED = {'MARA', 'COIN', 'MSTR', 'HOOD'}
+            if ticker not in ALLOWED:
+                self.send_json({'error': f'{ticker} not in equity options universe'}); return
+
+            now = time.time()
+            cached = InstitutionalRoutesMixin._equity_opts_cache.get(ticker)
+            cached_ts = InstitutionalRoutesMixin._equity_opts_cache_ts.get(ticker, 0)
+            if now - cached_ts < 900 and cached:
+                self.send_json({ticker: cached}); return
+
+            tk = yf.Ticker(ticker)
+            spot_data = tk.fast_info
+            try: spot = float(spot_data.last_price)
+            except: spot = 0.0
+
+            exps = tk.options
+            if not exps:
+                self.send_json({ticker: {'error': f'No options listed for {ticker}', 'spot': round(spot, 2)}}); return
+
+            # Collect chains from next 4 expiries to get meaningful OI/volume
+            calls_agg, puts_agg = {}, {}
+            total_oi_c, total_oi_p, total_vol_c, total_vol_p = 0, 0, 0, 0
+            ivs_by_strike = {}
+
+            for exp in exps[:4]:
+                try:
+                    chain = tk.option_chain(exp)
+                    for _, row in chain.calls.iterrows():
+                        s = float(row['strike'])
+                        oi  = int(row.get('openInterest') or 0)
+                        vol = int(row.get('volume') or 0)
+                        iv  = float(row.get('impliedVolatility') or 0)
+                        calls_agg[s] = calls_agg.get(s, 0) + oi
+                        total_oi_c += oi; total_vol_c += vol
+                        if iv > 0: ivs_by_strike.setdefault(s, []).append(iv)
+                    for _, row in chain.puts.iterrows():
+                        s = float(row['strike'])
+                        oi  = int(row.get('openInterest') or 0)
+                        vol = int(row.get('volume') or 0)
+                        iv  = float(row.get('impliedVolatility') or 0)
+                        puts_agg[s]  = puts_agg.get(s, 0) + oi
+                        total_oi_p += oi; total_vol_p += vol
+                        if iv > 0: ivs_by_strike.setdefault(s, []).append(iv)
+                except: continue
+
+            if not calls_agg and not puts_agg:
+                self.send_json({ticker: {'error': f'No chain data for {ticker}', 'spot': round(spot, 2)}}); return
+
+            pcr = round(total_oi_p / total_oi_c, 3) if total_oi_c else 0
+
+            all_strikes = sorted(set(list(calls_agg.keys()) + list(puts_agg.keys())))
+            max_pain = spot
+            if all_strikes and spot > 0:
+                min_pain = float('inf')
+                for s in all_strikes:
+                    loss = sum(calls_agg.get(k, 0) * max(k - s, 0) for k in all_strikes) + \
+                           sum(puts_agg.get(k, 0)  * max(s - k, 0) for k in all_strikes)
+                    if loss < min_pain: min_pain = loss; max_pain = s
+
+            atm_iv = 0.0
+            if spot > 0 and ivs_by_strike:
+                atm_strike = min(ivs_by_strike.keys(), key=lambda s: abs(s - spot))
+                atm_iv = round(sum(ivs_by_strike[atm_strike]) / len(ivs_by_strike[atm_strike]) * 100, 1)
+
+            smile_data = []
+            if spot > 0:
+                lo, hi = spot * 0.70, spot * 1.30
+                for s in sorted(ivs_by_strike):
+                    if lo <= s <= hi:
+                        iv_pct = round(sum(ivs_by_strike[s]) / len(ivs_by_strike[s]) * 100, 1)
+                        smile_data.append({'strike': s, 'iv': iv_pct})
+
+            all_ivs = [v for vals in ivs_by_strike.values() for v in vals if v > 0]
+            iv_pct_rank = 50
+            if all_ivs and atm_iv > 0:
+                atm_raw = atm_iv / 100
+                below = sum(1 for v in all_ivs if v < atm_raw)
+                iv_pct_rank = round(below / len(all_ivs) * 100)
+
+            result = {
+                'pcr': pcr, 'max_pain': round(max_pain, 2),
+                'atm_iv': atm_iv, 'iv_pct_rank': iv_pct_rank,
+                'call_oi': total_oi_c, 'put_oi': total_oi_p,
+                'call_vol': total_vol_c, 'put_vol': total_vol_p,
+                'iv_smile': smile_data, 'spot': round(spot, 2),
+                'source': 'CBOE · yfinance',
+                'updated': datetime.utcnow().strftime('%H:%M UTC'),
+            }
+            InstitutionalRoutesMixin._equity_opts_cache[ticker]    = result
+            InstitutionalRoutesMixin._equity_opts_cache_ts[ticker] = now
+            self.send_json({ticker: result})
+        except Exception as e:
+            print(f'[EquityOptions] {e}')
+            self.send_json({'error': str(e)})
+
     def handle_options_flow(self):
         """BTC/ETH/SOL/XRP options from Deribit. BTC+ETH are native-settled;
         SOL+XRP are USDC-settled — fetched from the USDC book and filtered by prefix."""
