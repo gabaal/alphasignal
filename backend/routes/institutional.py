@@ -1814,30 +1814,33 @@ class InstitutionalRoutesMixin:
             )
 
             stats_html = (
-                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:1rem 0 0.5rem">{row1}</div>'
-                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:0 0 1.5rem">{row2}</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:0.6rem 0 0.25rem">{row1}</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin:0 0 0.6rem">{row2}</div>'
             )
 
-            analysis = f"""
-                <div class="ai-report-body">
-                    <h3 style="color:var(--accent); margin-bottom:0.5rem">Intelligence Deep-Dive: {ticker}</h3>
-                    {alert_context}
-
-                    <p>Terminal Synthesis Engine identifies a <strong>{conviction} Conviction {stance}</strong> regime. {ml_context}</p>
-
-                    {stats_html}
-
-                    <p><strong>Institutional Logic:</strong> {ticker} price action is currently {flow} its local liquidity cluster.
-                    The {('positive' if change > 0 else 'negative')} correlation with the broader index suggests that {('idiosyncratic' if abs(z_score) > 2 else 'systemic')} drivers are primary.</p>
-
-                    <p><strong>Execution Strategy:</strong> Position sizing should be adjusted for a <strong>{('Bullish' if sentiment > 0 else 'Cautionary')} Reversal</strong> as price approaches ${price:,.2f}.
-                    Neural models suggest a {('continuation' if abs(z_score) > 1 else 'mean-reversion')} bias over the next 4-hour window.</p>
-
-                    <p style="font-size:0.7rem; color:var(--text-dim); border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem">
-                        <i>AlphaSignal Intelligence Desk // AI Analysis Layer v2.1 // {datetime.now().strftime('%H:%M:%S')}</i>
-                    </p>
-                </div>
-            """
+            analysis = (
+                f'<div class="ai-report-body">'
+                f'<h3 style="color:var(--accent);margin:0 0 0.4rem">'
+                f'Intelligence Deep-Dive: {ticker}</h3>'
+                f'{alert_context}'
+                f'<p style="margin:0.4rem 0">Terminal Synthesis Engine identifies a '
+                f'<strong>{conviction} Conviction {stance}</strong> regime. {ml_context}</p>'
+                f'{stats_html}'
+                f'<p style="margin:0.5rem 0"><strong>Institutional Logic:</strong> '
+                f'{ticker} price action is currently {flow} its local liquidity cluster. '
+                f'The {"positive" if change > 0 else "negative"} correlation with the broader index '
+                f'suggests that {"idiosyncratic" if abs(z_score) > 2 else "systemic"} drivers are primary.</p>'
+                f'<p style="margin:0.5rem 0"><strong>Execution Strategy:</strong> Position sizing should be '
+                f'adjusted for a <strong>{"Bullish" if sentiment > 0 else "Cautionary"} Reversal</strong> '
+                f'as price approaches ${price:,.2f}. '
+                f'Neural models suggest a {"continuation" if abs(z_score) > 1 else "mean-reversion"} '
+                f'bias over the next 4-hour window.</p>'
+                f'<p style="font-size:0.7rem;color:var(--text-dim);border-top:1px solid var(--border);'
+                f'padding-top:0.75rem;margin-top:0.75rem">'
+                f'<i>AlphaSignal Intelligence Desk // AI Analysis Layer v2.1 // '
+                f'{datetime.now().strftime("%H:%M:%S")}</i></p>'
+                f'</div>'
+            )
             self.send_json({'summary': analysis, 'outlook': 'BULLISH' if sentiment > 0.1 else 'BEARISH' if sentiment < -0.1 else 'NEUTRAL', 'conviction': conviction})
 
         except Exception as e:

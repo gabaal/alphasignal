@@ -82,7 +82,7 @@ async function openAIAnalyst(ticker, dir = null, zscore = null) {
 
     const data = await fetchAPI(`/ai_analyst?ticker=${ticker}`);
     if (data) {
-        content.innerHTML = `<div class="ai-report-box">${data.summary.replace(/\n/g, '<br>')}</div>`;
+        content.innerHTML = `<div class="ai-report-box">${data.summary}</div>`;
     } else {
         content.innerHTML = `<p style="color:var(--risk-high);text-align:center">Synthesis failed for ${ticker}. Try again.</p>`;
     }
