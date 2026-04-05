@@ -31,6 +31,7 @@ const macroHubTabs = [
     { id: 'briefing', label: 'MARKET BRIEFING', view: 'briefing', icon: 'description' },
     { id: 'flow', label: 'CAPITAL FLOWS', view: 'flow', icon: 'swap_horiz' },
     { id: 'rotation', label: 'SECTOR ROTATION', view: 'rotation', icon: 'rotate_right' },
+    { id: 'capital-rotation', label: 'CAPITAL ROTATION', view: 'capital-rotation', icon: 'donut_large' },
     { id: 'macro', label: 'MACRO COMPASS', view: 'macro-hub', icon: 'public' },
     { id: 'correlation', label: 'CORRELATION Matrix', view: 'correlation-matrix', icon: 'grid_4x4' },
     { id: 'calendar', label: 'MACRO CALENDAR', view: 'macro-calendar', icon: 'event' },

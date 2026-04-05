@@ -25,6 +25,7 @@ const viewMap = {
     'token-unlocks': renderTokenUnlocks,
     'yield-lab': renderYieldLab,
     rotation: renderRotation,
+    'capital-rotation': renderCapitalRotation,
     velocity: renderChainVelocity,
     portfolio: renderPortfolioLab,
     'portfolio-optimizer': renderPortfolioOptimizer,

@@ -1,4 +1,4 @@
-async function renderMacroSync(tabs = null) {
+﻿async function renderMacroSync(tabs = null) {
     const tabHTML = tabs ? renderHubTabs('pulse', tabs) : '';
     appEl.innerHTML = skeleton(2);
     const [data, sectors, corrData] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors'), fetchAPI('/correlation-matrix')]);
@@ -164,7 +164,7 @@ async function renderMacroSync(tabs = null) {
                         labels: ssrData.labels,
                         datasets: [
                             {
-                                label: 'SSR (BTC Market Cap ÷ Stablecoin Supply)',
+                                label: 'SSR (BTC Market Cap Ã· Stablecoin Supply)',
                                 data: ssrData.ssr,
                                 borderColor: '#7dd3fc',
                                 backgroundColor: 'rgba(0, 242, 255, 0.1)',
@@ -319,7 +319,7 @@ async function renderRotation(tabs = null) {
 
         <div class="intel-guide-card" style="margin-bottom: 2rem">
             <div style="display:flex; gap:1.5rem; align-items:flex-start">
-                <div class="guide-icon">ℹ️</div>
+                <div class="guide-icon">â„¹ï¸</div>
                 <div class="guide-text">
                     <h4 style="color:var(--accent); margin-bottom:0.5rem">How to Read Correlation Dynamics</h4>
                     <p style="font-size:0.85rem; line-height:1.6; color:var(--text-dim)">
@@ -349,18 +349,59 @@ async function renderRotation(tabs = null) {
             </div>
         </div>`;
     
-    // Capital Rotation Sunburst — D3 hierarchical radial chart
-    setTimeout(() => {
-        const efSection = document.createElement('div');
-        efSection.innerHTML = `
-            <div class="card" style="padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                    <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">donut_large</span>CAPITAL ROTATION SUNBURST</h3>
-                    <span style="font-size:0.55rem;color:var(--text-dim);">CLICK SEGMENT TO DRILL DOWN · 30D MOMENTUM WEIGHTED</span>
+    // Capital Rotation Sunburst moved to its own view â€” see renderCapitalRotation()
+}
+
+// ============================================================
+// Capital Rotation Sunburst â€” standalone Macro Intel tab
+// ============================================================
+async function renderCapitalRotation(tabs = null) {
+    if (!tabs) tabs = macroHubTabs;
+    appEl.innerHTML = `
+        <div class="view-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <div>
+                ${renderHubTabs('capital-rotation', tabs)}
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">donut_large</span>
+                    Cross-Asset Capital Rotation <span class="premium-badge">LIVE</span>
+                </h1>
+                <p style="color:var(--text-dim);font-size:0.8rem;margin-top:6px">
+                    30-day momentum-weighted allocation map across Crypto, Equities, Bonds & Commodities.
+                    Click any segment to drill into its sub-allocation â€” click the centre label to reset.
+                </p>
+            </div>
+        </div>
+
+        <div class="card" style="padding:1.5rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px">
+                <div>
+                    <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:6px">ALLOCATION INTELLIGENCE</div>
+                    <div style="display:flex;gap:20px;flex-wrap:wrap">
+                        ${[
+                            { label:'Crypto', pct:'40%', perf:'+12.4%', col:'#7dd3fc' },
+                            { label:'Equities', pct:'35%', perf:'âˆ’2.1%', col:'#f59e0b' },
+                            { label:'Bonds', pct:'15%', perf:'âˆ’0.8%', col:'#a78bfa' },
+                            { label:'Commodities', pct:'10%', perf:'+4.5%', col:'#10b981' }
+                        ].map(s => `
+                            <div style="text-align:center">
+                                <div style="width:10px;height:10px;border-radius:50%;background:${s.col};margin:0 auto 4px"></div>
+                                <div style="font-size:0.65rem;color:${s.col};font-weight:900">${s.label}</div>
+                                <div style="font-size:0.6rem;color:var(--text-dim)">${s.pct}</div>
+                                <div style="font-size:0.6rem;font-weight:700;color:${s.perf.startsWith('+') ? '#22c55e' : '#ef4444'}">${s.perf} 30D</div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
-                <div id="sunburst-container" style="width:100%;display:flex;justify-content:center;padding-bottom:1.5rem;"></div>
-            </div>`;
-        appEl.appendChild(efSection);
+                <div style="font-size:0.55rem;color:var(--text-dim);text-align:right;line-height:1.8">
+                    Model: 30D Momentum-Weighted<br>
+                    Source: Synthetic Institutional Proxy<br>
+                    Rebalance: Daily
+                </div>
+            </div>
+            <div id="sunburst-container" style="width:100%;display:flex;justify-content:center;padding-bottom:1.5rem;"></div>
+        </div>
+    `;
+
+    setTimeout(() => {
         if (typeof d3 === 'undefined') return;
 
         const W = Math.min(520, window.innerWidth - 80), R = W / 2;
@@ -386,8 +427,6 @@ async function renderRotation(tabs = null) {
         const hierarchy = d3.hierarchy(root_data).sum(d => d.value).sort((a, b) => b.value - a.value);
         const partition  = d3.partition().size([2 * Math.PI, R]);
         partition(hierarchy);
-
-        // Store starting position as .current on each node
         hierarchy.each(d => d.current = { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 });
 
         const arc = d3.arc()
@@ -410,7 +449,6 @@ async function renderRotation(tabs = null) {
 
         const g = svg.append('g').attr('transform', `translate(${R},${R})`);
 
-        // Arcs
         const paths = g.selectAll('path')
             .data(hierarchy.descendants().filter(d => d.depth > 0))
             .enter().append('path')
@@ -420,27 +458,22 @@ async function renderRotation(tabs = null) {
             .attr('stroke', '#0a0e1a').attr('stroke-width', 1.5)
             .style('cursor', 'pointer');
 
-        // Tooltips via title
         paths.append('title').text(d =>
-            `${d.ancestors().map(d => d.data.name).reverse().slice(1).join(' › ')}\n` +
+            `${d.ancestors().map(d => d.data.name).reverse().slice(1).join(' â€º ')}\n` +
             `${d.value}% allocation\n${(d.data.perf >= 0 ? '+' : '')}${d.data.perf?.toFixed(1) || 0}% 30D`
         );
 
-        // Labels
         const labels = g.selectAll('text.arc-label')
             .data(hierarchy.descendants().filter(d => d.depth > 0))
             .enter().append('text').attr('class', 'arc-label')
             .attr('transform', d => labelTransform(d.current))
-            .attr('text-anchor', 'middle')
-            .attr('dominant-baseline', 'middle')
+            .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
             .attr('font-size', d => d.depth === 1 ? 9 : 7.5)
             .attr('font-weight', d => d.depth === 1 ? 900 : 600)
-            .attr('fill', 'white')
-            .attr('pointer-events', 'none')
+            .attr('fill', 'white').attr('pointer-events', 'none')
             .style('opacity', d => labelVisible(d.current) ? 1 : 0)
             .text(d => d.data.name);
 
-        // Center text (interactive — click to zoom out)
         const centerGroup = g.append('g').style('cursor', 'pointer').on('click', () => clicked(null, hierarchy));
         const centerName = centerGroup.append('text')
             .attr('text-anchor', 'middle').attr('dy', '-0.5em')
@@ -449,24 +482,17 @@ async function renderRotation(tabs = null) {
             .attr('text-anchor', 'middle').attr('dy', '1em')
             .attr('font-size', 9).attr('fill', 'rgba(255,255,255,0.45)').text('ROTATION');
 
-        // Detail panel (shows on drill-down)
-        const detailId = 'sunburst-detail';
-        let detailEl = document.getElementById(detailId);
-        if (!detailEl) {
-            detailEl = document.createElement('div');
-            detailEl.id = detailId;
-            detailEl.style.cssText = 'margin-top:1rem;padding:1rem 1.2rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;font-size:0.72rem;display:none;';
-            document.getElementById('sunburst-container').parentElement.appendChild(detailEl);
-        }
+        // Detail panel
+        const detailEl = document.createElement('div');
+        detailEl.style.cssText = 'margin-top:1rem;padding:1rem 1.2rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;font-size:0.72rem;display:none;';
+        document.getElementById('sunburst-container').parentElement.appendChild(detailEl);
 
         let focusNode = hierarchy;
 
         function clicked(event, p) {
-            // Toggle: click same node → go to parent; click new → zoom in
             const next = (focusNode === p && p.parent) ? p.parent : p;
             focusNode = next;
 
-            // Compute target positions relative to focused node
             const xScale = d3.scaleLinear().domain([next.x0, next.x1]).range([0, 2 * Math.PI]);
             const yScale = d3.scaleLinear().domain([next.y0, R]).range([0, R]);
 
@@ -480,34 +506,25 @@ async function renderRotation(tabs = null) {
             const t = g.transition().duration(500);
 
             paths.transition(t)
-                .tween('data', d => {
-                    const i = d3.interpolate(d.current, d.target);
-                    return t => { d.current = i(t); };
-                })
+                .tween('data', d => { const i = d3.interpolate(d.current, d.target); return t => { d.current = i(t); }; })
                 .attrTween('d', d => () => arc(d.current))
                 .attr('fill-opacity', d => arcVisible(d.target) ? (1 - d.depth * 0.2) : 0)
                 .attr('pointer-events', d => arcVisible(d.target) ? 'auto' : 'none');
 
             labels.transition(t)
-                .tween('data', d => {
-                    const i = d3.interpolate(d.current, d.target);
-                    return t => { d.current = i(t); };
-                })
+                .tween('data', d => { const i = d3.interpolate(d.current, d.target); return t => { d.current = i(t); }; })
                 .attrTween('transform', d => () => labelTransform(d.current))
                 .style('opacity', d => labelVisible(d.target) ? 1 : 0);
 
-            // Update center text
             if (next === hierarchy) {
-                centerName.text('CAPITAL');
-                centerSub.text('ROTATION');
+                centerName.text('CAPITAL').attr('fill', '#7dd3fc');
+                centerSub.text('ROTATION').attr('fill', 'rgba(255,255,255,0.45)');
                 detailEl.style.display = 'none';
             } else {
                 const perfStr = (next.data.perf >= 0 ? '+' : '') + (next.data.perf?.toFixed(1) || '0') + '%';
-                const col = (next.data.perf >= 0) ? '#22c55e' : '#ef4444';
+                const col = next.data.perf >= 0 ? '#22c55e' : '#ef4444';
                 centerName.text(next.data.name).attr('fill', getColor(next));
-                centerSub.text(`${next.value}% · ${perfStr}`).attr('fill', col);
-
-                // Detail panel
+                centerSub.text(`${next.value}% Â· ${perfStr}`).attr('fill', col);
                 const rows = (next.children || []).map(c => {
                     const cp = (c.data.perf >= 0 ? '+' : '') + (c.data.perf?.toFixed(1) || '0') + '%';
                     const cc = c.data.perf >= 0 ? '#22c55e' : '#ef4444';
@@ -520,17 +537,16 @@ async function renderRotation(tabs = null) {
                 detailEl.style.display = 'block';
                 detailEl.innerHTML = `
                     <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px;font-weight:700">
-                        ${next.data.name.toUpperCase()} BREAKDOWN · CLICK CENTER TO RESET
+                        ${next.data.name.toUpperCase()} BREAKDOWN Â· CLICK CENTRE TO RESET
                     </div>
                     <table style="width:100%;border-collapse:collapse">${rows}</table>`;
             }
         }
 
-        // Attach click to paths
         paths.on('click', clicked)
              .on('mouseover', function(e, d) { d3.select(this).attr('fill-opacity', 0.95); })
              .on('mouseout', function(e, d) { d3.select(this).attr('fill-opacity', arcVisible(d.current) ? (1 - d.depth * 0.2) : 0); });
 
-    }, 400);
+    }, 200);
 }
 
