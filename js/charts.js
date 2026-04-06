@@ -443,7 +443,8 @@ function cleanupAdvChart() {
         // Disconnect ResizeObserver so it doesn't fire after navigation
         if (ref._ro) { try { ref._ro.disconnect(); } catch(e) {} }
         try {
-            ref._intentionalCleanup = true;  // suppress webglcontextlost overlay on normal navigation
+            // Flag on _animRef closure — still reachable when webglcontextlost fires async
+            if (ref._ref) ref._ref.intentionalCleanup = true;
             ref.renderer.forceContextLoss();
             ref.renderer.dispose();
         } catch(e) {}

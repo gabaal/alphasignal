@@ -1341,7 +1341,7 @@ async function renderAdvOptionsSurface(symbol) {
     canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
 
     // ── Animation loop — store ref BEFORE first RAF so cancelAnimationFrame works ─
-    const _animRef = { id: null, alive: true };
+    const _animRef = { id: null, alive: true, intentionalCleanup: false };
     const _animate = () => {
         if (!_animRef.alive) return;          // context lost — stop looping
         _animRef.id = requestAnimationFrame(_animate);
@@ -1354,12 +1354,12 @@ async function renderAdvOptionsSurface(symbol) {
 
     // ── WebGL context loss guard ───────────────────────────────────────────────
     canvas.addEventListener('webglcontextlost', (e) => {
-        e.preventDefault();  // REQUIRED: tells the browser we will handle recovery
+        e.preventDefault();
         _animRef.alive = false;
         cancelAnimationFrame(_animRef.id);
-        // Intentional teardown from cleanupAdvChart — no overlay, no recovery needed
-        if (window.activeDepth3D?._intentionalCleanup) return;
-        // Show a non-blocking overlay so the user knows what happened
+        // Intentional teardown from cleanupAdvChart — skip overlay
+        if (_animRef.intentionalCleanup) return;
+        // Real GPU crash — show recovery overlay
         const overlay = document.createElement('div');
         overlay.id = 'webgl-lost-overlay';
         overlay.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,5,8,0.92);gap:10px;z-index:10;border-radius:12px;';
