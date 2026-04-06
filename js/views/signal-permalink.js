@@ -1,144 +1,216 @@
-async function renderSignalPermalink(signalId) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Signal Permalink View  (?view=signal&ticker=BTC-USD)
+// Public shareable page: live vs signal price, AI thesis, Add to Watchlist
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function renderSignalPermalink(id) {
+    // id can be a ticker (from the signals grid) or a numeric alert id (future)
+    const ticker = id || new URLSearchParams(window.location.search).get('ticker') || 'BTC-USD';
+
     appEl.innerHTML = `
-        <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">share</span>Signal Detail</h1>
-            <p style="color:var(--text-dim);font-size:0.8rem">AlphaSignal Terminal · Institutional Intelligence</p>
-        </div>
-        <div id="signal-permalink-content">${skeleton(1)}</div>`;
+        <div style="max-width:680px;margin:0 auto;padding:2rem 1rem">
+            <!-- Back button -->
+            <button onclick="switchView('signals')" style="background:none;border:none;color:var(--accent);
+                font-size:0.7rem;font-weight:900;letter-spacing:2px;cursor:pointer;display:flex;
+                align-items:center;gap:6px;margin-bottom:2rem;padding:0;opacity:0.7;transition:opacity 0.2s"
+                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+                <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
+                BACK TO SIGNALS
+            </button>
 
-    if (!signalId || signalId === 'null' || signalId === 'undefined') {
-        switchView('signals'); return;
-    }
-    const data = await fetchAPI(`/signal/${signalId}`);
-
-
-    const el = document.getElementById('signal-permalink-content');
-    if (!el) return;
-
-    if (!data || data.error) {
-        el.innerHTML = `
-            <div class="card" style="padding:2.5rem;text-align:center">
-                <span class="material-symbols-outlined" style="font-size:3rem;opacity:0.3">signal_disconnected</span>
-                <h3 style="margin:1rem 0 0.5rem">Signal Not Found</h3>
-                <p style="color:var(--text-dim)">This signal may have expired or the ID is incorrect.</p>
-                <button class="intel-action-btn" onclick="switchView('signals')" style="margin:1rem auto 0">VIEW LIVE SIGNALS</button>
-            </div>`;
-        return;
-    }
-
-    const s = data;
-    const sevColor  = s.severity === 'CRITICAL' ? '#ef4444' : s.severity === 'HIGH' ? '#f59e0b' : '#60a5fa';
-    const sevIcon   = s.severity === 'CRITICAL' ? '🔴' : s.severity === 'HIGH' ? '🟠' : '🟡';
-    const livePx    = window.livePrices?.[s.ticker];
-    const signalPx  = s.price ? Number(s.price) : null;
-    const movePct   = (livePx && signalPx) ? (((livePx - signalPx) / signalPx) * 100).toFixed(2) : null;
-    const moveColor = movePct === null ? 'var(--text-dim)' : movePct >= 0 ? '#22c55e' : '#ef4444';
-    const shareUrl  = `${window.location.origin}/?view=signal&id=${s.id}`;
-    const tickerClean = s.ticker.replace('-USD', '');
-
-    el.innerHTML = `
-        <!-- Signal Card -->
-        <div class="card" style="padding:1.5rem;margin-bottom:1rem;border-left:3px solid ${sevColor}">
-            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem">
-                <div style="font-size:2rem;font-weight:900;color:var(--accent)">${tickerClean}</div>
-                <div style="padding:4px 12px;border-radius:6px;background:${sevColor}20;color:${sevColor};border:1px solid ${sevColor}40;font-size:0.6rem;font-weight:900;letter-spacing:2px">${sevIcon} ${s.severity}</div>
-                <div style="padding:4px 12px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim);font-size:0.6rem;letter-spacing:1px">${s.type || 'SIGNAL'}</div>
-                <div style="margin-left:auto;font-size:0.65rem;color:var(--text-dim)">${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</div>
+            <!-- Header badge -->
+            <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);
+                border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;
+                margin-bottom:1.5rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
+                ALPHASIGNAL — LIVE SIGNAL PERMALINK
             </div>
 
-            ${s.message ? `<p style="font-size:0.9rem;line-height:1.7;color:var(--text);margin-bottom:1.5rem;padding:1rem;background:rgba(0,242,255,0.04);border-radius:8px;border-left:2px solid var(--accent)">${s.message}</p>` : ''}
-
-            <!-- KPI Row -->
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem">
-                ${signalPx ? `
-                <div class="card" style="padding:0.8rem;text-align:center">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px">PRICE AT SIGNAL</div>
-                    <div style="font-size:1.1rem;font-weight:900;color:#f59e0b">$${signalPx.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-                </div>` : ''}
-                ${livePx ? `
-                <div class="card" style="padding:0.8rem;text-align:center">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px">LIVE PRICE NOW</div>
-                    <div style="font-size:1.1rem;font-weight:900;color:var(--text)">$${livePx.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-                </div>` : ''}
-                ${movePct !== null ? `
-                <div class="card" style="padding:0.8rem;text-align:center">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px">MOVE SINCE SIGNAL</div>
-                    <div style="font-size:1.1rem;font-weight:900;color:${moveColor}">${movePct >= 0 ? '+' : ''}${movePct}%</div>
-                </div>` : ''}
+            <!-- Loading card -->
+            <div id="permalink-card" class="glass-card" style="padding:2rem;border-radius:20px;border:1px solid rgba(0,242,255,0.15)">
+                <div style="display:flex;align-items:center;gap:8px;color:var(--text-dim)">
+                    <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:18px">sync</span>
+                    <span style="font-size:0.8rem;letter-spacing:1px">LOADING SIGNAL DATA...</span>
+                </div>
             </div>
+        </div>`;
 
-            <!-- Actions -->
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <button class="intel-action-btn mini" onclick="shareSignal('${shareUrl}','${tickerClean}','${s.type || 'Signal'}')">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">share</span> SHARE
-                </button>
-                <button class="intel-action-btn mini outline" onclick="switchView('signals')">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">arrow_back</span> ALL SIGNALS
-                </button>
-                ${s.ticker ? `
-                <button class="intel-action-btn mini outline" onclick="addToWatchlist_quick('${s.ticker}')">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">add_circle</span> WATCH ${tickerClean}
-                </button>` : ''}
-            </div>
-        </div>
-
-        <!-- AI Thesis (loads async) -->
-        <div id="signal-thesis-section" class="card" style="padding:1.2rem">
-            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:0.8rem">
-                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;color:var(--accent)">psychology</span> AI THESIS
-            </div>
-            <div id="thesis-body" style="color:var(--text-dim);font-size:0.8rem">Loading analysis...</div>
-        </div>
-
-        <!-- CTA for non-users -->
-        ${!isAuthenticatedUser ? `
-        <div class="card" style="padding:1.5rem;text-align:center;margin-top:1rem;background:linear-gradient(135deg,rgba(0,242,255,0.08),rgba(139,92,246,0.06));border:1px solid rgba(0,242,255,0.2)">
-            <div style="font-size:0.6rem;color:var(--accent);letter-spacing:3px;margin-bottom:0.5rem">INSTITUTIONAL INTELLIGENCE</div>
-            <h3 style="margin:0 0 0.5rem;font-size:1.1rem">Track 50+ assets live. Free to join.</h3>
-            <p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">Real-time signals, on-chain alerts, AI analysis, and your personal watchlist.</p>
-            <button class="intel-action-btn" onclick="showAuth(true)" style="margin:0 auto">GET FREE ACCESS →</button>
-        </div>` : ''}`;
-
-    // Load AI thesis async (non-blocking)
-    _loadSignalThesis(s.ticker, s.id);
-}
-
-async function _loadSignalThesis(ticker, alertId) {
-    const el = document.getElementById('thesis-body');
-    if (!el || !ticker) return;
     try {
-        const data = await fetchAPI(`/signal-thesis?ticker=${ticker}&alert_id=${alertId}`);
-        if (data?.summary) {
-            el.innerHTML = `<div style="line-height:1.8;font-size:0.82rem;color:var(--text)">${data.summary}</div>`;
-        } else {
-            el.innerHTML = `<span style="color:var(--text-dim);font-style:italic">AI analysis unavailable for this signal.</span>`;
+        // Fetch live signal data for this ticker
+        const [data, thesis] = await Promise.allSettled([
+            fetchAPI(`/signal-permalink?ticker=${encodeURIComponent(ticker)}`),
+            fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(ticker)}&signal=${ticker}&zscore=1.0`)
+        ]);
+
+        const sig = data.status === 'fulfilled' && data.value ? data.value : null;
+        const t   = thesis.status === 'fulfilled' && thesis.value?.thesis ? thesis.value.thesis : null;
+
+        if (!sig) {
+            document.getElementById('permalink-card').innerHTML = `
+                <p style="color:var(--text-dim)">Signal data unavailable for <strong style="color:var(--accent)">${ticker}</strong>. The asset may not be in the tracked universe.</p>
+                <button class="intel-action-btn outline" style="margin-top:1rem" onclick="switchView('signals')">VIEW ALL SIGNALS</button>`;
+            return;
         }
-    } catch {
-        el.innerHTML = `<span style="color:var(--text-dim);font-style:italic">Could not load analysis.</span>`;
+
+        const dir        = sig.alpha >= 0 ? 'LONG' : 'SHORT';
+        const dirColor   = sig.alpha >= 0 ? '#22c55e' : '#ef4444';
+        const zColor     = Math.abs(sig.zScore) >= 1.75 ? '#ef4444' : Math.abs(sig.zScore) >= 1.0 ? '#fb923c' : Math.abs(sig.zScore) >= 0.5 ? '#7dd3fc' : '#94a3b8';
+        const sentLabel  = sig.sentiment > 0.1 ? 'BULLISH' : sig.sentiment < -0.1 ? 'BEARISH' : 'NEUTRAL';
+        const sentColor  = sig.sentiment > 0.1 ? '#22c55e' : sig.sentiment < -0.1 ? '#ef4444' : '#94a3b8';
+        const shareUrl   = `https://alphasignal.digital/?view=signal&ticker=${encodeURIComponent(ticker)}`;
+        const localUrl   = `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(ticker)}`;
+        const tweetText  = `🚨 AlphaSignal: $${ticker} ${dir} signal\n\n📊 Alpha: ${sig.alpha >= 0 ? '+' : ''}${sig.alpha.toFixed(2)}%\n⚡ Z-Score: ${sig.zScore.toFixed(2)}σ\n🧠 ${sentLabel}\n\nFull analysis:`;
+
+        document.getElementById('permalink-card').innerHTML = `
+            <!-- Ticker hero -->
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+                <div>
+                    <div style="font-size:2.5rem;font-weight:900;color:var(--accent);letter-spacing:-1px;line-height:1">${ticker}</div>
+                    <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;letter-spacing:1px">${sig.name || ticker}</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+                        <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;
+                            background:${dirColor}18;border:1px solid ${dirColor}44;color:${dirColor}">${dir}</span>
+                        <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;
+                            background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);color:var(--accent)">${sig.category}</span>
+                        <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;
+                            background:rgba(148,163,184,0.1);color:var(--text-dim)">LIVE</span>
+                    </div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:1.8rem;font-weight:900;color:white">${formatPrice(sig.price)}</div>
+                    <div style="font-size:0.85rem;font-weight:700;color:${sig.change >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">
+                        ${sig.change >= 0 ? '+' : ''}${sig.change.toFixed(2)}% 24h
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key metrics grid -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
+                ${[
+                    ['Z-Score', `${sig.zScore >= 0 ? '+' : ''}${sig.zScore.toFixed(2)}σ`, zColor],
+                    ['Relative Alpha', `${sig.alpha >= 0 ? '+' : ''}${sig.alpha.toFixed(2)}%`, sig.alpha >= 0 ? '#22c55e' : '#ef4444'],
+                    ['BTC Correlation', sig.btcCorrelation.toFixed(2), '#7dd3fc'],
+                    ['Sentiment', sentLabel, sentColor],
+                ].map(([label, val, color]) => `
+                    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+                        border-radius:12px;padding:1rem;text-align:center">
+                        <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:6px">${label}</div>
+                        <div style="font-size:1.1rem;font-weight:900;color:${color}">${val}</div>
+                    </div>`).join('')}
+            </div>
+
+            <!-- AI Thesis -->
+            <div style="background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);
+                border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.75rem">
+                    <span class="material-symbols-outlined" style="font-size:16px;color:#8b5cf6">psychology</span>
+                    <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#8b5cf6">AI THESIS · ${ticker}</span>
+                    <span style="font-size:0.55rem;color:rgba(139,92,246,0.5);margin-left:auto">GPT-4o-mini</span>
+                </div>
+                <div id="permalink-thesis" style="font-size:0.82rem;line-height:1.7;color:var(--text-dim)">
+                    ${t ? t : `<span style="display:flex;align-items:center;gap:6px;color:rgba(139,92,246,0.6)">
+                        <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:14px">sync</span>
+                        <span style="font-size:0.7rem;letter-spacing:1px">GENERATING THESIS...</span>
+                    </span>`}
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <!-- Add to Watchlist -->
+                <button onclick="addToWatchlist_quick('${ticker}')"
+                    style="flex:1;min-width:140px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);
+                    color:#22c55e;padding:10px 16px;border-radius:10px;cursor:pointer;font-size:0.7rem;
+                    font-weight:900;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:6px;
+                    transition:all 0.2s" onmouseover="this.style.background='rgba(34,197,94,0.22)'"
+                    onmouseout="this.style.background='rgba(34,197,94,0.12)'">
+                    <span class="material-symbols-outlined" style="font-size:16px">add_circle</span>
+                    ADD TO WATCHLIST
+                </button>
+
+                <!-- Copy link -->
+                <button id="permalink-copy-btn" onclick="
+                    navigator.clipboard.writeText('${shareUrl}').then(() => {
+                        const b = document.getElementById('permalink-copy-btn');
+                        b.innerHTML = '<span class=\\'material-symbols-outlined\\' style=\\'font-size:16px\\'>check</span> COPIED!';
+                        b.style.color='#22c55e';b.style.borderColor='rgba(34,197,94,0.4)';
+                        setTimeout(()=>{b.innerHTML='<span class=\\'material-symbols-outlined\\' style=\\'font-size:16px\\'>link</span> COPY LINK';b.style.color='';b.style.borderColor='';},2000);
+                    })"
+                    style="flex:1;min-width:120px;background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.2);
+                    color:var(--accent);padding:10px 16px;border-radius:10px;cursor:pointer;font-size:0.7rem;
+                    font-weight:900;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:6px;
+                    transition:all 0.2s" onmouseover="this.style.background='rgba(0,242,255,0.12)'"
+                    onmouseout="this.style.background='rgba(0,242,255,0.06)'">
+                    <span class="material-symbols-outlined" style="font-size:16px">link</span>
+                    COPY LINK
+                </button>
+
+                <!-- Share to X -->
+                <button onclick="window.open('https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}','_blank')"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+                    color:var(--text);padding:10px 14px;border-radius:10px;cursor:pointer;font-size:0.7rem;
+                    font-weight:900;letter-spacing:1px;display:flex;align-items:center;gap:6px;
+                    transition:all 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.08)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                    <span style="font-size:14px;font-weight:900">𝕏</span>
+                    SHARE
+                </button>
+
+                <!-- View all signals -->
+                <button onclick="switchView('signals')"
+                    style="background:none;border:1px solid rgba(255,255,255,0.06);
+                    color:var(--text-dim);padding:10px 14px;border-radius:10px;cursor:pointer;font-size:0.7rem;
+                    font-weight:900;letter-spacing:1px;display:flex;align-items:center;gap:6px;
+                    transition:all 0.2s" onmouseover="this.style.borderColor='rgba(255,255,255,0.15)'"
+                    onmouseout="this.style.borderColor='rgba(255,255,255,0.06)'">
+                    <span class="material-symbols-outlined" style="font-size:16px">radar</span>
+                    ALL SIGNALS
+                </button>
+            </div>
+
+            <!-- Footer disclaimer -->
+            <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);
+                font-size:0.6rem;color:var(--text-dim);letter-spacing:0.5px;line-height:1.6">
+                AlphaSignal — Institutional Intelligence Terminal · alphasignal.digital<br>
+                Signal data is computed from live market feeds. Not financial advice.
+                <a href="/?view=signals" style="color:var(--accent);margin-left:8px">View all live signals →</a>
+            </div>
+        `;
+
+        // Lazy-load thesis if it wasn't pre-fetched
+        if (!t) {
+            try {
+                const dir2 = sig.alpha >= 0 ? 'LONG' : 'SHORT';
+                const z2   = Math.abs(sig.zScore).toFixed(1);
+                const fresh = await fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(ticker)}&signal=${dir2}&zscore=${z2}`);
+                const thesisEl = document.getElementById('permalink-thesis');
+                if (thesisEl && fresh?.thesis) thesisEl.textContent = fresh.thesis;
+                else if (thesisEl) thesisEl.textContent = 'Thesis generation unavailable — check AI engine configuration.';
+            } catch (_) {}
+        }
+
+    } catch (err) {
+        console.error('[Permalink] Error:', err);
+        const card = document.getElementById('permalink-card');
+        if (card) card.innerHTML = `<p style="color:#ef4444">Failed to load signal data. <a href="/?view=signals" style="color:var(--accent)">Return to signals →</a></p>`;
     }
 }
 
-window.shareSignal = function(url, ticker, type) {
-    if (navigator.share) {
-        navigator.share({
-            title: `${ticker} ${type} — AlphaSignal Terminal`,
-            text: `Check out this institutional signal for ${ticker} on AlphaSignal Terminal`,
-            url
-        }).catch(() => {});
-    } else {
-        navigator.clipboard.writeText(url).then(() => {
-            showToast('LINK COPIED', `Signal permalink copied to clipboard`, 'success');
-        });
-    }
-};
-
-// Quick-add to watchlist from signal permalink (works if logged in)
-window.addToWatchlist_quick = async function(ticker) {
-    if (!isAuthenticatedUser) { showAuth(true); return; }
-    const res = await fetchAPI('/watchlist', 'POST', { ticker, note: 'Added from signal' });
-    if (res?.success) {
-        showToast(`${ticker.replace('-USD','')} added to watchlist`, '', 'success');
-    } else {
-        showToast(res?.error || 'Already on watchlist', '', 'alert');
-    }
-};
+// ── copySignalPermalink: called from signal card share button ─────────────────
+function copySignalPermalink(ticker, event) {
+    if (event) event.stopPropagation();
+    const url = `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(ticker)}`;
+    navigator.clipboard.writeText(url).then(() => {
+        showToast('LINK COPIED', `Permalink for ${ticker} copied to clipboard.`, 'success');
+    }).catch(() => {
+        // Fallback for non-HTTPS
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('LINK COPIED', `Permalink for ${ticker} copied to clipboard.`, 'success');
+    });
+}

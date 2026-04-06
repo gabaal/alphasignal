@@ -333,7 +333,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/etf-flows', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/signal-density', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge', '/api/telegram/link', '/api/signal-leaderboard', '/api/history', '/api/options-signal', '/api/capital-rotation', '/api/options-flow', '/api/chain-velocity', '/api/rotation', '/api/macro-calendar', '/api/equity-options-flow', '/api/backtest-v2']
+                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/system-dials', '/api/fear-greed', '/api/etf-flows', '/api/stress-test', '/api/liquidity-history', '/api/equity-klines', '/api/efficient-frontier', '/api/funding-rates', '/api/signal-radar', '/api/signal-density', '/api/whale-sankey', '/api/yield-curve', '/api/walk-forward', '/api/strategy-compare', '/api/ai-memo', '/api/signal-thesis', '/api/ask-terminal', '/api/news', '/api/macro', '/api/regime', '/api/correlation-matrix', '/api/notifications', '/api/alerts', '/api/alerts/badge', '/api/telegram/link', '/api/signal-leaderboard', '/api/history', '/api/options-signal', '/api/capital-rotation', '/api/options-flow', '/api/chain-velocity', '/api/rotation', '/api/macro-calendar', '/api/equity-options-flow', '/api/backtest-v2', '/api/signal-permalink']
                 free_auth_routes = ['/api/watchlist', '/api/positions', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete', '/api/alert-settings', '/api/user/settings']
                 # /api/signal/{id} is fully public â€” no auth gate for shared links
                 if path.startswith('/api/signal/'):
@@ -548,6 +548,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 auth_info = auth_info or self.is_authenticated()
                 if auth_info: self.handle_price_alerts_get(auth_info)
                 else: self.send_response(401); self.end_headers()
+            elif path == '/api/signal-permalink':
+                # Public: live signal data by ticker for permalink view
+                self.handle_live_signal_permalink()
             elif path == '/api/signal-leaderboard':
                 self.handle_signal_leaderboard()
             elif path == '/api/market-brief':

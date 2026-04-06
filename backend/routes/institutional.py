@@ -36,7 +36,7 @@ class InstitutionalRoutesMixin:
         return None
 
     def handle_signal_permalink(self, signal_id):
-        """Public: GET /api/signal/{id} - returns a single signal for permalink sharing."""
+        """Public: GET /api/signal/{id} - returns a single alert record for permalink sharing."""
         try:
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
@@ -52,6 +52,69 @@ class InstitutionalRoutesMixin:
                 return
             self.send_json(dict(row))
         except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_live_signal_permalink(self):
+        """Public: GET /api/signal-permalink?ticker=BTC-USD
+        Returns live signal data for the given ticker — powers the public permalink page.
+        Uses the _signals_cache if warm, otherwise computes inline.
+        """
+        import urllib.parse as _up
+        query = _up.parse_qs(_up.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0].strip().upper()
+
+        try:
+            # Try warm cache first (set by handle_signals)
+            sc = InstitutionalRoutesMixin._signals_cache
+            if sc and sc.get('data') and (time.time() - sc.get('ts', 0)) < 300:
+                match = next((s for s in sc['data'] if s.get('ticker', '').upper() == ticker), None)
+                if match:
+                    self.send_json(match)
+                    return
+
+            # Cache miss — compute inline for this single ticker
+            btc_data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close').squeeze()
+            btc_pct  = btc_data.pct_change().dropna()
+            btc_change_pct = float((btc_data.iloc[-1] - btc_data.iloc[-2]) / btc_data.iloc[-2] * 100)
+
+            data = CACHE.download(ticker, period='60d', interval='1d', column='Close')
+            if data is None or (hasattr(data, 'empty') and data.empty):
+                self.send_json({'error': f'No data for {ticker}'}); return
+
+            prices = data.squeeze().dropna() if hasattr(data, 'squeeze') else data
+            if len(prices) < 2:
+                self.send_json({'error': f'Insufficient data for {ticker}'}); return
+
+            change = float((prices.iloc[-1] - prices.iloc[-2]) / prices.iloc[-2] * 100)
+            rets = prices.pct_change().dropna()
+            common_idx = btc_pct.index.intersection(rets.index)
+            corr = float(btc_pct.loc[common_idx].corr(rets.loc[common_idx])) if len(common_idx) >= 10 else 0.0
+            if np.isnan(corr): corr = 0.0
+            z_score = float((rets.iloc[-1] - rets.mean()) / rets.std()) if len(rets) > 10 else 0.0
+            if np.isnan(z_score): z_score = 0.0
+            alpha = round(change - btc_change_pct, 2)
+
+            from backend.database import UNIVERSE
+            category = 'CRYPTO' if '-USD' in ticker else 'EQUITY'
+            for cat, tickers in UNIVERSE.items():
+                if ticker in tickers:
+                    category = cat; break
+
+            from backend.routes.institutional import get_sentiment, get_ticker_name
+            payload = {
+                'ticker':        ticker,
+                'name':          get_ticker_name(ticker),
+                'price':         float(prices.iloc[-1]),
+                'change':        round(change, 2),
+                'btcCorrelation': round(corr, 2),
+                'alpha':         alpha,
+                'sentiment':     get_sentiment(ticker),
+                'category':      category,
+                'zScore':        round(z_score, 2),
+            }
+            self.send_json(payload)
+        except Exception as e:
+            print(f'[SignalPermalink] Error for {ticker}: {e}')
             self.send_json({'error': str(e)})
 
     def _get_volume_series(self, df, ticker):
