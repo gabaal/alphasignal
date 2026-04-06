@@ -4454,6 +4454,30 @@ input:focus, select:focus, textarea:focus {
         box-sizing: border-box;
     }
 
+    /* Hub tab rows: MUST scroll not clip — needs own scroll context */
+    .hub-tabs {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 6px !important;
+        padding-bottom: 8px !important;
+        /* Escape parent overflow-x:hidden by using margin trick */
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    .hub-tabs::-webkit-scrollbar { display: none; }
+    .hub-tabs button, .hub-tabs .intel-action-btn {
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        font-size: 0.58rem !important;
+        padding: 5px 9px !important;
+    }
+
     /* ── View header: stack on mobile ── */
     .view-header {
         flex-direction: column !important;

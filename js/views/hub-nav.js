@@ -1,12 +1,13 @@
 function renderHubTabs(activeTab, tabs) {
     if (!tabs) return '';
     return `
-        <div class="hub-tabs" style="display:flex; gap:10px; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto">
+        <div class="hub-tabs" style="display:flex; gap:8px; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto; overflow-y:visible; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-right:1rem">
+            <style>.hub-tabs::-webkit-scrollbar{display:none}</style>
             ${tabs.map(t => `
                 <button class="intel-action-btn mini ${activeTab === t.id ? '' : 'outline'}" 
                         onclick="switchView('${t.view}')" 
-                        style="white-space:nowrap; padding:6px 12px; font-size:0.65rem">
-                    <span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle; margin-right:4px">${t.icon}</span> 
+                        style="white-space:nowrap; flex-shrink:0; padding:6px 10px; font-size:0.62rem">
+                    <span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; margin-right:3px">${t.icon}</span> 
                     ${t.label}
                 </button>
             `).join('')}
