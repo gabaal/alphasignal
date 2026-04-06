@@ -79,6 +79,7 @@ const viewMap = {
     'oi-radar': renderOIRadar,
     'command-center': renderCommandCenter,
     'trade-ledger': renderTradeLedger,
+    'strategy-report': renderStrategyReport,
     'ask-terminal': renderAskTerminal,
     'explain-ai-engine': renderDocsAIEngine,
     'explain-strategy-lab': () => switchView('docs-strategy-lab'),

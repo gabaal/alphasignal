@@ -620,4 +620,235 @@ function renderFlowAttribution(data) {
         </div>
     `;
 }
+// ============================================================
+// Strategy Report — Backtester-Powered Performance Analytics
+// ============================================================
+async function renderStrategyReport(tabs = null) {
+    if (!tabs) tabs = auditHubTabs;
+    appEl.innerHTML = `
+        <div class="view-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">insert_chart</span>Strategy Report <span class="premium-badge">PRO</span></h1>
+                <p>Backtested signal track record — compounded equity, risk-adjusted returns, and per-ticker breakdown.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <label style="font-size:0.7rem;color:var(--text-dim)">HOLD</label>
+                <select id="sr-hold" onchange="loadStrategyReport()" style="background:#0d1117;color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:0.75rem">
+                    <option value="3">3 Days</option>
+                    <option value="5" selected>5 Days</option>
+                    <option value="10">10 Days</option>
+                    <option value="20">20 Days</option>
+                </select>
+                <button onclick="window._srExport && window._srExport()" class="intel-action-btn mini outline" style="width:auto;padding:5px 12px;font-size:0.65rem;display:flex;align-items:center;gap:4px">
+                    <span class="material-symbols-outlined" style="font-size:13px">download</span> CSV
+                </button>
+            </div>
+        </div>
+        ${renderHubTabs('strategy-report', tabs)}
+        <div class="card" style="padding:1.5rem;text-align:center;color:var(--text-dim)">
+            <span class="material-symbols-outlined" style="font-size:2rem;animation:spin 1s linear infinite;color:var(--accent)">sync</span>
+            <div style="margin-top:8px;font-size:0.8rem">Loading backtest data…</div>
+        </div>
+    `;
+    loadStrategyReport();
+}
 
+async function loadStrategyReport() {
+    const hold = document.getElementById('sr-hold')?.value || '5';
+    try {
+        const data = await fetchAPI(`/backtest-v2?hold=${hold}&limit=500`);
+        if (!data || !data.trades || !data.trades.length) {
+            showToast('STRATEGY REPORT', 'No backtest data available. Run the Backtester V2 first.', 'alert');
+            return;
+        }
+        const s = data.stats || {};
+        const trades = data.trades.slice().reverse(); // most recent first
+
+        // ── Per-ticker breakdown ──────────────────────────────────────
+        const byTicker = {};
+        (data.trades || []).forEach(t => {
+            if (!byTicker[t.ticker]) byTicker[t.ticker] = { pnls: [], wins: 0 };
+            byTicker[t.ticker].pnls.push(t.pnl_pct);
+            if (t.pnl_pct > 0) byTicker[t.ticker].wins++;
+        });
+        const tickerRows = Object.entries(byTicker)
+            .map(([tk, v]) => ({
+                ticker: tk,
+                trades: v.pnls.length,
+                avgPnl: +(v.pnls.reduce((a,b)=>a+b,0)/v.pnls.length).toFixed(2),
+                winRate: +((v.wins/v.pnls.length)*100).toFixed(1),
+                totalPnl: +(v.pnls.reduce((a,b)=>a+b,0)).toFixed(2)
+            }))
+            .sort((a,b) => b.avgPnl - a.avgPnl);
+
+        // ── Render ────────────────────────────────────────────────────
+        const tabs = auditHubTabs;
+        appEl.innerHTML = `
+        <div class="view-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">insert_chart</span>Strategy Report <span class="premium-badge">PRO</span></h1>
+                <p>Based on ${s.total_trades} backtest trades · ${hold}-day hold · Updated ${new Date().toLocaleString('en', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <label style="font-size:0.7rem;color:var(--text-dim)">HOLD</label>
+                <select id="sr-hold" onchange="loadStrategyReport()" style="background:#0d1117;color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:0.75rem">
+                    <option value="3" ${hold==='3'?'selected':''}>3 Days</option>
+                    <option value="5" ${hold==='5'?'selected':''}>5 Days</option>
+                    <option value="10" ${hold==='10'?'selected':''}>10 Days</option>
+                    <option value="20" ${hold==='20'?'selected':''}>20 Days</option>
+                </select>
+                <button onclick="window._srExport && window._srExport()" class="intel-action-btn mini outline" style="width:auto;padding:5px 12px;font-size:0.65rem;display:flex;align-items:center;gap:4px">
+                    <span class="material-symbols-outlined" style="font-size:13px">download</span> CSV
+                </button>
+            </div>
+        </div>
+        ${renderHubTabs('strategy-report', tabs)}
+
+        <!-- KPI Row -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
+            ${[
+                ['Win Rate',      s.win_rate != null ? s.win_rate+'%' : '--',  (s.win_rate||0)>=55?'#22c55e':'#ef4444', 'track_changes'],
+                ['Total Trades',  s.total_trades ?? '--',                       '#60a5fa',                               'receipt_long'],
+                ['Total Return',  s.total_return != null ? ((s.total_return>=0?'+':'')+s.total_return+'%') : '--', (s.total_return||0)>=0?'#22c55e':'#ef4444', 'trending_up'],
+                ['Sharpe',        s.sharpe ?? '--',                             (s.sharpe||0)>=1?'#00d4aa':(s.sharpe||0)>=0?'#ffd700':'#ef4444', 'show_chart'],
+                ['Max Drawdown',  s.max_drawdown != null ? '-'+s.max_drawdown+'%' : '--', '#ef4444',                   'arrow_downward'],
+                ['Profit Factor', s.profit_factor ?? '--',                      (s.profit_factor||0)>=1.5?'#22c55e':'#ffd700', 'balance'],
+                ['Calmar',        s.calmar ?? '--',                             (s.calmar||0)>=1?'#00d4aa':'#ffd700',  'speed'],
+            ].map(([label,val,color,icon]) => `
+                <div class="glass-card" style="padding:1rem;text-align:center">
+                    <span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--accent);margin-bottom:6px;display:block">${icon}</span>
+                    <div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${label}</div>
+                    <div style="font-size:1.3rem;font-weight:800;color:${color}">${val}</div>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- Equity Curve Chart -->
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+                <div>
+                    <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">COMPOUNDED EQUITY CURVE</div>
+                    <div style="font-size:0.85rem;font-weight:700;color:var(--text)">Strategy vs BTC Buy-and-Hold</div>
+                </div>
+                <span style="font-size:0.6rem;padding:3px 10px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e;font-weight:700">● LIVE · alerts_history</span>
+            </div>
+            <div style="height:280px;position:relative"><canvas id="sr-equity-chart"></canvas></div>
+        </div>
+
+        <!-- Monthly P&L Heatmap -->
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
+            <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">MONTHLY P&amp;L HEATMAP</div>
+            <div id="sr-calendar" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+        </div>
+
+        <!-- Per-Ticker Breakdown -->
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
+            <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">PER-TICKER PERFORMANCE</div>
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:0.75rem">
+                    <thead><tr style="border-bottom:1px solid var(--border)">
+                        ${['Ticker','Trades','Avg PnL','Win Rate','Total PnL'].map(h=>`<th style="padding:8px 12px;text-align:left;font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">${h}</th>`).join('')}
+                    </tr></thead>
+                    <tbody>
+                        ${tickerRows.map(r => `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                            <td style="padding:8px 12px;font-weight:700;color:var(--accent)">${r.ticker}</td>
+                            <td style="padding:8px 12px;color:var(--text-dim)">${r.trades}</td>
+                            <td style="padding:8px 12px;font-weight:700;color:${r.avgPnl>=0?'#22c55e':'#ef4444'}">${r.avgPnl>=0?'+':''}${r.avgPnl}%</td>
+                            <td style="padding:8px 12px">
+                                <div style="display:flex;align-items:center;gap:6px">
+                                    <div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden">
+                                        <div style="width:${r.winRate}%;height:100%;background:${r.winRate>=50?'#22c55e':'#ef4444'};border-radius:2px"></div>
+                                    </div>
+                                    <span style="color:${r.winRate>=50?'#22c55e':'#ef4444'};font-weight:700">${r.winRate}%</span>
+                                </div>
+                            </td>
+                            <td style="padding:8px 12px;font-weight:700;color:${r.totalPnl>=0?'#22c55e':'#ef4444'}">${r.totalPnl>=0?'+':''}${r.totalPnl}%</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Trade Log -->
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
+            <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">RECENT TRADES (LAST 50)</div>
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:0.74rem">
+                    <thead><tr style="border-bottom:1px solid var(--border)">
+                        ${['Ticker','Signal','Entry','Exit','Entry $','Exit $','P&L'].map(h=>`<th style="padding:8px 12px;text-align:left;font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">${h}</th>`).join('')}
+                    </tr></thead>
+                    <tbody>
+                        ${trades.slice(0,50).map(t => `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                            <td style="padding:8px 12px;font-weight:700;color:var(--accent)">${t.ticker}</td>
+                            <td style="padding:8px 12px;font-size:0.65rem;color:var(--text-dim)">${t.signal.replace(/_/g,' ')}</td>
+                            <td style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem">${t.entry_date}</td>
+                            <td style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem">${t.exit_date}</td>
+                            <td style="padding:8px 12px;font-family:var(--font-mono)">${formatPrice(t.entry_price)}</td>
+                            <td style="padding:8px 12px;font-family:var(--font-mono)">${formatPrice(t.exit_price)}</td>
+                            <td style="padding:8px 12px;font-weight:800;color:${t.pnl_pct>=0?'#22c55e':'#ef4444'}">${t.pnl_pct>=0?'+':''}${t.pnl_pct}%</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        `;
+
+        // ── Draw equity curve chart ───────────────────────────────────
+        if (data.rolling_sharpe && data.rolling_sharpe.length) {
+            const ctx = document.getElementById('sr-equity-chart');
+            if (ctx) {
+                if (ctx._chart) ctx._chart.destroy();
+                ctx._chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.rolling_sharpe.map(r => r.date),
+                        datasets: [
+                            { label: 'Strategy (%)', data: data.rolling_sharpe.map(r => r.strat_cumulative), borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,0.06)', fill: true, tension: 0.4, pointRadius: 0 },
+                            { label: 'BTC Buy-and-Hold (%)', data: data.rolling_sharpe.map(r => r.btc_cumulative), borderColor: '#f7931a', borderDash: [4,3], fill: false, tension: 0.4, pointRadius: 0 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { labels: { color: '#9ca3af', font: { size: 10 } } }, tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', borderColor: 'rgba(0,212,170,0.2)', borderWidth: 1 } },
+                        scales: {
+                            x: { ticks: { color: '#6b7280', maxTicksLimit: 10, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                            y: { ticks: { color: '#9ca3af', font: { size: 10 }, callback: v => v+'%' }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Cumulative Return (%)', color: '#9ca3af', font: { size: 9 } } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // ── Monthly heatmap ───────────────────────────────────────────
+        if (data.monthly_returns) {
+            const cal = document.getElementById('sr-calendar');
+            if (cal) {
+                const sorted = Object.entries(data.monthly_returns).sort((a,b) => a[0].localeCompare(b[0]));
+                const maxAbs = Math.max(...Object.values(data.monthly_returns).map(Math.abs), 1);
+                cal.innerHTML = sorted.map(([ym, pnl]) => {
+                    const intensity = Math.min(Math.abs(pnl)/maxAbs, 1);
+                    const bg = pnl > 0 ? `rgba(34,197,94,${0.15+intensity*0.7})` : `rgba(239,68,68,${0.15+intensity*0.7})`;
+                    const [yr, mo] = ym.split('-');
+                    const monthName = new Date(+yr, +mo-1).toLocaleString('en', { month: 'short' });
+                    return `<div title="${ym}: ${pnl>=0?'+':''}${pnl}%" style="background:${bg};border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 16px;min-width:80px;text-align:center;cursor:default;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="font-size:0.6rem;color:var(--text-dim);font-weight:700">${monthName} ${yr.slice(2)}</div>
+                        <div style="font-size:0.95rem;font-weight:800;color:${pnl>=0?'#22c55e':'#ef4444'};margin-top:2px">${pnl>=0?'+':''}${pnl}%</div>
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        // ── CSV export wiring ─────────────────────────────────────────
+        window._srExport = function() {
+            if (!trades.length) { showToast('EXPORT', 'No data to export.', 'alert'); return; }
+            exportCSV(trades, `strategy_report_${hold}d_${new Date().toISOString().split('T')[0]}.csv`);
+            showToast('EXPORT', `Strategy Report exported (${trades.length} trades).`, 'success');
+        };
+
+    } catch(e) {
+        showToast('STRATEGY REPORT', 'Failed to load: ' + e.message, 'alert');
+    }
+}
