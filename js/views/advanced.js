@@ -61,6 +61,12 @@ async function renderAdvOverview(symbol, interval) {
     volumeSeries.setData(klines.map(k => ({time:k.time, value:k.value, color:k.color})));
     ema20Series.setData(ema20.data);
     ema50Series.setData(ema50.data);
+    // Expose for toggleAdvOverlay()
+    window._advEma20 = ema20Series;
+    window._advEma50 = ema50Series;
+    // Sync toggle button states to on
+    ['ovr-ema20','ovr-ema50'].forEach(id => document.getElementById(id)?.classList.add('active'));
+    document.getElementById('ovr-heatmap')?.classList.remove('active');
 
     // Phase 11.3: Institutional Volume Profile (VAP)
     const renderVolumeProfile = (data) => {
@@ -821,6 +827,32 @@ async function renderAdvExchange(symbol) {
         chart.timeScale().fitContent();
     } catch(e) { container.innerHTML = '<div class="error-msg">Fetch failed.</div>'; }
 }
+
+window.toggleAdvOverlay = function(type) {
+    const btn = document.getElementById(`ovr-${type}`);
+    const isActive = btn?.classList.contains('active');
+    if (type === 'ema20' && window._advEma20) {
+        window._advEma20.applyOptions({ visible: !isActive });
+        btn?.classList.toggle('active');
+    } else if (type === 'ema50' && window._advEma50) {
+        window._advEma50.applyOptions({ visible: !isActive });
+        btn?.classList.toggle('active');
+    } else if (type === 'heatmap') {
+        const hm = window.activeHeatmap;
+        const legend = document.getElementById('heatmap-legend-overlay');
+        if (hm) {
+            const show = !isActive;
+            hm.canvas.style.display = show ? 'block' : 'none';
+            if (legend) legend.style.display = show ? 'flex' : 'none';
+            if (show) hm.render();
+            btn?.classList.toggle('active');
+        } else {
+            // No heatmap data available
+            if (btn) btn.style.opacity = '0.35';
+            setTimeout(() => { if (btn) btn.style.opacity = ''; }, 1200);
+        }
+    }
+};
 
 const dispatchAdvTab = () => {
     const sym = document.getElementById('adv-symbol').value;

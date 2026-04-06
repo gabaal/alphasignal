@@ -589,6 +589,21 @@ function renderAdvancedChart() {
             </button>
         </div>
 
+        <!-- Overlay toggle controls — only visible on Price & Overlays tab -->
+        <div id="adv-overlay-controls" style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+            <span style="font-size:0.6rem; font-weight:700; letter-spacing:1.5px; color:var(--text-dim); margin-right:4px;">OVERLAYS:</span>
+            <button id="ovr-ema20" class="filter-btn active" onclick="toggleAdvOverlay('ema20')" title="Toggle EMA 20">
+                <span style="display:inline-block; width:10px; height:3px; background:#facc15; border-radius:2px; margin-right:5px; vertical-align:middle;"></span>EMA 20
+            </button>
+            <button id="ovr-ema50" class="filter-btn active" onclick="toggleAdvOverlay('ema50')" title="Toggle EMA 50">
+                <span style="display:inline-block; width:10px; height:3px; background:#3b82f6; border-radius:2px; margin-right:5px; vertical-align:middle;"></span>EMA 50
+            </button>
+            <button id="ovr-heatmap" class="filter-btn" onclick="toggleAdvOverlay('heatmap')" title="Toggle Liquidity Heatmap">
+                <span style="display:inline-block; width:10px; height:3px; background:linear-gradient(to right,#00f2ff,#ff6b6b); border-radius:2px; margin-right:5px; vertical-align:middle;"></span>LIQ HEATMAP
+            </button>
+            <span id="adv-overlay-hint" style="margin-left:auto; font-size:0.58rem; color:var(--text-dim); opacity:0.6;">Click to show/hide</span>
+        </div>
+
         <div class="card" style="padding:1rem; min-height:500px; position:relative;">
             <div id="advanced-chart-container" style="width:100%; height:500px; border-radius:8px; overflow:hidden;"></div>
             
@@ -618,6 +633,9 @@ function renderAdvancedChart() {
         currentAdvTab = tab;
         document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.remove('active'));
         document.getElementById(`tab-${tab}`)?.classList.add('active');
+        // Show overlay controls only on Price & Overlays tab
+        const ovrBar = document.getElementById('adv-overlay-controls');
+        if (ovrBar) ovrBar.style.display = tab === 'overview' ? 'flex' : 'none';
         if (tab === 'tradingview') {
             const sym = document.getElementById('adv-symbol')?.value || 'BTCUSDT';
             const interval = document.getElementById('adv-interval')?.value || '1h';
