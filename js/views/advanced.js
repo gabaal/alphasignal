@@ -718,29 +718,29 @@ async function renderAdvDerivatives(symbol, interval) {
     chart.priceScale('left').applyOptions({ visible: true, borderColor: 'rgba(255,255,255,0.1)' });
     chart.priceScale('left_liq').applyOptions({ visible: false });
     
-    // LIVE WEBSOCKET AGGREGATOR
-    let currentCandleStart = Math.floor(Date.now() / 60000) * 60;
-    
-    window.BinanceSocketManager.subscribe(symbol, 'aggTrade', (wsData) => {
-        // wsData.p: Price, wsData.q: Quantity, wsData.T: Timestamp, wsData.m: Buyer is Maker (Sell)
-        let ts = Math.floor(wsData.T / 1000);
-        let qty = parseFloat(wsData.q);
-        let price = parseFloat(wsData.p);
-        let isSell = wsData.m; // true = taker sell (red), false = taker buy (green)
+    // Binance aggTrade stream — crypto only; equity proxies have no Binance feed
+    const isCryptoSym = symbol.toUpperCase().includes('USDT');
+    if (isCryptoSym) {
+        // LIVE WEBSOCKET AGGREGATOR
+        let currentCandleStart = Math.floor(Date.now() / 60000) * 60;
         
-        // Align to 1m boundary
-        let candleTime = Math.floor(ts / 60) * 60;
-        if(candleTime > currentCandleStart) currentCandleStart = candleTime;
-        
-        // 1. Update CVD (Sum of directional volume)
-        runningCVD += (isSell ? -qty : qty);
-        cvdSeries.update({ time: currentCandleStart, value: runningCVD });
-        
-        // 2. Capture large market orders (Whale Flux)
-        if(qty > 5) { // If > 5 BTC/ETH block size limit
-            blockSeries.update({ time: ts, value: qty, color: isSell ? '#ef5350' : '#26a69a' });
-        }
-    });
+        window.BinanceSocketManager.subscribe(symbol, 'aggTrade', (wsData) => {
+            let ts = Math.floor(wsData.T / 1000);
+            let qty = parseFloat(wsData.q);
+            let price = parseFloat(wsData.p);
+            let isSell = wsData.m;
+            
+            let candleTime = Math.floor(ts / 60) * 60;
+            if(candleTime > currentCandleStart) currentCandleStart = candleTime;
+            
+            runningCVD += (isSell ? -qty : qty);
+            cvdSeries.update({ time: currentCandleStart, value: runningCVD });
+            
+            if(qty > 5) {
+                blockSeries.update({ time: ts, value: qty, color: isSell ? '#ef5350' : '#26a69a' });
+            }
+        });
+    }
     
     const ro = new ResizeObserver(e => { if(e.length > 0 && e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
     ro.observe(container);
@@ -1003,10 +1003,18 @@ function renderAdvTapeImbalance(symbol) {
         }
     });
 
-    // Normalize symbol: BTCUSDT → BTCUSDT, BTC → BTCUSDT
+    // Equity proxies have no Binance aggTrade feed — show a friendly notice
     const wsSymbol = symbol.toUpperCase().endsWith('USDT')
         ? symbol.toUpperCase()
-        : symbol.toUpperCase().replace('-USD', '') + 'USDT';
+        : null;
+
+    if (!wsSymbol) {
+        const runningLabel = document.getElementById('tape-running-label');
+        const liveBadge = document.getElementById('tape-live-badge');
+        if (runningLabel) { runningLabel.textContent = 'Live tape requires a crypto pair'; runningLabel.style.color = 'var(--text-dim)'; }
+        if (liveBadge) { liveBadge.textContent = '○ N/A'; liveBadge.style.color = 'var(--text-dim)'; liveBadge.style.animation = 'none'; }
+        return;
+    }
 
     let buyVol = 0, sellVol = 0, tradeCount = 0;
     let lastBucket = Date.now();
