@@ -487,7 +487,7 @@ async function renderBacktesterV2(tabs = null) {
             </div>
         </div>
         <div id="btv2-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem">
-            ${['Win Rate','Total Trades','Total Return','Sharpe','Max Drawdown','Profit Factor','Calmar','Consec. Wins','Consec. Losses'].map(s =>
+            ${['Win Rate','Total Trades','Total Return','Sharpe','Max Drawdown','Profit Factor','Calmar','Consec Wins','Consec Losses'].map(s =>
                 '<div class="glass-card" style="padding:1rem;text-align:center"><div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">' + s.toUpperCase() + '</div><div class="btv2-stat" id="btv2-' + s.toLowerCase().replace(/[\s.]+/g,'-').replace(/-+/g,'-') + '" style="font-size:1.3rem;font-weight:800;color:#00d4aa">--</div></div>'
             ).join('')}
         </div>
@@ -573,8 +573,8 @@ async function loadBacktesterV2() {
                 if (t.pnl_pct >= 0) { curWin++; curLoss = 0; maxWins = Math.max(maxWins, curWin); }
                 else { curLoss++; curWin = 0; maxLoss = Math.max(maxLoss, curLoss); }
             });
-            const elW = document.getElementById('btv2-consec--wins');
-            const elL = document.getElementById('btv2-consec--losses');
+            const elW = document.getElementById('btv2-consec-wins');
+            const elL = document.getElementById('btv2-consec-losses');
             if (elW) { elW.textContent = maxWins; elW.style.color = '#22c55e'; }
             if (elL) { elL.textContent = maxLoss; elL.style.color = '#ef4444'; }
             // Cache for CSV export
