@@ -361,17 +361,16 @@ async function renderCapitalRotation(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-            <div>                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">donut_large</span>
-                    Capital Rotation <span class="premium-badge">LIVE</span>
-                </h1>
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">donut_large</span>Capital Rotation <span class="premium-badge">LIVE</span></h1>
                 <p style="color:var(--text-dim);font-size:0.8rem;margin-top:6px">
                     30-day momentum-weighted allocation map across Crypto, Equities, Bonds &amp; Commodities.
                     Click any segment to drill into its sub-allocation — click the centre label to reset.
                 </p>
             </div>
-        ${renderHubTabs('capital-rotation', tabs)}
         </div>
+        ${renderHubTabs('capital-rotation', tabs)}
 
         <div class="card" style="padding:1.5rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
             <div id="cr-summary-bar" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px">

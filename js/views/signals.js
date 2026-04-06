@@ -58,12 +58,13 @@ async function renderSignals(category = 'ALL', tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">radar</span>Live Signals <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">radar</span>Live Signals <span class="premium-badge">LIVE</span></h1>
             </div>
-        ${renderHubTabs('signals', tabs)}
-           
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
+        ${renderHubTabs('signals', tabs)}
         
         <!-- Signal Analytics Row -->
         <div class="signal-analytics-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
