@@ -4592,10 +4592,12 @@ class InstitutionalRoutesMixin:
                     continue
                 win_pnl = pnls[max(0, i+1-window):i+1]
                 mn  = sum(win_pnl) / len(win_pnl)
-                sd  = (sum((x - mn) ** 2 for x in win_pnl) / len(win_pnl)) ** 0.5 + 1e-9
+                # Floor std at 1.0 to prevent division-by-near-zero explosion
+                sd  = max((sum((x - mn) ** 2 for x in win_pnl) / len(win_pnl)) ** 0.5, 1.0)
+                raw_sharpe = mn / sd * (252 ** 0.5)
                 rolling_sharpe.append({
                     'date':              trades[i]['entry_date'],
-                    'sharpe':            round(mn / sd * (252 ** 0.5), 3),
+                    'sharpe':            max(-5.0, min(5.0, round(raw_sharpe, 3))),  # cap at ±5
                     'strat_cumulative':  round(equity_so_far - 100, 2),   # % return from start
                     'btc_cumulative':    round(btc_equity_so_far - 100, 2)
                 })
