@@ -479,7 +479,7 @@ async function renderBacktesterV2(tabs = null) {
             <div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD PERIOD</label>
-                <select id="btv2-hold" style="background:var(--card-bg);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
+                <select id="btv2-hold" style="background:#0d1117;color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
                     <option value="3">3 Days</option><option value="5" selected>5 Days</option>
                     <option value="10">10 Days</option><option value="20">20 Days</option>
                 </select>

@@ -1,4 +1,4 @@
-async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
+﻿async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI(`/narrative-clusters?chain=${filterChain}&v=${Date.now()}`);
@@ -12,7 +12,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             </div>
         ${renderHubTabs('narrative', tabs)}
             <div class="view-actions" style="margin-bottom:0">
-                <select id="galaxy-chain-filter" class="tf-btn" style="background:var(--bg-card); border:1px solid var(--border); color:white; padding:0 15px; height:36px; cursor:pointer" onchange="renderNarrativeGalaxy(this.value)">
+                <select id="galaxy-chain-filter" class="tf-btn" style="background:#0d1117; border:1px solid var(--border); color:white; padding:0 15px; height:36px; cursor:pointer" onchange="renderNarrativeGalaxy(this.value)">
                     <option value="ALL" ${filterChain === 'ALL' ? 'selected' : ''}>ALL NETWORKS</option>
                     <option value="SOL" ${filterChain === 'SOL' ? 'selected' : ''}>SOLANA ECO</option>
                     <option value="ETH" ${filterChain === 'ETH' ? 'selected' : ''}>ETHEREUM ECO</option>

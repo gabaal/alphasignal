@@ -1,4 +1,4 @@
-async function renderPriceAlerts(tabs = null) {
+﻿async function renderPriceAlerts(tabs = null) {
     appEl.innerHTML = `<div class="skeleton-loader" style="height:300px"></div>`;
 
     let alerts = [];
@@ -37,7 +37,7 @@ async function renderPriceAlerts(tabs = null) {
                 </div>
                 <div>
                     <label for="pa-dir" style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">DIRECTION</label>
-                    <select id="pa-dir" aria-label="Alert direction: above or below target price" style="width:100%;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
+                    <select id="pa-dir" aria-label="Alert direction: above or below target price" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
                         <option value="ABOVE">ABOVE — Price rises to target</option>
                         <option value="BELOW">BELOW — Price drops to target</option>
                     </select>
