@@ -6,7 +6,8 @@ async function renderMarketBrief(tabs = null) {
     if (!isAuthenticatedUser) {
         appEl.innerHTML = `
             <div class="view-header">
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">article</span>AI Market Brief</h1>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">article</span>AI Market Brief <span class="premium-badge">AI</span></h1>
             </div>
             <div class="card" style="text-align:center;padding:48px;">
                 <span class="material-symbols-outlined" style="font-size:48px;color:var(--accent);display:block;margin-bottom:16px;">lock</span>
