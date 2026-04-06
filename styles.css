@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     /* == Core backgrounds ============================================== */
     --bg-deep:    #090c14;
     --bg-body:    #090c14;
@@ -4112,6 +4112,22 @@ input:focus, select:focus, textarea:focus {
     border-bottom: 1px solid rgba(255,255,255,0.07);
     padding-bottom: 1.5rem;
     margin-bottom: 1.5rem;
+}
+
+/* H2 eyebrow must always appear ABOVE the H1 title, never inline.
+   Force it to take full width so it breaks to its own line in any
+   flex row parent, and reset any font-weight override from the
+   de-AI rule set above so the small-caps dim style is preserved. */
+.view-header > h2:first-child,
+.view-header > div > h2:first-child {
+    display: block;
+    width: 100%;
+    font-size: 0.65rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 2px;
+    color: var(--text-dim) !important;
+    text-transform: uppercase;
+    margin: 0 0 4px !important;
 }
 
 /* ============================================================

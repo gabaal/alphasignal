@@ -467,14 +467,16 @@ function closeOnchainModal() {
 async function renderBacktesterV2(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = `
-        ${renderHubTabs('backtester', tabs)}
-            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
-            <h1 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin:0 0 1.5rem">Signal Backtester V2</h1>
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
             <div>
-                <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">PRO</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-backtester')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-                <p>Walk-forward simulation on live institutional signals with real price data, rolling Sharpe, and BTC benchmark.</p>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Signal Backtester V2 <span class="premium-badge">PRO</span></h1>
+                <p style="margin-top:4px;color:var(--text-dim);font-size:0.8rem">Walk-forward simulation on live institutional signals with real price data, rolling Sharpe, and BTC benchmark.</p>
             </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-backtester')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+        </div>
+        ${renderHubTabs('backtester', tabs)}
+            <div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD PERIOD</label>
                 <select id="btv2-hold" style="background:var(--card-bg);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
