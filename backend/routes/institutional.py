@@ -4390,10 +4390,11 @@ class InstitutionalRoutesMixin:
             # ── Ticker alias map: DB ticker → yfinance ticker ─────────────────
             # Handles rebranded tokens (MATIC→POL), equities without -USD, etc.
             TICKER_ALIASES = {
-                'MATIC-USD':  'POL-USD',
-                'MATIC':      'POL-USD',
-                'POL-USD':    'POL-USD',
-                # Equities stored without -USD in DB
+                # MATIC was renamed to POL but yfinance still serves it as MATIC-USD
+                'MATIC-USD':  'MATIC-USD',
+                'MATIC':      'MATIC-USD',
+                'POL-USD':    'MATIC-USD',
+                # Equities stored without -USD in DB — yfinance uses plain ticker
                 'COIN':       'COIN',
                 'MSTR':       'MSTR',
                 'NVDA':       'NVDA',
@@ -4485,20 +4486,28 @@ class InstitutionalRoutesMixin:
                 prices_dict = price_cache[canonical_tk]
                 sorted_ts   = sorted(prices_dict.keys())
                 try:
-                    entry_ts = int(datetime.fromisoformat(ts_str.replace('Z', '')).timestamp()) \
+                    sig_ts = int(datetime.fromisoformat(ts_str.replace('Z', '')).timestamp()) \
                                if isinstance(ts_str, str) else int(ts_str)
                 except Exception:
                     continue
 
-                future_ts = [t for t in sorted_ts if t >= entry_ts]
-                if not future_ts:
+                # Find nearest bar AT OR BEFORE the signal timestamp (daily EOD bars)
+                past_ts = [t for t in sorted_ts if t <= sig_ts]
+                if not past_ts:
+                    # Signal is older than our price history — skip
                     continue
+                entry_bar_ts = past_ts[-1]   # most recent bar at/before signal
+                entry_bar_idx = sorted_ts.index(entry_bar_ts)
 
-                # Use however many bars are available (partial hold is ok)
-                exit_idx  = min(hold_bars, len(future_ts) - 1)
-                exit_ts   = future_ts[exit_idx]
-                entry_pr  = prices_dict[future_ts[0]]
-                exit_pr   = prices_dict[exit_ts]
+                # Walk hold_bars forward from the entry bar
+                exit_bar_idx = min(entry_bar_idx + hold_bars, len(sorted_ts) - 1)
+                if exit_bar_idx <= entry_bar_idx:
+                    continue
+                exit_ts  = sorted_ts[exit_bar_idx]
+
+                # Use DB recorded price as entry (actual signal price), bar close as exit
+                entry_pr = float(entry_price) if entry_price and float(entry_price) > 0 else prices_dict[entry_bar_ts]
+                exit_pr  = prices_dict[exit_ts]
                 # Direction map: bullish signal types ? long (+1), bearish ? short (-1)
                 _BULLISH = {'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
                              'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
@@ -4526,7 +4535,7 @@ class InstitutionalRoutesMixin:
                 trades.append({
                     'ticker':      ticker,
                     'signal':      sig_type,
-                    'entry_date':  datetime.utcfromtimestamp(future_ts[0]).strftime('%Y-%m-%d'),
+                    'entry_date':  datetime.utcfromtimestamp(sig_ts).strftime('%Y-%m-%d'),
                     'exit_date':   datetime.utcfromtimestamp(exit_ts).strftime('%Y-%m-%d'),
                     'entry_price': round(entry_pr, 4),
                     'exit_price':  round(exit_pr, 4),
