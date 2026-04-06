@@ -4531,6 +4531,7 @@ class InstitutionalRoutesMixin:
                 else:
                     direction = -1  # conservative: unknown bearish
                 pnl_pct   = direction * (exit_pr - entry_pr) / entry_pr * 100
+                pnl_pct   = max(-50.0, min(50.0, pnl_pct))  # cap at ±50% per trade
 
                 btc_entry = min(btc_prices, key=lambda t: abs(t - sig_ts), default=None)
                 btc_exit  = min(btc_prices, key=lambda t: abs(t - exit_ts),  default=None)
