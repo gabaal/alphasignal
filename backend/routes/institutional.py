@@ -4583,15 +4583,21 @@ class InstitutionalRoutesMixin:
 
             rolling_sharpe = []
             window = max(2, min(10, len(pnls)))  # adaptive window: min 2, max 10, grows with data
-            for i in range(window, len(pnls) + 1):
-                win_pnl = pnls[i-window:i]
-                mn  = sum(win_pnl) / window
-                sd  = (sum((x - mn) ** 2 for x in win_pnl) / window) ** 0.5 + 1e-9
+            equity_so_far     = 100.0
+            btc_equity_so_far = 100.0
+            for i in range(len(pnls)):
+                equity_so_far     *= (1 + pnls[i] / 100)
+                btc_equity_so_far *= (1 + trades[i]['btc_pnl'] / 100)
+                if i + 1 < window:
+                    continue
+                win_pnl = pnls[max(0, i+1-window):i+1]
+                mn  = sum(win_pnl) / len(win_pnl)
+                sd  = (sum((x - mn) ** 2 for x in win_pnl) / len(win_pnl)) ** 0.5 + 1e-9
                 rolling_sharpe.append({
-                    'date':              trades[i-1]['entry_date'],
+                    'date':              trades[i]['entry_date'],
                     'sharpe':            round(mn / sd * (252 ** 0.5), 3),
-                    'strat_cumulative':  round(sum(pnls[:i]), 2),
-                    'btc_cumulative':    round(sum(t['btc_pnl'] for t in trades[:i]), 2)
+                    'strat_cumulative':  round(equity_so_far - 100, 2),   # % return from start
+                    'btc_cumulative':    round(btc_equity_so_far - 100, 2)
                 })
 
             monthly = {}

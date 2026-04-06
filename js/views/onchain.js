@@ -479,7 +479,7 @@ async function renderBacktesterV2(tabs = null) {
             <div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD PERIOD</label>
-                <select id="btv2-hold" style="background:#0d1117;color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
+                <select id="btv2-hold" onchange="if(this.value==='20'){showToast('BACKTESTER','20-day hold reduces signal density and increases volatility. Consider 5–10 days for more reliable statistics.','info');}" style="background:#0d1117;color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
                     <option value="3">3 Days</option><option value="5" selected>5 Days</option>
                     <option value="10">10 Days</option><option value="20">20 Days</option>
                 </select>
@@ -526,6 +526,7 @@ async function renderBacktesterV2(tabs = null) {
 
 async function loadBacktesterV2() {
     const hold = document.getElementById('btv2-hold') ? document.getElementById('btv2-hold').value : '5';
+    if (hold === '20') showToast('BACKTESTER', '20-day hold: lower signal density, higher volatility. Best for trend-following signals.', 'info');
     ['win-rate','total-trades','total-return','sharpe','max-drawdown','profit-factor','calmar'].forEach(id => {
         const el = document.getElementById('btv2-' + id);
         if (el) el.innerHTML = '<span style="font-size:0.8rem;color:var(--text-dim)">...</span>';
