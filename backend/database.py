@@ -140,16 +140,20 @@ class SupabaseClient:
 # Pack G1: Expanded Multi-Asset Universe
 # ============================================================
 UNIVERSE = {
-    'EXCHANGE': ['COIN', 'HOOD', 'VIRT'],
-    'MINERS': ['MARA', 'RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT'],
-    'PROXY': ['MSTR', 'GLXY.TO'],
-    'ETF': ['IBIT', 'FBTC', 'ARKB', 'BITO'],
-    'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD'],
-    'L1': ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD'],
-    'L2': ['ARB-USD', 'OP-USD', 'ALGO-USD', 'POL-USD'],
-    'AI': ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'AGIX-USD', 'WLD-USD'],
-    'STABLES': ['USDC-USD', 'USDT-USD', 'DAI-USD'],
-    'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD', 'PEOPLE-USD']
+    'EXCHANGE': ['COIN', 'HOOD', 'VIRT', 'MARA'],
+    'MINERS':   ['RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT'],
+    'PROXY':    ['MSTR', 'GLXY.TO'],
+    'ETF':      ['IBIT', 'FBTC', 'ARKB', 'BITO'],
+    'EQUITIES': ['NVDA', 'TSLA', 'PLTR', 'SMCI', 'AMD'],   # crypto-correlated tech
+    'DEFI':     ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'UNI-USD', 'JTO-USD', 'EIGEN-USD'],
+    'L1':       ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD',
+                 'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD',
+                 'SUI-USD', 'APT-USD', 'SEI-USD', 'STX-USD', 'TAO-USD'],
+    'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD'],
+    'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD', 'GRT-USD', 'IO-USD'],
+    'STABLES':  ['USDC-USD', 'USDT-USD'],
+    'MEMES':    ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD', 'PEPE-USD', 'BRETT-USD'],
+    'PYTH':     ['PYTH-USD'],
 }
 
 # Aliases for rebranded/deprecated tickers (MATIC → POL after Polygon rebrand)

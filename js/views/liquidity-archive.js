@@ -539,47 +539,76 @@ async function renderSignalArchive(tabs = null) {
         </div>
         ${tabs ? renderHubTabs('archive', tabs) : ''}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Signal Execution Archive</h2>
-        <div id="archive-filters" class="glass-card" style="margin-bottom:1.5rem; padding:1.2rem; display:flex; gap:1.5rem; align-items:flex-end; flex-wrap:wrap">
-            <div class="form-group" style="margin:0">
-                <label style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px; display:block">TICKER SEARCH</label>
-                <input type="text" id="filter-ticker" placeholder="BTC-USD..." style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:0.75rem; width:140px">
+        <div id="archive-filters" class="glass-card" style="margin-bottom:1.5rem;padding:1.2rem;display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap">
+            <!-- Ticker search -->
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">TICKER</label>
+                <input type="text" id="filter-ticker" placeholder="BTC-USD, ETH…" maxlength="20"
+                    style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.75rem;width:130px;font-family:var(--font-mono)"
+                    onkeydown="if(event.key==='Enter') loadData(1)">
             </div>
-            <div class="form-group" style="margin:0">
-                <label style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px; display:block">SIGNAL TYPE</label>
-                <select id="filter-type" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:0.75rem">
+            <!-- Signal type -->
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">SIGNAL TYPE</label>
+                <select id="filter-type" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
                     <option value="">ALL TYPES</option>
+                    <option value="ML_ALPHA_PREDICTION">ML ALPHA PREDICTION</option>
                     <option value="ML_LONG">ML LONG</option>
                     <option value="ML_SHORT">ML SHORT</option>
                     <option value="RSI_OVERSOLD">RSI OVERSOLD</option>
                     <option value="RSI_OVERBOUGHT">RSI OVERBOUGHT</option>
-                    <option value="MACD_CROSS_UP">MACD CROSS UP</option>
-                    <option value="MACD_CROSS_DOWN">MACD CROSS DOWN</option>
+                    <option value="MACD_BULLISH_CROSS">MACD BULLISH CROSS</option>
+                    <option value="MACD_BEARISH_CROSS">MACD BEARISH CROSS</option>
+                    <option value="VOLUME_SPIKE">VOLUME SPIKE</option>
                     <option value="WHALE_ACCUMULATION">WHALE ACCUMULATION</option>
                     <option value="FUNDING_EXTREME">FUNDING EXTREME</option>
-                    <option value="VOLUME_SPIKE">VOLUME SPIKE</option>
                     <option value="REGIME_BULL">REGIME BULL</option>
                     <option value="REGIME_BEAR">REGIME BEAR</option>
-                    <option value="Z_SCORE_HIGH">Z-SCORE HIGH</option>
-                    <option value="SENTIMENT_SPIKE">SENTIMENT SPIKE</option>
                     <option value="MOMENTUM_BREAKOUT">MOMENTUM BREAKOUT</option>
                     <option value="ALPHA_DIVERGENCE_LONG">ALPHA DIVERGENCE LONG</option>
                     <option value="ALPHA_DIVERGENCE_SHORT">ALPHA DIVERGENCE SHORT</option>
-                    <option value="REGIME_SHIFT_LONG">REGIME SHIFT LONG</option>
-                    <option value="REGIME_SHIFT_SHORT">REGIME SHIFT SHORT</option>
-                    <option value="ML_ALPHA_PREDICTION">ML ALPHA PREDICTION</option>
-                    <option value="LIQUIDITY_VACUUM">LIQUIDITY VACUUM</option>
                 </select>
             </div>
-            <div class="form-group" style="margin:0">
-                <label style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px; display:block">LOOKBACK</label>
-                <select id="filter-days" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-size:0.75rem">
+            <!-- Severity -->
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">SEVERITY</label>
+                <select id="filter-severity" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
+                    <option value="">ALL</option>
+                    <option value="critical">CRITICAL 🔴</option>
+                    <option value="high">HIGH 🟠</option>
+                    <option value="medium">MEDIUM 🟡</option>
+                </select>
+            </div>
+            <!-- Direction -->
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">DIRECTION</label>
+                <select id="filter-direction" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
+                    <option value="">ALL</option>
+                    <option value="bullish">BULLISH ▲</option>
+                    <option value="bearish">BEARISH ▼</option>
+                    <option value="neutral">NEUTRAL ●</option>
+                </select>
+            </div>
+            <!-- Lookback -->
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">LOOKBACK</label>
+                <select id="filter-days" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
                     <option value="7">LAST 7 DAYS</option>
                     <option value="30" selected>LAST 30 DAYS</option>
                     <option value="90">LAST 90 DAYS</option>
+                    <option value="365">LAST YEAR</option>
                 </select>
             </div>
-            <button id="apply-filters" class="setup-generator-btn" style="padding:8px 20px; font-size:0.7rem; height:36px">APPLY FILTERS</button>
+            <!-- Buttons -->
+            <div style="display:flex;gap:8px;align-items:flex-end">
+                <button id="apply-filters" class="setup-generator-btn" style="padding:7px 18px;font-size:0.7rem;height:36px">
+                    <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:4px">filter_list</span>APPLY
+                </button>
+                <button onclick="document.getElementById('filter-ticker').value='';document.getElementById('filter-type').value='';document.getElementById('filter-severity').value='';document.getElementById('filter-direction').value='';document.getElementById('filter-days').value='30';loadData(1)"
+                    class="intel-action-btn mini outline" style="width:auto;padding:7px 14px;font-size:0.7rem;height:36px">RESET</button>
+            </div>
         </div>
+
         <div id="archive-table-container">
             <div class="card" style="padding:1rem">${skeleton(5)}</div>
         </div>
@@ -589,16 +618,20 @@ async function renderSignalArchive(tabs = null) {
 
     const loadData = async (page = 1) => {
         currentPage = page;
-        const ticker = document.getElementById('filter-ticker').value;
-        const type = document.getElementById('filter-type').value;
-        const days = document.getElementById('filter-days').value;
-        
+        const ticker    = document.getElementById('filter-ticker')?.value.trim() || '';
+        const type      = document.getElementById('filter-type')?.value || '';
+        const severity  = document.getElementById('filter-severity')?.value || '';
+        const direction = document.getElementById('filter-direction')?.value || '';
+        const days      = document.getElementById('filter-days')?.value || '30';
+
         const container = document.getElementById('archive-table-container');
         container.innerHTML = `<div class="card" style="padding:1rem">${skeleton(5)}</div>`;
-        
+
         let url = `/signal-history?days=${days}&page=${currentPage}&limit=25`;
-        if (ticker) url += `&ticker=${ticker.toUpperCase()}`;
-        if (type) url += `&type=${type}`;
+        if (ticker)    url += `&ticker=${ticker.toUpperCase()}`;
+        if (type)      url += `&type=${type}`;
+        if (severity)  url += `&severity=${severity}`;
+        if (direction) url += `&direction=${direction}`;
         
         const response = await fetchAPI(url);
         console.log(`[AlphaSignal API] Response from ${url}:`, response);
@@ -655,25 +688,29 @@ async function renderSignalArchive(tabs = null) {
                 </div>
                 <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
                     <thead>
-                        <tr style="color:var(--text-dim); border-bottom:1px solid var(--border)">
-                            <th style="text-align:left; padding:8px 12px">TICKER</th>
-                            <th style="text-align:left; padding:8px 12px">TYPE</th>
-                            <th style="text-align:right; padding:8px 12px">ENTRY</th>
-                            <th style="text-align:right; padding:8px 12px">CURRENT</th>
-                            <th style="text-align:right; padding:8px 12px">RETURN</th>
-                            <th style="text-align:center; padding:8px 12px">STATE</th>
-                            <th style="text-align:left; padding:8px 12px">DATE</th>
-                            <th style="text-align:center; padding:8px 12px">ACTIONS</th>
+                        <tr style="color:var(--text-dim);border-bottom:1px solid var(--border)">
+                            <th style="text-align:left;padding:8px 12px">TICKER</th>
+                            <th style="text-align:left;padding:8px 12px">TYPE</th>
+                            <th style="text-align:center;padding:8px 12px">SEV</th>
+                            <th style="text-align:right;padding:8px 12px">ENTRY</th>
+                            <th style="text-align:right;padding:8px 12px">CURRENT</th>
+                            <th style="text-align:right;padding:8px 12px">RETURN</th>
+                            <th style="text-align:center;padding:8px 12px">STATE</th>
+                            <th style="text-align:left;padding:8px 12px">DATE</th>
+                            <th style="text-align:center;padding:8px 12px">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${data.map(s => `
                             <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
-                                <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
-                                <td style="padding:10px 12px; color:var(--text-dim)">${s.type?.replace(/_/g,' ') || '-'}</td>
-                                <td style="padding:10px 12px; text-align:right; font-family:monospace">${s.entry ? '$' + s.entry.toLocaleString() : '-'}</td>
-                                <td style="padding:10px 12px; text-align:right; font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
-                                <td style="padding:10px 12px; text-align:right; font-weight:700; color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
+                                <td style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
+                                <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
+                                <td style="padding:10px 12px;text-align:center">
+                                    ${ (()=>{ const sev=(s.severity||'').toLowerCase(); const icon=sev==='critical'?'🔴':sev==='high'?'🟠':'🟡'; return `<span style="font-size:0.65rem">${icon} ${(sev||'--').toUpperCase()}</span>`; })() }
+                                </td>
+                                <td style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? '$' + s.entry.toLocaleString() : '-'}</td>
+                                <td style="padding:10px 12px;text-align:right;font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
+                                <td style="padding:10px 12px;text-align:right;font-weight:700;color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
                                 <td style="padding:10px 12px; text-align:center">
                                     <span style="background:${stateColors[s.state] || '#60a5fa'}22; color:${stateColors[s.state] || '#60a5fa'}; padding:2px 10px; border-radius:20px; font-size:0.6rem; letter-spacing:1px">
                                         ${stateIcons[s.state] || '⚡'} ${s.state}
@@ -693,6 +730,7 @@ async function renderSignalArchive(tabs = null) {
     };
 
     window.loadArchiveData = loadData;
+    window.loadData = loadData; // expose for RESET button
     // Expose current page data for CSV export
     window._archiveCurrentData = null;
     window._archiveExportPage = function() {
