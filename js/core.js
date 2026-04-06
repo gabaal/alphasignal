@@ -1216,14 +1216,15 @@ async function loadRiskMatrix(tickers = null) {
 
         new Chart(scatterCtx.getContext('2d'), {
             type: 'scatter',
+            plugins: [ChartDataLabels],
             data: {
                 datasets: [{
                     label: 'Asset Profile',
                     data: scatterPoints,
                     backgroundColor: colors,
                     borderColor: colors.map(c => c.replace(/0\.\d+\)/, '1)')),
-                    pointRadius: 7,
-                    pointHoverRadius: 10
+                    pointRadius: 6,
+                    pointHoverRadius: 9
                 }]
             },
             options: {
@@ -1242,8 +1243,24 @@ async function loadRiskMatrix(tickers = null) {
                             ]
                         }
                     },
-                    annotation: {
-                        // vertical zero-alpha line
+                    datalabels: {
+                        display: true,
+                        formatter: (val) => val.ticker,
+                        color: (ctx) => colors[ctx.dataIndex] ?? 'rgba(255,255,255,0.7)',
+                        font: {
+                            family: "'JetBrains Mono', monospace",
+                            size: 8,
+                            weight: '700'
+                        },
+                        // Stagger anchors to reduce overlap
+                        anchor: (ctx) => (ctx.dataIndex % 3 === 0 ? 'end' : ctx.dataIndex % 3 === 1 ? 'start' : 'end'),
+                        align: (ctx) => (ctx.dataIndex % 3 === 0 ? 'top' : ctx.dataIndex % 3 === 1 ? 'bottom' : 'right'),
+                        offset: 4,
+                        clamp: true,
+                        // Subtle bg box for readability
+                        backgroundColor: 'rgba(5,7,20,0.55)',
+                        borderRadius: 3,
+                        padding: { top: 1, bottom: 1, left: 3, right: 3 }
                     }
                 },
                 scales: {
