@@ -301,13 +301,14 @@ async function renderRotation(tabs = null) {
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">swap_horiz</span>Sector Rotation <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-rotation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">swap_horiz</span>Sector Rotation <span class="premium-badge">LIVE</span></h1>
+                <p style="margin-top:4px;color:var(--text-dim);font-size:0.8rem">Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>
             </div>
-        ${renderHubTabs('rotation', tabs)}
-           
-            <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-rotation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
+        ${renderHubTabs('rotation', tabs)}
         
         <div class="heatmap-legend" style="margin-bottom: 1.5rem">
             <div class="legend-labels">

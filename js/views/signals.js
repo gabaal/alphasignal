@@ -576,22 +576,21 @@ async function renderAlphaScore(tabs = null) {
 
         appEl.innerHTML = `
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
-                <div>                    <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
-                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                        <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
-                        <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-                        <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0;border-color:rgba(250,204,21,0.4);color:#facc15" onclick="switchView('docs-ml-engine')"><span class="material-symbols-outlined" style="font-size:13px">smart_toy</span> ML ENGINE</button>
-                    </div>
-        ${renderHubTabs('score', tabs)}
-                    <p style="margin:0">Composite 0&ndash;100 ranking &middot; Updated ${data.updated} &middot; ${scores.length} assets scored</p>
+                <div>
+                    <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
+                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span>Alpha Score <span class="premium-badge">LIVE</span></h1>
+                    <p style="margin:4px 0 0;color:var(--text-dim);font-size:0.8rem">Composite 0&ndash;100 ranking &middot; Updated ${data.updated} &middot; ${scores.length} assets scored</p>
                 </div>
-                <!-- Pagination Controls -->
-                <div style="display:flex; align-items:center; gap:15px; margin-bottom:5px">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                    <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0;border-color:rgba(250,204,21,0.4);color:#facc15" onclick="switchView('docs-ml-engine')"><span class="material-symbols-outlined" style="font-size:13px">smart_toy</span> ML ENGINE</button>
+                    <!-- Pagination Controls -->
                     <button class="filter-btn" id="btn-prev-alpha" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
                     <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${currentPage} of ${totalPages}</span>
                     <button class="filter-btn" id="btn-next-alpha" ${currentPage === totalPages ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>Next &rarr;</button>
                 </div>
             </div>
+            ${renderHubTabs('score', tabs)}
             <div class="card" style="overflow-x:auto">
                 <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
                     <thead>

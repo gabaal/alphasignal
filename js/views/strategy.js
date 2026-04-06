@@ -166,13 +166,14 @@ async function renderRiskMatrix(tabs = null) {
     if (!tabs) tabs = riskHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Risk &amp; Stress Lab</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">grid_on</span>Risk Matrix <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-risk-matrix')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Risk &amp; Stress Lab</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">grid_on</span>Risk Matrix <span class="premium-badge">LIVE</span></h1>
+                <p style="margin-top:4px;color:var(--text-dim);font-size:0.8rem">Real-time statistical synchronization across the institutional universe.</p>
             </div>
-        ${renderHubTabs('risk', tabs)}
-           
-            <p>Real-time statistical synchronization across the institutional universe.</p>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-risk-matrix')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
+        ${renderHubTabs('risk', tabs)}
         <div class="view-actions">
             <div class="category-filters" id="risk-matrix-filters">
                 <button class="filter-btn active" onclick="loadRiskMatrix('BTC-USD,ETH-USD,SOL-USD,MARA,COIN,MSTR,BNB-USD,XRP-USD,ADA-USD,DOGE-USD')">MAJOR BASKET</button>
@@ -196,13 +197,14 @@ async function renderStressHub(tabs = null) {
     if (!tabs) tabs = riskHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Risk &amp; Stress Lab</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">warning_amber</span>Stress Lab <span class="premium-badge">RISK</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-stress-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Risk &amp; Stress Lab</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">warning_amber</span>Stress Lab <span class="premium-badge">RISK</span></h1>
+                <p style="margin-top:4px;color:var(--text-dim);font-size:0.8rem">Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
             </div>
-        ${renderHubTabs('stress', tabs)}
-           
-            <p>Simulating portfolio sensitivity and institutional drawdown scenarios.</p>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-stress-lab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
+        ${renderHubTabs('stress', tabs)}
         <div class="risk-top-grid" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px; margin-bottom:2rem">
             <div id="risk-summary-area">${skeleton(1)}</div>
             <div id="stress-scenarios-area">${skeleton(1)}</div>
