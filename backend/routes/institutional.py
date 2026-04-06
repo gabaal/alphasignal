@@ -4441,7 +4441,8 @@ class InstitutionalRoutesMixin:
             def _fetch_ticker_prices(tk):
                 """Download 2y daily closes for one ticker; return (tk, price_dict)."""
                 try:
-                    df = CACHE.download(tk, period='2y', interval='1d')
+                    df = yf.download(tk, period='2y', interval='1d',
+                                     progress=False, auto_adjust=True)
                     if df is None or df.empty:
                         return tk, {}
                     closes = _extract_closes(df, tk)
