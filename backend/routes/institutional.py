@@ -4117,13 +4117,16 @@ class InstitutionalRoutesMixin:
     def handle_stress_test(self):
         """Phase 7: Systematic Stress Test Engine - Enhanced for UI Compatibility."""
         try:
-            all_tickers = [t for sub in UNIVERSE.values() for t in sub][:15]
-            data = CACHE.download(all_tickers + ['BTC-USD'], period='180d', interval='1d', column='Close')
+            # Need all tickers in the universe for sector correlation
+            all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub]))
+            core_bench = 'BTC-USD'
+            fetch_tickers = list(set(all_tickers + [core_bench]))
+            data = CACHE.download(fetch_tickers, period='180d', interval='1d', column='Close')
             if data.empty:
                 self.send_json({'error': 'No data available'})
                 return
 
-            btc_rets = data['BTC-USD'].pct_change().dropna()
+            btc_rets = data[core_bench].pct_change().dropna() if core_bench in data.columns else data.iloc[:,0].pct_change().dropna()
             asset_risk = []
             
             for ticker in all_tickers:
@@ -4155,21 +4158,48 @@ class InstitutionalRoutesMixin:
                 })
 
             # Calculate Systemic Risk (Average Sector Correlation proxy)
-            systemic_risk = min(int(np.mean([a['beta'] for a in asset_risk]) * 50), 100) if asset_risk else 35
+            avg_beta = float(np.mean([a['beta'] for a in asset_risk])) if asset_risk else 0.7
+            systemic_risk = min(int(avg_beta * 50), 100)
 
-            # Define Scenarios
+            # Define Scenarios using real average beta
             scenarios = [
-                {'name': 'Black Swan (BTC -20%)', 'prob': 'Low', 'impact': round(float(np.mean([a['beta'] for a in asset_risk]) * -20.0), 2) if asset_risk else -35.0, 'outcome': 'Systemic Liquidity Contagion'},
-                {'name': 'Correction (BTC -10%)', 'prob': 'Med', 'impact': round(float(np.mean([a['beta'] for a in asset_risk]) * -10.0), 2) if asset_risk else -15.0, 'outcome': 'Institutional De-risking'},
-                {'name': 'Flash Crash (BTC -5%)', 'prob': 'High', 'impact': round(float(np.mean([a['beta'] for a in asset_risk]) * -5.0), 2) if asset_risk else -7.5, 'outcome': 'Leverage Flush Out'}
+                {'name': 'Black Swan (BTC -20%)', 'prob': 'Low',
+                 'impact': round(avg_beta * -20.0, 2), 'outcome': 'Systemic Liquidity Contagion'},
+                {'name': 'Correction (BTC -10%)', 'prob': 'Med',
+                 'impact': round(avg_beta * -10.0, 2), 'outcome': 'Institutional De-risking'},
+                {'name': 'Flash Crash (BTC -5%)', 'prob': 'High',
+                 'impact': round(avg_beta * -5.0, 2), 'outcome': 'Leverage Flush Out'},
+                {'name': 'Macro Shock (+VIX 30pts)', 'prob': 'Low',
+                 'impact': round(avg_beta * -15.0, 2), 'outcome': 'Cross-Asset Deleveraging'},
             ]
 
-            # Define Hotspots
-            hotspots = [
-                {'sector': 'L1 DEFI', 'score': 0.82},
-                {'sector': 'MEME CLUSTER', 'score': 0.95},
-                {'sector': 'AI NARRATIVE', 'score': 0.45}
-            ]
+            # ── Real Sector Hotspots ──────────────────────────────────────
+            # Build per-sector avg pairwise correlation using actual return data
+            SECTOR_MAP = {
+                'L1': ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'XRP-USD'],
+                'MINERS': ['MARA', 'RIOT', 'CLSK', 'IREN', 'WULF'],
+                'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'UNI-USD'],
+                'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'PEPE-USD'],
+                'AI': ['FET-USD', 'RENDER-USD', 'WLD-USD', 'GRT-USD', 'TAO-USD'],
+            }
+            hotspots = []
+            returns_df = data.pct_change().dropna()
+            for sector_name, sector_tickers in SECTOR_MAP.items():
+                # Only use tickers we actually have data for
+                valid = [t for t in sector_tickers if t in returns_df.columns]
+                if len(valid) < 2:
+                    continue
+                sector_rets = returns_df[valid]
+                corr_matrix = sector_rets.corr().values
+                # Average of upper triangle (exclude diagonal)
+                n = corr_matrix.shape[0]
+                upper = [corr_matrix[i][j] for i in range(n) for j in range(i+1, n)]
+                avg_corr = float(np.mean(upper)) if upper else 0.5
+                hotspots.append({'sector': sector_name, 'score': round(avg_corr, 3)})
+            # Sort by highest correlation (most systemic risk first)
+            hotspots.sort(key=lambda x: x['score'], reverse=True)
+            if not hotspots:
+                hotspots = [{'sector': 'MARKET', 'score': round(avg_beta * 0.6, 2)}]
 
             self.send_json({
                 'systemic_risk': systemic_risk,

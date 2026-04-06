@@ -1123,7 +1123,10 @@ async function loadRiskMatrix(tickers = null) {
     });
 
     const container = document.getElementById('matrix-container');
-    const data = await fetchAPI(`/correlation?tickers=${currentTickers}&period=${period}`);
+    const [data, stressData] = await Promise.all([
+        fetchAPI(`/correlation?tickers=${currentTickers}&period=${period}`),
+        fetchAPI('/stress-test')
+    ]);
     
     if (!data || data.error) {
         container.innerHTML = `<div class="error-msg">Matrix Load Failed: ${data?.error || 'Unknown Error'}</div>`;
@@ -1161,67 +1164,82 @@ async function loadRiskMatrix(tickers = null) {
         </div>
     `;
 
-    // Initialize the Risk Scatter Plot
+    // ── Efficient Frontier Scatter ─────────────────────────────────────────
+    // Use real vol/alpha/return from the stress-test engine (already computed vs BTC)
     setTimeout(() => {
         const scatterCtx = document.getElementById('riskScatterChart');
-        if (scatterCtx) {
-            const syntheticScatter = tks.map(t => {
-                const isBTC = t.includes('BTC');
-                const isETH = t.includes('ETH');
-                const isMiner = ['MARA','RIOT','CLSK','HIVE','CAN','WULF','IREN'].includes(t.split('-')[0]);
-                
-                let baseVol = isBTC ? 40 : isETH ? 55 : isMiner ? 90 : 70;
-                let baseRet = isBTC ? 15 : isETH ? 22 : isMiner ? 45 : 30;
-                
-                baseVol += (t.length * 2.1) % 15 - 7;
-                baseRet += (t.length * 3.7) % 20 - 10;
+        if (!scatterCtx) return;
 
-                return {
-                    x: baseVol,
-                    y: baseRet,
-                    ticker: t.split('-')[0]
-                };
-            });
+        let scatterPoints = [];
+        if (stressData?.asset_risk?.length) {
+            scatterPoints = stressData.asset_risk.map(a => ({
+                x: parseFloat(a.vol.toFixed(1)),
+                y: parseFloat(a.alpha.toFixed(1)),
+                ticker: a.ticker.split('-')[0],
+                beta: a.beta
+            }));
+        } else {
+            // Lightweight fallback using ticker name heuristics
+            scatterPoints = tks.map(t => ({
+                x: t.includes('BTC') ? 42 : t.includes('ETH') ? 58 : ['MARA','RIOT','CLSK'].includes(t) ? 95 : 72,
+                y: t.includes('BTC') ? 12 : t.includes('ETH') ? 18 : ['MARA','RIOT','CLSK'].includes(t) ? 38 : 22,
+                ticker: t.split('-')[0], beta: 1.0
+            }));
+        }
 
-            new Chart(scatterCtx.getContext('2d'), {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Asset Profile',
-                        data: syntheticScatter,
-                        backgroundColor: 'rgba(0, 242, 255, 0.6)',
-                        borderColor: '#00f2ff',
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(13, 17, 23, 0.95)',
-                            callbacks: {
-                                label: (ctx) => `${ctx.raw.ticker}: ${ctx.raw.y.toFixed(1)}% Ret / ${ctx.raw.x.toFixed(1)}% Vol`
-                            }
+        const colors = scatterPoints.map(p =>
+            p.y >= 5  ? 'rgba(34,197,94,0.75)' :
+            p.y >= 0  ? 'rgba(0,242,255,0.65)'  :
+            p.y >= -5 ? 'rgba(250,204,21,0.65)' :
+                        'rgba(239,68,68,0.75)'
+        );
+
+        new Chart(scatterCtx.getContext('2d'), {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Asset Profile',
+                    data: scatterPoints,
+                    backgroundColor: colors,
+                    borderColor: colors.map(c => c.replace(/0\.\d+\)/, '1)')),
+                    pointRadius: 7,
+                    pointHoverRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(13,17,23,0.95)',
+                        callbacks: {
+                            title: ctx => ctx[0].raw.ticker,
+                            label: ctx => [
+                                `Ann. Vol: ${ctx.raw.x.toFixed(1)}%`,
+                                `Excess Alpha: ${ctx.raw.y >= 0 ? '+' : ''}${ctx.raw.y.toFixed(1)}%`,
+                                `BTC Beta: ${ctx.raw.beta?.toFixed(2) ?? '--'}`
+                            ]
                         }
                     },
-                    scales: {
-                        x: {
-                            title: { display: true, text: '30D Annualized Volatility (%)', color: '#8b949e' },
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: '#8b949e' }
-                        },
-                        y: {
-                            title: { display: true, text: '30D Cumulative Return (%)', color: '#8b949e' },
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: '#8b949e' }
-                        }
+                    annotation: {
+                        // vertical zero-alpha line
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Annualized Volatility (%)', color: '#8b949e', font: { size: 10 } },
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#8b949e' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Excess Alpha vs BTC (Ann. %)', color: '#8b949e', font: { size: 10 } },
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#8b949e', callback: v => (v >= 0 ? '+' : '') + v + '%' }
                     }
                 }
-            });
-        }
+            }
+        });
     }, 50);
 }
 
