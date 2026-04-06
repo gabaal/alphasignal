@@ -1137,7 +1137,7 @@ async function loadRiskMatrix(tickers = null) {
     container.innerHTML = `
         <div style="margin-bottom:2rem; padding:1.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:12px">
             <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">ASSET RISK PROFILE (EFFICIENT FRONTIER)</h3>
-            <div style="height:250px; position:relative">
+            <div style="height:420px; position:relative">
                 <canvas id="riskScatterChart"></canvas>
             </div>
         </div>
