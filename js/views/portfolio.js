@@ -15,7 +15,8 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">key</span>Institutional Hub <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-portfolio-optimizer')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Institutional Hub</h2>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">auto_mode</span>Portfolio Optimizer <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-portfolio-optimizer')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             <p>Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores.</p>
         </div>
         ${tabs ? renderHubTabs('optimizer', tabs) : ''}

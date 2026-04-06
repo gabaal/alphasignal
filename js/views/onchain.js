@@ -912,7 +912,8 @@ async function renderAIRebalancerView(tabs = null) {
     if (!tabs) tabs = institutionalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">smart_toy</span>AI Portfolio Rebalancer <span class="premium-badge">AI</span></h2>
+            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Institutional Hub</h2>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">smart_toy</span>AI Rebalancer <span class="premium-badge">AI</span></h1>
             <p>Max-Sharpe portfolio optimisation via Monte Carlo simulation across ML signal predictions. GPT-generated institutional memo.</p>
         </div>
         ${renderHubTabs('rebalancer', tabs)}
