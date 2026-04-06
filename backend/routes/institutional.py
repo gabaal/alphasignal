@@ -4583,11 +4583,24 @@ class InstitutionalRoutesMixin:
 
             rolling_sharpe = []
             window = max(2, min(10, len(pnls)))  # adaptive window: min 2, max 10, grows with data
-            equity_so_far     = 100.0
-            btc_equity_so_far = 100.0
+            equity_so_far = 100.0
+
+            # BTC buy-and-hold baseline: anchor to price on first trade date
+            sorted_btc_ts = sorted(btc_prices.keys())
+            first_trade_ts = trades[0]['ts']
+            btc_anchor_ts  = min(sorted_btc_ts, key=lambda t: abs(t - first_trade_ts))
+            btc_anchor_px  = btc_prices.get(btc_anchor_ts, 0)
+
             for i in range(len(pnls)):
-                equity_so_far     *= (1 + pnls[i] / 100)
-                btc_equity_so_far *= (1 + trades[i]['btc_pnl'] / 100)
+                equity_so_far *= (1 + pnls[i] / 100)
+                # BTC cumulative: simple buy-and-hold from first trade date
+                trade_ts   = trades[i]['ts']
+                cur_btc_ts = min(sorted_btc_ts, key=lambda t: abs(t - trade_ts))
+                cur_btc_px = btc_prices.get(cur_btc_ts, 0)
+                if btc_anchor_px and cur_btc_px:
+                    btc_cumulative = round((cur_btc_px / btc_anchor_px - 1) * 100, 2)
+                else:
+                    btc_cumulative = 0.0
                 if i + 1 < window:
                     continue
                 win_pnl = pnls[max(0, i+1-window):i+1]
@@ -4598,8 +4611,8 @@ class InstitutionalRoutesMixin:
                 rolling_sharpe.append({
                     'date':              trades[i]['entry_date'],
                     'sharpe':            max(-5.0, min(5.0, round(raw_sharpe, 3))),  # cap at ±5
-                    'strat_cumulative':  round(equity_so_far - 100, 2),   # % return from start
-                    'btc_cumulative':    round(btc_equity_so_far - 100, 2)
+                    'strat_cumulative':  round(equity_so_far - 100, 2),
+                    'btc_cumulative':    btc_cumulative
                 })
 
             monthly = {}
