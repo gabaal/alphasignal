@@ -4387,8 +4387,27 @@ class InstitutionalRoutesMixin:
                 self.send_json({'error': 'No signal history', 'trades': [], 'stats': {}})
                 return
 
-            # 2. Fetch price data per ticker - parallel downloads via ThreadPoolExecutor
-            unique_tickers = list({r[0] for r in rows})
+            # ── Ticker alias map: DB ticker → yfinance ticker ─────────────────
+            # Handles rebranded tokens (MATIC→POL), equities without -USD, etc.
+            TICKER_ALIASES = {
+                'MATIC-USD':  'POL-USD',
+                'MATIC':      'POL-USD',
+                'POL-USD':    'POL-USD',
+                # Equities stored without -USD in DB
+                'COIN':       'COIN',
+                'MSTR':       'MSTR',
+                'NVDA':       'NVDA',
+                'MARA':       'MARA',
+                'RIOT':       'RIOT',
+                'CLSK':       'CLSK',
+                'HOOD':       'HOOD',
+            }
+            def _canonical(tk):
+                """Return the yfinance-compatible ticker for a given DB ticker."""
+                return TICKER_ALIASES.get(tk, tk)
+
+            # Build alias-normalised tickers list (dedup)
+            unique_tickers   = list({_canonical(r[0]) for r in rows})
             price_cache = {}
 
             def _extract_closes(df, tk):
@@ -4460,9 +4479,10 @@ class InstitutionalRoutesMixin:
             # 3. Simulate trades
             trades = []
             for ticker, sig_type, entry_price, ts_str in rows:
-                if ticker not in price_cache:
+                canonical_tk = _canonical(ticker)
+                if canonical_tk not in price_cache:
                     continue
-                prices_dict = price_cache[ticker]
+                prices_dict = price_cache[canonical_tk]
                 sorted_ts   = sorted(prices_dict.keys())
                 try:
                     entry_ts = int(datetime.fromisoformat(ts_str.replace('Z', '')).timestamp()) \
