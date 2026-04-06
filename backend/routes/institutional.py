@@ -4506,9 +4506,14 @@ class InstitutionalRoutesMixin:
                     continue
                 exit_ts  = sorted_ts[exit_bar_idx]
 
-                # Use DB recorded price as entry (actual signal price), bar close as exit
-                entry_pr = float(entry_price) if entry_price and float(entry_price) > 0 else prices_dict[entry_bar_ts]
+                # Always use yfinance bar prices for BOTH entry and exit
+                # (mixing DB signal price with yfinance exit causes scale mismatches)
+                entry_pr = prices_dict[entry_bar_ts]
                 exit_pr  = prices_dict[exit_ts]
+
+                # Sanity check: skip if either price is zero or obviously bad
+                if not entry_pr or not exit_pr or entry_pr <= 0 or exit_pr <= 0:
+                    continue
                 # Direction map: bullish signal types ? long (+1), bearish ? short (-1)
                 _BULLISH = {'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
                              'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
@@ -4538,8 +4543,8 @@ class InstitutionalRoutesMixin:
                     'signal':      sig_type,
                     'entry_date':  datetime.utcfromtimestamp(sig_ts).strftime('%Y-%m-%d'),
                     'exit_date':   datetime.utcfromtimestamp(exit_ts).strftime('%Y-%m-%d'),
-                    'entry_price': round(entry_pr, 4),
-                    'exit_price':  round(exit_pr, 4),
+                    'entry_price': round(entry_pr, 6),
+                    'exit_price':  round(exit_pr, 6),
                     'pnl_pct':     round(pnl_pct, 3),
                     'btc_pnl':     round(btc_pnl, 3),
                     'win':         pnl_pct > 0,
