@@ -558,10 +558,25 @@ function renderAdvancedChart() {
             </div>
             <div style="display:flex; gap:10px; padding-bottom:10px;">
                 <select id="adv-symbol" style="background:var(--card-bg); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:4px; font-family:'JetBrains Mono'">
-                    <optgroup label="Core Assets" style="background:#111">
+                    <optgroup label="Core Crypto" style="background:#111">
                         <option value="BTCUSDT">BTC/USDT</option>
                         <option value="ETHUSDT">ETH/USDT</option>
                         <option value="SOLUSDT">SOL/USDT</option>
+                        <option value="BNBUSDT">BNB/USDT</option>
+                        <option value="XRPUSDT">XRP/USDT</option>
+                    </optgroup>
+                    <optgroup label="Alt Crypto" style="background:#111">
+                        <option value="ADAUSDT">ADA/USDT</option>
+                        <option value="AVAXUSDT">AVAX/USDT</option>
+                        <option value="LINKUSDT">LINK/USDT</option>
+                        <option value="DOGEUSDT">DOGE/USDT</option>
+                        <option value="PEPEUSDT">PEPE/USDT</option>
+                    </optgroup>
+                    <optgroup label="BTC Equity Proxies" style="background:#111">
+                        <option value="MSTR">MSTR</option>
+                        <option value="COIN">COIN</option>
+                        <option value="MARA">MARA</option>
+                        <option value="HOOD">HOOD</option>
                     </optgroup>
                 </select>
                 <select id="adv-interval" style="background:var(--card-bg); color:var(--text); border:1px solid var(--border); padding:5px 10px; border-radius:4px; font-family:'JetBrains Mono'">
@@ -661,11 +676,17 @@ function toTVSymbol(sym) {
         'BTCUSDT':  'BINANCE:BTCUSDT',
         'ETHUSDT':  'BINANCE:ETHUSDT',
         'SOLUSDT':  'BINANCE:SOLUSDT',
+        'BNBUSDT':  'BINANCE:BNBUSDT',
+        'XRPUSDT':  'BINANCE:XRPUSDT',
+        'ADAUSDT':  'BINANCE:ADAUSDT',
+        'AVAXUSDT': 'BINANCE:AVAXUSDT',
+        'LINKUSDT': 'BINANCE:LINKUSDT',
         'DOGEUSDT': 'BINANCE:DOGEUSDT',
         'PEPEUSDT': 'BINANCE:PEPEUSDT',
         'MSTR':     'NASDAQ:MSTR',
         'COIN':     'NASDAQ:COIN',
         'MARA':     'NASDAQ:MARA',
+        'HOOD':     'NASDAQ:HOOD',
     };
     return map[sym] || 'BINANCE:BTCUSDT';
 }
