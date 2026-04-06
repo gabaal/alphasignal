@@ -1,8 +1,14 @@
 async function renderCommandCenter() {
     appEl.innerHTML = `
-        <div class="view-header" style="margin-bottom:2rem">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">dashboard</span> Institutional Command Center <span class="premium-badge">MASTER VIEW</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-            <p style="color:var(--text-dim); margin-top:0.5rem">Consolidated real-time intelligence across Macro, Global, and Alpha hubs.</p>
+        <div class="view-header" style="margin-bottom:2rem; flex-wrap:wrap; gap:0.5rem">
+            <div style="flex:1; min-width:0">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap">
+                    <h1 style="margin:0"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:6px; color:var(--accent); font-size:1.2rem">dashboard</span>Institutional Command Center</h1>
+                    <span class="premium-badge" style="flex-shrink:0">MASTER VIEW</span>
+                </div>
+                <p style="color:var(--text-dim); margin-top:0.5rem">Consolidated real-time intelligence across Macro, Global, and Alpha hubs.</p>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0;align-self:flex-start" onclick="switchView('docs-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         
         <div class="command-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:1.5rem">

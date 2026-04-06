@@ -4605,3 +4605,21 @@ input:focus, select:focus, textarea:focus {
     /* Ticker tables: hide less important columns via opacity/display */
     .col-hide-mobile { display: none !important; }
 }
+
+/* ── Global: view-header always wraps gracefully ── */
+/* Prevents H1 + badge + button collision on any view at any width */
+.view-header {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+}
+.view-header h1 {
+    min-width: 0;
+    word-break: break-word;
+}
+/* Premium badge inside H1: always stays on same line as title text */
+.view-header h1 .premium-badge,
+.view-header .premium-badge {
+    flex-shrink: 0;
+    vertical-align: middle;
+    font-size: 0.5rem !important;
+}
