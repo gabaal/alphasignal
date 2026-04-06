@@ -60,7 +60,8 @@ async function renderSignals(category = 'ALL', tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 ${renderHubTabs('signals', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">radar</span>Live Signals <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
            
         </div>
@@ -548,8 +549,9 @@ async function renderAlphaScore(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">ML</span></h2> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-            <p>Composite 0–100 ranking across momentum, sentiment, signal engine alerts & volatility.</p>
+            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bolt</span>Alpha Score <span class="premium-badge">ML</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <p>Composite 0–100 ranking across momentum, sentiment, signal engine alerts &amp; volatility.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>
     `;
@@ -577,6 +579,7 @@ async function renderAlphaScore(tabs = null) {
             <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
                 <div>
                     ${renderHubTabs('score', tabs)}
+                    <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
                     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                         <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">bolt</span> Alpha Score <span class="premium-badge">LIVE</span></h1>
                         <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>

@@ -11,7 +11,8 @@ async function renderWhales(tabs = null) {
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">analytics</span>Analytics Hub <span class="premium-badge">LIVE</span></h1>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">waves</span>Whale Pulse <span class="premium-badge">LIVE</span></h1>
                 <p>Real-time monitor of high-conviction transfers across BTC, ETH, and SOL networks.</p>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">

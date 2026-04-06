@@ -8,7 +8,8 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end">
             <div>
                 ${renderHubTabs('narrative', tabs)}
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">electric_bolt</span>Alpha Strategy <span class="premium-badge">NLP</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-narrative')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">hub</span>Narrative Galaxy <span class="premium-badge">NLP</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-narrative')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <p>Spatial mapping using real-time news synthesis and sentiment velocity. Anchors represent core institutional narratives.</p>
             </div>
             <div class="view-actions" style="margin-bottom:0">
@@ -32,7 +33,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         </div>
 
         <div class="galaxy-container" style="position:relative; width:100%; height:600px; background:radial-gradient(circle at center, #0a0b1e 0%, #000 100%); border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.05)">
-            <canvas id="galaxyCanvas" role="img" aria-label="Narrative galaxy bubble chart — social mindshare visualization" style="width:100%; height:100%"></canvas>
+            <canvas id="galaxyCanvas" role="img" aria-label="Narrative galaxy bubble chart ï¿½ social mindshare visualization" style="width:100%; height:100%"></canvas>
             <div id="galaxyTooltip" class="galaxy-tooltip" style="display:none; position:absolute; pointer-events:none; z-index:1000"></div>
             
             <div class="galaxy-legend" style="position:absolute; bottom:20px; right:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; background:rgba(0,0,0,0.8); padding:1rem; border-radius:8px; border:1px solid var(--border)">
@@ -111,7 +112,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         <!-- Sentiment Velocity Heatmap -->
         ${data.clusters && data.clusters.length ? `
         <div class="glass-card" style="padding:1.5rem;margin-top:1.5rem">
-            <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">NARRATIVE SENTIMENT VELOCITY — TOP 20 SIGNALS</div>
+            <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">NARRATIVE SENTIMENT VELOCITY ï¿½ TOP 20 SIGNALS</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
                 ${(data.clusters || []).sort((a,b) => Math.abs(b.sentiment||0) - Math.abs(a.sentiment||0)).slice(0,20).map(c => {
                     const sent = c.sentiment || 0;
@@ -121,7 +122,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                     const bar   = Math.min(Math.abs(sent) * 100, 100);
                     const anchor = data.anchors?.[c.category] || {};
                     return `<div style="background:${bg};border:1px solid ${color}22;border-radius:8px;padding:10px">
-                        <div style="font-size:0.65rem;font-weight:800;color:white;margin-bottom:2px">${(c.ticker||'—').replace('-USD','')}</div>
+                        <div style="font-size:0.65rem;font-weight:800;color:white;margin-bottom:2px">${(c.ticker||'ï¿½').replace('-USD','')}</div>
                         <div style="font-size:0.5rem;color:var(--text-dim);margin-bottom:6px">${c.category || ''}</div>
                         <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:4px">
                             <div style="height:3px;background:${color};border-radius:2px;width:${bar}%"></div>
