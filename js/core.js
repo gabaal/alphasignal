@@ -1140,7 +1140,27 @@ async function loadRiskMatrix(tickers = null) {
             <div style="height:420px; position:relative">
                 <canvas id="riskScatterChart"></canvas>
             </div>
+            <div style="display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06);font-size:0.6rem;font-weight:700;letter-spacing:1px">
+                <span style="color:var(--text-dim);align-self:center">ALPHA VS BTC:</span>
+                <span style="display:flex;align-items:center;gap:5px">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(34,197,94,0.85);flex-shrink:0"></span>
+                    <span style="color:rgba(34,197,94,0.9)">&gt; +5% OUTPERFORMING</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:5px">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(0,242,255,0.75);flex-shrink:0"></span>
+                    <span style="color:rgba(0,242,255,0.9)">0 – +5% POSITIVE ALPHA</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:5px">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(250,204,21,0.8);flex-shrink:0"></span>
+                    <span style="color:rgba(250,204,21,0.9)">-5% – 0 SLIGHT DRAG</span>
+                </span>
+                <span style="display:flex;align-items:center;gap:5px">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(239,68,68,0.85);flex-shrink:0"></span>
+                    <span style="color:rgba(239,68,68,0.9)">&lt; -5% UNDERPERFORMING</span>
+                </span>
+            </div>
         </div>
+
         <div class="rotation-matrix-container">
             <div class="matrix-grid" style="grid-template-columns: 100px repeat(${tks.length}, 1fr)">
                 <div></div>
