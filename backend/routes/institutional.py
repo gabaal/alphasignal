@@ -1172,10 +1172,22 @@ class InstitutionalRoutesMixin:
             })
         self.send_json(results)
 
+    # signals: 90-ticker 60d download + correlation calc — cache 5 min
+    _signals_cache     = {'data': None, 'ts': 0}
+    # macro: 5-ticker 35d correlation calc — cache 5 min
+    _macro_cache       = {'data': None, 'ts': 0}
+    # regime: per-ticker 250d SMA calc — cache 5 min per ticker
+    _regime_cache      = {}
+
     def handle_regime(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
         try:
+            # ── Cache check: 5-min TTL per ticker ──────────────────────────────
+            rc = InstitutionalRoutesMixin._regime_cache.get(ticker)
+            if rc and (time.time() - rc['ts']) < 300:
+                self.send_json(rc['data'])
+                return
             data = CACHE.download(ticker, period='250d', interval='1d')
             if data is None or data.empty:
                 raise ValueError('No data')
@@ -1221,7 +1233,9 @@ class InstitutionalRoutesMixin:
                 history.append({'date': date, 'regime': h_regime})
             vol_val = np.std(prices[-20:]) / np.mean(prices[-20:])
             sma_20_dist = (current - sma20) / sma20 * 100 if sma20 else 0
-            self.send_json({'ticker': ticker, 'current_regime': regime, 'strength': strength, 'confidence': round(0.7 + strength / 400, 2), 'trend': 'BULLISH' if current > sma50 else 'BEARISH' if current < sma50 else 'NEUTRAL', 'volatility': 'HIGH' if vol_val > 0.03 else 'MEDIUM' if vol_val > 0.015 else 'LOW', 'metrics': {'sma_20_dist': round(sma_20_dist, 2), 'sma_50_dist': round((current - sma50) / sma50 * 100, 2) if sma50 else 0, 'sma_200_dist': round((current - sma200) / sma200 * 100, 2) if sma200 else 0}, 'history': history, 'signals': {'sma20': round(float(sma20), 2), 'sma50': round(float(sma50), 2), 'sma200': round(float(sma200), 2)}})
+            payload = {'ticker': ticker, 'current_regime': regime, 'strength': strength, 'confidence': round(0.7 + strength / 400, 2), 'trend': 'BULLISH' if current > sma50 else 'BEARISH' if current < sma50 else 'NEUTRAL', 'volatility': 'HIGH' if vol_val > 0.03 else 'MEDIUM' if vol_val > 0.015 else 'LOW', 'metrics': {'sma_20_dist': round(sma_20_dist, 2), 'sma_50_dist': round((current - sma50) / sma50 * 100, 2) if sma50 else 0, 'sma_200_dist': round((current - sma200) / sma200 * 100, 2) if sma200 else 0}, 'history': history, 'signals': {'sma20': round(float(sma20), 2), 'sma50': round(float(sma50), 2), 'sma200': round(float(sma200), 2)}}
+            InstitutionalRoutesMixin._regime_cache[ticker] = {'data': payload, 'ts': time.time()}
+            self.send_json(payload)
         except Exception as e:
             print(f'Regime Error: {e}')
             self.send_json({'ticker': ticker, 'current_regime': 'NEUTRAL', 'strength': 50, 'history': []})
@@ -1378,6 +1392,14 @@ class InstitutionalRoutesMixin:
             self.send_json({'error': 'Failed to sync SSR macro data'})
 
     def handle_macro(self):
+        try:
+            # ── Cache check: 5-min TTL ─────────────────────────────────────────
+            mc = InstitutionalRoutesMixin._macro_cache
+            if mc['data'] is not None and (time.time() - mc['ts']) < 300:
+                self.send_json(mc['data'])
+                return
+        except Exception:
+            pass
         macro_tickers = {
             'DXY':  'DX-Y.NYB',   # Dollar strength - inverse crypto driver
             'SPX':  'IVV',         # US equities risk-on/off proxy
@@ -1403,6 +1425,7 @@ class InstitutionalRoutesMixin:
                         results.append({'name': name, 'correlation': round(corr, 2), 'status': status})
                 except Exception as inner_e:
                     print(f'[Macro] {name} error: {inner_e}')
+            InstitutionalRoutesMixin._macro_cache = {'data': results, 'ts': time.time()}
             self.send_json(results)
         except Exception as e:
             print(f'Macro error: {e}')
@@ -1982,6 +2005,14 @@ class InstitutionalRoutesMixin:
             self.send_json({'error': 'Risk calc failed'})
 
     def handle_signals(self):
+        try:
+            # ── Cache check: 5-min TTL ─────────────────────────────────────────
+            sc = InstitutionalRoutesMixin._signals_cache
+            if sc['data'] is not None and (time.time() - sc['ts']) < 300:
+                self.send_json(sc['data'])
+                return
+        except Exception:
+            pass
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute('SELECT ticker FROM tracked_tickers')
@@ -2031,7 +2062,9 @@ class InstitutionalRoutesMixin:
                     })
                 except Exception as e:
                     continue
-            self.send_json(sorted(results, key=lambda x: x['alpha'], reverse=True))
+            sorted_results = sorted(results, key=lambda x: x['alpha'], reverse=True)
+            InstitutionalRoutesMixin._signals_cache = {'data': sorted_results, 'ts': time.time()}
+            self.send_json(sorted_results)
         except Exception as e:
             print(f'SIGNAL ERROR: {e}')
             self.send_json([])
@@ -4186,8 +4219,15 @@ class InstitutionalRoutesMixin:
                     'vol': round(float(vol), 2),
                     'status': status
                 })
+            # ── Filter extreme vol outliers before caching / sending ────────────
+            # Assets with ann. vol > 300% skew the EF scatter axis badly
+            VOL_CAP = 300.0
+            before = len(asset_risk)
+            asset_risk = [a for a in asset_risk if a['vol'] <= VOL_CAP]
+            removed = before - len(asset_risk)
+            if removed:
+                print(f'[StressTest] Filtered {removed} outlier(s) with vol > {VOL_CAP}%')
 
-            # Calculate Systemic Risk (Average Sector Correlation proxy)
             avg_beta = float(np.mean([a['beta'] for a in asset_risk])) if asset_risk else 0.7
             systemic_risk = min(int(avg_beta * 50), 100)
 
