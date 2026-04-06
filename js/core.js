@@ -1192,12 +1192,18 @@ async function loadRiskMatrix(tickers = null) {
 
         let scatterPoints = [];
         if (stressData?.asset_risk?.length) {
-            scatterPoints = stressData.asset_risk.map(a => ({
+            const raw = stressData.asset_risk.map(a => ({
                 x: parseFloat(a.vol.toFixed(1)),
                 y: parseFloat(a.alpha.toFixed(1)),
                 ticker: a.ticker.split('-')[0],
                 beta: a.beta
             }));
+            // Filter extreme vol outliers — anything > 300% ann. vol skews the axis badly
+            // (these are typically micro-caps or assets with corrupt price data)
+            const VOL_CAP = 300;
+            scatterPoints = raw.filter(p => p.x <= VOL_CAP);
+            const removed = raw.length - scatterPoints.length;
+            if (removed > 0) console.info(`EF scatter: removed ${removed} outlier(s) with vol > ${VOL_CAP}%`);
         } else {
             // Lightweight fallback using ticker name heuristics
             scatterPoints = tks.map(t => ({
