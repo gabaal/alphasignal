@@ -4526,7 +4526,7 @@ class InstitutionalRoutesMixin:
                     direction = -1  # conservative: unknown bearish
                 pnl_pct   = direction * (exit_pr - entry_pr) / entry_pr * 100
 
-                btc_entry = min(btc_prices, key=lambda t: abs(t - entry_ts), default=None)
+                btc_entry = min(btc_prices, key=lambda t: abs(t - sig_ts), default=None)
                 btc_exit  = min(btc_prices, key=lambda t: abs(t - exit_ts),  default=None)
                 btc_pnl   = 0.0
                 if btc_entry and btc_exit and btc_prices.get(btc_entry):
@@ -4542,8 +4542,8 @@ class InstitutionalRoutesMixin:
                     'pnl_pct':     round(pnl_pct, 3),
                     'btc_pnl':     round(btc_pnl, 3),
                     'win':         pnl_pct > 0,
-                    'year_month':  datetime.utcfromtimestamp(future_ts[0]).strftime('%Y-%m'),
-                    'ts':          future_ts[0]
+                    'year_month':  datetime.utcfromtimestamp(sig_ts).strftime('%Y-%m'),
+                    'ts':          sig_ts
                 })
 
             if not trades:
