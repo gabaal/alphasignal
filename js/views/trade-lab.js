@@ -2,11 +2,10 @@ async function renderTradeLab(tabs = null) {
     if (!tabs) tabs = institutionalHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>
-                ${renderHubTabs('tradelab', tabs)}
-            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Institutional Hub</h2>
+            <div>            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Institutional Hub</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">experiment</span>Trade Idea Lab <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-tradelab')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
+        ${renderHubTabs('tradelab', tabs)}
            
             <p>Synthesizing institutional flow, macro catalysts, and technical regimes into actionable setups.</p>
         </div>

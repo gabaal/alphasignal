@@ -14,11 +14,10 @@ async function renderSignalLeaderboard(tabs = null) {
     const avgColor = (stats.avg_return || 0) >= 0 ? 'var(--risk-low)' : 'var(--risk-high)';
 
     appEl.innerHTML = `
-        <div class="view-header">
-            ${tabs ? renderHubTabs('signal-leaderboard', tabs) : ''}
-            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2>
+        <div class="view-header">            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2>
             <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">leaderboard</span>Signal Leaderboard <span class="premium-badge">LIVE</span></h1>
         </div>
+        ${tabs ? renderHubTabs('signal-leaderboard', tabs) : ''}
 
         <!-- Stats Row -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;">

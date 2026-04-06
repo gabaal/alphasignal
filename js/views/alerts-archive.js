@@ -265,12 +265,11 @@ async function renderAlerts(tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>
-                ${tabs ? renderHubTabs('alerts', tabs) : ''}
-                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2>
+            <div>                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">notifications</span>Live Alerts <span class="premium-badge">LIVE</span></h1>
                 <p>Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
             </div>
+        ${tabs ? renderHubTabs('alerts', tabs) : ''}
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <span id="alerts-live-pulse" style="font-size:0.55rem;color:var(--accent);letter-spacing:1px;font-weight:700;opacity:0.5;transition:opacity 0.5s">LIVE • Auto-sync every 60s</span>
                 <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>

@@ -301,11 +301,10 @@ async function renderRotation(tabs = null) {
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>
-                ${renderHubTabs('rotation', tabs)}
-                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
+            <div>                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">swap_horiz</span>Sector Rotation <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-rotation')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
+        ${renderHubTabs('rotation', tabs)}
            
             <p>Institutional synchronization levels across core market indices using a 30-day Pearson rolling window.</p>
         </div>
@@ -361,9 +360,7 @@ async function renderCapitalRotation(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-            <div>
-                ${renderHubTabs('capital-rotation', tabs)}
-                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
+            <div>                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">donut_large</span>
                     Capital Rotation <span class="premium-badge">LIVE</span>
                 </h1>
@@ -372,6 +369,7 @@ async function renderCapitalRotation(tabs = null) {
                     Click any segment to drill into its sub-allocation — click the centre label to reset.
                 </p>
             </div>
+        ${renderHubTabs('capital-rotation', tabs)}
         </div>
 
         <div class="card" style="padding:1.5rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">

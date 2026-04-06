@@ -7,11 +7,10 @@ async function renderPriceAlerts(tabs = null) {
     }
 
     appEl.innerHTML = `
-        <div class="view-header">
-            ${tabs ? renderHubTabs('price-alerts', tabs) : ''}
-            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2>
+        <div class="view-header">            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2>
             <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">notifications_active</span>Price Alerts <span class="premium-badge">LIVE</span></h1>
         </div>
+        ${tabs ? renderHubTabs('price-alerts', tabs) : ''}
 
         ${!isAuthenticatedUser ? `
         <div class="card" style="text-align:center;padding:40px;">
