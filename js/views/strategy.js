@@ -180,10 +180,10 @@ async function renderRiskMatrix(tabs = null) {
                 <button class="filter-btn" onclick="loadRiskMatrix('COIN,MSTR,HOOD,PYPL,MARA,IBIT')">PROXIES</button>
             </div>
             <div style="margin-left:auto; display:flex; gap:10px">
-                <select id="matrix-period" class="tf-btn" style="background:var(--bg-card); border:1px solid var(--border); color:white; padding:0 10px" onchange="loadRiskMatrix()">
-                    <option value="30d">30D WINDOW</option>
-                    <option value="60d" selected>60D WINDOW</option>
-                    <option value="180d">180D WINDOW</option>
+                <select id="matrix-period" class="tf-btn" style="background:#0a0a0f; border:1px solid var(--border); color:white; padding:0 10px" onchange="loadRiskMatrix()">
+                    <option value="30d" style="background:#0a0a0f;color:white">30D WINDOW</option>
+                    <option value="60d" selected style="background:#0a0a0f;color:white">60D WINDOW</option>
+                    <option value="180d" style="background:#0a0a0f;color:white">180D WINDOW</option>
                 </select>
             </div>
         </div>
