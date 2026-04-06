@@ -1357,6 +1357,8 @@ async function renderAdvOptionsSurface(symbol) {
         e.preventDefault();  // REQUIRED: tells the browser we will handle recovery
         _animRef.alive = false;
         cancelAnimationFrame(_animRef.id);
+        // Intentional teardown from cleanupAdvChart — no overlay, no recovery needed
+        if (window.activeDepth3D?._intentionalCleanup) return;
         // Show a non-blocking overlay so the user knows what happened
         const overlay = document.createElement('div');
         overlay.id = 'webgl-lost-overlay';
