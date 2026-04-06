@@ -320,12 +320,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     window.toggleSidebar = () => {
         const layout = document.getElementById('main-layout');
         const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
         if (window.innerWidth <= 900) {
-            sidebar.classList.toggle('open');
+            const isOpen = sidebar.classList.toggle('open');
+            if (backdrop) backdrop.classList.toggle('active', isOpen);
         } else {
             layout.classList.toggle('collapsed');
         }
     };
+
+    // Backdrop tap: close sidebar
+    const bd = document.getElementById('sidebar-backdrop');
+    if (bd) bd.addEventListener('click', () => {
+        document.getElementById('sidebar')?.classList.remove('open');
+        bd.classList.remove('active');
+    });
 });
 
 // Sidebar auto-close on mobile
