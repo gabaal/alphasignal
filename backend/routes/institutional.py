@@ -3779,6 +3779,14 @@ class InstitutionalRoutesMixin:
             limit    = int(query.get('limit', [25])[0])
             offset   = (page - 1) * limit
 
+            # ── Cache check: 2-min TTL, keyed by all query params ────────
+            cache_key = f'{f_ticker}:{f_type}:{f_days}:{page}:{limit}'
+            shc = InstitutionalRoutesMixin._sig_history_cache
+            entry = shc.get(cache_key)
+            if entry and (time.time() - entry['ts']) < 120:
+                self.send_json(entry['data'])
+                return
+
             conn = sqlite3.connect(DB_PATH)
             c    = conn.cursor()
 
@@ -3849,7 +3857,7 @@ class InstitutionalRoutesMixin:
                     'timestamp': ts
                 })
 
-            self.send_json({
+            response = {
                 'data': results,
                 'pagination': {
                     'page':  page,
@@ -3857,7 +3865,17 @@ class InstitutionalRoutesMixin:
                     'total': total_count,
                     'pages': math.ceil(total_count / limit) if limit > 0 else 1
                 }
-            })
+            }
+            # ── Store in cache ───────────────────────────────────────────
+            InstitutionalRoutesMixin._sig_history_cache[cache_key] = {
+                'data': response, 'ts': time.time()
+            }
+            # Evict old entries (keep max 50 keys to bound memory)
+            if len(InstitutionalRoutesMixin._sig_history_cache) > 50:
+                oldest = min(InstitutionalRoutesMixin._sig_history_cache,
+                             key=lambda k: InstitutionalRoutesMixin._sig_history_cache[k]['ts'])
+                del InstitutionalRoutesMixin._sig_history_cache[oldest]
+            self.send_json(response)
         except Exception as e:
             print(f'Signal History Error: {e}')
             self.send_json([])
@@ -4114,9 +4132,21 @@ class InstitutionalRoutesMixin:
             print(f'Internal signals error: {e}')
             return []
 
+    # ── Server-side response caches ─────────────────────────────────────────
+    # stress-test: 90-ticker 180d yfinance download — cache 10 min
+    _stress_cache     = {'data': None, 'ts': 0}
+    # signal-history: fast DB query but called on every archive tab switch — cache 2 min per param set
+    _sig_history_cache = {}
+
     def handle_stress_test(self):
         """Phase 7: Systematic Stress Test Engine - Enhanced for UI Compatibility."""
         try:
+            # ── Cache check: return cached result if < 10 minutes old ──────
+            sc = InstitutionalRoutesMixin._stress_cache
+            if sc['data'] is not None and (time.time() - sc['ts']) < 600:
+                self.send_json(sc['data'])
+                return
+
             # Need all tickers in the universe for sector correlation
             all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub]))
             core_bench = 'BTC-USD'
@@ -4201,14 +4231,17 @@ class InstitutionalRoutesMixin:
             if not hotspots:
                 hotspots = [{'sector': 'MARKET', 'score': round(avg_beta * 0.6, 2)}]
 
-            self.send_json({
+            payload = {
                 'systemic_risk': systemic_risk,
                 'hotspots': hotspots,
                 'scenarios': scenarios,
                 'asset_risk': asset_risk,
                 'benchmark': 'BTC-USD',
                 'timestamp': datetime.now().strftime('%H:%M')
-            })
+            }
+            # ── Store in cache ───────────────────────────────────────────
+            InstitutionalRoutesMixin._stress_cache = {'data': payload, 'ts': time.time()}
+            self.send_json(payload)
         except Exception as e:
             print(f"Stress test execution failed: {e}")
             self.send_json({'error': str(e)})
