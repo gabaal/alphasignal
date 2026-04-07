@@ -129,8 +129,13 @@ class WebSocketServer:
                 self.broadcast(message['data'])
 
     def price_publisher_loop(self):
-        """Fetch prices every 5 seconds and publish to global Redis channel."""
+        """Fetch prices every 5 seconds and publish to WS clients.
+        When Redis is unavailable (MockRedis), broadcasts directly to WS_CLIENTS
+        to avoid the silent no-op publish→subscribe→broadcast failure.
+        """
+        from backend.database import redis_client
         tickers = {'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD'}
+        use_redis = hasattr(redis_client, 'connection_pool')  # Real redis.Redis has connection_pool
         while self.running:
             try:
                 for sym, tick in tickers.items():
@@ -158,8 +163,13 @@ class WebSocketServer:
                     "signal_count": signal_count,
                     "new_today": new_today
                 })
-                # Send to Redis mesh instead of local clients!
-                redis_client.publish('alphasignal:pubsub:broadcast', payload)
+
+                if use_redis:
+                    # Full Redis mesh — other nodes will relay via redis_subscriber_loop
+                    redis_client.publish('alphasignal:pubsub:broadcast', payload)
+                else:
+                    # No Redis: broadcast directly so the header price actually updates
+                    self.broadcast(payload)
             except Exception as e:
                 pass
             time.sleep(5)
