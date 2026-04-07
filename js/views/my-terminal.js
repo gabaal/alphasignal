@@ -82,7 +82,7 @@ async function renderWatchlistTab(el) {
             ${items.length === 0
                 ? `<div class="card" style="padding:2rem;text-align:center;color:var(--text-dim)">
                     <span class="material-symbols-outlined" style="font-size:2rem;opacity:0.4">visibility_off</span>
-                    <p style="margin:0.5rem 0 0">Your watchlist is empty — add a ticker above.</p>
+                    <p style="margin:0.5rem 0 0">Your watchlist is empty â€” add a ticker above.</p>
                    </div>`
                 : renderWatchlistCards(items)
             }
@@ -90,7 +90,7 @@ async function renderWatchlistTab(el) {
 }
 
 function renderWatchlistCards(items) {
-    // Portfolio summary — aggregate SINCE ADDED performance
+    // Portfolio summary â€” aggregate SINCE ADDED performance
     const withPerf = items.filter(i => {
         const sym = i.ticker.replace('-USD','').toUpperCase();
         const live = window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
@@ -100,41 +100,44 @@ function renderWatchlistCards(items) {
         const moves = withPerf.map(i => {
             const sym = i.ticker.replace('-USD','').toUpperCase();
             const live = window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
-            return ((live - Number(i.price_at_add)) / Number(i.price_at_add)) * 100;
+            return { sym, pct: ((live - Number(i.price_at_add)) / Number(i.price_at_add)) * 100 };
         });
-        const avg = moves.reduce((a, v) => a + v, 0) / moves.length;
-        const winners = moves.filter(v => v > 0).length;
+        const avg     = moves.reduce((a, v) => a + v.pct, 0) / moves.length;
+        const winners = moves.filter(v => v.pct > 0).length;
         const avgColor = avg >= 0 ? '#22c55e' : '#ef4444';
-        const winRate = Math.round(winners / moves.length * 100);
-        return `
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1rem">
-            <div class="card" style="padding:0.9rem;text-align:center">
-                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">WATCHED</div>
-                <div style="font-size:1.4rem;font-weight:900;color:var(--accent)">${items.length}</div>
-                <div style="font-size:0.55rem;color:var(--text-dim)">assets</div>
-            </div>
-            <div class="card" style="padding:0.9rem;text-align:center">
-                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">AVG RETURN</div>
-                <div style="font-size:1.4rem;font-weight:900;color:${avgColor}">${avg >= 0 ? '+' : ''}${avg.toFixed(2)}%</div>
-                <div style="font-size:0.55rem;color:var(--text-dim)">since added</div>
-            </div>
-            <div class="card" style="padding:0.9rem;text-align:center">
-                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">WIN RATE</div>
-                <div style="font-size:1.4rem;font-weight:900;color:${winRate >= 50 ? '#22c55e' : '#ef4444'}">${winRate}%</div>
-                <div style="font-size:0.55rem;color:var(--text-dim)">${winners}/${moves.length} green</div>
-            </div>
-        </div>`;
+        const winRate  = Math.round(winners / moves.length * 100);
+        const best  = moves.reduce((a, b) => a.pct > b.pct ? a : b);
+        const worst = moves.reduce((a, b) => a.pct < b.pct ? a : b);
+        const _fmtPct = (v, sym) => sym + ' ' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+        const cards = [
+            ['WATCHED',         items.length,                                      'var(--accent)',                         'assets',          'visibility'],
+            ['AVG RETURN',      (avg >= 0 ? '+' : '') + avg.toFixed(2) + '%',     avgColor,                                'since added',     'trending_up'],
+            ['WIN RATE',        winRate + '%',                                     winRate >= 50 ? '#22c55e' : '#ef4444',   winners + '/' + moves.length + ' positive', 'emoji_events'],
+            ['BEST GAINER',     _fmtPct(best.pct,  best.sym),                     '#22c55e',                               'top performer',   'military_tech'],
+            ['WORST PERFORMER', _fmtPct(worst.pct, worst.sym),                    '#ef4444',                               'needs attention', 'arrow_downward'],
+        ];
+        return `<div style="margin-bottom:1.2rem">
+          <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">&#128202; PORTFOLIO SUMMARY <span style="color:var(--accent);font-size:0.5rem">(SINCE ADDED)</span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+            ${cards.map(([label, val, color, sub, icon]) =>
+              '<div class="glass-card" style="padding:0.9rem 1rem;text-align:center;position:relative;overflow:hidden">' +
+              '<span class="material-symbols-outlined" style="font-size:1.1rem;color:' + color + ';opacity:0.2;position:absolute;top:8px;right:8px">' + icon + '</span>' +
+              '<div style="font-size:0.48rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:5px">' + label + '</div>' +
+              '<div style="font-size:1.05rem;font-weight:900;color:' + color + ';font-family:var(--font-mono,monospace)">' + val + '</div>' +
+              '<div style="font-size:0.5rem;color:var(--text-dim);margin-top:3px">' + sub + '</div></div>'
+            ).join('')}
+          </div></div>`;
     })() : '';
 
     return perfSummary + items.map(item => {
         const sym = item.ticker.replace('-USD', '').toUpperCase();
         const livePx = window.livePrices?.[sym] ?? window.livePrices?.[item.ticker];
-        const pxStr = livePx ? `$${Number(livePx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
-        const targetStr = item.target_price ? `$${Number(item.target_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+        const pxStr = livePx ? `$${Number(livePx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : 'â€”';
+        const targetStr = item.target_price ? `$${Number(item.target_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : 'â€”';
         const dist = (livePx && item.target_price) ? (((item.target_price - livePx) / livePx) * 100).toFixed(2) : null;
         const distColor = dist !== null ? (dist >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
 
-        // % since added — uses price_at_add if stored, else shows target distance
+        // % since added â€” uses price_at_add if stored, else shows target distance
         const addedPx = item.price_at_add ? Number(item.price_at_add) : null;
         const sincePct = (addedPx && livePx) ? (((livePx - addedPx) / addedPx) * 100).toFixed(2) : null;
         const sinceColor = sincePct === null ? 'var(--text-dim)' : Number(sincePct) >= 0 ? '#22c55e' : '#ef4444';
@@ -156,7 +159,7 @@ function renderWatchlistCards(items) {
             </div>
             <div style="flex:1;min-width:80px">
                 <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">TO TARGET</div>
-                <div style="font-size:1rem;font-weight:700;color:${distColor}">${dist !== null ? (dist >= 0 ? '+' : '') + dist + '%' : '—'}</div>
+                <div style="font-size:1rem;font-weight:700;color:${distColor}">${dist !== null ? (dist >= 0 ? '+' : '') + dist + '%' : 'â€”'}</div>
             </div>
             ${sincePct !== null ? `
             <div style="flex:1;min-width:80px">
@@ -269,9 +272,9 @@ function renderPositionsSummary(items) {
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1rem">
         ${[
             ['OPEN POSITIONS', items.length, '#60a5fa', 'table_rows'],
-            ['PORTFOLIO VALUE', totalValue > 0 ? '$'+totalValue.toLocaleString(undefined,{maximumFractionDigits:0}) : '—', '#60a5fa', 'account_balance_wallet'],
-            ['UNREALISED P&L', totalValue > 0 ? (totalPnl >= 0 ? '+' : '') + '$'+ totalPnl.toLocaleString(undefined,{maximumFractionDigits:0}) : '—', pnlColor, 'trending_up'],
-            ['WIN RATE', items.length > 0 ? Math.round(winners/items.length*100)+'%' : '—', winners/items.length >= 0.5 ? '#22c55e' : '#ef4444', 'emoji_events'],
+            ['PORTFOLIO VALUE', totalValue > 0 ? '$'+totalValue.toLocaleString(undefined,{maximumFractionDigits:0}) : 'â€”', '#60a5fa', 'account_balance_wallet'],
+            ['UNREALISED P&L', totalValue > 0 ? (totalPnl >= 0 ? '+' : '') + '$'+ totalPnl.toLocaleString(undefined,{maximumFractionDigits:0}) : 'â€”', pnlColor, 'trending_up'],
+            ['WIN RATE', items.length > 0 ? Math.round(winners/items.length*100)+'%' : 'â€”', winners/items.length >= 0.5 ? '#22c55e' : '#ef4444', 'emoji_events'],
         ].map(([label, val, color, icon]) => `
             <div class="card" style="padding:1rem;text-align:center">
                 <div style="font-size:1.2rem;color:${color};margin-bottom:8px"><span class="material-symbols-outlined">${icon}</span></div>
@@ -284,7 +287,7 @@ function renderPositionsSummary(items) {
 function renderPositionsCards(items) {
     return items.map(p => {
         const live = window.livePrices?.[p.ticker];
-        const liveStr = live ? `$${Number(live).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+        const liveStr = live ? `$${Number(live).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : 'â€”';
         const entryVal = p.qty * p.entry_price;
         const liveVal  = live ? p.qty * live : null;
         const pnl = liveVal !== null ? (p.side === 'SHORT' ? entryVal - liveVal : liveVal - entryVal) : null;
@@ -301,7 +304,7 @@ function renderPositionsCards(items) {
                     <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.55rem;font-weight:900;letter-spacing:1px;margin-top:4px;background:${sideColor}20;color:${sideColor};border:1px solid ${sideColor}40">${p.side}</div>
                 </div>
                 <div style="flex:1;min-width:80px">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">QTY × ENTRY</div>
+                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">QTY Ã— ENTRY</div>
                     <div style="font-size:0.85rem;font-weight:700">${p.qty} @ $${Number(p.entry_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
                 </div>
                 <div style="flex:1;min-width:80px">
@@ -311,7 +314,7 @@ function renderPositionsCards(items) {
                 <div style="flex:1;min-width:80px">
                     <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">UNREALISED P&L</div>
                     <div style="font-size:0.85rem;font-weight:900;color:${pnlColor}">
-                        ${pnl !== null ? (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toLocaleString(undefined,{maximumFractionDigits:2}) : '—'}
+                        ${pnl !== null ? (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toLocaleString(undefined,{maximumFractionDigits:2}) : 'â€”'}
                         ${pnlPct !== null ? `<span style="font-size:0.7rem;opacity:0.8">(${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%)</span>` : ''}
                     </div>
                 </div>
@@ -360,7 +363,7 @@ window.removePosition = async function(id) {
 };
 
 // --------------------------------------------------------------
-// PRICE ALERT ENGINE — runs on every WS tick
+// PRICE ALERT ENGINE â€” runs on every WS tick
 // --------------------------------------------------------------
 
 // Dedup set: tracks fired alerts so they don't repeat every tick
@@ -383,7 +386,7 @@ async function _refreshAlertCaches() {
         window._watchlistCache = wl || [];
         window._positionsCache = pos || [];
         window._alertCacheTs = now;
-    } catch(e) { /* silent fail — don't crash the WS loop */ }
+    } catch(e) { /* silent fail â€” don't crash the WS loop */ }
 }
 
 function _sendPriceAlert(title, body, type = 'success') {
@@ -429,7 +432,7 @@ window.checkWatchlistAlerts = async function(prices) {
             const pct = (((live - target) / target) * 100).toFixed(2);
             _sendPriceAlert(
                 `?? ${sym} HIT TARGET`,
-                `${sym} is at $${live.toLocaleString()} — your target of $${target.toLocaleString()} was reached! ${pct > 0 ? '+'+pct : pct}%`,
+                `${sym} is at $${live.toLocaleString()} â€” your target of $${target.toLocaleString()} was reached! ${pct > 0 ? '+'+pct : pct}%`,
                 'success'
             );
         }
@@ -459,7 +462,7 @@ window.checkWatchlistAlerts = async function(prices) {
                 const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
                 _sendPriceAlert(
                     `? ${sym} TARGET HIT`,
-                    `Your ${pos.side} hit $${target.toLocaleString()} — take profit? Entry: $${Number(pos.entry_price).toLocaleString()} · +${pnlPct}%`,
+                    `Your ${pos.side} hit $${target.toLocaleString()} â€” take profit? Entry: $${Number(pos.entry_price).toLocaleString()} Â· +${pnlPct}%`,
                     'success'
                 );
             }
@@ -476,7 +479,7 @@ window.checkWatchlistAlerts = async function(prices) {
                 const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
                 _sendPriceAlert(
                     `?? ${sym} STOP BREACHED`,
-                    `Your ${pos.side} stop of $${stop.toLocaleString()} was hit. Entry: $${Number(pos.entry_price).toLocaleString()} · -${pnlPct}%`,
+                    `Your ${pos.side} stop of $${stop.toLocaleString()} was hit. Entry: $${Number(pos.entry_price).toLocaleString()} Â· -${pnlPct}%`,
                     'alert'
                 );
             }
