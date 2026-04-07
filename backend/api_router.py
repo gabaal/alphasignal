@@ -1,4 +1,4 @@
-import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math, threading, os
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -6,14 +6,16 @@ from backend.caching import CACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
 
-from backend.routes.auth import AuthRoutesMixin
+from backend.routes.auth import (AuthRoutesMixin, _session_cache_invalidate,
+                                  _check_login_lockout, _record_login_failure,
+                                  _clear_login_attempts, _LOGIN_WINDOW)
 from backend.routes.market import MarketRoutesMixin
 from backend.routes.institutional import InstitutionalRoutesMixin
 from backend.routes.ai_engine import AIEngineRoutesMixin
 from backend.routes.personal import PersonalRoutesMixin
 from backend.routes.digest import DigestRoutesMixin
 from backend.routes.price_alerts import PriceAlertRoutesMixin, start_price_alert_checker as _pa_start
-from backend.routes.telegram_bot import start_bot as _tg_start  # noqa â€” imported here for reference
+from backend.routes.telegram_bot import start_bot as _tg_start  # noqa
 import socketserver, http.server
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -29,6 +31,37 @@ _ALLOWED_ORIGINS = {
 
 # Max request body: 1 MB
 _MAX_BODY_BYTES = 1 * 1024 * 1024
+
+# ── S2: Per-IP rate limiter ───────────────────────────────────────────────
+_RATE_BUCKETS: dict = {}
+_RATE_LOCK     = threading.Lock()
+
+_RATE_LIMITS = {
+    'auth':    10,   # login / signup — 10 req/min per IP
+    'ai':       6,   # AI analyst / ask-terminal / signal-thesis
+    'default': 120,  # everything else
+}
+
+def _rate_key(path: str) -> str:
+    if '/auth/login' in path or '/auth/signup' in path:
+        return 'auth'
+    if any(x in path for x in ('ai-analyst', 'ask-terminal', 'signal-thesis', 'ai-memo')):
+        return 'ai'
+    return 'default'
+
+def _rate_check(ip: str, path: str) -> bool:
+    """Return True if request is allowed, False if rate-limited."""
+    key   = _rate_key(path)
+    limit = _RATE_LIMITS[key]
+    now   = time.time()
+    with _RATE_LOCK:
+        bucket = _RATE_BUCKETS.setdefault(ip, {}).setdefault(key, [])
+        bucket[:] = [t for t in bucket if now - t < 60]
+        if len(bucket) >= limit:
+            return False
+        bucket.append(now)
+        return True
+
 
 class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin, DigestRoutesMixin, PriceAlertRoutesMixin):
     def end_headers(self):
@@ -142,24 +175,46 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f'[{datetime.now()}] send_error_json error: {e}')
 
     def do_POST(self):
+        # S2: rate limit before any processing
+        ip = self.client_address[0]
+        if not _rate_check(ip, self.path):
+            self.send_response(429)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Retry-After', '60')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': 'Rate limit exceeded. Slow down.'}).encode())
+            return
         try:
             parsed = urllib.parse.urlparse(self.path)
             path = parsed.path
             length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
             post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             if path == '/api/auth/login':
-                res = SupabaseClient.auth_login(post_data.get('email'), post_data.get('password'))
-                if post_data.get('email') == 'user@example.com':
-                    res = {'access_token': 'test-token-basic', 'user': {'id': 'test-uid-basic', 'email': 'user@example.com'}}
-                elif post_data.get('email') == 'premium@example.com':
-                    res = {'access_token': 'test-token-premium', 'user': {'id': 'test-uid-premium', 'email': 'premium@example.com'}}
+                email_attempt = post_data.get('email', '')
+                # S4: lockout check
+                if _check_login_lockout(email_attempt):
+                    self.send_response(429)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Retry-After', str(_LOGIN_WINDOW))
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Account temporarily locked. Try again in 15 minutes.'}).encode())
+                    return
+                res = SupabaseClient.auth_login(email_attempt, post_data.get('password'))
+                # Dev test tokens only in non-production
+                if os.getenv('APP_ENV', 'development') != 'production':
+                    if email_attempt == 'user@example.com':
+                        res = {'access_token': 'test-token-basic', 'user': {'id': 'test-uid-basic', 'email': 'user@example.com'}}
+                    elif email_attempt == 'premium@example.com':
+                        res = {'access_token': 'test-token-premium', 'user': {'id': 'test-uid-premium', 'email': 'premium@example.com'}}
                 if 'access_token' in res:
+                    _clear_login_attempts(email_attempt)  # S4: reset on success
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
-                    self.send_header('Set-Cookie', f"sb-access-token={res['access_token']}; Path=/; HttpOnly; Max-Age=3600")
+                    self.send_header('Set-Cookie', f"sb-access-token={res['access_token']}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600")
                     self.end_headers()
                     self.wfile.write(json.dumps({'success': True, 'user': res['user']}).encode('utf-8'))
                 else:
+                    _record_login_failure(email_attempt)  # S4: track failure
                     self.send_response(401)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
@@ -183,9 +238,13 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.end_headers()
                     self.wfile.write(json.dumps(res).encode('utf-8'))
             elif path == '/api/auth/logout':
+                # S1: invalidate session cache so the token can't be reused
+                token = self.get_auth_token()
+                if token:
+                    _session_cache_invalidate(token)
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Set-Cookie', 'sb-access-token=; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax')
+                self.send_header('Set-Cookie', 'sb-access-token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT')
                 self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 self.end_headers()
                 self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
@@ -415,6 +474,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             self.send_error(500, 'Internal server error')
 
     def do_GET(self):
+        # S2: rate limit GET requests (AI endpoints get stricter limit)
+        ip = self.client_address[0]
+        if self.path.startswith('/api/') and not _rate_check(ip, self.path):
+            self.send_response(429)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Retry-After', '60')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': 'Rate limit exceeded. Slow down.'}).encode())
+            return
         try:
             parsed = urllib.parse.urlparse(self.path)
             path = parsed.path
