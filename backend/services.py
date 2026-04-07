@@ -596,15 +596,53 @@ class HarvestService:
                 roi = direction * (curr_p - entry_p) / entry_p * 100
 
                 if roi >= TP2_THRESHOLD or roi <= SL_THRESHOLD:
-                    final_roi = round(roi, 2)
-                    exit_px   = round(curr_p, 10)
+                    final_roi  = round(roi, 2)
+                    exit_px    = round(curr_p, 10)
                     c.execute(
                         "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
                         (now_ts, exit_px, final_roi, sig_id)
                     )
-                    reason = 'TP2 HIT' if roi >= TP2_THRESHOLD else 'STOP LOSS'
+                    is_win  = roi >= TP2_THRESHOLD
+                    reason  = 'TP2 HIT' if is_win else 'STOP LOSS'
                     print(f"[AutoClose] Signal #{sig_id} {ticker} {reason}: ROI={final_roi:+.2f}% entry={entry_p} exit={exit_px}")
                     closed += 1
+
+                    # Fire notification in a background thread so it never blocks the DB commit
+                    if user_email:
+                        def _notify(ue=user_email, tk=ticker, st=sig_type,
+                                    ep=entry_p, xp=exit_px, roi_v=final_roi, win=is_win):
+                            try:
+                                sym       = tk.replace('-USD', '')
+                                emoji     = '🎯' if win else '🛑'
+                                result    = 'TARGET HIT' if win else 'STOP LOSS'
+                                color     = 0x22c55e if win else 0xef4444
+
+                                def _fmt(v):
+                                    """Compact price formatter: avoids $0.00 for micro-cap."""
+                                    if v is None: return 'N/A'
+                                    if v >= 1:    return f'${v:,.4f}'
+                                    # Find first significant digit position
+                                    import math
+                                    dps = max(4, -int(math.floor(math.log10(abs(v)))) + 3) if v > 0 else 8
+                                    return f'${v:.{dps}f}'
+
+                                NOTIFY.push_webhook(
+                                    ue,
+                                    f"{emoji} {sym} — {result}",
+                                    f"Your **{sym}** signal has been automatically closed after reaching the **{result}** threshold.",
+                                    embed_color=color,
+                                    fields=[
+                                        {'name': '📌 Ticker',     'value': tk,                           'inline': True},
+                                        {'name': '📊 Signal Type','value': st.replace('_', ' '),         'inline': True},
+                                        {'name': '📈 Result',     'value': result,                       'inline': True},
+                                        {'name': '🔵 Entry',      'value': _fmt(ep),                     'inline': True},
+                                        {'name': '🔴 Exit',       'value': _fmt(xp),                     'inline': True},
+                                        {'name': '💰 ROI',        'value': f'{roi_v:+.2f}%',             'inline': True},
+                                    ]
+                                )
+                            except Exception as ne:
+                                print(f"[AutoClose] Notify error for signal #{sig_id}: {ne}")
+                        threading.Thread(target=_notify, daemon=True).start()
 
             if closed:
                 conn.commit()
