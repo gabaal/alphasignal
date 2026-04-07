@@ -93,13 +93,13 @@ function renderWatchlistCards(items) {
     // Portfolio summary — aggregate SINCE ADDED performance
     const withPerf = items.filter(i => {
         const sym = i.ticker.replace('-USD','').toUpperCase();
-        const live = window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
+        const live = i.live_price || window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
         return live && i.price_at_add;
     });
     const perfSummary = withPerf.length >= 2 ? (() => {
         const moves = withPerf.map(i => {
             const sym = i.ticker.replace('-USD','').toUpperCase();
-            const live = window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
+            const live = i.live_price || window.livePrices?.[sym] ?? window.livePrices?.[i.ticker];
             return { sym, pct: ((live - Number(i.price_at_add)) / Number(i.price_at_add)) * 100 };
         });
         const avg     = moves.reduce((a, v) => a + v.pct, 0) / moves.length;
@@ -131,7 +131,7 @@ function renderWatchlistCards(items) {
 
     return perfSummary + items.map(item => {
         const sym = item.ticker.replace('-USD', '').toUpperCase();
-        const livePx = window.livePrices?.[sym] ?? window.livePrices?.[item.ticker];
+        const livePx = item.live_price || window.livePrices?.[sym] ?? window.livePrices?.[item.ticker];
         const pxStr = livePx ? `$${Number(livePx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
         const targetStr = item.target_price ? `$${Number(item.target_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
         const dist = (livePx && item.target_price) ? (((item.target_price - livePx) / livePx) * 100).toFixed(2) : null;

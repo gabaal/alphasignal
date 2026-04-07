@@ -11,7 +11,30 @@ class PersonalRoutesMixin:
         try:
             user_id = auth_info['user_id']
             rows = SupabaseClient.query('watchlist', filters=f'user_id=eq.{user_id}&order=added_at.desc')
-            self.send_json(rows or [])
+            items = rows or []
+            # Enrich each item with the current live price from the in-memory price cache.
+            # This means the frontend doesn't need window.livePrices to be pre-populated
+            # (e.g. when the user navigates directly to My Terminal).
+            try:
+                from backend.routes.institutional import InstitutionalRoutesMixin as _IRM
+                import time as _time
+                _cache = _IRM._price_cache
+                _ttl   = _IRM._PRICE_CACHE_TTL
+                _now   = _time.time()
+                for item in items:
+                    t = (item.get('ticker') or '').upper()
+                    # Try as stored, then try with -USD appended (crypto), then try without -USD (equity)
+                    candidates = [t]
+                    if t.endswith('-USD'): candidates.append(t[:-4])
+                    else:                  candidates.append(t + '-USD')
+                    for sym in candidates:
+                        entry = _cache.get(sym)
+                        if entry and (_now - entry.get('ts', 0)) < _ttl * 3:  # 3x TTL tolerance
+                            item['live_price'] = entry.get('price')
+                            break
+            except Exception:
+                pass  # Non-blocking — items still returned without live_price
+            self.send_json(items)
         except Exception as e:
             self.send_json({'error': str(e)})
 
@@ -22,16 +45,26 @@ class PersonalRoutesMixin:
                 return self.send_json({'error': 'ticker required'})
             user_id = auth_info['user_id']
 
-            # Fetch live price at time of add — stored for performance tracking
+            # Fetch live price at time of add - stored for SINCE ADDED performance tracking
             price_at_add = None
             try:
                 import yfinance as yf
-                yf_ticker = ticker if ticker.endswith('-USD') else f'{ticker}-USD'
-                fast = yf.download(yf_ticker, period='1d', interval='1m', progress=False, auto_adjust=True)
-                if not fast.empty:
-                    price_at_add = round(float(fast['Close'].dropna().iloc[-1]), 8)
+                # Try the ticker as-is first (handles equities: WULF, VIRT, TSLA)
+                # then try with -USD suffix (handles crypto: BTC-USD, ETH-USD)
+                candidates = [ticker]
+                if ticker.endswith('-USD'): candidates.append(ticker[:-4])
+                else:                       candidates.append(ticker + '-USD')
+                for sym in candidates:
+                    try:
+                        info = yf.Ticker(sym).fast_info
+                        px = info.get('last_price') or info.get('lastPrice') or info.get('regularMarketPrice')
+                        if px and float(px) > 0:
+                            price_at_add = round(float(px), 8)
+                            break
+                    except Exception:
+                        continue
             except Exception:
-                pass  # Non-blocking — watchlist still saves, just without entry price
+                pass  # Non-blocking - watchlist still saves, just without entry price
 
             payload = {
                 'user_id': user_id,
