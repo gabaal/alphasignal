@@ -715,19 +715,19 @@ async function renderSignalArchive(tabs = null) {
                 const sev = (s.severity||'').toLowerCase();
                 const sevIcon  = sev==='critical'?'🔴':sev==='high'?'🟠':'🟡';
                 return `
-                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
-                    <td style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
-                    <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
-                    <td style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${sevIcon} ${(sev||'--').toUpperCase()}</span></td>
-                    <td style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? '$' + parseFloat(s.entry).toLocaleString() : '-'}</td>
-                    <td style="padding:10px 12px;text-align:right;font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
-                    <td style="padding:10px 12px;text-align:right;font-weight:700;color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
-                    <td style="padding:10px 12px;text-align:center">
+                <tr class="archive-row" style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                    <td data-label="TICKER" style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
+                    <td data-label="TYPE" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
+                    <td data-label="SEV" class="col-sev" style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${sevIcon} ${(sev||'--').toUpperCase()}</span></td>
+                    <td data-label="ENTRY" style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? '$' + parseFloat(s.entry).toLocaleString() : '-'}</td>
+                    <td data-label="CURRENT" style="padding:10px 12px;text-align:right;font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
+                    <td data-label="RETURN" style="padding:10px 12px;text-align:right;font-weight:700;color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
+                    <td data-label="STATE" style="padding:10px 12px;text-align:center">
                         <span style="background:${stateColors[s.state]||'#60a5fa'}22;color:${stateColors[s.state]||'#60a5fa'};padding:2px 10px;border-radius:20px;font-size:0.6rem;letter-spacing:1px">
                             ${stateIcons[s.state]||'⚡'} ${s.state}
                         </span>
                     </td>
-                    <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${
+                    <td data-label="DATE" class="col-date" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${
                         (() => {
                             const dt = s.timestamp ? (s.timestamp.split('T')[0]||s.timestamp.split(' ')[0]) : '-';
                             const age = s.age_days != null
@@ -736,17 +736,17 @@ async function renderSignalArchive(tabs = null) {
                             return `${dt}<br><span style="font-size:0.6rem;color:var(--text-dim);opacity:0.7">${age}</span>`;
                         })()
                     }</td>
-                    <td style="padding:10px 12px;text-align:center">
+                    <td data-label="DIR" class="col-dir" style="padding:10px 12px;text-align:center">
                         <span style="background:${dirBg};border:1px solid ${dirBorder};color:${dirColor};padding:3px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;white-space:nowrap">
                             ${dirArrow} ${dirLabel}
                         </span>
                     </td>
-                    <td style="padding:8px 12px;text-align:center;white-space:nowrap">
+                    <td data-label="ACTIONS" style="padding:8px 12px;text-align:center;white-space:nowrap">
                         <button onclick="openDetail('${s.ticker}','CRYPTO')" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
                         <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="AI Analysis">AI</button>
                         ${s.state === 'CLOSED'
-                            ? `<button onclick="window._archiveReopenSignal(${s.id},this)" style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.3);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="Reopen Signal">REOPEN</button>`
-                            : `<button onclick="window._archiveCloseSignal(${s.id},this)" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="Close Signal">CLOSE</button>`
+                            ? `<button onclick="window._archiveReopenSignal(${s.id},this)" style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.3);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">REOPEN</button>`
+                            : `<button onclick="window._archiveCloseSignal(${s.id},this)" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">CLOSE</button>`
                         }
                     </td>
                 </tr>`;
@@ -804,7 +804,45 @@ async function renderSignalArchive(tabs = null) {
             `;
         }
 
-        container.innerHTML = summaryHTML + `
+        container.innerHTML = `<style>
+          /* ── Archive Mobile Responsive ────────────────── */
+          @media (max-width:768px) {
+            #archive-table thead { display:none; }
+            #archive-table, #archive-table tbody, .archive-row, #archive-table td {
+              display:block; width:100%;
+            }
+            .archive-row {
+              border:1px solid rgba(255,255,255,0.06) !important;
+              border-radius:8px;
+              margin-bottom:8px;
+              padding:4px 0;
+              background:rgba(255,255,255,0.02);
+            }
+            #archive-table td {
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              padding:6px 14px !important;
+              border:none !important;
+              font-size:0.75rem !important;
+            }
+            #archive-table td::before {
+              content: attr(data-label);
+              font-size:0.55rem;
+              font-weight:900;
+              letter-spacing:1.5px;
+              color:var(--text-dim);
+              text-transform:uppercase;
+              margin-right:auto;
+              flex-shrink:0;
+            }
+            .col-sev, .col-date { display:none !important; }
+          }
+          @media (max-width:480px) {
+            .col-dir { display:none !important; }
+            #archive-filters > div { width:100%; }
+          }
+        </style>` + summaryHTML + `
             <div class="card" style="overflow-x:auto">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:15px">
                     <span style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page||1} OF ${pageInfo?.pages||1} &bull; ${pageInfo?.total||0} TOTAL)</span>
