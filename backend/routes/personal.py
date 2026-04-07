@@ -40,7 +40,7 @@ class PersonalRoutesMixin:
                         for sym in candidates:
                             try:
                                 info = _yf.Ticker(sym).fast_info
-                                px = info.get('last_price') or info.get('lastPrice') or info.get('regularMarketPrice')
+                                px = (getattr(info,'last_price',None) or getattr(info,'regularMarketPrice',None) or getattr(info,'previous_close',None))
                                 if px and float(px) > 0:
                                     item['live_price'] = round(float(px), 8)
                                     break
@@ -71,7 +71,7 @@ class PersonalRoutesMixin:
                 for sym in candidates:
                     try:
                         info = yf.Ticker(sym).fast_info
-                        px = info.get('last_price') or info.get('lastPrice') or info.get('regularMarketPrice')
+                        px = (getattr(info,'last_price',None) or getattr(info,'regularMarketPrice',None) or getattr(info,'previous_close',None))
                         if px and float(px) > 0:
                             price_at_add = round(float(px), 8)
                             break
