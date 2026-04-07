@@ -591,22 +591,39 @@ async function renderSignalArchive(tabs = null) {
                     <option value="neutral">NEUTRAL ●</option>
                 </select>
             </div>
-            <!-- Lookback -->
-            <div style="display:flex;flex-direction:column;gap:4px">
-                <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">LOOKBACK</label>
-                <select id="filter-days" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
-                    <option value="7">LAST 7 DAYS</option>
-                    <option value="30" selected>LAST 30 DAYS</option>
-                    <option value="90">LAST 90 DAYS</option>
-                    <option value="365">LAST YEAR</option>
-                </select>
+            <!-- Date Range Picker -->
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px">
+                <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);display:flex;align-items:center;gap:6px">
+                    DATE RANGE
+                    <span id="active-range-label" style="font-size:0.5rem;padding:1px 7px;border-radius:10px;background:rgba(0,242,255,0.1);color:var(--accent);font-weight:700">30D</span>
+                </label>
+                <div style="display:flex;gap:4px;flex-wrap:wrap">
+                    <button id="drp-today" class="drp-pill" onclick="window._drpSelect('today',0)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">TODAY</button>
+                    <button id="drp-7d"    class="drp-pill" onclick="window._drpSelect('7d',7)"   style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">7D</button>
+                    <button id="drp-30d"  class="drp-pill drp-active" onclick="window._drpSelect('30d',30)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(0,242,255,0.5);background:rgba(0,242,255,0.12);color:var(--accent);cursor:pointer;transition:all 0.15s;white-space:nowrap">30D</button>
+                    <button id="drp-90d"  class="drp-pill" onclick="window._drpSelect('90d',90)"  style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">90D</button>
+                    <button id="drp-365d" class="drp-pill" onclick="window._drpSelect('365d',365)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">1Y</button>
+                    <button id="drp-all"  class="drp-pill" onclick="window._drpSelect('all',-1)"  style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">ALL TIME</button>
+                    <button id="drp-custom" class="drp-pill" onclick="window._drpSelect('custom',null)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">CUSTOM&#8230;</button>
+                </div>
+                <div id="drp-custom-inputs" style="display:none;gap:6px;align-items:flex-end;margin-top:4px;flex-wrap:wrap">
+                    <div style="display:flex;flex-direction:column;gap:2px">
+                        <label style="font-size:0.5rem;color:var(--text-dim);font-weight:700">FROM</label>
+                        <input type="date" id="drp-from" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.7rem;font-family:var(--font-mono);color-scheme:dark">
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:2px">
+                        <label style="font-size:0.5rem;color:var(--text-dim);font-weight:700">TO</label>
+                        <input type="date" id="drp-to" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.7rem;font-family:var(--font-mono);color-scheme:dark">
+                    </div>
+                    <button onclick="loadData(1)" style="background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.3);color:var(--accent);padding:5px 12px;border-radius:6px;font-size:0.65rem;font-weight:700;cursor:pointer">APPLY RANGE</button>
+                </div>
             </div>
-            <!-- Buttons -->
+            <!-- Action buttons -->
             <div style="display:flex;gap:8px;align-items:flex-end">
                 <button id="apply-filters" class="setup-generator-btn" style="padding:7px 18px;font-size:0.7rem;height:36px">
                     <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:4px">filter_list</span>APPLY
                 </button>
-                <button onclick="document.getElementById('filter-ticker').value='';document.getElementById('filter-type').value='';document.getElementById('filter-severity').value='';document.getElementById('filter-direction').value='';document.getElementById('filter-days').value='30';loadData(1)"
+                <button onclick="window._drpSelect('30d',30);document.getElementById('filter-ticker').value='';document.getElementById('filter-type').value='';document.getElementById('filter-severity').value='';document.getElementById('filter-direction').value='';loadData(1)"
                     class="intel-action-btn mini outline" style="width:auto;padding:7px 14px;font-size:0.7rem;height:36px">RESET</button>
             </div>
         </div>
@@ -626,18 +643,57 @@ async function renderSignalArchive(tabs = null) {
     // Computed columns — client-side only (page-local)
     const CLIENT_SORT_COLS = new Set(['return','current','state']);
 
+    // ── Date Range Picker state ──────────────────────────────────────────────
+    let drpMode = '30d';   // active pill id
+    let drpDays = 30;      // days value (-1 = all time, 0 = today)
+
+    window._drpSelect = function(id, days) {
+        drpMode = id;
+        drpDays = days;
+        // Restyle all pills
+        document.querySelectorAll('.drp-pill').forEach(b => {
+            const active = b.id === 'drp-' + id;
+            b.style.background = active ? 'rgba(0,242,255,0.12)' : 'rgba(255,255,255,0.03)';
+            b.style.color = active ? 'var(--accent)' : 'var(--text-dim)';
+            b.style.borderColor = active ? 'rgba(0,242,255,0.5)' : 'rgba(255,255,255,0.1)';
+        });
+        // Show/hide custom date inputs
+        const ci = document.getElementById('drp-custom-inputs');
+        if (ci) ci.style.display = id === 'custom' ? 'flex' : 'none';
+        // Update badge label
+        const lbl = document.getElementById('active-range-label');
+        const LABELS = { today:'TODAY', '7d':'7D', '30d':'30D', '90d':'90D', '365d':'1Y', all:'ALL', custom:'CUSTOM' };
+        if (lbl) lbl.textContent = LABELS[id] || id.toUpperCase();
+        // Auto-load for all presets (not CUSTOM — user must pick dates then press APPLY)
+        if (id !== 'custom') loadData(1);
+    };
+
     const loadData = async (page = 1) => {
         currentPage = page;
         const ticker    = document.getElementById('filter-ticker')?.value.trim() || '';
         const type      = document.getElementById('filter-type')?.value || '';
         const severity  = document.getElementById('filter-severity')?.value || '';
         const direction = document.getElementById('filter-direction')?.value || '';
-        const days      = document.getElementById('filter-days')?.value || '30';
 
         const container = document.getElementById('archive-table-container');
         container.innerHTML = `<div class="card" style="padding:1rem">${skeleton(5)}</div>`;
 
-        let url = `/signal-history?days=${days}&page=${currentPage}&limit=25`;
+        // Build URL based on date range mode
+        let url;
+        if (drpMode === 'custom') {
+            const from = document.getElementById('drp-from')?.value || '';
+            const to   = document.getElementById('drp-to')?.value   || '';
+            url = `/signal-history?page=${currentPage}&limit=25`;
+            if (from) url += `&from=${from}`;
+            if (to)   url += `&to=${to}`;
+        } else if (drpMode === 'today') {
+            const d = new Date().toISOString().split('T')[0];
+            url = `/signal-history?from=${d}&to=${d}&page=${currentPage}&limit=25`;
+        } else if (drpDays === -1) {
+            url = `/signal-history?days=3650&page=${currentPage}&limit=25`; // ALL TIME = 10y lookback
+        } else {
+            url = `/signal-history?days=${drpDays}&page=${currentPage}&limit=25`;
+        }
         if (ticker)    url += `&ticker=${ticker.toUpperCase()}`;
         if (type)      url += `&type=${type}`;
         if (severity)  url += `&severity=${severity}`;

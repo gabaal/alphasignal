@@ -383,7 +383,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                 </div>
             </header>
 
-            <div id="app-view">
+            <div id="app-view" style="min-height:100vh">
                 <!-- Static hero pre-render: gives browser an LCP candidate at parse time.
                      renderHome() overwrites this once JS executes (no flash — seamless). -->
                 <div id="home-prerender" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:4rem 2rem;text-align:center;background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(0,242,255,0.06),transparent 60%)">

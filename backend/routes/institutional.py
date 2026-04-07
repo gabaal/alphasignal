@@ -3970,6 +3970,8 @@ class InstitutionalRoutesMixin:
             f_severity  = query.get('severity',   [None])[0]
             f_direction = query.get('direction',  [None])[0]
             f_days   = int(query.get('days',  [30])[0])
+            f_from   = query.get('from',  [None])[0]   # ISO date YYYY-MM-DD (custom picker)
+            f_to     = query.get('to',    [None])[0]   # ISO date YYYY-MM-DD (custom picker)
             page     = int(query.get('page',   [1])[0])
             limit    = int(query.get('limit', [25])[0])
             offset   = (page - 1) * limit
@@ -3995,7 +3997,7 @@ class InstitutionalRoutesMixin:
             order_clause = f'ORDER BY {order_expr} {sort_dir.upper()}'
 
             # ── Cache check: 2-min TTL, keyed by all query params + user ──
-            cache_key = f'{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{page}:{limit}:{sort_col}:{sort_dir}'
+            cache_key = f'{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{f_from}:{f_to}:{page}:{limit}:{sort_col}:{sort_dir}'
             shc = InstitutionalRoutesMixin._sig_history_cache
             entry = shc.get(cache_key)
             if entry and (time.time() - entry['ts']) < 120:
@@ -4007,8 +4009,19 @@ class InstitutionalRoutesMixin:
 
             # User scoping: strictly own signals only
             if user_email:
-                base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email = ?"
-                params      = [f'-{f_days} day', user_email]
+                # Custom date range takes priority over days-based lookback
+                if f_from and f_to:
+                    base_where  = "WHERE ah.timestamp >= ? AND ah.timestamp <= ? AND ah.user_email = ?"
+                    params      = [f_from + ' 00:00:00', f_to + ' 23:59:59', user_email]
+                elif f_from:
+                    base_where  = "WHERE ah.timestamp >= ? AND ah.user_email = ?"
+                    params      = [f_from + ' 00:00:00', user_email]
+                elif f_to:
+                    base_where  = "WHERE ah.timestamp <= ? AND ah.user_email = ?"
+                    params      = [f_to + ' 23:59:59', user_email]
+                else:
+                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email = ?"
+                    params      = [f'-{f_days} day', user_email]
                 count_params = list(params)
             else:
                 # Unauthenticated: return empty result
