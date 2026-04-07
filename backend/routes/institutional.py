@@ -3977,39 +3977,34 @@ class InstitutionalRoutesMixin:
             rows = c.fetchall()
 
             # Phase 2: build unified price_map {ticker: current_price}
-            # yfinance is PRIMARY (fresh live data); market_ticks fills gaps if yf fails
+            # yfinance fast_info is PRIMARY; market_ticks fills gaps if yf fails
             unique_tickers = list({r[2] for r in rows if r[5]})
             price_map = {}
 
-            # 2a. Batch yfinance fetch for all unique tickers on this page
+            # 2a. Per-ticker yfinance fast_info (lightweight — no OHLCV download)
             if unique_tickers:
                 try:
                     import yfinance as yf
-                    yf_map = {t: (t if '-' in t else t + '-USD') for t in unique_tickers}
-                    yf_syms = list(set(yf_map.values()))
-                    if yf_syms:
-                        hist = yf.download(
-                            yf_syms if len(yf_syms) > 1 else yf_syms[0],
-                            period='1d', interval='1m',
-                            group_by='ticker' if len(yf_syms) > 1 else None,
-                            progress=False, auto_adjust=True
-                        )
-                        for orig_t, yf_sym in yf_map.items():
+                    for orig_t in unique_tickers:
+                        # Try candidate symbols: as-is, then with -USD, then strip -USD if it has one
+                        candidates = [orig_t]
+                        if '-' not in orig_t:
+                            candidates.append(orig_t + '-USD')
+                        elif orig_t.endswith('-USD'):
+                            candidates.append(orig_t[:-4])  # bare symbol (equities like BTC via other feeds)
+                        for sym in candidates:
                             try:
-                                if len(yf_syms) > 1:
-                                    col = hist[yf_sym]['Close'] if yf_sym in hist else None
-                                else:
-                                    col = hist['Close']
-                                if col is not None and not col.dropna().empty:
-                                    px = float(col.dropna().iloc[-1])
-                                    if px > 0:
-                                        price_map[orig_t] = round(px, 6)
+                                info = yf.Ticker(sym).fast_info
+                                px = info.get('last_price') or info.get('lastPrice') or info.get('regularMarketPrice')
+                                if px and float(px) > 0:
+                                    price_map[orig_t] = round(float(px), 6)
+                                    break  # found a valid price — stop trying candidates
                             except Exception:
-                                pass
+                                continue
                 except Exception as e:
                     print(f"[SignalHistory] yfinance error: {e}", flush=True)
 
-            # 2b. market_ticks fallback for any ticker yfinance couldn't price
+            # 2b. market_ticks fallback (price > 0 only) for any ticker yfinance couldn't price
             still_missing = [t for t in unique_tickers if t not in price_map]
             for t in still_missing:
                 c.execute(
