@@ -4098,7 +4098,7 @@ class InstitutionalRoutesMixin:
                                 info = yf.Ticker(sym).fast_info
                                 px = info.get('last_price') or info.get('lastPrice') or info.get('regularMarketPrice')
                                 if px and float(px) > 0:
-                                    return orig_t, round(float(px), 6)
+                                    return orig_t, round(float(px), 10)
                             except Exception:
                                 continue
                         return orig_t, None
@@ -4146,7 +4146,7 @@ class InstitutionalRoutesMixin:
                 elif entry_p and entry_p > 0 and curr_p and curr_p > 0:
                     direction = 1 if sig_type in BULLISH else -1
                     roi   = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
-                    curr_p = round(curr_p, 4)
+                    curr_p = round(curr_p, 10)
                     if roi > 10:
                         state = 'HIT_TP2'
                     elif roi > 5:
