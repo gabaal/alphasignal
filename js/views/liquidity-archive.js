@@ -618,6 +618,14 @@ async function renderSignalArchive(tabs = null) {
 
     let currentPage = 1;
 
+    // ── Sort state lives OUTSIDE loadData so it persists across page navigation ──
+    let sortCol = null;
+    let sortDir = 'desc';
+    // Columns backed by SQL fields — sort applies across ALL pages via server ORDER BY
+    const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction']);
+    // Computed columns — client-side only (page-local)
+    const CLIENT_SORT_COLS = new Set(['return','current','state']);
+
     const loadData = async (page = 1) => {
         currentPage = page;
         const ticker    = document.getElementById('filter-ticker')?.value.trim() || '';
@@ -634,7 +642,11 @@ async function renderSignalArchive(tabs = null) {
         if (type)      url += `&type=${type}`;
         if (severity)  url += `&severity=${severity}`;
         if (direction) url += `&direction=${direction}`;
-        
+        // Append server-side sort params for DB-backed columns
+        if (sortCol && SERVER_SORT_COLS.has(sortCol)) {
+            url += `&sort_col=${sortCol}&sort_dir=${sortDir}`;
+        }
+
         const response = await fetchAPI(url);
         console.log(`[AlphaSignal API] Response from ${url}:`, response);
         const data = response?.data;
@@ -661,10 +673,6 @@ async function renderSignalArchive(tabs = null) {
         const BEARISH_TYPES = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT']);
         const SEV_RANK = { critical: 3, high: 2, medium: 1, low: 0 };
 
-        // ── Sort state ─────────────────────────────────────────────
-        let sortCol = null;
-        let sortDir = 'asc';
-
         function getColValue(s, col) {
             switch(col) {
                 case 'ticker':    return (s.ticker || '').toUpperCase();
@@ -684,7 +692,7 @@ async function renderSignalArchive(tabs = null) {
         }
 
         function sortedData(d) {
-            if (!sortCol) return d;
+            if (!sortCol || SERVER_SORT_COLS.has(sortCol)) return d;
             return [...d].sort((a, b) => {
                 const av = getColValue(a, sortCol);
                 const bv = getColValue(b, sortCol);
@@ -755,27 +763,26 @@ async function renderSignalArchive(tabs = null) {
             ).join('')
         }</div>`;
 
-        // ── Build TH attributes with sort indicator ────────────────
-        function aC(col, align='left') {
-            const active = sortCol === col;
-            const ind    = active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' <span style="opacity:0.3;font-size:0.7em">⇅</span>';
-            const color  = active ? 'var(--accent)' : 'var(--text-dim)';
-            return `style="text-align:${align};padding:8px 12px;cursor:pointer;user-select:none;color:${color};white-space:nowrap;transition:color 0.15s" onclick="window._archiveSort('${col}')"`;
-        }
-
         function buildThead() {
-            return `<tr style="border-bottom:1px solid var(--border)">
-                <th ${aC('ticker','left')}>TICKER</th>
-                <th ${aC('type','left')}>TYPE</th>
-                <th ${aC('severity','center')}>SEV</th>
-                <th ${aC('entry','right')}>ENTRY</th>
-                <th ${aC('current','right')}>CURRENT</th>
-                <th ${aC('return','right')}>RETURN</th>
-                <th ${aC('state','center')}>STATE</th>
-                <th ${aC('date','left')}>DATE</th>
-                <th ${aC('direction','center')}>DIRECTION</th>
+            function aTH(col, label, align='left') {
+                const isServer = SERVER_SORT_COLS.has(col);
+                const active = sortCol === col;
+                const ind = active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : (isServer ? ' <span style="opacity:0.3;font-size:0.7em">⇅</span>' : ' <span style="opacity:0.25;font-size:0.65em" title="Sorts current page only">⇅*</span>');
+                const color = active ? 'var(--accent)' : 'var(--text-dim)';
+                return `<th style="text-align:${align};padding:8px 12px;cursor:pointer;user-select:none;color:${color};white-space:nowrap;transition:color 0.15s" onclick="window._archiveSort('${col}')">${label}${ind}</th>`;
+            }
+            return `
+                ${aTH('ticker','TICKER','left')}
+                ${aTH('type','TYPE','left')}
+                ${aTH('severity','SEV','center')}
+                ${aTH('entry','ENTRY','right')}
+                ${aTH('current','CURRENT','right')}
+                ${aTH('return','RETURN','right')}
+                ${aTH('state','STATE','center')}
+                ${aTH('date','DATE','left')}
+                ${aTH('direction','DIRECTION','center')}
                 <th style="text-align:center;padding:8px 12px;color:var(--text-dim)">ACTIONS</th>
-            </tr>`;
+            `;
         }
 
         container.innerHTML = summaryHTML + `
@@ -796,18 +803,22 @@ async function renderSignalArchive(tabs = null) {
                 </table>
             </div>`;
 
-        // ── Sort handler: re-render thead indicators + tbody ───────
+        // ── Sort handler ──────────────────────────────
         window._archiveSort = function(col) {
-            if (sortCol === col) {
-                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            const flipped = sortCol === col;
+            sortCol = col;
+            sortDir = flipped ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+
+            if (SERVER_SORT_COLS.has(col)) {
+                // Server-side: re-fetch from page 1 with full dataset sorted
+                loadData(1);
             } else {
-                sortCol = col;
-                sortDir = 'asc';
+                // Client-side: sort current page only (computed columns)
+                const thead = document.getElementById('archive-thead');
+                const tbody = document.getElementById('archive-tbody');
+                if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr>`;
+                if (tbody) tbody.innerHTML = renderRows(data);
             }
-            const thead = document.getElementById('archive-thead');
-            const tbody = document.getElementById('archive-tbody');
-            if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr>`;
-            if (tbody) tbody.innerHTML = renderRows(data);
         };
     };
 

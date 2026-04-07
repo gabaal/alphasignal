@@ -3925,9 +3925,29 @@ class InstitutionalRoutesMixin:
             page     = int(query.get('page',   [1])[0])
             limit    = int(query.get('limit', [25])[0])
             offset   = (page - 1) * limit
+            sort_col = query.get('sort_col', [None])[0]
+            sort_dir = query.get('sort_dir', ['desc'])[0].lower()
+            if sort_dir not in ('asc', 'desc'):
+                sort_dir = 'desc'
+
+            # Whitelist of server-sortable columns → SQL expressions
+            SORT_MAP = {
+                'ticker':    'ah.ticker',
+                'type':      'ah.type',
+                'severity':  "CASE LOWER(COALESCE(ah.severity,'')) WHEN 'critical' THEN 3 WHEN 'high' THEN 2 WHEN 'medium' THEN 1 ELSE 0 END",
+                'entry':     'ah.price',
+                'date':      'ah.timestamp',
+                'direction': ("CASE WHEN ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',"
+                              "'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT',"
+                              "'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION') THEN 0 "
+                              "WHEN ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
+                              "'REGIME_BEAR','ALPHA_DIVERGENCE_SHORT') THEN 1 ELSE 2 END"),
+            }
+            order_expr = SORT_MAP.get(sort_col, 'ah.timestamp')
+            order_clause = f'ORDER BY {order_expr} {sort_dir.upper()}'
 
             # ── Cache check: 2-min TTL, keyed by all query params ────────
-            cache_key = f'{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{page}:{limit}'
+            cache_key = f'{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{page}:{limit}:{sort_col}:{sort_dir}'
             shc = InstitutionalRoutesMixin._sig_history_cache
             entry = shc.get(cache_key)
             if entry and (time.time() - entry['ts']) < 120:
@@ -3969,7 +3989,7 @@ class InstitutionalRoutesMixin:
                        ah.closed_at
                 FROM alerts_history ah
                 {base_where}
-                ORDER BY ah.timestamp DESC
+                {order_clause}
                 LIMIT ? OFFSET ?
             """
             params.extend([limit, offset])
