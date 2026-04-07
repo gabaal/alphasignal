@@ -3996,35 +3996,55 @@ class InstitutionalRoutesMixin:
             c.execute(sql, params)
             rows = c.fetchall()
 
-            # Phase 2: build unified price_map {ticker: current_price}
-            # yfinance fast_info is PRIMARY; market_ticks fills gaps if yf fails
+            # Phase 2: unified price_map — cache-first, parallel yfinance fallback
             unique_tickers = list({r[2] for r in rows if r[5]})
             price_map = {}
+            now = time.time()
+            pc  = InstitutionalRoutesMixin._price_cache
+            ttl = InstitutionalRoutesMixin._PRICE_CACHE_TTL
 
-            # 2a. Per-ticker yfinance fast_info (lightweight — no OHLCV download)
-            if unique_tickers:
+            # 2a. Serve from 90-second in-memory cache where possible
+            cache_miss = []
+            for t in unique_tickers:
+                entry = pc.get(t)
+                if entry and (now - entry[1]) < ttl:
+                    price_map[t] = entry[0]
+                else:
+                    cache_miss.append(t)
+
+            # 2b. Parallel yfinance fast_info for cache-miss tickers
+            if cache_miss:
                 try:
                     import yfinance as yf
-                    for orig_t in unique_tickers:
-                        # Try candidate symbols: as-is, then with -USD, then strip -USD if it has one
+                    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+                    def _fetch_price(orig_t):
                         candidates = [orig_t]
                         if '-' not in orig_t:
                             candidates.append(orig_t + '-USD')
                         elif orig_t.endswith('-USD'):
-                            candidates.append(orig_t[:-4])  # bare symbol (equities like BTC via other feeds)
+                            candidates.append(orig_t[:-4])
                         for sym in candidates:
                             try:
                                 info = yf.Ticker(sym).fast_info
                                 px = info.get('last_price') or info.get('lastPrice') or info.get('regularMarketPrice')
                                 if px and float(px) > 0:
-                                    price_map[orig_t] = round(float(px), 6)
-                                    break  # found a valid price — stop trying candidates
+                                    return orig_t, round(float(px), 6)
                             except Exception:
                                 continue
-                except Exception as e:
-                    print(f"[SignalHistory] yfinance error: {e}", flush=True)
+                        return orig_t, None
 
-            # 2b. market_ticks fallback (price > 0 only) for any ticker yfinance couldn't price
+                    with ThreadPoolExecutor(max_workers=min(10, len(cache_miss))) as pool:
+                        futures = {pool.submit(_fetch_price, t): t for t in cache_miss}
+                        for fut in as_completed(futures):
+                            orig_t, px = fut.result()
+                            if px:
+                                price_map[orig_t] = px
+                                pc[orig_t] = (px, time.time())  # store in cache
+                except Exception as e:
+                    print(f"[SignalHistory] yfinance parallel error: {e}", flush=True)
+
+            # 2c. market_ticks fallback (price > 0) for any ticker still without a price
             still_missing = [t for t in unique_tickers if t not in price_map]
             for t in still_missing:
                 c.execute(
@@ -4382,6 +4402,9 @@ class InstitutionalRoutesMixin:
     _stress_cache     = {'data': None, 'ts': 0}
     # signal-history: fast DB query but called on every archive tab switch — cache 2 min per param set
     _sig_history_cache = {}
+    # yfinance price cache {ticker: (price, timestamp)} — 90s TTL, shared across requests
+    _price_cache: dict = {}
+    _PRICE_CACHE_TTL = 90  # seconds
 
     def handle_stress_test(self):
         """Phase 7: Systematic Stress Test Engine - Enhanced for UI Compatibility."""
