@@ -775,9 +775,19 @@ async function renderSignalArchive(tabs = null) {
                     <td data-label="TICKER" style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
                     <td data-label="TYPE" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
                     <td data-label="SEV" class="col-sev" style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${sevIcon} ${(sev||'--').toUpperCase()}</span></td>
-                    <td data-label="ENTRY" style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? '$' + parseFloat(s.entry).toLocaleString() : '-'}</td>
-                    <td data-label="CURRENT" style="padding:10px 12px;text-align:right;font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
-                    <td data-label="RETURN" style="padding:10px 12px;text-align:right;font-weight:700;color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
+                    <td data-label="ENTRY" style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? formatPrice(s.entry) : '-'}</td>
+                    <td data-label="CURRENT" style="padding:10px 12px;text-align:right;font-family:monospace">${
+                        s.state === 'CLOSED' && s.exit_price
+                            ? `<span title="Exit price locked at close" style="color:#94a3b8">🔒 ${formatPrice(s.exit_price)}</span>`
+                            : (s.current ? formatPrice(s.current) : '-')
+                    }</td>
+                    <td data-label="RETURN" style="padding:10px 12px;text-align:right;font-weight:700;color:${
+                        (s.state === 'CLOSED' ? (s.final_roi ?? s.return) : s.return) >= 0 ? '#22c55e' : '#ef4444'
+                    }">${
+                        s.state === 'CLOSED' && s.final_roi != null
+                            ? `🔒 ${s.final_roi >= 0 ? '+' : ''}${s.final_roi}%`
+                            : `${s.return >= 0 ? '+' : ''}${s.return}%`
+                    }</td>
                     <td data-label="STATE" style="padding:10px 12px;text-align:center">
                         <span style="background:${stateColors[s.state]||'#60a5fa'}22;color:${stateColors[s.state]||'#60a5fa'};padding:2px 10px;border-radius:20px;font-size:0.6rem;letter-spacing:1px">
                             ${stateIcons[s.state]||'⚡'} ${s.state}
@@ -813,34 +823,47 @@ async function renderSignalArchive(tabs = null) {
             }).join('');
         }
 
-        // ── Win-Rate Summary Strip — from full filtered dataset via response.summary ──
+        // ── Performance Summary Strip ─────────────────────────────────────
         const summ     = response?.summary || {};
-        const fWins    = summ.wins    ?? 0;   // closed signals with positive final_roi
-        const fLosses  = summ.losses  ?? 0;   // closed signals with negative final_roi
+        const fWins    = summ.wins    ?? 0;
+        const fLosses  = summ.losses  ?? 0;
         const fClosed  = summ.closed  ?? 0;
         const fActive  = summ.active  ?? data.length;
-        const fAvgRoi  = summ.avg_roi != null ? summ.avg_roi : null;
+        const fAvgRoi  = summ.avg_roi != null ? parseFloat(summ.avg_roi).toFixed(2) : null;
         const fTotal   = summ.total   ?? pageInfo?.total ?? 0;
         const fHitRate = fWins + fLosses > 0 ? ((fWins / (fWins + fLosses)) * 100).toFixed(0) : '--';
-        // Current-page live ROI states (supplement — can't compute for all 1900+ from frontend)
         const pWins    = summ.page_wins   ?? data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
         const pLosses  = summ.page_losses ?? data.filter(s => s.state === 'STOPPED').length;
 
-        const summaryHTML = `<div style="margin-bottom:0.5rem">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:0.4rem">${
-            [
-                ['WIN RATE',   fHitRate !== '--' ? fHitRate + '%' : '--',  parseFloat(fHitRate) >= 50 ? '#22c55e' : '#ef4444'],
-                ['WINS ✓',     fWins,    '#22c55e'],
-                ['LOSSES ✗',   fLosses,  '#ef4444'],
-                ['CLOSED',     fClosed,  '#94a3b8'],
-                ['ACTIVE NOW', fActive,  '#60a5fa'],
-                ['AVG RETURN', fAvgRoi != null ? (fAvgRoi >= 0 ? '+' : '') + fAvgRoi + '%' : '--', fAvgRoi != null && fAvgRoi >= 0 ? '#22c55e' : '#ef4444'],
-            ].map(([label, val, color]) =>
-                `<div class="glass-card" style="padding:0.75rem 1rem;text-align:center"><div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${label}</div><div style="font-size:1.2rem;font-weight:800;color:${color}">${val}</div></div>`
-            ).join('')
-          }</div>
-          <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">📊 Wins/Losses = closed signals with recorded exit ROI &nbsp;·&nbsp; Page ROI states (live price): <span style="color:#22c55e">${pWins} wins</span> / <span style="color:#ef4444">${pLosses} losses</span> this page</div>
-        </div>`;
+        // Best signal this page (highest absolute return)
+        const bestSig  = [...data].sort((a, b) => Math.abs(b.return) - Math.abs(a.return))[0];
+        const bestStr  = bestSig
+            ? `${bestSig.ticker.replace('-USD','')} ${bestSig.return >= 0 ? '+' : ''}${bestSig.return}%`
+            : '--';
+        const bestCol  = bestSig ? (bestSig.return >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
+
+        const summaryHTML = `
+          <div style="margin-bottom:1.2rem">
+            <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">📊 PERFORMANCE SUMMARY <span style="color:var(--accent);font-size:0.5rem">(CLOSED SIGNALS)</span></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:0.6rem">${
+              [
+                ['WIN RATE',     fHitRate !== '--' ? fHitRate + '%' : '--',  parseFloat(fHitRate) >= 50 ? '#22c55e' : '#ef4444', 'emoji_events'],
+                ['WINS ✓',       fWins,    '#22c55e', 'thumb_up'],
+                ['LOSSES ✗',     fLosses,  '#ef4444', 'thumb_down'],
+                ['CLOSED',       fClosed,  '#94a3b8', 'lock'],
+                ['ACTIVE',       fActive,  '#60a5fa', 'bolt'],
+                ['AVG RETURN',   fAvgRoi != null ? (parseFloat(fAvgRoi) >= 0 ? '+' : '') + fAvgRoi + '%' : '--', parseFloat(fAvgRoi) >= 0 ? '#22c55e' : '#ef4444', 'trending_up'],
+                ['BEST SIGNAL',  bestStr,  bestCol,   'military_tech'],
+              ].map(([label, val, color, icon]) =>
+                `<div class="glass-card" style="padding:0.9rem 1rem;text-align:center;position:relative;overflow:hidden">
+                  <span class="material-symbols-outlined" style="font-size:1.1rem;color:${color};opacity:0.25;position:absolute;top:8px;right:8px">${icon}</span>
+                  <div style="font-size:0.48rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:5px">${label}</div>
+                  <div style="font-size:1.15rem;font-weight:900;color:${color};font-family:var(--font-mono)">${val}</div>
+                </div>`
+              ).join('')
+            }</div>
+            <div style="font-size:0.52rem;color:var(--text-dim);letter-spacing:0.5px">🏆 Wins/Losses = manually CLOSED signals with locked ROI &nbsp;·&nbsp; Live page states: <span style="color:#22c55e">${pWins} hit target</span> / <span style="color:#ef4444">${pLosses} stopped</span> this page</div>
+          </div>`;
 
         function buildThead() {
             function aTH(col, label, align='left') {
@@ -961,9 +984,10 @@ async function renderSignalArchive(tabs = null) {
         try {
             const res = await fetch(`/api/signal/${id}/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
             if (!res.ok) throw new Error(await res.text());
-            showToast('SIGNAL CLOSED', `Signal #${id} marked as CLOSED.`, 'success');
-            // Reload the current page to reflect new state
-            loadData(1);
+            const result = await res.json();
+            const roiStr = result.final_roi != null ? ` · ROI locked: ${result.final_roi >= 0 ? '+' : ''}${result.final_roi}%` : '';
+            showToast('SIGNAL CLOSED', `Signal #${id} closed.${roiStr}`, result.final_roi >= 0 ? 'success' : 'alert');
+            loadData(currentPage);
         } catch(e) {
             showToast('ERROR', `Could not close signal: ${e.message}`, 'alert');
             btn.disabled = false; btn.textContent = 'CLOSE';

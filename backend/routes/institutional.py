@@ -4070,7 +4070,7 @@ class InstitutionalRoutesMixin:
                 SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
                        ah.price, ah.timestamp,
                        COALESCE(ah.status, 'active') AS status,
-                       ah.closed_at
+                       ah.closed_at, ah.exit_price, ah.final_roi
                 FROM alerts_history ah
                 {base_where}
                 {order_clause}
@@ -4148,15 +4148,20 @@ class InstitutionalRoutesMixin:
                        'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
 
             results = []
-            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at in rows:
+            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, exit_px, stored_roi in rows:
                 roi   = 0.0
                 state = 'ACTIVE'
-                curr_p = price_map.get(ticker)  # same price for every signal of this ticker
+                curr_p = price_map.get(ticker)  # live price for this ticker
 
-                # Manual close overrides everything
+                # Manual close: use snapshotted exit_price + final_roi (locked in at close time)
                 if sig_status and sig_status.lower() == 'closed':
                     state  = 'CLOSED'
-                    curr_p = curr_p or entry_p
+                    if exit_px and float(exit_px) > 0:
+                        curr_p = round(float(exit_px), 10)
+                        roi    = round(float(stored_roi), 2) if stored_roi is not None else 0.0
+                    else:
+                        curr_p = curr_p or entry_p
+                        roi    = round(float(stored_roi), 2) if stored_roi is not None else 0.0
 
                 elif entry_p and entry_p > 0 and curr_p and curr_p > 0:
                     direction = 1 if sig_type in BULLISH else -1
@@ -4179,18 +4184,20 @@ class InstitutionalRoutesMixin:
                     age_days = None
 
                 results.append({
-                    'id':        row_id,
-                    'type':      sig_type,
-                    'ticker':    ticker,
-                    'message':   message,
-                    'severity':  severity,
-                    'entry':     round(entry_p, 4) if entry_p else None,
-                    'current':   round(float(curr_p), 4) if curr_p else None,
-                    'return':    roi,
-                    'state':     state,
-                    'timestamp': ts,
-                    'age_days':  age_days,
-                    'closed_at': closed_at,
+                    'id':         row_id,
+                    'type':       sig_type,
+                    'ticker':     ticker,
+                    'message':    message,
+                    'severity':   severity,
+                    'entry':      round(entry_p, 10) if entry_p else None,
+                    'current':    round(float(curr_p), 10) if curr_p else None,
+                    'return':     roi,
+                    'state':      state,
+                    'timestamp':  ts,
+                    'age_days':   age_days,
+                    'closed_at':  closed_at,
+                    'exit_price': round(float(exit_px), 10) if exit_px else None,
+                    'final_roi':  round(float(stored_roi), 2) if stored_roi is not None else None,
                 })
 
 
