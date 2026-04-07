@@ -307,6 +307,39 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 auth_info = self.is_authenticated()
                 if auth_info: self.handle_onboarding_complete(auth_info, post_data)
                 else: self.send_response(401); self.end_headers()
+            elif path.startswith('/api/signal/') and path.endswith('/close'):
+                # POST /api/signal/{id}/close  — manually deactivate a signal
+                auth_info = self.is_authenticated()
+                if not auth_info:
+                    self.send_response(401); self.end_headers(); return
+                try:
+                    sig_id = int(path.split('/')[3])
+                    conn = get_db_connection()
+                    c = conn.cursor()
+                    from datetime import datetime as _dt
+                    c.execute("UPDATE alerts_history SET status='closed', closed_at=? WHERE id=?",
+                              (_dt.utcnow().isoformat(), sig_id))
+                    conn.commit(); conn.close()
+                    # Bust the signal history cache so next load reflects the change
+                    InstitutionalRoutesMixin._sig_history_cache.clear()
+                    self.send_json({'success': True, 'id': sig_id, 'state': 'CLOSED'})
+                except Exception as e:
+                    self.send_error(500, str(e))
+            elif path.startswith('/api/signal/') and path.endswith('/reopen'):
+                # POST /api/signal/{id}/reopen — re-activate a closed signal
+                auth_info = self.is_authenticated()
+                if not auth_info:
+                    self.send_response(401); self.end_headers(); return
+                try:
+                    sig_id = int(path.split('/')[3])
+                    conn = get_db_connection()
+                    c = conn.cursor()
+                    c.execute("UPDATE alerts_history SET status='active', closed_at=NULL WHERE id=?", (sig_id,))
+                    conn.commit(); conn.close()
+                    InstitutionalRoutesMixin._sig_history_cache.clear()
+                    self.send_json({'success': True, 'id': sig_id, 'state': 'ACTIVE'})
+                except Exception as e:
+                    self.send_error(500, str(e))
             else:
                 self.send_error(404, 'Path not found')
         except Exception as e:

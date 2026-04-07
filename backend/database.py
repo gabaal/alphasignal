@@ -217,7 +217,13 @@ def init_db():
     try:
         c.execute("ALTER TABLE alerts_history ADD COLUMN sentiment REAL")
     except: pass
-    
+    # Migration: manual close support
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN status TEXT DEFAULT 'active'")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN closed_at TEXT")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS tracked_tickers (
         ticker TEXT NOT NULL,
         user_email TEXT,

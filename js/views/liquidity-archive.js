@@ -654,9 +654,9 @@ async function renderSignalArchive(tabs = null) {
 
         const stateColors = {
             'HIT_TP2': '#22c55e', 'HIT_TP1': '#86efac',
-            'ACTIVE': '#60a5fa', 'STOPPED': '#ef4444'
+            'ACTIVE': '#60a5fa', 'STOPPED': '#ef4444', 'CLOSED': '#94a3b8'
         };
-        const stateIcons = { 'HIT_TP2': '🎯', 'HIT_TP1': '✅', 'ACTIVE': '⚡', 'STOPPED': '🛑' };
+        const stateIcons = { 'HIT_TP2': '🎯', 'HIT_TP1': '✅', 'ACTIVE': '⚡', 'STOPPED': '🛑', 'CLOSED': '🔒' };
         const BULLISH_TYPES = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
         const BEARISH_TYPES = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT']);
         const SEV_RANK = { critical: 3, high: 2, medium: 1, low: 0 };
@@ -727,7 +727,11 @@ async function renderSignalArchive(tabs = null) {
                     </td>
                     <td style="padding:8px 12px;text-align:center;white-space:nowrap">
                         <button onclick="openDetail('${s.ticker}','CRYPTO')" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
-                        <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="AI Analysis">AI</button>
+                        <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="AI Analysis">AI</button>
+                        ${s.state === 'CLOSED'
+                            ? `<button onclick="window._archiveReopenSignal(${s.id},this)" style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.3);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="Reopen Signal">REOPEN</button>`
+                            : `<button onclick="window._archiveCloseSignal(${s.id},this)" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="Close Signal">CLOSE</button>`
+                        }
                     </td>
                 </tr>`;
             }).join('');
@@ -810,6 +814,34 @@ async function renderSignalArchive(tabs = null) {
 
     window.loadArchiveData = loadData;
     window.loadData = loadData; // expose for RESET button
+
+    // ── Signal Close / Reopen handlers ────────────────────────────
+    window._archiveCloseSignal = async function(id, btn) {
+        btn.disabled = true; btn.textContent = '...';
+        try {
+            const res = await fetch(`/api/signal/${id}/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+            if (!res.ok) throw new Error(await res.text());
+            showToast('SIGNAL CLOSED', `Signal #${id} marked as CLOSED.`, 'success');
+            // Reload the current page to reflect new state
+            loadData(1);
+        } catch(e) {
+            showToast('ERROR', `Could not close signal: ${e.message}`, 'alert');
+            btn.disabled = false; btn.textContent = 'CLOSE';
+        }
+    };
+    window._archiveReopenSignal = async function(id, btn) {
+        btn.disabled = true; btn.textContent = '...';
+        try {
+            const res = await fetch(`/api/signal/${id}/reopen`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+            if (!res.ok) throw new Error(await res.text());
+            showToast('SIGNAL REOPENED', `Signal #${id} is ACTIVE again.`, 'success');
+            loadData(1);
+        } catch(e) {
+            showToast('ERROR', `Could not reopen signal: ${e.message}`, 'alert');
+            btn.disabled = false; btn.textContent = 'REOPEN';
+        }
+    };
+
     // Expose current page data for CSV export
     window._archiveCurrentData = null;
     window._archiveExportPage = function() {

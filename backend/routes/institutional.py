@@ -3961,10 +3961,12 @@ class InstitutionalRoutesMixin:
             c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]
 
-            # Join with latest market_ticks price for each ticker ? no HTTP calls
+            # Also fetch status/closed_at for manual-close support
             sql = f"""
                 SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
                        ah.price, ah.timestamp,
+                       COALESCE(ah.status, 'active') AS status,
+                       ah.closed_at,
                        (SELECT mt.price FROM market_ticks mt
                         WHERE mt.symbol = ah.ticker
                         ORDER BY mt.timestamp DESC LIMIT 1) AS curr_price
@@ -3978,41 +3980,83 @@ class InstitutionalRoutesMixin:
             rows = c.fetchall()
             conn.close()
 
-            # Bullish signal types ? positive direction expected
+            # ── Batch-fetch current prices for tickers missing from market_ticks ──
+            missing_tickers = {r[2] for r in rows if not r[9] and r[5]}  # ticker where curr_price NULL
+            yf_prices = {}
+            if missing_tickers:
+                try:
+                    import yfinance as yf
+                    # Map DB ticker → yfinance ticker (add -USD suffix if no dash present)
+                    yf_map = {t: (t if '-' in t else t + '-USD') for t in missing_tickers}
+                    yf_syms = list(yf_map.values())
+                    if len(yf_syms) == 1:
+                        hist = yf.download(yf_syms[0], period='1d', interval='1m', progress=False)
+                        if not hist.empty:
+                            price = float(hist['Close'].iloc[-1])
+                            if hasattr(price, '__len__'): price = float(price.iloc[0])
+                            yf_prices[yf_syms[0]] = price
+                    else:
+                        hist = yf.download(yf_syms, period='1d', interval='1m', group_by='ticker', progress=False)
+                        for sym in yf_syms:
+                            try:
+                                col = hist[sym]['Close'] if sym in hist else hist['Close']
+                                p = float(col.iloc[-1])
+                                if hasattr(p, '__len__'): p = float(p.iloc[0])
+                                yf_prices[sym] = p
+                            except: pass
+                    # Map back: original ticker → price
+                    yf_prices = {orig: yf_prices.get(yf_sym) for orig, yf_sym in yf_map.items()}
+                except Exception as e:
+                    print(f"[SignalHistory] yfinance fallback error: {e}", flush=True)
+
+            # Bullish signal types → positive direction expected
             BULLISH = {'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
                        'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
                        'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
                        'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
 
             results = []
-            for row_id, sig_type, ticker, message, severity, entry_p, ts, curr_p in rows:
+            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, curr_p in rows:
                 roi   = 0.0
                 state = 'ACTIVE'
-                if entry_p and entry_p > 0 and curr_p and curr_p > 0:
-                    direction = 1 if sig_type in BULLISH else -1
-                    roi   = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
-                    curr_p = round(float(curr_p), 4)
-                    if roi > 10:
-                        state = 'HIT_TP2'
-                    elif roi > 5:
-                        state = 'HIT_TP1'
-                    elif roi < -3:
-                        state = 'STOPPED'
+
+                # Manual close overrides everything
+                if sig_status and sig_status.lower() == 'closed':
+                    state = 'CLOSED'
+                    curr_p = curr_p or entry_p
+
                 else:
-                    curr_p = entry_p  # no tick data yet
+                    # Fill current price from yfinance if market_ticks had nothing
+                    if (not curr_p or curr_p == 0) and ticker in yf_prices and yf_prices[ticker]:
+                        curr_p = yf_prices[ticker]
+
+                    if entry_p and entry_p > 0 and curr_p and curr_p > 0:
+                        direction = 1 if sig_type in BULLISH else -1
+                        roi   = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
+                        curr_p = round(float(curr_p), 4)
+                        if roi > 10:
+                            state = 'HIT_TP2'
+                        elif roi > 5:
+                            state = 'HIT_TP1'
+                        elif roi < -3:
+                            state = 'STOPPED'
+                    else:
+                        curr_p = entry_p  # still no price data at all
 
                 results.append({
-                    'id':       row_id,
-                    'type':     sig_type,
-                    'ticker':   ticker,
-                    'message':  message,
-                    'severity': severity,
-                    'entry':    round(entry_p, 4) if entry_p else None,
-                    'current':  curr_p,
-                    'return':   roi,
-                    'state':    state,
-                    'timestamp': ts
+                    'id':         row_id,
+                    'type':       sig_type,
+                    'ticker':     ticker,
+                    'message':    message,
+                    'severity':   severity,
+                    'entry':      round(entry_p, 4) if entry_p else None,
+                    'current':    round(float(curr_p), 4) if curr_p else None,
+                    'return':     roi,
+                    'state':      state,
+                    'timestamp':  ts,
+                    'closed_at':  closed_at,
                 })
+
 
             response = {
                 'data': results,
