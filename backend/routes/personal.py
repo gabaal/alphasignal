@@ -98,6 +98,26 @@ class PersonalRoutesMixin:
             self.send_json({'error': str(e)})
 
 
+
+    def handle_watchlist_patch(self, auth_info, item_id, data):
+        """PATCH /api/watchlist/{id} - update target_price and/or note for an existing item."""
+        try:
+            user_id = auth_info['user_id']
+            payload = {}
+            if 'target_price' in data:
+                payload['target_price'] = data['target_price']  # may be None to clear
+            if 'note' in data:
+                payload['note'] = (data['note'] or '').strip()
+            if not payload:
+                return self.send_json({'error': 'nothing to update'})
+            url = f"{SUPABASE_URL}/rest/v1/watchlist?id=eq.{item_id}&user_id=eq.{user_id}"
+            headers = {**SUPABASE_HEADERS, 'Prefer': 'return=representation'}
+            r = requests.patch(url, headers=headers, json=payload, timeout=5)
+            result = r.json() if r.text else []
+            self.send_json({'success': r.status_code in [200, 201], 'item': result[0] if isinstance(result, list) and result else payload})
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
     def handle_watchlist_delete(self, auth_info, item_id):
         try:
             user_id = auth_info['user_id']

@@ -172,14 +172,62 @@ function renderWatchlistCards(items) {
                     style="background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);color:var(--accent);padding:6px 8px;border-radius:8px;cursor:pointer">
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">monitoring</span>
                 </button>
+                <button onclick="toggleWatchlistEdit(${item.id})" title="Set target price" aria-label="Edit ${item.ticker} target"
+                    style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;padding:6px 8px;border-radius:8px;cursor:pointer">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">edit</span>
+                </button>
                 <button onclick="removeWatchlistItem(${item.id})" aria-label="Remove ${item.ticker} from watchlist"
                     style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem">
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">delete</span>
                 </button>
             </div>
-        </div>`;
+        </div>
+        <!-- Inline edit row (hidden until pencil clicked) -->
+        <div id="wl-edit-${item.id}" style="display:none;padding:0.75rem 1rem 0.75rem;border-top:1px solid rgba(245,158,11,0.15);background:rgba(245,158,11,0.04);margin-top:0">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <div style="font-size:0.55rem;color:#f59e0b;letter-spacing:1.5px;font-weight:700;flex-basis:100%;margin-bottom:4px">SET TARGET PRICE</div>
+                <input id="wl-edit-target-${item.id}" type="number" step="any" placeholder="Target price"
+                    value="${item.target_price || ''}"
+                    style="background:rgba(255,255,255,0.05);border:1px solid rgba(245,158,11,0.3);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.8rem;width:150px">
+                <input id="wl-edit-note-${item.id}" type="text" placeholder="Note (optional)" maxlength="120"
+                    value="${(item.note || '').replace(/Quick add from signal feed/g,'').trim()}"
+                    style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.8rem;flex:1;min-width:120px">
+                <button onclick="saveWatchlistEdit(${item.id})"
+                    style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.7rem;font-weight:700;letter-spacing:1px">SAVE</button>
+                <button onclick="toggleWatchlistEdit(${item.id})"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem">CANCEL</button>
+            </div>
+        </div>\`;
     }).join('');
 }
+
+window.toggleWatchlistEdit = function(id) {
+    const panel = document.getElementById('wl-edit-' + id);
+    if (!panel) return;
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) document.getElementById('wl-edit-target-' + id)?.focus();
+};
+
+window.saveWatchlistEdit = async function(id) {
+    const targetEl = document.getElementById('wl-edit-target-' + id);
+    const noteEl   = document.getElementById('wl-edit-note-'   + id);
+    const target   = targetEl ? targetEl.value : '';
+    const note     = noteEl   ? noteEl.value.trim() : '';
+    try {
+        const res = await fetchAPI('/watchlist/' + id, 'PATCH', {
+            target_price: target ? parseFloat(target) : null,
+            note: note || ''
+        });
+        if (res && res.success) {
+            showToast('WATCHLIST', 'Target price saved', 'success');
+            const el = document.getElementById('my-terminal-content');
+            if (el) await renderWatchlistTab(el);
+        } else {
+            showToast('ERROR', (res && res.error) || 'Update failed', 'alert');
+        }
+    } catch(e) { showToast('ERROR', e.message, 'alert'); }
+};
 
 window.addToWatchlist = async function() {
     const ticker = document.getElementById('wl-ticker')?.value.trim().toUpperCase();
