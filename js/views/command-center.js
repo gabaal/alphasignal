@@ -642,7 +642,8 @@ function closeCmdChartModal() {
 
 // ============= BTC Top-Bar Sparkline =============
 let _btcSparkChartInst = null;
-let _sparkPriceHistory = [];  // rolling 48-point price buffer fed from WebSocket
+let _sparkPriceHistory = [];  // rolling 60-point price buffer fed from WebSocket
+let _btcOpen24h = null;       // yesterday's close price — set once from /api/btc for accurate 24h %
 
 // Called from the WS price handler to feed the sparkline in real-time
 function pushSparklinePrice(price) {
@@ -650,16 +651,19 @@ function pushSparklinePrice(price) {
     _sparkPriceHistory.push(price);
     if (_sparkPriceHistory.length > 60) _sparkPriceHistory.shift();
 
-    // ── Live-update price text on every tick (not just every 5 min) ──
+    // ── Live-update price text on every tick ──────────────────────────────
     const priceEl  = document.getElementById('btc-spark-price');
     const changeEl = document.getElementById('btc-spark-change');
     if (priceEl) priceEl.textContent = '$' + Math.round(price).toLocaleString('en-US');
-    if (changeEl && _sparkPriceHistory.length >= 2) {
-        const open  = _sparkPriceHistory[0];
-        const pct   = ((price - open) / open * 100).toFixed(2);
-        const isUp  = price >= open;
-        changeEl.textContent  = (isUp ? '+' : '') + pct + '%';
-        changeEl.style.color  = isUp ? '#22c55e' : '#ef4444';
+    if (changeEl) {
+        // Prefer the real 24h open set by initBTCSparkline; fall back to buffer start
+        const baseline = _btcOpen24h || (_sparkPriceHistory.length >= 2 ? _sparkPriceHistory[0] : null);
+        if (baseline) {
+            const pct  = ((price - baseline) / baseline * 100).toFixed(2);
+            const isUp = price >= baseline;
+            changeEl.textContent = (isUp ? '+' : '') + pct + '%';
+            changeEl.style.color = isUp ? '#22c55e' : '#ef4444';
+        }
     }
 
     // Live-update canvas without re-fetching if chart already exists
@@ -713,7 +717,16 @@ async function initBTCSparkline(_retries) {
                 for (let i = 0; i < 48; i++) { v += step + (rng() - 0.5) * (latest * 0.003); prices.push(v); }
                 prices.push(latest);
             }
+            // Always fetch real 24h open in background so % tag is accurate
+            if (!_btcOpen24h) {
+                fetch('/api/btc').then(r => r.json()).then(bd => {
+                    if (bd.price && bd.change != null) {
+                        _btcOpen24h = bd.price / (1 + bd.change / 100);
+                    }
+                }).catch(() => {});
+            }
         }
+
 
         // Priority 2: Public /api/btc (no auth required)
         if (!latest) {
@@ -725,6 +738,7 @@ async function initBTCSparkline(_retries) {
                     const chg = bd.change || 0;
                     if (latest > 0) {
                         prev = latest / (1 + chg / 100);
+                        _btcOpen24h = prev;  // store real 24h open for accurate % display
                         let seed = Math.floor(latest) % 9999;
                         const rng = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
                         prices = [];
@@ -736,6 +750,7 @@ async function initBTCSparkline(_retries) {
                 }
             } catch(e) { /* silent */ }
         }
+
 
         // If neither source has data yet, retry in 1s (server might still be warming up)
         if (!latest || !prices) {
