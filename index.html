@@ -401,6 +401,20 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                          style="max-width:min(800px,100%);height:auto;border-radius:12px;box-shadow:0 0 60px rgba(0,242,255,0.1)">
                 </div>
             </div>
+            <!-- ⚡ INLINE LOADER DISMISS — runs synchronously at parse time for public views.
+                 Must be inline (not defer) so it fires the instant the pre-render is parsed,
+                 before any external scripts download. This is what moves LCP to ~FCP time. -->
+            <script>
+            (function(){
+                var v = (new URLSearchParams(location.search).get('view')||'home');
+                if(v==='home'||v==='signals'||v==='help'||v===''){
+                    var l=document.getElementById('app-loader');
+                    var m=document.getElementById('main-layout');
+                    if(l){l.style.transition='opacity 0.15s';l.style.opacity='0';setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l);},160);}
+                    if(m){m.classList.remove('hidden');m.style.removeProperty('filter');}
+                }
+            })();
+            </script>
 
             <footer class="global-footer" role="contentinfo">
                 <div class="footer-grid">
