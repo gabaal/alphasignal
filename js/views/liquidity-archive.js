@@ -699,11 +699,23 @@ async function renderSignalArchive(tabs = null) {
                             <th style="text-align:right;padding:8px 12px">RETURN</th>
                             <th style="text-align:center;padding:8px 12px">STATE</th>
                             <th style="text-align:left;padding:8px 12px">DATE</th>
+                            <th style="text-align:center;padding:8px 12px">DIRECTION</th>
                             <th style="text-align:center;padding:8px 12px">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${data.map(s => `
+                        ${data.map(s => {
+                            const BULLISH_TYPES = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
+                            const BEARISH_TYPES = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT']);
+                            const sigType = (s.type || '').toUpperCase();
+                            const isBull = BULLISH_TYPES.has(sigType);
+                            const isBear = BEARISH_TYPES.has(sigType);
+                            const dirLabel = isBull ? 'BULLISH' : isBear ? 'BEARISH' : 'NEUTRAL';
+                            const dirArrow = isBull ? '▲' : isBear ? '▼' : '●';
+                            const dirColor = isBull ? '#22c55e' : isBear ? '#ef4444' : '#94a3b8';
+                            const dirBg    = isBull ? 'rgba(34,197,94,0.1)' : isBear ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)';
+                            const dirBorder= isBull ? 'rgba(34,197,94,0.3)' : isBear ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)';
+                            return `
                             <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
                                 <td style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
                                 <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
@@ -718,13 +730,17 @@ async function renderSignalArchive(tabs = null) {
                                         ${stateIcons[s.state] || '⚡'} ${s.state}
                                     </span>
                                 </td>
-                                <td style="padding:10px 12px; color:var(--text-dim)">${s.timestamp ? s.timestamp.split(' ')[0] : '-'}</td>
+                                <td style="padding:10px 12px; color:var(--text-dim);font-size:0.7rem">${s.timestamp ? s.timestamp.split('T')[0] || s.timestamp.split(' ')[0] : '-'}</td>
+                                <td style="padding:10px 12px; text-align:center">
+                                    <span style="background:${dirBg};border:1px solid ${dirBorder};color:${dirColor};padding:3px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;white-space:nowrap">
+                                        ${dirArrow} ${dirLabel}
+                                    </span>
+                                </td>
                                 <td style="padding:8px 12px; text-align:center; white-space:nowrap">
                                     <button onclick="openDetail('${s.ticker}','CRYPTO')" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
                                     <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="AI Analysis">AI</button>
                                 </td>
-                            </tr>
-                        `).join('')}
+                            </tr>`;}).join('')}
                     </tbody>
                 </table>
             </div>
