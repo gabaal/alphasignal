@@ -3871,13 +3871,16 @@ class InstitutionalRoutesMixin:
                 f_direction = query.get('direction', [None])[0]
                 f_days      = int(query.get('days',  [365])[0])  # default 1yr for full export
 
-                # User scoping: own signals + legacy public signals
+                # User scoping: strictly own signals only
                 if user_email:
-                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND (ah.user_email = ? OR ah.user_email IS NULL)"
+                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email = ?"
                     params      = [f'-{f_days} day', user_email]
                 else:
-                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email IS NULL"
-                    params      = [f'-{f_days} day']
+                    # Unauthenticated: export empty
+                    self.send_response(401)
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    return
                 if f_ticker:
                     base_where += ' AND ah.ticker = ?'; params.append(f_ticker.upper())
                 if f_type:
@@ -4000,16 +4003,16 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH)
             c    = conn.cursor()
 
-            # User scoping: show own signals + legacy NULL-scoped signals
+            # User scoping: strictly own signals only
             if user_email:
-                base_where  = "WHERE ah.timestamp > datetime('now', ?) AND (ah.user_email = ? OR ah.user_email IS NULL)"
+                base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email = ?"
                 params      = [f'-{f_days} day', user_email]
                 count_params = list(params)
             else:
-                # Unauthenticated: only show legacy public signals (user_email IS NULL)
-                base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email IS NULL"
-                params      = [f'-{f_days} day']
-                count_params = list(params)
+                # Unauthenticated: return empty result
+                self.send_json({'data': [], 'pagination': {'page': 1, 'limit': limit, 'total': 0, 'pages': 0},
+                                'summary': {'total': 0, 'closed': 0, 'active': 0, 'wins': 0, 'losses': 0, 'avg_roi': None, 'page_wins': 0, 'page_losses': 0}})
+                return
 
             if f_ticker:
                 base_where  += ' AND ah.ticker = ?'
