@@ -3961,15 +3961,12 @@ class InstitutionalRoutesMixin:
             c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]
 
-            # Also fetch status/closed_at for manual-close support
+            # Phase 1: fetch signal rows (no price join — we build a unified price map instead)
             sql = f"""
                 SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
                        ah.price, ah.timestamp,
                        COALESCE(ah.status, 'active') AS status,
-                       ah.closed_at,
-                       (SELECT mt.price FROM market_ticks mt
-                        WHERE mt.symbol = ah.ticker
-                        ORDER BY mt.timestamp DESC LIMIT 1) AS curr_price
+                       ah.closed_at
                 FROM alerts_history ah
                 {base_where}
                 ORDER BY ah.timestamp DESC
@@ -3978,83 +3975,99 @@ class InstitutionalRoutesMixin:
             params.extend([limit, offset])
             c.execute(sql, params)
             rows = c.fetchall()
+
+            # Phase 2: build unified price_map {ticker: latest_price}
+            # One price per ticker, applied consistently across all rows
+            unique_tickers = list({r[2] for r in rows if r[5]})  # tickers with an entry price
+
+            # 2a. Batch-query market_ticks for the latest price per ticker
+            price_map = {}
+            if unique_tickers:
+                placeholders = ','.join('?' * len(unique_tickers))
+                c.execute(f"""
+                    SELECT symbol, price FROM market_ticks
+                    WHERE symbol IN ({placeholders})
+                    AND (symbol, timestamp) IN (
+                        SELECT symbol, MAX(timestamp) FROM market_ticks
+                        WHERE symbol IN ({placeholders})
+                        GROUP BY symbol
+                    )
+                """, unique_tickers * 2)
+                for sym, px in c.fetchall():
+                    price_map[sym] = float(px)
+
             conn.close()
 
-            # ── Batch-fetch current prices for tickers missing from market_ticks ──
-            missing_tickers = {r[2] for r in rows if not r[9] and r[5]}  # ticker where curr_price NULL
-            yf_prices = {}
-            if missing_tickers:
+            # 2b. For tickers still missing from price_map, batch-fetch via yfinance
+            still_missing = [t for t in unique_tickers if t not in price_map]
+            if still_missing:
                 try:
                     import yfinance as yf
-                    # Map DB ticker → yfinance ticker (add -USD suffix if no dash present)
-                    yf_map = {t: (t if '-' in t else t + '-USD') for t in missing_tickers}
-                    yf_syms = list(yf_map.values())
-                    if len(yf_syms) == 1:
-                        hist = yf.download(yf_syms[0], period='1d', interval='1m', progress=False)
-                        if not hist.empty:
-                            price = float(hist['Close'].iloc[-1])
-                            if hasattr(price, '__len__'): price = float(price.iloc[0])
-                            yf_prices[yf_syms[0]] = price
-                    else:
-                        hist = yf.download(yf_syms, period='1d', interval='1m', group_by='ticker', progress=False)
-                        for sym in yf_syms:
+                    # Normalise: add -USD suffix if ticker has no dash
+                    yf_map = {t: (t if '-' in t else t + '-USD') for t in still_missing}
+                    yf_syms = list(set(yf_map.values()))
+                    if yf_syms:
+                        hist = yf.download(yf_syms if len(yf_syms) > 1 else yf_syms[0],
+                                           period='1d', interval='1m',
+                                           group_by='ticker' if len(yf_syms) > 1 else None,
+                                           progress=False, threads=True)
+                        for orig_t, yf_sym in yf_map.items():
                             try:
-                                col = hist[sym]['Close'] if sym in hist else hist['Close']
-                                p = float(col.iloc[-1])
-                                if hasattr(p, '__len__'): p = float(p.iloc[0])
-                                yf_prices[sym] = p
-                            except: pass
-                    # Map back: original ticker → price
-                    yf_prices = {orig: yf_prices.get(yf_sym) for orig, yf_sym in yf_map.items()}
+                                if len(yf_syms) > 1:
+                                    col = hist[yf_sym]['Close'] if yf_sym in hist else None
+                                else:
+                                    col = hist['Close']
+                                if col is not None and not col.empty:
+                                    px = float(col.dropna().iloc[-1])
+                                    if px > 0:
+                                        price_map[orig_t] = round(px, 6)
+                            except Exception:
+                                pass
                 except Exception as e:
-                    print(f"[SignalHistory] yfinance fallback error: {e}", flush=True)
+                    print(f"[SignalHistory] yfinance batch error: {e}", flush=True)
 
-            # Bullish signal types → positive direction expected
+            # Bullish signal types → positive ROI direction
             BULLISH = {'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
                        'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
                        'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
                        'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
 
             results = []
-            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, curr_p in rows:
+            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at in rows:
                 roi   = 0.0
                 state = 'ACTIVE'
+                curr_p = price_map.get(ticker)  # same price for every signal of this ticker
 
                 # Manual close overrides everything
                 if sig_status and sig_status.lower() == 'closed':
-                    state = 'CLOSED'
+                    state  = 'CLOSED'
                     curr_p = curr_p or entry_p
 
+                elif entry_p and entry_p > 0 and curr_p and curr_p > 0:
+                    direction = 1 if sig_type in BULLISH else -1
+                    roi   = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
+                    curr_p = round(curr_p, 4)
+                    if roi > 10:
+                        state = 'HIT_TP2'
+                    elif roi > 5:
+                        state = 'HIT_TP1'
+                    elif roi < -3:
+                        state = 'STOPPED'
                 else:
-                    # Fill current price from yfinance if market_ticks had nothing
-                    if (not curr_p or curr_p == 0) and ticker in yf_prices and yf_prices[ticker]:
-                        curr_p = yf_prices[ticker]
-
-                    if entry_p and entry_p > 0 and curr_p and curr_p > 0:
-                        direction = 1 if sig_type in BULLISH else -1
-                        roi   = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
-                        curr_p = round(float(curr_p), 4)
-                        if roi > 10:
-                            state = 'HIT_TP2'
-                        elif roi > 5:
-                            state = 'HIT_TP1'
-                        elif roi < -3:
-                            state = 'STOPPED'
-                    else:
-                        curr_p = entry_p  # still no price data at all
+                    curr_p = entry_p  # no price data at all — show entry as placeholder
 
                 results.append({
-                    'id':         row_id,
-                    'type':       sig_type,
-                    'ticker':     ticker,
-                    'message':    message,
-                    'severity':   severity,
-                    'entry':      round(entry_p, 4) if entry_p else None,
-                    'current':    round(float(curr_p), 4) if curr_p else None,
-                    'return':     roi,
-                    'state':      state,
-                    'timestamp':  ts,
-                    'closed_at':  closed_at,
+                    'id':        row_id,
+                    'type':      sig_type,
+                    'ticker':    ticker,
+                    'message':   message,
+                    'severity':  severity,
+                    'entry':     round(entry_p, 4) if entry_p else None,
+                    'current':   round(float(curr_p), 4) if curr_p else None,
+                    'return':    roi,
+                    'state':     state,
+                    'timestamp': ts,
+                    'closed_at': closed_at,
                 })
 
 
