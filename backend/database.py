@@ -224,6 +224,12 @@ def init_db():
     try:
         c.execute("ALTER TABLE alerts_history ADD COLUMN closed_at TEXT")
     except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN exit_price REAL")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN final_roi REAL")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS tracked_tickers (
         ticker TEXT NOT NULL,
         user_email TEXT,

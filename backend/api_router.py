@@ -317,12 +317,48 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     conn = sqlite3.connect(DB_PATH)
                     c = conn.cursor()
                     from datetime import datetime as _dt
-                    c.execute("UPDATE alerts_history SET status='closed', closed_at=? WHERE id=?",
-                              (_dt.utcnow().isoformat(), sig_id))
+                    # Fetch entry price + type to compute final ROI at close time
+                    c.execute("SELECT price, type FROM alerts_history WHERE id=?", (sig_id,))
+                    sig_row = c.fetchone()
+                    exit_px = None; final_roi = None
+                    if sig_row:
+                        entry_p, sig_type = sig_row
+                        # Use cached price if warm, otherwise skip ROI computation
+                        cached = InstitutionalRoutesMixin._price_cache.get(sig_type.split(':')[0] if ':' in (sig_type or '') else None)
+                        # Fetch ticker to look up price cache
+                        c.execute("SELECT ticker FROM alerts_history WHERE id=?", (sig_id,))
+                        t_row = c.fetchone()
+                        if t_row:
+                            ticker = t_row[0]
+                            cached = InstitutionalRoutesMixin._price_cache.get(ticker)
+                            if cached:
+                                exit_px = cached[0]
+                            else:
+                                # Quick live fetch for this one ticker
+                                try:
+                                    import yfinance as yf
+                                    candidates = [ticker] + ([ticker+'-USD'] if '-' not in ticker else [ticker[:-4]])
+                                    for sym in candidates:
+                                        try:
+                                            info = yf.Ticker(sym).fast_info
+                                            px = info.get('last_price') or info.get('lastPrice')
+                                            if px and float(px) > 0:
+                                                exit_px = round(float(px), 6)
+                                                break
+                                        except: continue
+                                except: pass
+                            BULLISH_T = {'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION',
+                                         'VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION'}
+                            if exit_px and entry_p and entry_p > 0:
+                                direction = 1 if (sig_type or '').upper() in BULLISH_T else -1
+                                final_roi = round(direction * (exit_px - entry_p) / entry_p * 100, 2)
+                    c.execute("UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                              (_dt.utcnow().isoformat(), exit_px, final_roi, sig_id))
                     conn.commit(); conn.close()
                     # Bust the signal history cache so next load reflects the change
                     InstitutionalRoutesMixin._sig_history_cache.clear()
-                    self.send_json({'success': True, 'id': sig_id, 'state': 'CLOSED'})
+                    self.send_json({'success': True, 'id': sig_id, 'state': 'CLOSED',
+                                    'exit_price': exit_px, 'final_roi': final_roi})
                 except Exception as e:
                     self.send_error(500, str(e))
             elif path.startswith('/api/signal/') and path.endswith('/reopen'):

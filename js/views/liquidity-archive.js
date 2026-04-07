@@ -727,7 +727,15 @@ async function renderSignalArchive(tabs = null) {
                             ${stateIcons[s.state]||'⚡'} ${s.state}
                         </span>
                     </td>
-                    <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${s.timestamp ? (s.timestamp.split('T')[0]||s.timestamp.split(' ')[0]) : '-'}</td>
+                    <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${
+                        (() => {
+                            const dt = s.timestamp ? (s.timestamp.split('T')[0]||s.timestamp.split(' ')[0]) : '-';
+                            const age = s.age_days != null
+                                ? (s.age_days === 0 ? 'today' : s.age_days === 1 ? '1d ago' : s.age_days + 'd ago')
+                                : '';
+                            return `${dt}<br><span style="font-size:0.6rem;color:var(--text-dim);opacity:0.7">${age}</span>`;
+                        })()
+                    }</td>
                     <td style="padding:10px 12px;text-align:center">
                         <span style="background:${dirBg};border:1px solid ${dirBorder};color:${dirColor};padding:3px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;white-space:nowrap">
                             ${dirArrow} ${dirLabel}
@@ -745,23 +753,34 @@ async function renderSignalArchive(tabs = null) {
             }).join('');
         }
 
-        // ── Win-Rate Summary Strip ──────────────────────────────
-        const wins    = data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
-        const losses  = data.filter(s => s.state === 'STOPPED').length;
-        const active  = data.filter(s => s.state === 'ACTIVE').length;
-        const hitRate = wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(0) : '--';
-        const avgRet  = data.length > 0 ? (data.reduce((sum, s) => sum + parseFloat(s.return || 0), 0) / data.length).toFixed(2) : '--';
-        const summaryHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.5rem">${
+        // ── Win-Rate Summary Strip — from full filtered dataset via response.summary ──
+        const summ     = response?.summary || {};
+        const fWins    = summ.wins    ?? 0;   // closed signals with positive final_roi
+        const fLosses  = summ.losses  ?? 0;   // closed signals with negative final_roi
+        const fClosed  = summ.closed  ?? 0;
+        const fActive  = summ.active  ?? data.length;
+        const fAvgRoi  = summ.avg_roi != null ? summ.avg_roi : null;
+        const fTotal   = summ.total   ?? pageInfo?.total ?? 0;
+        const fHitRate = fWins + fLosses > 0 ? ((fWins / (fWins + fLosses)) * 100).toFixed(0) : '--';
+        // Current-page live ROI states (supplement — can't compute for all 1900+ from frontend)
+        const pWins    = summ.page_wins   ?? data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
+        const pLosses  = summ.page_losses ?? data.filter(s => s.state === 'STOPPED').length;
+
+        const summaryHTML = `<div style="margin-bottom:0.5rem">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:0.4rem">${
             [
-                ['WIN RATE', hitRate + (hitRate !== '--' ? '%' : ''), hitRate >= 50 ? '#22c55e' : '#ef4444'],
-                ['WINS', wins, '#22c55e'],
-                ['LOSSES', losses, '#ef4444'],
-                ['ACTIVE', active, '#60a5fa'],
-                ['AVG RETURN', (avgRet >= 0 ? '+' : '') + avgRet + '%', avgRet >= 0 ? '#22c55e' : '#ef4444']
+                ['WIN RATE',   fHitRate !== '--' ? fHitRate + '%' : '--',  parseFloat(fHitRate) >= 50 ? '#22c55e' : '#ef4444'],
+                ['WINS ✓',     fWins,    '#22c55e'],
+                ['LOSSES ✗',   fLosses,  '#ef4444'],
+                ['CLOSED',     fClosed,  '#94a3b8'],
+                ['ACTIVE NOW', fActive,  '#60a5fa'],
+                ['AVG RETURN', fAvgRoi != null ? (fAvgRoi >= 0 ? '+' : '') + fAvgRoi + '%' : '--', fAvgRoi != null && fAvgRoi >= 0 ? '#22c55e' : '#ef4444'],
             ].map(([label, val, color]) =>
                 `<div class="glass-card" style="padding:0.75rem 1rem;text-align:center"><div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${label}</div><div style="font-size:1.2rem;font-weight:800;color:${color}">${val}</div></div>`
             ).join('')
-        }</div>`;
+          }</div>
+          <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">📊 Wins/Losses = closed signals with recorded exit ROI &nbsp;·&nbsp; Page ROI states (live price): <span style="color:#22c55e">${pWins} wins</span> / <span style="color:#ef4444">${pLosses} losses</span> this page</div>
+        </div>`;
 
         function buildThead() {
             function aTH(col, label, align='left') {
@@ -791,7 +810,19 @@ async function renderSignalArchive(tabs = null) {
                     <span style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page||1} OF ${pageInfo?.pages||1} &bull; ${pageInfo?.total||0} TOTAL)</span>
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <button class="btv2-export-btn" onclick="_archiveExportPage()"><span class="material-symbols-outlined" style="font-size:13px">download</span> EXPORT PAGE CSV</button>
-                        <a href="/api/export?type=signals" download class="btv2-export-btn"><span class="material-symbols-outlined" style="font-size:13px">file_download</span> EXPORT ALL</a>
+                        <a href="${(()=>{
+                            const t=document.getElementById('filter-ticker')?.value.trim()||'';
+                            const ty=document.getElementById('filter-type')?.value||'';
+                            const sv=document.getElementById('filter-severity')?.value||'';
+                            const dv=document.getElementById('filter-direction')?.value||'';
+                            const dy=document.getElementById('filter-days')?.value||'365';
+                            let u='/api/export?type=signals&days='+dy;
+                            if(t) u+='&ticker='+encodeURIComponent(t.toUpperCase());
+                            if(ty) u+='&sigtype='+encodeURIComponent(ty);
+                            if(sv) u+='&severity='+encodeURIComponent(sv);
+                            if(dv) u+='&direction='+encodeURIComponent(dv);
+                            return u;
+                        })()}" download class="btv2-export-btn"><span class="material-symbols-outlined" style="font-size:13px">file_download</span> EXPORT ALL (${fTotal})</a>
                         <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage-1>0?currentPage-1:1})" ${currentPage===1?'disabled style="opacity:0.5"':''}>PREVIOUS</button>
                         <div style="font-size:0.75rem;color:var(--text-dim)">PAGE ${pageInfo?.page||1} OF ${pageInfo?.pages||1}</div>
                         <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage+1})" ${(pageInfo&&currentPage>=pageInfo.pages)?'disabled style="opacity:0.5"':''}>NEXT</button>

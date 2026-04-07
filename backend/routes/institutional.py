@@ -3855,25 +3855,58 @@ class InstitutionalRoutesMixin:
             self.send_json({'total_signals': 0, 'win_rate': 0, 'avg_return': 0, 'error': str(e)})
 
     def handle_export(self):
-        """Feature 5: Export a JSON snapshot or CSV of current live data."""
+        """Export CSV or JSON snapshot. signals export honours active filter params."""
         try:
             import csv
             import io
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             exp_type = query.get('type', ['json'])[0]
             if exp_type == 'signals':
+                # Read same filter params as /signal-history so EXPORT ALL = filtered set
+                f_ticker    = query.get('ticker',    [None])[0]
+                f_type      = query.get('sigtype',   [None])[0]  # 'type' clashes with exp_type
+                f_severity  = query.get('severity',  [None])[0]
+                f_direction = query.get('direction', [None])[0]
+                f_days      = int(query.get('days',  [365])[0])  # default 1yr for full export
+
+                base_where  = "WHERE ah.timestamp > datetime('now', ?)"
+                params      = [f'-{f_days} day']
+                if f_ticker:
+                    base_where += ' AND ah.ticker = ?'; params.append(f_ticker.upper())
+                if f_type:
+                    base_where += ' AND ah.type = ?'; params.append(f_type)
+                if f_severity:
+                    base_where += ' AND LOWER(ah.severity) = ?'; params.append(f_severity.lower())
+                if f_direction:
+                    if f_direction == 'bullish':
+                        base_where += " AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
+                    elif f_direction == 'bearish':
+                        base_where += " AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
+
                 conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
-                c.execute('SELECT id, type, ticker, message, severity, price, timestamp FROM alerts_history ORDER BY timestamp DESC')
+                c.execute(f'''
+                    SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
+                           ah.price, ah.timestamp,
+                           COALESCE(ah.status,"active") as status,
+                           ah.closed_at, ah.exit_price, ah.final_roi
+                    FROM alerts_history ah
+                    {base_where}
+                    ORDER BY ah.timestamp DESC
+                ''', params)
                 rows = c.fetchall()
                 conn.close()
                 output = io.StringIO()
                 writer = csv.writer(output)
-                writer.writerow(['ID', 'Type', 'Ticker', 'Message', 'Severity', 'Entry_Price', 'Timestamp'])
+                writer.writerow(['ID','Type','Ticker','Message','Severity','Entry_Price',
+                                 'Timestamp','Status','Closed_At','Exit_Price','Final_ROI_%'])
                 writer.writerows(rows)
+                fname = f'alphasignal_signals_{datetime.now().strftime("%Y%m%d")}'
+                if f_ticker: fname += f'_{f_ticker}'
+                fname += '.csv'
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/csv')
-                self.send_header('Content-Disposition', f'''attachment; filename="alphasignal_signals_{datetime.now().strftime('%Y%m%d')}.csv"''')
+                self.send_header('Content-Disposition', f'attachment; filename="{fname}"')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(output.getvalue().encode('utf-8'))
@@ -3981,6 +4014,22 @@ class InstitutionalRoutesMixin:
             c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]
 
+            # Summary counts across FULL filtered dataset (not just current page)
+            c.execute(f"""
+                SELECT
+                    SUM(CASE WHEN COALESCE(ah.status,'active')='closed' THEN 1 ELSE 0 END) as closed_count,
+                    SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) > 0 THEN 1 ELSE 0 END) as closed_wins,
+                    SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) < 0 THEN 1 ELSE 0 END) as closed_losses,
+                    AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi
+                FROM alerts_history ah {base_where}
+            """, count_params)
+            summary_row = c.fetchone() or (0, 0, 0, None)
+            full_closed     = int(summary_row[0] or 0)
+            full_wins       = int(summary_row[1] or 0)
+            full_losses     = int(summary_row[2] or 0)
+            full_avg_roi    = round(float(summary_row[3]), 2) if summary_row[3] is not None else None
+            full_active     = total_count - full_closed
+
             # Phase 1: fetch signal rows (no price join — we build a unified price map instead)
             sql = f"""
                 SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
@@ -4087,6 +4136,13 @@ class InstitutionalRoutesMixin:
                 else:
                     curr_p = entry_p  # no price data at all — show entry as placeholder
 
+                from datetime import datetime as _dt2, timezone
+                try:
+                    sig_ts = _dt2.fromisoformat(ts.replace('Z',''))
+                    age_days = (datetime.utcnow() - sig_ts).days
+                except:
+                    age_days = None
+
                 results.append({
                     'id':        row_id,
                     'type':      sig_type,
@@ -4098,9 +4154,14 @@ class InstitutionalRoutesMixin:
                     'return':    roi,
                     'state':     state,
                     'timestamp': ts,
+                    'age_days':  age_days,
                     'closed_at': closed_at,
                 })
 
+
+            # Page-level win rate (quick supplement for current page ROI states)
+            page_wins   = sum(1 for r in results if r['state'] in ('HIT_TP1','HIT_TP2'))
+            page_losses = sum(1 for r in results if r['state'] == 'STOPPED')
 
             response = {
                 'data': results,
@@ -4109,6 +4170,16 @@ class InstitutionalRoutesMixin:
                     'limit': limit,
                     'total': total_count,
                     'pages': math.ceil(total_count / limit) if limit > 0 else 1
+                },
+                'summary': {
+                    'total':      total_count,
+                    'closed':     full_closed,
+                    'active':     full_active,
+                    'wins':       full_wins,       # closed signals with positive final_roi
+                    'losses':     full_losses,     # closed signals with negative final_roi
+                    'avg_roi':    full_avg_roi,    # avg final_roi across closed signals
+                    'page_wins':  page_wins,       # current-page ROI-based wins
+                    'page_losses': page_losses,    # current-page ROI-based losses
                 }
             }
             # ── Store in cache ───────────────────────────────────────────
