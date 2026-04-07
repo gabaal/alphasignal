@@ -795,3 +795,18 @@ async function renderRegime(tabs = null) {
 let currentAdvTab = 'overview';
 
 
+
+// Shared quick-add helper (defined here in case signals.js hasn't loaded yet)
+window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
+    if (!ticker) return;
+    try {
+        const res = await fetchAPI('/watchlist', 'POST', { ticker: ticker.toUpperCase(), note: 'Quick add from signal feed' });
+        if (res && res.success) {
+            showToast('WATCHLIST', ticker.toUpperCase() + ' added to your watchlist', 'success');
+        } else {
+            showToast('WATCHLIST', res && res.error ? res.error : 'Could not add ' + ticker, 'warning');
+        }
+    } catch(e) {
+        showToast('ERROR', 'Watchlist add failed: ' + e.message, 'alert');
+    }
+};
