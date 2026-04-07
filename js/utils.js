@@ -584,7 +584,19 @@ function updateScroller(signals) {
 }
 
 function formatPrice(val) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+    if (val == null || isNaN(val)) return '$—';
+    const abs = Math.abs(val);
+    let decimals;
+    if      (abs === 0)      decimals = 2;
+    else if (abs >= 1)       decimals = 2;
+    else if (abs >= 0.01)    decimals = 4;
+    else if (abs >= 0.0001)  decimals = 6;
+    else                     decimals = 8;
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency', currency: 'USD',
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    }).format(val);
 }
 
 function getSentimentLabel(score) {
