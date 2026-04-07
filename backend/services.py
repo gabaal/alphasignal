@@ -524,7 +524,105 @@ class HarvestService:
             except Exception as e:
                 print(f"Snapshot error: {e}")
 
+            # Phase 9: Auto-close signals that have hit TP2 or Stop Loss
+            try:
+                self.auto_close_signals()
+            except Exception as e:
+                print(f"Auto-close error: {e}")
+
             time.sleep(self.interval)
+    def auto_close_signals(self):
+        """Auto-close active signals that have hit TP2 (+10%) or Stop Loss (-3%).
+        TP1 (+5%) signals remain open — still in play but not at full target.
+        Thresholds match the state labels computed in handle_signal_history."""
+        BULLISH = {
+            'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
+            'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
+            'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
+            'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
+        }
+        TP2_THRESHOLD = 10.0   # % gain → auto-close win
+        SL_THRESHOLD  = -3.0   # % loss → auto-close loss
+
+        conn = sqlite3.connect(DB_PATH)
+        c    = conn.cursor()
+        try:
+            # Fetch all active signals (status IS NULL or 'active')
+            c.execute("""
+                SELECT id, type, ticker, price, user_email
+                FROM alerts_history
+                WHERE COALESCE(status,'active') = 'active'
+                  AND price IS NOT NULL AND price > 0
+            """)
+            active_rows = c.fetchall()
+            if not active_rows:
+                conn.close(); return
+
+            # Build price map from most recent market_ticks (written this cycle)
+            unique_tickers = list({r[2] for r in active_rows})
+            price_map = {}
+            for t in unique_tickers:
+                c.execute(
+                    "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
+                    (t,)
+                )
+                row = c.fetchone()
+                if row and row[0]:
+                    price_map[t] = float(row[0])
+
+            # yfinance fallback for any ticker still missing
+            missing = [t for t in unique_tickers if t not in price_map]
+            if missing:
+                try:
+                    for t in missing:
+                        candidates = [t] + ([t + '-USD'] if '-' not in t else [])
+                        for sym in candidates:
+                            try:
+                                info = yf.Ticker(sym).fast_info
+                                px = info.get('last_price') or info.get('lastPrice')
+                                if px and float(px) > 0:
+                                    price_map[t] = round(float(px), 10); break
+                            except: continue
+                except Exception as e:
+                    print(f"[AutoClose] yfinance fallback error: {e}")
+
+            now_ts  = datetime.utcnow().isoformat()
+            closed  = 0
+            for sig_id, sig_type, ticker, entry_p, user_email in active_rows:
+                curr_p = price_map.get(ticker)
+                if not curr_p or not entry_p or entry_p <= 0:
+                    continue
+                direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                roi = direction * (curr_p - entry_p) / entry_p * 100
+
+                if roi >= TP2_THRESHOLD or roi <= SL_THRESHOLD:
+                    final_roi = round(roi, 2)
+                    exit_px   = round(curr_p, 10)
+                    c.execute(
+                        "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                        (now_ts, exit_px, final_roi, sig_id)
+                    )
+                    reason = 'TP2 HIT' if roi >= TP2_THRESHOLD else 'STOP LOSS'
+                    print(f"[AutoClose] Signal #{sig_id} {ticker} {reason}: ROI={final_roi:+.2f}% entry={entry_p} exit={exit_px}")
+                    closed += 1
+
+            if closed:
+                conn.commit()
+                # Bust signal history cache so the archive reflects new state immediately
+                try:
+                    from .routes.institutional import InstitutionalRoutesMixin
+                    InstitutionalRoutesMixin._sig_history_cache.clear()
+                except Exception:
+                    pass
+                print(f"[AutoClose] {closed} signal(s) auto-closed this cycle.")
+            else:
+                print(f"[AutoClose] No signals hit TP2 or SL this cycle ({len(active_rows)} active).")
+        except Exception as e:
+            print(f"[AutoClose] Error: {e}")
+            conn.rollback()
+        finally:
+            conn.close()
+
     def generate_alpha_alerts(self, data):
         """Phase 8: Predict Alpha signals using ML engine using high-efficiency batch data."""
         if data is None or data.empty: return
