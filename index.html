@@ -651,6 +651,22 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <!-- views/ modules (split from views.js) — hub-nav must load first -->
     <script src="js/views/hub-nav.js?v=2.34" defer></script>
     <script src="js/views/global-markets.js?v=2.34" defer></script>
+    <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
+    <script>
+    window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
+        if (!ticker) return;
+        try {
+            const res = await fetchAPI('/watchlist', 'POST', { ticker: ticker.toUpperCase(), note: 'Quick add from signal feed' });
+            if (res && res.success) {
+                showToast('WATCHLIST', ticker.toUpperCase() + ' added to your watchlist', 'success');
+            } else {
+                showToast('WATCHLIST', res && res.error ? res.error : 'Could not add ' + ticker, 'warning');
+            }
+        } catch(e) {
+            showToast('ERROR', 'Watchlist add failed: ' + e.message, 'alert');
+        }
+    };
+    </script>
     <script src="js/views/signals.js?v=2.37" defer></script>
     <script src="js/views/performance.js?v=2.34" defer></script>
     <script src="js/views/macro-intel.js?v=2.34" defer></script>
