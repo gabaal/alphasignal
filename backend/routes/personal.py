@@ -12,22 +12,18 @@ class PersonalRoutesMixin:
             user_id = auth_info['user_id']
             rows = SupabaseClient.query('watchlist', filters=f'user_id=eq.{user_id}&order=added_at.desc')
             items = rows or []
-            # Enrich each item with the current live price from the in-memory price cache.
-            # This means the frontend doesn't need window.livePrices to be pre-populated
-            # (e.g. when the user navigates directly to My Terminal).
+
+            # ── Pass 1: price cache lookup (fast, in-memory, always safe) ──────
+            missing = []   # items that still need a live price after cache lookup
             try:
                 from backend.routes.institutional import InstitutionalRoutesMixin as _IRM
                 import time as _time
-                import yfinance as _yf
                 _cache = _IRM._price_cache
                 _ttl   = _IRM._PRICE_CACHE_TTL
                 _now   = _time.time()
                 for item in items:
                     t = (item.get('ticker') or '').upper()
-                    # 1) Check price cache (crypto universe tickers - fast, in-memory)
-                    candidates = [t]
-                    if t.endswith('-USD'): candidates.append(t[:-4])
-                    else:                  candidates.append(t + '-USD')
+                    candidates = [t, t[:-4] if t.endswith('-USD') else t + '-USD']
                     found = False
                     for sym in candidates:
                         entry = _cache.get(sym)
@@ -35,19 +31,44 @@ class PersonalRoutesMixin:
                             item['live_price'] = entry.get('price')
                             found = True
                             break
-                    # 2) Cache miss fallback: yfinance fast_info (handles equities like RIOT, WULF)
                     if not found:
-                        for sym in candidates:
+                        missing.append(item)
+            except Exception:
+                pass  # cache unavailable — will try yfinance for all items
+
+            # ── Pass 2: yfinance fallback for cache-miss tickers (parallel) ─────
+            # Runs in a thread pool so it never blocks the cache-hit items above.
+            if missing:
+                try:
+                    import yfinance as _yf
+                    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+                    def _fetch_price(item):
+                        t = (item.get('ticker') or '').upper()
+                        for sym in [t, t[:-4] if t.endswith('-USD') else t + '-USD']:
                             try:
-                                info = _yf.Ticker(sym).fast_info
-                                px = (getattr(info,'last_price',None) or getattr(info,'regular_market_price',None) or getattr(info,'previous_close',None))
+                                fi = _yf.Ticker(sym).fast_info
+                                px = (getattr(fi, 'last_price', None)
+                                      or getattr(fi, 'regular_market_price', None)
+                                      or getattr(fi, 'previous_close', None))
                                 if px and float(px) > 0:
-                                    item['live_price'] = round(float(px), 8)
-                                    break
+                                    return item, round(float(px), 8)
                             except Exception:
                                 continue
-            except Exception:
-                pass  # Non-blocking — items still returned without live_price
+                        return item, None
+
+                    with ThreadPoolExecutor(max_workers=min(len(missing), 5)) as ex:
+                        futures = {ex.submit(_fetch_price, it): it for it in missing}
+                        for fut in as_completed(futures, timeout=4):
+                            try:
+                                it, px = fut.result()
+                                if px:
+                                    it['live_price'] = px
+                            except Exception:
+                                pass
+                except Exception:
+                    pass  # yfinance unavailable — items returned without live_price
+
             self.send_json(items)
         except Exception as e:
             self.send_json({'error': str(e)})
