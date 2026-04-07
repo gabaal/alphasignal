@@ -36,7 +36,10 @@ class InstitutionalRoutesMixin:
         return None
 
     def handle_signal_permalink(self, signal_id):
-        """Public: GET /api/signal/{id} - returns a single alert record for permalink sharing."""
+        """Public: GET /api/signal-permalink?id={id} — returns a historical snapshot from alerts_history.
+        Returns the same shape as handle_live_signal_permalink so the frontend renders identically,
+        but with the original entry price, direction, and timestamp frozen at signal-fire time.
+        """
         try:
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
@@ -50,8 +53,48 @@ class InstitutionalRoutesMixin:
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': 'Signal not found'}).encode())
                 return
-            self.send_json(dict(row))
+
+            raw = dict(row)
+            ticker  = raw.get('ticker', 'UNKNOWN')
+            sig_type = raw.get('type', '')
+
+            # Normalise direction: prefer stored; fall back to parsing type string
+            direction = raw.get('direction') or (
+                'LONG' if any(k in sig_type for k in ('BULL', 'OVERSOLD', 'ML_ALPHA'))
+                else 'SHORT' if any(k in sig_type for k in ('BEAR', 'OVERBOUGHT'))
+                else 'NEUTRAL'
+            )
+
+            from backend.services import get_ticker_name, get_sentiment
+            from backend.database import UNIVERSE
+            category = raw.get('category') or next(
+                (cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER'
+            )
+
+            payload = {
+                # Identification
+                'id':            raw['id'],
+                'ticker':        ticker,
+                'name':          get_ticker_name(ticker),
+                'category':      category,
+                # Snapshot-time data (frozen)
+                'price':         raw.get('price') or 0.0,
+                'direction':     direction,
+                'signal_type':   sig_type,
+                'message':       raw.get('message', ''),
+                'severity':      raw.get('severity', 'medium'),
+                'fired_at':      raw.get('timestamp', ''),
+                # Optional stored enrichment
+                'zScore':        raw.get('z_score') or 0.0,
+                'alpha':         raw.get('alpha') or 0.0,
+                'btcCorrelation': raw.get('btc_correlation') or 0.0,
+                'sentiment':     get_sentiment(ticker.split('-')[0]) if not raw.get('sentiment') else raw['sentiment'],
+                # Signal metadata flag so frontend can render "snapshot" banner
+                'is_snapshot':   True,
+            }
+            self.send_json(payload)
         except Exception as e:
+            print(f'[SignalPermalink/ID] Error for id={signal_id}: {e}')
             self.send_json({'error': str(e)})
 
     def handle_live_signal_permalink(self):
@@ -3157,16 +3200,22 @@ class InstitutionalRoutesMixin:
             self.send_json([])
 
     def handle_alerts(self):
-        """Return historical alerts newest-first; mark as read for authenticated user."""
+        """Return historical alerts newest-first; supports ?ticker= and ?limit= filters."""
         try:
             auth = self.is_authenticated()
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            filter_ticker = qs.get('ticker', [None])[0]
+            limit = int(qs.get('limit', ['50'])[0])
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            # Fetch latest 50 alerts, newest first
-            c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
-                         FROM alerts_history
-                         ORDER BY timestamp DESC
-                         LIMIT 50''')
+            if filter_ticker:
+                c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
+                             FROM alerts_history WHERE ticker = ?
+                             ORDER BY timestamp DESC LIMIT ?''', (filter_ticker, limit))
+            else:
+                c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
+                             FROM alerts_history
+                             ORDER BY timestamp DESC LIMIT ?''', (limit,))
             rows = c.fetchall()
 
             alerts = []
@@ -3182,7 +3231,7 @@ class InstitutionalRoutesMixin:
                     'price': price
                 })
 
-            if not alerts:
+            if not alerts and not filter_ticker:
                 alerts.append({
                     'type': 'SYSTEM',
                     'ticker': 'STARTUP',
@@ -4039,6 +4088,26 @@ class InstitutionalRoutesMixin:
             self.send_json({'status': 'success', 'matrix': formatted, 'tickers': [t.split('-')[0] for t in tickers]})
         except Exception as e:
             self.send_error_json(f'Correlation Error: {e}')
+
+    def handle_signal_permalink(self, signal_id):
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT id, type, ticker, message, severity, price, timestamp FROM alerts_history WHERE id = ?", (signal_id,))
+            row = c.fetchone()
+            if not row:
+                return self.send_error_json('Signal not found')
+            
+            # Return normalized shape
+            self.send_json({
+                'id': row[0], 'type': row[1], 'ticker': row[2], 
+                'message': row[3], 'severity': row[4], 'price': row[5], 
+                'timestamp': row[6]
+            })
+        except Exception as e:
+            self.send_error_json(f'Permalink Error: {e}')
+        finally:
+            conn.close()
 
     def handle_portfolio_performance(self):
         try:

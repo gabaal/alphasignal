@@ -138,7 +138,8 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
         pt.build_payload([keyword], timeframe='now 7-d')
         df = pt.interest_over_time()
         if not df.empty and keyword in df.columns:
-            result = {'value': int(df[keyword].iloc[-1]), 'source': 'google_trends'}
+            weekly_avg = int(round(df[keyword].mean()))
+            result = {'value': weekly_avg, 'source': 'google_trends'}
             _set(cache_key, result, ttl=3600)   # 1h — matches Google Trends update cadence
             return result
     except Exception as e:

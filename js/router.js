@@ -42,7 +42,14 @@ function switchView(view, pushState = true) {
     updateSEOMeta(view);
 
     if (pushState && view) {
-        window.history.pushState({ view: view }, '', `?view=${view}`);
+        // For signal permalink, preserve all query params (e.g. ?view=signal&ticker=BTC-USD)
+        if (view === 'signal') {
+            const existing = new URLSearchParams(window.location.search);
+            existing.set('view', 'signal');
+            window.history.pushState({ view }, '', '?' + existing.toString());
+        } else {
+            window.history.pushState({ view }, '', `?view=${view}`);
+        }
     }
 
     if (viewMap[view]) {
@@ -205,8 +212,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const initialView = viewMap[urlParams.get('view')] ? urlParams.get('view') : 'home';
     
-    // Replace state on initial load rather than pushing
-    window.history.replaceState({ view: initialView }, '', `?view=${initialView}`);
+    // Replace state on initial load — preserve ticker param if view=signal
+    if (initialView === 'signal') {
+        const existing = new URLSearchParams(window.location.search);
+        existing.set('view', 'signal');
+        window.history.replaceState({ view: initialView }, '', '?' + existing.toString());
+    } else {
+        window.history.replaceState({ view: initialView }, '', `?view=${initialView}`);
+    }
     switchView(initialView, false);
     
     startCountdown(); 

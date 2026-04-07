@@ -573,9 +573,19 @@ class HarvestService:
                     # Anti-spam: Check if we alerted this ticker recently (last 1h)
                     c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND timestamp > datetime('now', '-1 hours')", (ticker,))
                     if not c.fetchone():
+                        # Compute snapshot fields for permalink
+                        _direction = 'LONG' if pred_return > 0 else 'SHORT'
+                        _z = round(pred_return * 100, 2)  # use predicted return as z-proxy
+                        _alpha = round(pred_return * 100, 2)
+                        _cat = next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
                         # Record Signal in History
-                        c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
-                                 (signal_type, ticker, message, severity, curr_p, datetime.now().isoformat()))
+                        c.execute(
+                            "INSERT INTO alerts_history "
+                            "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category) "
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            (signal_type, ticker, message, severity, curr_p,
+                             datetime.now().isoformat(), _z, _alpha, _direction, _cat)
+                        )
 
                         # Record Prediction Metadata
                         c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
@@ -707,13 +717,20 @@ class HarvestService:
                         sig_type = 'VOLUME_SPIKE'
                         message  = f'Volume 2σ above 20-day mean on {ticker}. Institutional activity detected.'
                         severity = 'medium'
-
                     if sig_type:
                         c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND type = ? AND timestamp > datetime('now', '-2 hours')", (ticker, sig_type))
                         if not c.fetchone():
-                            c.execute("INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp) VALUES (?,?,?,?,?,?)",
-                                      (sig_type, ticker, message, severity, curr_p, datetime.now().isoformat()))
+                            _dir = 'LONG' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'SHORT' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
+                            _cat = next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
+                            c.execute(
+                                "INSERT INTO alerts_history "
+                                "(type, ticker, message, severity, price, timestamp, direction, category) "
+                                "VALUES (?,?,?,?,?,?,?,?)",
+                                (sig_type, ticker, message, severity, curr_p,
+                                 datetime.now().isoformat(), _dir, _cat)
+                            )
                             print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} (RSI={rsi:.1f})')
+
 
                             # Watchlist-targeted alerts (personalised)
                             threading.Thread(target=notify_watchlist_users,

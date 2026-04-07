@@ -198,6 +198,25 @@ def init_db():
     try:
         c.execute("ALTER TABLE alerts_history ADD COLUMN price REAL")
     except: pass
+    # Migration: Add snapshot fields for permalinks
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN z_score REAL")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN alpha REAL")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN direction TEXT")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN category TEXT")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN btc_correlation REAL")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN sentiment REAL")
+    except: pass
     
     c.execute('''CREATE TABLE IF NOT EXISTS tracked_tickers (
         ticker TEXT NOT NULL,

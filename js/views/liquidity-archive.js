@@ -24,8 +24,11 @@ async function renderLiquidityView(tabs = null) {
 
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Order Flow <span class="premium-badge">LIVE</span></h1>
-            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-order-flow')">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Order Flow <span class="premium-badge">LIVE</span></h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-order-flow')">
                 <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
             </button>
         </div>
@@ -538,7 +541,6 @@ async function renderSignalArchive(tabs = null) {
             <p>Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
         </div>
         ${tabs ? renderHubTabs('archive', tabs) : ''}
-            <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Signal Execution Archive</h2>
         <div id="archive-filters" class="glass-card" style="margin-bottom:1.5rem;padding:1.2rem;display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap">
             <!-- Ticker search -->
             <div style="display:flex;flex-direction:column;gap:4px">

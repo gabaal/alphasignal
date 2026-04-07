@@ -157,8 +157,9 @@ const viewMap = {
     'docs-command-center': renderDocsViewCommandCenter,
     'docs-daily-workflow': renderDocsViewDailyWorkflow,
     'signal': () => {
-        const id = new URLSearchParams(window.location.search).get('id');
-        renderSignalPermalink(id);
+        const params = new URLSearchParams(window.location.search);
+        const ticker = params.get('ticker') || params.get('id');
+        renderSignalPermalink(ticker);
     },
     'reset-password': renderResetPassword,
 };

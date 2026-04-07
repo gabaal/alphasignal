@@ -668,9 +668,12 @@ async function renderOptionsFlow(tabs = null) {
     if (!tabs) tabs = analyticsHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">ssid_chart</span>Options Flow <span class="premium-badge">LIVE</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-            <p>Real-time BTC &amp; ETH Deribit options data &mdash; Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">ssid_chart</span>Options Flow <span class="premium-badge">LIVE</span></h1>
+                <p>Real-time BTC &amp; ETH Deribit options data &mdash; Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('options', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1rem">Institutional Options Flow Scanner</h2>
@@ -915,9 +918,11 @@ async function renderAIRebalancerView(tabs = null) {
     if (!tabs) tabs = institutionalHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Institutional Hub</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">smart_toy</span>AI Rebalancer <span class="premium-badge">AI</span></h1>
-            <p>Max-Sharpe portfolio optimisation via Monte Carlo simulation across ML signal predictions. GPT-generated institutional memo.</p>
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Institutional Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">smart_toy</span>AI Rebalancer <span class="premium-badge">AI</span></h1>
+                <p>Max-Sharpe portfolio optimisation via Monte Carlo simulation across ML signal predictions. GPT-generated institutional memo.</p>
+            </div>
         </div>
         ${renderHubTabs('rebalancer', tabs)}
         <div id="ai-reb-top" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1.5rem">
@@ -1026,7 +1031,10 @@ async function renderMacroCalendar(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
-            <h2><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">event_note</span>Macro Event Calendar <span class="premium-badge">LIVE</span></h2>
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">event_note</span>Macro Event Calendar <span class="premium-badge">LIVE</span></h1>
+            </div>
             <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
         </div>
         ${renderHubTabs('macro-cal', tabs)}

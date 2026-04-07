@@ -1,11 +1,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Signal Permalink View  (?view=signal&ticker=BTC-USD)
-// Public shareable page: live vs signal price, AI thesis, Add to Watchlist
+// Signal Permalink View
+// Handles two modes:
+//   • ?view=signal&id=1234   → Historical snapshot (frozen at time of firing)
+//   • ?view=signal&ticker=X  → Live view (fresh data for that ticker)
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function renderSignalPermalink(id) {
-    // id can be a ticker (from the signals grid) or a numeric alert id (future)
-    const ticker = id || new URLSearchParams(window.location.search).get('ticker') || 'BTC-USD';
+    const params  = new URLSearchParams(window.location.search);
+    const alertId = params.get('id');
+    const ticker  = id || params.get('ticker') || 'BTC-USD';
+
+    const isSnapshotMode = !!alertId;
 
     appEl.innerHTML = `
         <div style="max-width:680px;margin:0 auto;padding:2rem 1rem">
@@ -23,7 +28,7 @@ async function renderSignalPermalink(id) {
                 border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;
                 margin-bottom:1.5rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">
                 <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
-                ALPHASIGNAL — LIVE SIGNAL PERMALINK
+                ${isSnapshotMode ? 'ALPHASIGNAL — SIGNAL SNAPSHOT' : 'ALPHASIGNAL — LIVE SIGNAL PERMALINK'}
             </div>
 
             <!-- Loading card -->
@@ -36,60 +41,97 @@ async function renderSignalPermalink(id) {
         </div>`;
 
     try {
-        // Fetch live signal data for this ticker
-        const [data, thesis] = await Promise.allSettled([
-            fetchAPI(`/signal-permalink?ticker=${encodeURIComponent(ticker)}`),
-            fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(ticker)}&signal=${ticker}&zscore=1.0`)
-        ]);
+        let sig = null;
+        let t   = null;
 
-        const sig = data.status === 'fulfilled' && data.value ? data.value : null;
-        const t   = thesis.status === 'fulfilled' && thesis.value?.thesis ? thesis.value.thesis : null;
+        if (isSnapshotMode) {
+            // ── Snapshot mode: fetch frozen historical record ──────────────
+            const [snapData, thesisData] = await Promise.allSettled([
+                fetchAPI(`/signal-permalink?id=${encodeURIComponent(alertId)}`),
+                fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(ticker)}&signal=LONG&zscore=1.0`)
+            ]);
+            sig = snapData.status === 'fulfilled' && snapData.value && !snapData.value.error
+                ? snapData.value : null;
+            t   = thesisData.status === 'fulfilled' && thesisData.value?.thesis
+                ? thesisData.value.thesis : null;
+        } else {
+            // ── Live mode: compute fresh signal for ticker ─────────────────
+            const [liveData, thesisData] = await Promise.allSettled([
+                fetchAPI(`/signal-permalink?ticker=${encodeURIComponent(ticker)}`),
+                fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(ticker)}&signal=${ticker}&zscore=1.0`)
+            ]);
+            sig = liveData.status === 'fulfilled' && liveData.value ? liveData.value : null;
+            t   = thesisData.status === 'fulfilled' && thesisData.value?.thesis
+                ? thesisData.value.thesis : null;
+        }
 
         if (!sig) {
             document.getElementById('permalink-card').innerHTML = `
-                <p style="color:var(--text-dim)">Signal data unavailable for <strong style="color:var(--accent)">${ticker}</strong>. The asset may not be in the tracked universe.</p>
+                <p style="color:var(--text-dim)">Signal data unavailable for <strong style="color:var(--accent)">${alertId || ticker}</strong>. The asset may not be in the tracked universe.</p>
                 <button class="intel-action-btn outline" style="margin-top:1rem" onclick="switchView('signals')">VIEW ALL SIGNALS</button>`;
             return;
         }
 
-        const dir        = sig.alpha >= 0 ? 'LONG' : 'SHORT';
-        const dirColor   = sig.alpha >= 0 ? '#22c55e' : '#ef4444';
-        const zColor     = Math.abs(sig.zScore) >= 1.75 ? '#ef4444' : Math.abs(sig.zScore) >= 1.0 ? '#fb923c' : Math.abs(sig.zScore) >= 0.5 ? '#7dd3fc' : '#94a3b8';
-        const sentLabel  = sig.sentiment > 0.1 ? 'BULLISH' : sig.sentiment < -0.1 ? 'BEARISH' : 'NEUTRAL';
-        const sentColor  = sig.sentiment > 0.1 ? '#22c55e' : sig.sentiment < -0.1 ? '#ef4444' : '#94a3b8';
-        const shareUrl   = `https://alphasignal.digital/?view=signal&ticker=${encodeURIComponent(ticker)}`;
-        const localUrl   = `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(ticker)}`;
-        const tweetText  = `🚨 AlphaSignal: $${ticker} ${dir} signal\n\n📊 Alpha: ${sig.alpha >= 0 ? '+' : ''}${sig.alpha.toFixed(2)}%\n⚡ Z-Score: ${sig.zScore.toFixed(2)}σ\n🧠 ${sentLabel}\n\nFull analysis:`;
+        const activeTicker = sig.ticker || ticker;
+        const dir          = sig.direction || (sig.alpha >= 0 ? 'LONG' : 'SHORT');
+        const dirColor     = dir === 'LONG' ? '#22c55e' : dir === 'SHORT' ? '#ef4444' : '#94a3b8';
+        const zColor       = Math.abs(sig.zScore) >= 1.75 ? '#ef4444' : Math.abs(sig.zScore) >= 1.0 ? '#fb923c' : Math.abs(sig.zScore) >= 0.5 ? '#7dd3fc' : '#94a3b8';
+        const sentLabel    = sig.sentiment > 0.1 ? 'BULLISH' : sig.sentiment < -0.1 ? 'BEARISH' : 'NEUTRAL';
+        const sentColor    = sig.sentiment > 0.1 ? '#22c55e' : sig.sentiment < -0.1 ? '#ef4444' : '#94a3b8';
+
+        // Share URL: always use the snapshot id if available so recipient sees the exact same signal
+        const shareUrl  = isSnapshotMode
+            ? `https://alphasignal.digital/?view=signal&id=${alertId}`
+            : `https://alphasignal.digital/?view=signal&ticker=${encodeURIComponent(activeTicker)}`;
+        const localUrl  = isSnapshotMode
+            ? `${window.location.origin}/?view=signal&id=${alertId}`
+            : `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(activeTicker)}`;
+        const tweetText = `🚨 AlphaSignal: $${activeTicker} ${dir} signal\n\n📊 Alpha: ${(sig.alpha >= 0 ? '+' : '')}${(sig.alpha || 0).toFixed(2)}%\n⚡ Z-Score: ${(sig.zScore || 0).toFixed(2)}σ\n🧠 ${sentLabel}\n\nFull analysis:`;
+
+        // Snapshot banner (only in snapshot mode)
+        const snapshotBanner = isSnapshotMode && sig.fired_at ? `
+            <div style="background:rgba(251,146,60,0.07);border:1px solid rgba(251,146,60,0.25);
+                border-radius:10px;padding:10px 14px;margin-bottom:1.25rem;
+                display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span class="material-symbols-outlined" style="font-size:16px;color:#fb923c">history</span>
+                <div>
+                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#fb923c">HISTORICAL SNAPSHOT</div>
+                    <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px">
+                        Signal fired: <strong style="color:var(--text)">${new Date(sig.fired_at).toLocaleString('en-GB', {dateStyle:'medium',timeStyle:'short'})}</strong>
+                        · Entry price: <strong style="color:var(--accent)">${formatPrice(sig.price)}</strong>
+                    </div>
+                </div>
+            </div>` : '';
 
         document.getElementById('permalink-card').innerHTML = `
+            ${snapshotBanner}
             <!-- Ticker hero -->
             <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
                 <div>
-                    <div style="font-size:2.5rem;font-weight:900;color:var(--accent);letter-spacing:-1px;line-height:1">${ticker}</div>
-                    <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;letter-spacing:1px">${sig.name || ticker}</div>
+                    <div style="font-size:2.5rem;font-weight:900;color:var(--accent);letter-spacing:-1px;line-height:1">${activeTicker}</div>
+                    <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;letter-spacing:1px">${sig.name || activeTicker}</div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
                         <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;
                             background:${dirColor}18;border:1px solid ${dirColor}44;color:${dirColor}">${dir}</span>
                         <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;
-                            background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);color:var(--accent)">${sig.category}</span>
+                            background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);color:var(--accent)">${sig.category || 'SIGNAL'}</span>
                         <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;
-                            background:rgba(148,163,184,0.1);color:var(--text-dim)">LIVE</span>
+                            background:rgba(148,163,184,0.1);color:var(--text-dim)">${isSnapshotMode ? 'SNAPSHOT' : 'LIVE'}</span>
                     </div>
                 </div>
                 <div style="text-align:right">
                     <div style="font-size:1.8rem;font-weight:900;color:white">${formatPrice(sig.price)}</div>
-                    <div style="font-size:0.85rem;font-weight:700;color:${sig.change >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">
-                        ${sig.change >= 0 ? '+' : ''}${sig.change.toFixed(2)}% 24h
-                    </div>
+                    ${sig.change != null ? `<div style="font-size:0.85rem;font-weight:700;color:${sig.change >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">
+                        ${sig.change >= 0 ? '+' : ''}${sig.change.toFixed(2)}% 24h</div>` : ''}
                 </div>
             </div>
 
             <!-- Key metrics grid -->
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
                 ${[
-                    ['Z-Score', `${sig.zScore >= 0 ? '+' : ''}${sig.zScore.toFixed(2)}σ`, zColor],
-                    ['Relative Alpha', `${sig.alpha >= 0 ? '+' : ''}${sig.alpha.toFixed(2)}%`, sig.alpha >= 0 ? '#22c55e' : '#ef4444'],
-                    ['BTC Correlation', sig.btcCorrelation.toFixed(2), '#7dd3fc'],
+                    ['Z-Score', `${(sig.zScore || 0) >= 0 ? '+' : ''}${(sig.zScore || 0).toFixed(2)}σ`, zColor],
+                    ['Relative Alpha', `${(sig.alpha || 0) >= 0 ? '+' : ''}${(sig.alpha || 0).toFixed(2)}%`, (sig.alpha || 0) >= 0 ? '#22c55e' : '#ef4444'],
+                    ['BTC Correlation', (sig.btcCorrelation || 0).toFixed(2), '#7dd3fc'],
                     ['Sentiment', sentLabel, sentColor],
                 ].map(([label, val, color]) => `
                     <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
@@ -99,12 +141,21 @@ async function renderSignalPermalink(id) {
                     </div>`).join('')}
             </div>
 
+            <!-- Signal message (snapshot only) -->
+            ${isSnapshotMode && sig.message ? `
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+                border-radius:12px;padding:1rem;margin-bottom:1.25rem;
+                font-size:0.78rem;color:var(--text-dim);line-height:1.6">
+                <div style="font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);margin-bottom:6px">SIGNAL TRIGGER</div>
+                ${sig.message}
+            </div>` : ''}
+
             <!-- AI Thesis -->
             <div style="background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);
                 border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.75rem">
                     <span class="material-symbols-outlined" style="font-size:16px;color:#8b5cf6">psychology</span>
-                    <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#8b5cf6">AI THESIS · ${ticker}</span>
+                    <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#8b5cf6">AI THESIS · ${activeTicker}</span>
                     <span style="font-size:0.55rem;color:rgba(139,92,246,0.5);margin-left:auto">GPT-4o-mini</span>
                 </div>
                 <div id="permalink-thesis" style="font-size:0.82rem;line-height:1.7;color:var(--text-dim)">
@@ -117,8 +168,7 @@ async function renderSignalPermalink(id) {
 
             <!-- Action buttons -->
             <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <!-- Add to Watchlist -->
-                <button onclick="addToWatchlist_quick('${ticker}')"
+                <button onclick="addToWatchlist_quick('${activeTicker}')"
                     style="flex:1;min-width:140px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);
                     color:#22c55e;padding:10px 16px;border-radius:10px;cursor:pointer;font-size:0.7rem;
                     font-weight:900;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:6px;
@@ -128,7 +178,6 @@ async function renderSignalPermalink(id) {
                     ADD TO WATCHLIST
                 </button>
 
-                <!-- Copy link -->
                 <button id="permalink-copy-btn" onclick="
                     navigator.clipboard.writeText('${shareUrl}').then(() => {
                         const b = document.getElementById('permalink-copy-btn');
@@ -145,7 +194,6 @@ async function renderSignalPermalink(id) {
                     COPY LINK
                 </button>
 
-                <!-- Share to X -->
                 <button onclick="window.open('https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}','_blank')"
                     style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
                     color:var(--text);padding:10px 14px;border-radius:10px;cursor:pointer;font-size:0.7rem;
@@ -156,7 +204,6 @@ async function renderSignalPermalink(id) {
                     SHARE
                 </button>
 
-                <!-- View all signals -->
                 <button onclick="switchView('signals')"
                     style="background:none;border:1px solid rgba(255,255,255,0.06);
                     color:var(--text-dim);padding:10px 14px;border-radius:10px;cursor:pointer;font-size:0.7rem;
@@ -168,21 +215,23 @@ async function renderSignalPermalink(id) {
                 </button>
             </div>
 
-            <!-- Footer disclaimer -->
+            <!-- Footer -->
             <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);
                 font-size:0.6rem;color:var(--text-dim);letter-spacing:0.5px;line-height:1.6">
                 AlphaSignal — Institutional Intelligence Terminal · alphasignal.digital<br>
-                Signal data is computed from live market feeds. Not financial advice.
+                ${isSnapshotMode
+                    ? 'This is a historical snapshot frozen at the time the signal fired. Current market conditions may differ.'
+                    : 'Signal data is computed from live market feeds. Not financial advice.'}
                 <a href="/?view=signals" style="color:var(--accent);margin-left:8px">View all live signals →</a>
             </div>
         `;
 
-        // Lazy-load thesis if it wasn't pre-fetched
+        // Lazy-load thesis if not yet available
         if (!t) {
             try {
-                const dir2 = sig.alpha >= 0 ? 'LONG' : 'SHORT';
-                const z2   = Math.abs(sig.zScore).toFixed(1);
-                const fresh = await fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(ticker)}&signal=${dir2}&zscore=${z2}`);
+                const dir2  = dir;
+                const z2    = Math.abs(sig.zScore || 0).toFixed(1);
+                const fresh = await fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(activeTicker)}&signal=${dir2}&zscore=${z2}`);
                 const thesisEl = document.getElementById('permalink-thesis');
                 if (thesisEl && fresh?.thesis) thesisEl.textContent = fresh.thesis;
                 else if (thesisEl) thesisEl.textContent = 'Thesis generation unavailable — check AI engine configuration.';
@@ -196,21 +245,38 @@ async function renderSignalPermalink(id) {
     }
 }
 
-// ── copySignalPermalink: called from signal card share button ─────────────────
-function copySignalPermalink(ticker, event) {
+// ── copySignalPermalink ───────────────────────────────────────────────────────
+// Looks up the most recent alerts_history id for this ticker, then copies a
+// snapshot permalink (?view=signal&id=NNN) so the recipient sees the exact
+// same signal that fired — not today's live data.
+async function copySignalPermalink(ticker, event) {
     if (event) event.stopPropagation();
-    const url = `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(ticker)}`;
-    navigator.clipboard.writeText(url).then(() => {
-        showToast('LINK COPIED', `Permalink for ${ticker} copied to clipboard.`, 'success');
-    }).catch(() => {
-        // Fallback for non-HTTPS
-        const ta = document.createElement('textarea');
-        ta.value = url;
-        ta.style.cssText = 'position:fixed;opacity:0';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast('LINK COPIED', `Permalink for ${ticker} copied to clipboard.`, 'success');
-    });
+
+    try {
+        // Try to get the latest DB id for this ticker's most recent alert
+        const data = await fetchAPI(`/alerts?ticker=${encodeURIComponent(ticker)}&limit=1`);
+        const id   = Array.isArray(data) && data.length > 0 ? data[0].id : null;
+
+        const url = id
+            ? `${window.location.origin}/?view=signal&id=${id}`
+            : `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(ticker)}`;
+
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('LINK COPIED', `Snapshot permalink for ${ticker} copied to clipboard.`, 'success');
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = url;
+            ta.style.cssText = 'position:fixed;opacity:0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('LINK COPIED', `Snapshot permalink for ${ticker} copied to clipboard.`, 'success');
+        });
+    } catch (_) {
+        // Fallback to ticker-based live link
+        const url = `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(ticker)}`;
+        navigator.clipboard.writeText(url).catch(() => {});
+        showToast('LINK COPIED', `Live permalink for ${ticker} copied to clipboard.`, 'success');
+    }
 }
