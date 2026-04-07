@@ -314,7 +314,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_response(401); self.end_headers(); return
                 try:
                     sig_id = int(path.split('/')[3])
-                    conn = get_db_connection()
+                    conn = sqlite3.connect(DB_PATH)
                     c = conn.cursor()
                     from datetime import datetime as _dt
                     c.execute("UPDATE alerts_history SET status='closed', closed_at=? WHERE id=?",
@@ -332,7 +332,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_response(401); self.end_headers(); return
                 try:
                     sig_id = int(path.split('/')[3])
-                    conn = get_db_connection()
+                    conn = sqlite3.connect(DB_PATH)
                     c = conn.cursor()
                     c.execute("UPDATE alerts_history SET status='active', closed_at=NULL WHERE id=?", (sig_id,))
                     conn.commit(); conn.close()
