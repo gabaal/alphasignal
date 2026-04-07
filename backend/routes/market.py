@@ -411,22 +411,36 @@ class MarketRoutesMixin:
             self.send_json({'error': 'ETF Flows unavailable', 'labels': [], 'datasets': [], 'cumulative': []})
 
     def handle_signal_density(self):
-        """Return 30-day daily signal firing counts from alerts_history."""
+        """Return 30-day daily signal firing counts for the authenticated user."""
+        auth_info  = self.is_authenticated()
+        user_email = auth_info.get('email') if auth_info else None
         try:
             import datetime as dt
-            today = dt.date.today()
+            today  = dt.date.today()
             cutoff = (today - dt.timedelta(days=29)).isoformat()
 
             conn = sqlite3.connect(DB_PATH)
-            c = conn.cursor()
-            c.execute(
-                """SELECT DATE(timestamp) as day, COUNT(*) as cnt
-                   FROM alerts_history
-                   WHERE timestamp >= ?
-                   GROUP BY day
-                   ORDER BY day ASC""",
-                (cutoff,)
-            )
+            c    = conn.cursor()
+
+            if user_email:
+                c.execute(
+                    """SELECT DATE(timestamp) as day, COUNT(*) as cnt
+                       FROM alerts_history
+                       WHERE timestamp >= ? AND user_email = ?
+                       GROUP BY day
+                       ORDER BY day ASC""",
+                    (cutoff, user_email)
+                )
+            else:
+                # Unauthenticated — return empty counts, client will stay synthetic
+                c.execute(
+                    """SELECT DATE(timestamp) as day, COUNT(*) as cnt
+                       FROM alerts_history
+                       WHERE timestamp >= ? AND 1=0
+                       GROUP BY day""",
+                    (cutoff,)
+                )
+
             rows = c.fetchall()
             conn.close()
 
@@ -434,7 +448,7 @@ class MarketRoutesMixin:
             counts_map = {r[0]: r[1] for r in rows}
             labels, counts = [], []
             for i in range(30):
-                d = today - dt.timedelta(days=29 - i)
+                d     = today - dt.timedelta(days=29 - i)
                 d_str = d.strftime('%Y-%m-%d')
                 labels.append(f'D-{29 - i}')
                 counts.append(counts_map.get(d_str, 0))
@@ -444,12 +458,15 @@ class MarketRoutesMixin:
             if not has_real:
                 import hashlib as _hl
                 seed = int(_hl.md5(str(today).encode()).hexdigest()[:8], 16)
-                rng = np.random.default_rng(seed)
+                rng  = np.random.default_rng(seed)
                 counts = [int(v) for v in rng.integers(1, 8, 30)]
-                # Inject realistic cluster near end
                 counts[-6] = 9; counts[-5] = 22; counts[-4] = 17; counts[-3] = 11
 
-            self.send_json({'labels': labels, 'counts': counts, 'source': 'live' if has_real else 'synthetic'})
+            self.send_json({
+                'labels': labels,
+                'counts': counts,
+                'source': 'live' if has_real else 'synthetic'
+            })
         except Exception as e:
             print(f'[SignalDensity] {e}')
             self.send_json({'error': str(e)})
