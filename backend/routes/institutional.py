@@ -3976,15 +3976,44 @@ class InstitutionalRoutesMixin:
             c.execute(sql, params)
             rows = c.fetchall()
 
-            # Phase 2: build unified price_map {ticker: latest_price}
-            # One authoritative price per ticker — applied to every signal row for that ticker
-            unique_tickers = list({r[2] for r in rows if r[5]})  # tickers that have an entry price
-
-            # 2a. Per-ticker query from market_ticks (simple, reliable on all SQLite versions)
+            # Phase 2: build unified price_map {ticker: current_price}
+            # yfinance is PRIMARY (fresh live data); market_ticks fills gaps if yf fails
+            unique_tickers = list({r[2] for r in rows if r[5]})
             price_map = {}
-            for t in unique_tickers:
+
+            # 2a. Batch yfinance fetch for all unique tickers on this page
+            if unique_tickers:
+                try:
+                    import yfinance as yf
+                    yf_map = {t: (t if '-' in t else t + '-USD') for t in unique_tickers}
+                    yf_syms = list(set(yf_map.values()))
+                    if yf_syms:
+                        hist = yf.download(
+                            yf_syms if len(yf_syms) > 1 else yf_syms[0],
+                            period='1d', interval='1m',
+                            group_by='ticker' if len(yf_syms) > 1 else None,
+                            progress=False, auto_adjust=True
+                        )
+                        for orig_t, yf_sym in yf_map.items():
+                            try:
+                                if len(yf_syms) > 1:
+                                    col = hist[yf_sym]['Close'] if yf_sym in hist else None
+                                else:
+                                    col = hist['Close']
+                                if col is not None and not col.dropna().empty:
+                                    px = float(col.dropna().iloc[-1])
+                                    if px > 0:
+                                        price_map[orig_t] = round(px, 6)
+                            except Exception:
+                                pass
+                except Exception as e:
+                    print(f"[SignalHistory] yfinance error: {e}", flush=True)
+
+            # 2b. market_ticks fallback for any ticker yfinance couldn't price
+            still_missing = [t for t in unique_tickers if t not in price_map]
+            for t in still_missing:
                 c.execute(
-                    "SELECT price FROM market_ticks WHERE symbol=? ORDER BY timestamp DESC LIMIT 1",
+                    "SELECT price FROM market_ticks WHERE symbol=? AND price > 0 ORDER BY timestamp DESC LIMIT 1",
                     (t,)
                 )
                 mt_row = c.fetchone()
@@ -3992,34 +4021,6 @@ class InstitutionalRoutesMixin:
                     price_map[t] = float(mt_row[0])
 
             conn.close()
-
-            # 2b. For tickers still missing from price_map, batch-fetch via yfinance
-            still_missing = [t for t in unique_tickers if t not in price_map]
-            if still_missing:
-                try:
-                    import yfinance as yf
-                    # Normalise: add -USD suffix if ticker has no dash
-                    yf_map = {t: (t if '-' in t else t + '-USD') for t in still_missing}
-                    yf_syms = list(set(yf_map.values()))
-                    if yf_syms:
-                        hist = yf.download(yf_syms if len(yf_syms) > 1 else yf_syms[0],
-                                           period='1d', interval='1m',
-                                           group_by='ticker' if len(yf_syms) > 1 else None,
-                                           progress=False, threads=True)
-                        for orig_t, yf_sym in yf_map.items():
-                            try:
-                                if len(yf_syms) > 1:
-                                    col = hist[yf_sym]['Close'] if yf_sym in hist else None
-                                else:
-                                    col = hist['Close']
-                                if col is not None and not col.empty:
-                                    px = float(col.dropna().iloc[-1])
-                                    if px > 0:
-                                        price_map[orig_t] = round(px, 6)
-                            except Exception:
-                                pass
-                except Exception as e:
-                    print(f"[SignalHistory] yfinance batch error: {e}", flush=True)
 
             # Bullish signal types → positive ROI direction
             BULLISH = {'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
