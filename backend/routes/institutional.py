@@ -3977,24 +3977,19 @@ class InstitutionalRoutesMixin:
             rows = c.fetchall()
 
             # Phase 2: build unified price_map {ticker: latest_price}
-            # One price per ticker, applied consistently across all rows
-            unique_tickers = list({r[2] for r in rows if r[5]})  # tickers with an entry price
+            # One authoritative price per ticker — applied to every signal row for that ticker
+            unique_tickers = list({r[2] for r in rows if r[5]})  # tickers that have an entry price
 
-            # 2a. Batch-query market_ticks for the latest price per ticker
+            # 2a. Per-ticker query from market_ticks (simple, reliable on all SQLite versions)
             price_map = {}
-            if unique_tickers:
-                placeholders = ','.join('?' * len(unique_tickers))
-                c.execute(f"""
-                    SELECT symbol, price FROM market_ticks
-                    WHERE symbol IN ({placeholders})
-                    AND (symbol, timestamp) IN (
-                        SELECT symbol, MAX(timestamp) FROM market_ticks
-                        WHERE symbol IN ({placeholders})
-                        GROUP BY symbol
-                    )
-                """, unique_tickers * 2)
-                for sym, px in c.fetchall():
-                    price_map[sym] = float(px)
+            for t in unique_tickers:
+                c.execute(
+                    "SELECT price FROM market_ticks WHERE symbol=? ORDER BY timestamp DESC LIMIT 1",
+                    (t,)
+                )
+                mt_row = c.fetchone()
+                if mt_row and mt_row[0]:
+                    price_map[t] = float(mt_row[0])
 
             conn.close()
 
