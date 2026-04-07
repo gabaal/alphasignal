@@ -649,7 +649,20 @@ function pushSparklinePrice(price) {
     if (!price || isNaN(price)) return;
     _sparkPriceHistory.push(price);
     if (_sparkPriceHistory.length > 60) _sparkPriceHistory.shift();
-    // Live-update without re-fetching if chart already exists
+
+    // ── Live-update price text on every tick (not just every 5 min) ──
+    const priceEl  = document.getElementById('btc-spark-price');
+    const changeEl = document.getElementById('btc-spark-change');
+    if (priceEl) priceEl.textContent = '$' + Math.round(price).toLocaleString('en-US');
+    if (changeEl && _sparkPriceHistory.length >= 2) {
+        const open  = _sparkPriceHistory[0];
+        const pct   = ((price - open) / open * 100).toFixed(2);
+        const isUp  = price >= open;
+        changeEl.textContent  = (isUp ? '+' : '') + pct + '%';
+        changeEl.style.color  = isUp ? '#22c55e' : '#ef4444';
+    }
+
+    // Live-update canvas without re-fetching if chart already exists
     if (_btcSparkChartInst && _btcSparkChartInst.data) {
         try {
             const ds = _btcSparkChartInst.data.datasets[0];
@@ -663,6 +676,7 @@ function pushSparklinePrice(price) {
         } catch(e) {}
     }
 }
+
 
 async function initBTCSparkline(_retries) {
     const canvas = document.getElementById('btcSparklineChart');
