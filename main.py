@@ -138,12 +138,15 @@ class WebSocketServer:
         use_redis = hasattr(redis_client, 'connection_pool')  # Real redis.Redis has connection_pool
         while self.running:
             try:
+                import yfinance as yf
                 for sym, tick in tickers.items():
-                    data = CACHE.download(tick, period='1d', interval='1m', column='Close')
-                    if data is not None and not (hasattr(data, 'empty') and data.empty):
-                        val = data.iloc[-1]
-                        if hasattr(val, 'iloc'): val = val.iloc[0]
-                        LIVE_PRICES[sym] = round(float(val), 2)
+                    try:
+                        info = yf.Ticker(tick).fast_info
+                        px = info.get('last_price') or info.get('lastPrice')
+                        if px and float(px) > 0:
+                            LIVE_PRICES[sym] = round(float(px), 2)
+                    except Exception:
+                        pass
 
                 try:
                     conn = sqlite3.connect(DB_PATH)
