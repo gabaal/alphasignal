@@ -4065,19 +4065,38 @@ class InstitutionalRoutesMixin:
             full_avg_roi    = round(float(summary_row[3]), 2) if summary_row[3] is not None else None
             full_active     = total_count - full_closed
 
-            # Phase 1: fetch signal rows (no price join — we build a unified price map instead)
-            sql = f"""
-                SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
-                       ah.price, ah.timestamp,
-                       COALESCE(ah.status, 'active') AS status,
-                       ah.closed_at, ah.exit_price, ah.final_roi
-                FROM alerts_history ah
-                {base_where}
-                {order_clause}
-                LIMIT ? OFFSET ?
-            """
-            params.extend([limit, offset])
-            c.execute(sql, params)
+            # Phase 1: fetch signal rows
+            # Computed sort columns (return, current, state) cannot be expressed as SQL
+            # ORDER BY because ROI is derived from live prices fetched separately.
+            # For these, fetch the full filtered dataset and sort+paginate in Python.
+            COMPUTED_SORT_COLS = {'return', 'current', 'state'}
+            python_sort = sort_col in COMPUTED_SORT_COLS
+
+            if python_sort:
+                sql = f"""
+                    SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
+                           ah.price, ah.timestamp,
+                           COALESCE(ah.status, 'active') AS status,
+                           ah.closed_at, ah.exit_price, ah.final_roi
+                    FROM alerts_history ah
+                    {base_where}
+                    ORDER BY ah.timestamp DESC
+                """
+                # params has only WHERE-clause values — no limit/offset for full fetch
+                c.execute(sql, params)
+            else:
+                sql = f"""
+                    SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
+                           ah.price, ah.timestamp,
+                           COALESCE(ah.status, 'active') AS status,
+                           ah.closed_at, ah.exit_price, ah.final_roi
+                    FROM alerts_history ah
+                    {base_where}
+                    {order_clause}
+                    LIMIT ? OFFSET ?
+                """
+                params.extend([limit, offset])
+                c.execute(sql, params)
             rows = c.fetchall()
 
             # Phase 2: unified price_map — cache-first, parallel yfinance fallback
@@ -4204,6 +4223,20 @@ class InstitutionalRoutesMixin:
             # Page-level win rate (quick supplement for current page ROI states)
             page_wins   = sum(1 for r in results if r['state'] in ('HIT_TP1','HIT_TP2'))
             page_losses = sum(1 for r in results if r['state'] == 'STOPPED')
+
+            # ── Python sort + pagination for computed columns ────────────
+            if python_sort:
+                STATE_RANK = {'HIT_TP2': 0, 'HIT_TP1': 1, 'ACTIVE': 2, 'STOPPED': 3, 'CLOSED': 4}
+
+                def _sort_key(r):
+                    if sort_col == 'return':  return float(r.get('return') or 0)
+                    if sort_col == 'current': return float(r.get('current') or 0)
+                    if sort_col == 'state':   return STATE_RANK.get(r.get('state', 'ACTIVE'), 5)
+                    return 0
+
+                results.sort(key=_sort_key, reverse=(sort_dir == 'desc'))
+                # Paginate
+                results = results[(page - 1) * limit: page * limit]
 
             response = {
                 'data': results,

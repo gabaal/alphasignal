@@ -639,9 +639,9 @@ async function renderSignalArchive(tabs = null) {
     let sortCol = null;
     let sortDir = 'desc';
     // Columns backed by SQL fields — sort applies across ALL pages via server ORDER BY
-    const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction']);
-    // Computed columns — client-side only (page-local)
-    const CLIENT_SORT_COLS = new Set(['return','current','state']);
+    const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction','return','current','state']);
+    // No remaining client-side-only sort columns (all now server-side)
+    const CLIENT_SORT_COLS = new Set();
 
     // ── Date Range Picker state ──────────────────────────────────────────────
     let drpMode = '30d';   // active pill id
