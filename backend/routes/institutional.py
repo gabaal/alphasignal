@@ -673,7 +673,8 @@ class InstitutionalRoutesMixin:
             self.send_json({'status': 'SUCCESS', 'tickets_executed': len(tickets), 'message': f'Rebalanced to {len(targets)} optimized positions.'})
         except Exception as e:
             print(f'Execution Error: {e}')
-            self.send_error(500, str(e))
+            print(f'[InstitutionalRoute] {e}')
+            self.send_error(500, 'Internal server error')
 
     # --- Phase 16-D: On-Chain cache ---------------------------------
     _onchain_cache = {}
@@ -3649,7 +3650,8 @@ class InstitutionalRoutesMixin:
             self.send_json(setup)
         except Exception as e:
             traceback.print_exc()
-            self.send_error(500, f'Setup Generation Error: {e}')
+            print(f'[SetupGeneration] {e}')
+            self.send_error(500, 'Internal server error')
 
     def handle_whales(self):
         results = []
@@ -4375,7 +4377,7 @@ class InstitutionalRoutesMixin:
                 self.send_json(ledger)
             elif self.command == 'POST':
                 if not post_data:
-                    length = int(self.headers.get('Content-Length', 0))
+                    length = min(int(self.headers.get('Content-Length', 0)), 1 * 1024 * 1024)
                     post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
                 def clean_float(val):
                     if isinstance(val, str):

@@ -1,10 +1,13 @@
-import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
+import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math, os
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from backend.caching import CACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, NotificationService
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
+
+# Match the body cap defined in api_router
+_MAX_BODY_BYTES = 1 * 1024 * 1024
 
 class AuthRoutesMixin:
     def get_auth_token(self):
@@ -20,7 +23,8 @@ class AuthRoutesMixin:
         token = self.get_auth_token()
         if not token:
             return None
-        if token.startswith('test-token-'):
+        # Test-token bypass ONLY allowed in non-production environments
+        if os.getenv('APP_ENV', 'development') != 'production' and token.startswith('test-token-'):
             is_p = 'premium' in token or 'institutional' in token
             email = 'test@example.com' if not is_p else 'premium@example.com'
             return {'authenticated': True, 'email': email, 'user_id': 'test-uid-123', 'is_premium': is_p, 'has_stripe_id': False, 'stripe_customer_id': None}
@@ -57,9 +61,6 @@ class AuthRoutesMixin:
         except Exception as e:
             print(f'Auth verification error: {e}')
             return None
-        except Exception as e:
-            print(f'Auth verification error: {e}')
-            return None
 
     def handle_auth_status(self, auth_info):
         if not auth_info:
@@ -92,7 +93,7 @@ class AuthRoutesMixin:
                 self.send_json({'discord_webhook': '', 'telegram_webhook': '', 'telegram_chat_id': '', 'alerts_enabled': True, 'digest_enabled': True})
         elif self.command == 'POST':
             if post_data is None:
-                length = int(self.headers.get('Content-Length', 0))
+                length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
                 post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             discord = post_data.get('discord_webhook', '')
             telegram = post_data.get('telegram_webhook', '')
@@ -109,7 +110,7 @@ class AuthRoutesMixin:
     def handle_test_telegram(self, post_data=None):
         try:
             if not post_data:
-                length = int(self.headers.get('Content-Length', 0))
+                length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
                 post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             chat_id = post_data.get('chat_id')
             if not chat_id:

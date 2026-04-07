@@ -19,9 +19,29 @@ import socketserver, http.server
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
 
+# Allowed CORS origins — add staging/preview URLs as needed
+_ALLOWED_ORIGINS = {
+    'https://alphasignal.digital',
+    'https://www.alphasignal.digital',
+    'http://localhost:8006',
+    'http://127.0.0.1:8006',
+}
+
+# Max request body: 1 MB
+_MAX_BODY_BYTES = 1 * 1024 * 1024
+
 class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin, DigestRoutesMixin, PriceAlertRoutesMixin):
     def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
+        # Strict CORS — reflect origin only if it's in the allowlist
+        origin = self.headers.get('Origin', '')
+        cors_origin = origin if origin in _ALLOWED_ORIGINS else 'https://alphasignal.digital'
+        self.send_header('Access-Control-Allow-Origin', cors_origin)
+        self.send_header('Vary', 'Origin')
+        # Security headers
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('X-Frame-Options', 'SAMEORIGIN')
+        self.send_header('Referrer-Policy', 'strict-origin-when-cross-origin')
+        self.send_header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
         super().end_headers()
 
     def log_message(self, fmt, *args):
@@ -63,7 +83,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.end_headers()
         except Exception as e:
             print(f'[{datetime.now()}] DELETE Error: {e}')
-            self.send_error(500, str(e))
+            self.send_error(500, 'Internal server error')
 
     def do_PATCH(self):
         try:
@@ -73,7 +93,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             if not auth_info:
                 self.send_response(401); self.send_header('Content-Type','application/json'); self.end_headers()
                 self.wfile.write(json.dumps({'error':'Unauthorized'}).encode()); return
-            length = int(self.headers.get('Content-Length', 0))
+            length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
             body = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             parts = path.split('/')
             item_id = parts[-1] if len(parts) > 1 else None
@@ -83,7 +103,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.send_response(404); self.end_headers()
         except Exception as e:
             print(f'[{datetime.now()}] PATCH Error: {e}')
-            self.send_error(500, str(e))
+            self.send_error(500, 'Internal server error')
 
     def send_json(self, data):
         try:
@@ -125,7 +145,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         try:
             parsed = urllib.parse.urlparse(self.path)
             path = parsed.path
-            length = int(self.headers.get('Content-Length', 0))
+            length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
             post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             if path == '/api/auth/login':
                 res = SupabaseClient.auth_login(post_data.get('email'), post_data.get('password'))
@@ -190,9 +210,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     print(f'[{datetime.now()}] Stripe Session Error: {e}')
                     import traceback
                     traceback.print_exc()
-                    self.send_error(500, str(e))
+                    self.send_error(500, 'Internal server error')
             elif path == '/api/stripe/webhook':
-                length = int(self.headers.get('Content-Length', 0))
+                length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
                 payload = self.rfile.read(length)
                 sig_header = self.headers.get('Stripe-Signature')
                 webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
@@ -274,7 +294,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_json({'url': portal_session.url})
                 except Exception as e:
                     print(f'[{datetime.now()}] Stripe Portal Error: {e}')
-                    self.send_error(500, str(e))
+                    self.send_error(500, 'Internal server error')
             elif path == '/api/user/settings':
                 self.handle_user_settings(post_data)
             elif path == '/api/alert-settings':
@@ -361,7 +381,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_json({'success': True, 'id': sig_id, 'state': 'CLOSED',
                                     'exit_price': exit_px, 'final_roi': final_roi})
                 except Exception as e:
-                    self.send_error(500, str(e))
+                    self.send_error(500, 'Internal server error')
             elif path.startswith('/api/signal/') and path.endswith('/reopen'):
                 # POST /api/signal/{id}/reopen — re-activate a closed signal
                 auth_info = self.is_authenticated()
@@ -387,12 +407,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     InstitutionalRoutesMixin._sig_history_cache.clear()
                     self.send_json({'success': True, 'id': sig_id, 'state': 'ACTIVE'})
                 except Exception as e:
-                    self.send_error(500, str(e))
+                    self.send_error(500, 'Internal server error')
             else:
                 self.send_error(404, 'Path not found')
         except Exception as e:
             print(f'[{datetime.now()}] POST Error: {e}')
-            self.send_error(500, str(e))
+            self.send_error(500, 'Internal server error')
 
     def do_GET(self):
         try:

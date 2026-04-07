@@ -250,8 +250,8 @@ class MarketRoutesMixin:
                 'source': 'binance_rest'
             })
         except Exception as e:
-            print(f'Tape Error: {e}')
-            self.send_error(500, f'Tape Engine Sync Error: {e}')
+            print(f'[TapeEngine] {e}')
+            self.send_error(500, 'Internal server error')
 
     def handle_macro_calendar_legacy(self):
         try:
