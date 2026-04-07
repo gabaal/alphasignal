@@ -649,7 +649,7 @@ async function renderSignalArchive(tabs = null) {
             return;
         }
 
-        // Cache for CSV export
+        // Cache for CSV export & sort
         window._archiveCurrentData = data;
 
         const stateColors = {
@@ -657,13 +657,88 @@ async function renderSignalArchive(tabs = null) {
             'ACTIVE': '#60a5fa', 'STOPPED': '#ef4444'
         };
         const stateIcons = { 'HIT_TP2': '🎯', 'HIT_TP1': '✅', 'ACTIVE': '⚡', 'STOPPED': '🛑' };
+        const BULLISH_TYPES = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
+        const BEARISH_TYPES = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT']);
+        const SEV_RANK = { critical: 3, high: 2, medium: 1, low: 0 };
+
+        // ── Sort state ─────────────────────────────────────────────
+        let sortCol = null;
+        let sortDir = 'asc';
+
+        function getColValue(s, col) {
+            switch(col) {
+                case 'ticker':    return (s.ticker || '').toUpperCase();
+                case 'type':      return (s.type || '').toUpperCase();
+                case 'severity':  return SEV_RANK[(s.severity||'').toLowerCase()] ?? 0;
+                case 'entry':     return parseFloat(s.entry) || 0;
+                case 'current':   return parseFloat(s.current) || 0;
+                case 'return':    return parseFloat(s.return) || 0;
+                case 'state':     return (s.state || '').toUpperCase();
+                case 'date':      return s.timestamp || '';
+                case 'direction': {
+                    const t = (s.type||'').toUpperCase();
+                    return BULLISH_TYPES.has(t) ? 0 : BEARISH_TYPES.has(t) ? 1 : 2;
+                }
+                default: return '';
+            }
+        }
+
+        function sortedData(d) {
+            if (!sortCol) return d;
+            return [...d].sort((a, b) => {
+                const av = getColValue(a, sortCol);
+                const bv = getColValue(b, sortCol);
+                const cmp = typeof av === 'number' ? av - bv : String(av).localeCompare(String(bv));
+                return sortDir === 'asc' ? cmp : -cmp;
+            });
+        }
+
+        // ── Render just the <tbody> rows ───────────────────────────
+        function renderRows(d) {
+            return sortedData(d).map(s => {
+                const sigType  = (s.type || '').toUpperCase();
+                const isBull   = BULLISH_TYPES.has(sigType);
+                const isBear   = BEARISH_TYPES.has(sigType);
+                const dirLabel = isBull ? 'BULLISH' : isBear ? 'BEARISH' : 'NEUTRAL';
+                const dirArrow = isBull ? '▲' : isBear ? '▼' : '●';
+                const dirColor = isBull ? '#22c55e' : isBear ? '#ef4444' : '#94a3b8';
+                const dirBg    = isBull ? 'rgba(34,197,94,0.1)' : isBear ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)';
+                const dirBorder= isBull ? 'rgba(34,197,94,0.3)' : isBear ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)';
+                const sev = (s.severity||'').toLowerCase();
+                const sevIcon  = sev==='critical'?'🔴':sev==='high'?'🟠':'🟡';
+                return `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                    <td style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
+                    <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
+                    <td style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${sevIcon} ${(sev||'--').toUpperCase()}</span></td>
+                    <td style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? '$' + parseFloat(s.entry).toLocaleString() : '-'}</td>
+                    <td style="padding:10px 12px;text-align:right;font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
+                    <td style="padding:10px 12px;text-align:right;font-weight:700;color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
+                    <td style="padding:10px 12px;text-align:center">
+                        <span style="background:${stateColors[s.state]||'#60a5fa'}22;color:${stateColors[s.state]||'#60a5fa'};padding:2px 10px;border-radius:20px;font-size:0.6rem;letter-spacing:1px">
+                            ${stateIcons[s.state]||'⚡'} ${s.state}
+                        </span>
+                    </td>
+                    <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${s.timestamp ? (s.timestamp.split('T')[0]||s.timestamp.split(' ')[0]) : '-'}</td>
+                    <td style="padding:10px 12px;text-align:center">
+                        <span style="background:${dirBg};border:1px solid ${dirBorder};color:${dirColor};padding:3px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;white-space:nowrap">
+                            ${dirArrow} ${dirLabel}
+                        </span>
+                    </td>
+                    <td style="padding:8px 12px;text-align:center;white-space:nowrap">
+                        <button onclick="openDetail('${s.ticker}','CRYPTO')" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
+                        <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="AI Analysis">AI</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
 
         // ── Win-Rate Summary Strip ──────────────────────────────
-        const wins = data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
-        const losses = data.filter(s => s.state === 'STOPPED').length;
-        const active = data.filter(s => s.state === 'ACTIVE').length;
+        const wins    = data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
+        const losses  = data.filter(s => s.state === 'STOPPED').length;
+        const active  = data.filter(s => s.state === 'ACTIVE').length;
         const hitRate = wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(0) : '--';
-        const avgRet = data.length > 0 ? (data.reduce((sum, s) => sum + parseFloat(s.return || 0), 0) / data.length).toFixed(2) : '--';
+        const avgRet  = data.length > 0 ? (data.reduce((sum, s) => sum + parseFloat(s.return || 0), 0) / data.length).toFixed(2) : '--';
         const summaryHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.5rem">${
             [
                 ['WIN RATE', hitRate + (hitRate !== '--' ? '%' : ''), hitRate >= 50 ? '#22c55e' : '#ef4444'],
@@ -676,76 +751,62 @@ async function renderSignalArchive(tabs = null) {
             ).join('')
         }</div>`;
 
+        // ── Build TH attributes with sort indicator ────────────────
+        function aC(col, align='left') {
+            const active = sortCol === col;
+            const ind    = active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' <span style="opacity:0.3;font-size:0.7em">⇅</span>';
+            const color  = active ? 'var(--accent)' : 'var(--text-dim)';
+            return `style="text-align:${align};padding:8px 12px;cursor:pointer;user-select:none;color:${color};white-space:nowrap;transition:color 0.15s" onclick="window._archiveSort('${col}')"`;
+        }
+
+        function buildThead() {
+            return `<tr style="border-bottom:1px solid var(--border)">
+                <th ${aC('ticker','left')}>TICKER</th>
+                <th ${aC('type','left')}>TYPE</th>
+                <th ${aC('severity','center')}>SEV</th>
+                <th ${aC('entry','right')}>ENTRY</th>
+                <th ${aC('current','right')}>CURRENT</th>
+                <th ${aC('return','right')}>RETURN</th>
+                <th ${aC('state','center')}>STATE</th>
+                <th ${aC('date','left')}>DATE</th>
+                <th ${aC('direction','center')}>DIRECTION</th>
+                <th style="text-align:center;padding:8px 12px;color:var(--text-dim)">ACTIONS</th>
+            </tr>`;
+        }
+
         container.innerHTML = summaryHTML + `
             <div class="card" style="overflow-x:auto">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:15px">
-                    <span style="font-size:0.6rem; color:var(--text-dim); letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1} &bull; ${pageInfo?.total || 0} TOTAL)</span>
-                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:15px">
+                    <span style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page||1} OF ${pageInfo?.pages||1} &bull; ${pageInfo?.total||0} TOTAL)</span>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <button class="btv2-export-btn" onclick="_archiveExportPage()"><span class="material-symbols-outlined" style="font-size:13px">download</span> EXPORT PAGE CSV</button>
                         <a href="/api/export?type=signals" download class="btv2-export-btn"><span class="material-symbols-outlined" style="font-size:13px">file_download</span> EXPORT ALL</a>
-                        <button class="setup-generator-btn" style="width:85px; padding:0; font-size:0.65rem; height:24px; line-height:24px; text-align:center" onclick="window.loadArchiveData(${currentPage - 1 > 0 ? currentPage - 1 : 1})" ${currentPage === 1 ? 'disabled style="opacity:0.5"' : ''}>PREVIOUS</button>
-                        <div style="font-size:0.75rem; color:var(--text-dim)">PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1}</div>
-                        <button class="setup-generator-btn" style="width:85px; padding:0; font-size:0.65rem; height:24px; line-height:24px; text-align:center" onclick="window.loadArchiveData(${currentPage + 1})" ${(pageInfo && currentPage >= pageInfo.pages) ? 'disabled style="opacity:0.5"' : ''}>NEXT</button>
+                        <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage-1>0?currentPage-1:1})" ${currentPage===1?'disabled style="opacity:0.5"':''}>PREVIOUS</button>
+                        <div style="font-size:0.75rem;color:var(--text-dim)">PAGE ${pageInfo?.page||1} OF ${pageInfo?.pages||1}</div>
+                        <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage+1})" ${(pageInfo&&currentPage>=pageInfo.pages)?'disabled style="opacity:0.5"':''}>NEXT</button>
                     </div>
                 </div>
-                <table style="width:100%; border-collapse:collapse; font-size:0.75rem">
-                    <thead>
-                        <tr style="color:var(--text-dim);border-bottom:1px solid var(--border)">
-                            <th style="text-align:left;padding:8px 12px">TICKER</th>
-                            <th style="text-align:left;padding:8px 12px">TYPE</th>
-                            <th style="text-align:center;padding:8px 12px">SEV</th>
-                            <th style="text-align:right;padding:8px 12px">ENTRY</th>
-                            <th style="text-align:right;padding:8px 12px">CURRENT</th>
-                            <th style="text-align:right;padding:8px 12px">RETURN</th>
-                            <th style="text-align:center;padding:8px 12px">STATE</th>
-                            <th style="text-align:left;padding:8px 12px">DATE</th>
-                            <th style="text-align:center;padding:8px 12px">DIRECTION</th>
-                            <th style="text-align:center;padding:8px 12px">ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.map(s => {
-                            const BULLISH_TYPES = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
-                            const BEARISH_TYPES = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT']);
-                            const sigType = (s.type || '').toUpperCase();
-                            const isBull = BULLISH_TYPES.has(sigType);
-                            const isBear = BEARISH_TYPES.has(sigType);
-                            const dirLabel = isBull ? 'BULLISH' : isBear ? 'BEARISH' : 'NEUTRAL';
-                            const dirArrow = isBull ? '▲' : isBear ? '▼' : '●';
-                            const dirColor = isBull ? '#22c55e' : isBear ? '#ef4444' : '#94a3b8';
-                            const dirBg    = isBull ? 'rgba(34,197,94,0.1)' : isBear ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)';
-                            const dirBorder= isBull ? 'rgba(34,197,94,0.3)' : isBear ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)';
-                            return `
-                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
-                                <td style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
-                                <td style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
-                                <td style="padding:10px 12px;text-align:center">
-                                    ${ (()=>{ const sev=(s.severity||'').toLowerCase(); const icon=sev==='critical'?'🔴':sev==='high'?'🟠':'🟡'; return `<span style="font-size:0.65rem">${icon} ${(sev||'--').toUpperCase()}</span>`; })() }
-                                </td>
-                                <td style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? '$' + s.entry.toLocaleString() : '-'}</td>
-                                <td style="padding:10px 12px;text-align:right;font-family:monospace">${s.current ? '$' + parseFloat(s.current).toLocaleString() : '-'}</td>
-                                <td style="padding:10px 12px;text-align:right;font-weight:700;color:${s.return >= 0 ? '#22c55e' : '#ef4444'}">${s.return >= 0 ? '+' : ''}${s.return}%</td>
-                                <td style="padding:10px 12px; text-align:center">
-                                    <span style="background:${stateColors[s.state] || '#60a5fa'}22; color:${stateColors[s.state] || '#60a5fa'}; padding:2px 10px; border-radius:20px; font-size:0.6rem; letter-spacing:1px">
-                                        ${stateIcons[s.state] || '⚡'} ${s.state}
-                                    </span>
-                                </td>
-                                <td style="padding:10px 12px; color:var(--text-dim);font-size:0.7rem">${s.timestamp ? s.timestamp.split('T')[0] || s.timestamp.split(' ')[0] : '-'}</td>
-                                <td style="padding:10px 12px; text-align:center">
-                                    <span style="background:${dirBg};border:1px solid ${dirBorder};color:${dirColor};padding:3px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;white-space:nowrap">
-                                        ${dirArrow} ${dirLabel}
-                                    </span>
-                                </td>
-                                <td style="padding:8px 12px; text-align:center; white-space:nowrap">
-                                    <button onclick="openDetail('${s.ticker}','CRYPTO')" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
-                                    <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700" title="AI Analysis">AI</button>
-                                </td>
-                            </tr>`;}).join('')}
-                    </tbody>
+                <table id="archive-table" style="width:100%;border-collapse:collapse;font-size:0.75rem">
+                    <thead id="archive-thead"><tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr></thead>
+                    <tbody id="archive-tbody">${renderRows(data)}</tbody>
                 </table>
-            </div>
-        `;
+            </div>`;
+
+        // ── Sort handler: re-render thead indicators + tbody ───────
+        window._archiveSort = function(col) {
+            if (sortCol === col) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortCol = col;
+                sortDir = 'asc';
+            }
+            const thead = document.getElementById('archive-thead');
+            const tbody = document.getElementById('archive-tbody');
+            if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr>`;
+            if (tbody) tbody.innerHTML = renderRows(data);
+        };
     };
+
 
     window.loadArchiveData = loadData;
     window.loadData = loadData; // expose for RESET button
