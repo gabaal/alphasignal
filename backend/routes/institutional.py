@@ -4009,15 +4009,17 @@ class InstitutionalRoutesMixin:
 
             # User scoping: strictly own signals only
             if user_email:
-                # Custom date range takes priority over days-based lookback
+                # Custom date range takes priority over days-based lookback.
+                # datetime(ah.timestamp) normalises both 'T' and space separators
+                # so '2026-04-07T15:25:00' compares correctly against '2026-04-07 23:59:59'.
                 if f_from and f_to:
-                    base_where  = "WHERE ah.timestamp >= ? AND ah.timestamp <= ? AND ah.user_email = ?"
+                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND datetime(ah.timestamp) <= ? AND ah.user_email = ?"
                     params      = [f_from + ' 00:00:00', f_to + ' 23:59:59', user_email]
                 elif f_from:
-                    base_where  = "WHERE ah.timestamp >= ? AND ah.user_email = ?"
+                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND ah.user_email = ?"
                     params      = [f_from + ' 00:00:00', user_email]
                 elif f_to:
-                    base_where  = "WHERE ah.timestamp <= ? AND ah.user_email = ?"
+                    base_where  = "WHERE datetime(ah.timestamp) <= ? AND ah.user_email = ?"
                     params      = [f_to + ' 23:59:59', user_email]
                 else:
                     base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email = ?"

@@ -785,11 +785,15 @@ async function renderSignalArchive(tabs = null) {
                     </td>
                     <td data-label="DATE" class="col-date" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${
                         (() => {
-                            const dt = s.timestamp ? (s.timestamp.split('T')[0]||s.timestamp.split(' ')[0]) : '-';
+                            if (!s.timestamp) return '-';
+                            // Handle both ISO 'T' separator and space separator
+                            const sep = s.timestamp.includes('T') ? 'T' : ' ';
+                            const [datePart, timePart] = s.timestamp.split(sep);
+                            const hhmm = timePart ? timePart.substring(0, 5) : '';
                             const age = s.age_days != null
                                 ? (s.age_days === 0 ? 'today' : s.age_days === 1 ? '1d ago' : s.age_days + 'd ago')
                                 : '';
-                            return `${dt}<br><span style="font-size:0.6rem;color:var(--text-dim);opacity:0.7">${age}</span>`;
+                            return `${datePart}${hhmm ? `<br><span style="font-size:0.65rem;color:#7dd3fc;font-family:var(--font-mono);font-weight:700">${hhmm} UTC</span>` : ''}<br><span style="font-size:0.55rem;color:var(--text-dim);opacity:0.6">${age}</span>`;
                         })()
                     }</td>
                     <td data-label="DIR" class="col-dir" style="padding:10px 12px;text-align:center">
