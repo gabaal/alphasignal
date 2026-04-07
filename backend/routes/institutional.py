@@ -3855,7 +3855,9 @@ class InstitutionalRoutesMixin:
             self.send_json({'total_signals': 0, 'win_rate': 0, 'avg_return': 0, 'error': str(e)})
 
     def handle_export(self):
-        """Export CSV or JSON snapshot. signals export honours active filter params."""
+        """Export CSV or JSON snapshot. signals export honours active filter params and user scope."""
+        auth_info  = self.is_authenticated()
+        user_email = auth_info.get('email') if auth_info else None
         try:
             import csv
             import io
@@ -3869,8 +3871,13 @@ class InstitutionalRoutesMixin:
                 f_direction = query.get('direction', [None])[0]
                 f_days      = int(query.get('days',  [365])[0])  # default 1yr for full export
 
-                base_where  = "WHERE ah.timestamp > datetime('now', ?)"
-                params      = [f'-{f_days} day']
+                # User scoping: own signals + legacy public signals
+                if user_email:
+                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND (ah.user_email = ? OR ah.user_email IS NULL)"
+                    params      = [f'-{f_days} day', user_email]
+                else:
+                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email IS NULL"
+                    params      = [f'-{f_days} day']
                 if f_ticker:
                     base_where += ' AND ah.ticker = ?'; params.append(f_ticker.upper())
                 if f_type:
@@ -3947,7 +3954,10 @@ class InstitutionalRoutesMixin:
             self.send_json({'notifications': [], 'unread': 0})
 
     def handle_signal_history(self):
-        """Return alerts_history with state computed from market_ticks (no live yfinance calls)."""
+        """Return alerts_history filtered to the authenticated user's signals."""
+        # Require valid session — archive is per-user
+        auth_info = self.is_authenticated()
+        user_email = auth_info.get('email') if auth_info else None
         try:
             query    = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             f_ticker    = query.get('ticker',    [None])[0]
@@ -3979,8 +3989,8 @@ class InstitutionalRoutesMixin:
             order_expr = SORT_MAP.get(sort_col, 'ah.timestamp')
             order_clause = f'ORDER BY {order_expr} {sort_dir.upper()}'
 
-            # ── Cache check: 2-min TTL, keyed by all query params ────────
-            cache_key = f'{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{page}:{limit}:{sort_col}:{sort_dir}'
+            # ── Cache check: 2-min TTL, keyed by all query params + user ──
+            cache_key = f'{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{page}:{limit}:{sort_col}:{sort_dir}'
             shc = InstitutionalRoutesMixin._sig_history_cache
             entry = shc.get(cache_key)
             if entry and (time.time() - entry['ts']) < 120:
@@ -3990,9 +4000,16 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH)
             c    = conn.cursor()
 
-            base_where  = "WHERE ah.timestamp > datetime('now', ?)"
-            params      = [f'-{f_days} day']
-            count_params = list(params)
+            # User scoping: show own signals + legacy NULL-scoped signals
+            if user_email:
+                base_where  = "WHERE ah.timestamp > datetime('now', ?) AND (ah.user_email = ? OR ah.user_email IS NULL)"
+                params      = [f'-{f_days} day', user_email]
+                count_params = list(params)
+            else:
+                # Unauthenticated: only show legacy public signals (user_email IS NULL)
+                base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email IS NULL"
+                params      = [f'-{f_days} day']
+                count_params = list(params)
 
             if f_ticker:
                 base_where  += ' AND ah.ticker = ?'
@@ -4004,12 +4021,10 @@ class InstitutionalRoutesMixin:
                 base_where  += ' AND LOWER(ah.severity) = ?'
                 params.append(f_severity.lower());  count_params.append(f_severity.lower())
             if f_direction:
-                # direction inferred from signal type name — uses literal IN clause, no params
                 if f_direction == 'bullish':
                     base_where  += " AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
                 elif f_direction == 'bearish':
                     base_where  += " AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
-
 
             c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]

@@ -230,6 +230,12 @@ def init_db():
     try:
         c.execute("ALTER TABLE alerts_history ADD COLUMN final_roi REAL")
     except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN user_email TEXT")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_ah_user ON alerts_history(user_email)")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS tracked_tickers (
         ticker TEXT NOT NULL,
         user_email TEXT,

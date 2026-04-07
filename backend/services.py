@@ -570,28 +570,37 @@ class HarvestService:
                     message = f"ML Engine predicts +{pred_return*100:.1f}% alpha window. Primary driver: {top_driver.upper()} ({(importance[top_driver]*100):.1f}% confidence)."
                 
                 if signal_type:
-                    # Anti-spam: Check if we alerted this ticker recently (last 1h)
-                    c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND timestamp > datetime('now', '-1 hours')", (ticker,))
-                    if not c.fetchone():
-                        # Compute snapshot fields for permalink
+                    # Get all users to receive this signal
+                    try:
+                        with sqlite3.connect(DB_PATH) as ue_conn:
+                            ue_c = ue_conn.cursor()
+                            ue_c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
+                            enabled_users = [r[0] for r in ue_c.fetchall()]
+                    except:
+                        enabled_users = []
+
+                    for target_email in enabled_users:
+                        # Per-user anti-spam: skip if this user already has this ticker in last 1h
+                        c.execute("SELECT id FROM alerts_history WHERE ticker=? AND user_email=? AND timestamp > datetime('now', '-1 hours')", (ticker, target_email))
+                        if c.fetchone(): continue
                         _direction = 'LONG' if pred_return > 0 else 'SHORT'
-                        _z = round(pred_return * 100, 2)  # use predicted return as z-proxy
+                        _z = round(pred_return * 100, 2)
                         _alpha = round(pred_return * 100, 2)
                         _cat = next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
-                        # Record Signal in History
                         c.execute(
                             "INSERT INTO alerts_history "
-                            "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category) "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category, user_email) "
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             (signal_type, ticker, message, severity, curr_p,
-                             datetime.now().isoformat(), _z, _alpha, _direction, _cat)
+                             datetime.now().isoformat(), _z, _alpha, _direction, _cat, target_email)
                         )
 
-                        # Record Prediction Metadata
-                        c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
-                                 (ticker, pred_return, confidence, json.dumps(importance)))
+                    # Record Prediction Metadata (once, globally)
+                    c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
+                             (ticker, pred_return, confidence, json.dumps(importance)))
 
-                        print(f"[{datetime.now()}] !!! ALPHA ALERT DISPATCHED: {ticker} @ {curr_p} (Target: +{pred_return*100:.1f}%)")
+                    if enabled_users:
+                        print(f"[{datetime.now()}] !!! ALPHA ALERT: {ticker} @ {curr_p} → inserted for {len(enabled_users)} user(s)")
 
                         # Watchlist-targeted alerts (personalised)
                         threading.Thread(target=notify_watchlist_users,
@@ -605,7 +614,6 @@ class HarvestService:
                                 for row in alert_c.fetchall():
                                     target_email = row[0]
                                     user_z_thresh = float(row[1]) if row[1] else 2.0
-                                    # Only fire if ML return clears user's configured threshold
                                     if pred_return * 100 < user_z_thresh:
                                         continue
                                     direction = 'LONG' if pred_return > 0 else 'SHORT'
@@ -631,22 +639,18 @@ class HarvestService:
                         # Real-time WebSocket Broadcast to Frontend
                         if self.ws_server:
                             try:
-                                row_id = c.lastrowid
                                 self.ws_server.broadcast(json.dumps({
                                     'type': 'new_alert',
                                     'data': {
-                                        'id': row_id,
-                                        'type': signal_type,
-                                        'ticker': ticker,
+                                        'type': signal_type, 'ticker': ticker,
                                         'title': f"{ticker} — ML ALPHA SIGNAL",
-                                        'content': message,
-                                        'severity': severity,
-                                        'price': curr_p,
-                                        'timestamp': datetime.now().isoformat()
+                                        'content': message, 'severity': severity,
+                                        'price': curr_p, 'timestamp': datetime.now().isoformat()
                                     }
                                 }))
                             except Exception as wse:
                                 print(f"WS Broadcast Error: {wse}")
+
             except Exception as e:
                 print(f"Prediction loop error for {ticker}: {e}")
                 continue
@@ -718,24 +722,31 @@ class HarvestService:
                         message  = f'Volume 2σ above 20-day mean on {ticker}. Institutional activity detected.'
                         severity = 'medium'
                     if sig_type:
-                        c.execute("SELECT id FROM alerts_history WHERE ticker = ? AND type = ? AND timestamp > datetime('now', '-2 hours')", (ticker, sig_type))
-                        if not c.fetchone():
+                        # Per-user insert: one row per enabled user
+                        try:
+                            with sqlite3.connect(DB_PATH) as ue_conn2:
+                                ue_c2 = ue_conn2.cursor()
+                                ue_c2.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
+                                rule_users = [r[0] for r in ue_c2.fetchall()]
+                        except:
+                            rule_users = []
+
+                        for ru_email in rule_users:
+                            c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-2 hours')",
+                                      (ticker, sig_type, ru_email))
+                            if c.fetchone(): continue
                             _dir = 'LONG' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'SHORT' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
                             _cat = next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
                             c.execute(
                                 "INSERT INTO alerts_history "
-                                "(type, ticker, message, severity, price, timestamp, direction, category) "
-                                "VALUES (?,?,?,?,?,?,?,?)",
+                                "(type, ticker, message, severity, price, timestamp, direction, category, user_email) "
+                                "VALUES (?,?,?,?,?,?,?,?,?)",
                                 (sig_type, ticker, message, severity, curr_p,
-                                 datetime.now().isoformat(), _dir, _cat)
+                                 datetime.now().isoformat(), _dir, _cat, ru_email)
                             )
-                            print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} (RSI={rsi:.1f})')
 
-
-                            # Watchlist-targeted alerts (personalised)
-                            threading.Thread(target=notify_watchlist_users,
-                                args=(ticker, sig_type, message, severity, curr_p),
-                                daemon=True).start()
+                        if rule_users:
+                            print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} → {len(rule_users)} user row(s)')
 
 
                             # Multi-channel dispatch — notify users with alerts_enabled
