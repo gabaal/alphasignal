@@ -936,8 +936,21 @@ async function renderSignalArchive(tabs = null) {
                             const ty=document.getElementById('filter-type')?.value||'';
                             const sv=document.getElementById('filter-severity')?.value||'';
                             const dv=document.getElementById('filter-direction')?.value||'';
-                            const dy=document.getElementById('filter-days')?.value||'365';
-                            let u='/api/export?type=signals&days='+dy;
+                            // Mirror loadData URL logic exactly, using DRP closure vars
+                            let u='/api/export?type=signals';
+                            if (drpMode === 'custom') {
+                                const from = document.getElementById('drp-from')?.value || '';
+                                const to   = document.getElementById('drp-to')?.value   || '';
+                                if (from) u += '&from=' + from;
+                                if (to)   u += '&to='   + to;
+                            } else if (drpMode === 'today') {
+                                const d = new Date().toISOString().split('T')[0];
+                                u += '&from=' + d + '&to=' + d;
+                            } else if (drpDays === -1) {
+                                u += '&days=3650';
+                            } else {
+                                u += '&days=' + drpDays;
+                            }
                             if(t) u+='&ticker='+encodeURIComponent(t.toUpperCase());
                             if(ty) u+='&sigtype='+encodeURIComponent(ty);
                             if(sv) u+='&severity='+encodeURIComponent(sv);
