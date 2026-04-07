@@ -381,8 +381,8 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"[{datetime.now()}] SEED_ERROR {asset}: {e}")
 
-    # Start Harvester: Run every 5 minutes (300s) for Real-Time Alpha Alerts
-    harvester = HarvestService(CACHE, ws_server=ws_server, interval=300)
+    # Start Harvester: Run every 1 minute (60s) for real-time alpha alerts
+    harvester = HarvestService(CACHE, ws_server=ws_server, interval=60)
     
     # Phase 6.3: Immediate Boot-Time Snapshot (Non-Blocking)
     print("Initiating immediate institutional liquidity snapshot (Background)...", flush=True)
