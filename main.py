@@ -130,15 +130,22 @@ class WebSocketServer:
 
     def price_publisher_loop(self):
         """Fetch prices every 5 seconds and publish to WS clients.
-        When Redis is unavailable (MockRedis), broadcasts directly to WS_CLIENTS
-        to avoid the silent no-op publish→subscribe→broadcast failure.
+        Every 60s also pre-warms the signal price cache and checks TP/SL crossings.
         """
         from backend.database import redis_client
+        from backend.routes.institutional import InstitutionalRoutesMixin
         tickers = {'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD'}
-        use_redis = hasattr(redis_client, 'connection_pool')  # Real redis.Redis has connection_pool
+        use_redis = hasattr(redis_client, 'connection_pool')
+        BULLISH_T = {'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION',
+                     'VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION'}
+        # Track which signals have already been notified (persist in memory until restart)
+        _notified: dict = {}   # {signal_id: 'HIT_TP1'|'HIT_TP2'|'STOPPED'}
+        _last_prewarm = 0.0
+
         while self.running:
             try:
                 import yfinance as yf
+                # ── Header prices (every 5s) ───────────────────────────────
                 for sym, tick in tickers.items():
                     try:
                         info = yf.Ticker(tick).fast_info
@@ -153,29 +160,120 @@ class WebSocketServer:
                     cur = conn.cursor()
                     cur.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
                     signal_count = cur.fetchone()[0]
-                    cur.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
-                    new_today = cur.fetchone()[0]
+                    new_today = signal_count
                     conn.close()
                 except:
-                    signal_count = 0
-                    new_today = 0
+                    signal_count = 0; new_today = 0
 
                 payload = json.dumps({
-                    "type": "prices",
-                    "data": LIVE_PRICES,
-                    "signal_count": signal_count,
-                    "new_today": new_today
+                    "type": "prices", "data": LIVE_PRICES,
+                    "signal_count": signal_count, "new_today": new_today
                 })
-
                 if use_redis:
-                    # Full Redis mesh — other nodes will relay via redis_subscriber_loop
                     redis_client.publish('alphasignal:pubsub:broadcast', payload)
                 else:
-                    # No Redis: broadcast directly so the header price actually updates
                     self.broadcast(payload)
+
+                # ── Item 4+5: background prewarm + TP/SL alerts (every 60s) ──
+                now = time.time()
+                if now - _last_prewarm >= 60:
+                    _last_prewarm = now
+                    try:
+                        from concurrent.futures import ThreadPoolExecutor, as_completed
+                        conn2 = sqlite3.connect(DB_PATH)
+                        cur2  = conn2.cursor()
+                        cur2.execute("""
+                            SELECT DISTINCT ticker, id, type, price
+                            FROM alerts_history
+                            WHERE COALESCE(status,'active')='active'
+                              AND timestamp > datetime('now', '-30 day')
+                        """)
+                        active_rows = cur2.fetchall()
+                        conn2.close()
+
+                        # Deduplicate tickers for pricing
+                        sig_tickers = list({r[0] for r in active_rows})
+
+                        def _fetch_px(orig_t):
+                            candidates = [orig_t] + ([orig_t+'-USD'] if '-' not in orig_t else [orig_t[:-4]])
+                            for sym2 in candidates:
+                                try:
+                                    info2 = yf.Ticker(sym2).fast_info
+                                    px2 = info2.get('last_price') or info2.get('lastPrice')
+                                    if px2 and float(px2) > 0:
+                                        return orig_t, round(float(px2), 6)
+                                except: continue
+                            return orig_t, None
+
+                        pc  = InstitutionalRoutesMixin._price_cache
+                        ttl = InstitutionalRoutesMixin._PRICE_CACHE_TTL
+
+                        # Parallel fetch — only for tickers whose cache has expired
+                        stale = [t for t in sig_tickers if t not in pc or (now - pc[t][1]) >= ttl]
+                        if stale:
+                            with ThreadPoolExecutor(max_workers=min(10, len(stale))) as pool2:
+                                futs = {pool2.submit(_fetch_px, t): t for t in stale}
+                                for fut in as_completed(futs):
+                                    orig_t2, px2 = fut.result()
+                                    if px2:
+                                        pc[orig_t2] = (px2, time.time())
+
+                        # ── Item 5: TP/SL crossing notifications ──────────
+                        tg_token = None; tg_chat = None
+                        try:
+                            conn3 = sqlite3.connect(DB_PATH)
+                            cur3  = conn3.cursor()
+                            cur3.execute("SELECT value FROM app_settings WHERE key='telegram_token' LIMIT 1")
+                            r3 = cur3.fetchone()
+                            if r3: tg_token = r3[0]
+                            cur3.execute("SELECT value FROM app_settings WHERE key='telegram_chat_id' LIMIT 1")
+                            r3 = cur3.fetchone()
+                            if r3: tg_chat = r3[0]
+                            conn3.close()
+                        except: pass
+
+                        for ticker2, sig_id, sig_type, entry_p in active_rows:
+                            if not entry_p or entry_p <= 0: continue
+                            cached2 = pc.get(ticker2)
+                            if not cached2: continue
+                            curr_p2 = cached2[0]
+                            direction = 1 if (sig_type or '').upper() in BULLISH_T else -1
+                            roi = round(direction * (curr_p2 - entry_p) / entry_p * 100, 2)
+                            new_state = None
+                            if roi > 10:   new_state = 'HIT_TP2'
+                            elif roi > 5:  new_state = 'HIT_TP1'
+                            elif roi < -3: new_state = 'STOPPED'
+                            if new_state and _notified.get(sig_id) != new_state:
+                                _notified[sig_id] = new_state
+                                emoji = {'HIT_TP2':'🎯','HIT_TP1':'✅','STOPPED':'🛑'}.get(new_state,'⚡')
+                                msg = (f"{emoji} AlphaSignal Alert\n"
+                                       f"*{ticker2}* — {(sig_type or '').replace('_',' ')}\n"
+                                       f"State: *{new_state}*  ROI: *{roi:+.2f}%*\n"
+                                       f"Entry: ${entry_p}  Current: ${curr_p2}")
+                                # Broadcast to WS clients (shows in notification bell)
+                                self.broadcast(json.dumps({
+                                    'type': 'signal_alert',
+                                    'ticker': ticker2, 'signal_id': sig_id,
+                                    'state': new_state, 'roi': roi, 'message': msg
+                                }))
+                                # Telegram push if configured
+                                if tg_token and tg_chat:
+                                    try:
+                                        import requests as _req
+                                        _req.post(
+                                            f'https://api.telegram.org/bot{tg_token}/sendMessage',
+                                            json={'chat_id': tg_chat, 'text': msg, 'parse_mode': 'Markdown'},
+                                            timeout=5
+                                        )
+                                    except: pass
+                                print(f"[SignalAlert] {ticker2} {new_state} ROI={roi:+.2f}%", flush=True)
+                    except Exception as pw_err:
+                        print(f"[PricePrewarm] {pw_err}", flush=True)
+
             except Exception as e:
                 pass
             time.sleep(5)
+
 
 
     def run(self):
