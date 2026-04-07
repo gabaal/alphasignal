@@ -145,10 +145,10 @@ UNIVERSE = {
     'PROXY':    ['MSTR', 'GLXY.TO'],
     'ETF':      ['IBIT', 'FBTC', 'ARKB', 'BITO'],
     'EQUITIES': ['NVDA', 'TSLA', 'PLTR', 'SMCI', 'AMD'],   # crypto-correlated tech
-    'DEFI':     ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'UNI-USD', 'JTO-USD', 'EIGEN-USD'],
+    'DEFI':     ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 'EIGEN-USD'],
     'L1':       ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD',
                  'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD',
-                 'SUI-USD', 'APT-USD', 'SEI-USD', 'STX-USD', 'TAO-USD'],
+                 'SEI-USD'],
     'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD'],
     'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD', 'GRT-USD', 'IO-USD'],
     'STABLES':  ['USDC-USD', 'USDT-USD'],
