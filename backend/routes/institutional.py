@@ -3917,15 +3917,17 @@ class InstitutionalRoutesMixin:
         """Return alerts_history with state computed from market_ticks (no live yfinance calls)."""
         try:
             query    = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            f_ticker = query.get('ticker', [None])[0]
-            f_type   = query.get('type',   [None])[0]
+            f_ticker    = query.get('ticker',    [None])[0]
+            f_type      = query.get('type',       [None])[0]
+            f_severity  = query.get('severity',   [None])[0]
+            f_direction = query.get('direction',  [None])[0]
             f_days   = int(query.get('days',  [30])[0])
             page     = int(query.get('page',   [1])[0])
             limit    = int(query.get('limit', [25])[0])
             offset   = (page - 1) * limit
 
             # ── Cache check: 2-min TTL, keyed by all query params ────────
-            cache_key = f'{f_ticker}:{f_type}:{f_days}:{page}:{limit}'
+            cache_key = f'{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{page}:{limit}'
             shc = InstitutionalRoutesMixin._sig_history_cache
             entry = shc.get(cache_key)
             if entry and (time.time() - entry['ts']) < 120:
@@ -3945,6 +3947,16 @@ class InstitutionalRoutesMixin:
             if f_type:
                 base_where  += ' AND ah.type = ?'
                 params.append(f_type);    count_params.append(f_type)
+            if f_severity:
+                base_where  += ' AND LOWER(ah.severity) = ?'
+                params.append(f_severity.lower());  count_params.append(f_severity.lower())
+            if f_direction:
+                # direction inferred from signal type name — uses literal IN clause, no params
+                if f_direction == 'bullish':
+                    base_where  += " AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
+                elif f_direction == 'bearish':
+                    base_where  += " AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
+
 
             c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]
