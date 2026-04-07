@@ -130,7 +130,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             body = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             parts = path.split('/')
             item_id = parts[-1] if len(parts) > 1 else None
-            if path.startswith('/api/trade-ledger'):
+            if path.startswith('/api/watchlist'):
+                self.handle_watchlist_patch(auth_info, item_id, body)
+            elif path.startswith('/api/trade-ledger'):
                 self.handle_trade_ledger_patch(auth_info, item_id, body)
             else:
                 self.send_response(404); self.end_headers()
