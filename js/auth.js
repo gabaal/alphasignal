@@ -2,6 +2,25 @@
 const AUTH_CACHE_KEY = 'as_auth_v1';
 const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// ── Early loader dismissal for public/home view ───────────────────────────
+// Dismiss the app-loader immediately so the static hero pre-render is visible
+// as an LCP candidate without waiting for the auth round-trip.
+// Auth state is still resolved in the background and applied once complete.
+(function earlyLoaderDismiss() {
+    const params = new URLSearchParams(window.location.search);
+    const view   = params.get('view') || 'home';
+    const PUBLIC_VIEWS = ['home', 'signals', 'help', ''];
+    if (!PUBLIC_VIEWS.includes(view)) return;
+    // Wait for DOM to be parsed (not fully loaded) then dismiss
+    document.addEventListener('DOMContentLoaded', () => {
+        const loader = document.getElementById('app-loader');
+        const layout = document.getElementById('main-layout');
+        if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 200); }
+        if (layout) { layout.classList.remove('hidden'); layout.style.removeProperty('filter'); }
+    }, { once: true });
+})();
+
+
 function getCachedAuth() {
     try {
         const raw = localStorage.getItem(AUTH_CACHE_KEY);
