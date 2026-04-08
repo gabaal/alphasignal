@@ -331,7 +331,7 @@ async function renderCommandCenter() {
                 const el = document.getElementById('cmd-topAlphaChart');
                 if (!el) return;
                 const existing = Chart.getChart('cmd-topAlphaChart'); if (existing) existing.destroy();
-                const sorted=[..._sigs].filter(s=>s.alpha!==undefined).sort((a,b)=>Math.abs(b.alpha)-Math.abs(a.alpha)).slice(0,8);
+                const sorted=[..._sigs].filter(s=>s.alpha!==undefined).sort((a,b)=>parseFloat(b.alpha)-parseFloat(a.alpha)).slice(0,8);
                 const labels=sorted.map(s=>s.ticker.replace('-USD','')), values=sorted.map(s=>parseFloat(s.alpha));
                 const colors=values.map(v=>v>=0?'rgba(34,197,94,0.75)':'rgba(239,68,68,0.75)');
                 new Chart(el.getContext('2d'), {
@@ -517,7 +517,7 @@ function openCmdChartModal(key) {
                 }
             });
         } else if (key === 'alpha') {
-            const sorted=[...sigs].filter(s=>s.alpha!==undefined).sort((a,b)=>Math.abs(b.alpha)-Math.abs(a.alpha)).slice(0,12);
+            const sorted=[...sigs].filter(s=>s.alpha!==undefined).sort((a,b)=>parseFloat(b.alpha)-parseFloat(a.alpha)).slice(0,12);
             const labels=sorted.map(s=>s.ticker.replace('-USD','')), values=sorted.map(s=>parseFloat(s.alpha));
             const colors=values.map(v=>v>=0?'rgba(34,197,94,0.8)':'rgba(239,68,68,0.8)');
             new Chart(ctx, {
