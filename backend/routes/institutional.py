@@ -2331,24 +2331,20 @@ class InstitutionalRoutesMixin:
                 self.send_json({'signals': [], 'stats': {'total': 0, 'win_rate': 0, 'avg_return': 0}})
                 return
 
-            # Batch-fetch all distinct tickers' price history in one connection
+            # Batch-fetch price ticks per ticker (market_ticks has price only, no high/low)
             tickers = list(set(s['ticker'] for s in signals))
-            price_history = {}   # ticker -> list of {timestamp, high, low, close} rows ASC
+            price_history = {}   # ticker -> list of (timestamp_str, price) tuples ASC
             try:
                 hc = sqlite3.connect(DB_PATH)
                 hc.row_factory = sqlite3.Row
                 hcur = hc.cursor()
                 for tkr in tickers:
                     hcur.execute(
-                        """SELECT timestamp, price as close,
-                                  COALESCE(high, price) as high,
-                                  COALESCE(low,  price) as low
-                           FROM market_ticks
-                           WHERE symbol=? AND price>0
-                           ORDER BY timestamp ASC""",
+                        'SELECT timestamp, price FROM market_ticks '
+                        'WHERE symbol=? AND price>0 ORDER BY timestamp ASC',
                         (tkr,)
                     )
-                    price_history[tkr] = [dict(r) for r in hcur.fetchall()]
+                    price_history[tkr] = [(row['timestamp'], float(row['price'])) for row in hcur.fetchall()]
                 hc.close()
             except Exception:
                 pass
@@ -2376,72 +2372,68 @@ class InstitutionalRoutesMixin:
                     tp_price = signal_price * (1 - TP_PCT / 100)
                     sl_price = signal_price * (1 - SL_PCT / 100)   # SL_PCT negative → price rises
 
-                # --- Parse signal timestamp ---
+                # --- Parse signal timestamp (handles ISO 'T' and space separators) ---
                 try:
-                    sig_ts = datetime.strptime(sig_ts_str[:19], '%Y-%m-%d %H:%M:%S')
+                    sig_ts = datetime.strptime(sig_ts_str[:19].replace('T', ' '), '%Y-%m-%d %H:%M:%S')
                 except Exception:
                     sig_ts = None
 
                 expiry_ts = (sig_ts + timedelta(days=MAX_DAYS)) if sig_ts else None
 
-                # --- Walk OHLC bars after signal to find first TP/SL hit ---
-                history  = price_history.get(ticker, [])
-                closed   = False
+                # --- Walk price ticks after signal to find first TP/SL breach ---
+                history      = price_history.get(ticker, [])
+                closed       = False
                 close_reason = 'OPEN'
                 close_price  = None
                 close_ts     = None
 
-                for bar in history:
+                for (ts_str, tick_price) in history:
                     try:
-                        bar_ts = datetime.strptime(str(bar['timestamp'])[:19], '%Y-%m-%d %H:%M:%S')
+                        bar_ts = datetime.strptime(str(ts_str)[:19].replace('T', ' '), '%Y-%m-%d %H:%M:%S')
                     except Exception:
                         continue
                     if sig_ts and bar_ts <= sig_ts:
-                        continue   # skip bars before signal
+                        continue   # skip ticks before or at signal time
 
-                    bar_high  = float(bar['high'])
-                    bar_low   = float(bar['low'])
-                    bar_close = float(bar['close'])
-
-                    # Check expiry first (EOD close at bar_close)
+                    # Check expiry first
                     if expiry_ts and bar_ts >= expiry_ts:
-                        closed      = True
+                        closed       = True
                         close_reason = 'EXPIRED'
-                        close_price  = bar_close
+                        close_price  = tick_price
                         close_ts     = bar_ts
                         break
 
                     if direction == 'LONG':
-                        if bar_high >= tp_price:
-                            closed      = True
+                        if tick_price >= tp_price:
+                            closed       = True
                             close_reason = 'TP_HIT'
                             close_price  = tp_price
                             close_ts     = bar_ts
                             break
-                        if bar_low <= sl_price:
-                            closed      = True
+                        if tick_price <= sl_price:
+                            closed       = True
                             close_reason = 'SL_HIT'
                             close_price  = sl_price
                             close_ts     = bar_ts
                             break
                     else:  # SHORT
-                        if bar_low <= tp_price:
-                            closed      = True
+                        if tick_price <= tp_price:
+                            closed       = True
                             close_reason = 'TP_HIT'
                             close_price  = tp_price
                             close_ts     = bar_ts
                             break
-                        if bar_high >= sl_price:
-                            closed      = True
+                        if tick_price >= sl_price:
+                            closed       = True
                             close_reason = 'SL_HIT'
                             close_price  = sl_price
                             close_ts     = bar_ts
                             break
 
-                # --- If still open, use current (latest) price ---
+                # --- If still open, use latest tick price ---
                 if not closed:
                     if history:
-                        close_price = float(history[-1]['close'])
+                        close_price = history[-1][1]
                     else:
                         # Fallback: latest market_tick
                         try:
