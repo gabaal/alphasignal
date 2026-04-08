@@ -109,11 +109,7 @@ async function renderCommandCenter() {
             </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:minmax(180px,240px) 1fr minmax(160px,220px);gap:1.5rem;align-items:start">
-            <div class="card">
-                <h3 style="margin-bottom:1rem">TOP INSTITUTIONAL ALPHA</h3>
-                <div id="cmd-top-signals"></div>
-            </div>
+        <div style="display:grid;grid-template-columns:1fr minmax(160px,220px);gap:1.5rem;align-items:start">
             <div class="card" style="background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);cursor:zoom-in;transition:border-color 0.15s"
                 onclick="openCmdChartModal('radar')"
                 onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
@@ -140,6 +136,7 @@ async function renderCommandCenter() {
                 <div id="cmd-cme-gaps"></div>
             </div>
         </div>
+
     `;
 
 
