@@ -158,16 +158,45 @@ class AIEngineRoutesMixin:
 
     def handle_signal_thesis(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-        ticker = query.get('ticker', ['BTC'])[0]
-        signal = query.get('signal', ['LONG'])[0]
-        zscore = query.get('zscore', ['2.1'])[0]
+        ticker  = query.get('ticker', ['BTC'])[0]
+        signal  = query.get('signal', ['LONG'])[0]
+        zscore  = query.get('zscore', ['2.1'])[0]
+
+        # ── Fetch live price so the LLM is grounded to the actual current price ──
+        live_price = None
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            db = sqlite3.connect(DB_PATH)
+            cur = db.cursor()
+            cur.execute(
+                "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
+                (ticker,)
+            )
+            row = cur.fetchone()
+            db.close()
+            if row:
+                live_price = round(float(row[0]), 4)
+        except Exception:
+            pass
+
+        if live_price is None:
+            try:
+                import yfinance as yf
+                info = yf.Ticker(ticker).fast_info
+                px = info.get('last_price') or info.get('lastPrice') or info.get('regularMarketPrice')
+                if px and float(px) > 0:
+                    live_price = round(float(px), 4)
+            except Exception:
+                pass
 
         client = _get_client()
         if not client:
+            price_str = f"${live_price:,.2f}" if live_price else "current market price"
             self.send_json({
                 'thesis': (
-                    f"**{ticker} {signal} Setup:** Statistical Z-Score deviation of {zscore}σ "
-                    f"indicates a high-conviction momentum expansion phase. "
+                    f"**{ticker} {signal} Setup:** Statistical Z-Score deviation of {zscore}\u03c3 "
+                    f"indicates a high-conviction momentum expansion phase at {price_str}. "
                     f"Institutional accumulation patterns corroborate directional bias — "
                     f"target the next liquidity band with a 2:1 risk-reward profile."
                 ),
@@ -175,13 +204,21 @@ class AIEngineRoutesMixin:
             })
             return
 
+        price_anchor = (
+            f" The current live price is ${live_price:,.4f} — ALL price levels, entries, "
+            f"stop-losses, and targets in your thesis MUST be quoted relative to this live price."
+        ) if live_price else ""
+
         system_prompt = (
-            "You are an institutional crypto analyst. Write exactly 2 sentences. "
+            "You are an institutional crypto/equity analyst. Write exactly 2 sentences. "
             "First sentence: explain the technical setup driving this signal. "
             "Second sentence: the tactical entry rationale and key risk. "
-            "Be specific. No generic statements. Max 80 words total."
+            "CRITICAL: Use ONLY the live price given in the prompt for any price references. "
+            "Never invent or use historical price levels. Max 80 words total."
         )
-        user_prompt = f"Generate a trade thesis for: {ticker}, Signal={signal}, Z-Score={zscore}σ"
+        user_prompt = (
+            f"Generate a trade thesis for: {ticker}, Signal={signal}, Z-Score={zscore}\u03c3.{price_anchor}"
+        )
 
         try:
             resp = client.chat.completions.create(
@@ -191,7 +228,7 @@ class AIEngineRoutesMixin:
                     {'role': 'user',   'content': user_prompt}
                 ],
                 max_tokens=120,
-                temperature=0.7
+                temperature=0.5
             )
             thesis = resp.choices[0].message.content.strip()
             self.send_json({'thesis': thesis, 'ticker': ticker, 'signal': signal, 'source': 'gpt-4o-mini'})
