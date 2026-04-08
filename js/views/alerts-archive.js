@@ -1,4 +1,4 @@
-﻿async function renderMacroView(tabs = null) {
+async function renderMacroView(tabs = null) {
 
     if (!tabs) tabs = macroHubTabs;
 
@@ -110,7 +110,7 @@
 
 
 
-        // ÔöÇÔöÇ Cross-Asset Momentum Heatmap (appended after grid) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+        // -- Cross-Asset Momentum Heatmap (appended after grid) ---------
 
         const heatEl = document.createElement('div');
 
@@ -130,7 +130,7 @@
 
                 </h3>
 
-                <span style="font-size:0.55rem;color:var(--text-dim);">ROLLING RETURNS ┬À GREEN = OUTPERFORMANCE ┬À RED = UNDERPERFORMANCE</span>
+                <span style="font-size:0.55rem;color:var(--text-dim);">ROLLING RETURNS · GREEN = OUTPERFORMANCE · RED = UNDERPERFORMANCE</span>
 
             </div>
 
@@ -142,13 +142,13 @@
 
                 <span><span style="color:#86efac">&#9632;</span> +1% to +5%</span>
 
-                <span><span style="color:#374151">&#9632;</span> ┬▒1% flat</span>
+                <span><span style="color:#374151">&#9632;</span> +/-1% flat</span>
 
                 <span><span style="color:#fca5a5">&#9632;</span> -1% to -5%</span>
 
                 <span><span style="color:#ef4444">&#9632;</span> &lt;-5%</span>
 
-                <span style="margin-left:auto">Source: Live 30D market data ┬À Z-score vs 50D mean</span>
+                <span style="margin-left:auto">Source: Live 30D market data · Z-score vs 50D mean</span>
 
             </div>`;
 
@@ -226,7 +226,7 @@
 
                     ${rets.map(v=>`<td style="padding:6px 10px;text-align:center;background:${cellBg(v)};color:#fff;font-weight:800;">${fmt(v)}</td>`).join('')}
 
-                    <td style="padding:7px 10px;text-align:center;color:${zClr};font-weight:700;">${z>=0?'+':''}${z.toFixed(2)}¤â</td>
+                    <td style="padding:7px 10px;text-align:center;color:${zClr};font-weight:700;">${z>=0?'+':''}${z.toFixed(2)}σ</td>
 
                 </tr>`;
 
@@ -312,7 +312,7 @@ async function renderDocsVelocity() {
 
 
 
-// ÔöÇÔöÇ P&L pending helpers ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// -- P&L pending helpers ---------------------------------------------------
 
 function _pnlHtml(entryPrice, liveP) {
 
@@ -456,13 +456,13 @@ async function renderAlerts(tabs = null) {
 
     appEl.innerHTML = skeleton(3);
 
-    // Load alerts data (primary) ÔÇö settings load separately & non-blocking
+    // Load alerts data (primary) -- settings load separately & non-blocking
 
     const data = await fetchAPI('/alerts');
 
 
 
-    // ÔöÇÔöÇ Seed window.livePrices for ALL tickers visible in alerts ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    // -- Seed window.livePrices for ALL tickers visible in alerts --------------
 
     // WS already covers BTC/ETH/SOL. For ADA, XRP, MSTR, COIN etc. we use the
 
@@ -512,7 +512,7 @@ async function renderAlerts(tabs = null) {
 
     } else {
 
-        // Already seeded ÔÇö just handle any remaining pending (e.g. after re-render)
+        // Already seeded -- just handle any remaining pending (e.g. after re-render)
 
         setTimeout(_fetchFallbackPrices, 300);
 
@@ -520,7 +520,7 @@ async function renderAlerts(tabs = null) {
 
 
 
-    // Default settings ÔÇö panel always renders with these, then updates when real data arrives
+    // Default settings -- panel always renders with these, then updates when real data arrives
 
     let hasDiscord  = false, hasTelegram = false, zThreshold = 2.0, alertsOn = true;
 
@@ -544,7 +544,7 @@ async function renderAlerts(tabs = null) {
 
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
 
-                <span id="alerts-live-pulse" style="font-size:0.55rem;color:var(--accent);letter-spacing:1px;font-weight:700;opacity:0.5;transition:opacity 0.5s">LIVE ÔÇó Auto-sync every 60s</span>
+                <span id="alerts-live-pulse" style="font-size:0.55rem;color:var(--accent);letter-spacing:1px;font-weight:700;opacity:0.5;transition:opacity 0.5s">LIVE * Auto-sync every 60s</span>
 
                 <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
 
@@ -558,7 +558,7 @@ async function renderAlerts(tabs = null) {
 
 
 
-        <!-- ÔÜÖ´©Å Notification Settings Panel -->
+        <!-- ´©Å Notification Settings Panel -->
 
         <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(0,212,170,0.15)">
 
@@ -590,11 +590,11 @@ async function renderAlerts(tabs = null) {
 
                     </label>
 
-                    <input id="discord-webhook-input" type="password" placeholder="${hasDiscord ? discMasked + ' (enter new to update)' : 'https://discord.com/api/webhooks/ÔÇª'}"
+                    <input id="discord-webhook-input" type="password" placeholder="${hasDiscord ? discMasked + ' (enter new to update)' : 'https://discord.com/api/webhooks/...'}"
 
                         style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid ${hasDiscord ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
 
-                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Server ÔåÆ Integrations ÔåÆ Webhooks ÔåÆ Copy URL</div>
+                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Server > Integrations > Webhooks > Copy URL</div>
 
                 </div>
 
@@ -626,7 +626,7 @@ async function renderAlerts(tabs = null) {
 
                 <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:8px">
 
-                    <span> ALERT SENSITIVITY ÔÇö MIN. PREDICTED RETURN</span>
+                    <span> ALERT SENSITIVITY -- MIN. PREDICTED RETURN</span>
 
                     <span id="z-val-display" style="color:#ffd700;font-weight:900">${zThreshold.toFixed(1)}%</span>
 
@@ -640,9 +640,9 @@ async function renderAlerts(tabs = null) {
 
                 <div style="display:flex;justify-content:space-between;font-size:0.55rem;color:var(--text-dim);margin-top:4px">
 
-                    <span>0.5% ÔÇö Very Sensitive (many alerts)</span>
+                    <span>0.5% -- Very Sensitive (many alerts)</span>
 
-                    <span>5% ÔÇö Only High-Conviction Signals</span>
+                    <span>5% -- Only High-Conviction Signals</span>
 
                 </div>
 
@@ -722,21 +722,21 @@ async function renderAlerts(tabs = null) {
 
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
 
-                            <span> VOL SPIKE MIN ¤â</span>
+                            <span> VOL SPIKE MIN σ</span>
 
-                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0¤â</span>
+                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0σ</span>
 
                         </label>
 
                         <input type="range" id="vol-spike-threshold-slider" min="1" max="5" step="0.1" value="2.0" aria-label="Volume spike multiplier threshold" aria-valuemin="1" aria-valuemax="5" aria-valuenow="2.0"
 
-                            oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'¤â'"
+                            oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'σ'"
 
                             style="width:100%;accent-color:#f59e0b;cursor:pointer">
 
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
 
-                            <span>1¤â more alerts</span><span>5¤â extreme only</span>
+                            <span>1σ more alerts</span><span>5σ extreme only</span>
 
                         </div>
 
@@ -818,7 +818,7 @@ async function renderAlerts(tabs = null) {
 
                 ['badge-depeg-trigger','De-peg &gt; 1.0%',     '#ef4444', 'warning'],
 
-                ['badge-vol-trigger',  'Vol Spike 2.0├ù',       '#f59e0b', 'bolt'],
+                ['badge-vol-trigger',  'Vol Spike 2.0x',       '#f59e0b', 'bolt'],
 
                 ['badge-cme-trigger',  'CME Gap 1.0%',         '#8b5cf6', 'pivot_table_chart']
 
@@ -872,7 +872,7 @@ async function renderAlerts(tabs = null) {
 
                         <span class="material-symbols-outlined" style="font-size:14px;color:var(--text-dim)">search</span>
 
-                        <input id="alert-ticker-search" type="text" placeholder="Filter tickerÔÇª" autocomplete="off"
+                        <input id="alert-ticker-search" type="text" placeholder="Filter ticker..." autocomplete="off"
 
                             style="background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:0.7rem;width:100px"
 
@@ -964,7 +964,7 @@ async function renderAlerts(tabs = null) {
 
                 } else if (entryPrice) {
 
-                    // No live price yet ÔÇö render a pending placeholder that gets upgraded
+                    // No live price yet -- render a pending placeholder that gets upgraded
 
                     // by the bulk-seed callback once /signals resolves
 
@@ -974,7 +974,7 @@ async function renderAlerts(tabs = null) {
 
                         <span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
 
-                        <span style="font-size:0.6rem;color:var(--text-dim);opacity:0.5;margin-left:4px"> fetching liveÔÇª</span>
+                        <span style="font-size:0.6rem;color:var(--text-dim);opacity:0.5;margin-left:4px"> fetching live...</span>
 
                     </div>`;
 
@@ -1076,7 +1076,7 @@ async function renderAlerts(tabs = null) {
 
 
 
-    // filterAlerts ÔÇö client-side filter using cached data
+    // filterAlerts -- client-side filter using cached data
 
     window.filterAlerts = function(type, btn, tickerQ) {
 
@@ -1202,9 +1202,9 @@ async function renderAlerts(tabs = null) {
 
         if (toggle) toggle.checked = s.alerts_enabled !== false;
 
-        if (discIn && s.has_discord) discIn.placeholder = (s.discord_masked || 'ÔÇª') + ' (enter new to update)';
+        if (discIn && s.has_discord) discIn.placeholder = (s.discord_masked || '...') + ' (enter new to update)';
 
-        if (tgIn   && s.has_telegram) tgIn.placeholder  = (s.telegram_masked || 'ÔÇª') + ' (enter new to update)';
+        if (tgIn   && s.has_telegram) tgIn.placeholder  = (s.telegram_masked || '...') + ' (enter new to update)';
 
         // Populate the 4 signal sliders
 
@@ -1222,7 +1222,7 @@ async function renderAlerts(tabs = null) {
 
         setSlider('depeg-threshold-slider',     'depeg-val-display', s.depeg_threshold,      v => parseFloat(v).toFixed(1) + '%');
 
-        setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + '¤â');
+        setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + 'σ');
 
         setSlider('cme-gap-threshold-slider',   'cme-val-display',   s.cme_gap_threshold,    v => parseFloat(v).toFixed(1) + '%');
 
@@ -1238,7 +1238,7 @@ async function renderAlerts(tabs = null) {
 
             'badge-depeg-trigger':`De-peg &gt; ${parseFloat(s.depeg_threshold || 1).toFixed(1)}%`,
 
-            'badge-vol-trigger':  `Vol Spike ${parseFloat(s.vol_spike_threshold || 2).toFixed(1)}├ù`,
+            'badge-vol-trigger':  `Vol Spike ${parseFloat(s.vol_spike_threshold || 2).toFixed(1)}x`,
 
             'badge-cme-trigger':  `CME Gap ${parseFloat(s.cme_gap_threshold || 1).toFixed(1)}%`,
 
@@ -1306,7 +1306,7 @@ window.saveAlertSettings = async function() {
 
         showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? 'Ô£ô' : 'Ô£ù'}  Telegram: ${result.has_telegram ? 'Ô£ô' : 'Ô£ù'}`, 'success');
 
-        // Refresh poller sensitivity immediately ÔÇö new threshold takes effect on next poll
+        // Refresh poller sensitivity immediately -- new threshold takes effect on next poll
 
         if (typeof _loadPollerSettings === 'function') _loadPollerSettings();
 
