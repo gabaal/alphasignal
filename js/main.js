@@ -616,17 +616,7 @@ function initLivePriceStream() {
                             }
                         });
 
-                        // Feature 5: Live Signal Counter badge
-                        if (msg.signal_count !== undefined) {
-                            const badge = document.getElementById('signal-count-badge');
-                            if (badge) {
-                                badge.textContent = msg.signal_count;
-                                badge.style.display = msg.signal_count > 0 ? 'inline-flex' : 'none';
-                            }
-                            // Mobile alert dot
-                            const dot = document.getElementById('mobile-alert-dot');
-                            if (dot) dot.style.display = msg.new_today > 0 ? 'block' : 'none';
-                        }
+
 
                         // Feature 2: Bell badge removed per user feedback
                     } else if (msg.type === 'new_alert' || msg.type === 'alert') {
