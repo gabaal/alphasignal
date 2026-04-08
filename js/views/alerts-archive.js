@@ -24,7 +24,7 @@ async function renderMacroView(tabs = null) {
                                     </div>
                                     <div style="flex:1">
                                         <div style="font-size:0.95rem; font-weight:800; margin-bottom:4px">${e.event}</div>
-                                        <div style="font-size:0.7rem; color:var(--text-dim)">FCST: <span style="color:var(--text)">${e.forecast}</span> | PREV: ${e.previous}</div>
+                &laquo; PREV
                                     </div>
                                     <div style="text-align:right">
                                         <div class=" impacto-badge impact-${e.impact.toLowerCase()}" style="font-size:0.6rem">${e.impact}</div>
@@ -112,7 +112,7 @@ async function renderMacroView(tabs = null) {
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
                     <td style="padding:7px 10px;font-weight:700;color:var(--text)">${r.ticker}</td>
                     ${rets.map(v=>`<td style="padding:6px 10px;text-align:center;background:${cellBg(v)};color:#fff;font-weight:800;">${fmt(v)}</td>`).join('')}
-                    <td style="padding:7px 10px;text-align:center;color:${zClr};font-weight:700;">${z>=0?'+':''}${z.toFixed(2)}Ïƒ</td>
+                    <td style="padding:7px 10px;text-align:center;color:${zClr};font-weight:700;">${z>=0?'+':''}${z.toFixed(2)}σ</td>
                 </tr>`;
             });
             html += '</tbody></table>';
@@ -360,14 +360,14 @@ async function renderAlerts(tabs = null) {
                     <!-- Vol Spike -->
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                            <span>âš¡ VOL SPIKE MIN Ïƒ</span>
-                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0Ïƒ</span>
+                            <span>âš¡ VOL SPIKE MIN σ</span>
+                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0σ</span>
                         </label>
                         <input type="range" id="vol-spike-threshold-slider" min="1" max="5" step="0.1" value="2.0" aria-label="Volume spike multiplier threshold" aria-valuemin="1" aria-valuemax="5" aria-valuenow="2.0"
-                            oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'Ïƒ'"
+                            oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'σ'"
                             style="width:100%;accent-color:#f59e0b;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
-                            <span>1Ïƒ more alerts</span><span>5Ïƒ extreme only</span>
+                            <span>1σ more alerts</span><span>5σ extreme only</span>
                         </div>
                     </div>
 
@@ -484,11 +484,11 @@ async function renderAlerts(tabs = null) {
         }
         return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 0;justify-content:center">
             <button style="${btnStyle(currentPage<=1,false)}" ${currentPage<=1?'disabled':''} onclick="window._alertsGoPage(${currentPage-1})">
-                â† PREV
+                &laquo; PREV
             </button>
             ${btns}
             <button style="${btnStyle(currentPage>=totalPages,false)}" ${currentPage>=totalPages?'disabled':''} onclick="window._alertsGoPage(${currentPage+1})">
-                NEXT â†’
+                NEXT &raquo;
             </button>
         </div>`;
     }
@@ -644,7 +644,7 @@ async function renderAlerts(tabs = null) {
         };
         setSlider('whale-threshold-slider',     'whale-val-display', s.whale_threshold,      v => parseFloat(v).toFixed(0) + 'M');
         setSlider('depeg-threshold-slider',     'depeg-val-display', s.depeg_threshold,      v => parseFloat(v).toFixed(1) + '%');
-        setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + 'Ïƒ');
+        setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + 'σ');
         setSlider('cme-gap-threshold-slider',   'cme-val-display',   s.cme_gap_threshold,    v => parseFloat(v).toFixed(1) + '%');
 
         // B22 fix: Update Active Triggers chip labels with real saved thresholds
