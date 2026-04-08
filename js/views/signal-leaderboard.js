@@ -94,8 +94,9 @@ async function renderSignalLeaderboard(tabs = null) {
         { key: 'type',          label: 'SIGNAL TYPE',   align: 'left'  },
         { key: 'direction',     label: 'DIR',           align: 'left'  },
         { key: 'signal_price',  label: 'SIGNAL PRICE',  align: 'right' },
-        { key: 'current_price', label: 'CURRENT PRICE', align: 'right' },
+        { key: 'current_price', label: 'CLOSE PRICE',   align: 'right' },
         { key: 'move_pct',      label: 'MOVE',          align: 'right' },
+        { key: 'close_reason',  label: 'CLOSE',         align: 'center'},
         { key: 'outcome',       label: 'OUTCOME',       align: 'center'},
         { key: 'timestamp',     label: 'DATE',          align: 'left'  },
     ];
@@ -233,6 +234,14 @@ async function renderSignalLeaderboard(tabs = null) {
                         const openTag = !s.closed
                             ? `<span style="font-size:0.5rem;background:rgba(245,158,11,0.15);color:#f59e0b;padding:1px 5px;border-radius:3px;margin-left:4px">OPEN</span>`
                             : '';
+                        const reasonColors = {
+                            'TP HIT':  ['rgba(34,197,94,0.15)',  'var(--risk-low)'],
+                            'SL HIT':  ['rgba(239,68,68,0.15)',  'var(--risk-high)'],
+                            'EXPIRED': ['rgba(245,158,11,0.15)', '#f59e0b'],
+                            'OPEN':    ['rgba(125,211,252,0.12)','var(--accent)'],
+                        };
+                        const [rBg, rCol] = reasonColors[s.close_reason] || ['rgba(255,255,255,0.06)', 'var(--text-dim)'];
+                        const reasonBadge = `<span style="background:${rBg};color:${rCol};padding:3px 8px;border-radius:4px;font-size:0.6rem;font-weight:700;white-space:nowrap">${s.close_reason || '—'}</span>`;
                         return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s;"
                                     onmouseenter="this.style.background='rgba(0,242,255,0.02)'"
                                     onmouseleave="this.style.background=''">
@@ -244,6 +253,7 @@ async function renderSignalLeaderboard(tabs = null) {
                             <td style="padding:10px 12px;text-align:right;font-size:0.78rem;">$${parseFloat(s.signal_price).toLocaleString()}</td>
                             <td style="padding:10px 12px;text-align:right;font-size:0.78rem;">$${parseFloat(s.current_price).toLocaleString()}</td>
                             <td style="padding:10px 12px;text-align:right;font-size:0.78rem;font-weight:700;color:${moveColor};">${s.move_pct>=0?'+':''}${s.move_pct}%</td>
+                            <td style="padding:10px 12px;text-align:center;">${reasonBadge}</td>
                             <td style="padding:10px 12px;text-align:center;">${badge}</td>
                             <td style="padding:10px 12px;font-size:0.7rem;color:var(--text-dim);">${s.timestamp ? new Date(s.timestamp).toLocaleDateString() : '—'}</td>
                         </tr>`;
