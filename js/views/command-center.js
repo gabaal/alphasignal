@@ -232,21 +232,35 @@ async function renderCommandCenter() {
         loadCmdRadar(savedRadarTicker);
     }, 300);
 
-        // 6. CME Gaps (static placeholders — full data available in premium CME Gaps view)
+        // 6. CME Gaps — live from /api/cme-gaps
         try {
-            const gaps = [
-                { price: '63,450', dist: '+3.2%', status: 'UNFILLED' },
-                { price: '58,200', dist: '-4.5%', status: 'PARTIAL' }
-            ];
+            const cmeData = await fetch('/api/cme-gaps').then(r => r.ok ? r.json() : []).catch(() => []);
             const gapEl = document.getElementById('cmd-cme-gaps');
-            if (gapEl) gapEl.innerHTML = gaps.map(g => `
-                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border)">
-                    <span style="font-size:0.75rem">$${g.price}</span>
-                    <span style="font-size:0.65rem; color:var(--text-dim)">${g.dist}</span>
-                    <span style="font-size:0.65rem; font-weight:900; color:var(--accent)">${g.status}</span>
-                </div>
-            `).join('');
-        } catch(e) { console.error("Gaps Error:", e); }
+            if (gapEl) {
+                if (!cmeData.length) {
+                    gapEl.innerHTML = '<div style="color:var(--text-dim);font-size:0.7rem;padding:8px 0">No significant gaps detected</div>';
+                } else {
+                    // Show top 3 unfilled/partial gaps closest to current price
+                    const topGaps = cmeData.filter(g => g.status !== 'FILLED').slice(0, 3);
+                    gapEl.innerHTML = topGaps.map(g => {
+                        const isUp = g.direction === 'UP';
+                        const col  = g.status === 'UNFILLED' ? '#22c55e' : '#f59e0b';
+                        const sign = g.distance >= 0 ? '+' : '';
+                        return `
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+                                <div>
+                                    <div style="font-size:0.75rem;font-weight:900">$${g.gap_low.toLocaleString()} - $${g.gap_high.toLocaleString()}</div>
+                                    <div style="font-size:0.5rem;color:var(--text-dim);margin-top:2px">${isUp ? '&#9650;' : '&#9660;'} ${g.direction} GAP &middot; ${g.fri_date}</div>
+                                </div>
+                                <div style="text-align:right">
+                                    <div style="font-size:0.7rem;font-weight:900;color:${col}">${g.status}</div>
+                                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${sign}${g.distance}%</div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                }
+            }
+        } catch(e) { console.error('CME Gaps Widget Error:', e); }
 
         // 7. Signal Analytics Charts — built from live signals data
         if (signals && signals.length) {

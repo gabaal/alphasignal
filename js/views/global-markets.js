@@ -284,25 +284,55 @@ async function renderCMEGaps(tabs = null) {
         </p>
     `;
 
-    const gaps = [
-        { level: "63,450 - 64,120", type: "UPPER", status: "UNFILLED", distance: "+3.2%", color: "var(--risk-low)" },
-        { level: "58,200 - 59,100", type: "LOWER", status: "PARTIAL", distance: "-4.5%", color: "var(--accent)" },
-        { level: "53,400 - 54,000", type: "LOWER", status: "UNFILLED", distance: "-11.2%", color: "#ef4444" },
-        { level: "69,100 - 69,800", type: "UPPER", status: "FILLED", distance: "N/A", color: "var(--text-dim)" }
-    ];
+    const cmeList = document.getElementById('cme-gaps-list');
+    cmeList.innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;padding:1rem 0">Loading gap data...</div>';
 
-    document.getElementById('cme-gaps-list').innerHTML = gaps.map(g => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02); margin-bottom:8px; border-radius:4px">
-            <div>
-                <div style="font-size:0.9rem; font-weight:900; color:var(--text)">$${g.level}</div>
-                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px">${g.type} GAP</div>
-            </div>
-            <div style="text-align:right">
-                <div style="font-size:0.75rem; font-weight:900; color:${g.color}">${g.status}</div>
-                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px">${g.distance} DISTANCE</div>
-            </div>
-        </div>
-    `).join('');
+    try {
+        const gaps = await fetch('/api/cme-gaps').then(r => r.ok ? r.json() : []).catch(() => []);
+
+        if (!gaps.length) {
+            cmeList.innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;padding:1rem 0">No significant CME gaps detected in the last 26 weeks.</div>';
+            return;
+        }
+
+        const statusColor = s => s === 'UNFILLED' ? '#22c55e' : s === 'PARTIAL' ? '#f59e0b' : '#64748b';
+        const statusBg    = s => s === 'UNFILLED' ? 'rgba(34,197,94,0.1)' : s === 'PARTIAL' ? 'rgba(245,158,11,0.1)' : 'rgba(100,116,139,0.06)';
+
+        cmeList.innerHTML = gaps.map(g => {
+            const col  = statusColor(g.status);
+            const bg   = statusBg(g.status);
+            const sign = g.distance >= 0 ? '+' : '';
+            const arrow = g.direction === 'UP' ? '&#9650;' : '&#9660;';
+            const distCol = g.distance > 0 ? '#22c55e' : '#ef4444';
+            return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;
+                        background:${bg};border:1px solid ${col}22;border-left:3px solid ${col};
+                        border-radius:6px;margin-bottom:8px">
+                <div>
+                    <div style="font-size:0.9rem;font-weight:900;color:var(--text)">
+                        $${g.gap_low.toLocaleString()} &ndash; $${g.gap_high.toLocaleString()}
+                    </div>
+                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px;letter-spacing:1px">
+                        ${arrow} ${g.direction} GAP &middot; ${g.gap_pct > 0 ? '+' : ''}${g.gap_pct.toFixed(2)}% &middot; ${g.fri_date} &rarr; ${g.mon_date}
+                    </div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:0.75rem;font-weight:900;color:${col};letter-spacing:1px">${g.status}</div>
+                    <div style="font-size:0.6rem;font-weight:700;color:${distCol};margin-top:4px;font-family:'JetBrains Mono'">
+                        ${sign}${g.distance}% FROM CURRENT
+                    </div>
+                    <div style="font-size:0.5rem;color:var(--text-dim);margin-top:2px">
+                        BTC @ $${g.current.toLocaleString()}
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        cmeList.innerHTML = '<div style="color:var(--text-dim)">Failed to load CME gap data.</div>';
+        console.error('CME Gaps Error:', e);
+    }
+
+
 }
 
 // ============= OI Radar View =============

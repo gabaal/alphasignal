@@ -35,7 +35,104 @@ class InstitutionalRoutesMixin:
         except: pass
         return None
 
+    def handle_cme_gaps(self):
+        """GET /api/cme-gaps — real CME Bitcoin futures gap inventory.
+        Fetches 26-week daily BTC OHLC, identifies Friday-close / Monday-open
+        gaps >0.5%, checks fill status vs subsequent price action, and returns
+        live distance from current BTC price.
+        """
+        cached = CACHE.get('cme_gaps')
+        if cached:
+            return self.send_json(cached)
+        try:
+            import yfinance as yf
+            df = yf.download('BTC-USD', period='26wk', interval='1d', progress=False, auto_adjust=True)
+            if df.empty:
+                return self.send_json([])
+
+            # Flatten MultiIndex if present
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = [c[0] for c in df.columns]
+
+            df = df.reset_index()
+            df['date']    = pd.to_datetime(df['Date'])
+            df['weekday'] = df['date'].dt.dayofweek   # Mon=0, Fri=4
+
+            gaps = []
+            fridays = df[df['weekday'] == 4].reset_index(drop=True)
+
+            for i, fri_row in fridays.iterrows():
+                fri_close = float(fri_row['Close'])
+                fri_date  = fri_row['date']
+
+                # Find the next Monday row
+                mon_candidates = df[(df['date'] > fri_date) & (df['weekday'] == 0)]
+                if mon_candidates.empty:
+                    continue
+                mon_row   = mon_candidates.iloc[0]
+                mon_open  = float(mon_row['Open'])
+                mon_date  = mon_row['date']
+
+                gap_pct = (mon_open - fri_close) / fri_close * 100
+                if abs(gap_pct) < 0.5:
+                    continue  # Not a significant gap
+
+                gap_low  = min(fri_close, mon_open)
+                gap_high = max(fri_close, mon_open)
+                direction = 'UP' if mon_open > fri_close else 'DOWN'
+
+                # Check fill: did any subsequent candle trade through the gap?
+                after = df[df['date'] > mon_date]
+                filled = False
+                partial = False
+                for _, row in after.iterrows():
+                    lo, hi = float(row['Low']), float(row['High'])
+                    if direction == 'UP':
+                        # Gap is above fri_close: fills when price trades back DOWN through it
+                        if lo <= gap_low:
+                            filled = True; break
+                        elif lo <= gap_high * 0.6:
+                            partial = True
+                    else:
+                        # Gap is below fri_close: fills when price trades back UP through it
+                        if hi >= gap_high:
+                            filled = True; break
+                        elif hi >= gap_low + (gap_high - gap_low) * 0.4:
+                            partial = True
+
+                status = 'FILLED' if filled else ('PARTIAL' if partial else 'UNFILLED')
+
+                # Current BTC price
+                current_btc = float(df.iloc[-1]['Close'])
+                # Distance from current price to midpoint of gap
+                gap_mid  = (gap_low + gap_high) / 2
+                dist_pct = round((gap_mid - current_btc) / current_btc * 100, 2)
+
+                gaps.append({
+                    'fri_date':  fri_date.strftime('%Y-%m-%d'),
+                    'mon_date':  mon_date.strftime('%Y-%m-%d'),
+                    'gap_low':   round(gap_low, 0),
+                    'gap_high':  round(gap_high, 0),
+                    'gap_pct':   round(gap_pct, 2),
+                    'direction': direction,
+                    'status':    status,
+                    'distance':  dist_pct,
+                    'current':   round(current_btc, 0),
+                })
+
+            # Sort: unfilled first, then partial, then filled; within each group closest to current
+            order = {'UNFILLED': 0, 'PARTIAL': 1, 'FILLED': 2}
+            gaps.sort(key=lambda g: (order[g['status']], abs(g['distance'])))
+
+            CACHE.set('cme_gaps', gaps, ttl=3600)  # cache 1h
+            self.send_json(gaps)
+        except Exception as e:
+            print(f'[CME Gaps] Error: {e}')
+            import traceback; traceback.print_exc()
+            self.send_json([])
+
     def handle_signal_permalink(self, signal_id):
+
         """Public: GET /api/signal-permalink?id={id} — returns a historical snapshot from alerts_history.
         Returns the same shape as handle_live_signal_permalink so the frontend renders identically,
         but with the original entry price, direction, and timestamp frozen at signal-fire time.
