@@ -547,6 +547,7 @@ async function renderSignalArchive(tabs = null) {
                 <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">TICKER</label>
                 <input type="text" id="filter-ticker" name="signal-ticker-search" placeholder="BTC-USD, ETH…" maxlength="20"
                     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                    readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
                     style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.75rem;width:130px;font-family:var(--font-mono)"
                     onkeydown="if(event.key==='Enter') loadData(1)">
             </div>
