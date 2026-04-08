@@ -545,7 +545,8 @@ async function renderSignalArchive(tabs = null) {
             <!-- Ticker search -->
             <div style="display:flex;flex-direction:column;gap:4px">
                 <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">TICKER</label>
-                <input type="text" id="filter-ticker" placeholder="BTC-USD, ETH…" maxlength="20"
+                <input type="text" id="filter-ticker" name="signal-ticker-search" placeholder="BTC-USD, ETH…" maxlength="20"
+                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                     style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.75rem;width:130px;font-family:var(--font-mono)"
                     onkeydown="if(event.key==='Enter') loadData(1)">
             </div>
@@ -638,11 +639,10 @@ async function renderSignalArchive(tabs = null) {
     // ── Sort state lives OUTSIDE loadData so it persists across page navigation ──
     let sortCol = null;
     let sortDir = 'desc';
-    // All columns sort the current page client-side — no re-fetch on header clicks.
-    // Server-side ORDER BY is applied on initial data load (via sort params in URL),
-    // but clicking a header never triggers an empty-table API round-trip.
-    const SERVER_SORT_COLS = new Set(); // nothing triggers a re-fetch on sort click
-    const CLIENT_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction','return','current','state']);
+    // Server-side columns trigger a re-fetch sorted across the full dataset.
+    // Computed columns (return/current/state) are derived from live prices — sort client-side only.
+    const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction']);
+    const CLIENT_SORT_COLS = new Set(['return','current','state']);
 
     // ── Date Range Picker state ──────────────────────────────────────────────
     let drpMode = '30d';   // active pill id
@@ -699,8 +699,10 @@ async function renderSignalArchive(tabs = null) {
         if (type)      url += `&type=${type}`;
         if (severity)  url += `&severity=${severity}`;
         if (direction) url += `&direction=${direction}`;
-        // No sort params on header-click re-fetches — all column sorting is client-side
-        // (sort_col/sort_dir are only meaningful for initial filter-triggered loads)
+        // Append server-side sort params so the DB returns the full dataset sorted
+        if (sortCol && SERVER_SORT_COLS.has(sortCol)) {
+            url += `&sort_col=${sortCol}&sort_dir=${sortDir}`;
+        }
 
         const response = await fetchAPI(url);
         console.log(`[AlphaSignal API] Response from ${url}:`, response);
@@ -979,11 +981,16 @@ async function renderSignalArchive(tabs = null) {
                 sortCol = col;
                 sortDir = 'desc';
             }
-            // Always sort the current page data in-memory — never re-fetch
-            const thead = document.getElementById('archive-thead');
-            const tbody = document.getElementById('archive-tbody');
-            if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr>`;
-            if (tbody) tbody.innerHTML = renderRows(window._archiveCurrentData || data);
+            if (SERVER_SORT_COLS.has(col)) {
+                // Server-side: re-fetch from page 1 with the full dataset sorted
+                loadData(1);
+            } else {
+                // Client-side: sort the already-fetched page data in-memory (instant)
+                const thead = document.getElementById('archive-thead');
+                const tbody = document.getElementById('archive-tbody');
+                if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr>`;
+                if (tbody) tbody.innerHTML = renderRows(window._archiveCurrentData || data);
+            }
         };
     };
 

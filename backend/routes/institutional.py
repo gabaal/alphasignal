@@ -4125,10 +4125,12 @@ class InstitutionalRoutesMixin:
             ttl = InstitutionalRoutesMixin._PRICE_CACHE_TTL
 
             # 2a. Serve from 90-second in-memory cache where possible
+            # Guard: other code paths may store plain values (not tuples) in _price_cache;
+            # treat anything that isn't a (price, timestamp) tuple as a cache miss.
             cache_miss = []
             for t in unique_tickers:
                 entry = pc.get(t)
-                if entry and (now - entry[1]) < ttl:
+                if isinstance(entry, (list, tuple)) and len(entry) >= 2 and (now - entry[1]) < ttl:
                     price_map[t] = entry[0]
                 else:
                     cache_miss.append(t)
@@ -4286,8 +4288,19 @@ class InstitutionalRoutesMixin:
                 del InstitutionalRoutesMixin._sig_history_cache[oldest]
             self.send_json(response)
         except Exception as e:
-            print(f'Signal History Error: {e}')
-            self.send_json([])
+            import traceback
+            print(f'[SignalHistory] Error: {e}\n{traceback.format_exc()}', flush=True)
+            # Return structured empty response so the frontend shows "no results" cleanly
+            # rather than crashing on response?.data being undefined
+            try:
+                self.send_json({
+                    'data': [],
+                    'pagination': {'page': 1, 'limit': 25, 'total': 0, 'pages': 0},
+                    'summary': {'total': 0, 'closed': 0, 'active': 0, 'wins': 0, 'losses': 0,
+                                'avg_roi': None, 'page_wins': 0, 'page_losses': 0}
+                })
+            except Exception:
+                pass
     def handle_live_portfolio_sim(self, custom_basket):
         try:
             selected = [t.strip() for t in custom_basket.split(',')]
