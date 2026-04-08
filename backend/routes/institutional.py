@@ -4017,7 +4017,7 @@ class InstitutionalRoutesMixin:
             cache_key = f'{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{f_from}:{f_to}:{page}:{limit}:{sort_col}:{sort_dir}'
             shc = InstitutionalRoutesMixin._sig_history_cache
             entry = shc.get(cache_key)
-            if entry and (time.time() - entry['ts']) < 120:
+            if entry and (time.time() - entry['ts']) < 10:
                 self.send_json(entry['data'])
                 return
 
@@ -4029,17 +4029,18 @@ class InstitutionalRoutesMixin:
                 # Custom date range takes priority over days-based lookback.
                 # datetime(ah.timestamp) normalises both 'T' and space separators
                 # so '2026-04-07T15:25:00' compares correctly against '2026-04-07 23:59:59'.
+                # LOWER() on both sides makes the email comparison case-insensitive.
                 if f_from and f_to:
-                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND datetime(ah.timestamp) <= ? AND ah.user_email = ?"
+                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND datetime(ah.timestamp) <= ? AND LOWER(ah.user_email) = LOWER(?)"
                     params      = [f_from + ' 00:00:00', f_to + ' 23:59:59', user_email]
                 elif f_from:
-                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND ah.user_email = ?"
+                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND LOWER(ah.user_email) = LOWER(?)"
                     params      = [f_from + ' 00:00:00', user_email]
                 elif f_to:
-                    base_where  = "WHERE datetime(ah.timestamp) <= ? AND ah.user_email = ?"
+                    base_where  = "WHERE datetime(ah.timestamp) <= ? AND LOWER(ah.user_email) = LOWER(?)"
                     params      = [f_to + ' 23:59:59', user_email]
                 else:
-                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email = ?"
+                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND LOWER(ah.user_email) = LOWER(?)"
                     params      = [f'-{f_days} day', user_email]
                 count_params = list(params)
             else:

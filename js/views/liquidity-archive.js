@@ -638,10 +638,11 @@ async function renderSignalArchive(tabs = null) {
     // ── Sort state lives OUTSIDE loadData so it persists across page navigation ──
     let sortCol = null;
     let sortDir = 'desc';
-    // Columns backed by SQL fields — sort applies across ALL pages via server ORDER BY
-    const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction','return','current','state']);
-    // No remaining client-side-only sort columns (all now server-side)
-    const CLIENT_SORT_COLS = new Set();
+    // All columns sort the current page client-side — no re-fetch on header clicks.
+    // Server-side ORDER BY is applied on initial data load (via sort params in URL),
+    // but clicking a header never triggers an empty-table API round-trip.
+    const SERVER_SORT_COLS = new Set(); // nothing triggers a re-fetch on sort click
+    const CLIENT_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction','return','current','state']);
 
     // ── Date Range Picker state ──────────────────────────────────────────────
     let drpMode = '30d';   // active pill id
@@ -698,10 +699,8 @@ async function renderSignalArchive(tabs = null) {
         if (type)      url += `&type=${type}`;
         if (severity)  url += `&severity=${severity}`;
         if (direction) url += `&direction=${direction}`;
-        // Append server-side sort params for DB-backed columns
-        if (sortCol && SERVER_SORT_COLS.has(sortCol)) {
-            url += `&sort_col=${sortCol}&sort_dir=${sortDir}`;
-        }
+        // No sort params on header-click re-fetches — all column sorting is client-side
+        // (sort_col/sort_dir are only meaningful for initial filter-triggered loads)
 
         const response = await fetchAPI(url);
         console.log(`[AlphaSignal API] Response from ${url}:`, response);
@@ -775,7 +774,7 @@ async function renderSignalArchive(tabs = null) {
                 const sev = (s.severity||'').toLowerCase();
                 const sevIcon  = sev==='critical'?'🔴':sev==='high'?'🟠':'🟡';
                 return `
-                <tr class="archive-row" onclick="window._openSignalDrawer()" style="cursor:pointer" style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                <tr class="archive-row" onclick="window._openSignalDrawer('${s.id}')" style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
                     <td data-label="TICKER" style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
                     <td data-label="TYPE" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
                     <td data-label="SEV" class="col-sev" style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${sevIcon} ${(sev||'--').toUpperCase()}</span></td>
@@ -972,22 +971,19 @@ async function renderSignalArchive(tabs = null) {
                 </table>
             </div>`;
 
-        // ── Sort handler ──────────────────────────────
+        // ── Sort handler: always client-side ──────────────────────────────
         window._archiveSort = function(col) {
-            const flipped = sortCol === col;
-            sortCol = col;
-            sortDir = flipped ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
-
-            if (SERVER_SORT_COLS.has(col)) {
-                // Server-side: re-fetch from page 1 with full dataset sorted
-                loadData(1);
+            if (sortCol === col) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
             } else {
-                // Client-side: sort current page only (computed columns)
-                const thead = document.getElementById('archive-thead');
-                const tbody = document.getElementById('archive-tbody');
-                if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr>`;
-                if (tbody) tbody.innerHTML = renderRows(data);
+                sortCol = col;
+                sortDir = 'desc';
             }
+            // Always sort the current page data in-memory — never re-fetch
+            const thead = document.getElementById('archive-thead');
+            const tbody = document.getElementById('archive-tbody');
+            if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr>`;
+            if (tbody) tbody.innerHTML = renderRows(window._archiveCurrentData || data);
         };
     };
 
