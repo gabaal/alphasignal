@@ -7,7 +7,7 @@ async function renderMacroView(tabs = null) {
         if (!data) return;
 
         appEl.innerHTML = `
-            <h2 class="view-title">🌏 Macro Catalyst Compass</h2>
+            <h2 class="view-title">ðŸŒ Macro Catalyst Compass</h2>
             ${tabHTML}
         <h2 class="section-heading" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-top:0.5rem">Macro Catalyst Compass</h2>
             <p class="view-desc" style="margin-top:0.5rem">Tracking high-impact economic drivers and global liquidity shifts.</p>
@@ -54,7 +54,7 @@ async function renderMacroView(tabs = null) {
                 </aside>
             </div>`;
 
-        // ── Cross-Asset Momentum Heatmap (appended after grid) ─────────
+        // â”€â”€ Cross-Asset Momentum Heatmap (appended after grid) â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const heatEl = document.createElement('div');
         heatEl.className = 'card';
         heatEl.style.cssText = 'padding:1.5rem;margin-top:2rem;';
@@ -64,16 +64,16 @@ async function renderMacroView(tabs = null) {
                     <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">grid_on</span>
                     CROSS-ASSET MOMENTUM HEATMAP
                 </h3>
-                <span style="font-size:0.55rem;color:var(--text-dim);">ROLLING RETURNS · GREEN = OUTPERFORMANCE · RED = UNDERPERFORMANCE</span>
+                <span style="font-size:0.55rem;color:var(--text-dim);">ROLLING RETURNS Â· GREEN = OUTPERFORMANCE Â· RED = UNDERPERFORMANCE</span>
             </div>
             <div id="momentum-heatmap-grid" style="overflow-x:auto;"></div>
             <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:12px;font-size:0.6rem;color:var(--text-dim);">
                 <span><span style="color:#22c55e">&#9632;</span> &gt;+5%</span>
                 <span><span style="color:#86efac">&#9632;</span> +1% to +5%</span>
-                <span><span style="color:#374151">&#9632;</span> ±1% flat</span>
+                <span><span style="color:#374151">&#9632;</span> Â±1% flat</span>
                 <span><span style="color:#fca5a5">&#9632;</span> -1% to -5%</span>
                 <span><span style="color:#ef4444">&#9632;</span> &lt;-5%</span>
-                <span style="margin-left:auto">Source: Live 30D market data · Z-score vs 50D mean</span>
+                <span style="margin-left:auto">Source: Live 30D market data Â· Z-score vs 50D mean</span>
             </div>`;
         appEl.appendChild(heatEl);
 
@@ -112,7 +112,7 @@ async function renderMacroView(tabs = null) {
                 html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
                     <td style="padding:7px 10px;font-weight:700;color:var(--text)">${r.ticker}</td>
                     ${rets.map(v=>`<td style="padding:6px 10px;text-align:center;background:${cellBg(v)};color:#fff;font-weight:800;">${fmt(v)}</td>`).join('')}
-                    <td style="padding:7px 10px;text-align:center;color:${zClr};font-weight:700;">${z>=0?'+':''}${z.toFixed(2)}σ</td>
+                    <td style="padding:7px 10px;text-align:center;color:${zClr};font-weight:700;">${z>=0?'+':''}${z.toFixed(2)}Ïƒ</td>
                 </tr>`;
             });
             html += '</tbody></table>';
@@ -155,14 +155,14 @@ async function renderDocsVelocity() {
 }
 
 
-// ── P&L pending helpers ───────────────────────────────────────────────────
+// â”€â”€ P&L pending helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _pnlHtml(entryPrice, liveP) {
     const pct = ((liveP - entryPrice) / entryPrice * 100);
     const color = pct > 0 ? 'var(--risk-low)' : pct < 0 ? 'var(--risk-high)' : 'var(--text-dim)';
     return `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
         <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">ENTRY</span><br>
         <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
-        <span style="color:var(--text-dim);font-size:0.8rem">→</span>
+        <span style="color:var(--text-dim);font-size:0.8rem">â†’</span>
         <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">NOW</span><br>
         <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${liveP.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
         <div style="margin-left:auto;text-align:right">
@@ -227,10 +227,10 @@ async function _fetchFallbackPrices() {
 // ============= Core Features =============
 async function renderAlerts(tabs = null) {
     appEl.innerHTML = skeleton(3);
-    // Load alerts data (primary) — settings load separately & non-blocking
+    // Load alerts data (primary) â€” settings load separately & non-blocking
     const data = await fetchAPI('/alerts');
 
-    // ── Seed window.livePrices for ALL tickers visible in alerts ──────────────
+    // â”€â”€ Seed window.livePrices for ALL tickers visible in alerts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // WS already covers BTC/ETH/SOL. For ADA, XRP, MSTR, COIN etc. we use the
     // signals endpoint which has current prices for the full 50-asset universe.
     if (!window.livePrices) window.livePrices = {};
@@ -255,11 +255,11 @@ async function renderAlerts(tabs = null) {
             _fetchFallbackPrices();
         }).catch(() => { _fetchFallbackPrices(); });
     } else {
-        // Already seeded — just handle any remaining pending (e.g. after re-render)
+        // Already seeded â€” just handle any remaining pending (e.g. after re-render)
         setTimeout(_fetchFallbackPrices, 300);
     }
 
-    // Default settings — panel always renders with these, then updates when real data arrives
+    // Default settings â€” panel always renders with these, then updates when real data arrives
     let hasDiscord  = false, hasTelegram = false, zThreshold = 2.0, alertsOn = true;
     let discMasked  = '', tgMasked = '';
 
@@ -271,17 +271,17 @@ async function renderAlerts(tabs = null) {
                 <p style="margin-top:4px;color:var(--text-dim);font-size:0.8rem">Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <span id="alerts-live-pulse" style="font-size:0.55rem;color:var(--accent);letter-spacing:1px;font-weight:700;opacity:0.5;transition:opacity 0.5s">LIVE • Auto-sync every 60s</span>
+                <span id="alerts-live-pulse" style="font-size:0.55rem;color:var(--accent);letter-spacing:1px;font-weight:700;opacity:0.5;transition:opacity 0.5s">LIVE â€¢ Auto-sync every 60s</span>
                 <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-alerts')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
                 <button class="intel-action-btn mini" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="renderAlerts(window._alertsHubTabs)"><span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH</button>
             </div>
         </div>
         ${tabs ? renderHubTabs('alerts', tabs) : ''}
 
-        <!-- ⚙️ Notification Settings Panel -->
+        <!-- âš™ï¸ Notification Settings Panel -->
         <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(0,212,170,0.15)">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px">
-                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">⚙ NOTIFICATION SETTINGS</div>
+                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">âš™ NOTIFICATION SETTINGS</div>
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.7rem;color:var(--text-dim)">
                     <span>ALERTS ENABLED</span>
                     <input type="checkbox" id="alerts-enabled-toggle" aria-label="Enable or disable all alert notifications" ${alertsOn ? 'checked' : ''} style="width:16px;height:16px;accent-color:#00d4aa;cursor:pointer">
@@ -291,18 +291,18 @@ async function renderAlerts(tabs = null) {
                 <!-- Discord -->
                 <div>
                     <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:6px">
-                        <span style="font-size:0.85rem">🎮</span> DISCORD WEBHOOK
-                        ${hasDiscord ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700">✓ CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
+                        <span style="font-size:0.85rem">ðŸŽ®</span> DISCORD WEBHOOK
+                        ${hasDiscord ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700">âœ“ CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
                     </label>
-                    <input id="discord-webhook-input" type="password" placeholder="${hasDiscord ? discMasked + ' (enter new to update)' : 'https://discord.com/api/webhooks/…'}"
+                    <input id="discord-webhook-input" type="password" placeholder="${hasDiscord ? discMasked + ' (enter new to update)' : 'https://discord.com/api/webhooks/â€¦'}"
                         style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid ${hasDiscord ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
-                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Server → Integrations → Webhooks → Copy URL</div>
+                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Server â†’ Integrations â†’ Webhooks â†’ Copy URL</div>
                 </div>
                 <!-- Telegram -->
                 <div>
                     <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:6px">
-                        <span style="font-size:0.85rem">✈️</span> TELEGRAM CHAT ID
-                        ${hasTelegram ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700">✓ CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
+                        <span style="font-size:0.85rem">âœˆï¸</span> TELEGRAM CHAT ID
+                        ${hasTelegram ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700">âœ“ CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
                     </label>
                     <input id="telegram-chat-input" type="text" placeholder="${hasTelegram ? tgMasked + ' (enter new to update)' : '-1001234567890'}"
                         style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid ${hasTelegram ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
@@ -312,27 +312,27 @@ async function renderAlerts(tabs = null) {
             <!-- Z-Threshold Slider -->
             <div style="margin-bottom:1.2rem">
                 <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span>⚡ ALERT SENSITIVITY — MIN. PREDICTED RETURN</span>
+                    <span>âš¡ ALERT SENSITIVITY â€” MIN. PREDICTED RETURN</span>
                     <span id="z-val-display" style="color:#ffd700;font-weight:900">${zThreshold.toFixed(1)}%</span>
                 </label>
                 <input type="range" id="z-threshold-slider" min="0.5" max="5" step="0.1" value="${zThreshold}" aria-label="Z-Score alert sensitivity threshold" aria-valuemin="0.5" aria-valuemax="5" aria-valuenow="${zThreshold}"
                     oninput="document.getElementById('z-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
                     style="width:100%;accent-color:#00d4aa;cursor:pointer">
                 <div style="display:flex;justify-content:space-between;font-size:0.55rem;color:var(--text-dim);margin-top:4px">
-                    <span>0.5% — Very Sensitive (many alerts)</span>
-                    <span>5% — Only High-Conviction Signals</span>
+                    <span>0.5% â€” Very Sensitive (many alerts)</span>
+                    <span>5% â€” Only High-Conviction Signals</span>
                 </div>
             </div>
 
             <!-- Per-Signal Fine-Tuning -->
             <div style="margin-bottom:1.2rem">
-                <div style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px">🎛 PER-SIGNAL FINE-TUNING</div>
+                <div style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px">ðŸŽ› PER-SIGNAL FINE-TUNING</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
 
                     <!-- Whale Txn -->
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                            <span>🐋 WHALE TXN MIN SIZE</span>
+                            <span>ðŸ‹ WHALE TXN MIN SIZE</span>
                             <span id="whale-val-display" style="color:#7dd3fc;font-weight:900">5M</span>
                         </label>
                         <input type="range" id="whale-threshold-slider" min="1" max="50" step="1" value="5" aria-label="Whale transaction size threshold in million USD" aria-valuemin="1" aria-valuemax="50" aria-valuenow="5"
@@ -346,7 +346,7 @@ async function renderAlerts(tabs = null) {
                     <!-- De-peg -->
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                            <span>⚠️ DE-PEG THRESHOLD</span>
+                            <span>âš ï¸ DE-PEG THRESHOLD</span>
                             <span id="depeg-val-display" style="color:#ef4444;font-weight:900">1.0%</span>
                         </label>
                         <input type="range" id="depeg-threshold-slider" min="0.1" max="5" step="0.1" value="1.0" aria-label="Stablecoin depeg deviation threshold" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="1.0"
@@ -360,21 +360,21 @@ async function renderAlerts(tabs = null) {
                     <!-- Vol Spike -->
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                            <span>⚡ VOL SPIKE MIN σ</span>
-                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0σ</span>
+                            <span>âš¡ VOL SPIKE MIN Ïƒ</span>
+                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0Ïƒ</span>
                         </label>
                         <input type="range" id="vol-spike-threshold-slider" min="1" max="5" step="0.1" value="2.0" aria-label="Volume spike multiplier threshold" aria-valuemin="1" aria-valuemax="5" aria-valuenow="2.0"
-                            oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'σ'"
+                            oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'Ïƒ'"
                             style="width:100%;accent-color:#f59e0b;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
-                            <span>1σ more alerts</span><span>5σ extreme only</span>
+                            <span>1Ïƒ more alerts</span><span>5Ïƒ extreme only</span>
                         </div>
                     </div>
 
                     <!-- CME Gap Fill -->
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                            <span>📐 CME GAP MIN SIZE</span>
+                            <span>ðŸ“ CME GAP MIN SIZE</span>
                             <span id="cme-val-display" style="color:#8b5cf6;font-weight:900">1.0%</span>
                         </label>
                         <input type="range" id="cme-gap-threshold-slider" min="0.1" max="5" step="0.1" value="1.0" aria-label="CME gap size threshold in percent" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="1.0"
@@ -408,7 +408,7 @@ async function renderAlerts(tabs = null) {
                 ['badge-z-trigger',    'Z-Score &gt; 2.0%',   '#22c55e', 'show_chart'],
                 ['badge-whale-trigger','Whale Txn &gt; $5M',   '#7dd3fc', 'account_balance_wallet'],
                 ['badge-depeg-trigger','De-peg &gt; 1.0%',     '#ef4444', 'warning'],
-                ['badge-vol-trigger',  'Vol Spike 2.0×',       '#f59e0b', 'bolt'],
+                ['badge-vol-trigger',  'Vol Spike 2.0Ã—',       '#f59e0b', 'bolt'],
                 ['badge-cme-trigger',  'CME Gap 1.0%',         '#8b5cf6', 'pivot_table_chart']
             ].map(([id, label, color, icon]) => `
                 <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.03);border:1px solid ${color}33;border-radius:6px;padding:4px 10px">
@@ -416,13 +416,13 @@ async function renderAlerts(tabs = null) {
                     <span id="${id}" style="font-size:0.6rem;color:${color};font-weight:700">${label}</span>
                 </div>
             `).join('')}
-            <span id="alerts-paused-badge" style="display:none;font-size:0.55rem;font-weight:900;letter-spacing:1px;padding:3px 10px;border-radius:100px;background:rgba(255,62,62,0.12);color:var(--risk-high);border:1px solid rgba(255,62,62,0.3)">⏸ PAUSED</span>
+            <span id="alerts-paused-badge" style="display:none;font-size:0.55rem;font-weight:900;letter-spacing:1px;padding:3px 10px;border-radius:100px;background:rgba(255,62,62,0.12);color:var(--risk-high);border:1px solid rgba(255,62,62,0.3)">â¸ PAUSED</span>
             <span style="margin-left:auto;font-size:0.6rem;color:var(--text-dim)">Updated: ${new Date().toLocaleTimeString()}</span>
         </div>
 
         <div id="live-alert-list" class="alert-list" style="display:flex; flex-direction:column; gap:1.5rem">
             ${data && data.length ? (() => {
-                // Cache for client-side filtering
+                // Cache for client-side filtering + pagination
                 window._alertsCache = data;
 
                 return `
@@ -435,110 +435,28 @@ async function renderAlerts(tabs = null) {
                     `).join('')}
                     <div style="margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:4px 10px">
                         <span class="material-symbols-outlined" style="font-size:14px;color:var(--text-dim)">search</span>
-                        <input id="alert-ticker-search" type="text" placeholder="Filter ticker…" autocomplete="off"
+                        <input id="alert-ticker-search" type="text" placeholder="Filter tickerâ€¦" autocomplete="off"
                             style="background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:0.7rem;width:100px"
                             oninput="window._alertsPage=1;window.filterAlerts(document.querySelector('.alert-filter-btn.active')?.dataset?.afilter||'ALL',null,this.value)">
                     </div>
                     <span id="alert-count-label" style="font-size:0.6rem;color:var(--text-dim)">50 alerts</span>
                 </div>
                 <div id="alert-page-bar-top"></div>
-                <div id="alert-cards-container" style="display:flex;flex-direction:column;gap:1.5rem">`;
-            })() : ''}
-            ${data && data.length ? data.map(a => {
-                const ts = a.timestamp ? new Date(a.timestamp) : null;
-                const tsDisplay = ts ? ts.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'SYNC';
-                const sevColor = a.severity === 'high' || a.severity === 'critical' ? 'var(--risk-high)' : (a.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)');
-
-                // P&L tracking: compute time since signal
-                const ageMs = ts ? (Date.now() - ts.getTime()) : null;
-                const ageLabel = ageMs !== null ? (
-                    ageMs < 3600000 ? `${Math.round(ageMs/60000)}m ago` :
-                    ageMs < 86400000 ? `${Math.round(ageMs/3600000)}h ago` :
-                    `${Math.round(ageMs/86400000)}d ago`
-                ) : '';
-
-                // Live price from WS broadcast (window.livePrices set by WebSocket handler)
-                const sym = a.ticker ? a.ticker.replace('-USD','').toUpperCase() : null;
-                const livePrice = sym && window.livePrices ? window.livePrices[sym] : null;
-                const entryPrice = a.price && parseFloat(a.price) > 0 ? parseFloat(a.price) : null;
-                let pnlHtml = '';
-                if (entryPrice && livePrice && sym) {
-                    const pnlPct = ((livePrice - entryPrice) / entryPrice * 100);
-                    const pnlColor = pnlPct > 0 ? 'var(--risk-low)' : pnlPct < 0 ? 'var(--risk-high)' : 'var(--text-dim)';
-                    const pnlSign = pnlPct > 0 ? '+' : '';
-                    pnlHtml = `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
-                        <div style="font-size:0.65rem;color:var(--text-dim)">
-                            <span style="font-weight:700;letter-spacing:1px">ENTRY</span><br>
-                            <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
-                        </div>
-                        <span style="color:var(--text-dim);font-size:0.8rem">→</span>
-                        <div style="font-size:0.65rem;color:var(--text-dim)">
-                            <span style="font-weight:700;letter-spacing:1px">NOW</span><br>
-                            <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${livePrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
-                        </div>
-                        <div style="margin-left:auto;text-align:right">
-                            <div style="font-size:1rem;font-weight:900;color:${pnlColor};font-family:var(--font-mono)">${pnlSign}${pnlPct.toFixed(2)}%</div>
-                            <div style="font-size:0.55rem;color:var(--text-dim)">since signal</div>
-                        </div>
-                    </div>`;
-                } else if (entryPrice) {
-                    // No live price yet — render a pending placeholder that gets upgraded
-                    // by the bulk-seed callback once /signals resolves
-                    pnlHtml = `<div class="pnl-pending" data-ticker="${a.ticker || ''}" data-entry="${entryPrice}" style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px">
-                        <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">ENTRY</span>
-                        <span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
-                        <span style="font-size:0.6rem;color:var(--text-dim);opacity:0.5;margin-left:4px">· fetching live…</span>
-                    </div>`;
-                }
-
-                return `
-                <div class="alert-card ${a.severity}" style="background:var(--bg-card); border:1px solid var(--border); border-left:4px solid ${sevColor}; border-radius:12px; padding:1.5rem; position:relative; overflow:hidden; transition:transform 0.2s ease,box-shadow 0.2s ease" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;flex-wrap:wrap;gap:8px">
-                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                            <span style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:${sevColor}">${a.type}</span>
-                            <span style="font-size:0.65rem;padding:3px 8px;border-radius:100px;font-weight:800;background:${a.severity === 'high' || a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(0,242,255,0.1)'};color:${sevColor};border:1px solid ${sevColor}33;letter-spacing:1px">${a.severity?.toUpperCase() || 'INFO'}</span>
-                            ${a.ticker && a.ticker !== 'SYSTEM' ? `<span style="font-size:0.65rem;font-weight:900;color:var(--accent)">${a.ticker.replace('-USD','')}</span>` : ''}
-                        </div>
-                        <div style="text-align:right">
-                            <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono)">${tsDisplay}</div>
-                            ${ageLabel ? `<div style="font-size:0.6rem;color:var(--text-dim);opacity:0.6">${ageLabel}</div>` : ''}
-                        </div>
-                    </div>
-                    <div style="font-size:1.1rem; font-weight:800; margin-bottom:8px">${a.title || (a.ticker + ' SIGNAL')}</div>
-                    <div style="font-size:0.85rem; color:var(--text-dim); line-height:1.4; margin-bottom:1rem">${a.content || a.message}</div>
-                    ${pnlHtml}
-                    <div style="display:flex; gap:10px;flex-wrap:wrap">
-                        <button class="intel-action-btn mini" onclick="showSignalDetail('${a.id}', '${a.ticker}')" style="font-size:0.6rem; padding:4px 10px">
-                            <span class="material-symbols-outlined" style="font-size:14px; margin-right:4px">psychology</span>
-                            AI REASONING
-                        </button>
-                        ${a.ticker && a.ticker !== 'SYSTEM' ? `
-                        <button class="intel-action-btn mini outline" onclick="openDetail('${a.ticker}', 'ALERT')" style="font-size:0.6rem;padding:4px 10px">
-                            <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px">monitoring</span>
-                            CHART
-                        </button>
-                        <button class="intel-action-btn mini outline" onclick="addToWatchlist_quick('${a.ticker}')" style="font-size:0.6rem;padding:4px 10px;color:#22c55e;border-color:rgba(34,197,94,0.3)">
-                            <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px;color:#22c55e">add_circle</span>
-                            WATCH
-                        </button>
-` : ''}
-                    </div>
-                </div>
-                `;
-            }).join('') : `
+                <div id="alert-cards-container" style="display:flex;flex-direction:column;gap:1.5rem"></div>
+                <div id="alert-page-bar-bottom"></div>`;
+            })() : `
             <div class="card" style="padding:3rem;text-align:center">
                 <span class="material-symbols-outlined" style="font-size:3rem;color:var(--risk-low);display:block;margin-bottom:1rem">check_circle</span>
                 <h3 style="color:var(--risk-low);margin-bottom:0.5rem">ALL CLEAR</h3>
                 <p style="color:var(--text-dim);font-size:0.85rem">No active high-severity threats detected. All trigger conditions within normal parameters.</p>
             </div>`}
-            ${window._alertsCache ? '</div><div id="alert-page-bar-bottom"></div>' : ''}
         </div>`;
 
 // Clear badge when viewing alerts
     const badge = document.getElementById('alert-badge');
     if (badge) badge.style.display = 'none';
 
-    // ── Pagination state ─────────────────────────────────────────
+    // â”€â”€ Pagination state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const ALERTS_PER_PAGE = 25;
     window._alertsPage = 1;
 
@@ -559,18 +477,18 @@ async function renderAlerts(tabs = null) {
         }
         let btns = '', prev = 0;
         for (const p of show) {
-            if (prev && p - prev > 1) btns += `<span style="color:var(--text-dim);font-size:0.7rem;padding:0 4px">…</span>`;
+            if (prev && p - prev > 1) btns += `<span style="color:var(--text-dim);font-size:0.7rem;padding:0 4px">â€¦</span>`;
             const active = p === currentPage;
             btns += `<button style="${btnStyle(false,active)}" onclick="window._alertsGoPage(${p})">${p}</button>`;
             prev = p;
         }
         return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 0;justify-content:center">
             <button style="${btnStyle(currentPage<=1,false)}" ${currentPage<=1?'disabled':''} onclick="window._alertsGoPage(${currentPage-1})">
-                ← PREV
+                â† PREV
             </button>
             ${btns}
             <button style="${btnStyle(currentPage>=totalPages,false)}" ${currentPage>=totalPages?'disabled':''} onclick="window._alertsGoPage(${currentPage+1})">
-                NEXT →
+                NEXT â†’
             </button>
         </div>`;
     }
@@ -583,7 +501,7 @@ async function renderAlerts(tabs = null) {
         const slice  = filtered.slice(offset, offset + ALERTS_PER_PAGE);
 
         const countLabel = document.getElementById('alert-count-label');
-        if (countLabel) countLabel.textContent = `${total} alert${total!==1?'s':''} · page ${window._alertsPage}/${totalPages}`;
+        if (countLabel) countLabel.textContent = `${total} alert${total!==1?'s':''} Â· page ${window._alertsPage}/${totalPages}`;
 
         const container = document.getElementById('alert-cards-container');
         if (!container) return;
@@ -613,7 +531,7 @@ async function renderAlerts(tabs = null) {
         document.getElementById('alert-filter-bar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    // filterAlerts — client-side filter using cached data
+    // filterAlerts â€” client-side filter using cached data
     window.filterAlerts = function(type, btn, tickerQ) {
         const data = window._alertsCache || [];
         const tickerVal = tickerQ !== undefined ? tickerQ : (document.getElementById('alert-ticker-search')?.value || '');
@@ -637,7 +555,7 @@ async function renderAlerts(tabs = null) {
         _renderAlertsPage(filtered);
     };
 
-    // _buildAlertCard — shared card builder used by both initial render and pagination
+    // _buildAlertCard â€” shared card builder used by both initial render and pagination
     function _buildAlertCard(a) {
         const ts = a.timestamp ? new Date(a.timestamp) : null;
         const tsDisplay = ts ? ts.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'SYNC';
@@ -658,7 +576,7 @@ async function renderAlerts(tabs = null) {
             pnlHtml = `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
                 <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">ENTRY</span><br>
                 <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
-                <span style="color:var(--text-dim);font-size:0.8rem">→</span>
+                <span style="color:var(--text-dim);font-size:0.8rem">â†’</span>
                 <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">NOW</span><br>
                 <span style="font-family:var(--font-mono);font-weight:700;color:var(--text)">$${livePrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>
                 <div style="margin-left:auto;text-align:right">
@@ -669,7 +587,7 @@ async function renderAlerts(tabs = null) {
             pnlHtml = `<div class="pnl-pending" data-ticker="${a.ticker||''}" data-entry="${entryPrice}" style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px">
                 <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">ENTRY</span>
                 <span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
-                <span style="font-size:0.6rem;color:var(--text-dim);opacity:0.5;margin-left:4px">· fetching live…</span></div>`;
+                <span style="font-size:0.6rem;color:var(--text-dim);opacity:0.5;margin-left:4px">Â· fetching liveâ€¦</span></div>`;
         }
         return `<div class="alert-card ${sev}" style="background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ${sevColor};border-radius:12px;padding:1.5rem;position:relative;overflow:hidden;transition:transform 0.2s ease,box-shadow 0.2s ease" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:8px">
@@ -716,8 +634,8 @@ async function renderAlerts(tabs = null) {
         const toggle  = document.getElementById('alerts-enabled-toggle');
         if (slider && s.z_threshold) { slider.value = s.z_threshold; if(zDisp) zDisp.textContent = parseFloat(s.z_threshold).toFixed(1) + '%'; }
         if (toggle) toggle.checked = s.alerts_enabled !== false;
-        if (discIn && s.has_discord) discIn.placeholder = (s.discord_masked || '…') + ' (enter new to update)';
-        if (tgIn   && s.has_telegram) tgIn.placeholder  = (s.telegram_masked || '…') + ' (enter new to update)';
+        if (discIn && s.has_discord) discIn.placeholder = (s.discord_masked || 'â€¦') + ' (enter new to update)';
+        if (tgIn   && s.has_telegram) tgIn.placeholder  = (s.telegram_masked || 'â€¦') + ' (enter new to update)';
         // Populate the 4 signal sliders
         const setSlider = (id, dispId, val, fmt) => {
             const el = document.getElementById(id);
@@ -726,7 +644,7 @@ async function renderAlerts(tabs = null) {
         };
         setSlider('whale-threshold-slider',     'whale-val-display', s.whale_threshold,      v => parseFloat(v).toFixed(0) + 'M');
         setSlider('depeg-threshold-slider',     'depeg-val-display', s.depeg_threshold,      v => parseFloat(v).toFixed(1) + '%');
-        setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + 'σ');
+        setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + 'Ïƒ');
         setSlider('cme-gap-threshold-slider',   'cme-val-display',   s.cme_gap_threshold,    v => parseFloat(v).toFixed(1) + '%');
 
         // B22 fix: Update Active Triggers chip labels with real saved thresholds
@@ -734,7 +652,7 @@ async function renderAlerts(tabs = null) {
             'badge-z-trigger':    `Z-Score &gt; ${parseFloat(s.z_threshold || 2.0).toFixed(1)}%`,
             'badge-whale-trigger':`Whale Txn &gt; $${parseFloat(s.whale_threshold || 5).toFixed(0)}M`,
             'badge-depeg-trigger':`De-peg &gt; ${parseFloat(s.depeg_threshold || 1).toFixed(1)}%`,
-            'badge-vol-trigger':  `Vol Spike ${parseFloat(s.vol_spike_threshold || 2).toFixed(1)}×`,
+            'badge-vol-trigger':  `Vol Spike ${parseFloat(s.vol_spike_threshold || 2).toFixed(1)}Ã—`,
             'badge-cme-trigger':  `CME Gap ${parseFloat(s.cme_gap_threshold || 1).toFixed(1)}%`,
         };
         Object.entries(badgeMap).forEach(([id, label]) => {
@@ -767,8 +685,8 @@ window.saveAlertSettings = async function() {
         vol_spike_threshold: vol, cme_gap_threshold: cme
     });
     if (result?.success) {
-        showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? '✓' : '✗'}  Telegram: ${result.has_telegram ? '✓' : '✗'}`, 'success');
-        // Refresh poller sensitivity immediately — new threshold takes effect on next poll
+        showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? 'âœ“' : 'âœ—'}  Telegram: ${result.has_telegram ? 'âœ“' : 'âœ—'}`, 'success');
+        // Refresh poller sensitivity immediately â€” new threshold takes effect on next poll
         if (typeof _loadPollerSettings === 'function') _loadPollerSettings();
     } else {
         showToast('ALERT SETTINGS', result?.error || 'Save failed', 'alert');
