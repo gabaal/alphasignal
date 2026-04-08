@@ -27,6 +27,7 @@ function renderHelp() {
             { name: 'Backtester V2', desc: '3 components: Rolling Sharpe chart, Monthly P&L heatmap calendar, Trade summary stats', route: 'docs-backtester', icon: 'history' },
             { name: 'Signal Archive', desc: '2 components: Historical signal table, Running P&L tracker', route: 'docs-signal-archive', icon: 'archive' },
             { name: 'Narrative Galaxy', desc: '2 components: Force-directed galaxy graph, Velocity indicator table', route: 'docs-narrative', icon: 'hub' },
+            { name: 'How Signals Work', desc: 'Full system explainer: data harvest, ML inference, rule detection, ROI calc, stop loss automation, alert delivery & signal archive lifecycle', route: 'docs-how-signals-work', icon: 'schema' },
           ]
         },
         { id: 'institutional-hub', name: 'Institutional Hub', icon: 'key', color: '#fb923c', view: 'institutional-hub',

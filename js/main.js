@@ -156,6 +156,7 @@ const viewMap = {
     'docs-ask-terminal': renderDocsViewAskTerminal,
     'docs-command-center': renderDocsViewCommandCenter,
     'docs-daily-workflow': renderDocsViewDailyWorkflow,
+    'docs-how-signals-work': renderDocsViewHowSignalsWork,
     'signal': () => {
         const params = new URLSearchParams(window.location.search);
         const ticker = params.get('ticker') || params.get('id');

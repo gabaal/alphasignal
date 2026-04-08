@@ -15,6 +15,7 @@ class PersonalRoutesMixin:
 
             # ── Pass 1: price cache lookup (fast, in-memory, always safe) ──────
             missing = []   # items that still need a live price after cache lookup
+            _IRM = None
             try:
                 from backend.routes.institutional import InstitutionalRoutesMixin as _IRM
                 import time as _time
@@ -34,38 +35,67 @@ class PersonalRoutesMixin:
                     if not found:
                         missing.append(item)
             except Exception:
-                pass  # cache unavailable — will try yfinance for all items
+                missing = list(items)  # cache unavailable — enrich all via yfinance
 
-            # ── Pass 2: yfinance fallback for cache-miss tickers (parallel) ─────
-            # Runs in a thread pool so it never blocks the cache-hit items above.
+            # ── Pass 2: yfinance batch download for cache-miss tickers ──────────
+            # Use yf.download() (one HTTP request for N tickers, ~2s) instead of
+            # per-ticker fast_info calls which take ~6s each and would always
+            # exceed the old 4-second timeout.
             if missing:
                 try:
                     import yfinance as _yf
-                    from concurrent.futures import ThreadPoolExecutor, as_completed
+                    import time as _time2
 
-                    def _fetch_price(item):
+                    # Build the set of yfinance symbols to fetch.
+                    # Equities (RIOT, SMCI, VIRT…) use plain ticker;
+                    # crypto (ETH, BTC…) need the -USD suffix.
+                    sym_map = {}  # yf_sym -> [item, ...]
+                    for item in missing:
                         t = (item.get('ticker') or '').upper()
-                        for sym in [t, t[:-4] if t.endswith('-USD') else t + '-USD']:
-                            try:
-                                fi = _yf.Ticker(sym).fast_info
-                                px = (getattr(fi, 'last_price', None)
-                                      or getattr(fi, 'regular_market_price', None)
-                                      or getattr(fi, 'previous_close', None))
-                                if px and float(px) > 0:
-                                    return item, round(float(px), 8)
-                            except Exception:
-                                continue
-                        return item, None
+                        # Prefer -USD for potential crypto tickers; we'll fall
+                        # back to the plain ticker if -USD returns nothing.
+                        for candidate in ([t] if t.endswith('-USD') else [t, t + '-USD']):
+                            sym_map.setdefault(candidate, []).append(item)
 
-                    with ThreadPoolExecutor(max_workers=min(len(missing), 5)) as ex:
-                        futures = {ex.submit(_fetch_price, it): it for it in missing}
-                        for fut in as_completed(futures, timeout=4):
-                            try:
-                                it, px = fut.result()
-                                if px:
-                                    it['live_price'] = px
-                            except Exception:
-                                pass
+                    unique_syms = list(sym_map.keys())
+                    if unique_syms:
+                        df = _yf.download(
+                            unique_syms,
+                            period='1d',
+                            interval='1m',
+                            progress=False,
+                            auto_adjust=True,
+                            threads=True,
+                        )
+                        # yf.download returns MultiIndex columns when >1 ticker
+                        close_prices = {}
+                        if df is not None and not df.empty:
+                            import pandas as _pd
+                            if isinstance(df.columns, _pd.MultiIndex):
+                                close_df = df.xs('Close', axis=1, level=0) if 'Close' in df.columns.get_level_values(0) else None
+                                if close_df is not None:
+                                    for sym in close_df.columns:
+                                        last = close_df[sym].dropna()
+                                        if not last.empty and float(last.iloc[-1]) > 0:
+                                            close_prices[sym] = round(float(last.iloc[-1]), 8)
+                            elif 'Close' in df.columns:
+                                # Single ticker — flat columns
+                                last = df['Close'].dropna()
+                                if not last.empty and len(unique_syms) == 1:
+                                    close_prices[unique_syms[0]] = round(float(last.iloc[-1]), 8)
+
+                        _now2 = _time2.time()
+                        for sym, affected_items in sym_map.items():
+                            px = close_prices.get(sym)
+                            if not px:
+                                continue
+                            for item in affected_items:
+                                # Only set if not already populated by a prior candidate
+                                if not item.get('live_price'):
+                                    item['live_price'] = px
+                            # Write-back to shared institutional price cache
+                            if _IRM is not None:
+                                _IRM._price_cache[sym] = {'price': px, 'ts': _now2}
                 except Exception:
                     pass  # yfinance unavailable — items returned without live_price
 

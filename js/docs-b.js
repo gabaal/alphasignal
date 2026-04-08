@@ -1052,3 +1052,120 @@ function renderDocsViewCustomCharts() {
         ]
     });
 }
+
+// ============= HOW SIGNALS WORK — DEEP DIVE =============
+function renderDocsViewHowSignalsWork() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'How Signals Work',
+        viewId: 'signals',
+        relatedDocs: [
+            { name: 'Signal Intelligence', route: 'docs-signals', icon: 'radar' },
+            { name: 'Signal Archive', route: 'docs-signal-archive', icon: 'archive' },
+            { name: 'Live Alerts', route: 'docs-alerts', icon: 'notifications' },
+            { name: 'ML Alpha Engine', route: 'docs-ml-engine', icon: 'smart_toy' },
+        ],
+        summary: 'A complete technical walkthrough of the AlphaSignal signal engine — from raw data ingestion through ML inference and rule-based detection, to alert dispatch, archive storage, ROI tracking, stop-loss automation, and final signal closure. Understanding this pipeline helps you interpret every signal card, archive entry, and alert notification with full context.',
+        components: [
+            {
+                name: 'Step 1 — Data Harvest (Every 30 Minutes)', type: 'SYSTEM', icon: 'download',
+                description: 'Every 30 minutes the backend HarvestService wakes on a background thread. It builds the full asset universe (50+ tickers across L1s, DeFi, memecoins, equities, and tracked watchlist assets) and downloads a single batch of 60-day daily OHLCV data in one API call. Simultaneously, on-chain sentiment scores are fetched per ticker, and real-time values are injected into the live ML feature row. Prices and volumes are also written to the market_ticks table, which powers the auto-close loop and price cache. This batch-first design means the engine makes one API call for all 50+ assets rather than individual requests — keeping data latency low and avoiding rate limits.',
+                howToRead: 'The harvest cycle is the heartbeat of the system. If market data is stale (weekends, API outages), signals will not fire. Price data older than the current 30-minute cycle will be supplemented by fallback calls for missing tickers. All downstream steps — ML inference, rule detection, auto-close — depend on data written in this step.',
+                signals: [
+                    'All signals require at least 30 bars of daily history — tickers with insufficient data are skipped',
+                    'Sentiment scores are fetched in a single batch to avoid serial API overhead',
+                    'market_ticks entries from this cycle power both ML features and the auto-close price map',
+                    'Harvest errors are isolated per ticker — one failure never stops the rest of the cycle'
+                ]
+            },
+            {
+                name: 'Step 2 — ML Signal Generation (Prediction Engine)', type: 'AI', icon: 'smart_toy',
+                description: 'After the harvest, the ML engine runs inference on every ticker using a RandomForestRegressor trained on 8 features from 2 years of daily data: 1-day return, 5-day return, RSI-14, MACD, Bollinger Band position, volume 1-day change, sentiment score, and order book imbalance. The model predicts the expected 24-hour return. If predicted_return >= 0.8% (the alpha threshold), an ML_ALPHA_PREDICTION signal is generated. Severity scales by predicted alpha: >= 2% = CRITICAL, >= 1% = HIGH, < 1% = MEDIUM. A human-readable message names the top-weighted feature driving the prediction (e.g. "Primary driver: RSI_14 (31.2% confidence)"). Models are re-trained every 24 hours using a full 2-year lookback window across all tracked assets.',
+                howToRead: 'ML signals represent statistically significant departures from expected behaviour, calibrated on historical data. The severity badge shows how extreme the predicted alpha window is. The primary driver field tells you which factor the model weighted most for this specific asset call.',
+                signals: [
+                    'ML_ALPHA_PREDICTION CRITICAL (>= 2% predicted alpha) = highest-conviction system output; investigate immediately',
+                    'ML signal with RSI_14 as primary driver = momentum-driven prediction; confirm with price chart',
+                    'ML signal with MACD as primary driver = trend-change prediction; cross-reference with MACD on charting suite',
+                    'Model rolling accuracy below 58% = predictions below statistical edge; treat ML signals as lower conviction until accuracy recovers'
+                ]
+            },
+            {
+                name: 'Step 3 — Rule-Based Signal Detection', type: 'SYSTEM', icon: 'rule',
+                description: 'In parallel with ML inference, a deterministic rule engine applies technical conditions to every ticker. Rules fire even before ML models have warmed up and act as a robust complement. RSI_OVERSOLD: RSI-14 drops below 30 (HIGH if < 25, MEDIUM otherwise). RSI_OVERBOUGHT: RSI-14 rises above 70. MACD_BULLISH_CROSS: MACD line crosses above the signal line AND volume simultaneously spikes more than 2 standard deviations above its 20-day mean. MACD_BEARISH_CROSS: MACD crosses below the signal line. VOLUME_SPIKE: volume exceeds 20-day mean by > 2 sigma, regardless of MACD direction. Each rule maps to a direction — RSI_OVERSOLD and MACD_BULLISH_CROSS = LONG; RSI_OVERBOUGHT and MACD_BEARISH_CROSS = SHORT; VOLUME_SPIKE = NEUTRAL. An anti-spam guard prevents the same rule firing for the same ticker and user within any 2-hour window.',
+                howToRead: 'Rule signals are faster and more transparent than ML signals — you can directly verify the trigger on any chart. Filter the Signal Archive by type (e.g. RSI_OVERSOLD) to review historical outcomes for that specific rule on specific tickers.',
+                signals: [
+                    'RSI_OVERSOLD below 25 (HIGH severity) in a confirmed uptrend = strongest mean-reversion long setup from the rule engine',
+                    'MACD_BULLISH_CROSS alone without volume spike = weaker signal; wait for separate volume confirmation',
+                    'MACD_BULLISH_CROSS and VOLUME_SPIKE firing simultaneously = highest-quality rule signal combination',
+                    'RSI_OVERBOUGHT in a strong trending regime — less reliable than in ranging markets; check Market Regime first'
+                ]
+            },
+            {
+                name: 'Step 4 — Anti-Spam & Per-User Routing', type: 'SYSTEM', icon: 'filter_alt',
+                description: 'Before any signal is written to the database, two guards are applied. First, a per-user duplicate check: the system queries alerts_history for any alert of the same ticker and user within the last 1 hour (ML signals) or 2 hours (rule-based). If a duplicate exists, the signal is skipped for that user. Second, each signal is inserted as a separate database row for every user who has alerts_enabled = true. Two users on the same platform can have completely different archives based on when they subscribed and their settings. Each stored signal record includes: type, ticker, message, severity, entry_price (price at moment of detection), timestamp, z_score/alpha, direction (LONG/SHORT/NEUTRAL), category (L1/DeFi/Equity/etc), and user_email.',
+                howToRead: 'If you notice a signal in the leaderboard that you did not receive, it was filtered by your anti-spam window or you had alerts_enabled off at that time. Your Signal Archive only shows signals routed to your account. The Signal Leaderboard shows system-wide performance across all users.',
+                signals: [
+                    'Missed a signal you expected? Check if a prior alert for the same ticker was received within the spam window',
+                    'Anti-spam window resets every 2 hours — the same genuine setup can legitimately fire again after that window',
+                    'alerts_enabled off = no signals inserted, even if all thresholds are crossed',
+                    'Per-user routing means your archive is private; signals in the leaderboard are anonymised aggregates'
+                ]
+            },
+            {
+                name: 'Step 5 — Signal Archive (alerts_history Table)', type: 'TABLE', icon: 'archive',
+                description: 'Every signal is stored in the alerts_history SQLite table. A new signal enters with status = NULL (treated as "active") and no exit_price or final_roi. Core fields: id (primary key), type (signal rule name), ticker, message, severity, price (entry price at detection), timestamp, direction, category, user_email, z_score, alpha, status (active / closed), closed_at, exit_price, and final_roi. The Signal Archive view loads from this table with server-side pagination and filtering. A separate enrichment step in the backend computes derived state labels — ACTIVE, HIT_TP1, HIT_TP2, STOPPED, CLOSED — by comparing the live current price against the stored entry price each time the view is loaded. These state labels are computed fresh every time, not stored.',
+                howToRead: 'The "status" column in the raw database is either "active" (open, being monitored every 30 minutes) or "closed" (auto-closed). The richer state labels (HIT_TP1, HIT_TP2, STOPPED, ACTIVE) that you see in the Signal Archive UI are derived dynamically from live prices on every page load.',
+                signals: [
+                    'ACTIVE = signal entry price was touched but neither +10% nor -3% has been reached yet; ROI is floating',
+                    'HIT_TP1 = signal has gained +5% from entry; this is an intermediate milestone — the signal remains open',
+                    'HIT_TP2 = signal has gained +10% from entry; auto-close was or will shortly be triggered',
+                    'STOPPED = signal lost -3% from entry; auto-close was triggered and this is the final state'
+                ]
+            },
+            {
+                name: 'Step 6 — ROI Calculation & Direction Logic', type: 'SYSTEM', icon: 'percent',
+                description: 'ROI is direction-aware. For LONG signals (RSI_OVERSOLD, MACD_BULLISH_CROSS, ML_ALPHA_PREDICTION, REGIME_BULL, WHALE_ACCUMULATION, VOLUME_SPIKE, SENTIMENT_SPIKE, MOMENTUM_BREAKOUT, LIQUIDITY_VACUUM): ROI = (current_price − entry_price) / entry_price × 100. For SHORT signals (RSI_OVERBOUGHT, MACD_BEARISH_CROSS, ML_SHORT): ROI = (entry_price − current_price) / entry_price × 100, so the signal profits from a price decrease. The auto-close thresholds are: TP1 = ROI >= +5% (intermediate milestone, signal stays open), TP2 = ROI >= +10% (auto-closed as a win), Stop Loss = ROI <= −3% (auto-closed as a loss). All calculations use the raw entry_price stored at the moment of detection. The 10%/−3% ratio represents a 3.3:1 reward-to-risk ratio — an institutional-grade minimum before any signal is considered worth monitoring.',
+                howToRead: 'The ROI displayed in the Signal Archive for ACTIVE signals is live — it recalculates each time you load the view. For CLOSED signals, the final_roi column contains the exact stamped value from the auto-close event. A STOPPED signal at −3% ROI may look like a small loss on the card, but the system correctly identified and closed it before it could become larger.',
+                signals: [
+                    'A SHORT signal showing positive ROI means price fell from entry — the direction logic is working correctly',
+                    'Signal at HIT_TP1 (+5%) and still ACTIVE = system believes the +10% target may still be reachable; manage your own position accordingly',
+                    'STOPPED at exactly −3% = auto-close triggered at the threshold; do not re-enter without fresh confluence signals',
+                    'Final ROI stamped in the final_roi column on close is the exact auto-close value — not an estimate or mark-to-market'
+                ]
+            },
+            {
+                name: 'Step 7 — Auto-Close & Stop Loss Automation', type: 'SYSTEM', icon: 'auto_fix_high',
+                description: 'Every 30-minute harvest cycle ends with the auto_close_signals function. It queries all alerts_history rows where status is NULL or "active". For each active signal, it looks up the current price from market_ticks (written this cycle) or falls back to yfinance if missing. It calculates direction-aware ROI against the stored entry_price. If ROI >= +10% or <= −3%, the row is updated atomically: status = "closed", closed_at = UTC timestamp, exit_price = current price, final_roi = computed value. A background daemon thread simultaneously fires a rich webhook notification: ticker, signal type, result label (TARGET HIT 🎯 or STOP LOSS 🛑), entry price, exit price, and final ROI — sent to Discord and/or Telegram if configured. After the database commit, the Signal Archive cache is cleared so the next page load immediately reflects the updated state.',
+                howToRead: 'Auto-close is a monitoring and record-keeping system — it does not place orders on any exchange. The check runs every 30 minutes; a flash price that recovers within one cycle may not trigger a stop. Notification is best-effort in a background thread and never blocks the database update.',
+                signals: [
+                    'Auto-close is monitoring-only — it updates your archive record but never executes a real exchange trade',
+                    'Prices are checked every 30 minutes; a sharp intra-cycle crash that recovers quickly may not trigger auto-close',
+                    'The cache clear after close means refreshing the Signal Archive always shows the latest state without stale data',
+                    'If price data is unavailable for a ticker at check time, that signal is skipped until data returns next cycle'
+                ]
+            },
+            {
+                name: 'Step 8 — Alert Delivery (Webhook, Telegram & In-Terminal)', type: 'WIDGET', icon: 'notifications_active',
+                description: 'When a new signal is created AND the user\'s configured z_threshold is met by the predicted alpha, three delivery channels fire in parallel. (1) Discord webhook — a rich embed coloured green (LONG) or red (SHORT), including entry price, severity, and top ML driver. (2) Telegram bot — an inline message via @alphasignalbot_bot with the same structured data. (3) WebSocket broadcast — all connected browser tabs receive a "new_alert" frame instantly, which live-prepends a card in the Alerts Hub feed and increments the left-nav badge counter. Premium users additionally see a rich signal toast at the bottom-right of the screen. Regime shift alerts bypass the z_threshold gate and fire to all users with alerts_enabled regardless of their threshold setting.',
+                howToRead: 'The z_threshold in your settings controls which signals reach your notification channels. The default is 2.0 (matching the extreme Z-score threshold). The in-terminal WebSocket card fires regardless of channel configuration — you will always see alerts in-app if the terminal is open. If Discord or Telegram are not configured, only the in-app channel fires.',
+                signals: [
+                    'Not receiving Discord alerts? Verify your webhook URL starts with https://discord.com/api/webhooks/ in Notification Settings',
+                    'Not receiving Telegram alerts? Send /start to the bot to link your chat_id, then save in settings',
+                    'Lowering z_threshold below 1.0 = significantly more notifications; risk of alert fatigue',
+                    'Regime shift alerts bypass the threshold gate — they always fire when alerts_enabled is true regardless of z_threshold'
+                ]
+            },
+            {
+                name: 'Complete Signal Lifecycle at a Glance', type: 'SYSTEM', icon: 'account_tree',
+                description: 'The end-to-end lifecycle of every signal: (1) HarvestService runs every 30 minutes — batch OHLCV downloaded, sentiment injected, market_ticks written. (2) ML engine inference — if predicted_return >= 0.8%, ML_ALPHA_PREDICTION inserted per eligible user. (3) Rule engine evaluation — RSI/MACD/Volume rules checked, anti-spam applied, rule signal inserted if conditions met. (4) Signal row written: status = active, entry_price = current price at detection time. (5) Webhook, Telegram, and WebSocket notifications dispatched simultaneously from a background thread. (6) Signal appears in Signal Archive with ACTIVE state and live floating ROI. State labels (ACTIVE/HIT_TP1/HIT_TP2/STOPPED) computed on-the-fly every time the Archive loads. (7) Every 30 minutes, auto_close_signals checks all active rows — if ROI >= +10% or <= −3%, status set to "closed", final_roi stamped, exit notification sent. (8) Archive cache cleared — next page load shows final closed state with immutable ROI.',
+                howToRead: 'Every ACTIVE signal in your Archive is being monitored in real time. The ROI shown for active signals is live. Only closed signals have a fixed, auditable final_roi. The system acts as an institutional trade monitor: it detects, records, tracks, and auto-closes on your behalf — but execution on actual exchanges is always your responsibility.',
+                signals: [
+                    'Active archive signals are live — their displayed ROI changes as price moves every time you reload the view',
+                    'If price data becomes unavailable, the auto-close cycle skips that ticker — the signal stays open until data returns',
+                    'A signal can remain ACTIVE indefinitely if it never hits the +10% target or the −3% stop',
+                    'SHORT signals profit when price falls — always check the direction label in the Archive to interpret ROI correctly'
+                ]
+            }
+        ]
+    });
+}

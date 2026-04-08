@@ -134,8 +134,8 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
                 <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;width:auto">
                     <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span> HELP HUB
                 </button>
-                ${viewId ? `<button class="intel-action-btn" onclick="switchView('${viewId}')" style="display:flex;align-items:center;gap:8px;width:auto;background:${hubColor};color:#000;font-weight:800">
-                    <span class="material-symbols-outlined" style="font-size:16px">open_in_new</span> OPEN VIEW IN TERMINAL
+                ${viewId ? `<button class="intel-action-btn" onclick="switchView('${viewId}')" style="display:flex;align-items:center;gap:8px;width:auto;background:${hubColor};color:#fff;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,0.4)">
+                    <span class="material-symbols-outlined" style="font-size:16px;color:#fff">open_in_new</span> OPEN VIEW IN TERMINAL
                 </button>` : ''}
             </div>
         </div>
