@@ -3986,6 +3986,7 @@ class InstitutionalRoutesMixin:
             f_type      = query.get('type',       [None])[0]
             f_severity  = query.get('severity',   [None])[0]
             f_direction = query.get('direction',  [None])[0]
+            f_state     = query.get('state',      [None])[0]   # 'active' | 'closed' | None = all
             f_days   = int(query.get('days',  [30])[0])
             f_from   = query.get('from',  [None])[0]   # ISO date YYYY-MM-DD (custom picker)
             f_to     = query.get('to',    [None])[0]   # ISO date YYYY-MM-DD (custom picker)
@@ -4014,7 +4015,7 @@ class InstitutionalRoutesMixin:
             order_clause = f'ORDER BY {order_expr} {sort_dir.upper()}'
 
             # ── Cache check: 2-min TTL, keyed by all query params + user ──
-            cache_key = f'{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_days}:{f_from}:{f_to}:{page}:{limit}:{sort_col}:{sort_dir}'
+            cache_key = f'{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_state}:{f_days}:{f_from}:{f_to}:{page}:{limit}:{sort_col}:{sort_dir}'
             shc = InstitutionalRoutesMixin._sig_history_cache
             entry = shc.get(cache_key)
             if entry and (time.time() - entry['ts']) < 10:
@@ -4063,6 +4064,12 @@ class InstitutionalRoutesMixin:
                     base_where  += " AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
                 elif f_direction == 'bearish':
                     base_where  += " AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
+            if f_state == 'active':
+                base_where  += " AND COALESCE(ah.status,'active') = 'active'"
+                count_params = list(params)
+            elif f_state == 'closed':
+                base_where  += " AND COALESCE(ah.status,'active') = 'closed'"
+                count_params = list(params)
 
             c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]

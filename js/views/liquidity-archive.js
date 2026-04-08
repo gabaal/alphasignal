@@ -541,6 +541,21 @@ async function renderSignalArchive(tabs = null) {
             <p>Every institutional alpha signal captured by the engine, tracked with real-time PnL.</p>
         </div>
         ${tabs ? renderHubTabs('archive', tabs) : ''}
+
+        <!-- State filter tabs: ACTIVE / ALL / CLOSED -->
+        <div id="archive-state-tabs" style="display:flex;gap:6px;margin-bottom:1rem;align-items:center">
+            <span style="font-size:0.5rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-right:4px">VIEW:</span>
+            <button id="atab-active" onclick="window._setArchiveState('active')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(74,222,128,0.5);background:rgba(74,222,128,0.12);color:#4ade80;cursor:pointer;letter-spacing:1px;transition:all 0.15s">
+                ● ACTIVE
+            </button>
+            <button id="atab-all" onclick="window._setArchiveState('all')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
+                ALL
+            </button>
+            <button id="atab-closed" onclick="window._setArchiveState('closed')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
+                CLOSED
+            </button>
+        </div>
+
         <div id="archive-filters" class="glass-card" style="margin-bottom:1.5rem;padding:1.2rem;display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap">
             <!-- Ticker search -->
             <div style="display:flex;flex-direction:column;gap:4px">
@@ -637,6 +652,28 @@ async function renderSignalArchive(tabs = null) {
 
     let currentPage = 1;
 
+    // ── State tab filter (active / all / closed) ─────────────────────────────
+    let stateFilter = 'active'; // default to showing active signals only
+
+    window._setArchiveState = function(state) {
+        stateFilter = state;
+        // Restyle tabs
+        const styles = {
+            active: { border:'rgba(74,222,128,0.5)',  bg:'rgba(74,222,128,0.12)',  color:'#4ade80' },
+            all:    { border:'rgba(0,242,255,0.5)',   bg:'rgba(0,242,255,0.12)',   color:'var(--accent)' },
+            closed: { border:'rgba(148,163,184,0.4)', bg:'rgba(148,163,184,0.08)', color:'#94a3b8' },
+        };
+        ['active','all','closed'].forEach(s => {
+            const btn = document.getElementById('atab-' + s);
+            if (!btn) return;
+            const isActive = s === state;
+            btn.style.border    = '1px solid ' + (isActive ? styles[s].border : 'rgba(255,255,255,0.1)');
+            btn.style.background = isActive ? styles[s].bg : 'rgba(255,255,255,0.03)';
+            btn.style.color     = isActive ? styles[s].color : 'var(--text-dim)';
+        });
+        loadData(1);
+    };
+
     // ── Sort state lives OUTSIDE loadData so it persists across page navigation ──
     let sortCol = null;
     let sortDir = 'desc';
@@ -700,6 +737,7 @@ async function renderSignalArchive(tabs = null) {
         if (type)      url += `&type=${type}`;
         if (severity)  url += `&severity=${severity}`;
         if (direction) url += `&direction=${direction}`;
+        if (stateFilter && stateFilter !== 'all') url += `&state=${stateFilter}`;
         // Append server-side sort params so the DB returns the full dataset sorted
         if (sortCol && SERVER_SORT_COLS.has(sortCol)) {
             url += `&sort_col=${sortCol}&sort_dir=${sortDir}`;
