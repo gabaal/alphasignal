@@ -65,11 +65,14 @@ async function renderWatchlistTab(el) {
         <div class="card" style="padding:1.2rem;margin-bottom:1rem">
             <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:0.8rem">ADD TO WATCHLIST</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                <input id="wl-ticker" placeholder="TICKER e.g. BTC-USD" maxlength="15"
+                <input id="wl-ticker" name="wl-ticker-field" placeholder="TICKER e.g. BTC-USD" maxlength="15"
+                    autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
                     style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:140px;text-transform:uppercase">
-                <input id="wl-target" placeholder="Target price (optional)" type="number" step="any"
+                <input id="wl-target" name="wl-target-field" placeholder="Target price (optional)" type="number" step="any"
+                    autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
                     style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:180px">
-                <input id="wl-note" placeholder="Note (optional)" maxlength="120"
+                <input id="wl-note" name="wl-note-field" placeholder="Note (optional)" maxlength="120"
+                    autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
                     style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;flex:1;min-width:140px">
                 <button class="intel-action-btn mini" onclick="addToWatchlist()" style="white-space:nowrap">
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">add</span> ADD

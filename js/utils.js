@@ -1,4 +1,47 @@
 const API_BASE = '/api';
+
+// ── Global Chrome Autofill Guard ─────────────────────────────────────────────
+// Chrome ignores autocomplete="off" on pages that have login forms.
+// Strategy: mark all non-auth text/search/number inputs as readonly; remove
+// readonly on focus (so typing works), restore on blur (so Chrome can't fill).
+(function initAutofillGuard() {
+    const SKIP_IDS = new Set(['auth-email', 'auth-password', 'discord-webhook']);
+    const SKIP_TYPES = new Set(['password', 'email', 'checkbox', 'radio', 'hidden', 'file', 'date', 'range', 'submit', 'button']);
+
+    function guardInput(el) {
+        if (!(el instanceof HTMLInputElement) && !(el instanceof HTMLTextAreaElement)) return;
+        if (SKIP_IDS.has(el.id)) return;
+        if (SKIP_TYPES.has(el.type)) return;
+        if (el.closest('#auth-overlay')) return;        // never touch the login form
+        if (el.dataset.autofillGuarded) return;         // already handled
+        el.dataset.autofillGuarded = '1';
+        el.setAttribute('autocomplete', 'off');
+        el.setAttribute('readonly', '');
+        el.addEventListener('focus', () => el.removeAttribute('readonly'), { passive: true });
+        el.addEventListener('blur',  () => el.setAttribute('readonly', ''), { passive: true });
+    }
+
+    function guardAll(root) {
+        root.querySelectorAll('input, textarea').forEach(guardInput);
+    }
+
+    // Apply to initial DOM
+    document.addEventListener('DOMContentLoaded', () => guardAll(document.body));
+
+    // Watch for dynamically injected inputs (view switches, modals, etc.)
+    const obs = new MutationObserver(mutations => {
+        for (const m of mutations) {
+            for (const node of m.addedNodes) {
+                if (node.nodeType !== 1) continue;
+                guardInput(node);
+                guardAll(node);
+            }
+        }
+    });
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+})();
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ================================================================
 // THEME MANAGER � Light / Dark mode
 // ================================================================
