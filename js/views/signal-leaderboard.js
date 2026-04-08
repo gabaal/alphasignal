@@ -43,10 +43,27 @@ async function renderSignalLeaderboard(tabs = null) {
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.65rem;color:var(--text-dim)">
-                    <input type="checkbox" id="lb-exclude-open" style="accent-color:var(--accent);width:14px;height:14px" onchange="lbRefresh()">
-                    <span>EXCLUDE OPEN SIGNALS</span>
-                </label>
+                <span style="font-size:0.6rem;letter-spacing:1.5px;color:var(--text-dim)">STATUS</span>
+                <div style="display:flex;gap:4px;flex-wrap:wrap" id="lb-status-btns">
+                    ${['ALL','OPEN','TP HIT','SL HIT','EXPIRED'].map((s,i) => {
+                        const colors = {
+                            'ALL':     ['rgba(0,242,255,0.4)',  'rgba(0,242,255,0.12)',  'var(--accent)'],
+                            'OPEN':    ['rgba(125,211,252,0.4)','rgba(125,211,252,0.12)','var(--accent)'],
+                            'TP HIT':  ['rgba(34,197,94,0.4)', 'rgba(34,197,94,0.12)',  'var(--risk-low)'],
+                            'SL HIT':  ['rgba(239,68,68,0.4)', 'rgba(239,68,68,0.12)',  'var(--risk-high)'],
+                            'EXPIRED': ['rgba(245,158,11,0.4)','rgba(245,158,11,0.12)', '#f59e0b'],
+                        };
+                        const [bc, bg, col] = colors[s];
+                        const isActive = i === 0;
+                        return `<button id="lb-status-${s.replace(' ','-')}" onclick="lbSetStatus('${s}')"
+                            style="font-size:0.6rem;padding:3px 9px;border-radius:6px;font-family:'JetBrains Mono';font-weight:700;letter-spacing:0.5px;
+                                   border:1px solid ${isActive ? bc : 'rgba(255,255,255,0.1)'};
+                                   background:${isActive ? bg : 'rgba(255,255,255,0.03)'};
+                                   color:${isActive ? col : 'var(--text-dim)'};cursor:pointer;transition:all 0.15s">
+                            ${s}
+                        </button>`;
+                    }).join('')}
+                </div>
             </div>
         </div>
 
@@ -82,11 +99,11 @@ async function renderSignalLeaderboard(tabs = null) {
     `;
 
     // ── State ──
-    window._lbAllSignals = signals;
-    window._lbRange      = 'ALL';
-    window._lbPage       = 1;
-    window._lbSortCol    = 'timestamp';
-    window._lbSortDir    = 'desc';
+    window._lbRange  = 'ALL';
+    window._lbPage   = 1;
+    window._lbSortCol = 'timestamp';
+    window._lbSortDir = 'desc';
+    window._lbStatus = 'ALL';
 
     // Column definitions: { key, label, align }
     const COLS = [
@@ -100,6 +117,27 @@ async function renderSignalLeaderboard(tabs = null) {
         { key: 'outcome',       label: 'OUTCOME',       align: 'center'},
         { key: 'timestamp',     label: 'DATE',          align: 'left'  },
     ];
+
+    window.lbSetStatus = (status) => {
+        window._lbStatus = status;
+        window._lbPage   = 1;
+        const statusColors = {
+            'ALL':     ['rgba(0,242,255,0.4)',  'rgba(0,242,255,0.12)',  'var(--accent)'],
+            'OPEN':    ['rgba(125,211,252,0.4)','rgba(125,211,252,0.12)','var(--accent)'],
+            'TP HIT':  ['rgba(34,197,94,0.4)', 'rgba(34,197,94,0.12)',  'var(--risk-low)'],
+            'SL HIT':  ['rgba(239,68,68,0.4)', 'rgba(239,68,68,0.12)',  'var(--risk-high)'],
+            'EXPIRED': ['rgba(245,158,11,0.4)','rgba(245,158,11,0.12)', '#f59e0b'],
+        };
+        document.querySelectorAll('#lb-status-btns button').forEach(b => {
+            const key  = b.textContent.trim();
+            const active = key === status;
+            const [bc, bg, col] = statusColors[key] || ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.06)', 'var(--text-dim)'];
+            b.style.borderColor = active ? bc : 'rgba(255,255,255,0.1)';
+            b.style.background  = active ? bg : 'rgba(255,255,255,0.03)';
+            b.style.color       = active ? col : 'var(--text-dim)';
+        });
+        lbRefresh();
+    };
 
     window.lbSetRange = (label) => {
         window._lbRange = label;
@@ -139,10 +177,16 @@ async function renderSignalLeaderboard(tabs = null) {
         const cutoff      = rangeObj?.days ? Date.now() - rangeObj.days * 864e5 : 0;
 
         // 1. Filter
+        const statusVal   = window._lbStatus || 'ALL';
         let filtered = window._lbAllSignals.filter(s => {
             if (typeVal !== 'ALL' && s.type !== typeVal) return false;
             if (cutoff && s.timestamp && new Date(s.timestamp).getTime() < cutoff) return false;
-            if (excludeOpen && !s.closed) return false;
+            if (statusVal !== 'ALL') {
+                if (statusVal === 'OPEN'    && s.close_reason !== 'OPEN')    return false;
+                if (statusVal === 'TP HIT'  && s.close_reason !== 'TP HIT')  return false;
+                if (statusVal === 'SL HIT'  && s.close_reason !== 'SL HIT')  return false;
+                if (statusVal === 'EXPIRED' && s.close_reason !== 'EXPIRED') return false;
+            }
             return true;
         });
 
@@ -191,7 +235,7 @@ async function renderSignalLeaderboard(tabs = null) {
 
         // Label
         const lbl = document.getElementById('lb-table-label');
-        if (lbl) lbl.textContent = `${total} SIGNALS · ${range} · ${typeVal}${excludeOpen ? ' · CLOSED ONLY' : ''}`;
+        if (lbl) lbl.textContent = `${total} SIGNALS · ${range} · ${typeVal}${statusVal !== 'ALL' ? ' · ' + statusVal : ''}`;
 
         // 5. Render table
         const wrap = document.getElementById('lb-table-wrap');
@@ -300,6 +344,7 @@ async function renderSignalLeaderboard(tabs = null) {
             </div>`;
     };
 
+    window._lbAllSignals = signals;
     document.getElementById('lb-type-filter')?.addEventListener('change', () => { window._lbPage = 1; lbRefresh(); });
     lbRefresh();
 }
