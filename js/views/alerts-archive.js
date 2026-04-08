@@ -64,16 +64,16 @@ async function renderMacroView(tabs = null) {
                     <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">grid_on</span>
                     CROSS-ASSET MOMENTUM HEATMAP
                 </h3>
-                <span style="font-size:0.55rem;color:var(--text-dim);">ROLLING RETURNS Â· GREEN = OUTPERFORMANCE Â· RED = UNDERPERFORMANCE</span>
+                <span style="font-size:0.55rem;color:var(--text-dim);">ROLLING RETURNS · GREEN = OUTPERFORMANCE · RED = UNDERPERFORMANCE</span>
             </div>
             <div id="momentum-heatmap-grid" style="overflow-x:auto;"></div>
             <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:12px;font-size:0.6rem;color:var(--text-dim);">
                 <span><span style="color:#22c55e">&#9632;</span> &gt;+5%</span>
                 <span><span style="color:#86efac">&#9632;</span> +1% to +5%</span>
-                <span><span style="color:#374151">&#9632;</span> Â±1% flat</span>
+                <span><span style="color:#374151">&#9632;</span> ±1% flat</span>
                 <span><span style="color:#fca5a5">&#9632;</span> -1% to -5%</span>
                 <span><span style="color:#ef4444">&#9632;</span> &lt;-5%</span>
-                <span style="margin-left:auto">Source: Live 30D market data Â· Z-score vs 50D mean</span>
+                <span style="margin-left:auto">Source: Live 30D market data · Z-score vs 50D mean</span>
             </div>`;
         appEl.appendChild(heatEl);
 
@@ -278,7 +278,7 @@ async function renderAlerts(tabs = null) {
         </div>
         ${tabs ? renderHubTabs('alerts', tabs) : ''}
 
-        <!-- âš™ï¸ Notification Settings Panel -->
+        <!-- âš™️ Notification Settings Panel -->
         <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(0,212,170,0.15)">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px">
                 <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:#00d4aa">âš™ NOTIFICATION SETTINGS</div>
@@ -301,7 +301,7 @@ async function renderAlerts(tabs = null) {
                 <!-- Telegram -->
                 <div>
                     <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:6px">
-                        <span style="font-size:0.85rem">âœˆï¸</span> TELEGRAM CHAT ID
+                        <span style="font-size:0.85rem">âœˆ️</span> TELEGRAM CHAT ID
                         ${hasTelegram ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700">âœ“ CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
                     </label>
                     <input id="telegram-chat-input" type="text" placeholder="${hasTelegram ? tgMasked + ' (enter new to update)' : '-1001234567890'}"
@@ -416,7 +416,7 @@ async function renderAlerts(tabs = null) {
                     <span id="${id}" style="font-size:0.6rem;color:${color};font-weight:700">${label}</span>
                 </div>
             `).join('')}
-            <span id="alerts-paused-badge" style="display:none;font-size:0.55rem;font-weight:900;letter-spacing:1px;padding:3px 10px;border-radius:100px;background:rgba(255,62,62,0.12);color:var(--risk-high);border:1px solid rgba(255,62,62,0.3)">â¸ PAUSED</span>
+            <span id="alerts-paused-badge" style="display:none;font-size:0.55rem;font-weight:900;letter-spacing:1px;padding:3px 10px;border-radius:100px;background:rgba(255,62,62,0.12);color:var(--risk-high);border:1px solid rgba(255,62,62,0.3)">⏸ PAUSED</span>
             <span style="margin-left:auto;font-size:0.6rem;color:var(--text-dim)">Updated: ${new Date().toLocaleTimeString()}</span>
         </div>
 
@@ -501,7 +501,7 @@ async function renderAlerts(tabs = null) {
         const slice  = filtered.slice(offset, offset + ALERTS_PER_PAGE);
 
         const countLabel = document.getElementById('alert-count-label');
-        if (countLabel) countLabel.textContent = `${total} alert${total!==1?'s':''} Â· page ${window._alertsPage}/${totalPages}`;
+        if (countLabel) countLabel.textContent = `${total} alert${total!==1?'s':''} · page ${window._alertsPage}/${totalPages}`;
 
         const container = document.getElementById('alert-cards-container');
         if (!container) return;
@@ -587,7 +587,7 @@ async function renderAlerts(tabs = null) {
             pnlHtml = `<div class="pnl-pending" data-ticker="${a.ticker||''}" data-entry="${entryPrice}" style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px">
                 <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">ENTRY</span>
                 <span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700">$${entryPrice.toLocaleString('en-US',{maximumFractionDigits:4})}</span>
-                <span style="font-size:0.6rem;color:var(--text-dim);opacity:0.5;margin-left:4px">Â· fetching liveâ€¦</span></div>`;
+                <span style="font-size:0.6rem;color:var(--text-dim);opacity:0.5;margin-left:4px">· fetching liveâ€¦</span></div>`;
         }
         return `<div class="alert-card ${sev}" style="background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ${sevColor};border-radius:12px;padding:1.5rem;position:relative;overflow:hidden;transition:transform 0.2s ease,box-shadow 0.2s ease" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:8px">

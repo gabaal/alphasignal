@@ -165,7 +165,7 @@ async function renderMacroSync(tabs = null) {
                         labels: ssrData.labels,
                         datasets: [
                             {
-                                label: 'SSR (BTC Market Cap Ã· Stablecoin Supply)',
+                                label: 'SSR (BTC Market Cap ÷ Stablecoin Supply)',
                                 data: ssrData.ssr,
                                 borderColor: '#7dd3fc',
                                 backgroundColor: 'rgba(0, 242, 255, 0.1)',
