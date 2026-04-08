@@ -3209,14 +3209,25 @@ class InstitutionalRoutesMixin:
             limit = int(qs.get('limit', ['50'])[0])
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
+            user_email = auth.get('email') if auth else None
             if filter_ticker:
-                c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
-                             FROM alerts_history WHERE ticker = ?
-                             ORDER BY timestamp DESC LIMIT ?''', (filter_ticker, limit))
+                if user_email:
+                    c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
+                                 FROM alerts_history WHERE ticker = ? AND LOWER(user_email) = LOWER(?)
+                                 ORDER BY timestamp DESC LIMIT ?''', (filter_ticker, user_email, limit))
+                else:
+                    c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
+                                 FROM alerts_history WHERE ticker = ?
+                                 ORDER BY timestamp DESC LIMIT ?''', (filter_ticker, limit))
             else:
-                c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
-                             FROM alerts_history
-                             ORDER BY timestamp DESC LIMIT ?''', (limit,))
+                if user_email:
+                    c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
+                                 FROM alerts_history WHERE LOWER(user_email) = LOWER(?)
+                                 ORDER BY timestamp DESC LIMIT ?''', (user_email, limit))
+                else:
+                    c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
+                                 FROM alerts_history
+                                 ORDER BY timestamp DESC LIMIT ?''', (limit,))
             rows = c.fetchall()
 
             alerts = []

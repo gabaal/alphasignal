@@ -791,6 +791,10 @@ class HarvestService:
                 print(f"Prediction loop error for {ticker}: {e}")
                 continue
 
+        # Commit ML prediction inserts first so _generate_rule_based_signals'
+        # anti-spam SELECT (same connection) can see them and skip duplicates.
+        conn.commit()
+
         # Rule-based fallback signals (fires even before ML models warm up)
         self._generate_rule_based_signals(data, conn, c)
 
