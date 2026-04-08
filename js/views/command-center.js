@@ -266,7 +266,12 @@ async function renderCommandCenter() {
                     c.fillStyle='rgba(0,242,255,0.04)';   c.fillRect(left,top,mx-left,my-top);
                     c.fillStyle='rgba(148,163,184,0.02)'; c.fillRect(left,my,mx-left,bottom-my);
                     c.fillStyle='rgba(239,68,68,0.04)';   c.fillRect(mx,my,right-mx,bottom-my);
-                    c.restore();
+                    c.font='bold 8px JetBrains Mono'; c.globalAlpha=0.35;
+                    c.fillStyle='#22c55e'; c.fillText('QUALITY', mx+(right-mx)/2-20, top+14);
+                    c.fillStyle='#7dd3fc'; c.fillText('HIDDEN GEM', left+8, top+14);
+                    c.fillStyle='#94a3b8'; c.fillText('WEAK SHORT', left+8, my+(bottom-my)/2);
+                    c.fillStyle='#ef4444'; c.fillText('OVEREXTENDED', mx+(right-mx)/2-28, my+(bottom-my)/2);
+                    c.globalAlpha=1; c.restore();
                 }};
                 new Chart(el.getContext('2d'), {
                     type:'scatter', plugins:[quadPlugin],
@@ -370,7 +375,7 @@ function openCmdChartModal(key) {
     if (key === 'radar' && !window._cmdRadarData) return;
 
     const meta = {
-        scatter:  { title: 'Alpha vs Z-Score',        subtitle: 'SCATTER · SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED' },
+        scatter:  { title: 'Alpha vs Z-Score',        subtitle: 'SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED · GREY=WEAK' },
         donut:    { title: 'Category Mix',             subtitle: 'SECTOR BREAKDOWN — % DISTRIBUTION OF LIVE SIGNALS' },
         btccorr:  { title: 'BTC Correlation',          subtitle: 'CORRELATION SPREAD — SIGNAL UNIVERSE VS BITCOIN' },
         alpha:    { title: 'Alpha Leaders',            subtitle: 'TOP 12 BY RELATIVE ALPHA — VS CRYPTO MARKET AVERAGE' },
@@ -463,12 +468,12 @@ function openCmdChartModal(key) {
                 c.fillStyle='rgba(0,242,255,0.05)';   c.fillRect(left,top,mx-left,my-top);
                 c.fillStyle='rgba(148,163,184,0.02)'; c.fillRect(left,my,mx-left,bottom-my);
                 c.fillStyle='rgba(239,68,68,0.05)';   c.fillRect(mx,my,right-mx,bottom-my);
-                // Quadrant labels
+                // Quadrant labels — positioned at centre of each quadrant, not at the origin
                 c.font='bold 10px JetBrains Mono'; c.globalAlpha=0.4;
-                c.fillStyle='#22c55e'; c.fillText('QUALITY SIGNALS', mx+8, top+16);
-                c.fillStyle='#7dd3fc'; c.fillText('HIDDEN GEMS',     left+8, top+16);
-                c.fillStyle='#94a3b8'; c.fillText('WEAK SHORT',      left+8, my+16);
-                c.fillStyle='#ef4444'; c.fillText('OVEREXTENDED',    mx+8,   my+16);
+                c.fillStyle='#22c55e'; c.fillText('QUALITY SIGNALS', mx+(right-mx)/2-55, top+20);
+                c.fillStyle='#7dd3fc'; c.fillText('HIDDEN GEMS',     left+8,             top+20);
+                c.fillStyle='#94a3b8'; c.fillText('WEAK SHORT',      left+8,             my+(bottom-my)/2);
+                c.fillStyle='#ef4444'; c.fillText('OVEREXTENDED',    mx+(right-mx)/2-46, my+(bottom-my)/2);
                 c.globalAlpha=1; c.restore();
             }};
             new Chart(ctx, {
