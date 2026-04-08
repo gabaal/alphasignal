@@ -127,9 +127,7 @@ async function renderCommandCenter() {
                     </div>
                 </div>
                 <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:0.75rem">6-DIMENSION ML SIGNAL DECOMPOSITION</div>
-                <div style="display:flex;justify-content:center">
-                    <div style="width:min(420px,100%);height:360px"><canvas id="cmd-radar-chart" role="img" aria-label="Command center overview radar chart"></canvas></div>
-                </div>
+                <div style="width:100%;height:520px"><canvas id="cmd-radar-chart" role="img" aria-label="Command center overview radar chart"></canvas></div>
             </div>
             <div class="card">
                 <h3 style="margin-bottom:0.75rem;font-size:0.7rem">CME MAGNET GAPS</h3>
@@ -995,14 +993,13 @@ async function loadCmdRadar(ticker) {
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: true,
-                layout: { padding: -50 },
-                plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 8 }, padding: 4 } } },
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 10 }, padding: 8 } } },
                 scales: { r: {
                     min: 0, max: 100,
-                    ticks: { stepSize: 25, color: 'rgba(255,255,255,0.25)', backdropColor: 'transparent', font: { size: 7 } },
+                    ticks: { stepSize: 25, color: 'rgba(255,255,255,0.25)', backdropColor: 'transparent', font: { size: 9 } },
                     grid: { color: 'rgba(255,255,255,0.06)' },
-                    pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 9, family: 'JetBrains Mono' }, padding: 2 }
+                    pointLabels: { color: 'rgba(255,255,255,0.75)', font: { size: 12, family: 'JetBrains Mono' }, padding: 8 }
                 }}
             }
         });
