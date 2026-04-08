@@ -146,7 +146,7 @@ class InstitutionalRoutesMixin:
             gaps.sort(key=lambda g: (order[g['status']], abs(g['distance'])))
 
             print(f'[CME Gaps] Found {len(gaps)} gaps (threshold 0.3%)')
-            CACHE.set('cme_gaps', gaps, ttl=3600)
+            CACHE.set('cme_gaps', gaps)
             self.send_json(gaps)
         except Exception as e:
             print(f'[CME Gaps] Error: {e}')
