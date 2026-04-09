@@ -3675,7 +3675,12 @@ class InstitutionalRoutesMixin:
                 # If Binance also fails, leave whatever we have
             history.sort(key=lambda x: x['unix_time'])
             total_depth = round(ask_depth + bid_depth, 1)
-            self.send_json({'ticker': ticker, 'current_price': round(current_price, 2), 'imbalance': f"{('+' if imbalance > 0 else '')}{imbalance}%", 'total_depth': f'{total_depth:,.0f} BTC', 'walls': sorted(walls, key=lambda x: x['price'], reverse=True), 'history': history, 'metrics': {'total_depth': total_depth, 'imbalance': imbalance, 'primary_exchange': max(exchanges, key=lambda x: x['bias'])['name']}})
+            # Derive primary exchange from whichever contributed most walls
+            exc_counts = {}
+            for w in walls:
+                exc_counts[w.get('exchange', 'Binance')] = exc_counts.get(w.get('exchange', 'Binance'), 0) + 1
+            primary_exchange = max(exc_counts, key=exc_counts.get) if exc_counts else 'Binance'
+            self.send_json({'ticker': ticker, 'current_price': round(current_price, 2), 'imbalance': f"{('+' if imbalance > 0 else '')}{imbalance}%", 'total_depth': f'{total_depth:,.0f} BTC', 'walls': sorted(walls, key=lambda x: x['price'], reverse=True), 'history': history, 'metrics': {'total_depth': total_depth, 'imbalance': imbalance, 'primary_exchange': primary_exchange}})
         except Exception as e:
             print(f'Liquidity Error: {e}')
             self.send_json({'error': 'GOMM Engine Syncing'})
