@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alphasignal-v1.72';
+const CACHE_NAME = 'alphasignal-v1.73';
 
 // Core shell files to cache for offline use
 const SHELL_FILES = [
