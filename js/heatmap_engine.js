@@ -28,10 +28,19 @@ class HeatmapOverlay {
         this.ctx = this.canvas.getContext('2d');
         
         const chartContainer = document.querySelector('#advanced-chart-container div');
-        if (chartContainer) {
-            chartContainer.style.position = 'relative';
-            chartContainer.appendChild(this.canvas);
-        }
+        
+        // Wait briefly for LW Charts to inject its DOM before appending
+        setTimeout(() => {
+            const mainCanvas = document.querySelector('#advanced-chart-container canvas:not(#heatmap-overlay-canvas)');
+            if (mainCanvas && mainCanvas.parentNode) {
+                mainCanvas.parentNode.appendChild(this.canvas);
+                this.resize();
+            } else if (chartContainer) {
+                chartContainer.style.position = 'relative';
+                chartContainer.appendChild(this.canvas);
+                this.resize();
+            }
+        }, 100);
 
         // Throttle high-frequency chart events
         const throttledRender = () => {
@@ -50,12 +59,17 @@ class HeatmapOverlay {
     }
 
     resize() {
-        const pane = document.querySelector('#advanced-chart-container canvas');
+        const pane = document.querySelector('#advanced-chart-container canvas:not(#heatmap-overlay-canvas)');
         if (!pane) return;
         this.canvas.width = pane.width;
         this.canvas.height = pane.height;
         this.canvas.style.width = pane.style.width;
         this.canvas.style.height = pane.style.height;
+        
+        const cssWidth = parseFloat(pane.style.width) || pane.width;
+        const ratio = pane.width / cssWidth;
+        if (ratio > 0) this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        
         this.render();
     }
 
@@ -127,13 +141,20 @@ class HeatmapOverlay {
 
         visibleData.forEach(d => { if (d.s > maxVolume) maxVolume = d.s; });
 
-        // Calculate bar width based on timescale
+        let barWidth = 10; // safe default
         const p1 = timeScale.timeToCoordinate(visibleRange.from);
-        const p2 = timeScale.timeToCoordinate(visibleRange.from + 60);
-        const barWidth = Math.abs((p2 || p1 + 10) - p1) * 0.95; 
+        if (p1 !== null) {
+            let p2 = timeScale.timeToCoordinate(visibleRange.from + 300);
+            if (p2 === null) p2 = timeScale.timeToCoordinate(visibleRange.from + 60);
+            if (p2 !== null) barWidth = Math.max(2, Math.abs(p2 - p1) * 0.95);
+        } 
 
         visibleData.forEach(d => {
-            const x = timeScale.timeToCoordinate(d.t);
+            let x = timeScale.timeToCoordinate(d.t);
+            if (x === null) x = timeScale.timeToCoordinate(d.t - (d.t % 300)); // 5m snap
+            if (x === null) x = timeScale.timeToCoordinate(d.t - (d.t % 60));  // 1m snap
+            if (x === null) x = timeScale.timeToCoordinate(d.t - (d.t % 900)); // 15m snap
+            
             const y = this.mainSeries.priceToCoordinate(d.p);
             
             if (x === null || y === null || isNaN(y)) return;

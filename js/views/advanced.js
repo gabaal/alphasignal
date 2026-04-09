@@ -100,11 +100,10 @@ async function renderAdvOverview(symbol, interval) {
         window.activeHeatmap.setData(heatmapData.data);
         
         // Initial state from UI
-        const toggle = document.getElementById('heatmap-toggle');
+        // Default the advanced chart overlay to hidden unless activated by user
+        window.activeHeatmap.canvas.style.display = 'none';
+        
         const intensity = document.getElementById('heatmap-intensity');
-        if (toggle) {
-            if (!toggle.checked) window.activeHeatmap.canvas.style.display = 'none';
-        }
         if (intensity) {
             window.activeHeatmap.setIntensity(parseFloat(intensity.value));
         }
