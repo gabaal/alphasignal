@@ -1,4 +1,4 @@
-﻿async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
+async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI(`/narrative-clusters?chain=${filterChain}&v=${Date.now()}`);
@@ -144,31 +144,152 @@
     ctx.scale(devicePixelRatio, devicePixelRatio);
 
     let clusters = data.clusters || [];
-    
 
+    // ── Axis layout constants ──────────────────────────────────────────────
+    const PAD_LEFT   = 52;   // room for Y-axis labels
+    const PAD_BOTTOM = 36;   // room for X-axis labels
+    const PAD_TOP    = 16;
+    const PAD_RIGHT  = 16;
+    const plotW = rect.width  - PAD_LEFT - PAD_RIGHT;
+    const plotH = rect.height - PAD_TOP  - PAD_BOTTOM;
 
-    const scaleX = rect.width / 800;
-    const scaleY = rect.height / 600;
+    // ── Map bubbles from sentiment + momentum onto padded plot area ──────────
+    // sentiment: –1.0 → +1.0  maps to  left → right (X axis)
+    // momentum:  –25% → +25%  maps to  bottom → top (Y axis, canvas inverted)
+    const SENT_RANGE = 1.0;   // clamp sentiment to ±1.0
+    const MOM_RANGE  = 7.5;   // clamp momentum  to ±7.5 %
 
-    const stars = clusters.map(c => ({
-        ...c,
-        x: c.x * scaleX,
-        y: c.y * scaleY
-    }));
+    const stars = clusters.map(c => {
+        const sent = Math.max(-SENT_RANGE, Math.min(SENT_RANGE, c.sentiment || 0));
+        const mom  = Math.max(-MOM_RANGE,  Math.min(MOM_RANGE,  c.momentum  || 0));
+        // X: –1 → PAD_LEFT, +1 → PAD_LEFT + plotW
+        const x = PAD_LEFT + ((sent + SENT_RANGE) / (2 * SENT_RANGE)) * plotW;
+        // Y: +MOM → PAD_TOP (top), –MOM → PAD_TOP + plotH (bottom)
+        const y = PAD_TOP  + ((MOM_RANGE - mom) / (2 * MOM_RANGE)) * plotH;
+        return { ...c, x, y };
+    });
     const hoverScale = 1.2;
     let hoveredStar = null;
 
+    // ── Axis drawing helper ────────────────────────────────────────────────
+    function drawAxes() {
+        const TICK_COUNT  = 5;
+        const TICK_LEN    = 4;
+        const axisColor   = 'rgba(255,255,255,0.18)';
+        const gridColor   = 'rgba(255,255,255,0.04)';
+        const labelColor  = 'rgba(255,255,255,0.35)';
+        const accentColor = 'rgba(0,242,255,0.55)';
+        const axisX = PAD_LEFT;                        // x position of Y-axis
+        const axisY = PAD_TOP + plotH;                 // y position of X-axis
+
+        ctx.save();
+        ctx.font = '9px Inter, sans-serif';
+        ctx.textBaseline = 'middle';
+
+        // ── Vertical grid lines + X-axis ticks ──
+        for (let i = 0; i <= TICK_COUNT; i++) {
+            const x = axisX + (plotW / TICK_COUNT) * i;
+            // grid line
+            ctx.beginPath();
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            ctx.moveTo(x, PAD_TOP);
+            ctx.lineTo(x, axisY);
+            ctx.stroke();
+            // tick
+            ctx.beginPath();
+            ctx.strokeStyle = axisColor;
+            ctx.moveTo(x, axisY);
+            ctx.lineTo(x, axisY + TICK_LEN);
+            ctx.stroke();
+            // label: sentiment –1.0 → +1.0
+            const val = ((i / TICK_COUNT) * 2 - 1).toFixed(1);
+            ctx.fillStyle = labelColor;
+            ctx.textAlign = 'center';
+            ctx.fillText((parseFloat(val) > 0 ? '+' : '') + val, x, axisY + TICK_LEN + 9);
+        }
+
+        // ── Horizontal grid lines + Y-axis ticks ──
+        for (let i = 0; i <= TICK_COUNT; i++) {
+            const y = PAD_TOP + (plotH / TICK_COUNT) * i;
+            // grid line
+            ctx.beginPath();
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            ctx.moveTo(axisX, y);
+            ctx.lineTo(axisX + plotW, y);
+            ctx.stroke();
+            // tick
+            ctx.beginPath();
+            ctx.strokeStyle = axisColor;
+            ctx.moveTo(axisX - TICK_LEN, y);
+            ctx.lineTo(axisX, y);
+            ctx.stroke();
+            // label: momentum +5% → –5% (canvas Y inverted)
+            const val = (((TICK_COUNT - i) / TICK_COUNT) * 2 * MOM_RANGE - MOM_RANGE).toFixed(1);
+            ctx.fillStyle = labelColor;
+            ctx.textAlign = 'right';
+            ctx.fillText((parseFloat(val) > 0 ? '+' : '') + val + '%', axisX - TICK_LEN - 3, y);
+        }
+
+        // ── Axis lines ──
+        ctx.beginPath();
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1;
+        // Y-axis
+        ctx.moveTo(axisX, PAD_TOP);
+        ctx.lineTo(axisX, axisY + TICK_LEN);
+        // X-axis
+        ctx.moveTo(axisX - TICK_LEN, axisY);
+        ctx.lineTo(axisX + plotW, axisY);
+        ctx.stroke();
+
+        // ── Zero cross-hair lines ──
+        const zeroX = axisX + plotW / 2;
+        const zeroY = PAD_TOP + plotH / 2;
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(0,242,255,0.12)';
+        ctx.setLineDash([4, 6]);
+        ctx.lineWidth = 1;
+        ctx.moveTo(zeroX, PAD_TOP);
+        ctx.lineTo(zeroX, axisY);
+        ctx.moveTo(axisX, zeroY);
+        ctx.lineTo(axisX + plotW, zeroY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ── Axis labels ──
+        ctx.font = 'bold 9px Inter, sans-serif';
+        ctx.fillStyle = accentColor;
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '1px';
+        // X label
+        ctx.fillText('SENTIMENT  →', axisX + plotW / 2, axisY + PAD_BOTTOM - 4);
+        // Y label (rotated)
+        ctx.save();
+        ctx.translate(10, PAD_TOP + plotH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('MOMENTUM  ↑', 0, 0);
+        ctx.restore();
+
+        ctx.restore();
+    }
+
     function draw() {
         ctx.clearRect(0, 0, rect.width, rect.height);
-        
-        // Draw connection lines to cluster centers (subtle)
+
+        drawAxes();
+
+        // Draw connection lines to cluster centers (centroid of member stars)
         Object.entries(data.anchors).forEach(([key, anchor]) => {
-            const ax = anchor.x * scaleX;
-            const ay = anchor.y * scaleY;
+            const members = stars.filter(s => s.category === key);
+            if (!members.length) return;
+            const ax = members.reduce((s, m) => s + m.x, 0) / members.length;
+            const ay = members.reduce((s, m) => s + m.y, 0) / members.length;
             ctx.beginPath();
             ctx.strokeStyle = `rgba(255,255,255,0.02)`;
             ctx.lineWidth = 1;
-            stars.filter(s => s.category === key).forEach(s => {
+            members.forEach(s => {
                 ctx.moveTo(ax, ay);
                 ctx.lineTo(s.x, s.y);
             });
