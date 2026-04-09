@@ -360,12 +360,12 @@ async function renderResetPassword() {
 
                 <div class="auth-input-wrap" style="margin-bottom:1rem">
                     <span class="auth-input-icon material-symbols-outlined">lock</span>
-                    <input type="password" id="new-password" placeholder="New password (min 8 chars)" aria-label="New password" style="background:transparent;border:none;color:white;width:100%;outline:none;font-family:inherit" />
+                    <input type="password" id="new-password" placeholder="New password (min 8 chars)" aria-label="New password" />
                 </div>
 
                 <div class="auth-input-wrap" style="margin-bottom:1.5rem">
                     <span class="auth-input-icon material-symbols-outlined">lock_clock</span>
-                    <input type="password" id="confirm-password" placeholder="Confirm new password" aria-label="Confirm password" style="background:transparent;border:none;color:white;width:100%;outline:none;font-family:inherit" />
+                    <input type="password" id="confirm-password" placeholder="Confirm new password" aria-label="Confirm password" />
                 </div>
 
                 <div id="reset-pw-msg" class="auth-error hidden" role="alert" style="margin-bottom:1rem"></div>
