@@ -4043,7 +4043,7 @@ class InstitutionalRoutesMixin:
         try:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute('SELECT ticker, price, timestamp FROM alerts_history WHERE price IS NOT NULL AND price > 0 ORDER BY timestamp DESC LIMIT 100')
+            c.execute('SELECT ticker, price, timestamp, direction, status, final_roi FROM alerts_history WHERE price IS NOT NULL AND price > 0 ORDER BY timestamp DESC LIMIT 100')
             signals = c.fetchall()
             conn.close()
             total = len(signals)
@@ -4054,7 +4054,7 @@ class InstitutionalRoutesMixin:
             best = {'ticker': '-', 'return': -999}
             worst = {'ticker': '-', 'return': 999}
             monthly = {}
-            unique_tickers = list(set([row[0] for row in signals]))
+            unique_tickers = list(set([row[0] for row in signals if row[4] != 'closed']))
             current_prices = {}
             if unique_tickers:
                 try:
@@ -4073,12 +4073,17 @@ class InstitutionalRoutesMixin:
                 except Exception as e:
                     print(f'Batch fetch error: {str(e)}')
             import math
-            for ticker, entry_p, ts in signals:
+            for ticker, entry_p, ts, direction, status, final_roi in signals:
                 try:
-                    curr_p = current_prices.get(ticker)
-                    if not curr_p or math.isnan(curr_p):
-                        continue
-                    roi = round((curr_p - entry_p) / entry_p * 100, 2)
+                    if status == 'closed' and final_roi is not None:
+                        roi = float(final_roi)
+                    else:
+                        curr_p = current_prices.get(ticker)
+                        if not curr_p or math.isnan(curr_p):
+                            continue
+                        raw_diff = (curr_p - entry_p) / entry_p * 100
+                        roi = round(-raw_diff if direction == 'SHORT' else raw_diff, 2)
+                    
                     total_roi += roi
                     valid_total += 1
                     if roi > 0:
@@ -5365,26 +5370,38 @@ class InstitutionalRoutesMixin:
 
             win_rate      = round(len(wins) / len(pnls) * 100, 1)
             profit_factor = round(abs(sum(wins)) / max(abs(sum(losses)), 0.001), 3)
-            total_return  = round(sum(pnls), 2)
-
-            equity = [100.0]
-            for p in pnls:
-                equity.append(equity[-1] * (1 + p / 100))
+            
+            # Standardize position sizing to institutional norms (e.g. 10% risk limit per single trade).
+            # This accurately binds concurrent overlaps.
+            ALLOCATION = 0.10 
+            port_impacts = [p * ALLOCATION for p in pnls]
+            
+            equity = [0.0]
+            for impact in port_impacts:
+                equity.append(equity[-1] + impact)
+                
             peak   = equity[0]
             max_dd = 0.0
             for e in equity:
                 if e > peak: peak = e
-                dd = (peak - e) / peak * 100
+                # absolute drawdown in percentage points
+                dd = peak - e
                 if dd > max_dd: max_dd = dd
 
-            mean_r = sum(pnls) / max(len(pnls), 1)
-            std_r  = (sum((p - mean_r) ** 2 for p in pnls) / max(len(pnls), 1)) ** 0.5 + 1e-9
-            sharpe = round(mean_r / std_r * (252 ** 0.5), 3)
-            calmar = round(total_return / max(max_dd, 0.001), 3)
+            total_return  = round(equity[-1], 2)
+
+            # Annualise sharpe correctly based on trade hold duration instead of assuming 252 daily trades
+            mean_r = sum(port_impacts) / max(len(port_impacts), 1)
+            std_r  = (sum((p - mean_r) ** 2 for p in port_impacts) / max(len(port_impacts), 1)) ** 0.5 + 1e-9
+            # Max 252 trading days / average hold bars = num sequential trades per year
+            trades_per_year = max(1, 252 / max(hold_bars, 1))
+            sharpe = round(mean_r / std_r * (trades_per_year ** 0.5), 3)
+            # Use raw uncompounded sum for Calmar to avoid hyperinflated ratios
+            calmar = round(sum(port_impacts) / max(max_dd, 0.001), 3)
 
             rolling_sharpe = []
             window = max(2, min(10, len(pnls)))  # adaptive window: min 2, max 10, grows with data
-            equity_so_far = 100.0
+            equity_so_far = 0.0
 
             # BTC buy-and-hold baseline: anchor to price on first trade date
             sorted_btc_ts = sorted(btc_prices.keys())
@@ -5393,7 +5410,7 @@ class InstitutionalRoutesMixin:
             btc_anchor_px  = btc_prices.get(btc_anchor_ts, 0)
 
             for i in range(len(pnls)):
-                equity_so_far *= (1 + pnls[i] / 100)
+                equity_so_far += port_impacts[i]
                 # BTC cumulative: simple buy-and-hold from first trade date
                 trade_ts   = trades[i]['ts']
                 cur_btc_ts = min(sorted_btc_ts, key=lambda t: abs(t - trade_ts))
@@ -5404,22 +5421,23 @@ class InstitutionalRoutesMixin:
                     btc_cumulative = 0.0
                 if i + 1 < window:
                     continue
-                win_pnl = pnls[max(0, i+1-window):i+1]
+                win_pnl = port_impacts[max(0, i+1-window):i+1]
                 mn  = sum(win_pnl) / len(win_pnl)
-                # Floor std at 1.0 to prevent division-by-near-zero explosion
-                sd  = max((sum((x - mn) ** 2 for x in win_pnl) / len(win_pnl)) ** 0.5, 1.0)
-                raw_sharpe = mn / sd * (252 ** 0.5)
+                # Floor std at smaller bound because impacts are scaled by allocation
+                sd  = max((sum((x - mn) ** 2 for x in win_pnl) / len(win_pnl)) ** 0.5, 0.1)
+                raw_sharpe = mn / sd * (trades_per_year ** 0.5)
                 rolling_sharpe.append({
                     'date':              trades[i]['entry_date'],
                     'sharpe':            max(-5.0, min(5.0, round(raw_sharpe, 3))),  # cap at ±5
-                    'strat_cumulative':  round(equity_so_far - 100, 2),
+                    'strat_cumulative':  round(equity_so_far, 2),
                     'btc_cumulative':    btc_cumulative
                 })
 
             monthly = {}
             for t in trades:
                 ym = t['year_month']
-                monthly[ym] = round(monthly.get(ym, 0) + t['pnl_pct'], 2)
+                # Heatmap should show portfolio impact, not the raw sum of ALL trade percentages
+                monthly[ym] = round(monthly.get(ym, 0) + (t['pnl_pct'] * ALLOCATION), 2)
 
             self.send_json({
                 'trades':          trades[-50:],
