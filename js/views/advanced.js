@@ -789,9 +789,11 @@ window.toggleAdvOverlay = function(type) {
         btn?.classList.toggle('active');
     } else if (type === 'heatmap') {
         const hm = window.activeHeatmap;
+        const legend = document.getElementById('heatmap-legend-overlay');
         if (hm) {
             const show = !isActive;
             hm.canvas.style.display = show ? 'block' : 'none';
+            if (legend) legend.style.display = show ? 'flex' : 'none';
             if (show) {
                 hm.resize();
                 hm.render();
