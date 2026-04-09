@@ -343,7 +343,7 @@ window.BinanceSocketManager = {
 // ============= Core Utilities =============
 async function fetchAPI(endpoint, method = 'GET', body = null) {
     try {
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        const options = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
         if (body) options.body = JSON.stringify(body);
         const res = await fetch(`${API_BASE}${endpoint}`, options);
         
