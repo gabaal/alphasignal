@@ -72,7 +72,7 @@ async function renderCommandCenter() {
 
         <!-- Chart Zoom Modal -->
         <div id="cmdChartModal" onclick="if(event.target===this)closeCmdChartModal()"
-            style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);backdrop-filter:blur(12px);
+            style="display:none;position:fixed;inset:0;z-index:9999;backdrop-filter:blur(12px);
                    -webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:2rem">
             <div style="position:relative;width:min(90vw,1100px);background:rgba(5,7,30,0.97);
                         border:1px solid rgba(0,242,255,0.2);border-radius:16px;padding:1.5rem;
@@ -110,7 +110,7 @@ async function renderCommandCenter() {
         </div>
 
         <div style="display:grid;grid-template-columns:1fr minmax(160px,220px);gap:1.5rem;align-items:start">
-            <div class="card" style="background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);cursor:zoom-in;transition:border-color 0.15s"
+            <div class="card" style="border:1px solid rgba(0,242,255,0.12);cursor:zoom-in;transition:border-color 0.15s"
                 onclick="openCmdChartModal('radar')"
                 onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
@@ -118,7 +118,7 @@ async function renderCommandCenter() {
                         <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:5px">radar</span>CONFIDENCE RADAR
                     </h3>
                     <div style="display:flex;align-items:center;gap:8px">
-                        <select id="cmd-radar-select" style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono'" onchange="event.stopPropagation();loadCmdRadar(this.value)" onclick="event.stopPropagation()">
+                        <select id="cmd-radar-select" style="border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono'" onchange="event.stopPropagation();loadCmdRadar(this.value)" onclick="event.stopPropagation()">
                             <option value="BTC-USD">BTC</option><option value="ETH-USD">ETH</option>
                             <option value="SOL-USD">SOL</option><option value="LINK-USD">LINK</option>
                             <option value="ADA-USD">ADA</option>
@@ -162,10 +162,10 @@ async function renderCommandCenter() {
             const corrRows = corrItems.map(m => {
                 const v = parseFloat(m.correlation) || 0;
                 const pct = Math.abs(v) * 100;
-                const bar = `<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;margin-top:4px"><div style="height:3px;width:${pct.toFixed(0)}%;background:${corrColor(v)};border-radius:2px"></div></div>`;
+                const bar = `<div style="height:3px;background:${alphaColor(0.07)};border-radius:2px;margin-top:4px"><div style="height:3px;width:${pct.toFixed(0)}%;background:${corrColor(v)};border-radius:2px"></div></div>`;
                 const badge = `<span style="font-size:0.45rem;padding:1px 5px;border-radius:3px;background:${statusColor(m.status)}22;color:${statusColor(m.status)};letter-spacing:1px">${m.status || 'NEUTRAL'}</span>`;
                 return `
-                    <div style="padding:7px 8px;background:rgba(255,255,255,0.02);border-radius:6px;margin-bottom:5px">
+                    <div style="padding:7px 8px;background:${alphaColor(0.02)};border-radius:6px;margin-bottom:5px">
                         <div style="display:flex;justify-content:space-between;align-items:center">
                             <span style="font-size:0.7rem;font-weight:700">BTC / ${m.name}</span>
                             <div style="display:flex;align-items:center;gap:6px">
@@ -183,10 +183,10 @@ async function renderCommandCenter() {
                 const ll = pulse.leadLag;
                 const llColor = ll.leader === 'BTC' ? '#7dd3fc' : '#a78bfa';
                 leadLagHTML = `
-                    <div style="margin-top:6px;padding:8px;background:rgba(0,0,0,0.2);border-radius:6px;border-left:3px solid ${llColor}">
-                        <div style="font-size:0.5rem;color:rgba(255,255,255,0.35);letter-spacing:2px;margin-bottom:3px">LEAD-LAG SIGNAL</div>
+                    <div style="margin-top:6px;padding:8px;border-radius:6px;border-left:3px solid ${llColor}">
+                        <div style="font-size:0.5rem;color:${alphaColor(0.35)};letter-spacing:2px;margin-bottom:3px">LEAD-LAG SIGNAL</div>
                         <div style="font-size:0.75rem;font-weight:900;color:${llColor}">${ll.signal || ll.leader + ' LEADING'}</div>
-                        <div style="font-size:0.55rem;color:rgba(255,255,255,0.4);margin-top:2px">${ll.divergence ? Math.abs(ll.divergence).toFixed(2) + '% divergence' : ''}</div>
+                        <div style="font-size:0.55rem;color:${alphaColor(0.4)};margin-top:2px">${ll.divergence ? Math.abs(ll.divergence).toFixed(2) + '% divergence' : ''}</div>
                     </div>`;
             }
 
@@ -291,8 +291,8 @@ async function renderCommandCenter() {
                         plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(13,17,23,0.95)', titleColor:'#7dd3fc', bodyColor:'#e2e8f0',
                             callbacks:{ title:items=>items[0].raw.label, label:c=>`Z: ${c.raw.x.toFixed(2)}σ  α: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
                         scales:{
-                            x:{ title:{display:true,text:'Z-Score (σ)',color:'rgba(255,255,255,0.3)',font:{size:8,family:'JetBrains Mono'}}, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{family:'JetBrains Mono',size:8}} },
-                            y:{ title:{display:true,text:'Alpha (%)',color:'rgba(255,255,255,0.3)',font:{size:8,family:'JetBrains Mono'}}, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{family:'JetBrains Mono',size:8},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
+                            x:{ title:{display:true,text:'Z-Score (σ)',color:alphaColor(0.3),font:{size:8,family:'JetBrains Mono'}}, grid:{color:alphaColor(0.06)}, ticks:{color:alphaColor(0.4),font:{family:'JetBrains Mono',size:8}} },
+                            y:{ title:{display:true,text:'Alpha (%)',color:alphaColor(0.3),font:{size:8,family:'JetBrains Mono'}}, grid:{color:alphaColor(0.06)}, ticks:{color:alphaColor(0.4),font:{family:'JetBrains Mono',size:8},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
                         }
                     }
                 });
@@ -310,7 +310,7 @@ async function renderCommandCenter() {
                     type:'doughnut',
                     data:{ labels, datasets:[{ data:counts, backgroundColor:labels.map((_,i)=>palette[i%palette.length]+'cc'), borderColor:'rgba(5,7,30,1)', borderWidth:2, hoverOffset:6 }]},
                     options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
-                        plugins:{ legend:{display:true,position:'right',labels:{color:'rgba(255,255,255,0.5)',font:{family:'JetBrains Mono',size:8},boxWidth:10,padding:8}},
+                        plugins:{ legend:{display:true,position:'right',labels:{color:alphaColor(0.5),font:{family:'JetBrains Mono',size:8},boxWidth:10,padding:8}},
                             tooltip:{ backgroundColor:'rgba(13,17,23,0.95)', titleColor:'#7dd3fc', bodyColor:'#e2e8f0',
                                 callbacks:{label:c=>` ${c.label}: ${c.raw} (${Math.round(c.raw/_sigs.length*100)}%)`}}}
                     }
@@ -333,8 +333,8 @@ async function renderCommandCenter() {
                     options:{ responsive:true, maintainAspectRatio:false,
                         plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.95)',titleColor:'#7dd3fc',callbacks:{title:i=>`BTC Corr: ${i[0].label}`,label:c=>`${c.raw} signals`}}},
                         scales:{
-                            x:{ grid:{display:false}, ticks:{color:c2=>{const v=parseFloat(binLabels[c2.index]);return Math.abs(v)>0.6?'rgba(239,68,68,0.8)':Math.abs(v)>0.3?'rgba(0,242,255,0.6)':'rgba(255,255,255,0.3)';},font:{family:'JetBrains Mono',size:7},maxTicksLimit:9,maxRotation:0} },
-                            y:{ display:true, position:'right', grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(255,255,255,0.3)',font:{family:'JetBrains Mono',size:8},maxTicksLimit:4} }
+                            x:{ grid:{display:false}, ticks:{color:c2=>{const v=parseFloat(binLabels[c2.index]);return Math.abs(v)>0.6?'rgba(239,68,68,0.8)':Math.abs(v)>0.3?'rgba(0,242,255,0.6)':alphaColor(0.3);},font:{family:'JetBrains Mono',size:7},maxTicksLimit:9,maxRotation:0} },
+                            y:{ display:true, position:'right', grid:{color:alphaColor(0.04)}, ticks:{color:alphaColor(0.3),font:{family:'JetBrains Mono',size:8},maxTicksLimit:4} }
                         }
                     }
                 });
@@ -354,8 +354,8 @@ async function renderCommandCenter() {
                     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
                         plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.95)',titleColor:'#7dd3fc',bodyColor:'#e2e8f0',callbacks:{label:c=>` Alpha: ${c.raw>=0?'+':''}${parseFloat(c.raw).toFixed(2)}%`}}},
                         scales:{
-                            x:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(255,255,255,0.35)',font:{family:'JetBrains Mono',size:8},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
-                            y:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.6)',font:{family:'JetBrains Mono',size:9,weight:'700'}} }
+                            x:{ grid:{color:alphaColor(0.05)}, ticks:{color:alphaColor(0.35),font:{family:'JetBrains Mono',size:8},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
+                            y:{ grid:{display:false}, ticks:{color:alphaColor(0.6),font:{family:'JetBrains Mono',size:9,weight:'700'}} }
                         }
                     }
                 });
@@ -429,12 +429,12 @@ function openCmdChartModal(key) {
         // Column headers (rotated)
         labels.forEach(l => {
             html += `<div style="writing-mode:vertical-lr;transform:rotate(180deg);font-size:${Math.min(9,cellPx*0.22)}px;font-weight:700;
-                color:rgba(255,255,255,0.5);font-family:'JetBrains Mono';text-align:center;padding:4px 0;white-space:nowrap">${l.replace('-USD','')}</div>`;
+                color:${alphaColor(0.5)};font-family:'JetBrains Mono';text-align:center;padding:4px 0;white-space:nowrap">${l.replace('-USD','')}</div>`;
         });
         // Data rows
         labels.forEach((rowLabel, ri) => {
             // Row label
-            html += `<div style="font-size:${Math.min(9,cellPx*0.22)}px;font-weight:700;color:rgba(255,255,255,0.6);
+            html += `<div style="font-size:${Math.min(9,cellPx*0.22)}px;font-weight:700;color:${alphaColor(0.6)};
                 font-family:'JetBrains Mono';display:flex;align-items:center;justify-content:flex-end;
                 padding-right:6px;white-space:nowrap">${rowLabel.replace('-USD','')}</div>`;
             // Cells for this row
@@ -446,8 +446,8 @@ function openCmdChartModal(key) {
                 const v = cell ? (cell.v !== undefined ? cell.v : cell.correlation) : 0;
                 const isdiag = ri === ci;
                 const opacity = isdiag ? 0.15 : Math.abs(v);
-                const bg = isdiag ? 'rgba(255,255,255,0.08)' : v > 0 ? `rgba(0,242,255,${opacity.toFixed(2)})` : `rgba(255,62,62,${opacity.toFixed(2)})`;
-                const textColor = Math.abs(v) > 0.5 || isdiag ? 'white' : 'rgba(255,255,255,0.6)';
+                const bg = isdiag ? alphaColor(0.08) : v > 0 ? `rgba(0,242,255,${opacity.toFixed(2)})` : `rgba(255,62,62,${opacity.toFixed(2)})`;
+                const textColor = Math.abs(v) > 0.5 || isdiag ? 'white' : alphaColor(0.6);
                 html += `<div title="${rowLabel.replace('-USD','')} vs ${colLabel.replace('-USD','')}: ${v.toFixed ? v.toFixed(2) : v}"
                     style="width:${cellPx}px;height:${cellPx}px;background:${bg};display:flex;align-items:center;justify-content:center;
                     font-size:${Math.min(9,cellPx*0.2)}px;font-weight:900;color:${textColor};
@@ -494,8 +494,8 @@ function openCmdChartModal(key) {
                     plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(13,17,23,0.97)', titleColor:'#7dd3fc', bodyColor:'#e2e8f0', titleFont:{family:'JetBrains Mono',size:13,weight:'700'}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
                         callbacks:{ title:i=>i[0].raw.label, label:c=>`Z-Score: ${c.raw.x.toFixed(2)}σ   Alpha: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
                     scales:{
-                        x:{ title:{display:true,text:'Z-Score (σ)',color:'rgba(255,255,255,0.5)',font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:'rgba(255,255,255,0.07)'}, ticks:{color:'rgba(255,255,255,0.5)',font:{family:'JetBrains Mono',size:10}} },
-                        y:{ title:{display:true,text:'Relative Alpha (%)',color:'rgba(255,255,255,0.5)',font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:'rgba(255,255,255,0.07)'}, ticks:{color:'rgba(255,255,255,0.5)',font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
+                        x:{ title:{display:true,text:'Z-Score (σ)',color:alphaColor(0.5),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:alphaColor(0.07)}, ticks:{color:alphaColor(0.5),font:{family:'JetBrains Mono',size:10}} },
+                        y:{ title:{display:true,text:'Relative Alpha (%)',color:alphaColor(0.5),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:alphaColor(0.07)}, ticks:{color:alphaColor(0.5),font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
                     }
                 }
             });
@@ -507,7 +507,7 @@ function openCmdChartModal(key) {
                 type:'doughnut',
                 data:{ labels, datasets:[{ data:counts, backgroundColor:labels.map((_,i)=>palette[i%palette.length]+'cc'), borderColor:'rgba(5,7,30,1)', borderWidth:3, hoverOffset:12 }]},
                 options:{ responsive:true, maintainAspectRatio:false, cutout:'55%', animation:{duration:600,animateRotate:true},
-                    plugins:{ legend:{display:true,position:'right',labels:{color:'rgba(255,255,255,0.7)',font:{family:'JetBrains Mono',size:13},boxWidth:14,padding:14}},
+                    plugins:{ legend:{display:true,position:'right',labels:{color:alphaColor(0.7),font:{family:'JetBrains Mono',size:13},boxWidth:14,padding:14}},
                         tooltip:{ backgroundColor:'rgba(13,17,23,0.97)', titleColor:'#7dd3fc', bodyColor:'#e2e8f0', titleFont:{family:'JetBrains Mono',size:13}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
                             callbacks:{label:c=>` ${c.label}: ${c.raw} signals (${Math.round(c.raw/sigs.length*100)}%)`}}}
                 }
@@ -525,8 +525,8 @@ function openCmdChartModal(key) {
                     plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.97)',titleColor:'#7dd3fc',titleFont:{family:'JetBrains Mono',size:13},bodyFont:{family:'JetBrains Mono',size:11},padding:12,
                         callbacks:{title:i=>`BTC Correlation: ${i[0].label}`,label:c=>`${c.raw} signals in this bucket`}}},
                     scales:{
-                        x:{ grid:{display:false}, ticks:{color:c2=>{const v=parseFloat(binLabels[c2.index]);return Math.abs(v)>0.6?'rgba(239,68,68,0.9)':Math.abs(v)>0.3?'rgba(0,242,255,0.7)':'rgba(255,255,255,0.4)';},font:{family:'JetBrains Mono',size:10},maxRotation:0} },
-                        y:{ display:true, position:'right', grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{family:'JetBrains Mono',size:10}} }
+                        x:{ grid:{display:false}, ticks:{color:c2=>{const v=parseFloat(binLabels[c2.index]);return Math.abs(v)>0.6?'rgba(239,68,68,0.9)':Math.abs(v)>0.3?'rgba(0,242,255,0.7)':alphaColor(0.4);},font:{family:'JetBrains Mono',size:10},maxRotation:0} },
+                        y:{ display:true, position:'right', grid:{color:alphaColor(0.05)}, ticks:{color:alphaColor(0.4),font:{family:'JetBrains Mono',size:10}} }
                     }
                 }
             });
@@ -541,8 +541,8 @@ function openCmdChartModal(key) {
                     plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.97)',titleColor:'#7dd3fc',titleFont:{family:'JetBrains Mono',size:13},bodyFont:{family:'JetBrains Mono',size:11},padding:12,
                         callbacks:{label:c=>` Relative Alpha: ${c.raw>=0?'+':''}${parseFloat(c.raw).toFixed(2)}%`}}},
                     scales:{
-                        x:{ grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.45)',font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
-                        y:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.75)',font:{family:'JetBrains Mono',size:11,weight:'700'}} }
+                        x:{ grid:{color:alphaColor(0.06)}, ticks:{color:alphaColor(0.45),font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
+                        y:{ grid:{display:false}, ticks:{color:alphaColor(0.75),font:{family:'JetBrains Mono',size:11,weight:'700'}} }
                     }
                 }
             });
@@ -568,7 +568,7 @@ function openCmdChartModal(key) {
                     responsive: true, maintainAspectRatio: true, animation: { duration: 500 },
                     layout: { padding: -35 },
                     plugins: {
-                        legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 11 }, padding: 8 } },
+                        legend: { labels: { color: alphaColor(0.6), font: { family: 'JetBrains Mono', size: 11 }, padding: 8 } },
                         tooltip: {
                             backgroundColor: 'rgba(13,17,23,0.97)', titleColor: '#7dd3fc',
                             bodyFont: { family: 'JetBrains Mono', size: 11 }, padding: 12,
@@ -577,10 +577,10 @@ function openCmdChartModal(key) {
                     },
                     scales: { r: {
                         min: 0, max: 100,
-                        ticks: { stepSize: 25, color: 'rgba(255,255,255,0.3)', backdropColor: 'transparent', font: { size: 10, family: 'JetBrains Mono' } },
-                        grid: { color: 'rgba(255,255,255,0.08)' },
-                        angleLines: { color: 'rgba(255,255,255,0.08)' },
-                        pointLabels: { color: 'rgba(255,255,255,0.8)', font: { size: 13, family: 'JetBrains Mono', weight: '700' }, padding: 6 }
+                        ticks: { stepSize: 25, color: alphaColor(0.3), backdropColor: 'transparent', font: { size: 10, family: 'JetBrains Mono' } },
+                        grid: { color: alphaColor(0.08) },
+                        angleLines: { color: alphaColor(0.08) },
+                        pointLabels: { color: alphaColor(0.8), font: { size: 13, family: 'JetBrains Mono', weight: '700' }, padding: 6 }
                     }}
                 }
             });
@@ -604,7 +604,7 @@ function openCmdChartModal(key) {
                             label: 'CUMULATIVE ($M)',
                             type: 'line',
                             data: etf.cumulative,
-                            borderColor: 'rgba(255,255,255,0.6)',
+                            borderColor: alphaColor(0.6),
                             borderWidth: 2.5,
                             pointRadius: 5,
                             pointBackgroundColor: '#fff',
@@ -629,12 +629,12 @@ function openCmdChartModal(key) {
                     },
                     scales: {
                         x: { stacked: true, grid: { display: false }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, maxRotation: 35 } },
-                        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' },
+                        y: { stacked: true, grid: { color: alphaColor(0.05) },
                              ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => '$' + v + 'M' },
                              title: { display: true, text: 'DAILY FLOW ($M)', color: '#7dd3fc', font: { size: 10 } } },
                         y1: { position: 'right', grid: { display: false },
-                              ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 10 }, callback: v => '$' + v + 'M' },
-                              title: { display: true, text: 'CUMULATIVE ($M)', color: 'rgba(255,255,255,0.3)', font: { size: 10 } } }
+                              ticks: { color: alphaColor(0.4), font: { family: 'JetBrains Mono', size: 10 }, callback: v => '$' + v + 'M' },
+                              title: { display: true, text: 'CUMULATIVE ($M)', color: alphaColor(0.3), font: { size: 10 } } }
                     }
                 }
             });
@@ -828,7 +828,7 @@ function initCommandGauges(macro, regime) {
             if (!lbl) {
                 lbl = document.createElement('div');
                 lbl.id = 'cmd-fear-label';
-                lbl.style.cssText = 'font-size:0.55rem;letter-spacing:2px;color:rgba(255,255,255,0.4);margin-top:2px';
+                lbl.style.cssText = 'font-size:0.55rem;letter-spacing:2px;color:${alphaColor(0.4)};margin-top:2px';
                 fgValue.parentNode.appendChild(lbl);
             }
             lbl.textContent = label;
@@ -838,7 +838,7 @@ function initCommandGauges(macro, regime) {
                 data: {
                     datasets: [{
                         data: [score, 100 - score],
-                        backgroundColor: [color, 'rgba(255,255,255,0.05)'],
+                        backgroundColor: [color, alphaColor(0.05)],
                         borderWidth: 0,
                         circumference: 180,
                         rotation: 270
@@ -884,7 +884,7 @@ function initCommandGauges(macro, regime) {
             const tc = trendColor[regime.trend] || '#94a3b8';
             const vc = volColor[regime.volatility] || '#94a3b8';
             const pills = [];
-            if (regime.confidence)  pills.push(pill(`${Math.round(regime.confidence * 100)}% CONF`, 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.6)'));
+            if (regime.confidence)  pills.push(pill(`${Math.round(regime.confidence * 100)}% CONF`, alphaColor(0.08), alphaColor(0.6)));
             if (regime.trend)       pills.push(pill(regime.trend, `${tc}22`, tc));
             if (regime.volatility)  pills.push(pill(`VOL ${regime.volatility}`, `${vc}22`, vc));
             sub.innerHTML = pills.join('');
@@ -920,7 +920,7 @@ async function renderCommandETF() {
                         label: 'CUMULATIVE ($M)',
                         type: 'line',
                         data: data.cumulative,
-                        borderColor: 'rgba(255,255,255,0.5)',
+                        borderColor: alphaColor(0.5),
                         borderWidth: 2,
                         pointRadius: 3,
                         pointBackgroundColor: '#fff',
@@ -943,9 +943,9 @@ async function renderCommandETF() {
                 },
                 scales: {
                     x: { stacked: true, grid: { display: false }, ticks: { color: '#666', font: { family: 'JetBrains Mono', size: 8 }, maxRotation: 35 } },
-                    y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666', callback: v => '$' + v + 'M' },
+                    y: { stacked: true, grid: { color: alphaColor(0.05) }, ticks: { color: '#666', callback: v => '$' + v + 'M' },
                        title: { display: true, text: 'DAILY FLOW ($M)', color: '#7dd3fc', font: { size: 9 } } },
-                    y1: { position: 'right', grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)', callback: v => '$' + v + 'M' } }
+                    y1: { position: 'right', grid: { display: false }, ticks: { color: alphaColor(0.4), callback: v => '$' + v + 'M' } }
                 }
             }
         });
@@ -994,12 +994,12 @@ async function loadCmdRadar(ticker) {
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 10 }, padding: 8 } } },
+                plugins: { legend: { labels: { color: alphaColor(0.5), font: { family: 'JetBrains Mono', size: 10 }, padding: 8 } } },
                 scales: { r: {
                     min: 0, max: 100,
-                    ticks: { stepSize: 25, color: 'rgba(255,255,255,0.25)', backdropColor: 'transparent', font: { size: 9 } },
-                    grid: { color: 'rgba(255,255,255,0.06)' },
-                    pointLabels: { color: 'rgba(255,255,255,0.75)', font: { size: 12, family: 'JetBrains Mono' }, padding: 8 }
+                    ticks: { stepSize: 25, color: alphaColor(0.25), backdropColor: 'transparent', font: { size: 9 } },
+                    grid: { color: alphaColor(0.06) },
+                    pointLabels: { color: alphaColor(0.75), font: { size: 12, family: 'JetBrains Mono' }, padding: 8 }
                 }}
             }
         });

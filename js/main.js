@@ -390,7 +390,7 @@ function renderRegimeHeatmap(containerId, history) {
     const tooltip = d3.select('body').append('div')
         .style('position', 'fixed')
         .style('background', 'rgba(13,17,23,0.95)')
-        .style('border', '1px solid rgba(255,255,255,0.1)')
+        .style('border', '1px solid ${alphaColor(0.1)}')
         .style('border-radius', '8px')
         .style('padding', '6px 12px')
         .style('font-size', '0.7rem')
@@ -428,7 +428,7 @@ function renderRegimeHeatmap(containerId, history) {
         .attr("transform", `translate(0,${height - margin.top - margin.bottom})`)
         .call(d3.axisBottom(xScale).tickValues(xScale.domain().filter((d,i) => !(i%10))))
         .style("font-size", "8px")
-        .style("color", "rgba(255,255,255,0.3)");
+        .style("color", alphaColor(0.3));
 }
 
 function renderCorrelationHeatmap(containerId, data) {
@@ -501,7 +501,7 @@ async function initFearGreedGauge() {
             data: {
                 datasets: [{
                     data: [d.score, 100 - d.score],
-                    backgroundColor: [color, 'rgba(255,255,255,0.05)'],
+                    backgroundColor: [color, alphaColor(0.05)],
                     borderWidth: 0,
                     circumference: 180,
                     rotation: 270
@@ -758,7 +758,7 @@ async function renderAskTerminal() {
             <div id="ask-terminal-history" style="min-height:200px;max-height:60vh;overflow-y:auto;margin-bottom:1.5rem;display:flex;flex-direction:column;gap:1rem"></div>
 
             <!-- Input bar -->
-            <div style="display:flex;gap:12px;align-items:flex-end;background:rgba(0,0,0,0.4);border:1px solid rgba(188,19,254,0.4);border-radius:12px;padding:12px;position:sticky;bottom:0">
+            <div style="display:flex;gap:12px;align-items:flex-end;border:1px solid rgba(188,19,254,0.4);border-radius:12px;padding:12px;position:sticky;bottom:0">
                 <span class="material-symbols-outlined" style="color:#bc13fe;font-size:22px;padding-top:2px">terminal</span>
                 <textarea id="ask-terminal-input" placeholder="Ask anything about markets, strategies, signals, or on-chain data..." 
                     style="flex:1;min-height:44px;max-height:120px;background:none;border:none;color:white;font-family:'Outfit';font-size:0.9rem;resize:none;outline:none;line-height:1.5"
@@ -797,7 +797,7 @@ async function submitAIQuery(prefill) {
             <div style="width:32px;height:32px;border-radius:50%;background:rgba(188,19,254,0.2);border:1px solid rgba(188,19,254,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <span class="material-symbols-outlined" style="font-size:16px;color:#bc13fe">smart_toy</span>
             </div>
-            <div style="max-width:85%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px 12px 12px 4px;padding:12px 16px;font-size:0.85rem;line-height:1.6" id="${respId}">
+            <div style="max-width:85%;background:${alphaColor(0.03)};border:1px solid ${alphaColor(0.06)};border-radius:12px 12px 12px 4px;padding:12px 16px;font-size:0.85rem;line-height:1.6" id="${respId}">
                 <span style="animation:pulse 1s infinite;color:var(--text-dim)">Thinking...</span>
             </div>
         </div>`;
@@ -831,7 +831,7 @@ async function openSignalThesisModal(ticker, signal, zscore) {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'thesis-modal';
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
         modal.innerHTML = `
             <div style="background:var(--bg-card);border:1px solid rgba(188,19,254,0.4);border-radius:16px;padding:2rem;max-width:520px;width:100%;position:relative">
                 <button onclick="document.getElementById('thesis-modal').remove()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem">&times;</button>

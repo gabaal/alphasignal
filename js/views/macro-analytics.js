@@ -43,7 +43,7 @@ async function renderMacroSync(tabs = null) {
                 <div class="card-header" style="margin-bottom:15px">
                     <h3>Sector Hierarchy Treemap <span style="font-size:0.8rem; color:var(--text-dim)">(Rotational Dominance Matrix)</span></h3>
                 </div>
-                <div id="sector-treemap" style="height:350px; width:100%; border-radius:8px; overflow:hidden; position:relative; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05);"></div>
+                <div id="sector-treemap" style="height:350px; width:100%; border-radius:8px; overflow:hidden; position:relative;  border:1px solid ${alphaColor(0.05)};"></div>
                 <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
                     Box size represents aggregate Sector Market Capitalization. Color intensity maps 24H directional momentum.
                 </div>
@@ -76,7 +76,7 @@ async function renderMacroSync(tabs = null) {
                     <canvas id="ssrChart" role="img" aria-label="Stablecoin supply ratio chart"></canvas>
                 </div>
             </div>
-            <div class="macro-education" style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid var(--border)">
+            <div class="macro-education" style="margin-top:2rem; padding:1.5rem; background:${alphaColor(0.02)}; border-radius:12px; border:1px solid var(--border)">
                 <h4 style="color:var(--accent); margin-bottom:0.5rem">Institutional Macro Correlation Guide</h4>
                 <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.6">
                     Professional traders monitor these correlations to identify "Narrative Shifts." 
@@ -112,7 +112,7 @@ async function renderMacroSync(tabs = null) {
                             tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } } }
                         },
                         scales: {
-                            y: { stacked: true, min: 0, max: 100, ticks: { callback: function(value) { return value + '%'; } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            y: { stacked: true, min: 0, max: 100, ticks: { callback: function(value) { return value + '%'; } }, grid: { color: alphaColor(0.05) } },
                             x: { grid: { display: false } }
                         },
                         elements: { point: { radius: 0 } }
@@ -127,7 +127,7 @@ async function renderMacroSync(tabs = null) {
                 if (fundEl) {
                     const ctx2 = fundEl.getContext('2d');
                 
-                const colors = fundingData.funding_rates.map(r => r > 0.015 ? 'rgba(34, 197, 94, 0.7)' : (r < 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(255,255,255,0.2)'));
+                const colors = fundingData.funding_rates.map(r => r > 0.015 ? 'rgba(34, 197, 94, 0.7)' : (r < 0 ? 'rgba(239, 68, 68, 0.7)' : alphaColor(0.2)));
                 
                 new Chart(ctx2, {
                     type: 'bar',
@@ -146,7 +146,7 @@ async function renderMacroSync(tabs = null) {
                         responsive: true, maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
                         scales: {
-                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'Funding Premium (%)' } },
+                            y: { grid: { color: alphaColor(0.05) }, title: { display:true, text: 'Funding Premium (%)' } },
                             x: { grid: { display:false }, ticks: { maxTicksLimit: 12 } }
                         }
                     }
@@ -179,7 +179,7 @@ async function renderMacroSync(tabs = null) {
                         responsive: true, maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
                         scales: {
-                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display:true, text: 'SSR Multiplier' } },
+                            y: { grid: { color: alphaColor(0.05) }, title: { display:true, text: 'SSR Multiplier' } },
                             x: { grid: { display:false }, ticks: { maxTicksLimit: 12 } }
                         }
                     }
@@ -202,14 +202,14 @@ function renderCorrelationTable(data) {
     
     let html = `<table class="corr-table" style="width:100%; border-collapse:collapse; text-align:center; font-family:'JetBrains Mono'">`;
     
-    html += '<tr><th style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1)"></th>';
+    html += '<tr><th style="padding:8px; border-bottom:1px solid ${alphaColor(0.1)}"></th>';
     data.assets.forEach(a => {
-        html += `<th style="padding:8px; font-size:0.75rem; color:var(--text-dim); border-bottom:1px solid rgba(255,255,255,0.1)">${a}</th>`;
+        html += `<th style="padding:8px; font-size:0.75rem; color:var(--text-dim); border-bottom:1px solid ${alphaColor(0.1)}">${a}</th>`;
     });
     html += '</tr>';
 
     data.assets.forEach(rowAsset => {
-        html += `<tr><td style="padding:8px; font-size:0.75rem; color:var(--text-dim); font-weight:700; text-align:left; border-right:1px solid rgba(255,255,255,0.1)">${rowAsset}</td>`;
+        html += `<tr><td style="padding:8px; font-size:0.75rem; color:var(--text-dim); font-weight:700; text-align:left; border-right:1px solid ${alphaColor(0.1)}">${rowAsset}</td>`;
         data.assets.forEach(colAsset => {
             const pair = data.matrix.find(m => m.assetA === rowAsset && m.assetB === colAsset);
             if (!pair) {
@@ -218,11 +218,11 @@ function renderCorrelationTable(data) {
             }
             const val = pair.correlation;
             let bg;
-            if (val === 1) bg = 'rgba(255,255,255,0.05)';
+            if (val === 1) bg = alphaColor(0.05);
             else if (val > 0) bg = `rgba(0, 242, 255, ${Math.min(val, 0.9)})`;
             else bg = `rgba(239, 68, 68, ${Math.min(Math.abs(val), 0.9)})`;
             
-            const color = val === 1 ? 'rgba(255,255,255,0.2)' : (Math.abs(val) > 0.5 ? 'white' : 'var(--text-dim)');
+            const color = val === 1 ? alphaColor(0.2) : (Math.abs(val) > 0.5 ? 'white' : 'var(--text-dim)');
             html += `<td style="padding:10px 5px; font-size:0.75rem; background:${bg}; color:${color}; border:1px solid rgba(0,0,0,0.5)">${val.toFixed(2)}</td>`;
         });
         html += '</tr>';
@@ -286,7 +286,7 @@ function renderSectorTreemap(data) {
     leaf.append("text")
         .attr("x", 8)
         .attr("y", 35)
-        .attr("fill", "rgba(255,255,255,0.9)")
+        .attr("fill", alphaColor(0.9))
         .attr("font-size", "11px")
         .attr("font-weight", 700)
         .style("pointer-events", "none")
@@ -344,7 +344,7 @@ async function renderRotation(tabs = null) {
                         const intensity = Math.abs(val);
                         const color = val >= 0 ? `rgba(0, 242, 255, ${intensity * 0.8})` : `rgba(255, 62, 62, ${intensity * 0.8})`;
                         const textColor = intensity > 0.5 ? '#fff' : 'var(--text-dim)';
-                        const border = intensity > 0.8 ? '1px solid rgba(255,255,255,0.2)' : 'none';
+                        const border = intensity > 0.8 ? '1px solid ${alphaColor(0.2)}' : 'none';
                         return `<div class="matrix-cell" style="background:${color}; color:${textColor}; border:${border}" title="${data.sectors[i]} vs ${data.sectors[row.indexOf(val)]}: ${val}">${val.toFixed(2)}</div>`;
                     }).join('')}
                 `).join('')}
@@ -372,7 +372,7 @@ async function renderCapitalRotation(tabs = null) {
         </div>
         ${renderHubTabs('capital-rotation', tabs)}
 
-        <div class="card" style="padding:1.5rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
+        <div class="card" style="padding:1.5rem;border:1px solid rgba(0,242,255,0.12);">
             <div id="cr-summary-bar" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px">
                 <div style="display:flex;gap:6px;align-items:center">
                     <div class="loader" style="width:14px;height:14px;border-width:2px"></div>
@@ -514,11 +514,11 @@ async function renderCapitalRotation(tabs = null) {
             .attr('font-size', 11).attr('font-weight', 900).attr('fill', '#7dd3fc').text('CAPITAL');
         const centerSub = centerGroup.append('text')
             .attr('text-anchor', 'middle').attr('dy', '1em')
-            .attr('font-size', 9).attr('fill', 'rgba(255,255,255,0.45)').text('ROTATION');
+            .attr('font-size', 9).attr('fill', alphaColor(0.45)).text('ROTATION');
 
         // Detail panel
         const detailEl = document.createElement('div');
-        detailEl.style.cssText = 'margin-top:1rem;padding:1rem 1.2rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;font-size:0.72rem;display:none;';
+        detailEl.style.cssText = 'margin-top:1rem;padding:1rem 1.2rem;background:${alphaColor(0.03)};border:1px solid ${alphaColor(0.07)};border-radius:8px;font-size:0.72rem;display:none;';
         document.getElementById('sunburst-container').parentElement.appendChild(detailEl);
 
         let focusNode = hierarchy;
@@ -552,7 +552,7 @@ async function renderCapitalRotation(tabs = null) {
 
             if (next === hierarchy) {
                 centerName.text('CAPITAL').attr('fill', '#7dd3fc');
-                centerSub.text('ROTATION').attr('fill', 'rgba(255,255,255,0.45)');
+                centerSub.text('ROTATION').attr('fill', alphaColor(0.45));
                 detailEl.style.display = 'none';
             } else {
                 const perfStr = (next.data.perf >= 0 ? '+' : '') + (next.data.perf?.toFixed(1) || '0') + '%';

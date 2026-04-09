@@ -51,7 +51,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
             
             <!-- LEFT COLUMN: Charts & Input -->
             <div style="display:flex; flex-direction:column; gap:2rem">
-                <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5); backdrop-filter:blur(10px)">
+                <div class="card" style="padding:1.5rem;  backdrop-filter:blur(10px)">
                     <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">EQUITY CURVE VS BENCHMARK (30D)</h3>
                     <canvas id="portfolioChart" role="img" aria-label="Portfolio allocation pie chart" style="max-height:400px"></canvas>
                 </div>
@@ -61,7 +61,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     <div style="display:flex; flex-direction:column; gap:1rem">
                         <p style="font-size:0.7rem; color:var(--text-dim)">Input target symbols for institutional basket simulation.</p>
                         <input type="text" id="portfolio-basket" placeholder="BTC-USD, ETH-USD, SOL-USD..." 
-                               style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; padding:12px; border-radius:8px; font-family:inherit"
+                               style="background:${alphaColor(0.05)}; border:1px solid var(--border); color:white; padding:12px; border-radius:8px; font-family:inherit"
                                value="${customBasket || ''}">
                         <button class="action-btn-styled" style="width:100%" 
                                 onclick="renderPortfolioLab(document.getElementById('portfolio-basket').value)">
@@ -73,7 +73,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
 
             <!-- RIGHT COLUMN: Analysis & Weights -->
             <div style="display:flex; flex-direction:column; gap:2rem">
-                <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">
+                <div class="card" style="padding:1.5rem; ">
                     <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">INSTITUTIONAL RISK SCORECARD</h3>
                     <div class="metrics-grid" style="display:grid; grid-template-columns: 1fr; gap:1.2rem">
                         <div class="metric-item">
@@ -89,11 +89,11 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     </div>
                 </div>
 
-                <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">
+                <div class="card" style="padding:1.5rem; ">
                     <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">CONSTITUENT WEIGHTINGS</h3>
                     <div class="weights-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:10px; margin-bottom: 20px">
                         ${Object.entries(data.allocation).map(([ticker, weight]) => `
-                            <div style="background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; display:flex; justify-content:space-between; border:1px solid rgba(255,255,255,0.05)">
+                            <div style="background:${alphaColor(0.03)}; padding:8px; border-radius:6px; display:flex; justify-content:space-between; border:1px solid ${alphaColor(0.05)}">
                                 <span style="font-size:0.65rem; font-weight:900; color:white">${ticker.split('-')[0]}</span>
                                 <span style="font-size:0.65rem; color:var(--accent)">${weight}%</span>
                             </div>
@@ -117,7 +117,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     <div style="flex:1">
                         <div id="rebalance-allocations" style="display:flex; flex-direction:column; gap:8px">
                             ${(optData && optData.allocations && optData.allocations.length > 0) ? optData.allocations.map(a => `
-                                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05)">
+                                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid ${alphaColor(0.05)}">
                                     <span style="font-size:0.75rem; color:var(--text)">${a.asset}</span>
                                     <span style="font-size:0.75rem; color:var(--accent); font-weight:700">${(a.target_weight * 100).toFixed(1)}%</span>
                                 </div>
@@ -184,7 +184,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                         ticks: { color: 'var(--text-dim)', font: { size: 10, family: 'JetBrains Mono' } } 
                     },
                     y: { 
-                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        grid: { color: alphaColor(0.05) }, 
                         ticks: { color: 'var(--text-dim)', font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' },
                         title: { display: true, text: 'Portfolio Return (%)', color: 'var(--text-dim)', font: { size: 9 } }
                     }
@@ -219,7 +219,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     borderColor: '#7dd3fc',
                     borderWidth: 2,
                     pointBackgroundColor: '#7dd3fc',
-                    pointBorderColor: 'rgba(255,255,255,0.8)',
+                    pointBorderColor: alphaColor(0.8),
                     pointRadius: 3,
                     pointHoverRadius: 5
                 }]
@@ -229,8 +229,8 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                 maintainAspectRatio: false,
                 scales: {
                     r: {
-                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        angleLines: { color: alphaColor(0.1) },
+                        grid: { color: alphaColor(0.1) },
                         pointLabels: { color: '#8b949e', font: { size: 9, family: 'JetBrains Mono' } },
                         ticks: { display: false, backdropColor: 'transparent' }
                     }
@@ -282,7 +282,7 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
             const efSection = document.createElement('div');
             efSection.id = 'efficient-frontier-section';
             efSection.innerHTML = `
-                <div class="card" style="padding:1.5rem; margin-bottom:2rem; background:rgba(5,5,30,0.7); border:1px solid rgba(0,242,255,0.15);">
+                <div class="card" style="padding:1.5rem; margin-bottom:2rem;  border:1px solid rgba(0,242,255,0.15);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
                         <h3 style="font-size:0.9rem; color:var(--accent); letter-spacing:1px; margin:0;">
                             <span class="material-symbols-outlined" style="vertical-align:middle; margin-right:6px; font-size:1.1rem;">scatter_plot</span>
@@ -375,12 +375,12 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     scales: {
                         x: {
                             title: { display: true, text: 'Annualised Volatility (%)', color: 'var(--text-dim)', font: { size: 10 } },
-                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            grid: { color: alphaColor(0.04) },
                             ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' }
                         },
                         y: {
                             title: { display: true, text: 'Annualised Return (%)', color: 'var(--text-dim)', font: { size: 10 } },
-                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            grid: { color: alphaColor(0.04) },
                             ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' }
                         }
                     }
@@ -391,11 +391,11 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
             if (cardsEl && ef.max_sharpe && ef.min_vol) {
                 cardsEl.style.display = 'grid';
                 const renderWeights = (p, label, color) => `
-                    <div style="background:rgba(0,0,0,0.3); border:1px solid ${color}33; border-radius:10px; padding:1.2rem;">
+                    <div style=" border:1px solid ${color}33; border-radius:10px; padding:1.2rem;">
                         <div style="font-size:0.6rem; font-weight:900; color:${color}; margin-bottom:0.8rem; letter-spacing:1px;">${label}</div>
                         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:0.8rem;">
                             ${Object.entries(p.weights).map(([asset, w]) => `
-                                <div style="background:rgba(255,255,255,0.05); border-radius:6px; padding:6px 10px; font-size:0.65rem;">
+                                <div style="background:${alphaColor(0.05)}; border-radius:6px; padding:6px 10px; font-size:0.65rem;">
                                     <span style="color:white; font-weight:900;">${asset}</span>
                                     <span style="color:${color}; margin-left:6px;">${(w * 100).toFixed(1)}%</span>
                                 </div>`).join('')}

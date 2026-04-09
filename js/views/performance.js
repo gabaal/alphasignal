@@ -97,7 +97,7 @@ async function renderPerformanceDashboard(tabs = null) {
                         <span style="color:var(--text-dim)">Live data activates on first signal</span>
                     </div>
                 </div>
-                <div style="text-align:center;padding:1rem;background:rgba(255,255,255,0.02);border-radius:12px;border:1px solid var(--border)">
+                <div style="text-align:center;padding:1rem;background:${alphaColor(0.02)};border-radius:12px;border:1px solid var(--border)">
                     <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">BENCHMARK ALPHA</div>
                     <div style="font-size:2.5rem;font-weight:900;color:#22c55e">+47.2%</div>
                     <div style="font-size:0.65rem;color:var(--text-dim);margin-top:4px">Simulated 180-day model</div>
@@ -120,12 +120,12 @@ async function renderPerformanceDashboard(tabs = null) {
                 </thead>
                 <tbody>
                     ${d.monthly.map(m => `
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                        <tr style="border-bottom:1px solid ${alphaColor(0.04)}">
                             <td style="padding:10px 12px; color:var(--text)">${m.month}</td>
                             <td style="padding:10px 12px; text-align:right; color:var(--text-dim)">${m.signals}</td>
                             <td style="padding:10px 12px; text-align:right; font-weight:700; color:${m.avg_roi >= 0 ? '#22c55e' : '#ef4444'}">${m.avg_roi >= 0 ? '+' : ''}${m.avg_roi}%</td>
                             <td style="padding:10px 12px">
-                                <div style="height:6px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden; max-width:180px">
+                                <div style="height:6px; background:${alphaColor(0.08)}; border-radius:4px; overflow:hidden; max-width:180px">
                                     <div style="width:${Math.min(100, Math.abs(m.avg_roi) * 5)}%; height:100%; background:${m.avg_roi >= 0 ? '#22c55e' : '#ef4444'}; border-radius:4px"></div>
                                 </div>
                             </td>
@@ -143,7 +143,7 @@ async function renderPerformanceDashboard(tabs = null) {
                     <div style="font-size:0.75rem;color:var(--text-dim)">Monthly signal returns — darker green = higher gain, red = loss</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;font-size:0.6rem;color:var(--text-dim)">
-                    <div style="width:80px;height:8px;border-radius:4px;background:linear-gradient(to right,#ef4444,rgba(255,255,255,0.1),#22c55e)"></div>
+                    <div style="width:80px;height:8px;border-radius:4px;background:linear-gradient(to right,#ef4444,${alphaColor(0.1)},#22c55e)"></div>
                     <span>Loss → Flat → Gain</span>
                 </div>
             </div>
@@ -158,11 +158,11 @@ async function renderPerformanceDashboard(tabs = null) {
                         const m = monthMap[mon];
                         const roi = m ? m.avg_roi : null;
                         const intensity = roi !== null ? Math.min(1, Math.abs(roi) / 15) : 0;
-                        const bg = roi === null ? 'rgba(255,255,255,0.04)' : roi > 0 ? `rgba(34,197,94,${0.1 + intensity * 0.7})` : roi < 0 ? `rgba(239,68,68,${0.15 + intensity * 0.6})` : 'rgba(255,255,255,0.08)';
-                        const border = roi === null ? 'rgba(255,255,255,0.06)' : roi > 0 ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+                        const bg = roi === null ? alphaColor(0.04) : roi > 0 ? `rgba(34,197,94,${0.1 + intensity * 0.7})` : roi < 0 ? `rgba(239,68,68,${0.15 + intensity * 0.6})` : alphaColor(0.08);
+                        const border = roi === null ? alphaColor(0.06) : roi > 0 ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
                         return `<div style="flex:1;min-width:64px;max-width:80px;padding:10px 8px;border-radius:8px;background:${bg};border:1px solid ${border};text-align:center;cursor:default" title="${mon}: ${roi !== null ? (roi>=0?'+':'')+roi+'%' : 'No data'}">
                             <div style="font-size:0.6rem;font-weight:700;color:var(--text-dim);letter-spacing:1px">${mon}</div>
-                            <div style="font-size:0.9rem;font-weight:900;color:${roi === null ? 'rgba(255,255,255,0.2)' : roi >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">${roi !== null ? (roi>=0?'+':'')+roi+'%' : '—'}</div>
+                            <div style="font-size:0.9rem;font-weight:900;color:${roi === null ? alphaColor(0.2) : roi >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">${roi !== null ? (roi>=0?'+':'')+roi+'%' : '—'}</div>
                             ${m ? `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${m.signals} sig</div>` : ''}
                         </div>`;
                     }).join('');
@@ -286,9 +286,9 @@ async function renderPerformanceDashboard(tabs = null) {
                         x: { display: false },
                         y: {
                             position:'left',
-                            grid:{color:'rgba(255,255,255,0.05)'},
+                            grid:{color:alphaColor(0.05)},
                             ticks:{color:'#8b949e',font:{family:'JetBrains Mono',size:10},callback:v=>v+'%'},
-                            title:{ display:true, text:'Portfolio Return (%)', color:'rgba(255,255,255,0.25)', font:{size:9} }
+                            title:{ display:true, text:'Portfolio Return (%)', color:alphaColor(0.25), font:{size:9} }
                         },
                         yDD: { position:'right', display:false, min: Math.min(...drawdown) * 1.2, max: 0 }
                     }
@@ -339,9 +339,9 @@ async function renderPerformanceDashboard(tabs = null) {
                     plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', bodyColor: '#e6edf3', padding: 10, callbacks: { label: function(c){ return ' ' + c.raw + ' signals'; } } } },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            grid: { color: alphaColor(0.04) },
                             ticks: { color: '#8b949e', font: { size: 10 } },
-                            title: { display: true, text: 'Signal Count', color: 'rgba(255,255,255,0.25)', font: { size: 9 } }
+                            title: { display: true, text: 'Signal Count', color: alphaColor(0.25), font: { size: 9 } }
                         },
                         y: { grid: { display: false }, ticks: { color: '#e6edf3', font: { family: 'Outfit', size: 11, weight: '700' } } }
                     }
@@ -367,7 +367,7 @@ async function renderCorrelationMatrix(tabs = null) {
             <div style="margin-bottom:1.5rem; display:flex; gap:12px; flex-wrap:wrap; align-items:center">
                 <label style="font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">BASKET:</label>
                 <select id="corr-basket" onchange="loadCorrelationMatrix(this.value)"
-                        style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); padding:6px 12px; border-radius:8px; font-size:0.7rem">
+                        style="background:${alphaColor(0.05)}; border:1px solid var(--border); color:var(--text); padding:6px 12px; border-radius:8px; font-size:0.7rem">
                     <option value="BTC-USD,ETH-USD,SOL-USD,AVAX-USD,BNB-USD">Core Crypto (5)</option>
                     <option value="BTC-USD,ETH-USD,SOL-USD,MARA,COIN,MSTR">Crypto + Equities (6)</option>
                     <option value="BTC-USD,ETH-USD,SOL-USD,AAVE-USD,UNI-USD,LINK-USD">DeFi Basket (6)</option>
@@ -377,7 +377,7 @@ async function renderCorrelationMatrix(tabs = null) {
             </div>
             <div id="corr-chart" style="width:100%; overflow-x:auto"></div>
             <div style="margin-top:1.5rem; display:flex; align-items:center; gap:8px; font-size:0.6rem; color:var(--text-dim)">
-                <span style="width:40px; height:8px; background:linear-gradient(to right, #ef4444, rgba(255,255,255,0.1), #22c55e); border-radius:4px; display:inline-block"></span>
+                <span style="width:40px; height:8px; background:linear-gradient(to right, #ef4444, ${alphaColor(0.1)}, #22c55e); border-radius:4px; display:inline-block"></span>
                 -1.0 (Inverse) → 0 (None) → +1.0 (Perfect)
             </div>
         </div>
@@ -418,7 +418,7 @@ async function renderFlows(tabs = null) {
                         <div class="label-tag" style="width:fit-content">${f.ticker}</div>
                         <div class="w-amount ${f.direction === 'IN' ? 'pos' : 'neg'}">${f.amount > 0 ? '+' : ''}${f.amount}M</div>
                         <div style="color:var(--text-dim); font-size:0.8rem">Institutional Bid ${f.direction}</div>
-                        <div class="intensity-bar" style="background:rgba(255,255,255,0.05); height:4px; border-radius:2px; position:relative">
+                        <div class="intensity-bar" style="background:${alphaColor(0.05)}; height:4px; border-radius:2px; position:relative">
                             <div style="position:absolute; left:0; top:0; height:100%; width:${Math.min(Math.abs(f.amount)/2, 100)}%; background:${f.direction === 'IN' ? 'var(--risk-low)' : 'var(--risk-high)'}; border-radius:2px"></div>
                         </div>
                     </div>
@@ -429,7 +429,7 @@ async function renderFlows(tabs = null) {
     setTimeout(async () => {
         const el = document.createElement('div');
         el.innerHTML = `
-            <div class="card" style="padding:1.5rem; margin-top:2rem; background:rgba(5,5,30,0.7); border:1px solid rgba(0,242,255,0.12);">
+            <div class="card" style="padding:1.5rem; margin-top:2rem;  border:1px solid rgba(0,242,255,0.12);">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
                     <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">show_chart</span>US YIELD CURVE SPREAD MONITOR</h3>
                     <span style="font-size:0.55rem;color:var(--text-dim);">2Y / 10Y / 30Y TREASURY YIELDS · 365-DAY ROLLING</span>
@@ -472,8 +472,8 @@ async function renderFlows(tabs = null) {
                         tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(5,5,30,0.95)' }
                     },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'var(--text-dim)', font: { size: 9 }, maxTicksLimit: 12 } },
-                        y: { position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v.toFixed(2) + '%' } },
+                        x: { grid: { color: alphaColor(0.03) }, ticks: { color: 'var(--text-dim)', font: { size: 9 }, maxTicksLimit: 12 } },
+                        y: { position: 'left', grid: { color: alphaColor(0.05) }, ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v.toFixed(2) + '%' } },
                         spread: { position: 'right', grid: { display: false }, ticks: { color: '#f59e0b', font: { size: 9 }, callback: v => v.toFixed(2) + '%' } }
                     }
                 }
@@ -582,7 +582,7 @@ function renderDetailLiquidity(data) {
                     tooltip: { backgroundColor: 'rgba(13, 17, 23, 0.95)', callbacks: { label: c => `${c.raw.x}: ${c.raw.y.toFixed(2)} Vol` } }
                 },
                 scales: {
-                    x: { type: 'linear', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e' } },
+                    x: { type: 'linear', grid: { color: alphaColor(0.05) }, ticks: { color: '#8b949e' } },
                     y: { position: 'right', grid: { display: false }, ticks: { color: '#8b949e' } }
                 }
             }
@@ -604,7 +604,7 @@ function renderFlowAttribution(data) {
     }));
 
     container.innerHTML = `
-        <div class="flow-distribution-bar" style="height:12px; display:flex; border-radius:6px; overflow:hidden; margin-bottom:1rem; background:rgba(255,255,255,0.05)">
+        <div class="flow-distribution-bar" style="height:12px; display:flex; border-radius:6px; overflow:hidden; margin-bottom:1rem; background:${alphaColor(0.05)}">
             ${processAttr.map(e => `<div style="width:${e.percentage}%; background:${e.color}" title="${e.name}: ${e.percentage}%"></div>`).join('')}
         </div>
         <div class="entity-legend-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
@@ -752,13 +752,13 @@ async function loadStrategyReport() {
                         ${['Ticker','Trades','Avg PnL','Win Rate','Total PnL'].map(h=>`<th style="padding:8px 12px;text-align:left;font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">${h}</th>`).join('')}
                     </tr></thead>
                     <tbody>
-                        ${tickerRows.map(r => `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                        ${tickerRows.map(r => `<tr style="border-bottom:1px solid ${alphaColor(0.04)}">
                             <td style="padding:8px 12px;font-weight:700;color:var(--accent)">${r.ticker}</td>
                             <td style="padding:8px 12px;color:var(--text-dim)">${r.trades}</td>
                             <td style="padding:8px 12px;font-weight:700;color:${r.avgPnl>=0?'#22c55e':'#ef4444'}">${r.avgPnl>=0?'+':''}${r.avgPnl}%</td>
                             <td style="padding:8px 12px">
                                 <div style="display:flex;align-items:center;gap:6px">
-                                    <div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden">
+                                    <div style="flex:1;height:4px;background:${alphaColor(0.08)};border-radius:2px;overflow:hidden">
                                         <div style="width:${r.winRate}%;height:100%;background:${r.winRate>=50?'#22c55e':'#ef4444'};border-radius:2px"></div>
                                     </div>
                                     <span style="color:${r.winRate>=50?'#22c55e':'#ef4444'};font-weight:700">${r.winRate}%</span>
@@ -780,7 +780,7 @@ async function loadStrategyReport() {
                         ${['Ticker','Signal','Entry','Exit','Entry $','Exit $','P&L'].map(h=>`<th style="padding:8px 12px;text-align:left;font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">${h}</th>`).join('')}
                     </tr></thead>
                     <tbody>
-                        ${trades.slice(0,50).map(t => `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                        ${trades.slice(0,50).map(t => `<tr style="border-bottom:1px solid ${alphaColor(0.04)}">
                             <td style="padding:8px 12px;font-weight:700;color:var(--accent)">${t.ticker}</td>
                             <td style="padding:8px 12px;font-size:0.65rem;color:var(--text-dim)">${t.signal.replace(/_/g,' ')}</td>
                             <td style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem">${t.entry_date}</td>
@@ -814,8 +814,8 @@ async function loadStrategyReport() {
                         interaction: { mode: 'index', intersect: false },
                         plugins: { legend: { labels: { color: '#9ca3af', font: { size: 10 } } }, tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', borderColor: 'rgba(0,212,170,0.2)', borderWidth: 1 } },
                         scales: {
-                            x: { ticks: { color: '#6b7280', maxTicksLimit: 10, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                            y: { ticks: { color: '#9ca3af', font: { size: 10 }, callback: v => v+'%' }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Cumulative Return (%)', color: '#9ca3af', font: { size: 9 } } }
+                            x: { ticks: { color: '#6b7280', maxTicksLimit: 10, font: { size: 9 } }, grid: { color: alphaColor(0.04) } },
+                            y: { ticks: { color: '#9ca3af', font: { size: 10 }, callback: v => v+'%' }, grid: { color: alphaColor(0.04) }, title: { display: true, text: 'Cumulative Return (%)', color: '#9ca3af', font: { size: 9 } } }
                         }
                     }
                 });
@@ -833,7 +833,7 @@ async function loadStrategyReport() {
                     const bg = pnl > 0 ? `rgba(34,197,94,${0.15+intensity*0.7})` : `rgba(239,68,68,${0.15+intensity*0.7})`;
                     const [yr, mo] = ym.split('-');
                     const monthName = new Date(+yr, +mo-1).toLocaleString('en', { month: 'short' });
-                    return `<div title="${ym}: ${pnl>=0?'+':''}${pnl}%" style="background:${bg};border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 16px;min-width:80px;text-align:center;cursor:default;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    return `<div title="${ym}: ${pnl>=0?'+':''}${pnl}%" style="background:${bg};border:1px solid ${alphaColor(0.06)};border-radius:8px;padding:12px 16px;min-width:80px;text-align:center;cursor:default;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         <div style="font-size:0.6rem;color:var(--text-dim);font-weight:700">${monthName} ${yr.slice(2)}</div>
                         <div style="font-size:0.95rem;font-weight:800;color:${pnl>=0?'#22c55e':'#ef4444'};margin-top:2px">${pnl>=0?'+':''}${pnl}%</div>
                     </div>`;

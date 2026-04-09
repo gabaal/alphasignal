@@ -444,13 +444,13 @@ function showExportMenu(event, chartId, viewTitle) {
             <div style="padding:14px 16px 10px;text-align:center">
                 <span class="material-symbols-outlined" style="font-size:2rem;color:#facc15;display:block;margin-bottom:8px">workspace_premium</span>
                 <div style="font-size:0.75rem;font-weight:900;letter-spacing:1px;color:#fff;margin-bottom:4px">INSTITUTIONAL EXPORT</div>
-                <div style="font-size:0.65rem;color:rgba(255,255,255,0.45);margin-bottom:14px;line-height:1.5">CSV, PDF &amp; chart exports are<br>available on the Institutional plan.</div>
+                <div style="font-size:0.65rem;color:${alphaColor(0.45)};margin-bottom:14px;line-height:1.5">CSV, PDF &amp; chart exports are<br>available on the Institutional plan.</div>
                 <button onclick="document.getElementById('export-action-sheet')?.remove(); showPaywall(true);"
                     style="width:100%;padding:9px 0;background:linear-gradient(135deg,#facc15,#f59e0b);border:none;border-radius:8px;color:#000;font-size:0.7rem;font-weight:900;letter-spacing:1px;cursor:pointer">
                     UPGRADE NOW
                 </button>
                 <button onclick="document.getElementById('export-action-sheet')?.remove();"
-                    style="width:100%;padding:6px 0;background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.65rem;cursor:pointer;margin-top:4px">
+                    style="width:100%;padding:6px 0;background:none;border:none;color:${alphaColor(0.3)};font-size:0.65rem;cursor:pointer;margin-top:4px">
                     Maybe later
                 </button>
             </div>
@@ -468,26 +468,26 @@ function showExportMenu(event, chartId, viewTitle) {
     menu.innerHTML = `
         <button onclick="exportChartPNG('${chartId}', '${viewTitle.toLowerCase().replace(/\s+/g,'-')}');document.getElementById('export-action-sheet')?.remove();"
             style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"
-            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+            onmouseover="this.style.background=alphaColor(0.07)" onmouseout="this.style.background='none'">
             <span class="material-symbols-outlined" style="font-size:18px;color:#00d4aa">image</span>
             Export Chart PNG
         </button>
         <button onclick="exportViewPDF('${viewTitle}');document.getElementById('export-action-sheet')?.remove();"
             style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"
-            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+            onmouseover="this.style.background=alphaColor(0.07)" onmouseout="this.style.background='none'">
             <span class="material-symbols-outlined" style="font-size:18px;color:#bc13fe">picture_as_pdf</span>
             Export View as PDF
         </button>
         <button onclick="exportResearchReport();document.getElementById('export-action-sheet')?.remove();"
             style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"
-            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+            onmouseover="this.style.background=alphaColor(0.07)" onmouseout="this.style.background='none'">
             <span class="material-symbols-outlined" style="font-size:18px;color:#f59e0b">summarize</span>
             Research Report (PDF)
         </button>
-        <div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0"></div>
+        <div style="height:1px;background:${alphaColor(0.07)};margin:4px 0"></div>
         <button onclick="if(typeof lastSignalsData!='undefined')exportCSV(lastSignalsData,'signals');document.getElementById('export-action-sheet')?.remove();"
             style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"
-            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+            onmouseover="this.style.background=alphaColor(0.07)" onmouseout="this.style.background='none'">
             <span class="material-symbols-outlined" style="font-size:18px;color:#ffd700">table_chart</span>
             Export Data CSV
         </button>

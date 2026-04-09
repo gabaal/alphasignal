@@ -78,7 +78,7 @@
                 </thead>
                 <tbody>
                     ${alerts.map(a => `
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s;" onmouseenter="this.style.background='rgba(0,242,255,0.03)'" onmouseleave="this.style.background=''">
+                    <tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.2s;" onmouseenter="this.style.background='rgba(0,242,255,0.03)'" onmouseleave="this.style.background=''">
                         <td style="${tdStyle()}"><strong style="color:var(--accent);">${a.ticker.replace('-USD','')}</strong></td>
                         <td style="${tdStyle()}">
                             <span style="background:${a.direction==='ABOVE'?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};color:${a.direction==='ABOVE'?'var(--risk-low)':'var(--risk-high)'};padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;">

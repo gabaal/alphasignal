@@ -100,12 +100,12 @@ async function renderMindshare() {
                 x: { 
                     min: 0, max: 100, 
                     title: { display: true, text: 'ENGINEERING MINDSHARE (X)', color: '#8b949e', font: { size: 10, weight: 'bold' } }, 
-                    grid: { color: ct => ct.tick.value === 50 ? 'rgba(0, 242, 255, 0.3)' : 'rgba(255,255,255,0.03)' } 
+                    grid: { color: ct => ct.tick.value === 50 ? 'rgba(0, 242, 255, 0.3)' : alphaColor(0.03) } 
                 },
                 y: { 
                     min: 0, max: 100, 
                     title: { display: true, text: 'NARRATIVE MOMENTUM (Y)', color: '#8b949e', font: { size: 10, weight: 'bold' } }, 
-                    grid: { color: ct => ct.tick.value === 50 ? 'rgba(0, 242, 255, 0.3)' : 'rgba(255,255,255,0.03)' } 
+                    grid: { color: ct => ct.tick.value === 50 ? 'rgba(0, 242, 255, 0.3)' : alphaColor(0.03) } 
                 }
             },
             plugins: {
@@ -211,7 +211,7 @@ async function renderCatalysts() {
             ${days.map(d => `
                 <div class="catalyst-day ${d.hasEvent ? 'has-event' : ''}" 
                      onclick="activeCatalystDate = activeCatalystDate === '${d.date}' ? null : '${d.date}'; renderCatalysts()"
-                     style="flex:1; min-width:60px; background:${activeCatalystDate === d.date ? 'rgba(0, 242, 255, 0.15)' : 'rgba(255,255,255,0.02)'}; border:1px solid ${d.hasEvent || activeCatalystDate === d.date ? 'var(--accent)' : 'var(--border)'}; border-radius:12px; padding:12px 5px; text-align:center; cursor:pointer; transition:all 0.2s">
+                     style="flex:1; min-width:60px; background:${activeCatalystDate === d.date ? 'rgba(0, 242, 255, 0.15)' : alphaColor(0.02)}; border:1px solid ${d.hasEvent || activeCatalystDate === d.date ? 'var(--accent)' : 'var(--border)'}; border-radius:12px; padding:12px 5px; text-align:center; cursor:pointer; transition:all 0.2s">
                     <div style="font-size:0.55rem; color:var(--text-dim); margin-bottom:5px">${d.weekday}</div>
                     <div style="font-size:1.1rem; font-weight:900; color:${d.hasEvent ? 'var(--accent)' : 'var(--text)'}">${d.day}</div>
                     ${d.hasEvent ? '<div style="width:4px; height:4px; background:var(--accent); border-radius:50%; margin:5px auto 0"></div>' : ''}
@@ -225,7 +225,7 @@ async function renderCatalysts() {
             ${filteredData.length > 0 ? filteredData.map(c => `
                 <div class="catalyst-item-card glass-card" onclick="${c.ticker !== 'MARKET' ? `openAIAnalyst('${c.ticker}')` : ''}" style="padding:1.5rem; position:relative; overflow:hidden; cursor:${c.ticker !== 'MARKET' ? 'pointer' : 'default'}">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem">
-                        <span style="font-size:0.6rem; font-weight:900; background:rgba(255,255,255,0.05); padding:3px 10px; border-radius:4px; color:var(--text-dim)">${c.type}</span>
+                        <span style="font-size:0.6rem; font-weight:900; background:${alphaColor(0.05)}; padding:3px 10px; border-radius:4px; color:var(--text-dim)">${c.type}</span>
                         <span class="event-countdown-badge" style="background:${c.days_until <= 3 ? 'var(--risk-high)' : 'var(--accent)'}; color:#000; font-size:0.55rem; font-weight:900; padding:2px 8px; border-radius:4px">
                             T-${c.days_until} DAYS
                         </span>
@@ -235,7 +235,7 @@ async function renderCatalysts() {
                         <div style="font-size:0.7rem; color:var(--text-dim)">DATE: <span style="color:var(--text)">${c.date}</span></div>
                         <div style="font-size:0.7rem; color:var(--text-dim)">IMPACT: <span style="font-weight:900; color:var(--risk-low)">${c.impact.toUpperCase()}</span></div>
                     </div>
-                    ${c.ticker !== 'MARKET' ? `<div style="margin-top:1rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.05); font-size:0.6rem; color:var(--accent)">CLICK TO OPEN AI ANALYST</div>` : ''}
+                    ${c.ticker !== 'MARKET' ? `<div style="margin-top:1rem; padding-top:1rem; border-top:1px solid ${alphaColor(0.05)}; font-size:0.6rem; color:var(--accent)">CLICK TO OPEN AI ANALYST</div>` : ''}
                 </div>
             `).join('') : '<div class="empty-state">No major catalysts scheduled for this date. Select another day or clear filter.</div>'}
         </div>
@@ -431,12 +431,12 @@ async function renderMacroCalendar(tabs = null) {
                 },
                 scales: {
                     x: {
-                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        grid: { color: alphaColor(0.05) },
                         ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 } }
                     },
                     y: {
                         title: { display: true, text: 'Yield (%)', color: '#8b949e' },
-                        grid: { color: (ctx) => ctx.tick.value === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)' },
+                        grid: { color: (ctx) => ctx.tick.value === 0 ? alphaColor(0.15) : alphaColor(0.05) },
                         ticks: {
                             color: '#8b949e',
                             font: { family: 'JetBrains Mono', size: 10 },

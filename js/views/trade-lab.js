@@ -149,7 +149,7 @@ async function renderTradeLedger(tabs = null) {
 
         // ── Edit Modal ─────────────────────────────────────────────
         const modalHtml = `
-        <div id="ledger-edit-modal" onclick="if(event.target===this)closeLedgerEdit()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:3000;align-items:center;justify-content:center;padding:2rem">
+        <div id="ledger-edit-modal" onclick="if(event.target===this)closeLedgerEdit()" style="display:none;position:fixed;inset:0;backdrop-filter:blur(10px);z-index:3000;align-items:center;justify-content:center;padding:2rem">
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.8rem;width:100%;max-width:480px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
                     <div style="font-size:0.8rem;font-weight:900;color:var(--accent);letter-spacing:1.5px">EDIT LEDGER RECORD</div>

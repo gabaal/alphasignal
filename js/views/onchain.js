@@ -32,7 +32,7 @@ async function renderOnChain(tabs = null) {
 
         <!-- Zoom Modal -->
         <div id="onchain-modal" onclick="if(event.target===this)closeOnchainModal()"
-            style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(12px);z-index:3000;align-items:center;justify-content:center;padding:2rem">
+            style="display:none;position:fixed;inset:0;backdrop-filter:blur(12px);z-index:3000;align-items:center;justify-content:center;padding:2rem">
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:min(96vw,1600px);position:relative">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
                     <div>
@@ -144,7 +144,7 @@ async function renderOnChain(tabs = null) {
         document.getElementById('mvrv-chart').innerHTML = '';
         
         // Setup base chart config
-        const chartOpts = (height) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }, height });
+        const chartOpts = (height) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, height });
         
         // MVRV
         const mvrvContainer = document.getElementById('mvrv-chart');
@@ -155,7 +155,7 @@ async function renderOnChain(tabs = null) {
         // Realized
         const realizedContainer = document.getElementById('realized-chart');
         const realizedChart = LightweightCharts.createChart(realizedContainer, chartOpts(300));
-        realizedChart.addLineSeries({ color: 'rgba(255,255,255,0.7)', lineWidth: 2, title: 'Spot Price' }).setData(data.map(d=>({time: d.time, value: d.price})));
+        realizedChart.addLineSeries({ color: alphaColor(0.7), lineWidth: 2, title: 'Spot Price' }).setData(data.map(d=>({time: d.time, value: d.price})));
         realizedChart.addLineSeries({ color: '#f97316', lineWidth: 2, title: 'Realized Price' }).setData(data.map(d=>({time: d.time, value: d.realized})));
 
         // SOPR
@@ -181,7 +181,7 @@ async function renderOnChain(tabs = null) {
         const hashChart = LightweightCharts.createChart(hashContainer, chartOpts(250));
         hashChart.addLineSeries({ color: '#f7931a', lineWidth: 2, title: '30D Hash Ribbon' })
                  .setData(data.map(d=>({time: d.time, value: d.hash_fast})));
-        hashChart.addLineSeries({ color: 'rgba(255,255,255,0.4)', lineWidth: 2, title: '60D Hash Ribbon' })
+        hashChart.addLineSeries({ color: alphaColor(0.4), lineWidth: 2, title: '60D Hash Ribbon' })
                  .setData(data.map(d=>({time: d.time, value: d.hash_slow})));
 
         // â”â‚¬â”â‚¬ Investor Sentiment Index (composite: normalize MVRV + SOPR + Puell) â”â‚¬â”â‚¬
@@ -200,7 +200,7 @@ async function renderOnChain(tabs = null) {
         const sentSeries = sentimentChart.addAreaSeries({ topColor: 'rgba(0,212,170,0.35)', bottomColor: 'rgba(239,68,68,0.15)', lineColor: '#00d4aa', lineWidth: 2, title: 'Sentiment' });
         sentSeries.setData(sentimentData);
         // Zero baseline
-        sentimentChart.addLineSeries({ color: 'rgba(255,255,255,0.2)', lineWidth: 1, lineStyle: 2 }).setData(data.map(d => ({ time: d.time, value: 0 })));
+        sentimentChart.addLineSeries({ color: alphaColor(0.2), lineWidth: 1, lineStyle: 2 }).setData(data.map(d => ({ time: d.time, value: 0 })));
 
         // â”â‚¬â”â‚¬ CVD â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬
         const cvdContainer = document.getElementById('cvd-chart');
@@ -263,7 +263,7 @@ function openOnchainModal(type) {
         const m = document.createElement('div');
         m.id = 'onchain-modal';
         m.setAttribute('onclick', "if(event.target===this)closeOnchainModal()");
-        m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(12px);z-index:3000;align-items:center;justify-content:center;padding:2rem';
+        m.style.cssText = 'display:none;position:fixed;inset:0;backdrop-filter:blur(12px);z-index:3000;align-items:center;justify-content:center;padding:2rem';
         m.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:min(96vw,1600px);position:relative">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
                 '<div><div id="onchain-modal-title" style="font-size:0.9rem;font-weight:900;color:var(--accent);letter-spacing:1px"></div>' +
@@ -317,7 +317,7 @@ function openOnchainModal(type) {
                         const sign = r.current >= 0 ? '+' : '';
                         return '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">' +
                             '<div style="width:52px;font-size:0.9rem;font-weight:800;font-family:monospace">' + r.asset + '</div>' +
-                            '<div style="flex:1;height:22px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden">' +
+                            '<div style="flex:1;height:22px;background:${alphaColor(0.05)};border-radius:6px;overflow:hidden">' +
                                 '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:' + clr + ';border-radius:6px"></div>' +
                             '</div>' +
                             '<div style="width:100px;text-align:right;font-size:0.9rem;font-weight:700;color:' + clr + ';font-family:monospace">' + sign + r.current + '%</div>' +
@@ -340,7 +340,7 @@ function openOnchainModal(type) {
                                 const sign = r.current >= 0 ? '+' : '';
                                 return '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">' +
                                     '<div style="width:52px;font-size:0.9rem;font-weight:800;font-family:monospace">' + r.asset + '</div>' +
-                                    '<div style="flex:1;height:22px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden">' +
+                                    '<div style="flex:1;height:22px;background:${alphaColor(0.05)};border-radius:6px;overflow:hidden">' +
                                         '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:' + clr + ';border-radius:6px"></div>' +
                                     '</div>' +
                                     '<div style="width:100px;text-align:right;font-size:0.9rem;font-weight:700;color:' + clr + ';font-family:monospace">' + sign + r.current + '%</div>' +
@@ -366,7 +366,7 @@ function openOnchainModal(type) {
                     const alpha = (abs * 0.8 + 0.1).toFixed(2);
                     const bg = v >= 0 ? 'rgba(0,212,170,' + alpha + ')' : 'rgba(239,68,68,' + alpha + ')';
                     const txt = abs > 0.5 ? '#000' : 'var(--text)';
-                    return '<td style="min-width:52px;height:36px;text-align:center;font-size:0.7rem;font-weight:700;font-family:monospace;background:' + bg + ';color:' + txt + ';border:1px solid rgba(255,255,255,0.04);padding:2px 4px">' + (v === 1 ? '--' : v.toFixed(2)) + '</td>';
+                    return '<td style="min-width:52px;height:36px;text-align:center;font-size:0.7rem;font-weight:700;font-family:monospace;background:' + bg + ';color:' + txt + ';border:1px solid ${alphaColor(0.04)};padding:2px 4px">' + (v === 1 ? '--' : v.toFixed(2)) + '</td>';
                 };
                 const hdr = '<tr><th style="padding:6px 10px"></th>' + cm.assets.map(a => '<th style="font-size:0.65rem;font-weight:800;color:var(--text-dim);padding:6px 8px;letter-spacing:1px;white-space:nowrap">' + a + '</th>').join('') + '</tr>';
                 const rows = cm.assets.map(a => '<tr><td style="font-size:0.65rem;font-weight:800;color:var(--text);padding:6px 10px;white-space:nowrap;letter-spacing:1px">' + a + '</td>' + cm.assets.map(b => cell(lookup[a + '_' + b] || 0)).join('') + '</tr>').join('');
@@ -387,14 +387,14 @@ function openOnchainModal(type) {
         return;
     }
 
-    const opts = { layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }, width: container.clientWidth, height: container.clientHeight };
+    const opts = { layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, width: container.clientWidth, height: container.clientHeight };
     const chart = LightweightCharts.createChart(container, opts);
     container._lwChart = chart;
 
     if (type === 'mvrv') {
         chart.addAreaSeries({ topColor: 'rgba(239,83,80,0.4)', bottomColor: 'rgba(38,166,154,0.1)', lineColor: '#ef5350', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.mvrv})));
     } else if (type === 'realized') {
-        chart.addLineSeries({ color: 'rgba(255,255,255,0.8)', lineWidth: 2, title: 'Spot' }).setData(data.map(d=>({time:d.time,value:d.price})));
+        chart.addLineSeries({ color: alphaColor(0.8), lineWidth: 2, title: 'Spot' }).setData(data.map(d=>({time:d.time,value:d.price})));
         chart.addLineSeries({ color: '#f97316', lineWidth: 2, title: 'Realized' }).setData(data.map(d=>({time:d.time,value:d.realized})));
     } else if (type === 'sopr') {
         chart.addAreaSeries({ topColor: 'rgba(16,185,129,0.4)', bottomColor: 'rgba(16,185,129,0)', lineColor: '#10b981', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.sopr})));
@@ -404,14 +404,14 @@ function openOnchainModal(type) {
         chart.addLineSeries({ color: '#facc15', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.nvt})));
     } else if (type === 'hash') {
         chart.addLineSeries({ color: '#f7931a', lineWidth: 2, title: '30D' }).setData(data.map(d=>({time:d.time,value:d.hash_fast})));
-        chart.addLineSeries({ color: 'rgba(255,255,255,0.4)', lineWidth: 2, title: '60D' }).setData(data.map(d=>({time:d.time,value:d.hash_slow})));
+        chart.addLineSeries({ color: alphaColor(0.4), lineWidth: 2, title: '60D' }).setData(data.map(d=>({time:d.time,value:d.hash_slow})));
     } else if (type === 'sentiment') {
         const mv = data.map(d => d.mvrv), sp = data.map(d => d.sopr), pu = data.map(d => d.puell);
         const norm = (arr) => { const lo = Math.min(...arr), hi = Math.max(...arr); return arr.map(v => ((v-lo)/Math.max(hi-lo,0.001))*200-100); };
         const mn = norm(mv), sn = norm(sp), pn = norm(pu);
         const sd = data.map((d,i) => ({ time: d.time, value: parseFloat(((mn[i]+sn[i]+pn[i])/3).toFixed(2)) }));
         chart.addAreaSeries({ topColor: 'rgba(0,212,170,0.35)', bottomColor: 'rgba(239,68,68,0.15)', lineColor: '#00d4aa', lineWidth: 2 }).setData(sd);
-        chart.addLineSeries({ color: 'rgba(255,255,255,0.2)', lineWidth: 1, lineStyle: 2 }).setData(data.map(d => ({ time: d.time, value: 0 })));
+        chart.addLineSeries({ color: alphaColor(0.2), lineWidth: 1, lineStyle: 2 }).setData(data.map(d => ({ time: d.time, value: 0 })));
     } else if (type === 'cvd') {
         chart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0.05)', lineColor: '#60a5fa', lineWidth: 2 }).setData(data.map(d=>({time:d.time,value:d.cvd})));
     } else if (type === 'exchflow') {
@@ -422,7 +422,7 @@ function openOnchainModal(type) {
             const ts = (l,v) => l.map((t,i) => ({ time:t, value:v[i] }));
             chart.addAreaSeries({ topColor:'rgba(247,147,26,0.4)', bottomColor:'rgba(247,147,26,0.05)', lineColor:'#f7931a', lineWidth:2, title:'BTC %' }).setData(ts(dom.labels, dom.btc));
             chart.addLineSeries({ color:'#6272a4', lineWidth:2, title:'ETH %' }).setData(ts(dom.labels, dom.eth));
-            chart.addLineSeries({ color:'rgba(255,255,255,0.35)', lineWidth:1, title:'Alts %' }).setData(ts(dom.labels, dom.alts));
+            chart.addLineSeries({ color:alphaColor(0.35), lineWidth:1, title:'Alts %' }).setData(ts(dom.labels, dom.alts));
         }
     } else if (type === 'mvrv-sopr') {
         if (data) {
@@ -613,8 +613,8 @@ function renderBtv2Chart(rolling) {
             interaction: { mode: 'index', intersect: false },
             plugins: { legend: { labels: { color: '#9ca3af', font: { size: 10 } } }, tooltip: { backgroundColor: 'rgba(13,17,23,0.95)', borderColor: 'rgba(0,212,170,0.2)', borderWidth: 1 } },
             scales: {
-                x: { ticks: { color: '#6b7280', maxTicksLimit: 12, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Date', color: '#4b5563', font: { size: 9 } } },
-                y1: { position: 'left', ticks: { color: '#9ca3af', font: { size: 10 }, callback: function(v){return v+'%';} }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Cumulative Return (%)', color: '#9ca3af', font: { size: 9 } } },
+                x: { ticks: { color: '#6b7280', maxTicksLimit: 12, font: { size: 9 } }, grid: { color: alphaColor(0.04) }, title: { display: true, text: 'Date', color: '#4b5563', font: { size: 9 } } },
+                y1: { position: 'left', ticks: { color: '#9ca3af', font: { size: 10 }, callback: function(v){return v+'%';} }, grid: { color: alphaColor(0.04) }, title: { display: true, text: 'Cumulative Return (%)', color: '#9ca3af', font: { size: 9 } } },
                 y2: { position: 'right', ticks: { color: '#8b5cf6', font: { size: 10 } }, grid: { display: false }, title: { display: true, text: 'Sharpe Ratio', color: '#8b5cf6', font: { size: 9 } } }
             }
         }
@@ -632,7 +632,7 @@ function renderBtv2Calendar(monthly) {
         var bg = pnl > 0 ? ('rgba(34,197,94,' + (0.15 + intensity * 0.7) + ')') : ('rgba(239,68,68,' + (0.15 + intensity * 0.7) + ')');
         var parts = ym.split('-');
         var monthName = new Date(+parts[0], +parts[1]-1).toLocaleString('en', {month:'short'});
-        return '<div title="' + ym + ': ' + (pnl>=0?'+':'') + pnl + '%" style="background:' + bg + ';border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 14px;min-width:80px;text-align:center;cursor:default;transition:transform 0.15s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
+        return '<div title="' + ym + ': ' + (pnl>=0?'+':'') + pnl + '%" style="background:' + bg + ';border:1px solid ${alphaColor(0.06)};border-radius:8px;padding:10px 14px;min-width:80px;text-align:center;cursor:default;transition:transform 0.15s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
             '<div style="font-size:0.6rem;color:var(--text-dim);font-weight:700">' + monthName + ' ' + parts[0].slice(2) + '</div>' +
             '<div style="font-size:0.9rem;font-weight:800;color:' + (pnl>=0?'#22c55e':'#ef4444') + ';margin-top:2px">' + (pnl>=0?'+':'') + pnl + '%</div>' +
             '</div>';
@@ -646,7 +646,7 @@ function renderBtv2Table(trades) {
         var pnlColor = t.pnl_pct >= 0 ? '#22c55e' : '#ef4444';
         var btcColor = t.btc_pnl >= 0 ? '#f7931a' : '#ef4444';
         var alpha = +(t.pnl_pct - t.btc_pnl).toFixed(1);
-        return '<tr style="background:rgba(255,255,255,0.02)">' +
+        return '<tr style="background:${alphaColor(0.02)}">' +
             '<td style="padding:8px 10px;font-weight:700">' + t.ticker + '</td>' +
             '<td style="padding:8px 10px"><span style="font-size:0.6rem;padding:2px 7px;border-radius:10px;background:rgba(0,212,170,0.1);color:#00d4aa">' + t.signal + '</span></td>' +
             '<td style="padding:8px 10px;color:var(--text-dim)">' + t.entry_date + '</td>' +
@@ -809,8 +809,8 @@ async function loadOptionsFlow(currency, source) {
                         }]
                     },
                     options: { responsive: true, plugins: { legend: { display: false } }, scales: {
-                        x: { ticks: { color: '#6b7280', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-                        y: { ticks: { color: '#9ca3af', callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                        x: { ticks: { color: '#6b7280', font: { size: 9 } }, grid: { color: alphaColor(0.04) } },
+                        y: { ticks: { color: '#9ca3af', callback: v => v + '%' }, grid: { color: alphaColor(0.04) } }
                     }}
                 });
             }
@@ -831,7 +831,7 @@ async function loadOptionsFlow(currency, source) {
         const tbody = document.getElementById('opts-strikes-table');
         if (tbody && d.top_strikes) {
             tbody.innerHTML = d.top_strikes.map(s => `
-                <tr style="background:rgba(255,255,255,0.02)">
+                <tr style="background:${alphaColor(0.02)}">
                     <td style="padding:7px 10px;font-weight:700">$${s.strike.toLocaleString()}</td>
                     <td style="padding:7px 10px"><span style="font-size:0.6rem;padding:2px 7px;border-radius:10px;background:${s.type==='C'?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${s.type==='C'?'#22c55e':'#ef4444'}">${s.type==='C'?'CALL':'PUT'}</span></td>
                     <td style="padding:7px 10px;color:var(--text-dim);font-size:0.7rem">${s.expiry}</td>
@@ -861,7 +861,7 @@ async function renderAIRebalancer() {
             : 'N/A';
 
         rebalEl.innerHTML = `
-            <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(0,212,170,0.15);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
+            <div style="border:1px solid rgba(0,212,170,0.15);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
                     <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:#00d4aa">AI REBALANCING MEMO</div>
                     <div style="display:flex;gap:12px;font-size:0.65rem">
@@ -882,7 +882,7 @@ async function renderAIRebalancer() {
                         ${(data.weights || []).map(w => {
                             const act = w.action;
                             const clr = act === 'ADD' ? '#22c55e' : act === 'REDUCE' ? '#ef4444' : '#60a5fa';
-                            return `<tr style="background:rgba(255,255,255,0.02)">
+                            return `<tr style="background:${alphaColor(0.02)}">
                                 <td style="padding:8px 10px;font-weight:700">${w.ticker}</td>
                                 <td style="padding:8px 10px;color:#8b5cf6">${w.ml_score}%</td>
                                 <td style="padding:8px 10px;color:var(--text-dim)">${w.current_pct}</td>
@@ -996,7 +996,7 @@ window.runAIRebalancerView = async function() {
                             const clr = act === 'ADD' ? '#22c55e' : act === 'REDUCE' ? '#ef4444' : '#60a5fa';
                             const pct = parseFloat(w.suggested_pct);
                             const bar = Math.min(pct * 2.5, 100);
-                            return `<tr style="background:rgba(255,255,255,0.02)">
+                            return `<tr style="background:${alphaColor(0.02)}">
                                 <td style="padding:10px 12px;font-weight:800;font-family:monospace">${w.ticker}</td>
                                 <td style="padding:10px 12px;color:#8b5cf6;font-weight:700">${w.ml_score}%</td>
                                 <td style="padding:10px 12px;color:var(--text-dim)">${w.current_pct}</td>
@@ -1050,7 +1050,7 @@ async function renderMacroCalendar(tabs = null) {
             calEl.style.display = 'block'; return;
         }
         const typeColors = { FOMC: '#ef4444', CPI: '#f97316', NFP: '#22c55e', PCE: '#a78bfa', REBALANCE: '#60a5fa' };
-        const tierBg = { HIGH: 'rgba(255,255,255,0.04)', MEDIUM: 'rgba(255,255,255,0.03)', LOW: 'rgba(255,255,255,0.02)' };
+        const tierBg = { HIGH: alphaColor(0.04), MEDIUM: alphaColor(0.03), LOW: alphaColor(0.02) };
 
         calEl.innerHTML = `
             <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:1rem">Updated ${data.updated} &middot; Showing next 90 days</div>
@@ -1066,7 +1066,7 @@ async function renderMacroCalendar(tabs = null) {
                         const c = m >= 0 ? '#22c55e' : '#ef4444';
                         return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
                             <div style="width:60px;text-align:right;font-size:0.55rem;color:var(--text-dim)">${m >= 0 ? '+' : ''}${m}%</div>
-                            <div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden">
+                            <div style="flex:1;height:6px;background:${alphaColor(0.06)};border-radius:3px;overflow:hidden">
                                 <div style="width:${w}%;height:100%;background:${c};border-radius:3px"></div>
                             </div>
                         </div>`;
@@ -1127,7 +1127,7 @@ async function renderTradingViewHub(tabs) {
     var badge = '<span style="font-size:0.5rem;color:#2196f3;letter-spacing:2px;font-weight:700">POWERED BY TRADINGVIEW</span>';
     var card = function(id, title, h) {
         var minH = (h || 460);
-        return '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">' + title + '</h3>' + badge + '</div><div id="' + id + '" class="tradingview-widget-container" style="min-height:' + minH + 'px;position:relative"><div class="tv-skeleton" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0.02) 0%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.02) 100%);background-size:200% 100%;animation:tvSkeleton 1.4s infinite;border-radius:8px"></div></div></div>';
+        return '<div class="card" style="padding:1.5rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0">' + title + '</h3>' + badge + '</div><div id="' + id + '" class="tradingview-widget-container" style="min-height:' + minH + 'px;position:relative"><div class="tv-skeleton" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,${alphaColor(0.02)} 0%,${alphaColor(0.06)} 50%,${alphaColor(0.02)} 100%);background-size:200% 100%;animation:tvSkeleton 1.4s infinite;border-radius:8px"></div></div></div>';
     };
 
     // Build ALL HTML in one assignment so containers are in DOM before widgets inject
@@ -1184,7 +1184,7 @@ async function renderTradingViewHub(tabs) {
 // â”€â”€â”€ Custom Analytics Hub â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function renderCustomAnalytics(tabs) {
     if (!tabs) tabs = analyticsHubTabs;
-    const chartOpts = (h) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }, height: h });
+    const chartOpts = (h) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, height: h });
 
     appEl.innerHTML =
         '<div class="view-header"><h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Custom Charts <span class="premium-badge">LIVE</span></h1><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-custom-charts\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +
@@ -1264,7 +1264,7 @@ async function renderCustomAnalytics(tabs) {
             const toSeries = (labels, vals) => labels.map((t, i) => ({ time: t, value: vals[i] }));
             c.addAreaSeries({ topColor: 'rgba(247,147,26,0.4)', bottomColor: 'rgba(247,147,26,0.05)', lineColor: '#f7931a', lineWidth: 2, title: 'BTC %' }).setData(toSeries(dom.labels, dom.btc));
             c.addLineSeries({ color: '#6272a4', lineWidth: 1, title: 'ETH %' }).setData(toSeries(dom.labels, dom.eth));
-            c.addLineSeries({ color: 'rgba(255,255,255,0.3)', lineWidth: 1, title: 'Alts %' }).setData(toSeries(dom.labels, dom.alts));
+            c.addLineSeries({ color: alphaColor(0.3), lineWidth: 1, title: 'Alts %' }).setData(toSeries(dom.labels, dom.alts));
             c.timeScale().fitContent();
             _lwAxisLabel(containers.dominance, 'DOMINANCE (%)', 'DATE');
         }
@@ -1287,7 +1287,7 @@ async function renderCustomAnalytics(tabs) {
                     const sign = r.current >= 0 ? '+' : '';
                     return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
                         '<div style="width:36px;font-size:0.65rem;font-weight:800;font-family:monospace;color:var(--text)">' + r.asset + '</div>' +
-                        '<div style="flex:1;height:14px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden">' +
+                        '<div style="flex:1;height:14px;background:${alphaColor(0.05)};border-radius:4px;overflow:hidden">' +
                             '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:' + clr + ';border-radius:4px;transition:width 0.4s"></div>' +
                         '</div>' +
                         '<div style="width:70px;text-align:right;font-size:0.7rem;font-weight:700;color:' + clr + ';font-family:monospace">' + sign + r.current + '%</div>' +
@@ -1353,7 +1353,7 @@ async function renderCustomAnalytics(tabs) {
                 const alpha = (abs * 0.8 + 0.1).toFixed(2);
                 const bg = v >= 0 ? 'rgba(0,212,170,' + alpha + ')' : 'rgba(239,68,68,' + alpha + ')';
                 const txt = abs > 0.5 ? '#000' : 'var(--text)';
-                return '<td style="width:44px;height:32px;text-align:center;font-size:0.58rem;font-weight:700;background:' + bg + ';color:' + txt + ';border:1px solid rgba(255,255,255,0.04)">' + (v === 1 ? '--' : v.toFixed(2)) + '</td>';
+                return '<td style="width:44px;height:32px;text-align:center;font-size:0.58rem;font-weight:700;background:' + bg + ';color:' + txt + ';border:1px solid ${alphaColor(0.04)}">' + (v === 1 ? '--' : v.toFixed(2)) + '</td>';
             };
             const headerRow = '<tr><th></th>' + cm.assets.map(a => '<th style="font-size:0.6rem;font-weight:700;color:var(--text-dim);padding:4px 6px">' + a + '</th>').join('') + '</tr>';
             const rows = cm.assets.map(a => '<tr><td style="font-size:0.6rem;font-weight:700;color:var(--text);padding:4px 6px;white-space:nowrap">' + a + '</td>' + cm.assets.map(b => cell(lookup[a + '_' + b] || 0)).join('') + '</tr>').join('');

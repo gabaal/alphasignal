@@ -22,10 +22,10 @@ async function renderSignalLeaderboard(tabs = null) {
         ${tabs ? renderHubTabs('signal-leaderboard', tabs) : ''}
 
         <!-- Filter Bar -->
-        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:20px;padding:14px 16px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:20px;padding:14px 16px;background:${alphaColor(0.03)};border:1px solid var(--border);border-radius:10px">
             <div style="display:flex;align-items:center;gap:8px">
                 <span style="font-size:0.6rem;letter-spacing:1.5px;color:var(--text-dim)">TYPE</span>
-                <select id="lb-type-filter" style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.65rem;padding:4px 8px;border-radius:6px;font-family:'JetBrains Mono'">
+                <select id="lb-type-filter" style="border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.65rem;padding:4px 8px;border-radius:6px;font-family:'JetBrains Mono'">
                     ${signalTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
                 </select>
             </div>
@@ -57,8 +57,8 @@ async function renderSignalLeaderboard(tabs = null) {
                         const isActive = i === 0;
                         return `<button id="lb-status-${s.replace(' ','-')}" onclick="lbSetStatus('${s}')"
                             style="font-size:0.6rem;padding:3px 9px;border-radius:6px;font-family:'JetBrains Mono';font-weight:700;letter-spacing:0.5px;
-                                   border:1px solid ${isActive ? bc : 'rgba(255,255,255,0.1)'};
-                                   background:${isActive ? bg : 'rgba(255,255,255,0.03)'};
+                                   border:1px solid ${isActive ? bc : alphaColor(0.1)};
+                                   background:${isActive ? bg : alphaColor(0.03)};
                                    color:${isActive ? col : 'var(--text-dim)'};cursor:pointer;transition:all 0.15s">
                             ${s}
                         </button>`;
@@ -76,7 +76,7 @@ async function renderSignalLeaderboard(tabs = null) {
                 <span style="font-size:0.7rem;letter-spacing:2px;color:var(--text-dim);">SIGNAL WIN RATE GAUGE</span>
                 <span id="lb-wr-pct" style="font-size:0.8rem;font-weight:700;color:var(--risk-high);">—</span>
             </div>
-            <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;overflow:hidden;">
+            <div style="background:${alphaColor(0.06)};border-radius:6px;height:8px;overflow:hidden;">
                 <div id="lb-wr-bar" style="width:0%;height:100%;background:var(--risk-high);border-radius:6px;transition:width 0.8s ease,background 0.4s;"></div>
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:6px;">
@@ -131,9 +131,9 @@ async function renderSignalLeaderboard(tabs = null) {
         document.querySelectorAll('#lb-status-btns button').forEach(b => {
             const key  = b.textContent.trim();
             const active = key === status;
-            const [bc, bg, col] = statusColors[key] || ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.06)', 'var(--text-dim)'];
-            b.style.borderColor = active ? bc : 'rgba(255,255,255,0.1)';
-            b.style.background  = active ? bg : 'rgba(255,255,255,0.03)';
+            const [bc, bg, col] = statusColors[key] || [alphaColor(0.2), alphaColor(0.06), 'var(--text-dim)'];
+            b.style.borderColor = active ? bc : alphaColor(0.1);
+            b.style.background  = active ? bg : alphaColor(0.03);
             b.style.color       = active ? col : 'var(--text-dim)';
         });
         lbRefresh();
@@ -284,9 +284,9 @@ async function renderSignalLeaderboard(tabs = null) {
                             'EXPIRED': ['rgba(245,158,11,0.15)', '#f59e0b'],
                             'OPEN':    ['rgba(125,211,252,0.12)','var(--accent)'],
                         };
-                        const [rBg, rCol] = reasonColors[s.close_reason] || ['rgba(255,255,255,0.06)', 'var(--text-dim)'];
+                        const [rBg, rCol] = reasonColors[s.close_reason] || [alphaColor(0.06), 'var(--text-dim)'];
                         const reasonBadge = `<span style="background:${rBg};color:${rCol};padding:3px 8px;border-radius:4px;font-size:0.6rem;font-weight:700;white-space:nowrap">${s.close_reason || '—'}</span>`;
-                        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s;"
+                        return `<tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.2s;"
                                     onmouseenter="this.style.background='rgba(0,242,255,0.02)'"
                                     onmouseleave="this.style.background=''">
                             <td style="padding:10px 12px;font-size:0.8rem;font-weight:700;color:var(--accent);">${s.ticker}${openTag}</td>
@@ -317,8 +317,8 @@ async function renderSignalLeaderboard(tabs = null) {
             const active = p === page;
             return `<button onclick="lbSetPage(${p})"
                 style="min-width:32px;padding:4px 8px;font-size:0.65rem;font-family:'JetBrains Mono';font-weight:700;border-radius:6px;cursor:pointer;
-                       border:1px solid ${active?'rgba(0,242,255,0.5)':'rgba(255,255,255,0.1)'};
-                       background:${active?'rgba(0,242,255,0.15)':'rgba(255,255,255,0.04)'};
+                       border:1px solid ${active?'rgba(0,242,255,0.5)':alphaColor(0.1)};
+                       background:${active?'rgba(0,242,255,0.15)':alphaColor(0.04)};
                        color:${active?'var(--accent)':'var(--text-dim)'}">
                 ${label}
             </button>`;
@@ -331,7 +331,7 @@ async function renderSignalLeaderboard(tabs = null) {
         if (totalPages > 1) pageBtns.push(makeBtn(totalPages));
 
         pgEl.innerHTML = `
-            <button onclick="lbSetPage(${page-1})" ${page===1?'disabled':''} style="font-size:0.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:${page===1?'rgba(255,255,255,0.2)':'var(--text-dim)'}">← PREV</button>
+            <button onclick="lbSetPage(${page-1})" ${page===1?'disabled':''} style="font-size:0.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.04)};color:${page===1?alphaColor(0.2):'var(--text-dim)'}">← PREV</button>
             <div style="display:flex;align-items:center;gap:4px">
                 ${pageBtns.join('')}
             </div>
@@ -340,7 +340,7 @@ async function renderSignalLeaderboard(tabs = null) {
                     PAGE <strong style="color:var(--text)">${page}</strong> OF <strong style="color:var(--text)">${totalPages}</strong>
                     &nbsp;·&nbsp; ROWS ${start+1}–${Math.min(start+PAGE_SIZE, total)} OF ${total}
                 </span>
-                <button onclick="lbSetPage(${page+1})" ${page===totalPages?'disabled':''} style="font-size:0.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:${page===totalPages?'rgba(255,255,255,0.2)':'var(--text-dim)'}">NEXT →</button>
+                <button onclick="lbSetPage(${page+1})" ${page===totalPages?'disabled':''} style="font-size:0.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.04)};color:${page===totalPages?alphaColor(0.2):'var(--text-dim)'}">NEXT →</button>
             </div>`;
     };
 

@@ -45,7 +45,7 @@ async function renderHome() {
             </section>
 
             <!-- ===== STATS BAR ===== -->
-            <section style="padding:2rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(0,0,0,0.3)">
+            <section style="padding:2rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
                 <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2rem;text-align:center">
                     ${[
                         ['60+', 'Analytical Views'],
@@ -89,7 +89,7 @@ async function renderHome() {
                             <h3 style="font-size:0.9rem;margin:0">${h.name}</h3>
                             <p style="font-size:0.75rem;color:var(--text-dim);line-height:1.6;margin:0;flex:1">${h.desc}</p>
                             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
-                                ${h.views.map(v => `<span style="font-size:0.55rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-dim)">${v}</span>`).join('')}
+                                ${h.views.map(v => `<span style="font-size:0.55rem;background:${alphaColor(0.05)};border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-dim)">${v}</span>`).join('')}
                             </div>
                         </div>
                     `).join('')}
@@ -141,9 +141,9 @@ async function renderHome() {
                             { icon: 'link', view: 'alerts', color: '#8b5cf6', title: 'Signal Permalinks', desc: 'Every signal gets a public shareable URL with live vs signal price performance, AI thesis analysis, and one-click Add to Watchlist for visitors.' },
                             { icon: 'install_mobile', view: 'home', color: '#f59e0b', title: 'PWA + Daily Digest', desc: 'Install AlphaSignal as a native app on iOS and Android. 07:30 UTC morning digest delivers top signals to Discord and Telegram automatically.' }
                         ].map(f => `
-                            <div class="glass-card" onclick="switchView('${f.view}')" style="cursor:pointer;padding:1.5rem;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s"
-                                 onmouseover="this.style.borderColor='${f.color}';this.style.background='rgba(255,255,255,0.02)'"
-                                 onmouseout="this.style.borderColor='rgba(255,255,255,0.05)';this.style.background=''">
+                            <div class="glass-card" onclick="switchView('${f.view}')" style="cursor:pointer;padding:1.5rem;border:1px solid ${alphaColor(0.05)};transition:all 0.2s"
+                                 onmouseover="this.style.borderColor='${f.color}';this.style.background=alphaColor(0.02)"
+                                 onmouseout="this.style.borderColor=alphaColor(0.05);this.style.background=''">
                                 <span class="material-symbols-outlined" style="font-size:2rem;color:${f.color};margin-bottom:1rem;display:block">${f.icon}</span>
                                 <h3 style="font-size:0.85rem;margin-bottom:0.5rem;color:#fff">${f.title}</h3>
                                 <p style="font-size:0.75rem;color:var(--text-dim);line-height:1.6">${f.desc}</p>
@@ -184,7 +184,7 @@ async function renderHome() {
             </section>
 
             <!-- ===== SEO CONTENT ===== -->
-            <section class="seo-content-extra" style="padding:4rem 2rem;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)">
+            <section class="seo-content-extra" style="padding:4rem 2rem;border-top:1px solid var(--border);">
                 <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4rem">
                     <div>
                         <h2 style="color:var(--accent);margin-bottom:1.5rem;font-size:1.3rem">The AlphaSignal Advantage</h2>
@@ -230,7 +230,7 @@ async function renderHome() {
             </section>
 
             <!-- ===== PRICING ===== -->
-            <section id="pricing" style="padding:5rem 2rem;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)">
+            <section id="pricing" style="padding:5rem 2rem;border-top:1px solid var(--border);">
                 <div style="max-width:900px;margin:0 auto;text-align:center">
                     <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">SIMPLE PRICING</div>
                     <h2 style="font-size:2.2rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:0.75rem">Institutional Intelligence.<br><span style="color:var(--accent)">One Flat Fee.</span></h2>
@@ -239,7 +239,7 @@ async function renderHome() {
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;text-align:left">
 
                         <!-- FREE TIER -->
-                        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:16px;padding:2rem;display:flex;flex-direction:column">
+                        <div style="background:${alphaColor(0.03)};border:1px solid var(--border);border-radius:16px;padding:2rem;display:flex;flex-direction:column">
                             <div style="font-size:0.65rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:0.5rem">FREE</div>
                             <div style="font-size:2.5rem;font-weight:900;margin-bottom:0.25rem">$0<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
                             <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:2rem">No credit card required</div>
@@ -258,11 +258,11 @@ async function renderHome() {
                                     ['close','Monte Carlo Simulator'],
                                 ].map(([icon, label]) => `
                                 <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem;color:${icon==='check'?'var(--text)':'var(--text-dim)'}">
-                                    <span class="material-symbols-outlined" style="font-size:1rem;color:${icon==='check'?'var(--risk-low)':'rgba(255,255,255,0.2)'}">${icon}</span>
+                                    <span class="material-symbols-outlined" style="font-size:1rem;color:${icon==='check'?'var(--risk-low)':alphaColor(0.2)}">${icon}</span>
                                     ${label}
                                 </div>`).join('')}
                             </div>
-                            <button class="intel-action-btn" style="width:100%;background:rgba(255,255,255,0.04);border-color:var(--border);color:var(--text-dim)" onclick="switchView('signals')">
+                            <button class="intel-action-btn" style="width:100%;background:${alphaColor(0.04)};border-color:var(--border);color:var(--text-dim)" onclick="switchView('signals')">
                                 START FREE
                             </button>
                         </div>

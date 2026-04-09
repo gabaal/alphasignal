@@ -27,9 +27,9 @@ async function renderAdvOverview(symbol, interval) {
     
     const chart = LightweightCharts.createChart(container, {
         layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontSize: 11, fontFamily: 'JetBrains Mono' },
-        grid: { vertLines: { color: 'rgba(255, 255, 255, 0.03)' }, horzLines: { color: 'rgba(255, 255, 255, 0.03)' } },
+        grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true }
+        timeScale: { borderColor: alphaColor(0.1), timeVisible: true }
     });
     
     const candleSeries = chart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
@@ -137,7 +137,7 @@ async function renderAdvPulse(symbol) {
     
     container.innerHTML = `<div class="intel-card-inner" style="height:100%; display:flex; flex-direction:column;">
         <div id="pulse-chart" style="flex:1;"></div>
-        <div class="legend-bar-institutional" style="display:flex; gap:1.5rem; padding:0.8rem; border-top:1px solid var(--border); background:rgba(255,255,255,0.02); font-size:0.75rem;">
+        <div class="legend-bar-institutional" style="display:flex; gap:1.5rem; padding:0.8rem; border-top:1px solid var(--border); background:${alphaColor(0.02)}; font-size:0.75rem;">
             <div style="display:flex; align-items:center; gap:8px;">
                 <div style="width:12px; height:12px; background:rgba(38,166,154,0.6); border-radius:50%; box-shadow:0 0 10px rgba(38,166,154,0.4)"></div>
                 <span style="color:var(--text-dim)">SHORT LIQUIDATIONS</span>
@@ -153,9 +153,9 @@ async function renderAdvPulse(symbol) {
     const chartContainer = document.getElementById('pulse-chart');
     const chart = LightweightCharts.createChart(chartContainer, {
         layout: { background: { color: '#09090b' }, textColor: '#9ca3af', fontSize: 11, fontFamily: 'Inter' },
-        grid: { vertLines: { color: 'rgba(255,255,255,0.02)' }, horzLines: { color: 'rgba(255,255,255,0.02)' } },
+        grid: { vertLines: { color: alphaColor(0.02) }, horzLines: { color: alphaColor(0.02) } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: true }
+        timeScale: { borderColor: alphaColor(0.1), timeVisible: true }
     });
 
     const candleSeries = chart.addCandlestickSeries({ upColor: '#10b981', downColor: '#ef4444', borderVisible: false, wickUpColor: '#10b981', wickDownColor: '#ef4444' });
@@ -201,11 +201,11 @@ function renderDepth2DFallback(container, symbol) {
     container.innerHTML = `
         <div style="position:relative;width:100%;height:${H}px;background:#050508;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
             <!-- Header -->
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid ${alphaColor(0.06)};flex-shrink:0;">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">ORDERBOOK DEPTH — ${symbol.replace('USDT','/USDT')}</span>
                 <span id="depth2d-live" style="font-size:0.5rem;color:#22c55e;animation:pulse-live 1.5s infinite;">● LIVE</span>
                 <span style="font-size:0.45rem;font-weight:900;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;letter-spacing:1px;margin-left:auto;">CANVAS 2D MODE</span>
-                <span id="depth2d-spread" style="font-size:0.55rem;color:rgba(255,255,255,0.35);font-family:'JetBrains Mono',monospace;"></span>
+                <span id="depth2d-spread" style="font-size:0.55rem;color:${alphaColor(0.35)};font-family:'JetBrains Mono',monospace;"></span>
             </div>
             <!-- Legend -->
             <div style="display:flex;gap:20px;padding:6px 18px;flex-shrink:0;">
@@ -252,7 +252,7 @@ function renderDepth2DFallback(container, symbol) {
         const PRICE_PAD  = 55;
 
         // Grid lines
-        ctx2d.strokeStyle = 'rgba(255,255,255,0.04)';
+        ctx2d.strokeStyle = alphaColor(0.04);
         ctx2d.lineWidth = 1;
         for (let g = 1; g <= 4; g++) {
             const gx = MID_X - (MAX_BAR_W * g / 4);
@@ -282,7 +282,7 @@ function renderDepth2DFallback(container, symbol) {
             ctx2d.fill();
 
             // Price label
-            ctx2d.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx2d.fillStyle = alphaColor(0.5);
             ctx2d.font = `${Math.max(8, BAR_H - 4)}px JetBrains Mono, monospace`;
             ctx2d.textAlign = 'left';
             ctx2d.fillText(b.p.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}), MID_X - barW - PRICE_PAD, y + BAR_H - 3);
@@ -304,7 +304,7 @@ function renderDepth2DFallback(container, symbol) {
             ctx2d.fill();
 
             // Price label
-            ctx2d.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx2d.fillStyle = alphaColor(0.5);
             ctx2d.font = `${Math.max(8, BAR_H - 4)}px JetBrains Mono, monospace`;
             ctx2d.textAlign = 'right';
             ctx2d.fillText(a.p.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}), MID_X + barW + PRICE_PAD, y + BAR_H - 3);
@@ -371,9 +371,9 @@ async function renderAdvDepth(symbol) {
                 <span style="display:flex;align-items:center;gap:5px;font-size:0.6rem;color:#ef5350;">
                     <span style="width:8px;height:8px;background:#ef5350;border-radius:1px;display:inline-block;box-shadow:0 0 6px #ef5350;"></span> ASK DEPTH
                 </span>
-                <span id="depth-spread-label" style="font-size:0.55rem;color:rgba(255,255,255,0.35);margin-left:8px;"></span>
+                <span id="depth-spread-label" style="font-size:0.55rem;color:${alphaColor(0.35)};margin-left:8px;"></span>
             </div>
-            <div style="position:absolute;bottom:14px;right:18px;font-size:0.55rem;color:rgba(255,255,255,0.25);pointer-events:none;">DRAG TO ROTATE • SCROLL TO ZOOM</div>
+            <div style="position:absolute;bottom:14px;right:18px;font-size:0.55rem;color:${alphaColor(0.25)};pointer-events:none;">DRAG TO ROTATE • SCROLL TO ZOOM</div>
         </div>`;
 
     const canvas = document.getElementById('depth3d-canvas');
@@ -638,10 +638,10 @@ async function renderAdvDerivatives(symbol, interval) {
     
     const chart = LightweightCharts.createChart(container, {
         layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
-        timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true }
+        timeScale: { borderColor: alphaColor(0.1), timeVisible: true }
     });
     
-    const priceSeries = chart.addLineSeries({ color: 'rgba(255,255,255,0.7)', lineWidth: 1, title: 'Price Action' });
+    const priceSeries = chart.addLineSeries({ color: alphaColor(0.7), lineWidth: 1, title: 'Price Action' });
     const cvdSeries = chart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0)', lineColor: '#60a5fa', lineWidth: 2, priceScaleId: 'left', title: 'Cumulative Volume Delta' });
     const blockSeries = chart.addHistogramSeries({ color: '#ef5350', priceScaleId: 'left_liq', scaleMargins: { top: 0.7, bottom: 0 }, title: 'Block Order Flux' });
     
@@ -665,7 +665,7 @@ async function renderAdvDerivatives(symbol, interval) {
     cvdSeries.setData(cvdData);
     blockSeries.setData(liqData);
     
-    chart.priceScale('left').applyOptions({ visible: true, borderColor: 'rgba(255,255,255,0.1)' });
+    chart.priceScale('left').applyOptions({ visible: true, borderColor: alphaColor(0.1) });
     chart.priceScale('left_liq').applyOptions({ visible: false });
     
     // Binance aggTrade stream — crypto only; equity proxies have no Binance feed
@@ -721,7 +721,7 @@ async function renderAdvComparative(interval) {
         return data.map(d => ({time: d.time, value: ((d.close - start)/start)*100}));
     };
     chart.addLineSeries({color:'#facc15', lineWidth:2, title: sym}).setData(norm(activeData));
-    chart.addLineSeries({color:'rgba(255,255,255,0.4)', lineWidth:1, title: 'BTC Benchmark'}).setData(norm(btcData));
+    chart.addLineSeries({color:alphaColor(0.4), lineWidth:1, title: 'BTC Benchmark'}).setData(norm(btcData));
     
     chart.applyOptions({ localization: { priceFormatter: p => p.toFixed(2) + '%' } });
     const ro = new ResizeObserver(e => { if(e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
@@ -740,7 +740,7 @@ async function renderAdvCVD(symbol) {
         container.innerHTML = '';
         const chart = LightweightCharts.createChart(container, {
             layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
-            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
+            grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }
         });
         const cvdSeries = chart.addAreaSeries({ topColor: 'rgba(38,166,154,0.4)', bottomColor: 'rgba(239,83,80,0.4)', lineColor: '#26a69a', lineWidth: 2, title: 'Cumulative Volume Delta' });
         cvdSeries.setData(data.map(d=>({time: d.time, value: d.cvd})));
@@ -763,7 +763,7 @@ async function renderAdvExchange(symbol) {
         container.innerHTML = '';
         const chart = LightweightCharts.createChart(container, {
             layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
-            grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } }
+            grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }
         });
         const exSeries = chart.addHistogramSeries({ color: '#facc15', title: 'Net Position Change' });
         exSeries.setData(data.map(d=>({
@@ -832,7 +832,7 @@ async function renderAdvFundingHeatmap() {
             <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bolt</span>PERPETUAL FUNDING RATE HEATMAP — 24H ROLLING</span>
             <div style="display:flex;gap:16px;font-size:0.55rem;color:var(--text-dim);">
                 <span style="color:#ef5350;">■ NEGATIVE (Shorts Pay)</span>
-                <span style="color:rgba(255,255,255,0.2);">■ NEUTRAL</span>
+                <span style="color:${alphaColor(0.2)};">■ NEUTRAL</span>
                 <span style="color:#26a69a;">■ POSITIVE (Longs Pay)</span>
             </div>
         </div>
@@ -857,7 +857,7 @@ async function renderAdvFundingHeatmap() {
                     ? `rgba(38,166,154,${0.15 + intensity * 0.75})`
                     : rate < 0
                     ? `rgba(239,83,80,${0.15 + intensity * 0.75})`
-                    : 'rgba(255,255,255,0.04)';
+                    : alphaColor(0.04);
                 const display = rate > 0 ? `+${(rate * 100).toFixed(3)}%` : `${(rate * 100).toFixed(3)}%`;
                 grid.innerHTML += `<div title="${display}" style="height:28px;background:${color};border-radius:3px;cursor:default;transition:all 0.2s;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'"></div>`;
             });
@@ -944,13 +944,13 @@ function renderAdvTapeImbalance(symbol) {
             },
             scales: {
                 x: {
-                    grid: { color: 'rgba(255,255,255,0.03)' },
-                    ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 8, family: 'JetBrains Mono' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
+                    grid: { color: alphaColor(0.03) },
+                    ticks: { color: alphaColor(0.3), font: { size: 8, family: 'JetBrains Mono' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
                 },
                 y: {
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 9 } },
-                    title: { display: true, text: `Net Volume (${symbol.replace('USDT','')})`, color: 'rgba(255,255,255,0.25)', font: { size: 9 } }
+                    grid: { color: alphaColor(0.05) },
+                    ticks: { color: alphaColor(0.4), font: { family: 'JetBrains Mono', size: 9 } },
+                    title: { display: true, text: `Net Volume (${symbol.replace('USDT','')})`, color: alphaColor(0.25), font: { size: 9 } }
                 }
             }
         }
@@ -1021,7 +1021,7 @@ async function renderAdvOptionsSurface(symbol) {
                     <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">stacked_line_chart</span>
                     IMPLIED VOLATILITY SURFACE — ${currency}
                 </span>
-                <span id="iv-source-badge" style="font-size:0.55rem;color:rgba(255,255,255,0.3);animation:pulse 2s infinite;">● LOADING...</span>
+                <span id="iv-source-badge" style="font-size:0.55rem;color:${alphaColor(0.3)};animation:pulse 2s infinite;">● LOADING...</span>
             </div>
 
             <!-- Top-right: spot price + timestamp -->
@@ -1029,11 +1029,11 @@ async function renderAdvOptionsSurface(symbol) {
 
             <!-- Bottom-left: axis labels + controls hint -->
             <div style="position:absolute;bottom:52px;left:18px;pointer-events:none;display:flex;flex-direction:column;gap:5px;">
-                <span style="font-size:0.72rem;color:rgba(255,255,255,0.32);letter-spacing:1.5px;">← MONEYNESS (% of spot) →</span>
-                <span style="font-size:0.72rem;color:rgba(255,255,255,0.32);letter-spacing:1.5px;">← DAYS TO EXPIRY →</span>
+                <span style="font-size:0.72rem;color:${alphaColor(0.32)};letter-spacing:1.5px;">← MONEYNESS (% of spot) →</span>
+                <span style="font-size:0.72rem;color:${alphaColor(0.32)};letter-spacing:1.5px;">← DAYS TO EXPIRY →</span>
             </div>
             <div style="position:absolute;bottom:14px;left:18px;pointer-events:none;">
-                <span style="font-size:0.5rem;color:rgba(255,255,255,0.2);">DRAG TO ROTATE &nbsp;•&nbsp; SCROLL TO ZOOM &nbsp;•&nbsp; HOVER FOR IV</span>
+                <span style="font-size:0.5rem;color:${alphaColor(0.2)};">DRAG TO ROTATE &nbsp;•&nbsp; SCROLL TO ZOOM &nbsp;•&nbsp; HOVER FOR IV</span>
             </div>
 
             <!-- Bottom-centre: per-expiry ATM IV strip (populated after data loads) -->
@@ -1075,7 +1075,7 @@ async function renderAdvOptionsSurface(symbol) {
     if (statsBar && isLive && surfaceData.underlying) {
         statsBar.innerHTML = `
             <div style="font-size:0.55rem;color:var(--text-dim);">Spot: <span style="color:white;font-weight:700;">$${surfaceData.underlying.toLocaleString('en-US',{maximumFractionDigits:0})}</span></div>
-            <div style="font-size:0.55rem;color:var(--text-dim);">Updated: <span style="color:rgba(255,255,255,0.5);">${surfaceData.timestamp ? surfaceData.timestamp.slice(11,16) + ' UTC' : '--'}</span></div>`;
+            <div style="font-size:0.55rem;color:var(--text-dim);">Updated: <span style="color:${alphaColor(0.5)};">${surfaceData.timestamp ? surfaceData.timestamp.slice(11,16) + ' UTC' : '--'}</span></div>`;
     }
 
     const moneyAxis    = surfaceData.moneyness_axis;     // length 20
@@ -1101,7 +1101,7 @@ async function renderAdvOptionsSurface(symbol) {
     const colourbar = document.getElementById('iv-colourbar');
     if (colourbar) {
         // Label at top
-        colourbar.innerHTML = `<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);letter-spacing:0.5px;margin-bottom:4px;writing-mode:horizontal-tb;font-weight:700;">IV %</span>`;
+        colourbar.innerHTML = `<span style="font-size:0.7rem;color:${alphaColor(0.5)};letter-spacing:0.5px;margin-bottom:4px;writing-mode:horizontal-tb;font-weight:700;">IV %</span>`;
         // Gradient bar
         const STEPS = 24;
         const barH  = 220; // px total
@@ -1110,7 +1110,7 @@ async function renderAdvOptionsSurface(symbol) {
             gradient += `${ivToHex(i / STEPS)}${i > 0 ? ',' : ''}`;
         }
         gradient += ')';
-        colourbar.innerHTML += `<div style="width:20px;height:${barH}px;background:${gradient};border-radius:4px;border:1px solid rgba(255,255,255,0.1);position:relative;">`
+        colourbar.innerHTML += `<div style="width:20px;height:${barH}px;background:${gradient};border-radius:4px;border:1px solid ${alphaColor(0.1)};position:relative;">`
             // 5 tick marks at 0%, 25%, 50%, 75%, 100% of range
             + [0, 0.25, 0.5, 0.75, 1].map(frac => {
                 const ivVal = minIV + frac * (maxIV - minIV);
@@ -1118,7 +1118,7 @@ async function renderAdvOptionsSurface(symbol) {
                 const isHigh = ivVal >= 80;
                 const color  = isHigh ? '#ef4444' : ivVal >= 50 ? '#f59e0b' : ivVal >= 30 ? '#10b981' : '#3b82f6';
                 return `<div style="position:absolute;top:${topPct}%;right:-44px;transform:translateY(-50%);display:flex;align-items:center;gap:4px;">`
-                    + `<div style="width:7px;height:1px;background:rgba(255,255,255,0.3);"></div>`
+                    + `<div style="width:7px;height:1px;background:${alphaColor(0.3)};"></div>`
                     + `<span style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:${color};white-space:nowrap;font-weight:700;">${ivVal.toFixed(0)}%</span>`
                     + `</div>`;
             }).join('')
@@ -1144,12 +1144,12 @@ async function renderAdvOptionsSurface(symbol) {
             const col = ivToHex(t);
             return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">`
                 + `<span style="font-size:0.72rem;font-weight:900;color:${col};font-family:'JetBrains Mono',monospace;">${iv.toFixed(1)}%</span>`
-                + `<div style="width:1px;height:10px;background:rgba(255,255,255,0.2);"></div>`
-                + `<span style="font-size:0.62rem;color:rgba(255,255,255,0.5);white-space:nowrap;">${exp}</span>`
+                + `<div style="width:1px;height:10px;background:${alphaColor(0.2)};"></div>`
+                + `<span style="font-size:0.62rem;color:${alphaColor(0.5)};white-space:nowrap;">${exp}</span>`
                 + `</div>`;
-        }).join(`<div style="width:1px;height:24px;background:rgba(255,255,255,0.08);align-self:center;"></div>`);
+        }).join(`<div style="width:1px;height:24px;background:${alphaColor(0.08)};align-self:center;"></div>`);
         // Prepend label
-        atmStrip.innerHTML = `<span style="font-size:0.62rem;color:rgba(255,255,255,0.35);letter-spacing:1px;align-self:flex-end;margin-bottom:3px;margin-right:6px;font-weight:700;">ATM IV:</span>` + atmStrip.innerHTML;
+        atmStrip.innerHTML = `<span style="font-size:0.62rem;color:${alphaColor(0.35)};letter-spacing:1px;align-self:flex-end;margin-bottom:3px;margin-right:6px;font-weight:700;">ATM IV:</span>` + atmStrip.innerHTML;
     }
 
     // ── Three.js setup ────────────────────────────────────────────────────────
@@ -1254,7 +1254,7 @@ async function renderAdvOptionsSurface(symbol) {
     const mousePt    = new THREE.Vector2();
     const mesh       = scene.children.find(c => c.isMesh);
     const tooltip    = Object.assign(document.createElement('div'), {
-        style: 'position:absolute;pointer-events:none;background:rgba(9,9,11,0.9);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 10px;font-size:0.65rem;color:white;display:none;font-family:JetBrains Mono,monospace;'
+        style: 'position:absolute;pointer-events:none;background:rgba(9,9,11,0.9);border:1px solid ${alphaColor(0.1)};border-radius:6px;padding:6px 10px;font-size:0.65rem;color:white;display:none;font-family:JetBrains Mono,monospace;'
     });
     container.firstElementChild.appendChild(tooltip);
 
@@ -1285,7 +1285,7 @@ async function renderAdvOptionsSurface(symbol) {
                 tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
                 tooltip.style.top  = (e.clientY - rect.top  - 14) + 'px';
                 const moneyDesc = money < 0.95 ? 'ITM Put / OTM Call' : money > 1.05 ? 'OTM Call / ITM Put' : 'ATM';
-                tooltip.innerHTML = `<div style="color:#7dd3fc;margin-bottom:3px;">${exp} \u00b7 ${(money * 100).toFixed(0)}% moneyness</div><div>IV: <b style="color:${iv > 80 ? '#ef4444' : iv > 50 ? '#facc15' : '#22c55e'}">${iv.toFixed(1)}%</b></div><div style="color:rgba(255,255,255,0.4);font-size:0.55rem;margin-top:2px;">${moneyDesc}</div>`;
+                tooltip.innerHTML = `<div style="color:#7dd3fc;margin-bottom:3px;">${exp} \u00b7 ${(money * 100).toFixed(0)}% moneyness</div><div>IV: <b style="color:${iv > 80 ? '#ef4444' : iv > 50 ? '#facc15' : '#22c55e'}">${iv.toFixed(1)}%</b></div><div style="color:${alphaColor(0.4)};font-size:0.55rem;margin-top:2px;">${moneyDesc}</div>`;
             }
         } else {
             tooltip.style.display = 'none';
@@ -1319,7 +1319,7 @@ async function renderAdvOptionsSurface(symbol) {
         overlay.innerHTML = `
             <span class="material-symbols-outlined" style="font-size:2rem;color:#f59e0b;">warning</span>
             <span style="font-size:0.7rem;color:#f59e0b;font-weight:900;letter-spacing:2px;">GPU CONTEXT LOST</span>
-            <span style="font-size:0.6rem;color:rgba(255,255,255,0.4);">Recovering automatically…</span>`;
+            <span style="font-size:0.6rem;color:${alphaColor(0.4)};">Recovering automatically…</span>`;
         container.firstElementChild?.appendChild(overlay);
         console.warn('[IV Surface] WebGL context lost — awaiting restoration');
     }, false);

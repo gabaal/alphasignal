@@ -217,12 +217,12 @@ async function openAIAnalyst(ticker, dir = null, zscore = null) {
                 },
                 options: {
                     responsive: true, maintainAspectRatio: true,
-                    plugins: { legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 9 } } } },
+                    plugins: { legend: { labels: { color: alphaColor(0.6), font: { family: 'JetBrains Mono', size: 9 } } } },
                     scales: { r: {
                         min: 0, max: 100,
-                        ticks: { stepSize: 25, color: 'rgba(255,255,255,0.25)', backdropColor: 'transparent', font: { size: 7 } },
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        pointLabels: { color: 'rgba(255,255,255,0.65)', font: { size: 9, family: 'JetBrains Mono' } }
+                        ticks: { stepSize: 25, color: alphaColor(0.25), backdropColor: 'transparent', font: { size: 7 } },
+                        grid: { color: alphaColor(0.05) },
+                        pointLabels: { color: alphaColor(0.65), font: { size: 9, family: 'JetBrains Mono' } }
                     }}
                 }
             });
@@ -596,7 +596,7 @@ async function loadCorrelationMatrix(tickers) {
         .attr('y', (d, i) => i * size + size / 2 + 4)
         .attr('text-anchor', 'end')
         .attr('font-size', '10px')
-        .attr('fill', 'rgba(255,255,255,0.7)')
+        .attr('fill', alphaColor(0.7))
         .text(d => d.replace('-USD', ''));
 
     // Col labels
@@ -607,13 +607,13 @@ async function loadCorrelationMatrix(tickers) {
         .attr('y', n * size + 18)
         .attr('text-anchor', 'middle')
         .attr('font-size', '10px')
-        .attr('fill', 'rgba(255,255,255,0.7)')
+        .attr('fill', alphaColor(0.7))
         .text(d => d.replace('-USD', ''));
 
     // Tooltip
     const tooltip = d3.select('body').append('div')
         .style('position', 'fixed').style('background', 'rgba(0,0,0,0.9)')
-        .style('border', '1px solid rgba(255,255,255,0.1)').style('border-radius', '8px')
+        .style('border', '1px solid ${alphaColor(0.1)}').style('border-radius', '8px')
         .style('padding', '8px 12px').style('font-size', '0.7rem').style('color', '#fff')
         .style('pointer-events', 'none').style('z-index', '9999').style('display', 'none');
 
@@ -650,7 +650,7 @@ async function loadCorrelationMatrix(tickers) {
                     .attr('text-anchor', 'middle')
                     .attr('font-size', '9px')
                     .attr('font-weight', '700')
-                    .attr('fill', Math.abs(val) > 0.5 ? '#fff' : 'rgba(255,255,255,0.55)')
+                    .attr('fill', Math.abs(val) > 0.5 ? '#fff' : alphaColor(0.55))
                     .text(val.toFixed(2));
             }
         });
@@ -712,7 +712,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <div class="ticker-narrative-box" style="margin-bottom:1.5rem; padding:1.2rem; background:rgba(0, 242, 255, 0.03); border:1px solid rgba(0, 242, 255, 0.1); border-radius:8px">
             <h3 style="font-size:0.8rem; color:var(--accent); margin-bottom:0.5rem">TICKER NARRATIVE</h3>
             <p style="font-size:0.9rem; line-height:1.4; color:var(--text)">${data.summary}</p>
-            <div class="asset-metrics" style="display:flex; gap:2rem; margin-top:1rem; border-top:1px solid rgba(255,255,255,0.05); padding-top:1rem">
+            <div class="asset-metrics" style="display:flex; gap:2rem; margin-top:1rem; border-top:1px solid ${alphaColor(0.05)}; padding-top:1rem">
                 <div><label style="display:block; font-size:0.6rem; color:var(--text-dim)">MARKET CAP</label><span style="font-weight:700">${data.metrics.market_cap}</span></div>
                 <div><label style="display:block; font-size:0.6rem; color:var(--text-dim)">24H VOLUME</label><span style="font-weight:700">${data.metrics.vol_24h}</span></div>
                 <div><label style="display:block; font-size:0.6rem; color:var(--text-dim)">DOMINANCE</label><span style="font-weight:700">${data.metrics.dominance}</span></div>
@@ -837,8 +837,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                     maintainAspectRatio: false,
                     scales: {
                         r: {
-                            angleLines: { color: 'rgba(255,255,255,0.1)' },
-                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            angleLines: { color: alphaColor(0.1) },
+                            grid: { color: alphaColor(0.05) },
                             pointLabels: { color: '#8b949e', font: { family: 'JetBrains Mono', size:10 } },
                             ticks: { display: false, min: 0, max: 100 }
                         }
@@ -891,7 +891,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         <option value="XRP-USD" ${ticker === 'XRP-USD' ? 'selected' : ''}>XRP-USD (Ripple)</option>
                         <option value="_custom" ${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'selected' : ''}>✏ Custom Symbol...</option>
                     </select>
-                    <input id="strat-custom-ticker" type="text" placeholder="e.g. AAPL, DOGE-USD..." value="${!(['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker)) ? ticker : ''}" style="display:${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'block' : 'none'};width:100%;border-radius:8px;padding:10px;background:rgba(0,0,0,0.5);border:1px solid rgba(0,212,170,0.4);color:white;font-family:'Outfit';margin-top:8px" onkeydown="if(event.key==='Enter'&&this.value.trim()){window._slPersist(this.value.trim(),null);runStrategyBacktest(this.value.trim(),document.getElementById('strat-type').value,20,50);}">
+                    <input id="strat-custom-ticker" type="text" placeholder="e.g. AAPL, DOGE-USD..." value="${!(['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker)) ? ticker : ''}" style="display:${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'block' : 'none'};width:100%;border-radius:8px;padding:10px;border:1px solid rgba(0,212,170,0.4);color:white;font-family:'Outfit';margin-top:8px" onkeydown="if(event.key==='Enter'&&this.value.trim()){window._slPersist(this.value.trim(),null);runStrategyBacktest(this.value.trim(),document.getElementById('strat-type').value,20,50);}">
                     <script>document.getElementById('strat-ticker')?.addEventListener('change',function(){document.getElementById('strat-custom-ticker').style.display=this.value==='_custom'?'block':'none';});<\/script>
                 </div>
                 </div>
@@ -924,11 +924,11 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <div class="control-box" style="margin-top: 15px; display: flex; gap: 10px;">
                     <div style="flex:1">
                         <label>FAST MA</label>
-                        <input type="number" id="strat-fast" class="strat-input" value="${fast}" style="width:100%; border-radius:8px; padding:10px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:white; font-family:'Outfit'" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, document.getElementById('strat-type').value, this.value, document.getElementById('strat-slow').value)">
+                        <input type="number" id="strat-fast" class="strat-input" value="${fast}" style="width:100%; border-radius:8px; padding:10px;  border:1px solid ${alphaColor(0.1)}; color:white; font-family:'Outfit'" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, document.getElementById('strat-type').value, this.value, document.getElementById('strat-slow').value)">
                     </div>
                     <div style="flex:1">
                         <label>SLOW MA</label>
-                        <input type="number" id="strat-slow" class="strat-input" value="${slow}" style="width:100%; border-radius:8px; padding:10px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:white; font-family:'Outfit'" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, document.getElementById('strat-type').value, document.getElementById('strat-fast').value, this.value)">
+                        <input type="number" id="strat-slow" class="strat-input" value="${slow}" style="width:100%; border-radius:8px; padding:10px;  border:1px solid ${alphaColor(0.1)}; color:white; font-family:'Outfit'" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, document.getElementById('strat-type').value, document.getElementById('strat-fast').value, this.value)">
                     </div>
                 </div>
                 
@@ -978,15 +978,15 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                     </div>
                 </div>
 
-                <div id="strat-tv-container" style="height: 300px; margin-bottom: 20px; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.05); overflow:hidden"></div>
+                <div id="strat-tv-container" style="height: 300px; margin-bottom: 20px;  border-radius:12px; border:1px solid ${alphaColor(0.05)}; overflow:hidden"></div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
                     <div style="display:flex;align-items:center;gap:10px">
                         <span style="font-size:0.65rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">EQUITY CURVE</span>
                         <span id="strat-outperf-badge" style="font-size:0.65rem;font-weight:900;padding:3px 10px;border-radius:100px;border:1px solid rgba(34,197,94,0.3);color:var(--risk-low);font-family:var(--font-mono)"></span>
                     </div>
-                    <button id="bh-toggle-btn" data-show="true" onclick="window.toggleBenchmark && window.toggleBenchmark()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:4px 12px;border-radius:6px;font-size:0.6rem;cursor:pointer;font-family:var(--font-mono);font-weight:700;letter-spacing:1px">HIDE BUY &amp; HOLD</button>
+                    <button id="bh-toggle-btn" data-show="true" onclick="window.toggleBenchmark && window.toggleBenchmark()" style="background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.1)};color:var(--text-dim);padding:4px 12px;border-radius:6px;font-size:0.6rem;cursor:pointer;font-family:var(--font-mono);font-weight:700;letter-spacing:1px">HIDE BUY &amp; HOLD</button>
                 </div>
-                <div class="chart-container" style="height: 250px; background: rgba(0,0,0,0.1); border-radius:16px; border:1px solid var(--border); padding: 20px">
+                <div class="chart-container" style="height: 250px;  border-radius:16px; border:1px solid var(--border); padding: 20px">
                     <canvas id="strategyChart"></canvas>
                 </div>
 
@@ -999,9 +999,9 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         <canvas id="monteCarloChart"></canvas>
                     </div>
                     <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 15px; display:flex; gap:20px; text-align:center">
-                        <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px"><span style="color:#00f2ff">SIMULATIONS:</span><br>200 Paths</div>
-                        <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px"><span style="color:#facc15">HORIZON:</span><br>30 Days</div>
-                        <div style="flex:1; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:8px" id="mc-sigma-label"><span style="color:#bc13fe">VOLATILITY:</span><br>--</div>
+                        <div style="flex:1; border:1px solid ${alphaColor(0.05)}; padding:10px; border-radius:8px"><span style="color:#00f2ff">SIMULATIONS:</span><br>200 Paths</div>
+                        <div style="flex:1; border:1px solid ${alphaColor(0.05)}; padding:10px; border-radius:8px"><span style="color:#facc15">HORIZON:</span><br>30 Days</div>
+                        <div style="flex:1; border:1px solid ${alphaColor(0.05)}; padding:10px; border-radius:8px" id="mc-sigma-label"><span style="color:#bc13fe">VOLATILITY:</span><br>--</div>
                     </div>
                 </div>
 
@@ -1138,12 +1138,12 @@ async function loadRiskMatrix(tickers = null) {
 
     const tks = currentTickers.split(',');
     container.innerHTML = `
-        <div style="margin-bottom:2rem; padding:1.5rem; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:12px">
+        <div style="margin-bottom:2rem; padding:1.5rem;  border:1px solid var(--border); border-radius:12px">
             <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">ASSET RISK PROFILE (EFFICIENT FRONTIER)</h3>
             <div style="height:420px; position:relative">
                 <canvas id="riskScatterChart"></canvas>
             </div>
-            <div style="display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06);font-size:0.6rem;font-weight:700;letter-spacing:1px">
+            <div style="display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid ${alphaColor(0.06)};font-size:0.6rem;font-weight:700;letter-spacing:1px">
                 <span style="color:var(--text-dim);align-self:center">ALPHA VS BTC:</span>
                 <span style="display:flex;align-items:center;gap:5px">
                     <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(34,197,94,0.85);flex-shrink:0"></span>
@@ -1173,7 +1173,7 @@ async function loadRiskMatrix(tickers = null) {
                     ${row.map(val => {
                         const intensity = Math.abs(val);
                         const color = val >= 0 ? `rgba(0, 242, 255, ${intensity * 0.8})` : `rgba(255, 107, 107, ${intensity * 0.8})`;
-                        return `<div class="matrix-cell" style="background:${color}; height:40px; font-size:0.7rem; border:0.5px solid rgba(255,255,255,0.05)" title="${tks[i]} vs ${tks[row.indexOf(val)]}: ${val}">${val.toFixed(2)}</div>`;
+                        return `<div class="matrix-cell" style="background:${color}; height:40px; font-size:0.7rem; border:0.5px solid ${alphaColor(0.05)}" title="${tks[i]} vs ${tks[row.indexOf(val)]}: ${val}">${val.toFixed(2)}</div>`;
                     }).join('')}
                 `).join('')}
             </div>
@@ -1255,7 +1255,7 @@ async function loadRiskMatrix(tickers = null) {
                     datalabels: {
                         display: true,
                         formatter: (val) => val.ticker,
-                        color: (ctx) => colors[ctx.dataIndex] ?? 'rgba(255,255,255,0.7)',
+                        color: (ctx) => colors[ctx.dataIndex] ?? alphaColor(0.7),
                         font: {
                             family: "'JetBrains Mono', monospace",
                             size: 8,
@@ -1275,12 +1275,12 @@ async function loadRiskMatrix(tickers = null) {
                 scales: {
                     x: {
                         title: { display: true, text: 'Annualized Volatility (%)', color: '#8b949e', font: { size: 10 } },
-                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        grid: { color: alphaColor(0.05) },
                         ticks: { color: '#8b949e' }
                     },
                     y: {
                         title: { display: true, text: 'Excess Alpha vs BTC (Ann. %)', color: '#8b949e', font: { size: 10 } },
-                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        grid: { color: alphaColor(0.05) },
                         ticks: { color: '#8b949e', callback: v => (v >= 0 ? '+' : '') + v + '%' }
                     }
                 }

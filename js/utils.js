@@ -77,6 +77,16 @@ window.toggleTheme = function() {
     const next = current === 'dark' ? 'light' : 'dark';
     applyTheme(next, true);
     showToast('THEME', next === 'light' ? 'Light mode activated' : 'Dark mode activated', 'success');
+    
+    // Hard refresh to ensure all dynamically computed charts and grids reflect the new theme bounds
+    setTimeout(() => {
+        window.location.reload();
+    }, 400); // Wait for transition
+};
+
+window.alphaColor = function(opacity) {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return isLight ? `rgba(0, 0, 0, ${opacity})` : `rgba(255, 255, 255, ${opacity})`;
 };
 
 // Expose current theme for TradingView widget colour injection
@@ -177,12 +187,12 @@ function showSignalToast(signal) {
             <span style="margin-left:auto;font-size:1rem;cursor:pointer;opacity:0.4;color:#fff" onclick="this.closest('.toast').remove()">✕</span>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
-            <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0">${ticker}</div>
+            <div style="background:${alphaColor(0.07)};border:1px solid ${alphaColor(0.12)};border-radius:8px;padding:6px 12px;font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0">${ticker}</div>
             <div style="background:${dirBg};border:1px solid ${dirColor};border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:900;color:${dirColor}">${dirArrow} ${dir}</div>
             <div style="background:rgba(188,19,254,0.12);border:1px solid rgba(188,19,254,0.35);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:#bc13fe;font-family:'JetBrains Mono',monospace">Z: ${zscore}</div>
         </div>
         <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-            <span style="font-size:0.65rem;color:rgba(255,255,255,0.4);flex:1">High-confidence alpha detected by ML engine</span>
+            <span style="font-size:0.65rem;color:${alphaColor(0.4)};flex:1">High-confidence alpha detected by ML engine</span>
             <button onclick="switchView('alerts');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW ALERT →</button>
         </div>
     `;
@@ -225,8 +235,8 @@ async function openNotificationPanel() {
             <span style="font-size:0.6rem; color:var(--accent)">${unread} NEW TODAY</span>
         </div>
         ${notifications.map(n => `
-            <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 0.2s"
-                 onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">
+            <div style="padding:12px 16px; border-bottom:1px solid ${alphaColor(0.04)}; cursor:pointer; transition:background 0.2s"
+                 onmouseover="this.style.background=alphaColor(0.04)" onmouseout="this.style.background=''">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px">
                     <span style="font-size:1rem">${n.icon}</span>
                     <div style="flex:1">

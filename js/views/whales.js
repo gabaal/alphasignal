@@ -81,7 +81,7 @@ async function renderWhales(tabs = null) {
     // ── 1. Whale Wallet Flow Network chart (appears first) ──────────────
     const sankeyEl = document.createElement('div');
     sankeyEl.className = 'card';
-    sankeyEl.style.cssText = 'padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);';
+    sankeyEl.style.cssText = 'padding:1.5rem;margin-top:2rem;border:1px solid rgba(0,242,255,0.12);';
     sankeyEl.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
             <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">account_balance_wallet</span>WHALE WALLET FLOW NETWORK</h3>
@@ -148,9 +148,9 @@ async function renderWhales(tabs = null) {
                 },
                 scales: {
                     x: {
-                        grid:{ color:'rgba(255,255,255,0.05)' },
+                        grid:{ color:alphaColor(0.05) },
                         ticks:{ color:'#8b949e', callback: v => '$' + Math.abs(v) + 'M' },
-                        title: { display: true, text: '24H Flow ($M)', color: 'rgba(255,255,255,0.25)', font: { size: 9 } }
+                        title: { display: true, text: '24H Flow ($M)', color: alphaColor(0.25), font: { size: 9 } }
                     },
                     y: { grid:{ display:false }, ticks:{ color:'#e6edf3', font:{ family:'JetBrains Mono', size:11 } } }
                 }
@@ -249,9 +249,9 @@ async function renderWhales(tabs = null) {
                 scales: {
                     x: { display: false },
                     y: { 
-                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        grid: { color: alphaColor(0.05) }, 
                         ticks: { color: 'var(--text-dim)' },
-                        title: { display: true, text: 'Transaction Size (BTC, log)', color: 'rgba(255,255,255,0.2)', font: { size: 9 } },
+                        title: { display: true, text: 'Transaction Size (BTC, log)', color: alphaColor(0.2), font: { size: 9 } },
                         type: 'logarithmic'
                     }
                 }
@@ -278,12 +278,12 @@ function renderExecutionTopography(data) {
                 backgroundColor: data.labels.map((_, i) => 
                     (i >= 1 && i <= 6) ? 'rgba(239, 68, 68, 0.4)' : 
                     (i >= 14 && i <= 20) ? 'rgba(0, 242, 255, 0.4)' : 
-                    'rgba(255, 255, 255, 0.05)'
+                    alphaColor(0.05)
                 ),
                 borderColor: data.labels.map((_, i) => 
                     (i >= 1 && i <= 6) ? 'rgba(239, 68, 68, 0.8)' : 
                     (i >= 14 && i <= 20) ? 'rgba(0, 242, 255, 0.8)' : 
-                    'rgba(255, 255, 255, 0.2)'
+                    alphaColor(0.2)
                 ),
                 borderWidth: 1
             }]
@@ -293,14 +293,14 @@ function renderExecutionTopography(data) {
             maintainAspectRatio: false,
             scales: {
                 r: {
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    angleLines: { color: 'rgba(255,255,255,0.05)' },
+                    grid: { color: alphaColor(0.05) },
+                    angleLines: { color: alphaColor(0.05) },
                     ticks: { display:false },
                     pointLabels: {
                         display: true,
                         centerPointLabels: true,
                         font: { size: 9, family: 'JetBrains Mono' },
-                        color: 'rgba(255,255,255,0.4)'
+                        color: alphaColor(0.8)
                     }
                 }
             },

@@ -97,26 +97,26 @@ function renderHelp() {
         </div>
         <div style="max-width:960px;display:flex;flex-direction:column;gap:2rem;padding-bottom:5rem">
             ${hubs.map(hub => `
-            <div style="border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden">
-                <div style="padding:1rem 1.4rem;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <div style="border:1px solid ${alphaColor(0.07)};border-radius:14px;overflow:hidden">
+                <div style="padding:1rem 1.4rem;background:${alphaColor(0.03)};border-bottom:1px solid ${alphaColor(0.06)};display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
                     <div style="display:flex;align-items:center;gap:10px">
                         <span class="material-symbols-outlined" style="color:${hub.color};font-size:1.2rem">${hub.icon}</span>
                         <span style="font-size:0.85rem;font-weight:900;letter-spacing:1px;color:${hub.color}">${hub.name}</span>
-                        <span style="font-size:0.55rem;color:var(--text-dim);font-weight:700;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:100px;border:1px solid rgba(255,255,255,0.08)">${hub.docs.length} VIEW${hub.docs.length > 1 ? 'S' : ''}</span>
+                        <span style="font-size:0.55rem;color:var(--text-dim);font-weight:700;background:${alphaColor(0.05)};padding:2px 8px;border-radius:100px;border:1px solid ${alphaColor(0.08)}">${hub.docs.length} VIEW${hub.docs.length > 1 ? 'S' : ''}</span>
                     </div>
-                    <button onclick="switchView('${hub.view}')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:4px 12px;border-radius:100px;font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.2s" onmouseover="this.style.borderColor='${hub.color}';this.style.color='${hub.color}'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--text-dim)'">
+                    <button onclick="switchView('${hub.view}')" style="background:${alphaColor(0.05)};border:1px solid ${alphaColor(0.1)};color:var(--text-dim);padding:4px 12px;border-radius:100px;font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.2s" onmouseover="this.style.borderColor='${hub.color}';this.style.color='${hub.color}'" onmouseout="this.style.borderColor=alphaColor(0.1);this.style.color='var(--text-dim)'">
                         <span class="material-symbols-outlined" style="font-size:13px">open_in_new</span> OPEN HUB
                     </button>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0">
                     ${hub.docs.map((doc, idx) => `
-                    <div onclick="switchView('${doc.route}')" style="padding:1.1rem 1.4rem;cursor:pointer;border-right:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.18s;position:relative" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+                    <div onclick="switchView('${doc.route}')" style="padding:1.1rem 1.4rem;cursor:pointer;border-right:1px solid ${alphaColor(0.05)};border-bottom:1px solid ${alphaColor(0.05)};transition:background 0.18s;position:relative" onmouseover="this.style.background=alphaColor(0.04)" onmouseout="this.style.background='transparent'">
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                             <span class="material-symbols-outlined" style="font-size:16px;color:${hub.color}">${doc.icon}</span>
                             <span style="font-size:0.85rem;font-weight:700;color:var(--text)">${doc.name}</span>
                         </div>
                         <p style="font-size:0.7rem;line-height:1.5;color:var(--text-dim);margin:0">${doc.desc}</p>
-                        <span class="material-symbols-outlined" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;color:rgba(255,255,255,0.15)">chevron_right</span>
+                        <span class="material-symbols-outlined" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;color:${alphaColor(0.15)}">chevron_right</span>
                     </div>`).join('')}
                 </div>
             </div>`).join('')}

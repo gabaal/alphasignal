@@ -35,7 +35,7 @@ function renderGuppyRibbon(history) {
     datasets.push({
         label: 'Price',
         data: prices,
-        borderColor: 'rgba(255, 255, 255, 0.8)',
+        borderColor: alphaColor(0.8),
         borderWidth: 1.5,
         pointRadius: 0,
         fill: false,
@@ -77,9 +77,9 @@ function renderGuppyRibbon(history) {
                 x: { grid: { display:false }, ticks: { color: '#888', maxTicksLimit: 10, font: { family: 'JetBrains Mono', size:10 } } },
                 y: {
                     position: 'right',
-                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    grid: { color: alphaColor(0.05) },
                     ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: function(val) { return '$' + val.toLocaleString(); } },
-                    title: { display: true, text: 'Price (USD)', color: 'rgba(255,255,255,0.2)', font: { size: 9 } }
+                    title: { display: true, text: 'Price (USD)', color: alphaColor(0.2), font: { size: 9 } }
                 }
             }
         }
@@ -225,7 +225,7 @@ async function renderStressHub(tabs = null) {
                 </div>
                 <div class="risk-status">${data.systemic_risk > 70 ? 'CRITICAL' : data.systemic_risk > 40 ? 'ELEVATED' : 'STABLE'}</div>
             </div>
-            <div class="var-box" style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.03); border-radius:12px">
+            <div class="var-box" style="margin-top:2rem; padding:1.5rem; background:${alphaColor(0.03)}; border-radius:12px">
                 <label style="font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">SECTOR HOTSPOTS</label>
                 <div style="margin-top:10px">
                     ${data.hotspots.map(h => `
@@ -367,19 +367,19 @@ async function renderChainVelocity(tabs = null) {
         ${tabs ? renderHubTabs('velocity', tabs) : ''}
 
         <div style="display:grid; grid-template-columns:3fr 1fr; gap:2rem; margin-bottom: 2rem; align-items:start;">
-            <div class="card" style="padding:1.5rem; background:rgba(10,11,30,0.5); backdrop-filter:blur(10px)">
+            <div class="card" style="padding:1.5rem;  backdrop-filter:blur(10px)">
                 <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">VELOCITY RADAR (INSTITUTIONAL MOMENTUM)</h3>
                 <div style="position:relative; height:750px; width:100%">
                     <canvas id="velocityRadar" role="img" aria-label="Chain velocity radar chart"></canvas>
                 </div>
             </div>
-            <div class="card" style="padding:1.5rem; background:rgba(0,0,0,0.4)">
+            <div class="card" style="padding:1.5rem; ">
                 <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">NARRATIVE LEADERS</h3>
                 <div class="velocity-leaderboard">
                     ${data.leaderboard.map((l, i) => `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 10px; border-bottom:1px solid ${alphaColor(0.05)}">
                             <div style="display:flex; align-items:center; gap:12px">
-                                <span style="font-size:1.2rem; font-weight:900; color:rgba(255,255,255,0.05)">#${i+1}</span>
+                                <span style="font-size:1.2rem; font-weight:900; color:${alphaColor(0.05)}">#${i+1}</span>
                                 <span style="font-weight:900; color:white; font-size:0.9rem">${l.ticker.split('-')[0]}</span>
                             </div>
                             <div style="text-align:right">
@@ -414,10 +414,10 @@ async function renderChainVelocity(tabs = null) {
             `).join('')}
         </div>
 
-        <div class="card" style="margin-top:2rem; padding:1.5rem; background:rgba(0,0,0,0.4)">
+        <div class="card" style="margin-top:2rem; padding:1.5rem; ">
             <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">ECOSYSTEM CAPITAL FLOW (SANKEY)</h3>
             <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:1.5rem">Maps real-time capital allocation from fiat origins down through L1 routing protocols to specific Yield/DEX destination pools.</p>
-            <div id="sankey-container" style="height:400px; width:100%; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.2)"></div>
+            <div id="sankey-container" style="height:400px; width:100%; border-radius:8px; overflow:hidden; border:1px solid ${alphaColor(0.05)}; "></div>
         </div>
     `;
 
@@ -457,10 +457,10 @@ async function renderChainVelocity(tabs = null) {
             maintainAspectRatio: false,
             scales: {
                 r: {
-                    angleLines: { color: 'rgba(255,255,255,0.2)' },
-                    grid: { color: 'rgba(255,255,255,0.12)' },
+                    angleLines: { color: alphaColor(0.2) },
+                    grid: { color: alphaColor(0.12) },
                     pointLabels: { 
-                        color: '#ffffff',
+                        color: alphaColor(0.8),
                         font: { size: 13, weight: '900', family: 'JetBrains Mono' },
                         padding: 16,
                         backdropColor: 'rgba(0,0,0,0)'
@@ -475,7 +475,7 @@ async function renderChainVelocity(tabs = null) {
                 legend: { 
                     position: 'bottom', 
                     labels: { 
-                        color: 'white', 
+                        color: alphaColor(0.8), 
                         font: { size: 11, weight: '800', family: 'JetBrains Mono' },
                         padding: 20
                     } 
@@ -552,14 +552,14 @@ function renderSankeyDiagram({ nodes, links }) {
             if (d.name.includes('ETH')) return '#627eea';
             return '#7dd3fc';
         })
-        .style('stroke', 'rgba(255,255,255,0.2)');
+        .style('stroke', alphaColor(0.2));
 
     node.append('text')
         .attr('x', d => (d.x0 < width / 2) ? (d.x1 - d.x0 + 6) : -6)
         .attr('y', d => (d.y1 - d.y0) / 2)
         .attr('dy', '0.35em')
         .attr('text-anchor', d => (d.x0 < width / 2) ? 'start' : 'end')
-        .attr('fill', '#fff')
+        .attr('fill', alphaColor(0.9))
         .attr('font-size', '11px')
         .attr('font-weight', '700')
         .text(d => d.name);

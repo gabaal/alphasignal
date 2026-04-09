@@ -67,13 +67,13 @@ async function renderWatchlistTab(el) {
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
                 <input id="wl-ticker" name="wl-ticker-field" placeholder="TICKER e.g. BTC-USD" maxlength="15"
                     autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
-                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:140px;text-transform:uppercase">
+                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:140px;text-transform:uppercase">
                 <input id="wl-target" name="wl-target-field" placeholder="Target price (optional)" type="number" step="any"
                     autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
-                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:180px">
+                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:180px">
                 <input id="wl-note" name="wl-note-field" placeholder="Note (optional)" maxlength="120"
                     autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
-                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;flex:1;min-width:140px">
+                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;flex:1;min-width:140px">
                 <button class="intel-action-btn mini" onclick="addToWatchlist()" style="white-space:nowrap">
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">add</span> ADD
                 </button>
@@ -137,7 +137,7 @@ function renderWatchlistCards(items) {
     const gridCols = '80px 1fr 1fr 1fr 1fr 1fr 120px';
 
     const headerRow = `
-        <div style="display:grid;grid-template-columns:${gridCols};gap:0;padding:0.5rem 1rem;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:4px">
+        <div style="display:grid;grid-template-columns:${gridCols};gap:0;padding:0.5rem 1rem;border-bottom:1px solid ${alphaColor(0.08)};margin-bottom:4px">
             <div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">TICKER</div>
             <div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">LIVE PRICE</div>
             <div style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">TARGET</div>
@@ -204,14 +204,14 @@ function renderWatchlistCards(items) {
                 <div style="font-size:0.55rem;color:#f59e0b;letter-spacing:1.5px;font-weight:700;flex-basis:100%;margin-bottom:4px">SET TARGET PRICE</div>
                 <input id="wl-edit-target-${item.id}" type="number" step="any" placeholder="Target price"
                     value="${item.target_price || ''}"
-                    style="background:rgba(255,255,255,0.05);border:1px solid rgba(245,158,11,0.3);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.8rem;width:150px">
+                    style="background:${alphaColor(0.05)};border:1px solid rgba(245,158,11,0.3);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.8rem;width:150px">
                 <input id="wl-edit-note-${item.id}" type="text" placeholder="Note (optional)" maxlength="120"
                     value="${(item.note || '').replace(/Quick add from signal feed/g,'').trim()}"
-                    style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.8rem;flex:1;min-width:120px">
+                    style="background:${alphaColor(0.05)};border:1px solid ${alphaColor(0.1)};color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.8rem;flex:1;min-width:120px">
                 <button onclick="saveWatchlistEdit(${item.id})"
                     style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.7rem;font-weight:700;letter-spacing:1px">SAVE</button>
                 <button onclick="toggleWatchlistEdit(${item.id})"
-                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem">CANCEL</button>
+                    style="background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.1)};color:var(--text-dim);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem">CANCEL</button>
             </div>
         </div>`;
     }).join('');
@@ -285,22 +285,22 @@ async function renderPositionsTab(el) {
             <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:0.8rem">LOG A POSITION</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px">
                 <input id="pos-ticker" placeholder="TICKER" maxlength="15"
-                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;text-transform:uppercase">
-                <select id="pos-side" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
+                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;text-transform:uppercase">
+                <select id="pos-side" style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
                     <option value="LONG">LONG</option>
                     <option value="SHORT">SHORT</option>
                 </select>
                 <input id="pos-qty" placeholder="Quantity" type="number" step="any" min="0"
-                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
+                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
                 <input id="pos-entry" placeholder="Entry price $" type="number" step="any" min="0"
-                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
+                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
                 <input id="pos-target" placeholder="Target $ (opt)" type="number" step="any"
-                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
+                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
                 <input id="pos-stop" placeholder="Stop $ (opt)" type="number" step="any"
-                    style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
+                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
             </div>
             <input id="pos-notes" placeholder="Notes (optional)" maxlength="200"
-                style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:100%;box-sizing:border-box;margin-bottom:10px">
+                style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:100%;box-sizing:border-box;margin-bottom:10px">
             <button class="intel-action-btn mini" onclick="addPosition()" style="white-space:nowrap">
                 <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">add_circle</span> LOG POSITION
             </button>

@@ -184,7 +184,7 @@ async function renderLiquidityView(tabs = null) {
                         tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '—'} BTC` } }
                     },
                     scales: {
-                        x:  { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888', maxTicksLimit: 16, font: { size: 10 } } },
+                        x:  { grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 16, font: { size: 10 } } },
                         y:  { position: 'left',  grid: { color: 'rgba(34,197,94,0.08)' },  ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: '← Bid Depth (BTC)', color: 'rgba(34,197,94,0.7)' }, min: 0 },
                         y1: { position: 'right', grid: { drawOnChartArea: false },           ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: 'Ask Depth (BTC) →', color: 'rgba(239,68,68,0.7)' }, min: 0 }
                     }
@@ -284,7 +284,7 @@ async function renderLiquidityView(tabs = null) {
                         tooltip: { callbacks: { label: c => c.datasetIndex === 0 ? `Price: $${(c.parsed.y||0).toLocaleString(undefined,{maximumFractionDigits:0})}` : `Body: $${(c.parsed.y||0).toFixed(0)}` } }
                     },
                     scales: {
-                        x:  { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#888', maxTicksLimit: 12, font: { size: 9 } }, title: { display: true, text: 'Time (5-min candles)', color: '#555', font: { size: 9 } } },
+                        x:  { grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 12, font: { size: 9 } }, title: { display: true, text: 'Time (5-min candles)', color: '#555', font: { size: 9 } } },
                         y:  { position: 'left',  grid: { color: 'rgba(0,242,255,0.05)' }, ticks: { color: 'rgba(0,242,255,0.7)', callback: v => '$'+(v/1000).toFixed(0)+'K' }, title: { display: true, text: 'Price (USD)', color: 'rgba(0,242,255,0.5)', font: { size: 9 } } },
                         y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#666', font: { size: 9 } }, title: { display: true, text: 'Candle Body ($)', color: '#555', font: { size: 9 } } }
                     }
@@ -315,8 +315,8 @@ async function renderLiquidityView(tabs = null) {
                 },
                 options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Price Level ($)', color: '#666', font: { size: 9 } } },
-                        y:  { type: 'linear', position: 'left',  grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Liquidation Volume', color: '#888', font: { size: 9 } } },
+                        x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Price Level ($)', color: '#666', font: { size: 9 } } },
+                        y:  { type: 'linear', position: 'left',  grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Liquidation Volume', color: '#888', font: { size: 9 } } },
                         y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: 'Est. OI', color: '#7dd3fc', font: { size: 9 } } }
                     }
                 }
@@ -364,8 +364,8 @@ async function renderLiquidityView(tabs = null) {
                 },
                 options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Expiry', color: '#666', font: { size: 9 } } },
-                        y:  { type: 'linear', position: 'left',  grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, title: { display: true, text: 'Implied Volatility (%)', color: '#f7931a', font: { size: 9 } } },
+                        x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Expiry', color: '#666', font: { size: 9 } } },
+                        y:  { type: 'linear', position: 'left',  grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Implied Volatility (%)', color: '#f7931a', font: { size: 9 } } },
                         y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: '25Δ Skew (%)', color: '#ff0055', font: { size: 9 } } }
                     }
                 }
@@ -548,10 +548,10 @@ async function renderSignalArchive(tabs = null) {
             <button id="atab-active" onclick="window._setArchiveState('active')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(74,222,128,0.5);background:rgba(74,222,128,0.12);color:#4ade80;cursor:pointer;letter-spacing:1px;transition:all 0.15s">
                 ● ACTIVE
             </button>
-            <button id="atab-all" onclick="window._setArchiveState('all')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
+            <button id="atab-all" onclick="window._setArchiveState('all')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
                 ALL
             </button>
-            <button id="atab-closed" onclick="window._setArchiveState('closed')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
+            <button id="atab-closed" onclick="window._setArchiveState('closed')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
                 CLOSED
             </button>
         </div>
@@ -615,13 +615,13 @@ async function renderSignalArchive(tabs = null) {
                     <span id="active-range-label" style="font-size:0.5rem;padding:1px 7px;border-radius:10px;background:rgba(0,242,255,0.1);color:var(--accent);font-weight:700">30D</span>
                 </label>
                 <div style="display:flex;gap:4px;flex-wrap:wrap">
-                    <button id="drp-today" class="drp-pill" onclick="window._drpSelect('today',0)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">TODAY</button>
-                    <button id="drp-7d"    class="drp-pill" onclick="window._drpSelect('7d',7)"   style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">7D</button>
+                    <button id="drp-today" class="drp-pill" onclick="window._drpSelect('today',0)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">TODAY</button>
+                    <button id="drp-7d"    class="drp-pill" onclick="window._drpSelect('7d',7)"   style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">7D</button>
                     <button id="drp-30d"  class="drp-pill drp-active" onclick="window._drpSelect('30d',30)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(0,242,255,0.5);background:rgba(0,242,255,0.12);color:var(--accent);cursor:pointer;transition:all 0.15s;white-space:nowrap">30D</button>
-                    <button id="drp-90d"  class="drp-pill" onclick="window._drpSelect('90d',90)"  style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">90D</button>
-                    <button id="drp-365d" class="drp-pill" onclick="window._drpSelect('365d',365)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">1Y</button>
-                    <button id="drp-all"  class="drp-pill" onclick="window._drpSelect('all',-1)"  style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">ALL TIME</button>
-                    <button id="drp-custom" class="drp-pill" onclick="window._drpSelect('custom',null)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">CUSTOM&#8230;</button>
+                    <button id="drp-90d"  class="drp-pill" onclick="window._drpSelect('90d',90)"  style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">90D</button>
+                    <button id="drp-365d" class="drp-pill" onclick="window._drpSelect('365d',365)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">1Y</button>
+                    <button id="drp-all"  class="drp-pill" onclick="window._drpSelect('all',-1)"  style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">ALL TIME</button>
+                    <button id="drp-custom" class="drp-pill" onclick="window._drpSelect('custom',null)" style="font-size:0.58rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;transition:all 0.15s;white-space:nowrap">CUSTOM&#8230;</button>
                 </div>
                 <div id="drp-custom-inputs" style="display:none;gap:6px;align-items:flex-end;margin-top:4px;flex-wrap:wrap">
                     <div style="display:flex;flex-direction:column;gap:2px">
@@ -667,8 +667,8 @@ async function renderSignalArchive(tabs = null) {
             const btn = document.getElementById('atab-' + s);
             if (!btn) return;
             const isActive = s === state;
-            btn.style.border    = '1px solid ' + (isActive ? styles[s].border : 'rgba(255,255,255,0.1)');
-            btn.style.background = isActive ? styles[s].bg : 'rgba(255,255,255,0.03)';
+            btn.style.border    = '1px solid ' + (isActive ? styles[s].border : alphaColor(0.1));
+            btn.style.background = isActive ? styles[s].bg : alphaColor(0.03);
             btn.style.color     = isActive ? styles[s].color : 'var(--text-dim)';
         });
         loadData(1);
@@ -692,9 +692,9 @@ async function renderSignalArchive(tabs = null) {
         // Restyle all pills
         document.querySelectorAll('.drp-pill').forEach(b => {
             const active = b.id === 'drp-' + id;
-            b.style.background = active ? 'rgba(0,242,255,0.12)' : 'rgba(255,255,255,0.03)';
+            b.style.background = active ? 'rgba(0,242,255,0.12)' : alphaColor(0.03);
             b.style.color = active ? 'var(--accent)' : 'var(--text-dim)';
-            b.style.borderColor = active ? 'rgba(0,242,255,0.5)' : 'rgba(255,255,255,0.1)';
+            b.style.borderColor = active ? 'rgba(0,242,255,0.5)' : alphaColor(0.1);
         });
         // Show/hide custom date inputs
         const ci = document.getElementById('drp-custom-inputs');
@@ -815,7 +815,7 @@ async function renderSignalArchive(tabs = null) {
                 const sev = (s.severity||'').toLowerCase();
                 const sevIcon  = sev==='critical'?'🔴':sev==='high'?'🟠':'🟡';
                 return `
-                <tr class="archive-row" onclick="window._openSignalDrawer('${s.id}')" style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                <tr class="archive-row" onclick="window._openSignalDrawer('${s.id}')" style="cursor:pointer;border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.2s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                     <td data-label="TICKER" style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
                     <td data-label="TYPE" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
                     <td data-label="SEV" class="col-sev" style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${sevIcon} ${(sev||'--').toUpperCase()}</span></td>
@@ -939,11 +939,11 @@ async function renderSignalArchive(tabs = null) {
               display:block; width:100%;
             }
             .archive-row {
-              border:1px solid rgba(255,255,255,0.06) !important;
+              border:1px solid ${alphaColor(0.06)} !important;
               border-radius:8px;
               margin-bottom:8px;
               padding:4px 0;
-              background:rgba(255,255,255,0.02);
+              background:${alphaColor(0.02)};
             }
             #archive-table td {
               display:flex;
@@ -1081,7 +1081,7 @@ async function renderSignalArchive(tabs = null) {
         if (document.getElementById('sig-drawer')) return;
         const st = document.createElement('style');
         st.textContent = [
-            '#sig-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9998;opacity:0;pointer-events:none;transition:opacity .3s}',
+            '#sig-drawer-overlay{position:fixed;inset:0;z-index:9998;opacity:0;pointer-events:none;transition:opacity .3s}',
             '#sig-drawer-overlay.open{opacity:1;pointer-events:all}',
             '#sig-drawer{position:fixed;top:0;right:0;width:440px;max-width:100vw;height:100vh;z-index:9999;',
             'background:#0a1628;border-left:1px solid rgba(0,242,255,0.15);',
@@ -1090,7 +1090,7 @@ async function renderSignalArchive(tabs = null) {
             '#sig-drawer.open{transform:translateX(0)}',
             '.sdw-label{font-size:.48rem;font-weight:900;letter-spacing:1.5px;color:#6b7280;margin-bottom:4px}',
             '.sdw-val{font-size:1.05rem;font-weight:900;font-family:monospace}',
-            '.sdw-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.85rem 1rem;text-align:center}',
+            '.sdw-card{background:${alphaColor(.04)};border:1px solid ${alphaColor(.07)};border-radius:10px;padding:.85rem 1rem;text-align:center}',
             '.sdw-tp{display:flex;align-items:center;gap:8px;padding:.5rem .75rem;border-radius:8px;margin-bottom:6px;font-size:.72rem}',
         ].join('');
         document.head.appendChild(st);
@@ -1139,7 +1139,7 @@ async function renderSignalArchive(tabs = null) {
         const thesisHtml = s.message
             ? `<div style="margin-bottom:1.2rem">
                  <div style="font-size:.5rem;font-weight:900;letter-spacing:2px;color:#6b7280;margin-bottom:8px">AI THESIS</div>
-                 <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:1rem;font-size:.75rem;color:#94a3b8;line-height:1.6">${s.message}</div>
+                 <div style="background:${alphaColor(.03)};border:1px solid ${alphaColor(.07)};border-radius:10px;padding:1rem;font-size:.75rem;color:#94a3b8;line-height:1.6">${s.message}</div>
                </div>` : '';
 
         drawer.innerHTML = `
@@ -1150,7 +1150,7 @@ async function renderSignalArchive(tabs = null) {
             </div>
             <div style="display:flex;align-items:center;gap:8px">
               <span style="background:${sc}22;color:${sc};padding:4px 12px;border-radius:20px;font-size:.6rem;font-weight:700;letter-spacing:1px">${SI[s.state]||''} ${s.state}</span>
-              <button onclick="window._closeSignalDrawer()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#6b7280;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1">&#x2715;</button>
+              <button onclick="window._closeSignalDrawer()" style="background:${alphaColor(.06)};border:1px solid ${alphaColor(.1)};color:#6b7280;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1">&#x2715;</button>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.2rem">

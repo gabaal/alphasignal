@@ -36,7 +36,7 @@ async function renderMacroView(tabs = null) {
 
                             ${data.events.map(e => `
 
-                                <div style="display:flex; gap:15px; padding:15px; background:rgba(255,255,255,0.02); border-radius:12px; border-left: 4px solid var(--${e.impact === 'CRITICAL' ? 'risk-high' : (e.impact === 'HIGH' ? 'accent' : 'text-dim')})">
+                                <div style="display:flex; gap:15px; padding:15px; background:${alphaColor(0.02)}; border-radius:12px; border-left: 4px solid var(--${e.impact === 'CRITICAL' ? 'risk-high' : (e.impact === 'HIGH' ? 'accent' : 'text-dim')})">
 
                                     <div style="width:60px; text-align:center">
 
@@ -80,7 +80,7 @@ async function renderMacroView(tabs = null) {
 
                             ${Object.entries(data.yields).map(([lbl, val]) => `
 
-                                <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; text-align:center">
+                                <div style="background:${alphaColor(0.03)}; padding:12px; border-radius:8px; text-align:center">
 
                                     <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">${lbl}</div>
 
@@ -220,7 +220,7 @@ async function renderMacroView(tabs = null) {
 
                 const zClr = Math.abs(z)>2 ? (z>0?'#22c55e':'#ef4444') : 'var(--text-dim)';
 
-                html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                html += `<tr style="border-bottom:1px solid ${alphaColor(0.04)};">
 
                     <td style="padding:7px 10px;font-weight:700;color:var(--text)">${r.ticker}</td>
 
@@ -264,7 +264,7 @@ async function renderDocsVelocity() {
 
         <div class="docs-container" style="max-width:800px; margin:0 auto; line-height:1.7; color:var(--text-dim); padding: 2rem 0">
 
-            <section style="margin-bottom:2.5rem; background:rgba(255,255,255,0.02); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
+            <section style="margin-bottom:2.5rem; background:${alphaColor(0.02)}; padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
 
                 <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">1. CORE VELOCITY METRIC</h3>
 
@@ -272,7 +272,7 @@ async function renderDocsVelocity() {
 
             </section>
 
-            <section style="margin-bottom:2.5rem; background:rgba(255,255,255,0.02); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
+            <section style="margin-bottom:2.5rem; background:${alphaColor(0.02)}; padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
 
                 <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">2. SOCIAL HEAT (MINDSHARE)</h3>
 
@@ -280,7 +280,7 @@ async function renderDocsVelocity() {
 
             </section>
 
-            <section style="margin-bottom:2.5rem; background:rgba(255,255,255,0.02); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
+            <section style="margin-bottom:2.5rem; background:${alphaColor(0.02)}; padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
 
                 <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">3. INSTITUTIONAL VIGOR</h3>
 
@@ -288,7 +288,7 @@ async function renderDocsVelocity() {
 
             </section>
 
-            <section style="margin-bottom:2.5rem; background:rgba(255,255,255,0.02); padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
+            <section style="margin-bottom:2.5rem; background:${alphaColor(0.02)}; padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
 
                 <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">4. THE RADAR CHART</h3>
 
@@ -320,7 +320,7 @@ function _pnlHtml(entryPrice, liveP) {
 
     const color = pct > 0 ? 'var(--risk-low)' : pct < 0 ? 'var(--risk-high)' : 'var(--text-dim)';
 
-    return `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
+    return `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:${alphaColor(0.03)};border-radius:8px;border:1px solid ${alphaColor(0.06)};margin-bottom:10px;flex-wrap:wrap">
 
         <div style="font-size:0.65rem;color:var(--text-dim)"><span style="font-weight:700;letter-spacing:1px">ENTRY</span><br>
 
@@ -586,13 +586,13 @@ async function renderAlerts(tabs = null) {
 
                         <span style="font-size:0.85rem"></span> DISCORD WEBHOOK
 
-                        ${hasDiscord ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700"> CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
+                        ${hasDiscord ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700"> CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:${alphaColor(0.05)};color:var(--text-dim)">NOT SET</span>'}
 
                     </label>
 
                     <input id="discord-webhook-input" type="password" placeholder="${hasDiscord ? discMasked + ' (enter new to update)' : 'https://discord.com/api/webhooks/...'}"
 
-                        style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid ${hasDiscord ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
+                        style="width:100%;padding:10px 12px;border:1px solid ${hasDiscord ? 'rgba(34,197,94,0.3)' : alphaColor(0.1)};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
 
                     <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Server > Integrations > Webhooks > Copy URL</div>
 
@@ -606,13 +606,13 @@ async function renderAlerts(tabs = null) {
 
                         <span style="font-size:0.85rem"></span> TELEGRAM CHAT ID
 
-                        ${hasTelegram ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700"> CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text-dim)">NOT SET</span>'}
+                        ${hasTelegram ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700"> CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:${alphaColor(0.05)};color:var(--text-dim)">NOT SET</span>'}
 
                     </label>
 
                     <input id="telegram-chat-input" type="text" placeholder="${hasTelegram ? tgMasked + ' (enter new to update)' : '-1001234567890'}"
 
-                        style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid ${hasTelegram ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
+                        style="width:100%;padding:10px 12px;border:1px solid ${hasTelegram ? 'rgba(34,197,94,0.3)' : alphaColor(0.1)};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
 
                     <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Open @userinfobot or @getidsbot in Telegram to find your chat ID</div>
 
@@ -824,7 +824,7 @@ async function renderAlerts(tabs = null) {
 
             ].map(([id, label, color, icon]) => `
 
-                <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.03);border:1px solid ${color}33;border-radius:6px;padding:4px 10px">
+                <div style="display:flex;align-items:center;gap:5px;background:${alphaColor(0.03)};border:1px solid ${color}33;border-radius:6px;padding:4px 10px">
 
                     <span class="material-symbols-outlined" style="font-size:12px;color:${color}">${icon}</span>
 
@@ -854,7 +854,7 @@ async function renderAlerts(tabs = null) {
 
                 return `
 
-                <div id="alert-filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;background:rgba(0,0,0,0.2);border-radius:12px;border:1px solid var(--border);margin-bottom:4px;align-items:center">
+                <div id="alert-filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;align-items:center">
 
                     <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px;margin-right:4px">FILTER:</span>
 
@@ -862,13 +862,13 @@ async function renderAlerts(tabs = null) {
 
                         <button class="filter-btn alert-filter-btn ${t==='ALL'?'active':''}" data-afilter="${t}"
 
-                            style="font-size:0.6rem;padding:3px 10px;border-radius:100px;border:1px solid rgba(255,255,255,0.1);background:${t==='ALL'?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.04)'};color:${t==='ALL'?'var(--accent)':'var(--text-dim)'};cursor:pointer;font-weight:700;letter-spacing:1px;transition:all 0.15s"
+                            style="font-size:0.6rem;padding:3px 10px;border-radius:100px;border:1px solid ${alphaColor(0.1)};background:${t==='ALL'?'rgba(0,242,255,0.12)':alphaColor(0.04)};color:${t==='ALL'?'var(--accent)':'var(--text-dim)'};cursor:pointer;font-weight:700;letter-spacing:1px;transition:all 0.15s"
 
                             onclick="window.filterAlerts('${t}',this)">${t.replace('_',' ')}</button>
 
                     `).join('')}
 
-                    <div style="margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:4px 10px">
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:8px;padding:4px 10px">
 
                         <span class="material-symbols-outlined" style="font-size:14px;color:var(--text-dim)">search</span>
 
@@ -932,7 +932,7 @@ async function renderAlerts(tabs = null) {
 
                     const pnlSign = pnlPct > 0 ? '+' : '';
 
-                    pnlHtml = `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;flex-wrap:wrap">
+                    pnlHtml = `<div style="display:flex;gap:12px;align-items:center;padding:8px 12px;background:${alphaColor(0.03)};border-radius:8px;border:1px solid ${alphaColor(0.06)};margin-bottom:10px;flex-wrap:wrap">
 
                         <div style="font-size:0.65rem;color:var(--text-dim)">
 
@@ -968,7 +968,7 @@ async function renderAlerts(tabs = null) {
 
                     // by the bulk-seed callback once /signals resolves
 
-                    pnlHtml = `<div class="pnl-pending" data-ticker="${a.ticker || ''}" data-entry="${entryPrice}" style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px">
+                    pnlHtml = `<div class="pnl-pending" data-ticker="${a.ticker || ''}" data-entry="${entryPrice}" style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:${alphaColor(0.03)};border-radius:6px;border:1px solid ${alphaColor(0.06)};margin-bottom:10px">
 
                         <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:1px">ENTRY</span>
 
@@ -990,7 +990,7 @@ async function renderAlerts(tabs = null) {
 
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
 
-                            <span style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:${sevColor}">${a.type}</span>
+                            <span style="font-size:0.7rem; font-weight:900; background:${alphaColor(0.05)}; padding:4px 8px; border-radius:4px; color:${sevColor}">${a.type}</span>
 
                             <span style="font-size:0.65rem;padding:3px 8px;border-radius:100px;font-weight:800;background:${a.severity === 'high' || a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(0,242,255,0.1)'};color:${sevColor};border:1px solid ${sevColor}33;letter-spacing:1px">${a.severity?.toUpperCase() || 'INFO'}</span>
 
@@ -1094,7 +1094,7 @@ async function renderAlerts(tabs = null) {
 
             document.querySelectorAll('.alert-filter-btn').forEach(b => {
 
-                b.style.background = 'rgba(255,255,255,0.04)'; b.style.color = 'var(--text-dim)'; b.classList.remove('active');
+                b.style.background = alphaColor(0.04); b.style.color = 'var(--text-dim)'; b.classList.remove('active');
 
             });
 
@@ -1150,7 +1150,7 @@ async function renderAlerts(tabs = null) {
 
             const lp = window.livePrices ? (window.livePrices[a.ticker] || window.livePrices[(a.ticker||'').replace('-USD','')]) : null;
 
-            const pnlHtml = ep && lp ? (() => { const pct = ((lp-ep)/ep*100); const col = pct>=0?'var(--risk-low)':'var(--risk-high)'; return `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString()}</span><span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700;color:${col}">${pct>=0?'+':''}${pct.toFixed(2)}%</span></div>`; })() : ep ? `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>` : '';
+            const pnlHtml = ep && lp ? (() => { const pct = ((lp-ep)/ep*100); const col = pct>=0?'var(--risk-low)':'var(--risk-high)'; return `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:${alphaColor(0.03)};border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString()}</span><span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700;color:${col}">${pct>=0?'+':''}${pct.toFixed(2)}%</span></div>`; })() : ep ? `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:${alphaColor(0.03)};border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>` : '';
 
             return `<div class="alert-card ${sev}" style="background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ${sevColor};border-radius:12px;padding:1.5rem">
 
@@ -1158,7 +1158,7 @@ async function renderAlerts(tabs = null) {
 
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
 
-                        <span style="font-size:0.65rem;font-weight:900;padding:3px 8px;border-radius:4px;background:rgba(255,255,255,0.05);color:${sevColor}">${a.type||''}</span>
+                        <span style="font-size:0.65rem;font-weight:900;padding:3px 8px;border-radius:4px;background:${alphaColor(0.05)};color:${sevColor}">${a.type||''}</span>
 
                         <span style="font-size:0.7rem;color:var(--accent);font-weight:900">${(a.ticker||'').replace('-USD','')}</span>
 
@@ -1504,7 +1504,7 @@ async function renderRegime(tabs = null) {
 
                 <h3>STRUCTURAL ALPHA HEATMAP (D3.JS)</h3>
 
-                <div id="regime-heatmap-container" style="height:200px; background:rgba(255,255,255,0.02); border-radius:12px; margin-top:1rem"></div>
+                <div id="regime-heatmap-container" style="height:200px; background:${alphaColor(0.02)}; border-radius:12px; margin-top:1rem"></div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px">
 

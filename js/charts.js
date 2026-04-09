@@ -11,11 +11,11 @@ function createTradingViewChart(containerId, data) {
             fontFamily: 'JetBrains Mono'
         },
         grid: { 
-            vertLines: { color: 'rgba(255, 255, 255, 0.03)' }, 
-            horzLines: { color: 'rgba(255, 255, 255, 0.03)' } 
+            vertLines: { color: alphaColor(0.03) }, 
+            horzLines: { color: alphaColor(0.03) } 
         },
-        rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.1)' },
-        timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true },
+        rightPriceScale: { borderColor: alphaColor(0.1) },
+        timeScale: { borderColor: alphaColor(0.1), timeVisible: true },
         width: container.clientWidth || 800,
         height: container.clientHeight || 300
     });
@@ -131,16 +131,16 @@ function renderChart(history) {
         datasets.push({
             label: 'Upper Band',
             data: history.map(h => h.upper),
-            borderColor: 'rgba(255, 255, 255, 0.2)',
+            borderColor: alphaColor(0.2),
             borderWidth: 1,
             fill: '+1',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            backgroundColor: alphaColor(0.05),
             pointRadius: 0
         });
         datasets.push({
             label: 'Lower Band',
             data: history.map(h => h.lower),
-            borderColor: 'rgba(255, 255, 255, 0.2)',
+            borderColor: alphaColor(0.2),
             borderWidth: 1,
             fill: false,
             pointRadius: 0
@@ -173,7 +173,7 @@ function renderChart(history) {
             },
             scales: {
                 y: { 
-                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                    grid: { color: alphaColor(0.05) }, 
                     ticks: { 
                         color: '#888', 
                         font: { family: 'JetBrains Mono' },
@@ -213,7 +213,7 @@ function renderWhaleFlowChart(history) {
             scales: {
                 x: { display: false },
                 y: {
-                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    grid: { color: alphaColor(0.05) },
                     ticks: { color: '#666', font: { size: 10 } }
                 }
             }
@@ -251,7 +251,7 @@ function renderMonteCarloChart(data) {
     if (data.p50) {
         datasets.push({
             label: 'Median (P50)', data: data.p50,
-            borderColor: 'rgba(255,255,255,0.85)', borderWidth: 2.5,
+            borderColor: alphaColor(0.85), borderWidth: 2.5,
             pointRadius: 0, fill: false, tension: 0.3
         });
     }
@@ -290,7 +290,7 @@ function renderMonteCarloChart(data) {
             },
             scales: {
                 x: { grid: { display:false }, ticks: { color: '#888', font: { family: 'JetBrains Mono', size:10 }, maxRotation:0 } },
-                y: { position: 'right', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: (val) => '$' + val.toLocaleString() } }
+                y: { position: 'right', grid: { color: alphaColor(0.05) }, ticks: { color: '#888', font: { family: 'JetBrains Mono' }, callback: (val) => '$' + val.toLocaleString() } }
             }
         }
     });
@@ -301,7 +301,7 @@ function renderWalkForwardPanel(data) {
     if (!el || !data.folds) return;
     const rows = data.folds.map(f => {
         const decay = f.out_sample_sharpe < f.in_sample_sharpe;
-        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+        return `<tr style="border-bottom:1px solid ${alphaColor(0.04)}">
             <td style="padding:8px 4px;color:var(--text-dim);font-size:0.72rem">Fold ${f.fold}</td>
             <td style="padding:8px 4px;font-size:0.72rem;color:#aaa">${f.period}</td>
             <td style="padding:8px;font-size:0.72rem;text-align:center">${f.best_fast}/${f.best_slow}</td>
@@ -311,7 +311,7 @@ function renderWalkForwardPanel(data) {
     }).join('');
     el.innerHTML = `
         <table style="width:100%;border-collapse:collapse">
-            <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1)">
+            <thead><tr style="border-bottom:1px solid ${alphaColor(0.1)}">
                 <th style="padding:6px 4px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:left">FOLD</th>
                 <th style="padding:6px 4px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:left">PERIOD</th>
                 <th style="padding:6px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:center">FAST/SLOW</th>
@@ -332,7 +332,7 @@ async function runStrategyCompare(ticker) {
     if (!lb) return;
     lb.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:6px;padding:4px 0">
-            ${[1,2,3,4,5].map(i => `<div style="height:18px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.4s ${i*0.1}s infinite"></div>`).join('')}
+            ${[1,2,3,4,5].map(i => `<div style="height:18px;border-radius:4px;background:linear-gradient(90deg,${alphaColor(0.04)} 25%,${alphaColor(0.09)} 50%,${alphaColor(0.04)} 75%);background-size:200% 100%;animation:shimmer 1.4s ${i*0.1}s infinite"></div>`).join('')}
         </div>`;
     if (tag) tag.textContent = ticker;
     try {
@@ -340,7 +340,7 @@ async function runStrategyCompare(ticker) {
         if (!data || !data.strategies) { lb.textContent = 'Failed to load'; return; }
         const rows = data.strategies.map((s, i) => {
             const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
-            return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+            return `<tr style="border-bottom:1px solid ${alphaColor(0.04)}">
                 <td style="padding:7px 4px;font-size:0.72rem;color:var(--text-dim)">${medal}</td>
                 <td style="padding:7px 4px;font-size:0.75rem">${s.label}</td>
                 <td style="padding:7px;font-size:0.75rem;text-align:center;color:${s.sharpe > 0 ? '#22c55e' : '#ef4444'};font-weight:600">${s.sharpe}</td>
@@ -349,7 +349,7 @@ async function runStrategyCompare(ticker) {
             </tr>`;
         }).join('');
         lb.innerHTML = `<table style="width:100%;border-collapse:collapse">
-            <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1)">
+            <thead><tr style="border-bottom:1px solid ${alphaColor(0.1)}">
                 <th style="padding:5px 4px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim)">#</th>
                 <th style="padding:5px 4px;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);text-align:left">STRATEGY</th>
                 <th style="padding:5px;font-size:0.6rem;letter-spacing:1px;color:#22c55e;text-align:center">SHARPE</th>
@@ -384,7 +384,7 @@ function renderStrategyChart(curve) {
                 {
                     label: 'Benchmark (BTC)',
                     data: curve.map(p => p.benchmark || p.btc),
-                    borderColor: 'rgba(255,255,255,0.2)',
+                    borderColor: alphaColor(0.2),
                     borderWidth: 1.5,
                     borderDash: [5, 5],
                     pointRadius: 0,
@@ -415,7 +415,7 @@ function renderStrategyChart(curve) {
             },
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#8b949e', maxRotation: 0, autoSkip: true, maxTicksLimit: 10, font: { family: 'JetBrains Mono', size: 10 } } },
-                y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => (v>=0?'+':'') + v + '%' } }
+                y: { grid: { color: alphaColor(0.03) }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => (v>=0?'+':'') + v + '%' } }
             }
         }
     });
@@ -498,14 +498,14 @@ async function runMultiTickerCompare(strategy, fast, slow) {
         if (existing) existing.remove();
         const panel = document.createElement('div');
         panel.id = 'multi-chart-panel';
-        panel.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9000;display:flex;align-items:center;justify-content:center;padding:2rem;backdrop-filter:blur(8px)';
+        panel.style.cssText = 'position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:2rem;backdrop-filter:blur(8px)';
         const statsHtml = tickers.map(function(t, i) {
             const r = results[i]; const ret = r && r.summary ? r.summary.totalReturn : null;
             const col = colors[t];
-            if (ret === null) return '<div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:1rem;text-align:center"><div style="color:var(--text-dim);font-size:0.7rem">' + t + '</div><div style="color:var(--text-dim)">No data</div></div>';
-            return '<div style="background:rgba(255,255,255,0.03);border:1px solid ' + col + '30;border-radius:10px;padding:1rem;text-align:center"><div style="font-size:0.65rem;color:' + col + ';font-weight:900;letter-spacing:1px">' + t.replace('-USD','') + '</div><div style="font-size:1.4rem;font-weight:900;color:' + (ret>=0?'var(--risk-low)':'var(--risk-high)') + ';font-family:var(--font-mono)">' + (ret>=0?'+':'') + ret + '%</div><div style="font-size:0.6rem;color:var(--text-dim);margin-top:4px">Sharpe: ' + (r.summary.sharpe||'—') + ' · WR: ' + (r.summary.winRate||'—') + '%</div></div>';
+            if (ret === null) return '<div style="background:${alphaColor(0.03)};border-radius:10px;padding:1rem;text-align:center"><div style="color:var(--text-dim);font-size:0.7rem">' + t + '</div><div style="color:var(--text-dim)">No data</div></div>';
+            return '<div style="background:${alphaColor(0.03)};border:1px solid ' + col + '30;border-radius:10px;padding:1rem;text-align:center"><div style="font-size:0.65rem;color:' + col + ';font-weight:900;letter-spacing:1px">' + t.replace('-USD','') + '</div><div style="font-size:1.4rem;font-weight:900;color:' + (ret>=0?'var(--risk-low)':'var(--risk-high)') + ';font-family:var(--font-mono)">' + (ret>=0?'+':'') + ret + '%</div><div style="font-size:0.6rem;color:var(--text-dim);margin-top:4px">Sharpe: ' + (r.summary.sharpe||'—') + ' · WR: ' + (r.summary.winRate||'—') + '%</div></div>';
         }).join('');
-        panel.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:900px;width:100%;max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><div><h2 style="margin:0;font-size:1.1rem">Multi-Asset Strategy Comparison</h2><p style="margin:4px 0 0;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px">' + strategy.replace(/_/g,' ').toUpperCase() + ' · FAST:' + fast + ' SLOW:' + slow + '</p></div><button id="multi-close-btn" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:var(--font-ui)">X CLOSE</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">' + statsHtml + '</div><div style="height:320px;position:relative"><canvas id="multi-ticker-canvas"></canvas></div></div>';
+        panel.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:900px;width:100%;max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><div><h2 style="margin:0;font-size:1.1rem">Multi-Asset Strategy Comparison</h2><p style="margin:4px 0 0;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px">' + strategy.replace(/_/g,' ').toUpperCase() + ' · FAST:' + fast + ' SLOW:' + slow + '</p></div><button id="multi-close-btn" style="background:${alphaColor(0.06)};border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:var(--font-ui)">X CLOSE</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">' + statsHtml + '</div><div style="height:320px;position:relative"><canvas id="multi-ticker-canvas"></canvas></div></div>';
         panel.querySelector('button').onclick = function() { document.getElementById('multi-chart-panel').remove(); };
         document.body.appendChild(panel);
         renderMultiTickerChart(tickers, results, colors);
@@ -542,7 +542,7 @@ function renderMultiTickerChart(tickers, results, colors) {
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 10 } } },
                 y: {
-                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    grid: { color: alphaColor(0.03) },
                     title: { display: true, text: 'Cumulative Return (%)', color: '#8b949e', font: { size: 10, family: 'JetBrains Mono' } },
                     ticks: { color: '#8b949e', font: { size: 10 }, callback: function(v){ const r = v - 100; return (r>=0?'+':'') + r.toFixed(0) + '%'; } }
                 }
@@ -590,7 +590,7 @@ function renderAdvancedChart() {
             </div>
         </div>
         
-        <div style="display:flex; gap:1rem; margin-bottom:1rem; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.5rem; overflow-x:auto">
+        <div style="display:flex; gap:1rem; margin-bottom:1rem; border-bottom:1px solid ${alphaColor(0.05)}; padding-bottom:0.5rem; overflow-x:auto">
             <button class="filter-btn active" id="tab-overview" onclick="setAdvTab('overview')">Price & Overlays</button>
             <button class="filter-btn" id="tab-pulse" onclick="setAdvTab('pulse')">Liquidation Pulse</button>
             <button class="filter-btn" id="tab-depth" onclick="setAdvTab('depth')">Market Depth 3D</button>
@@ -621,7 +621,7 @@ function renderAdvancedChart() {
         <div class="card" style="padding:1rem; min-height:500px; position:relative;">
             <div id="advanced-chart-container" style="width:100%; height:500px; border-radius:8px; overflow:hidden;"></div>
             
-            <div id="heatmap-legend-overlay" style="position:absolute; top:20px; left:20px; z-index:10; background:rgba(13,17,23,0.85); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; font-size:0.65rem; color:#d1d5db; pointer-events:none; backdrop-filter:blur(8px); display:none; flex-direction:column; gap:6px;">
+            <div id="heatmap-legend-overlay" style="position:absolute; top:20px; left:20px; z-index:10; background:rgba(13,17,23,0.85); border:1px solid ${alphaColor(0.1)}; border-radius:8px; padding:10px; font-size:0.65rem; color:#d1d5db; pointer-events:none; backdrop-filter:blur(8px); display:none; flex-direction:column; gap:6px;">
                 <div style="font-weight:900; color:var(--accent); letter-spacing:1.5px; margin-bottom:2px; font-size:0.55rem; text-transform:uppercase">Liquidity Atlas</div>
                 <div style="display:flex; align-items:center; gap:8px">
                     <div style="width:10px; height:4px; background:linear-gradient(to right, hsla(180,100%,40%,0.8), hsla(180,100%,80%,0.8)); border-radius:2px;"></div>
@@ -735,7 +735,7 @@ function renderTradingViewWidget(sym, interval) {
         popup_width: '1200',
         popup_height: '700',
         backgroundColor: 'rgba(5, 7, 10, 1)',
-        gridColor: 'rgba(255, 255, 255, 0.04)',
+        gridColor: alphaColor(0.04),
         overrides: {
             'paneProperties.background': '#05070a',
             'paneProperties.backgroundType': 'solid',

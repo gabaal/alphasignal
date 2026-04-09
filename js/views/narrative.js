@@ -31,11 +31,11 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             </div>
         </div>
 
-        <div class="galaxy-container" style="position:relative; width:100%; height:600px; background:radial-gradient(circle at center, #0a0b1e 0%, #000 100%); border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.05)">
+        <div class="galaxy-container" style="position:relative; width:100%; height:600px; background:radial-gradient(circle at center, #0a0b1e 0%, #000 100%); border-radius:16px; overflow:hidden; border:1px solid ${alphaColor(0.05)}">
             <canvas id="galaxyCanvas" role="img" aria-label="Narrative galaxy bubble chart � social mindshare visualization" style="width:100%; height:100%"></canvas>
             <div id="galaxyTooltip" class="galaxy-tooltip" style="display:none; position:absolute; pointer-events:none; z-index:1000"></div>
             
-            <div class="galaxy-legend" style="position:absolute; bottom:20px; right:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; background:rgba(0,0,0,0.8); padding:1rem; border-radius:8px; border:1px solid var(--border)">
+            <div class="galaxy-legend" style="position:absolute; bottom:20px; right:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;  padding:1rem; border-radius:8px; border:1px solid var(--border)">
                 ${Object.entries(data.anchors).map(([key, val]) => `
                     <div style="display:flex; align-items:center; gap:8px; font-size:0.6rem; color:var(--text-dim)">
                         <div style="width:10px; height:10px; border-radius:2px; background:${val.color}"></div>
@@ -74,7 +74,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                                 <span style="font-size:0.65rem;font-weight:800;color:${color}">${medal} ${cat}</span>
                                 <span style="font-size:0.6rem;color:var(--text-dim)">${count} signal${count !== 1 ? 's' : ''}</span>
                             </div>
-                            <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px">
+                            <div style="height:4px;background:${alphaColor(0.06)};border-radius:2px">
                                 <div style="height:4px;background:${color};border-radius:2px;width:${pct}%;transition:width 1s ease"></div>
                             </div>
                         </div>`;
@@ -123,7 +123,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                     return `<div style="background:${bg};border:1px solid ${color}22;border-radius:8px;padding:10px">
                         <div style="font-size:0.65rem;font-weight:800;color:white;margin-bottom:2px">${(c.ticker||'�').replace('-USD','')}</div>
                         <div style="font-size:0.5rem;color:var(--text-dim);margin-bottom:6px">${c.category || ''}</div>
-                        <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:4px">
+                        <div style="height:3px;background:${alphaColor(0.06)};border-radius:2px;margin-bottom:4px">
                             <div style="height:3px;background:${color};border-radius:2px;width:${bar}%"></div>
                         </div>
                         <div style="font-size:0.6rem;color:${color};font-weight:700">${isPos ? '+' : ''}${(sent*100).toFixed(1)}%</div>
@@ -175,9 +175,9 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     function drawAxes() {
         const TICK_COUNT  = 5;
         const TICK_LEN    = 4;
-        const axisColor   = 'rgba(255,255,255,0.18)';
-        const gridColor   = 'rgba(255,255,255,0.04)';
-        const labelColor  = 'rgba(255,255,255,0.35)';
+        const axisColor   = alphaColor(0.18);
+        const gridColor   = alphaColor(0.04);
+        const labelColor  = alphaColor(0.35);
         const accentColor = 'rgba(0,242,255,0.55)';
         const axisX = PAD_LEFT;                        // x position of Y-axis
         const axisY = PAD_TOP + plotH;                 // y position of X-axis
@@ -287,7 +287,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             const ax = members.reduce((s, m) => s + m.x, 0) / members.length;
             const ay = members.reduce((s, m) => s + m.y, 0) / members.length;
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(255,255,255,0.02)`;
+            ctx.strokeStyle = `${alphaColor(0.02)}`;
             ctx.lineWidth = 1;
             members.forEach(s => {
                 ctx.moveTo(ax, ay);
@@ -304,7 +304,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                 if (s1 && s2) {
                     ctx.beginPath();
                     const isBridge = link.type === 'NARRATIVE_BRIDGE';
-                    ctx.strokeStyle = isBridge ? 'rgba(0, 242, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)';
+                    ctx.strokeStyle = isBridge ? 'rgba(0, 242, 255, 0.08)' : alphaColor(0.03);
                     ctx.setLineDash(isBridge ? [5, 5] : []);
                     ctx.lineWidth = isBridge ? 1.5 : 1;
                     ctx.moveTo(s1.x, s1.y);
@@ -359,7 +359,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             tooltip.style.left = (mx + 20) + 'px';
             tooltip.style.top = (my + 20) + 'px';
             tooltip.innerHTML = `
-                <div style="background:rgba(10,11,30,0.95); border:1px solid ${hoveredStar.color}; padding:12px; border-radius:8px; backdrop-filter:blur(10px); min-width:140px">
+                <div style=" border:1px solid ${hoveredStar.color}; padding:12px; border-radius:8px; backdrop-filter:blur(10px); min-width:140px">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px">
                         <span style="font-weight:900; color:white; font-size:1rem">${hoveredStar.ticker}</span>
                         <span style="font-size:0.6rem; color:var(--text-dim)">${hoveredStar.category}</span>
@@ -375,7 +375,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                         </div>
                     </div>
                     ${hoveredStar.meta && hoveredStar.meta.length ? `
-                        <div style="display:flex; flex-wrap:wrap; gap:4px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px">
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; border-top:1px solid ${alphaColor(0.1)}; padding-top:8px">
                             ${hoveredStar.meta.map(m => `<span style="font-size:0.5rem; background:rgba(0,242,255,0.1); color:var(--accent); padding:2px 5px; border-radius:3px; font-weight:900">${m}</span>`).join('')}
                         </div>
                     ` : ''}
@@ -455,7 +455,7 @@ async function renderBriefing(tabs = null) {
                                     <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px; font-weight:700">PRIMARY ALPHA DRIVERS</div>
                                     <div style="display:flex; gap:8px">
                                         ${Object.entries(data.ml_prediction.feature_importance).sort((a,b) => b[1] - a[1]).slice(0,3).map(([k, v]) => `
-                                            <div style="font-size:0.55rem; color:var(--text); background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; border:1px solid rgba(255,255,255,0.1)">
+                                            <div style="font-size:0.55rem; color:var(--text); background:${alphaColor(0.05)}; padding:4px 8px; border-radius:4px; border:1px solid ${alphaColor(0.1)}">
                                                 ${k.replace('_', ' ')}: <span style="color:var(--accent)">${(v*100).toFixed(0)}%</span>
                                             </div>
                                         `).join('')}
@@ -479,7 +479,7 @@ async function renderBriefing(tabs = null) {
                     <div style="display:flex; justify-content:center; gap:20px; margin-top:10px; font-size:0.6rem; color:var(--text-dim)">
                         <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(34,197,94,0.4); border:1px solid #22c55e88"></div> BULLISH</span>
                         <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(239,68,68,0.4); border:1px solid #ef444488"></div> BEARISH</span>
-                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3)"></div> NEUTRAL</span>
+                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:${alphaColor(0.1)}; border:1px solid ${alphaColor(0.3)}"></div> NEUTRAL</span>
                     </div>
                 </div>
 
@@ -488,10 +488,10 @@ async function renderBriefing(tabs = null) {
                     <h3 style="color:var(--accent); font-size:0.8rem; margin-bottom:1.5rem; letter-spacing:1px">SYSTEMIC SECTOR ATTRIBUTION</h3>
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem">
                         ${data.sector_data ? data.sector_data.map(([cat, score]) => `
-                            <div class="sector-puck" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:1rem; border-radius:8px; text-align:center">
+                            <div class="sector-puck" style="background:${alphaColor(0.03)}; border:1px solid ${alphaColor(0.05)}; padding:1rem; border-radius:8px; text-align:center">
                                 <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px; font-weight:900">${cat}</div>
                                 <div style="font-size:1.4rem; font-weight:900; color:${score > 50 ? 'var(--risk-low)' : 'var(--risk-high)'}">${score.toFixed(1)}</div>
-                                <div style="height:2px; background:rgba(255,255,255,0.05); margin-top:8px; border-radius:1px; overflow:hidden">
+                                <div style="height:2px; background:${alphaColor(0.05)}; margin-top:8px; border-radius:1px; overflow:hidden">
                                     <div style="width:${score}%; height:100%; background:${score > 50 ? 'var(--risk-low)' : 'var(--risk-high)'}"></div>
                                 </div>
                             </div>
@@ -502,7 +502,7 @@ async function renderBriefing(tabs = null) {
                 <h3 style="margin-bottom:1.5rem; font-size:1rem; color:var(--accent); letter-spacing:1px">HIGH-CONVICTION PROTOCOLS</h3>
                 <div class="ideas-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem">
                     ${data.top_ideas.map(idea => `
-                        <div class="idea-card" onclick="openDetail('${idea.ticker}')" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:1.5rem; cursor:pointer; transition:all 0.2s ease">
+                        <div class="idea-card" onclick="openDetail('${idea.ticker}')" style="background:${alphaColor(0.02)}; border:1px solid var(--border); border-radius:12px; padding:1.5rem; cursor:pointer; transition:all 0.2s ease">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem">
                                 <span style="font-size:1.5rem; font-weight:900">${idea.ticker}</span>
                                 <span style="font-size:0.6rem; font-weight:700; color:black; background:${idea.conviction === 'HIGH' ? 'var(--accent)' : 'var(--text-dim)'}; padding:2px 8px; border-radius:4px">
@@ -557,8 +557,8 @@ async function renderBriefing(tabs = null) {
                     scales: {
                         x: { display: false },
                         y: {
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 9 } }
+                            grid: { color: alphaColor(0.05) },
+                            ticks: { color: alphaColor(0.4), font: { size: 9 } }
                         }
                     }
                 },
@@ -574,7 +574,7 @@ async function renderBriefing(tabs = null) {
                             const startX = left + (index * stepWidth);
                             const endX = left + ((index + 1) * stepWidth);
                             
-                            let color = 'rgba(255,255,255,0.03)';
+                            let color = alphaColor(0.03);
                             if (item.regime === 'BULLISH') color = 'rgba(34,197,94,0.3)';
                             if (item.regime === 'BEARISH') color = 'rgba(239,68,68,0.3)';
                             

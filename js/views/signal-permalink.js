@@ -134,7 +134,7 @@ async function renderSignalPermalink(id) {
                     ['BTC Correlation', (sig.btcCorrelation || 0).toFixed(2), '#7dd3fc'],
                     ['Sentiment', sentLabel, sentColor],
                 ].map(([label, val, color]) => `
-                    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+                    <div style="background:${alphaColor(0.03)};border:1px solid ${alphaColor(0.06)};
                         border-radius:12px;padding:1rem;text-align:center">
                         <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:6px">${label}</div>
                         <div style="font-size:1.1rem;font-weight:900;color:${color}">${val}</div>
@@ -143,7 +143,7 @@ async function renderSignalPermalink(id) {
 
             <!-- Signal message (snapshot only) -->
             ${isSnapshotMode && sig.message ? `
-            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+            <div style="background:${alphaColor(0.03)};border:1px solid ${alphaColor(0.06)};
                 border-radius:12px;padding:1rem;margin-bottom:1.25rem;
                 font-size:0.78rem;color:var(--text-dim);line-height:1.6">
                 <div style="font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);margin-bottom:6px">SIGNAL TRIGGER</div>
@@ -195,21 +195,21 @@ async function renderSignalPermalink(id) {
                 </button>
 
                 <button onclick="window.open('https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}','_blank')"
-                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+                    style="background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.1)};
                     color:var(--text);padding:10px 14px;border-radius:10px;cursor:pointer;font-size:0.7rem;
                     font-weight:900;letter-spacing:1px;display:flex;align-items:center;gap:6px;
-                    transition:all 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.08)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                    transition:all 0.2s" onmouseover="this.style.background=alphaColor(0.08)"
+                    onmouseout="this.style.background=alphaColor(0.04)">
                     <span style="font-size:14px;font-weight:900">𝕏</span>
                     SHARE
                 </button>
 
                 <button onclick="switchView('signals')"
-                    style="background:none;border:1px solid rgba(255,255,255,0.06);
+                    style="background:none;border:1px solid ${alphaColor(0.06)};
                     color:var(--text-dim);padding:10px 14px;border-radius:10px;cursor:pointer;font-size:0.7rem;
                     font-weight:900;letter-spacing:1px;display:flex;align-items:center;gap:6px;
-                    transition:all 0.2s" onmouseover="this.style.borderColor='rgba(255,255,255,0.15)'"
-                    onmouseout="this.style.borderColor='rgba(255,255,255,0.06)'">
+                    transition:all 0.2s" onmouseover="this.style.borderColor=alphaColor(0.15)"
+                    onmouseout="this.style.borderColor=alphaColor(0.06)">
                     <span class="material-symbols-outlined" style="font-size:16px">radar</span>
                     ALL SIGNALS
                 </button>

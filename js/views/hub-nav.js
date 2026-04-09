@@ -78,7 +78,6 @@ const analyticsHubTabs = [
     { id: 'onchain',       label: 'ON-CHAIN STATS', view: 'onchain',           icon: 'link' },
     { id: 'options',       label: 'OPTIONS FLOW',   view: 'options-flow',      icon: 'ssid_chart' },
     { id: 'newsroom',      label: 'NEWSROOM',       view: 'newsroom',          icon: 'newspaper' },
-    { id: 'tradingview',   label: 'TRADINGVIEW',    view: 'tradingview-hub',   icon: 'show_chart' },
     { id: 'custom',        label: 'CUSTOM CHARTS',  view: 'custom-analytics',  icon: 'bar_chart' }
 ];
 

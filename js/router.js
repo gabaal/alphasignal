@@ -240,7 +240,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.body.appendChild(overlay);
 
         const backdrop = document.createElement('div');
-        backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(2px);z-index:19998;pointer-events:all';
+        backdrop.style.cssText = 'position:fixed;inset:0;backdrop-filter:blur(2px);z-index:19998;pointer-events:all';
         document.body.appendChild(backdrop);
 
         const card = document.createElement('div');
@@ -258,13 +258,13 @@ window.addEventListener('DOMContentLoaded', async () => {
                 <h3 style="font-size:1rem;margin:0 0 0.5rem;font-weight:800">${s.title}</h3>
                 <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 1rem">${s.body}</p>
                 <div style="display:flex;gap:8px;justify-content:flex-end">
-                    ${step > 0 ? '<button onclick="prevTourStep()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.75rem">← BACK</button>' : ''}
+                    ${step > 0 ? '<button onclick="prevTourStep()" style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.75rem">← BACK</button>' : ''}
                     <button onclick="${step < total-1 ? 'nextTourStep()' : 'endTour()'}" style="background:linear-gradient(90deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border:1px solid rgba(0,242,255,0.4);color:var(--text);padding:6px 18px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.75rem;font-weight:700">
                         ${step < total-1 ? 'NEXT →' : '✓ DONE'}
                     </button>
                 </div>
                 <div style="display:flex;gap:4px;justify-content:center;margin-top:0.75rem">
-                    ${Array.from({length:total},(_,i)=>`<div style="width:${i===step?'18px':'6px'};height:6px;border-radius:100px;background:${i===step?'var(--accent)':'rgba(255,255,255,0.15)'};transition:all 0.3s"></div>`).join('')}
+                    ${Array.from({length:total},(_,i)=>`<div style="width:${i===step?'18px':'6px'};height:6px;border-radius:100px;background:${i===step?'var(--accent)':alphaColor(0.15)};transition:all 0.3s"></div>`).join('')}
                 </div>`;
 
             // Position card at bottom-right on mobile, smart-position on desktop

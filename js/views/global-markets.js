@@ -61,7 +61,7 @@ async function renderETFFlows(tabs = null) {
                     label: 'CUMULATIVE NET ($M)',
                     data: [740, 985, 890, 2290, 2820, 2820, 2820],
                     type: 'line',
-                    borderColor: 'rgba(255, 255, 255, 0.4)',
+                    borderColor: alphaColor(0.4),
                     borderWidth: 2,
                     pointRadius: 4,
                     yAxisID: 'y1',
@@ -76,9 +76,9 @@ async function renderETFFlows(tabs = null) {
                 legend: { labels: { color: '#d1d5db', font: { family: 'JetBrains Mono', size: 10 } } }
             },
             scales: {
-                x: { stacked: true, grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-                y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'DAILY FLOW ($M)', color: '#7dd3fc' } },
-                y1: { position: 'right', grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'CUMULATIVE ($M)', color: 'rgba(255,255,255,0.5)' } }
+                x: { stacked: true, grid: { display: false }, ticks: { color: alphaColor(0.5) } },
+                y: { stacked: true, grid: { color: alphaColor(0.05) }, ticks: { color: alphaColor(0.5) }, title: { display: true, text: 'DAILY FLOW ($M)', color: '#7dd3fc' } },
+                y1: { position: 'right', grid: { display: false }, ticks: { color: alphaColor(0.5) }, title: { display: true, text: 'CUMULATIVE ($M)', color: alphaColor(0.5) } }
             }
         }
     });
@@ -174,7 +174,7 @@ async function renderETFFlows(tabs = null) {
                 scales: {
                     x: { grid: { display: false }, ticks: { color: '#8b949e' }, title: { display: true, text: 'Trading Day', color: '#555', font: { size: 9 } } },
                     y: {
-                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        grid: { color: alphaColor(0.05) },
                         ticks: { color: '#8b949e', callback: v => '$' + v + 'M' },
                         title: { display: true, text: 'Flow / Running Total ($M)', color: '#8b949e', font: { size: 9 } }
                     }
@@ -257,8 +257,8 @@ async function renderLiquidations(tabs = null) {
                 legend: { labels: { color: '#d1d5db', font: { family: 'JetBrains Mono', size: 10 } } }
             },
             scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' }, title: { display: true, text: 'Liquidations ($M)', color: '#8b949e', font: { size: 9 } } },
-                y: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { weight: 'bold' } }, title: { display: true, text: 'Asset', color: '#8b949e', font: { size: 9 } } }
+                x: { grid: { color: alphaColor(0.05) }, ticks: { color: alphaColor(0.5) }, title: { display: true, text: 'Liquidations ($M)', color: '#8b949e', font: { size: 9 } } },
+                y: { grid: { display: false }, ticks: { color: alphaColor(0.5), font: { weight: 'bold' } }, title: { display: true, text: 'Asset', color: '#8b949e', font: { size: 9 } } }
             }
         }
     });
@@ -406,9 +406,9 @@ async function renderOIRadar(tabs = null) {
         options: {
             scales: {
                 r: {
-                    angleLines: { color: 'rgba(255,255,255,0.1)' },
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    pointLabels: { color: 'rgba(255,255,255,0.5)', font: { family: 'JetBrains Mono', size: 10 } },
+                    angleLines: { color: alphaColor(0.1) },
+                    grid: { color: alphaColor(0.1) },
+                    pointLabels: { color: alphaColor(0.5), font: { family: 'JetBrains Mono', size: 10 } },
                     ticks: { display: false, backdropColor: 'transparent' }
                 }
             },
@@ -454,7 +454,7 @@ async function renderOIRadar(tabs = null) {
                         {
                             label: 'Historical Volatility Benchmark (30D)',
                             data: [60.5, 60.5, 60.5, 60.5, 60.5, 60.5, 60.5],
-                            borderColor: 'rgba(255,255,255,0.2)',
+                            borderColor: alphaColor(0.2),
                             borderWidth: 2,
                             borderDash: [5, 5],
                             pointRadius: 0,
@@ -472,10 +472,10 @@ async function renderOIRadar(tabs = null) {
                         tooltip: { backgroundColor: 'rgba(13, 17, 23, 0.95)', titleColor: '#7dd3fc', bodyColor: '#e6edf3', padding: 12 }
                     },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 } } },
+                        x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 } } },
                         y: { 
                             title: { display: true, text: 'Implied Volatility (%)', color: '#8b949e' },
-                            grid: { color: 'rgba(255,255,255,0.05)' }, 
+                            grid: { color: alphaColor(0.05) }, 
                             ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v + '%' } 
                         }
                     }
@@ -537,8 +537,8 @@ async function renderOIRadar(tabs = null) {
                     }
                 },
                 scales: {
-                    x: { title:{display:true,text:'24h Price Change (%)',color:'#8b949e'}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#8b949e',callback:v=>v+'%'} },
-                    y: { title:{display:true,text:'24h OI Change (%)',color:'#8b949e'}, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#8b949e',callback:v=>v+'%'} }
+                    x: { title:{display:true,text:'24h Price Change (%)',color:'#8b949e'}, grid:{color:alphaColor(0.05)}, ticks:{color:'#8b949e',callback:v=>v+'%'} },
+                    y: { title:{display:true,text:'24h OI Change (%)',color:'#8b949e'}, grid:{color:alphaColor(0.05)}, ticks:{color:'#8b949e',callback:v=>v+'%'} }
                 }
             }
         });
@@ -571,7 +571,7 @@ async function renderTokenUnlocks(tabs = null) {
                 </thead>
                 <tbody>
                     ${data.map(u => `
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                        <tr style="border-bottom:1px solid ${alphaColor(0.04)}">
                             <td style="padding:15px 12px">
                                 <span style="font-weight:900; color:var(--accent); font-size:0.85rem">${u.token}</span>
                             </td>
@@ -582,7 +582,7 @@ async function renderTokenUnlocks(tabs = null) {
                                 $${u.amount_usd >= 1000 ? (u.amount_usd / 1000).toFixed(1) + 'B' : u.amount_usd.toFixed(1) + 'M'}
                             </td>
                             <td style="padding:15px 12px; text-align:center">
-                                <span class="label-tag" style="background:${u.impact === 'CRITICAL' ? 'var(--risk-high)' : u.impact === 'HIGH' ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)'}; 
+                                <span class="label-tag" style="background:${u.impact === 'CRITICAL' ? 'var(--risk-high)' : u.impact === 'HIGH' ? 'rgba(239,68,68,0.2)' : alphaColor(0.05)}; 
                                       color:${u.impact === 'CRITICAL' ? '#fff' : u.impact === 'HIGH' ? 'var(--risk-high)' : 'var(--text-dim)'}">
                                     ${u.impact}
                                 </span>
@@ -598,7 +598,7 @@ async function renderTokenUnlocks(tabs = null) {
                 </tbody>
             </table>
         </div>
-        <div style="margin-top:1.5rem; padding:1rem; background:rgba(255,255,255,0.02); border-radius:8px; display:flex; gap:12px; align-items:center">
+        <div style="margin-top:1.5rem; padding:1rem; background:${alphaColor(0.02)}; border-radius:8px; display:flex; gap:12px; align-items:center">
             <span class="material-symbols-outlined" style="color:var(--accent)">info</span>
             <p style="font-size:0.65rem; color:var(--text-dim); line-height:1.4">
                 Structural unlocks represent major supply expansions for VCs and team cohorts. 
@@ -654,14 +654,14 @@ async function renderYieldLab(tabs = null) {
                 </thead>
                 <tbody>
                     ${data.protocols.map(p => `
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
-                            <td style="padding:15px 12px; font-weight:900; color:var(--text)">${p.name} <span style="font-size:0.55rem; color:var(--text-dim); margin-left:8px; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px">${p.category}</span></td>
+                        <tr style="border-bottom:1px solid ${alphaColor(0.04)}">
+                            <td style="padding:15px 12px; font-weight:900; color:var(--text)">${p.name} <span style="font-size:0.55rem; color:var(--text-dim); margin-left:8px; background:${alphaColor(0.05)}; padding:2px 6px; border-radius:4px">${p.category}</span></td>
                             <td style="padding:15px 12px; color:var(--text-dim)">${p.chain}</td>
                             <td style="padding:15px 12px; text-align:right; font-weight:700">$${(p.tvl / 1000).toFixed(1)}B</td>
                             <td style="padding:15px 12px; text-align:center; color:var(--risk-low); font-weight:900">+${p.apy}%</td>
                             <td style="padding:15px 12px; text-align:center">
                                 <div style="display:flex; justify-content:center; align-items:center; gap:8px">
-                                    <div style="flex:1; height:4px; max-width:60px; background:rgba(255,255,255,0.1); border-radius:2px">
+                                    <div style="flex:1; height:4px; max-width:60px; background:${alphaColor(0.1)}; border-radius:2px">
                                         <div style="width:${p.risk_score}%; height:100%; background:${p.risk_score > 80 ? 'var(--risk-low)' : 'var(--accent)'}; border-radius:2px"></div>
                                     </div>
                                     <span style="font-weight:700">${p.risk_score}</span>

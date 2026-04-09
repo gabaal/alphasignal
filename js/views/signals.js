@@ -298,7 +298,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         display: true,
                         grid: { display: false },
                         ticks: {
-                            color: 'rgba(255,255,255,0.2)',
+                            color: alphaColor(0.2),
                             font: { family: 'JetBrains Mono', size: 8 },
                             maxTicksLimit: 6,
                             maxRotation: 0
@@ -307,14 +307,14 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     y: {
                         display: true,
                         position: 'left',
-                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                        grid: { color: alphaColor(0.05), drawBorder: false },
                         ticks: {
-                            color: 'rgba(255,255,255,0.35)',
+                            color: alphaColor(0.35),
                             font: { family: 'JetBrains Mono', size: 8 },
                             maxTicksLimit: 5,
                             stepSize: 5
                         },
-                        title: { display: true, text: 'Signals Fired', color: 'rgba(255,255,255,0.2)', font: { size: 8 } },
+                        title: { display: true, text: 'Signals Fired', color: alphaColor(0.2), font: { size: 8 } },
                         suggestedMax: 30
                     }
                 }
@@ -411,7 +411,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         grid: {
                             display: true,
                             // index 8 = zero bucket (-2 + 8×0.25 = 0)
-                            color: ctx => ctx.index === 8 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)',
+                            color: ctx => ctx.index === 8 ? alphaColor(0.2) : alphaColor(0.04),
                             lineWidth: ctx => ctx.index === 8 ? 1.5 : 0.5
                         },
                         ticks: {
@@ -420,24 +420,24 @@ async function renderSignals(category = 'ALL', tabs = null) {
                                 if (Math.abs(v) >= 1.75) return 'rgba(239,68,68,0.9)';
                                 if (Math.abs(v) >= 1.0)  return 'rgba(251,146,60,0.85)';
                                 if (Math.abs(v) >= 0.5)  return 'rgba(0,242,255,0.75)';
-                                return 'rgba(255,255,255,0.7)';
+                                return alphaColor(0.7);
                             },
                             font: { family: 'JetBrains Mono', size: 8 },
                             maxRotation: 0,
                             maxTicksLimit: 9  // show every other label to avoid crowding
                         },
-                        title: { display: true, text: 'Z-Score (σ)', color: 'rgba(255,255,255,0.2)', font: { size: 8 } }
+                        title: { display: true, text: 'Z-Score (σ)', color: alphaColor(0.2), font: { size: 8 } }
                     },
                     y: {
                         display: true,
                         position: 'right',
-                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                        grid: { color: alphaColor(0.05), drawBorder: false },
                         ticks: {
-                            color: 'rgba(255,255,255,0.3)',
+                            color: alphaColor(0.3),
                             font: { family: 'JetBrains Mono', size: 8 },
                             maxTicksLimit: 4
                         },
-                        title: { display: true, text: 'Count', color: 'rgba(255,255,255,0.2)', font: { size: 8 } }
+                        title: { display: true, text: 'Count', color: alphaColor(0.2), font: { size: 8 } }
                     }
                 }
             }
@@ -465,7 +465,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                 return '<div class="radar-opt" data-val="' + s.ticker + '" style="padding:7px 14px;cursor:pointer;color:#e2e8f0;font-family:JetBrains Mono,monospace;font-size:0.7rem;transition:background 0.15s">' + lbl + '</div>';
             }).join('');
         radarSection.innerHTML = `
-            <div class="card" style="padding:1.5rem;margin-top:2rem;background:rgba(5,5,30,0.7);border:1px solid rgba(0,242,255,0.12);">
+            <div class="card" style="padding:1.5rem;margin-top:2rem;border:1px solid rgba(0,242,255,0.12);">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
                     <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">radar</span>SIGNAL CONFIDENCE RADAR
                         <div id="radar-custom-select" style="position:relative;display:inline-block;margin-left:10px;font-size:0.7rem;font-weight:normal;vertical-align:middle;">
@@ -507,9 +507,9 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     responsive: true, maintainAspectRatio: true,
                     plugins: { legend: { labels: { color: 'white', font: { family: 'JetBrains Mono', size: 9 } } } },
                     scales: { r: {
-                        min: 0, max: 100, ticks: { stepSize: 25, color: 'rgba(255,255,255,0.3)', backdropColor: 'transparent', font: { size: 8 } },
-                        grid: { color: 'rgba(255,255,255,0.06)' },
-                        pointLabels: { color: 'rgba(255,255,255,0.7)', font: { size: 9.5, family: 'JetBrains Mono' } }
+                        min: 0, max: 100, ticks: { stepSize: 25, color: alphaColor(0.3), backdropColor: 'transparent', font: { size: 8 } },
+                        grid: { color: alphaColor(0.06) },
+                        pointLabels: { color: alphaColor(0.7), font: { size: 9.5, family: 'JetBrains Mono' } }
                     }}
                 }
             });
@@ -608,14 +608,14 @@ async function renderAlphaScore(tabs = null) {
                     </thead>
                     <tbody>
                         ${currentScores.map((s, i) => `
-                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.2s"
-                                onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+                            <tr style="border-bottom:1px solid ${alphaColor(0.04)}; transition:background 0.2s"
+                                onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                                 <td style="padding:10px 12px; color:var(--text-dim)">${startIndex + i + 1}</td>
                                 <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
                                 <td style="padding:10px 12px; color:var(--text-dim); font-size:0.65rem; letter-spacing:1px">${s.sector}</td>
                                 <td style="padding:10px 12px">
                                     <div style="display:flex; align-items:center; gap:8px">
-                                        <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden">
+                                        <div style="flex:1; height:6px; background:${alphaColor(0.08)}; border-radius:4px; overflow:hidden">
                                             <div style="width:${s.score}%; height:100%; background:${gradeColors[s.grade] || '#60a5fa'}; border-radius:4px; transition:width 1s ease"></div>
                                         </div>
                                         <span style="font-weight:700; font-size:0.8rem; color:${gradeColors[s.grade]}">${s.score}</span>
@@ -630,7 +630,7 @@ async function renderAlphaScore(tabs = null) {
                                 <td style="padding:10px 12px; min-width:140px">
                                     <div style="display:flex; flex-direction:column; gap:4px">
                                         <div style="display:flex; gap:6px; align-items:center">
-                                            <span style="font-size:0.55rem; color:var(--text-dim); background:rgba(255,255,255,0.05); padding:1px 4px; border-radius:3px">CONSENSUS:</span>
+                                            <span style="font-size:0.55rem; color:var(--text-dim); background:${alphaColor(0.05)}; padding:1px 4px; border-radius:3px">CONSENSUS:</span>
                                             <span style="font-size:0.6rem; font-weight:900; color:${s.consensus === 'HIGH' ? '#22c55e' : s.consensus === 'MEDIUM' ? '#60a5fa' : '#ef4444'}">${s.consensus}</span>
                                         </div>
                                         <div style="display:flex; gap:6px; font-size:0.55rem; color:var(--text-dim)">
