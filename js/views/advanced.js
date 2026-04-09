@@ -68,51 +68,6 @@ async function renderAdvOverview(symbol, interval) {
     ['ovr-ema20','ovr-ema50'].forEach(id => document.getElementById(id)?.classList.add('active'));
     document.getElementById('ovr-heatmap')?.classList.remove('active');
 
-    // Phase 11.3: Institutional Volume Profile (VAP)
-    const renderVolumeProfile = (data) => {
-        const buckets = 30; // 30 price tiers
-        const prices = data.map(k => k.close);
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-        const range = maxPrice - minPrice;
-        const step = range / buckets;
-        
-        const profile = new Array(buckets).fill(0);
-        data.forEach(k => {
-            const idx = Math.min(buckets - 1, Math.floor((k.close - minPrice) / step));
-            profile[idx] += k.value;
-        });
-
-        const vapSeries = chart.addHistogramSeries({
-            color: 'rgba(59, 130, 246, 0.3)', 
-            priceFormat: { type: 'volume' },
-            priceScaleId: 'left', 
-            title: 'VAP'
-        });
-        
-        chart.priceScale('left').applyOptions({
-            scaleMargins: { top: 0.1, bottom: 0.1 },
-            visible: true,
-            borderColor: 'rgba(255,255,255,0.05)'
-        });
-
-        // We map the histogram to the most recent time period to keep it as a vertical profile "wall"
-        const lastTime = data[data.length - 1].time;
-        const profileData = profile.map((vol, i) => {
-            // To simulate a vertical profile, we spread it across a few bars or a fixed window
-            const priceLevel = minPrice + (i * step);
-            return {
-                time: data[Math.max(0, data.length - buckets + i)].time,
-                value: vol,
-                color: 'rgba(59, 130, 246, 0.25)'
-            };
-        });
-        vapSeries.setData(profileData);
-    };
-
-    if (klines.length > 0) {
-        renderVolumeProfile(klines);
-    }
     
     if (isCrypto) {
         // Close any previous kline socket before opening a new one

@@ -601,9 +601,6 @@ function renderAdvancedChart() {
             <button class="filter-btn" id="tab-funding" onclick="setAdvTab('funding')">Funding Rates</button>
             <button class="filter-btn" id="tab-tape-imbalance" onclick="setAdvTab('tape-imbalance')">Tape Imbalance</button>
             <button class="filter-btn" id="tab-options-surface" onclick="setAdvTab('options-surface')">Vol Surface</button>
-            <button class="filter-btn" id="tab-tradingview" onclick="setAdvTab('tradingview')" style="color:#2196f3;border-color:rgba(33,150,243,0.3)">
-                <span style="font-size:0.65rem">&#xE7E4;</span> TRADINGVIEW
-            </button>
         </div>
 
         <!-- Overlay toggle controls — only visible on Price & Overlays tab -->
@@ -653,13 +650,7 @@ function renderAdvancedChart() {
         // Show overlay controls only on Price & Overlays tab
         const ovrBar = document.getElementById('adv-overlay-controls');
         if (ovrBar) ovrBar.style.display = tab === 'overview' ? 'flex' : 'none';
-        if (tab === 'tradingview') {
-            const sym = document.getElementById('adv-symbol')?.value || 'BTCUSDT';
-            const interval = document.getElementById('adv-interval')?.value || '1h';
-            renderTradingViewWidget(sym, interval);
-        } else {
-            dispatchAdvTab();
-        }
+        dispatchAdvTab();
     };
 
     dispatchAdvTab();
