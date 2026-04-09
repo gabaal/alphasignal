@@ -263,30 +263,90 @@ async function renderStressHub(tabs = null) {
         </div>
     `;
 
+    window._lastStressData = data;
+    if (typeof window._stressSortKey === 'undefined') window._stressSortKey = null;
+    if (typeof window._stressSortDir === 'undefined') window._stressSortDir = 1;
+    if (typeof window._stressPage === 'undefined') window._stressPage = 1;
+
     // 3. Attribution Table
-    document.getElementById('risk-attribution-area').innerHTML = `
-        <div class="asset-risk-table">
-            <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">ASSET-SPECIFIC BETA & ALPHA ATTRIBUTION</h3>
-            <div class="risk-table-header" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr">
-                <span>ASSET</span>
-                <span>BETA (vs BTC)</span>
-                <span>ALPHA (ANN.)</span>
-                <span>ANN. VOL</span>
-                <span>STATUS</span>
-            </div>
-            <div class="risk-table-body">
-                ${data.asset_risk.map(a => `
-                    <div class="risk-row" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr">
-                        <span class="r-ticker" style="font-weight:900">${a.ticker}</span>
-                        <span class="r-var">${a.beta.toFixed(2)}</span>
-                        <span class="r-alpha ${a.alpha >= 0 ? 'pos' : 'neg'}">${a.alpha.toFixed(1)}%</span>
-                        <span class="r-vol">${a.vol.toFixed(1)}%</span>
-                        <span class="r-status status-${a.status.toLowerCase()}">${a.status}</span>
+    window._drawStressTable = function() {
+        const area = document.getElementById('risk-attribution-area');
+        if (!area) return;
+
+        let riskData = [...window._lastStressData.asset_risk];
+        
+        // Sorting
+        if (window._stressSortKey) {
+            riskData.sort((a, b) => {
+                let vA = a[window._stressSortKey];
+                let vB = b[window._stressSortKey];
+                if (typeof vA === 'string') vA = vA.toLowerCase();
+                if (typeof vB === 'string') vB = vB.toLowerCase();
+                if (vA < vB) return -1 * window._stressSortDir;
+                if (vA > vB) return 1 * window._stressSortDir;
+                return 0;
+            });
+        }
+
+        // Pagination
+        const perPage = 10;
+        const totalPages = Math.ceil(riskData.length / perPage);
+        if (window._stressPage > totalPages && totalPages > 0) window._stressPage = totalPages;
+        const startIdx = (window._stressPage - 1) * perPage;
+        const pageData = riskData.slice(startIdx, startIdx + perPage);
+
+        const getSortIcon = (key) => {
+            if (window._stressSortKey !== key) return '<span style="opacity:0.3; font-size:10px">&#9650;</span>';
+            return window._stressSortDir === 1 ? '<span style="font-size:10px; color:var(--accent)">&#9650;</span>' : '<span style="font-size:10px; color:var(--accent)">&#9660;</span>';
+        };
+
+        const thStyle = "cursor:pointer; display:flex; align-items:center; gap:4px; user-select:none;";
+
+        area.innerHTML = `
+            <div class="asset-risk-table">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                    <h3 style="font-size:0.9rem; color:var(--accent); letter-spacing:1px; margin:0">ASSET-SPECIFIC BETA & ALPHA ATTRIBUTION</h3>
+                    <div style="display:flex; align-items:center; gap:15px">
+                        <button class="filter-btn" ${_stressPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : `onclick="window._stressPage--; window._drawStressTable()"`}>&larr; Prev</button>
+                        <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${window._stressPage} of ${totalPages || 1}</span>
+                        <button class="filter-btn" ${_stressPage === totalPages || totalPages === 0 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : `onclick="window._stressPage++; window._drawStressTable()"`}>Next &rarr;</button>
                     </div>
-                `).join('')}
+                </div>
+                
+                <div class="risk-table-header" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr">
+                    <div style="${thStyle}" onclick="window._setStressSort('ticker')">ASSET ${getSortIcon('ticker')}</div>
+                    <div style="${thStyle}" onclick="window._setStressSort('beta')">BETA (vs BTC) ${getSortIcon('beta')}</div>
+                    <div style="${thStyle}" onclick="window._setStressSort('alpha')">ALPHA (ANN.) ${getSortIcon('alpha')}</div>
+                    <div style="${thStyle}" onclick="window._setStressSort('vol')">ANN. VOL ${getSortIcon('vol')}</div>
+                    <div style="${thStyle}" onclick="window._setStressSort('status')">STATUS ${getSortIcon('status')}</div>
+                </div>
+                <div class="risk-table-body">
+                    ${pageData.map(a => `
+                        <div class="risk-row" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr">
+                            <span class="r-ticker" style="font-weight:900">${a.ticker}</span>
+                            <span class="r-var">${a.beta.toFixed(2)}</span>
+                            <span class="r-alpha ${a.alpha >= 0 ? 'pos' : 'neg'}">${a.alpha.toFixed(1)}%</span>
+                            <span class="r-vol">${a.vol.toFixed(1)}%</span>
+                            <span class="r-status status-${a.status.toLowerCase()}">${a.status}</span>
+                        </div>
+                    `).join('')}
+                    ${pageData.length === 0 ? '<div style="padding:20px;text-align:center;color:var(--text-dim)">No asset data available.</div>' : ''}
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    };
+
+    window._setStressSort = function(key) {
+        if (window._stressSortKey === key) {
+            window._stressSortDir *= -1;
+        } else {
+            window._stressSortKey = key;
+            window._stressSortDir = -1; // Default to descending for new keys
+        }
+        window._drawStressTable();
+    };
+
+    window._drawStressTable();
 }
 
 async function renderChainVelocity(tabs = null) {
