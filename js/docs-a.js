@@ -88,6 +88,11 @@ function renderHelp() {
             { name: 'Daily Workflow Playbook', desc: 'A structured 20-minute daily session guide — Morning Brief, Signal Review, Macro Context, Trade Decision, End-of-Day review', route: 'docs-daily-workflow', icon: 'today' },
           ]
         },
+        { id: 'integrations-hub', name: 'Integrations Hub', icon: 'cable', color: '#ef4444', view: 'exchange-keys',
+          docs: [
+            { name: 'API Keys & Webhooks', desc: '2 components: Exchange API secure linking, Outbound Algorithmic Webhook config', route: 'docs-integrations', icon: 'key' }
+          ]
+        },
     ];
 
     appEl.innerHTML = `
