@@ -4954,7 +4954,9 @@ class InstitutionalRoutesMixin:
                 # Average of upper triangle (exclude diagonal)
                 n = corr_matrix.shape[0]
                 upper = [corr_matrix[i][j] for i in range(n) for j in range(i+1, n)]
-                avg_corr = float(np.mean(upper)) if upper else 0.5
+                avg_corr = float(np.nanmean(upper)) if upper else 0.5
+                if np.isnan(avg_corr):
+                    avg_corr = 0.0
                 hotspots.append({'sector': sector_name, 'score': round(avg_corr, 3)})
             # Sort by highest correlation (most systemic risk first)
             hotspots.sort(key=lambda x: x['score'], reverse=True)
