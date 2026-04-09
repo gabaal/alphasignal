@@ -4047,6 +4047,7 @@ class InstitutionalRoutesMixin:
             signals = c.fetchall()
             conn.close()
             total = len(signals)
+            valid_total = 0
             wins = 0
             losses = 0
             total_roi = 0.0
@@ -4062,19 +4063,24 @@ class InstitutionalRoutesMixin:
                         for ticker in unique_tickers:
                             try:
                                 series = batch_data[ticker] if len(unique_tickers) > 1 else batch_data
-                                val = series.iloc[-1]
+                                valid_series = series.dropna()
+                                if valid_series.empty:
+                                    continue
+                                val = valid_series.iloc[-1]
                                 current_prices[ticker] = float(val.iloc[0] if hasattr(val, 'iloc') else val)
                             except:
                                 pass
                 except Exception as e:
                     print(f'Batch fetch error: {str(e)}')
+            import math
             for ticker, entry_p, ts in signals:
                 try:
                     curr_p = current_prices.get(ticker)
-                    if not curr_p:
+                    if not curr_p or math.isnan(curr_p):
                         continue
                     roi = round((curr_p - entry_p) / entry_p * 100, 2)
                     total_roi += roi
+                    valid_total += 1
                     if roi > 0:
                         wins += 1
                     else:
@@ -4090,8 +4096,8 @@ class InstitutionalRoutesMixin:
                     monthly[month]['total_roi'] += roi
                 except:
                     continue
-            win_rate = round(wins / total * 100, 1) if total > 0 else 0
-            avg_return = round(total_roi / total, 2) if total > 0 else 0
+            win_rate = round(wins / valid_total * 100, 1) if valid_total > 0 else 0
+            avg_return = round(total_roi / valid_total, 2) if valid_total > 0 else 0
 
             # Format monthly series with human-readable month labels
             monthly_series = sorted([{
