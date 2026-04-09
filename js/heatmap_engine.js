@@ -23,6 +23,7 @@ class HeatmapOverlay {
         this.canvas.style.top = '0';
         this.canvas.style.left = '0';
         this.canvas.style.pointerEvents = 'none'; 
+        this.canvas.style.zIndex = '10';
         this.canvas.id = 'heatmap-overlay-canvas';
         this.ctx = this.canvas.getContext('2d');
         

@@ -793,7 +793,10 @@ window.toggleAdvOverlay = function(type) {
         if (hm) {
             const show = !isActive;
             hm.canvas.style.display = show ? 'block' : 'none';
-            if (show) hm.render();
+            if (show) {
+                hm.resize();
+                hm.render();
+            }
             btn?.classList.toggle('active');
         } else {
             // No heatmap data available
