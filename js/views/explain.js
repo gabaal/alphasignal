@@ -46,7 +46,7 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
             ${dataSources ? `<div style="background:${alphaColor(0.03)};padding:1.2rem;border-radius:8px;margin-bottom:2rem;border:1px solid ${alphaColor(0.05)};font-size:0.85rem;color:var(--text-dim)"><div style="display:flex;align-items:center;margin-bottom:0.5rem;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:0.5px"><span class="material-symbols-outlined" style="margin-right:6px;font-size:16px">source</span>Data Provenance &amp; Sources</div>${dataSources}</div>` : ''}
             <div style="display:flex;gap:1rem;flex-wrap:wrap">
                 <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB</button>
-                ${targetView ? `<button class="intel-action-btn" onclick="switchView('${targetView}')" style="display:flex;align-items:center;gap:8px"><span class="material-symbols-outlined" style="font-size:18px">open_in_new</span> OPEN VIEW</button>` : ''}
+                ${targetView ? `<button class="intel-action-btn" onclick="switchView('${targetView}')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--text-main);font-weight:800;"><span class="material-symbols-outlined" style="font-size:18px;color:var(--text-main)">open_in_new</span> OPEN VIEW</button>` : ''}
             </div>
         </div>
     `;
@@ -134,8 +134,8 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
                 <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;width:auto">
                     <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span> HELP HUB
                 </button>
-                ${viewId ? `<button class="intel-action-btn" onclick="switchView('${viewId}')" style="display:flex;align-items:center;gap:8px;width:auto">
-                    <span class="material-symbols-outlined" style="font-size:16px">open_in_new</span> OPEN VIEW IN TERMINAL
+                ${viewId ? `<button class="intel-action-btn" onclick="switchView('${viewId}')" style="display:flex;align-items:center;gap:8px;width:auto;background:${hubColor};color:var(--text-main);font-weight:800;">
+                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--text-main)">open_in_new</span> OPEN VIEW IN TERMINAL
                 </button>` : ''}
             </div>
         </div>

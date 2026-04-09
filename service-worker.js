@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alphasignal-cache-v40';
+const CACHE_NAME = 'alphasignal-cache-v41';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
