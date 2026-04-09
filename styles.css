@@ -1876,7 +1876,7 @@ input[type="range"]::-webkit-slider-thumb {
     bottom: calc(100% + 10px);
     left: 0;
     right: 0;
-    background: var(--bg-card);
+    background: var(--bg-modal);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1rem;
@@ -1897,7 +1897,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .profile-action-btn {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-input);
     border: 1px solid var(--border);
     color: var(--text-main);
     padding: 0.7rem;
@@ -1912,7 +1912,7 @@ input[type="range"]::-webkit-slider-thumb {
     font-family: 'JetBrains Mono';
 }
 .profile-action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-2);
     border-color: var(--text-dim);
 }
 .profile-action-btn.logout-btn {
