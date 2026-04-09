@@ -197,9 +197,10 @@ async function renderAdvPulse(symbol) {
 function renderDepth2DFallback(container, symbol) {
     const H = 520;
     const LEVELS = 25;
+    const bgCss = document.documentElement.getAttribute('data-theme') === 'light' ? '#f8fafc' : '#050508';
 
     container.innerHTML = `
-        <div style="position:relative;width:100%;height:${H}px;background:#050508;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="position:relative;width:100%;height:${H}px;background:${bgCss};border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
             <!-- Header -->
             <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid ${alphaColor(0.06)};flex-shrink:0;">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">ORDERBOOK DEPTH — ${symbol.replace('USDT','/USDT')}</span>
@@ -360,8 +361,12 @@ async function renderAdvDepth(symbol) {
     const container = document.getElementById('advanced-chart-container');
     if (!container) return;
 
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const bgCss = isLight ? '#f8fafc' : '#050508';
+    const bgHex = isLight ? 0xf8fafc : 0x050508;
+
     container.innerHTML = `
-        <div style="position:relative; width:100%; height:520px; background:#050508; border-radius:12px; overflow:hidden;">
+        <div style="position:relative; width:100%; height:520px; background:${bgCss}; border-radius:12px; overflow:hidden;">
             <canvas id="depth3d-canvas" aria-hidden="true" style="width:100%; height:100%; display:block;"></canvas>
             <div style="position:absolute; top:14px; left:18px; display:flex; gap:16px; align-items:center; pointer-events:none;">
                 <span style="font-size:0.6rem; font-weight:900; letter-spacing:2px; color:#7dd3fc;">3D ORDERBOOK TOPOLOGY</span>
@@ -396,31 +401,31 @@ async function renderAdvDepth(symbol) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x050508, 1);
+    renderer.setClearColor(bgHex, 1);
     renderer.shadowMap.enabled = true;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x050508, 0.018);
+    scene.fog = new THREE.FogExp2(bgHex, 0.018);
 
     const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 500);
 
     // ── Lighting ─────────────────────────────────────────────────────────
-    scene.add(new THREE.AmbientLight(0x112244, 0.8));
-    const hemi = new THREE.HemisphereLight(0x223366, 0x050508, 0.6);
+    scene.add(new THREE.AmbientLight(isLight ? 0xffffff : 0x112244, isLight ? 0.6 : 0.8));
+    const hemi = new THREE.HemisphereLight(isLight ? 0xffffff : 0x223366, bgHex, 0.6);
     scene.add(hemi);
-    const dirLight = new THREE.DirectionalLight(0x99ccff, 1.4);
+    const dirLight = new THREE.DirectionalLight(isLight ? 0xffffff : 0x99ccff, 1.4);
     dirLight.position.set(15, 40, 20);
     dirLight.castShadow = true;
     scene.add(dirLight);
     // Subtle fill from below (makes bars pop)
-    const fillLight = new THREE.DirectionalLight(0x004466, 0.5);
+    const fillLight = new THREE.DirectionalLight(isLight ? 0xdddddd : 0x004466, 0.5);
     fillLight.position.set(-10, -5, -15);
     scene.add(fillLight);
 
     // ── Floor plane ───────────────────────────────────────────────────────
     const floorGeo = new THREE.PlaneGeometry(80, 80);
     const floorMat = new THREE.MeshStandardMaterial({
-        color: 0x080c14, metalness: 0.3, roughness: 0.9
+        color: isLight ? 0xe2e8f0 : 0x080c14, metalness: 0.3, roughness: 0.9
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -428,7 +433,8 @@ async function renderAdvDepth(symbol) {
     scene.add(floor);
 
     // Grid overlay
-    const grid = new THREE.GridHelper(70, 35, 0x0d1f33, 0x0d1f33);
+    const gridColor = isLight ? 0xd1d5db : 0x0d1f33;
+    const grid = new THREE.GridHelper(70, 35, gridColor, gridColor);
     grid.position.y = 0.02;
     scene.add(grid);
 
@@ -1011,8 +1017,12 @@ async function renderAdvOptionsSurface(symbol) {
 
     const currency = symbol.replace('USDT','').replace('-USD','');
 
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const bgCss = isLight ? '#f8fafc' : '#050508';
+    const bgHex = isLight ? 0xf8fafc : 0x050508;
+
     container.innerHTML = `
-        <div style="position:relative;width:100%;height:520px;background:#050508;border-radius:12px;overflow:hidden;">
+        <div style="position:relative;width:100%;height:520px;background:${bgCss};border-radius:12px;overflow:hidden;">
             <canvas id="volsurf-canvas" role="img" aria-label="Implied volatility surface 3D chart" style="width:100%;height:100%;display:block;"></canvas>
 
             <!-- Top-left: title + source badge -->
@@ -1156,7 +1166,7 @@ async function renderAdvOptionsSurface(symbol) {
     const W = container.clientWidth, H = 520;
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(W, H);
-    renderer.setClearColor(0x050508, 1);
+    renderer.setClearColor(bgHex, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     const scene  = new THREE.Scene();
@@ -1164,8 +1174,8 @@ async function renderAdvOptionsSurface(symbol) {
     camera.position.set(15, 12, 22);
     camera.lookAt(0, 3, 0);
 
-    scene.add(new THREE.AmbientLight(0x334466, 1.5));
-    const dl = new THREE.DirectionalLight(0xaaddff, 1.2);
+    scene.add(new THREE.AmbientLight(isLight ? 0xffffff : 0x334466, isLight ? 1.0 : 1.5));
+    const dl = new THREE.DirectionalLight(isLight ? 0xffffff : 0xaaddff, 1.2);
     dl.position.set(10, 20, 10);
     scene.add(dl);
 
@@ -1215,10 +1225,11 @@ async function renderAdvOptionsSurface(symbol) {
 
     // Wireframe overlay
     const wf = new THREE.WireframeGeometry(geo);
-    scene.add(new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.06, transparent: true })));
+    scene.add(new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: isLight ? 0x000000 : 0xffffff, opacity: isLight ? 0.03 : 0.06, transparent: true })));
 
     // Grid floor
-    scene.add(new THREE.GridHelper(22, 20, 0x0a1020, 0x0a1020));
+    const gridColor = isLight ? 0xd1d5db : 0x0a1020;
+    scene.add(new THREE.GridHelper(22, 20, gridColor, gridColor));
 
     // ── Text labels for expiry axis ───────────────────────────────────────────
     // (Three.js doesn't have native text — use sprites via CSS2D would need extra lib;
