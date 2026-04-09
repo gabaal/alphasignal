@@ -103,8 +103,6 @@ async function renderAdvOverview(symbol, interval) {
         const toggle = document.getElementById('heatmap-toggle');
         const intensity = document.getElementById('heatmap-intensity');
         if (toggle) {
-            const legend = document.getElementById('heatmap-legend-overlay');
-            if (legend) legend.style.display = toggle.checked ? 'flex' : 'none';
             if (!toggle.checked) window.activeHeatmap.canvas.style.display = 'none';
         }
         if (intensity) {
@@ -119,11 +117,9 @@ async function renderAdvOverview(symbol, interval) {
 // Heatmap Helpers
 window.toggleHeatmapOverlay = function() {
     const toggle = document.getElementById('heatmap-toggle');
-    const legend = document.getElementById('heatmap-legend-overlay');
     if (window.activeHeatmap) {
         const isVisible = toggle.checked;
         window.activeHeatmap.canvas.style.display = isVisible ? 'block' : 'none';
-        if (legend) legend.style.display = isVisible ? 'flex' : 'none';
         if (isVisible) window.activeHeatmap.render();
     }
 };
@@ -794,11 +790,9 @@ window.toggleAdvOverlay = function(type) {
         btn?.classList.toggle('active');
     } else if (type === 'heatmap') {
         const hm = window.activeHeatmap;
-        const legend = document.getElementById('heatmap-legend-overlay');
         if (hm) {
             const show = !isActive;
             hm.canvas.style.display = show ? 'block' : 'none';
-            if (legend) legend.style.display = show ? 'flex' : 'none';
             if (show) hm.render();
             btn?.classList.toggle('active');
         } else {

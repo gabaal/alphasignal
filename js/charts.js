@@ -621,22 +621,7 @@ function renderAdvancedChart() {
         <div class="card" style="padding:1rem; min-height:500px; position:relative;">
             <div id="advanced-chart-container" style="width:100%; height:500px; border-radius:8px; overflow:hidden;"></div>
             
-            <div id="heatmap-legend-overlay" style="position:absolute; bottom:30px; left:30px; z-index:10; background:rgba(13,17,23,0.85); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px; font-size:0.65rem; color:#d1d5db; pointer-events:none; backdrop-filter:blur(8px); display:none; flex-direction:column; gap:8px;">
-                <div style="font-weight:900; color:var(--accent); letter-spacing:1.5px; margin-bottom:4px; font-size:0.55rem; text-transform:uppercase">Liquidity Atlas</div>
-                <div style="display:flex; align-items:center; gap:10px">
-                    <div style="width:12px; height:4px; background:linear-gradient(to right, hsla(180,100%,20%,0.8), hsla(180,100%,80%,0.8)); border-radius:2px;"></div>
-                    <span>Institutional Bids</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:10px">
-                    <div style="width:12px; height:4px; background:linear-gradient(to right, hsla(0,100%,20%,0.8), hsla(45,100%,80%,0.8)); border-radius:2px;"></div>
-                    <span>Institutional Asks</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:10px">
-                    <div style="width:12px; height:4px; background:#ffd700; border-radius:2px; box-shadow:0 0 6px rgba(255,215,0,0.6)"></div>
-                    <span>Structural Walls (>4h)</span>
-                </div>
-                <div style="margin-top:4px; color:var(--text-dim); font-size:0.55rem; font-style:italic">Normalization: Relative to Visible Volume</div>
-            </div>
+
         </div>
     `;
     
@@ -701,9 +686,7 @@ function renderTradingViewWidget(sym, interval) {
     container.innerHTML = '';
     container.style.height = '600px';
 
-    // Ensure the heatmap legend overlay is hidden
-    const legend = document.getElementById('heatmap-legend-overlay');
-    if (legend) legend.style.display = 'none';
+
 
     if (typeof TradingView === 'undefined') {
         container.innerHTML = `
