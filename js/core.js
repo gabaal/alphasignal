@@ -891,7 +891,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         <option value="XRP-USD" ${ticker === 'XRP-USD' ? 'selected' : ''}>XRP-USD (Ripple)</option>
                         <option value="_custom" ${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'selected' : ''}>✏ Custom Symbol...</option>
                     </select>
-                    <input id="strat-custom-ticker" type="text" placeholder="e.g. AAPL, DOGE-USD..." value="${!(['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker)) ? ticker : ''}" style="display:${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'block' : 'none'};width:100%;border-radius:8px;padding:10px;border:1px solid rgba(0,212,170,0.4);color:white;font-family:'Outfit';margin-top:8px" onkeydown="if(event.key==='Enter'&&this.value.trim()){window._slPersist(this.value.trim(),null);runStrategyBacktest(this.value.trim(),document.getElementById('strat-type').value,20,50);}">
+                    <input id="strat-custom-ticker" type="text" placeholder="e.g. AAPL, DOGE-USD..." value="${!(['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker)) ? ticker : ''}" style="display:${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'block' : 'none'};width:100%;border-radius:8px;padding:10px;border:1px solid rgba(0,212,170,0.4);color:var(--text);font-family:'Outfit';margin-top:8px" onkeydown="if(event.key==='Enter'&&this.value.trim()){window._slPersist(this.value.trim(),null);runStrategyBacktest(this.value.trim(),document.getElementById('strat-type').value,20,50);}">
                     <script>document.getElementById('strat-ticker')?.addEventListener('change',function(){document.getElementById('strat-custom-ticker').style.display=this.value==='_custom'?'block':'none';});<\/script>
                 </div>
                 </div>
@@ -924,11 +924,11 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <div class="control-box" style="margin-top: 15px; display: flex; gap: 10px;">
                     <div style="flex:1">
                         <label>FAST MA</label>
-                        <input type="number" id="strat-fast" class="strat-input" value="${fast}" style="width:100%; border-radius:8px; padding:10px;  border:1px solid ${alphaColor(0.1)}; color:white; font-family:'Outfit'" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, document.getElementById('strat-type').value, this.value, document.getElementById('strat-slow').value)">
+                        <input type="number" id="strat-fast" class="strat-input" value="${fast}" style="width:100%; border-radius:8px; padding:10px;  border:1px solid ${alphaColor(0.1)}; color:var(--text); font-family:'Outfit'" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, document.getElementById('strat-type').value, this.value, document.getElementById('strat-slow').value)">
                     </div>
                     <div style="flex:1">
                         <label>SLOW MA</label>
-                        <input type="number" id="strat-slow" class="strat-input" value="${slow}" style="width:100%; border-radius:8px; padding:10px;  border:1px solid ${alphaColor(0.1)}; color:white; font-family:'Outfit'" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, document.getElementById('strat-type').value, document.getElementById('strat-fast').value, this.value)">
+                        <input type="number" id="strat-slow" class="strat-input" value="${slow}" style="width:100%; border-radius:8px; padding:10px;  border:1px solid ${alphaColor(0.1)}; color:var(--text); font-family:'Outfit'" onchange="runStrategyBacktest(document.getElementById('strat-ticker').value, document.getElementById('strat-type').value, document.getElementById('strat-fast').value, this.value)">
                     </div>
                 </div>
                 

@@ -5,8 +5,8 @@ function createTradingViewChart(containerId, data) {
     
     const chart = LightweightCharts.createChart(container, {
         layout: { 
-            background: { color: '#09090b' }, 
-            textColor: '#d1d5db',
+            background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, 
+            textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#d1d5db',
             fontSize: 10,
             fontFamily: 'JetBrains Mono'
         },
