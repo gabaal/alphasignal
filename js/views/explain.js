@@ -45,8 +45,8 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
             ${caseStudies.length > 0 ? `<div style="margin-bottom:3rem"><h3 style="color:var(--text-main);margin-bottom:1.5rem;border-bottom:1px solid ${alphaColor(0.1)};padding-bottom:0.5rem;display:flex;align-items:center"><span class="material-symbols-outlined" style="margin-right:8px;color:var(--accent)">experiment</span>Practical Case Studies</h3><div style="display:grid;gap:1rem">${caseStudies.map(cs => `<div style="background:rgba(255,165,0,0.03);padding:1.5rem;border-radius:8px;border:1px dotted rgba(255,165,0,0.2)"><h4 style="color:#ffa500;margin-bottom:0.5rem;font-size:1rem;display:flex;align-items:center"><span class="material-symbols-outlined" style="margin-right:8px;font-size:18px">lightbulb</span>${cs.title}</h4><p style="color:var(--text-main);line-height:1.6;font-size:0.92rem">${cs.text}</p></div>`).join('')}</div></div>` : ''}
             ${dataSources ? `<div style="background:${alphaColor(0.03)};padding:1.2rem;border-radius:8px;margin-bottom:2rem;border:1px solid ${alphaColor(0.05)};font-size:0.85rem;color:var(--text-dim)"><div style="display:flex;align-items:center;margin-bottom:0.5rem;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:0.5px"><span class="material-symbols-outlined" style="margin-right:6px;font-size:16px">source</span>Data Provenance &amp; Sources</div>${dataSources}</div>` : ''}
             <div style="display:flex;gap:1rem;flex-wrap:wrap">
-                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;border:1px solid ${alphaColor(0.2)};border-radius:8px;"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB</button>
-                ${targetView ? `<button class="intel-action-btn" onclick="switchView('${targetView}')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--text-main);font-weight:800;border:1px solid ${alphaColor(0.2)};border-radius:8px;"><span class="material-symbols-outlined" style="font-size:18px;color:var(--text-main)">open_in_new</span> OPEN VIEW</button>` : ''}
+                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;border:1px solid var(--text-dim) !important;border-radius:8px;"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB</button>
+                ${targetView ? `<button class="intel-action-btn" onclick="switchView('${targetView}')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--text-main);font-weight:800;border:1px solid var(--text-dim) !important;border-radius:8px;"><span class="material-symbols-outlined" style="font-size:18px;color:var(--text-main)">open_in_new</span> OPEN VIEW</button>` : ''}
             </div>
         </div>
     `;
@@ -131,10 +131,10 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
             </div>` : ''}
 
             <div style="display:flex;gap:1rem;flex-wrap:wrap;padding-top:1rem;border-top:1px solid ${alphaColor(0.06)}">
-                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;width:auto;border:1px solid ${alphaColor(0.2)};border-radius:8px;">
+                <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;width:auto;border:1px solid var(--text-dim) !important;border-radius:8px;">
                     <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span> HELP HUB
                 </button>
-                ${viewId ? `<button class="intel-action-btn" onclick="switchView('${viewId}')" style="display:flex;align-items:center;gap:8px;width:auto;background:${hubColor};color:var(--text-main);font-weight:800;border:1px solid ${alphaColor(0.2)};border-radius:8px;">
+                ${viewId ? `<button class="intel-action-btn" onclick="switchView('${viewId}')" style="display:flex;align-items:center;gap:8px;width:auto;background:${hubColor};color:var(--text-main);font-weight:800;border:1px solid var(--text-dim) !important;border-radius:8px;">
                     <span class="material-symbols-outlined" style="font-size:16px;color:var(--text-main)">open_in_new</span> OPEN VIEW IN TERMINAL
                 </button>` : ''}
             </div>
