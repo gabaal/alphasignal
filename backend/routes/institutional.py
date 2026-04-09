@@ -4943,7 +4943,7 @@ class InstitutionalRoutesMixin:
                 'AI': ['FET-USD', 'RENDER-USD', 'WLD-USD', 'GRT-USD', 'TAO-USD'],
             }
             hotspots = []
-            returns_df = data.pct_change().dropna()
+            returns_df = data.pct_change()
             for sector_name, sector_tickers in SECTOR_MAP.items():
                 # Only use tickers we actually have data for
                 valid = [t for t in sector_tickers if t in returns_df.columns]
