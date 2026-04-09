@@ -74,9 +74,9 @@ async function renderCommandCenter() {
         <div id="cmdChartModal" onclick="if(event.target===this)closeCmdChartModal()"
             style="display:none;position:fixed;inset:0;z-index:9999;backdrop-filter:blur(12px);
                    -webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:2rem">
-            <div style="position:relative;width:min(90vw,1100px);background:rgba(5,7,30,0.97);
-                        border:1px solid rgba(0,242,255,0.2);border-radius:16px;padding:1.5rem;
-                        box-shadow:0 0 60px rgba(0,242,255,0.08)">
+            <div class="modal-inner-panel" style="position:relative;width:min(90vw,1100px);background:var(--bg-card);
+                        border:1px solid var(--border);border-radius:16px;padding:1.5rem;
+                        box-shadow:0 0 60px rgba(0,0,0,0.1)">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
                     <div>
                         <div id="cmdModalTitle" style="font-size:0.85rem;font-weight:900;color:var(--accent);letter-spacing:1px"></div>
@@ -376,6 +376,11 @@ function openCmdChartModal(key) {
 
     const sigs = window._cmdSigs || [];
     const existing = Chart.getChart('cmdModalCanvas'); if (existing) existing.destroy();
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const ttBg = isLight ? 'rgba(255,255,255,0.97)' : 'rgba(13,17,23,0.97)';
+    const ttTitle = isLight ? '#0284c7' : '#7dd3fc';
+    const ttBody = isLight ? '#334155' : '#e2e8f0';
+    const gridCol = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.07)';
     const el = document.getElementById('cmdModalCanvas');
     if (!el) return;
     // For chart-based modals, require signals/etf/radar data. Corr modal uses corrData instead.
@@ -478,11 +483,11 @@ function openCmdChartModal(key) {
                 c.fillStyle='rgba(148,163,184,0.02)'; c.fillRect(left,my,mx-left,bottom-my);
                 c.fillStyle='rgba(239,68,68,0.05)';   c.fillRect(mx,my,right-mx,bottom-my);
                 // Quadrant labels — positioned at centre of each quadrant, not at the origin
-                c.font='bold 10px JetBrains Mono'; c.globalAlpha=0.4;
-                c.fillStyle='#22c55e'; c.fillText('QUALITY SIGNALS', mx+(right-mx)/2-55, top+20);
-                c.fillStyle='#7dd3fc'; c.fillText('HIDDEN GEMS',     left+8,             top+20);
-                c.fillStyle='#94a3b8'; c.fillText('WEAK SHORT',      left+8,             my+(bottom-my)/2);
-                c.fillStyle='#ef4444'; c.fillText('OVEREXTENDED',    mx+(right-mx)/2-46, my+(bottom-my)/2);
+                c.font='bold 10px JetBrains Mono'; c.globalAlpha = isLight ? 0.7 : 0.4;
+                c.fillStyle= isLight ? '#16a34a' : '#22c55e'; c.fillText('QUALITY SIGNALS', mx+(right-mx)/2-55, top+20);
+                c.fillStyle= isLight ? '#0284c7' : '#7dd3fc'; c.fillText('HIDDEN GEMS',     left+8,             top+20);
+                c.fillStyle= isLight ? '#64748b' : '#94a3b8'; c.fillText('WEAK SHORT',      left+8,             my+(bottom-my)/2);
+                c.fillStyle= isLight ? '#dc2626' : '#ef4444'; c.fillText('OVEREXTENDED',    mx+(right-mx)/2-46, my+(bottom-my)/2);
                 c.globalAlpha=1; c.restore();
             }};
             new Chart(ctx, {
@@ -491,11 +496,11 @@ function openCmdChartModal(key) {
                     backgroundColor: pts.map(p=> p.x>0&&p.y>0?'rgba(34,197,94,0.8)':p.x<0&&p.y>0?'rgba(0,242,255,0.8)':p.x>0&&p.y<0?'rgba(239,68,68,0.7)':'rgba(148,163,184,0.55)'),
                     borderWidth:0 }]},
                 options:{ responsive:true, maintainAspectRatio:false, animation:{duration:400},
-                    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(13,17,23,0.97)', titleColor:'#7dd3fc', bodyColor:'#e2e8f0', titleFont:{family:'JetBrains Mono',size:13,weight:'700'}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
+                    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:ttBg, titleColor:ttTitle, bodyColor:ttBody, titleFont:{family:'JetBrains Mono',size:13,weight:'700'}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
                         callbacks:{ title:i=>i[0].raw.label, label:c=>`Z-Score: ${c.raw.x.toFixed(2)}σ   Alpha: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
                     scales:{
-                        x:{ title:{display:true,text:'Z-Score (σ)',color:alphaColor(0.5),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:alphaColor(0.07)}, ticks:{color:alphaColor(0.5),font:{family:'JetBrains Mono',size:10}} },
-                        y:{ title:{display:true,text:'Relative Alpha (%)',color:alphaColor(0.5),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:alphaColor(0.07)}, ticks:{color:alphaColor(0.5),font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
+                        x:{ title:{display:true,text:'Z-Score (σ)',color:alphaColor(0.8),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:gridCol}, ticks:{color:alphaColor(0.8),font:{family:'JetBrains Mono',size:10}} },
+                        y:{ title:{display:true,text:'Relative Alpha (%)',color:alphaColor(0.8),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:gridCol}, ticks:{color:alphaColor(0.8),font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
                     }
                 }
             });
@@ -508,7 +513,7 @@ function openCmdChartModal(key) {
                 data:{ labels, datasets:[{ data:counts, backgroundColor:labels.map((_,i)=>palette[i%palette.length]+'cc'), borderColor:'rgba(5,7,30,1)', borderWidth:3, hoverOffset:12 }]},
                 options:{ responsive:true, maintainAspectRatio:false, cutout:'55%', animation:{duration:600,animateRotate:true},
                     plugins:{ legend:{display:true,position:'right',labels:{color:alphaColor(0.7),font:{family:'JetBrains Mono',size:13},boxWidth:14,padding:14}},
-                        tooltip:{ backgroundColor:'rgba(13,17,23,0.97)', titleColor:'#7dd3fc', bodyColor:'#e2e8f0', titleFont:{family:'JetBrains Mono',size:13}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
+                        tooltip:{ backgroundColor:ttBg, titleColor:ttTitle, bodyColor:ttBody, titleFont:{family:'JetBrains Mono',size:13}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
                             callbacks:{label:c=>` ${c.label}: ${c.raw} signals (${Math.round(c.raw/sigs.length*100)}%)`}}}
                 }
             });
@@ -522,7 +527,7 @@ function openCmdChartModal(key) {
                 type:'bar',
                 data:{ labels:binLabels, datasets:[{ data:counts, backgroundColor:barBg, borderColor:barBg.map(c=>c.replace(/[\d.]+\)$/,'1)')), borderWidth:1, borderRadius:4 }]},
                 options:{ responsive:true, maintainAspectRatio:false, animation:{duration:500},
-                    plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.97)',titleColor:'#7dd3fc',titleFont:{family:'JetBrains Mono',size:13},bodyFont:{family:'JetBrains Mono',size:11},padding:12,
+                    plugins:{ legend:{display:false}, tooltip:{backgroundColor:ttBg,titleColor:ttTitle,bodyColor:ttBody,titleFont:{family:'JetBrains Mono',size:13},bodyFont:{family:'JetBrains Mono',size:11},padding:12,
                         callbacks:{title:i=>`BTC Correlation: ${i[0].label}`,label:c=>`${c.raw} signals in this bucket`}}},
                     scales:{
                         x:{ grid:{display:false}, ticks:{color:c2=>{const v=parseFloat(binLabels[c2.index]);return Math.abs(v)>0.6?'rgba(239,68,68,0.9)':Math.abs(v)>0.3?'rgba(0,242,255,0.7)':alphaColor(0.4);},font:{family:'JetBrains Mono',size:10},maxRotation:0} },
@@ -538,7 +543,7 @@ function openCmdChartModal(key) {
                 type:'bar',
                 data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderColor:colors.map(c=>c.replace(/[\d.]+\)$/,'1)')), borderWidth:1, borderRadius:6 }]},
                 options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:{duration:500},
-                    plugins:{ legend:{display:false}, tooltip:{backgroundColor:'rgba(13,17,23,0.97)',titleColor:'#7dd3fc',titleFont:{family:'JetBrains Mono',size:13},bodyFont:{family:'JetBrains Mono',size:11},padding:12,
+                    plugins:{ legend:{display:false}, tooltip:{backgroundColor:ttBg,titleColor:ttTitle,bodyColor:ttBody,titleFont:{family:'JetBrains Mono',size:13},bodyFont:{family:'JetBrains Mono',size:11},padding:12,
                         callbacks:{label:c=>` Relative Alpha: ${c.raw>=0?'+':''}${parseFloat(c.raw).toFixed(2)}%`}}},
                     scales:{
                         x:{ grid:{color:alphaColor(0.06)}, ticks:{color:alphaColor(0.45),font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} },
@@ -570,7 +575,7 @@ function openCmdChartModal(key) {
                     plugins: {
                         legend: { labels: { color: alphaColor(0.6), font: { family: 'JetBrains Mono', size: 11 }, padding: 8 } },
                         tooltip: {
-                            backgroundColor: 'rgba(13,17,23,0.97)', titleColor: '#7dd3fc',
+                            backgroundColor: ttBg, titleColor: ttTitle, bodyColor: ttBody,
                             bodyFont: { family: 'JetBrains Mono', size: 11 }, padding: 12,
                             callbacks: { label: c => ` ${c.label}: ${c.raw}/100` }
                         }
@@ -622,7 +627,7 @@ function openCmdChartModal(key) {
                     plugins: {
                         legend: { labels: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 11 }, boxWidth: 12, padding: 16 } },
                         tooltip: {
-                            backgroundColor: 'rgba(13,17,23,0.97)', titleColor: '#7dd3fc',
+                            backgroundColor: ttBg, titleColor: ttTitle, bodyColor: ttBody,
                             titleFont: { family: 'JetBrains Mono', size: 13 }, bodyFont: { family: 'JetBrains Mono', size: 11 }, padding: 12,
                             callbacks: { label: c => ` ${c.dataset.label}: ${c.raw >= 0 ? '+' : ''}${c.raw}M` }
                         }
