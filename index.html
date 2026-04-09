@@ -148,6 +148,8 @@ h2 { font-weight: 500 !important; letter-spacing: -0.015em; }
 /* -- Input fields and selects: glass inputs -- */ input, select, textarea { background: rgba(255,255,255,0.05) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.10) !important; transition: border-color 0.2s, box-shadow 0.2s !important; }
 input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40) !important; box-shadow: 0 0 0 3px rgba(125,211,252,0.10), inset 0 1px 0 rgba(255,255,255,0.05) !important; outline: none !important; }
 /* -- Buttons: frosted glass pill -- */ .intel-action-btn, .action-btn-styled, .tf-btn { background: rgba(255,255,255,0.06) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.12) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08) !important; transition: all 0.2s ease !important; }
+/* -- User Profile Dropdown: less transparent -- */ .profile-actions.dropdown-menu { background: var(--bg-body) !important; border: 1px solid rgba(255,255,255,0.15) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.8) !important; } 
+[data-theme="light"] .profile-actions.dropdown-menu { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.1) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important; }
 .intel-action-btn:hover, .action-btn-styled:hover { background: rgba(255,255,255,0.10) !important; border-color: rgba(125,211,252,0.30) !important; box-shadow: 0 0 16px rgba(125,211,252,0.10), inset 0 1px 0 rgba(255,255,255,0.12) !important; }
 /* ============================================================ SIDEBAR GLASSMORPHISM — Premium Frosted Glass Sidebar ============================================================ */ /* Reset sidebar to true glass */ .sidebar { background: rgba(6, 8, 20, 0.55) !important; backdrop-filter: blur(60px) saturate(200%) brightness(1.1) !important; -webkit-backdrop-filter: blur(60px) saturate(200%) brightness(1.1) !important; border-right: 1px solid rgba(125,211,252,0.10) !important; box-shadow: 4px 0 60px rgba(0,0,0,0.6), inset -1px 0 0 rgba(255,255,255,0.05), inset 1px 0 0 rgba(255,255,255,0.02) !important; position: relative !important; }
 /* Ambient glow bands inside the sidebar */ .sidebar::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 180px 300px at 50% 0%, rgba(125,211,252,0.08) 0%, transparent 70%), radial-gradient(ellipse 160px 200px at 30% 85%, rgba(99,102,241,0.06) 0%, transparent 70%), linear-gradient(180deg, rgba(125,211,252,0.025) 0%, transparent 30%, rgba(99,102,241,0.02) 100%); pointer-events: none; z-index: 0; }
@@ -293,6 +295,17 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                     <span class="icon material-symbols-outlined" aria-hidden="true">person</span> My Terminal
                     <span class="premium-badge" style="font-size:0.5rem;background:rgba(0,242,255,0.15);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PERSONAL</span>
                 </div>
+
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INTEGRATIONS</div>
+                <div class="nav-item" data-view="exchange-keys" aria-label="Manage Exchange API Keys (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">api</span> Exchange Keys
+                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
+                </div>
+                <div class="nav-item" data-view="webhooks" aria-label="Manage Outbound Webhooks (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">webhook</span> Webhooks
+                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
+                </div>
+
                 <div class="nav-item" data-view="ask-terminal" aria-label="Ask the Terminal AI">
                     <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Ask Terminal <span class="premium-badge" style="font-size:0.5rem;background:#bc13fe;color:black;padding:1px 5px;border-radius:4px;margin-left:2px">AI</span>
                 </div>
@@ -696,6 +709,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="js/views/price-alerts.js?v=2.34" defer></script>
     <script src="js/views/signal-leaderboard.js?v=2.34" defer></script>
     <script src="js/views/market-brief.js?v=2.34" defer></script>
+    <script src="js/views/exchange-keys.js" defer></script>
+    <script src="js/views/webhooks.js" defer></script>
     <!-- Docs + Export utilities -->
     <script src="js/docs-a.js?v=2.35" defer></script>
     <script src="js/docs-b.js?v=2.35" defer></script>

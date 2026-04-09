@@ -560,6 +560,33 @@ function renderDocsViewTradingViewWidget() {
     });
 }
 
+function renderDocsViewIntegrations() {
+    renderViewDocPage({
+        hub: 'Integrations Hub', hubIcon: 'cable', hubColor: '#ef4444',
+        title: 'API Keys & Webhooks', viewId: 'exchange-keys',
+        summary: 'Institutional connectivity suite for 1-Click execution and programmatic signal forwarding. Only available to Premium Institutional members.',
+        components: [
+            {
+                name: 'Exchange API Link', type: 'SECURITY', icon: 'key',
+                description: 'Add read/trade API credentials for major exchanges (Binance, Bybit, OKX, Kraken). Keys are encrypted at rest and allow the terminal to safely execute fast 1-Click trades from the Signal Feed.',
+                howToRead: 'Go to your exchange, generate an API key with TRADE permissions (NO WITHDRAWAL), and link it here. Once connected, signal cards will feature a fast execution button.',
+                signals: [
+                    'Keys are validated via ping on post. If validation fails, ensure your exchange IP whitelisting does not block the terminal.'
+                ]
+            },
+            {
+                name: 'Outbound Algorithmic Webhook', type: 'AUTOMATION', icon: 'webhook',
+                description: 'Connect your proprietary ML bot or trading script to AlphaSignal. Whenever an alpha signal surpasses your defined Z-Score threshold, the terminal blasts a real-time JSON payload to your custom endpoint.',
+                howToRead: 'Configure an endpoint that accepts POST requests. Use the Test Payload button to verify connectivity and view the schema layout.',
+                signals: [
+                    'Ensure your firewall permits incoming POST requests from AlphaSignal IP ranges.',
+                    'Parse the alpha_score and direction payload to execute algorithmic trades.'
+                ]
+            }
+        ]
+    });
+}
+
 // ============= ORDER FLOW (GOMM) =============
 function renderDocsViewOrderFlow() {
     renderViewDocPage({

@@ -746,10 +746,33 @@ class HarvestService:
                         try:
                             with sqlite3.connect(DB_PATH) as alert_conn:
                                 alert_c = alert_conn.cursor()
-                                alert_c.execute("SELECT user_email, z_threshold FROM user_settings WHERE alerts_enabled = 1")
+                                # Include algo_webhook in the query
+                                alert_c.execute("SELECT user_email, z_threshold, algo_webhook FROM user_settings WHERE alerts_enabled = 1")
                                 for row in alert_c.fetchall():
                                     target_email = row[0]
                                     user_z_thresh = float(row[1]) if row[1] else 2.0
+                                    algo_url = row[2] if len(row) > 2 and row[2] else None
+
+                                    if pred_return * 100 >= user_z_thresh:
+                                        # Issue Algorithmic Trade Webhook if configured
+                                        if algo_url:
+                                            def _fire_algo(url=algo_url, t_email=target_email):
+                                                try:
+                                                    payload = {
+                                                        "action": "BUY" if pred_return > 0 else "SELL",
+                                                        "ticker": ticker,
+                                                        "price": curr_p,
+                                                        "signal_type": signal_type,
+                                                        "alpha_score": round(pred_return * 100, 2),
+                                                        "timestamp": datetime.now().isoformat(),
+                                                    }
+                                                    import requests
+                                                    requests.post(url, json=payload, timeout=3)
+                                                except Exception as we:
+                                                    print(f"[AlgoWebhook] Error pushing to {t_email}: {we}")
+                                            threading.Thread(target=_fire_algo, daemon=True).start()
+                                    
+                                    # The standard push_webhook logic below still gates on z_thresh
                                     if pred_return * 100 < user_z_thresh:
                                         continue
                                     direction = 'LONG' if pred_return > 0 else 'SHORT'

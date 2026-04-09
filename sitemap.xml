@@ -255,6 +255,20 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- ===== INTEGRATIONS HUB ===== -->
+  <url>
+    <loc>https://alphasignal.digital/?view=exchange-keys</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/?view=webhooks</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- ===== AUDIT HUB ===== -->
   <url>
     <loc>https://alphasignal.digital/?view=audit-hub</loc>
@@ -611,6 +625,12 @@
   <url>
     <loc>https://alphasignal.digital/?view=docs-ask-terminal</loc>
     <lastmod>2026-04-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/?view=docs-integrations</loc>
+    <lastmod>2026-04-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

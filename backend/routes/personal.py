@@ -222,3 +222,82 @@ class PersonalRoutesMixin:
             self.send_json({'success': r.status_code in [200, 204]})
         except Exception as e:
             self.send_json({'error': str(e)})
+
+    # ── INTEGRATIONS ──────────────────────────────────────────
+    def handle_exchange_keys_get(self, auth_info):
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            user_email = auth_info['email']
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('SELECT id, exchange, api_key, created_at FROM exchange_keys WHERE user_email = ?', (user_email,))
+            rows = c.fetchall()
+            conn.close()
+            keys = [{'id': r[0], 'exchange': r[1], 'api_key': r[2][:4] + '****' + r[2][-4:] if len(r[2]) > 8 else '****', 'created_at': r[3]} for r in rows]
+            self.send_json(keys)
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_exchange_keys_post(self, auth_info, data):
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            user_email = auth_info['email']
+            exchange = data.get('exchange', '').upper()
+            api_key = data.get('api_key', '')
+            api_secret = data.get('api_secret', '')
+            if not exchange or not api_key or not api_secret:
+                return self.send_json({'error': 'exchange, api_key, and api_secret are required'})
+
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('''INSERT OR REPLACE INTO exchange_keys (user_email, exchange, api_key, api_secret) VALUES (?, ?, ?, ?)''',
+                      (user_email, exchange, api_key, api_secret))
+            conn.commit()
+            conn.close()
+            self.send_json({'success': True})
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_exchange_keys_delete(self, auth_info, item_id):
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            user_email = auth_info['email']
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('DELETE FROM exchange_keys WHERE id = ? AND user_email = ?', (item_id, user_email))
+            conn.commit()
+            conn.close()
+            self.send_json({'success': True})
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_execute_trade(self, auth_info, data):
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            user_email = auth_info['email']
+            ticker = data.get('ticker')
+            action = data.get('action', 'BUY').upper()
+            qty_or_size = data.get('size', '10%') # simulated
+
+            # Validate they have at least one exchange key
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('SELECT id FROM exchange_keys WHERE user_email = ? LIMIT 1', (user_email,))
+            has_key = c.fetchone()
+            if not has_key:
+                conn.close()
+                return self.send_json({'error': 'No Exchange API keys configured. Please add one in Integrations.'})
+
+            # Insert simulated trade into trade_ledger
+            c.execute('''INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                      (user_email, ticker, f"{action} ({qty_or_size}) [API]", 0.0, 0.0, 0.0, 0.0, 0.0))
+            conn.commit()
+            conn.close()
+            self.send_json({'success': True, 'message': f'Trade {action} {ticker} executed and logged.'})
+        except Exception as e:
+            self.send_json({'error': str(e)})

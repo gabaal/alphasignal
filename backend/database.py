@@ -278,6 +278,18 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN digest_enabled INTEGER DEFAULT 1")
     except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_webhook TEXT")
+    except: pass
+    c.execute('''CREATE TABLE IF NOT EXISTS exchange_keys (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email TEXT NOT NULL,
+        exchange TEXT NOT NULL,
+        api_key TEXT NOT NULL,
+        api_secret TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_email, exchange)
+    )''')
     c.execute('''CREATE TABLE IF NOT EXISTS market_ticks (symbol TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, price REAL, volume REAL, open_interest REAL)''')
     # Ensure index on market_ticks for leaderboard lookups
     try:

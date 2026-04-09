@@ -106,6 +106,8 @@ const viewMap = {
     'explain-ask-terminal': () => switchView('docs-ask-terminal'),
     'explain-my-terminal': () => switchView('docs-my-terminal'),
     'my-terminal': renderMyTerminal,
+    'exchange-keys': renderExchangeKeys,
+    'webhooks': renderWebhooks,
     'price-alerts': renderPriceAlerts,
     'signal-leaderboard': renderSignalLeaderboard,
     'market-brief': renderMarketBrief,
@@ -157,6 +159,7 @@ const viewMap = {
     'docs-command-center': renderDocsViewCommandCenter,
     'docs-daily-workflow': renderDocsViewDailyWorkflow,
     'docs-how-signals-work': renderDocsViewHowSignalsWork,
+    'docs-integrations': renderDocsViewIntegrations,
     'signal': () => {
         const params = new URLSearchParams(window.location.search);
         const ticker = params.get('ticker') || params.get('id');

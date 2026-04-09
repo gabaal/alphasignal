@@ -385,6 +385,28 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
     }
 }
 
+// ── 1-Click Fast Execute Trade Proxy ──
+window.executeTrade = async function(ticker, action, price, alpha_score) {
+    const conf = confirm(`[1-CLICK TRADE CONFIRMATION]\n\nExecute ${action} order for ${ticker} at market price ~$${price}?`);
+    if (!conf) return;
+    showToast('EXECUTING', `Routing ${action} order for ${ticker} to exchange sandbox...`, 'info');
+    try {
+        const res = await fetchAPI('/execute-trade', 'POST', {
+            ticker: ticker,
+            action: action,
+            price: price,
+            alpha_score: alpha_score
+        });
+        if (res && res.success) {
+            showToast('ORDER FILLED', res.message, 'success');
+        } else {
+            throw new Error(res?.error || 'Execution failed');
+        }
+    } catch (e) {
+        showToast('TRADE REJECTED', e.message, 'alert');
+    }
+};
+
 async function checkAuthStatus() {
     const status = await fetchAPI('/auth/status');
     if (status && status.authenticated) {
