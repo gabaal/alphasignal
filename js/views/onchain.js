@@ -144,7 +144,8 @@ async function renderOnChain(tabs = null) {
         document.getElementById('mvrv-chart').innerHTML = '';
         
         // Setup base chart config
-        const chartOpts = (height) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, height });
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const chartOpts = (height) => ({ layout: { background: { color: isLight ? '#ffffff' : '#09090b' }, textColor: isLight ? '#334155' : '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, height });
         
         // MVRV
         const mvrvContainer = document.getElementById('mvrv-chart');
@@ -387,7 +388,8 @@ function openOnchainModal(type) {
         return;
     }
 
-    const opts = { layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, width: container.clientWidth, height: container.clientHeight };
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const opts = { layout: { background: { color: isLight ? '#ffffff' : '#09090b' }, textColor: isLight ? '#334155' : '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, width: container.clientWidth, height: container.clientHeight };
     const chart = LightweightCharts.createChart(container, opts);
     container._lwChart = chart;
 
@@ -479,7 +481,7 @@ async function renderBacktesterV2(tabs = null) {
             <div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD PERIOD</label>
-                <select id="btv2-hold" onchange="if(this.value==='20'){showToast('BACKTESTER','20-day hold reduces signal density and increases volatility. Consider 5–10 days for more reliable statistics.','info');}" style="background:#0d1117;color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
+                <select id="btv2-hold" onchange="if(this.value==='20'){showToast('BACKTESTER','20-day hold reduces signal density and increases volatility. Consider 5–10 days for more reliable statistics.','info');}" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
                     <option value="3">3 Days</option><option value="5" selected>5 Days</option>
                     <option value="10">10 Days</option><option value="20">20 Days</option>
                 </select>
@@ -1184,7 +1186,7 @@ async function renderTradingViewHub(tabs) {
 // â”€â”€â”€ Custom Analytics Hub â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function renderCustomAnalytics(tabs) {
     if (!tabs) tabs = analyticsHubTabs;
-    const chartOpts = (h) => ({ layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, height: h });
+    const chartOpts = (h) => ({ layout: { background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, height: h });
 
     appEl.innerHTML =
         '<div class="view-header"><h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Custom Charts <span class="premium-badge">LIVE</span></h1><button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView(\'docs-custom-charts\')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button></div>' +

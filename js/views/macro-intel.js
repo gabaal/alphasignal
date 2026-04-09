@@ -144,7 +144,7 @@ async function renderMindshare() {
                         'rgba(255, 100, 100, 0.8)'
                     ],
                     borderWidth: 2,
-                    borderColor: '#09090b',
+                    borderColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b',
                     hoverOffset: 10
                 }]
             },

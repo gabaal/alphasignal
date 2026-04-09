@@ -75,7 +75,7 @@ async function exportDeepDivePDF() {
 
     try {
         const canvas = await html2canvas(content, {
-            backgroundColor: '#0d1117',
+            backgroundColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#f8fafc' : '#0d1117',
             scale: 2,
             useCORS: true,
             logging: false

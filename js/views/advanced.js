@@ -26,7 +26,7 @@ async function renderAdvOverview(symbol, interval) {
     container.innerHTML = '';
     
     const chart = LightweightCharts.createChart(container, {
-        layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontSize: 11, fontFamily: 'JetBrains Mono' },
+        layout: { background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#d1d5db', fontSize: 11, fontFamily: 'JetBrains Mono' },
         grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
         timeScale: { borderColor: alphaColor(0.1), timeVisible: true }
@@ -152,7 +152,7 @@ async function renderAdvPulse(symbol) {
 
     const chartContainer = document.getElementById('pulse-chart');
     const chart = LightweightCharts.createChart(chartContainer, {
-        layout: { background: { color: '#09090b' }, textColor: '#9ca3af', fontSize: 11, fontFamily: 'Inter' },
+        layout: { background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#9ca3af', fontSize: 11, fontFamily: 'Inter' },
         grid: { vertLines: { color: alphaColor(0.02) }, horzLines: { color: alphaColor(0.02) } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
         timeScale: { borderColor: alphaColor(0.1), timeVisible: true }
@@ -637,7 +637,7 @@ async function renderAdvDerivatives(symbol, interval) {
     container.innerHTML = '';
     
     const chart = LightweightCharts.createChart(container, {
-        layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+        layout: { background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#d1d5db', fontFamily: 'JetBrains Mono' },
         timeScale: { borderColor: alphaColor(0.1), timeVisible: true }
     });
     
@@ -712,7 +712,7 @@ async function renderAdvComparative(interval) {
     container.innerHTML = '';
     
     const chart = LightweightCharts.createChart(container, {
-        layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+        layout: { background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#d1d5db', fontFamily: 'JetBrains Mono' },
         timeScale: { timeVisible: true }
     });
     const norm = (data) => {
@@ -739,7 +739,7 @@ async function renderAdvCVD(symbol) {
         
         container.innerHTML = '';
         const chart = LightweightCharts.createChart(container, {
-            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+            layout: { background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#d1d5db', fontFamily: 'JetBrains Mono' },
             grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }
         });
         const cvdSeries = chart.addAreaSeries({ topColor: 'rgba(38,166,154,0.4)', bottomColor: 'rgba(239,83,80,0.4)', lineColor: '#26a69a', lineWidth: 2, title: 'Cumulative Volume Delta' });
@@ -762,7 +762,7 @@ async function renderAdvExchange(symbol) {
         
         container.innerHTML = '';
         const chart = LightweightCharts.createChart(container, {
-            layout: { background: { color: '#09090b' }, textColor: '#d1d5db', fontFamily: 'JetBrains Mono' },
+            layout: { background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#d1d5db', fontFamily: 'JetBrains Mono' },
             grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }
         });
         const exSeries = chart.addHistogramSeries({ color: '#facc15', title: 'Net Position Change' });

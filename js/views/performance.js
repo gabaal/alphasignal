@@ -634,7 +634,7 @@ async function renderStrategyReport(tabs = null) {
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD</label>
-                <select id="sr-hold" onchange="loadStrategyReport()" style="background:#0d1117;color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:0.75rem">
+                <select id="sr-hold" onchange="loadStrategyReport()" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:0.75rem">
                     <option value="3">3 Days</option>
                     <option value="5" selected>5 Days</option>
                     <option value="10">10 Days</option>
@@ -693,7 +693,7 @@ async function loadStrategyReport() {
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD</label>
-                <select id="sr-hold" onchange="loadStrategyReport()" style="background:#0d1117;color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:0.75rem">
+                <select id="sr-hold" onchange="loadStrategyReport()" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:0.75rem">
                     <option value="3" ${hold==='3'?'selected':''}>3 Days</option>
                     <option value="5" ${hold==='5'?'selected':''}>5 Days</option>
                     <option value="10" ${hold==='10'?'selected':''}>10 Days</option>

@@ -158,7 +158,7 @@ async function renderTradeLedger(tabs = null) {
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.2rem">
                     <div>
                         <label style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1.5px;font-weight:700;display:block;margin-bottom:4px">ACTION</label>
-                        <select id="ledit-action" style="width:100%;background:#0d1117;color:var(--text);border:1px solid var(--border);padding:8px 10px;border-radius:7px;font-size:0.8rem">
+                        <select id="ledit-action" style="width:100%;background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:8px 10px;border-radius:7px;font-size:0.8rem">
                             <option value="BUY">BUY</option>
                             <option value="SELL">SELL</option>
                         </select>

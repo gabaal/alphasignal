@@ -563,13 +563,13 @@ async function renderSignalArchive(tabs = null) {
                 <input type="text" id="filter-ticker" name="signal-ticker-search" placeholder="BTC-USD, ETH…" maxlength="20"
                     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                     readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
-                    style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.75rem;width:130px;font-family:var(--font-mono)"
+                    style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.75rem;width:130px;font-family:var(--font-mono)"
                     onkeydown="if(event.key==='Enter') loadData(1)">
             </div>
             <!-- Signal type -->
             <div style="display:flex;flex-direction:column;gap:4px">
                 <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">SIGNAL TYPE</label>
-                <select id="filter-type" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
+                <select id="filter-type" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
                     <option value="">ALL TYPES</option>
                     <option value="ML_ALPHA_PREDICTION">ML ALPHA PREDICTION</option>
                     <option value="ML_LONG">ML LONG</option>
@@ -591,7 +591,7 @@ async function renderSignalArchive(tabs = null) {
             <!-- Severity -->
             <div style="display:flex;flex-direction:column;gap:4px">
                 <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">SEVERITY</label>
-                <select id="filter-severity" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
+                <select id="filter-severity" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
                     <option value="">ALL</option>
                     <option value="critical">CRITICAL 🔴</option>
                     <option value="high">HIGH 🟠</option>
@@ -601,7 +601,7 @@ async function renderSignalArchive(tabs = null) {
             <!-- Direction -->
             <div style="display:flex;flex-direction:column;gap:4px">
                 <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">DIRECTION</label>
-                <select id="filter-direction" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
+                <select id="filter-direction" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
                     <option value="">ALL</option>
                     <option value="bullish">BULLISH ▲</option>
                     <option value="bearish">BEARISH ▼</option>
@@ -626,11 +626,11 @@ async function renderSignalArchive(tabs = null) {
                 <div id="drp-custom-inputs" style="display:none;gap:6px;align-items:flex-end;margin-top:4px;flex-wrap:wrap">
                     <div style="display:flex;flex-direction:column;gap:2px">
                         <label style="font-size:0.5rem;color:var(--text-dim);font-weight:700">FROM</label>
-                        <input type="date" id="drp-from" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.7rem;font-family:var(--font-mono);color-scheme:dark">
+                        <input type="date" id="drp-from" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.7rem;font-family:var(--font-mono);color-scheme: ${document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'}">
                     </div>
                     <div style="display:flex;flex-direction:column;gap:2px">
                         <label style="font-size:0.5rem;color:var(--text-dim);font-weight:700">TO</label>
-                        <input type="date" id="drp-to" style="background:#0d1117;border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.7rem;font-family:var(--font-mono);color-scheme:dark">
+                        <input type="date" id="drp-to" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.7rem;font-family:var(--font-mono);color-scheme: ${document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'}">
                     </div>
                     <button onclick="loadData(1)" style="background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.3);color:var(--accent);padding:5px 12px;border-radius:6px;font-size:0.65rem;font-weight:700;cursor:pointer">APPLY RANGE</button>
                 </div>
