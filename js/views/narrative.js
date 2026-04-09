@@ -12,7 +12,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             </div>
         ${renderHubTabs('narrative', tabs)}
             <div class="view-actions" style="margin-bottom:0">
-                <select id="galaxy-chain-filter" class="tf-btn" style="background:#0d1117; border:1px solid var(--border); color:white; padding:0 15px; height:36px; cursor:pointer" onchange="renderNarrativeGalaxy(this.value)">
+                <select id="galaxy-chain-filter" class="tf-btn" style="background:var(--bg-input); border:1px solid var(--border); color:var(--text); padding:0 15px; height:36px; cursor:pointer" onchange="renderNarrativeGalaxy(this.value)">
                     <option value="ALL" ${filterChain === 'ALL' ? 'selected' : ''}>ALL NETWORKS</option>
                     <option value="SOL" ${filterChain === 'SOL' ? 'selected' : ''}>SOLANA ECO</option>
                     <option value="ETH" ${filterChain === 'ETH' ? 'selected' : ''}>ETHEREUM ECO</option>
@@ -26,12 +26,12 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             <span style="font-size:0.6rem; font-weight:900; color:var(--accent); white-space:nowrap">EMERGING NARRATIVES:</span>
             <div style="flex:1; overflow:hidden; mask-image: linear-gradient(to right, transparent, black 15px); -webkit-mask-image: linear-gradient(to right, transparent, black 15px);">
                 <div style="display:flex; gap:20px; animation: scroll-left 80s linear infinite">
-                    ${data.hot_topics.map(t => `<span style="font-size:0.75rem; font-weight:800; color:white; white-space:nowrap"># ${t}</span>`).join('')}
+                    ${data.hot_topics.map(t => `<span style="font-size:0.75rem; font-weight:800; color:var(--text); white-space:nowrap"># ${t}</span>`).join('')}
                 </div>
             </div>
         </div>
 
-        <div class="galaxy-container" style="position:relative; width:100%; height:600px; background:radial-gradient(circle at center, #0a0b1e 0%, #000 100%); border-radius:16px; overflow:hidden; border:1px solid ${alphaColor(0.05)}">
+        <div class="galaxy-container" style="position:relative; width:100%; height:600px; background: ${document.documentElement.getAttribute('data-theme') === 'light' ? 'radial-gradient(circle at center, #ffffff 0%, #e2e8f0 100%)' : 'radial-gradient(circle at center, #0a0b1e 0%, #000 100%)'}; border-radius:16px; overflow:hidden; border:1px solid ${alphaColor(0.05)}">
             <canvas id="galaxyCanvas" role="img" aria-label="Narrative galaxy bubble chart � social mindshare visualization" style="width:100%; height:100%"></canvas>
             <div id="galaxyTooltip" class="galaxy-tooltip" style="display:none; position:absolute; pointer-events:none; z-index:1000"></div>
             
@@ -40,7 +40,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                     <div style="display:flex; align-items:center; gap:8px; font-size:0.6rem; color:var(--text-dim)">
                         <div style="width:10px; height:10px; border-radius:2px; background:${val.color}"></div>
                         <div>
-                            <div style="color:white; font-weight:800">${key}</div>
+                            <div style="color:var(--text); font-weight:800">${key}</div>
                             <div style="font-size:0.5rem">${val.topic}</div>
                         </div>
                     </div>
@@ -121,7 +121,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                     const bar   = Math.min(Math.abs(sent) * 100, 100);
                     const anchor = data.anchors?.[c.category] || {};
                     return `<div style="background:${bg};border:1px solid ${color}22;border-radius:8px;padding:10px">
-                        <div style="font-size:0.65rem;font-weight:800;color:white;margin-bottom:2px">${(c.ticker||'�').replace('-USD','')}</div>
+                        <div style="font-size:0.65rem;font-weight:800;color:var(--text);margin-bottom:2px">${(c.ticker||'�').replace('-USD','')}</div>
                         <div style="font-size:0.5rem;color:var(--text-dim);margin-bottom:6px">${c.category || ''}</div>
                         <div style="height:3px;background:${alphaColor(0.06)};border-radius:2px;margin-bottom:4px">
                             <div style="height:3px;background:${color};border-radius:2px;width:${bar}%"></div>
@@ -340,7 +340,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
 
             // Label if hovered or high momentum
             if (isHovered || Math.abs(star.momentum) > 10) {
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'light' ? '#000' : 'white';
                 ctx.font = isHovered ? 'bold 12px Inter' : '10px Inter';
                 ctx.fillText(star.ticker, star.x + size + 5, star.y + 5);
             }
@@ -361,7 +361,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             tooltip.innerHTML = `
                 <div style=" border:1px solid ${hoveredStar.color}; padding:12px; border-radius:8px; backdrop-filter:blur(10px); min-width:140px">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px">
-                        <span style="font-weight:900; color:white; font-size:1rem">${hoveredStar.ticker}</span>
+                        <span style="font-weight:900; color:var(--text); font-size:1rem">${hoveredStar.ticker}</span>
                         <span style="font-size:0.6rem; color:var(--text-dim)">${hoveredStar.category}</span>
                     </div>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px">
