@@ -1,4 +1,3 @@
-from backend.database import get_db_connection
 import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math, threading, os
 import numpy as np
 import pandas as pd
@@ -396,7 +395,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_response(401); self.end_headers(); return
                 try:
                     sig_id = int(path.split('/')[3])
-                    conn = get_db_connection()
+                    conn = sqlite3.connect(DB_PATH)
                     c = conn.cursor()
                     from datetime import datetime as _dt
                     # Fetch entry price + type to compute final ROI at close time
@@ -451,7 +450,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_response(401); self.end_headers(); return
                 try:
                     sig_id = int(path.split('/')[3])
-                    conn = get_db_connection()
+                    conn = sqlite3.connect(DB_PATH)
                     c = conn.cursor()
                     # Security: verify the signal belongs to this user
                     c.execute("SELECT user_email FROM alerts_history WHERE id=?", (sig_id,))

@@ -1,4 +1,3 @@
-from backend.database import get_db_connection
 import sqlite3
 import requests
 import json
@@ -103,7 +102,7 @@ class NotificationService:
         fields: list of dicts with keys 'name', 'value', 'inline' for Discord embed fields
         """
         try:
-            conn = get_db_connection()
+            conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute(
                 "SELECT discord_webhook, telegram_chat_id, COALESCE(telegram_alerts_enabled, 1) "
@@ -183,7 +182,7 @@ def notify_watchlist_users(ticker, sig_type, message, severity, curr_p):
     This is called after every ML and rule-based signal fires — independent of
     the existing 'alerts_enabled' broadcast, so watchers always get pinged."""
     try:
-        with get_db_connection() as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             c = conn.cursor()
             # Find users watching this ticker
             c.execute("""
@@ -275,7 +274,7 @@ class MLAlphaEngine:
 
     def train_all(self):
         print(f"[{datetime.now()}] MLAlphaEngine: Starting background model training...")
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute("SELECT ticker FROM tracked_tickers")
         tracked = [r[0] for r in c.fetchall()]
@@ -376,7 +375,7 @@ class PortfolioSimulator:
                 top_5 = predictions[:5]
                 
                 # 3. Calculate Equity from ACTUAL weighted basket return
-                conn = get_db_connection()
+                conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
                 c.execute("SELECT COUNT(*) FROM portfolio_history")
                 count = c.fetchone()[0]
@@ -439,7 +438,7 @@ class HarvestService:
         while self.running:
             try:
                 # Include dynamically tracked tickers
-                conn = get_db_connection()
+                conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
                 c.execute("SELECT ticker FROM tracked_tickers")
                 tracked = [r[0] for r in c.fetchall()]
@@ -453,7 +452,7 @@ class HarvestService:
                 
                 # Phase 4: Persist High-Frequency Time-Series for ML Models
                 try:
-                    ts_conn = get_db_connection()
+                    ts_conn = sqlite3.connect(DB_PATH)
                     ts_c = ts_conn.cursor()
                     print(f"[{datetime.now()}] Persisting high-freq TS data for {len(all_tickers)} assets...")
                     
@@ -498,7 +497,7 @@ class HarvestService:
                             except: pass
                         
                         # Notify all users with alerts enabled
-                        conn = get_db_connection()
+                        conn = sqlite3.connect(DB_PATH)
                         c = conn.cursor()
                         c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1")
                         all_users = c.fetchall()
@@ -545,7 +544,7 @@ class HarvestService:
         TP2_THRESHOLD = 10.0   # % gain → auto-close win
         SL_THRESHOLD  = -3.0   # % loss → auto-close loss
 
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c    = conn.cursor()
         try:
             # Fetch all active signals (status IS NULL or 'active')
@@ -667,7 +666,7 @@ class HarvestService:
         if data is None or data.empty: return
         
         print(f"[{datetime.now()}] MLAlphaEngine: Generating Predictive Alpha alerts...")
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
         # Identify all tickers in the batch data
@@ -709,7 +708,7 @@ class HarvestService:
                 if signal_type:
                     # Get all users to receive this signal
                     try:
-                        with get_db_connection() as ue_conn:
+                        with sqlite3.connect(DB_PATH) as ue_conn:
                             ue_c = ue_conn.cursor()
                             ue_c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
                             enabled_users = [r[0] for r in ue_c.fetchall()]
@@ -745,7 +744,7 @@ class HarvestService:
                             daemon=True).start()
                         # Phase 17-A: Rich Multi-Channel Dispatch with user z_threshold gate
                         try:
-                            with get_db_connection() as alert_conn:
+                            with sqlite3.connect(DB_PATH) as alert_conn:
                                 alert_c = alert_conn.cursor()
                                 # Include algo_webhook in the query
                                 alert_c.execute("SELECT user_email, z_threshold, algo_webhook FROM user_settings WHERE alerts_enabled = 1")
@@ -888,7 +887,7 @@ class HarvestService:
                     if sig_type:
                         # Per-user insert: one row per enabled user
                         try:
-                            with get_db_connection() as ue_conn2:
+                            with sqlite3.connect(DB_PATH) as ue_conn2:
                                 ue_c2 = ue_conn2.cursor()
                                 ue_c2.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
                                 rule_users = [r[0] for r in ue_c2.fetchall()]
@@ -915,7 +914,7 @@ class HarvestService:
 
                             # Multi-channel dispatch — notify users with alerts_enabled
                             try:
-                                with get_db_connection() as notify_conn:
+                                with sqlite3.connect(DB_PATH) as notify_conn:
                                     notify_c = notify_conn.cursor()
                                     notify_c.execute("""SELECT user_email, z_threshold,
                                                                whale_threshold, depeg_threshold,
@@ -994,7 +993,7 @@ class HarvestService:
         """Phase 8: Resilient Snapshots.
         Bypasses yfinance historical failures by using direct price discovery.
         """
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
         # Phase 7: Prioritized Universe for the Charting Legend

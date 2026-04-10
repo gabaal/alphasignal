@@ -3,31 +3,23 @@ import sqlite3
 import requests
 import stripe
 import redis
-import psycopg2
-import re
 
 # Initialize Redis connection pointing to localhost instance
 import socket
 REDIS_UP = False
-redis_url = os.environ.get("REDIS_URL")
-if redis_url:
-    try:
-        redis_client = redis.from_url(redis_url, decode_responses=True, socket_connect_timeout=3, socket_timeout=3)
+try:
+    with socket.create_connection(('localhost', 6379), timeout=1):
         REDIS_UP = True
+except:
+    pass
+
+if REDIS_UP:
+    try:
+        redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True, socket_connect_timeout=1, socket_timeout=1)
+        # We don't need a ping here if the socket connect worked, or we can ping with a short timeout.
+        # But some redis versions might still hang on ping.
     except:
         REDIS_UP = False
-else:
-    try:
-        with socket.create_connection(('localhost', 6379), timeout=1):
-            REDIS_UP = True
-    except:
-        pass
-
-    if REDIS_UP:
-        try:
-            redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True, socket_connect_timeout=1, socket_timeout=1)
-        except:
-            REDIS_UP = False
 
 if not REDIS_UP:
     print("Redis Connection Warning: Falling back to mock redis.", flush=True)
@@ -197,44 +189,9 @@ if data_dir:
 else:
     DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'alphasignal.db')
 
-class PostgreSQLCursorWrapper:
-    def __init__(self, cursor):
-        self.cursor = cursor
-        
-    def execute(self, query, params=None):
-        postgres_query = query.replace("?", "%s")
-        postgres_query = re.sub(r'INTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT', 'SERIAL PRIMARY KEY', postgres_query, flags=re.IGNORECASE)
-        postgres_query = re.sub(r'\bDATETIME\b', 'TIMESTAMP', postgres_query, flags=re.IGNORECASE)
-        try:
-            if params:
-                self.cursor.execute(postgres_query, params)
-            else:
-                self.cursor.execute(postgres_query)
-        except Exception as e:
-            raise e
-        return self
-
-    def fetchall(self): return self.cursor.fetchall()
-    def fetchone(self): return self.cursor.fetchone()
-    def close(self): self.cursor.close()
-
-class PostgreSQLWrapper:
-    def __init__(self, conn_string):
-        self.conn = psycopg2.connect(conn_string)
-        
-    def cursor(self): return PostgreSQLCursorWrapper(self.conn.cursor())
-    def commit(self): self.conn.commit()
-    def close(self): self.conn.close()
-
-def get_db_connection():
-    db_url = os.environ.get("DATABASE_URL")
-    if db_url:
-        return PostgreSQLWrapper(db_url)
-    return sqlite3.connect(DB_PATH)
-
 def init_db():
-    # Primary intelligence logic moves to Cloud Postgres if configured, otherwise local SQLite
-    conn = get_db_connection()
+    # Keep local SQLite for fast L1/L2 caching, but primary intelligence moves to Cloud
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS alerts_history (id INTEGER PRIMARY KEY, type TEXT, ticker TEXT, message TEXT, severity TEXT, price REAL, timestamp DATETIME)''')
     # Migration: Add price column if it doesn't exist

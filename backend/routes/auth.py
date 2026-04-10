@@ -1,4 +1,3 @@
-from backend.database import get_db_connection
 import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math, os, threading
 import numpy as np
 import pandas as pd
@@ -169,7 +168,7 @@ class AuthRoutesMixin:
             return
         email = auth_info.get('email')
         if self.command == 'GET':
-            conn = get_db_connection()
+            conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1), algo_webhook FROM user_settings WHERE user_email = ?', (email,))
             row = c.fetchone()
@@ -188,7 +187,7 @@ class AuthRoutesMixin:
             algo_hook  = post_data.get('algo_webhook', '')
             enabled    = 1 if post_data.get('alerts_enabled', True) else 0
             digest_on  = 1 if post_data.get('digest_enabled', True) else 0
-            conn = get_db_connection()
+            conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             # First ensure row exists
             c.execute('''INSERT OR IGNORE INTO user_settings (user_email, alerts_enabled) VALUES (?, ?)''', (email, enabled))

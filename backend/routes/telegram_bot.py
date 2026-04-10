@@ -1,4 +1,3 @@
-from backend.database import get_db_connection
 """
 AlphaSignal Telegram Bot
 ────────────────────────
@@ -76,7 +75,7 @@ def _get_updates(offset):
 def _find_user_by_email(email):
     """Return (user_email, alerts_enabled, telegram_chat_id) or None."""
     try:
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute(
             "SELECT user_email, alerts_enabled, telegram_chat_id FROM user_settings WHERE user_email = ?",
@@ -91,7 +90,7 @@ def _find_user_by_email(email):
 
 def _find_user_by_chat_id(chat_id):
     try:
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute(
             # B7: read telegram_alerts_enabled (Telegram-only mute) not global alerts_enabled
@@ -107,7 +106,7 @@ def _find_user_by_chat_id(chat_id):
 
 def _upsert_chat_id(email, chat_id, alerts_enabled=1):
     try:
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute("""
             INSERT INTO user_settings (user_email, telegram_chat_id, alerts_enabled)
@@ -128,7 +127,7 @@ def _set_telegram_alerts_enabled(chat_id, enabled):
     """B7: toggles only telegram_alerts_enabled — leaves global alerts_enabled intact.
     This means /unsub silences Telegram only; Discord and terminal alerts stay on."""
     try:
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute(
             "UPDATE user_settings SET telegram_alerts_enabled = ? WHERE telegram_chat_id = ?",
@@ -145,7 +144,7 @@ def _set_telegram_alerts_enabled(chat_id, enabled):
 def _email_is_registered(email):
     """B8: returns True if this email already has a row in user_settings (web login happened)."""
     try:
-        conn = get_db_connection()
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute("SELECT 1 FROM user_settings WHERE user_email = ? LIMIT 1", (email.lower().strip(),))
         row = c.fetchone()
