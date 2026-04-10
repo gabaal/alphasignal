@@ -905,10 +905,44 @@ function renderAdvTapeImbalance(symbol) {
                 <span style="font-size:0.55rem;color:var(--text-dim);">Positive = more buys than sells in bucket</span>
                 <span style="font-size:0.55rem;color:rgba(239,83,80,0.8);">■ Sell Pressure</span>
             </div>
+            <!-- AI Translator Container -->
+            <div style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.5rem; display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+                <button id="ai-translate-tape-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
+                </button>
+                <div id="ai-translate-tape-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5; box-sizing:border-box;"></div>
+            </div>
         </div>`;
 
     const canvas = document.getElementById('tape-canvas');
     if (!canvas) return;
+
+    setTimeout(() => {
+        document.getElementById('ai-translate-tape-btn')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const box = document.getElementById('ai-translate-tape-box');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-outlined spin" style="font-size:14px;vertical-align:middle;margin-right:8px">sync</span> Analyzing tape...`;
+            box.style.display = 'block';
+            box.innerHTML = `<div class="skeleton-card" style="height:60px"></div>`;
+            try {
+                const resp = await fetchAPI('/explain-tape', 'POST', {
+                    buckets: buckets,
+                    symbol: symbol
+                });
+                if (resp && resp.explanation) {
+                    box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 AI TAPE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                } else {
+                    throw new Error('Empty response');
+                }
+            } catch (err) {
+                box.innerHTML = `<span style="color:var(--risk-high)">AI Engine offline. Configure your API key.</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English`;
+            }
+        });
+    }, 50);
 
     // Explicitly size canvas to fill its parent
     const wrapper = canvas.parentElement;

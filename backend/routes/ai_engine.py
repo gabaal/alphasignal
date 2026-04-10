@@ -236,6 +236,54 @@ class AIEngineRoutesMixin:
             print(f'[Signal Thesis] GPT error: {e}')
             self.send_json({'thesis': f'Analysis unavailable: {str(e)}', 'source': 'error'})
 
+    def handle_explain_tape(self, post_data):
+        client = _get_client()
+        if not client:
+            self.send_json({
+                'explanation': "AI processing is offline. Please configure your OPENAI_API_KEY to enable tape translations.",
+                'source': 'fallback'
+            })
+            return
+
+        buckets = post_data.get('buckets', [])
+        symbol = post_data.get('symbol', 'the asset')
+
+        # Format context for LLM
+        # Buckets represent net volume (buy_vol - sell_vol) in 5-second intervals over the last 150 seconds.
+        # Older data at index 0, most recent data at the end.
+        context = (
+            f"Asset: {symbol}\n"
+            f"Net Volume Imbalance per 5-second bucket (oldest to newest): {', '.join([str(v) for v in buckets]) if buckets else 'Empty'}\n"
+        )
+
+        system_prompt = (
+            "You are AlphaSignal's high-frequency order flow analyst. "
+            "The user is looking at a Live Tape Imbalance histogram representing net volume flux (Buy Volume - Sell Volume) in 5-second buckets "
+            "over the last 150 seconds. Positive values signify aggressive buying; negative values signify aggressive selling. "
+            "Write exactly two short paragraphs in plain English (max 100 words total). "
+            "First paragraph: Summarize the immediate order flow action based on the size and sequence of these buckets, particularly focusing on the most recent prints (end of the array). "
+            "Second paragraph: What is the actionable takeaway? (e.g. is there a sudden block liquidation, or steady accumulation?) "
+            "DO NOT give financial advice disclaimers. Use a crisp, professional, high-frequency trading desk tone."
+        )
+
+        user_prompt = f"Here is the raw tape imbalance array:\n{context}\nDiagnose this order flow in plain English."
+
+        try:
+            resp = client.chat.completions.create(
+                model='gpt-4o-mini',
+                messages=[
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user',   'content': user_prompt}
+                ],
+                max_tokens=250,
+                temperature=0.6
+            )
+            val = resp.choices[0].message.content.strip()
+            self.send_json({'explanation': val, 'source': 'gpt-4o-mini'})
+        except Exception as e:
+            print(f'[Explain Tape] GPT error: {e}')
+            self.send_json({'explanation': f'Analysis unavailable: {str(e)}', 'source': 'error'})
+
     def handle_explain_surface(self, post_data):
         client = _get_client()
         if not client:
