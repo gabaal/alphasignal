@@ -1,3 +1,4 @@
+from backend.database import get_db_connection
 import json, urllib.parse
 from datetime import datetime
 from backend.database import SupabaseClient, SUPABASE_URL, SUPABASE_HEADERS
@@ -229,7 +230,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c = conn.cursor()
             c.execute('SELECT id, exchange, api_key, created_at FROM exchange_keys WHERE user_email = ?', (user_email,))
             rows = c.fetchall()
@@ -250,7 +251,7 @@ class PersonalRoutesMixin:
             if not exchange or not api_key or not api_secret:
                 return self.send_json({'error': 'exchange, api_key, and api_secret are required'})
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c = conn.cursor()
             c.execute('''INSERT OR REPLACE INTO exchange_keys (user_email, exchange, api_key, api_secret) VALUES (?, ?, ?, ?)''',
                       (user_email, exchange, api_key, api_secret))
@@ -265,7 +266,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c = conn.cursor()
             c.execute('DELETE FROM exchange_keys WHERE id = ? AND user_email = ?', (item_id, user_email))
             conn.commit()
@@ -284,7 +285,7 @@ class PersonalRoutesMixin:
             qty_or_size = data.get('size', '10%') # simulated
 
             # Validate they have at least one exchange key
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c = conn.cursor()
             c.execute('SELECT id FROM exchange_keys WHERE user_email = ? LIMIT 1', (user_email,))
             has_key = c.fetchone()

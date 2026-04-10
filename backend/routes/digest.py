@@ -1,3 +1,4 @@
+from backend.database import get_db_connection
 import sqlite3, os, requests, threading, time
 from datetime import datetime, timedelta
 from backend.database import DB_PATH, SUPABASE_URL, SUPABASE_HEADERS
@@ -25,7 +26,7 @@ DIGEST_MINUTE_UTC = int(os.getenv('DIGEST_MINUTE_UTC', '30'))
 def _get_top_signals(limit=5):
     """Top signals from last 24h by severity, then recency."""
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute("""
@@ -53,7 +54,7 @@ def _get_top_signals(limit=5):
 def _get_btc_summary():
     """Latest BTC price from market_ticks."""
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute("SELECT symbol, price FROM market_ticks WHERE symbol='BTC-USD' ORDER BY timestamp DESC LIMIT 1")
         row = c.fetchone()
@@ -66,7 +67,7 @@ def _get_btc_summary():
 def _get_leaderboard_stats():
     """Win-rate from DB market_ticks only - no live yfinance calls."""
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         # Pull recent signals with entry price
@@ -128,7 +129,7 @@ def _get_market_brief_excerpt():
         pass
     # Fallback: check persistent cache_store table
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute("""
             SELECT value FROM cache_store
@@ -150,7 +151,7 @@ def _get_eligible_users():
     so existing users are not silently opted out after the schema migration.
     """
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         # Prefer digest_enabled if the column exists
         try:
@@ -504,7 +505,7 @@ def send_digest_to_user(user_email):
         bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
         if bot_token:
             try:
-                conn = sqlite3.connect(DB_PATH)
+                conn = get_db_connection()
                 c = conn.cursor()
                 c.execute("SELECT telegram_chat_id FROM user_settings WHERE user_email = ?", (user_email,))
                 row = c.fetchone()
@@ -523,7 +524,7 @@ def send_digest_to_user(user_email):
 
         # â”€â”€ Discord â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c = conn.cursor()
             c.execute("SELECT discord_webhook FROM user_settings WHERE user_email = ?", (user_email,))
             row = c.fetchone()

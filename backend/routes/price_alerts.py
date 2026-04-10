@@ -1,3 +1,4 @@
+from backend.database import get_db_connection
 """
 Price Alert Routes — real-time threshold notifications
 GET  /api/price-alerts          list user's active alerts
@@ -21,7 +22,7 @@ def _pa_escape(text):
 # ─────────────────────────────────────────────────────────────
 
 def _init_price_alerts_table():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS price_alerts (
@@ -41,7 +42,7 @@ def _init_price_alerts_table():
 def _get_current_price(ticker):
     """Get most recent price from market_ticks."""
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute(
             "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
@@ -129,7 +130,7 @@ def _notify_price_alert(user_email, ticker, target_price, current_price, directi
     try:
         bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '')
         if bot_token:
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c = conn.cursor()
             c.execute(
                 "SELECT telegram_chat_id, COALESCE(telegram_alerts_enabled, 1) "
@@ -169,7 +170,7 @@ def _archive_price_alert(user_email, ticker, target_price, current_price, direct
     ticker_clean = ticker.replace('-USD', '')
     move = ((current_price - target_price) / target_price) * 100
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute(
             "INSERT INTO alerts_history (type, ticker, message, severity, triggered_at, user_email) "
@@ -203,7 +204,7 @@ def start_price_alert_checker():
         print('[PriceAlert] Checker started — polling every 60s', flush=True)
         while True:
             try:
-                conn = sqlite3.connect(DB_PATH)
+                conn = get_db_connection()
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
                 # PA2 fix: join user_settings to gate on alerts_enabled
@@ -249,7 +250,7 @@ def start_price_alert_checker():
 
                 # Auto-delete fired alerts
                 if fired_ids:
-                    conn = sqlite3.connect(DB_PATH)
+                    conn = get_db_connection()
                     c = conn.cursor()
                     c.executemany("DELETE FROM price_alerts WHERE id=?", [(i,) for i in fired_ids])
                     conn.commit()
@@ -273,7 +274,7 @@ class PriceAlertRoutesMixin:
     def handle_price_alerts_get(self, auth_info):
         user_email = auth_info.get('email')
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             c.execute(
@@ -301,7 +302,7 @@ class PriceAlertRoutesMixin:
             return
         try:
             target = float(target)
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c = conn.cursor()
             # Enforce max 20 alerts per user
             c.execute("SELECT COUNT(*) FROM price_alerts WHERE user_email=?", (user_email,))
@@ -323,7 +324,7 @@ class PriceAlertRoutesMixin:
     def handle_price_alerts_delete(self, auth_info, alert_id):
         user_email = auth_info.get('email')
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c = conn.cursor()
             c.execute("DELETE FROM price_alerts WHERE id=? AND user_email=?", (alert_id, user_email))
             deleted = c.rowcount > 0

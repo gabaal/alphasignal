@@ -1,3 +1,4 @@
+from backend.database import get_db_connection
 import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, struct, requests, math
 from backend.routes.realdata import (
     fetch_fear_greed, fetch_network_congestion, fetch_retail_fomo,
@@ -419,7 +420,7 @@ class MarketRoutesMixin:
             today  = dt.date.today()
             cutoff = (today - dt.timedelta(days=29)).isoformat()
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             c    = conn.cursor()
 
             if user_email:

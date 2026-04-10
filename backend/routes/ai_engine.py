@@ -1,3 +1,4 @@
+from backend.database import get_db_connection
 """
 Phase 15-B: AI Narrative Engine
 Provides GPT-4o-mini powered endpoints:
@@ -167,7 +168,7 @@ class AIEngineRoutesMixin:
         try:
             import sqlite3
             from backend.database import DB_PATH
-            db = sqlite3.connect(DB_PATH)
+            db = get_db_connection()
             cur = db.cursor()
             cur.execute(
                 "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
@@ -253,7 +254,7 @@ class AIEngineRoutesMixin:
         try:
             import sqlite3, os as _os
             from backend.database import DB_PATH as _DB_PATH
-            db = sqlite3.connect(_DB_PATH)
+            db = get_db_connection()
             cur = db.cursor()
             # BTC price
             cur.execute("SELECT price FROM market_ticks WHERE symbol='BTC-USD' AND price>0 ORDER BY timestamp DESC LIMIT 1")
