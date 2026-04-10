@@ -393,6 +393,12 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     };
 
     draw();
+
+    setTimeout(() => {
+        if (window.injectAIChartTranslator) {
+            injectAIChartTranslator(appEl.querySelector('.view-header'), 'narrative', () => data.clusters);
+        }
+    }, 50);
 }
 
 async function renderBriefing(tabs = null) {
