@@ -165,9 +165,16 @@ class WebSocketServer:
                 except:
                     signal_count = 0; new_today = 0
 
+                try:
+                    sc = InstitutionalRoutesMixin._signals_cache
+                    top_alpha = sc['data'][:10] if (sc and sc.get('data')) else []
+                except Exception:
+                    top_alpha = []
+
                 payload = json.dumps({
                     "type": "prices", "data": LIVE_PRICES,
-                    "signal_count": signal_count, "new_today": new_today
+                    "signal_count": signal_count, "new_today": new_today,
+                    "top_alpha": top_alpha
                 })
                 if use_redis:
                     redis_client.publish('alphasignal:pubsub:broadcast', payload)

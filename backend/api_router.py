@@ -505,7 +505,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link']
+                public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density']
                 free_auth_routes = ['/api/watchlist', '/api/positions', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete', '/api/alert-settings', '/api/user/settings']
                 # /api/signal/{id} is fully public â€” no auth gate for shared links
                 if path.startswith('/api/signal/'):

@@ -468,7 +468,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initLiveAlphaScroller();
     initFearGreedGauge();
     setTimeout(initBTCSparkline, 300); // slight delay ensures Chart.js is ready
-    setInterval(initBTCSparkline, 5 * 60 * 1000);
     // updateInstitutionalPulse();
 });
 
@@ -548,33 +547,27 @@ function renderDocsTopologies() {
     );
 }
 
-// Global Live Alpha Ticker
-async function initLiveAlphaScroller() {
+// Global Live Alpha Ticker (WebSocket Driven)
+function initLiveAlphaScroller() {
     const scroller = document.getElementById('alpha-scroller');
     if (!scroller) return;
 
-    async function poll() {
-        try {
-            const d = await fetchAPI('/signals');
-            if (Array.isArray(d) && d.length > 0) {
-                // Skim the top 10 highest-alpha signals for the ticker
-                const topSignals = d.slice(0, 10);
-                const html = topSignals.map(s => {
-                    const color = s.alpha >= 0 ? 'var(--risk-low)' : 'var(--risk-high)';
-                    const dir = s.alpha >= 0 ? 'LONG' : 'SHORT';
-                    return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(s.alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(s.price)}</span></span>`;
-                }).join('');
-                scroller.innerHTML = html + html; 
-            } else {
-                scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
-            }
-        } catch (e) {
-            console.error("Live Alpha Feed Sync Error");
+    window.updateLiveAlphaScroller = function(topSignals) {
+        if (!scroller) return;
+        if (Array.isArray(topSignals) && topSignals.length > 0) {
+            const html = topSignals.map(s => {
+                const color = s.alpha >= 0 ? 'var(--risk-low)' : 'var(--risk-high)';
+                const dir = s.alpha >= 0 ? 'LONG' : 'SHORT';
+                return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(s.alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(s.price)}</span></span>`;
+            }).join('');
+            scroller.innerHTML = html + html; 
+        } else {
+            scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
         }
-    }
+    };
     
-    poll();
-    setInterval(poll, 30000); // 30s refresh
+    // Initial state until WebSocket pushes first chunk
+    scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">SYNCING LIVE ALPHA STREAM...</span>';
 }
 
 function initLivePriceStream() {
@@ -619,7 +612,10 @@ function initLivePriceStream() {
                             }
                         });
 
-
+                        // ── Update Alpha Scroller from WS push ──
+                        if (msg.top_alpha && window.updateLiveAlphaScroller) {
+                            window.updateLiveAlphaScroller(msg.top_alpha);
+                        }
 
                         // Feature 2: Bell badge removed per user feedback
                     } else if (msg.type === 'new_alert' || msg.type === 'alert') {
@@ -971,9 +967,8 @@ function startSignalPoller() {
         }
     };
 
-    // Run immediately on start, then every 60s
+    // Run once on start to cache the latest state, WebSocket handles all future alerts
     poll();
-    _signalPollerInterval = setInterval(poll, 60000);
 }
 
 function stopSignalPoller() {

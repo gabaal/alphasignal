@@ -432,12 +432,13 @@ class MarketRoutesMixin:
                     (cutoff, user_email)
                 )
             else:
-                # Unauthenticated — return empty counts, client will stay synthetic
+                # Unauthenticated — return global system density
                 c.execute(
                     """SELECT DATE(timestamp) as day, COUNT(*) as cnt
                        FROM alerts_history
-                       WHERE timestamp >= ? AND 1=0
-                       GROUP BY day""",
+                       WHERE timestamp >= ? AND user_email IS NULL
+                       GROUP BY day
+                       ORDER BY day ASC""",
                     (cutoff,)
                 )
 
