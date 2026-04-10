@@ -357,11 +357,11 @@ async function renderLiquidityView(tabs = null) {
         display.innerHTML = `
             <div class="card">
                 <div style="height:420px"><canvas id="gommVolChart" role="img" aria-label="Volatility surface chart"></canvas></div>
-                <div style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;">
-                    <button id="ai-translate-btn" class="setup-generator-btn" style="width:100%; font-size:0.75rem; padding:10px;">
-                        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
+                <div style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem; display:flex; flex-direction:column; align-items:center;">
+                    <button id="ai-translate-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
+                        <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
                     </button>
-                    <div id="ai-translate-box" style="display:none; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5;"></div>
+                    <div id="ai-translate-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5; box-sizing:border-box;"></div>
                 </div>
             </div>`;
         setTimeout(() => {
@@ -385,7 +385,7 @@ async function renderLiquidityView(tabs = null) {
                     box.innerHTML = `<span style="color:var(--risk-high)">AI Engine offline. Configure your API key.</span>`;
                 } finally {
                     btn.disabled = false;
-                    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English`;
+                    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English`;
                 }
             });
 
