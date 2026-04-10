@@ -499,7 +499,19 @@ async function renderChainVelocity(tabs = null) {
     });
 
     fetchAPI('/sankey').then(sankeyData => {
-        if (sankeyData && sankeyData.nodes) renderSankeyDiagram(sankeyData);
+        if (sankeyData && sankeyData.nodes) {
+            renderSankeyDiagram(sankeyData);
+            setTimeout(() => {
+                const headers = appEl.querySelectorAll('h3');
+                const targetH3 = Array.from(headers).find(h => h.innerText.includes('ECOSYSTEM CAPITAL FLOW'));
+                if (targetH3 && window.injectAIChartTranslator) {
+                    targetH3.style.display = 'flex';
+                    targetH3.style.justifyContent = 'space-between';
+                    targetH3.style.alignItems = 'center';
+                    injectAIChartTranslator(targetH3, 'sankey', () => sankeyData);
+                }
+            }, 50);
+        }
     });
 }
 

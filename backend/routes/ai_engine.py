@@ -264,7 +264,8 @@ class AIEngineRoutesMixin:
             'macro': "You are a macro-economist and bond strategist. Analyze the incoming economic catalysts and the shape of the Treasury Yield Curve, explaining the impact on risk-asset liquidity in plain English.",
             'matrix': "You are a quantitative portfolio manager analyzing a 60-day cross-asset correlation matrix. Explain which assets are highly correlated, which provide diversification (decoupled), and how a retail trader should adjust their portfolio based on these relationships. Keep it under 100 words in plain English.",
             'regime': "You are an institutional quant researcher specializing in Markov-Switching market cycles. Analyze the current regime, trend bias, volatility, and SMA variance, and explain what tactical shifts a trader should make based on this phase. Keep it under 100 words in plain English.",
-            'narrative': "You are an institutional Crypto Narrative & Sector Rotation Analyst. Digest the underlying cluster velocity data and explain where capital flow is pivoting toward (e.g., L1s vs. Memes vs. AI). Conclude with a clear actionable thesis on current market direction based on the structural volume."
+            'narrative': "You are an institutional Crypto Narrative & Sector Rotation Analyst. Digest the underlying cluster velocity data and explain where capital flow is pivoting toward (e.g., L1s vs. Memes vs. AI). Conclude with a clear actionable thesis on current market direction based on the structural volume.",
+            'sankey': "You are an On-Chain Liquidity Flow Analyst. Analyze the capital flow diagram (fiat to L1s to yield destinations) and identify which ecosystems or protocols are capturing the largest share of fresh liquidity right now, and what that signals for asset outperformance. Keep it under 100 words in plain English."
         }
 
         persona = personas.get(chart_type, "You are a quantitative financial analyst.")
