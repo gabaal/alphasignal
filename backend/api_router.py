@@ -45,7 +45,7 @@ _RATE_LIMITS = {
 def _rate_key(path: str) -> str:
     if '/auth/login' in path or '/auth/signup' in path:
         return 'auth'
-    if any(x in path for x in ('ai-analyst', 'ask-terminal', 'signal-thesis', 'ai-memo')):
+    if any(x in path for x in ('ai-analyst', 'ask-terminal', 'signal-thesis', 'ai-memo', 'explain-surface')):
         return 'ai'
     return 'default'
 
@@ -368,6 +368,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_portfolio_execute(post_data)
             elif path == '/api/ask-terminal':
                 self.handle_ask_terminal(post_data)
+            elif path == '/api/explain-surface':
+                self.handle_explain_surface(post_data)
             elif path == '/api/watchlist':
                 auth_info = self.is_authenticated()
                 if auth_info: self.handle_watchlist_post(auth_info, post_data)

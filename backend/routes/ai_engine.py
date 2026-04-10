@@ -236,6 +236,53 @@ class AIEngineRoutesMixin:
             print(f'[Signal Thesis] GPT error: {e}')
             self.send_json({'thesis': f'Analysis unavailable: {str(e)}', 'source': 'error'})
 
+    def handle_explain_surface(self, post_data):
+        client = _get_client()
+        if not client:
+            self.send_json({
+                'explanation': "AI processing is offline. Please configure your OPENAI_API_KEY to enable plain English surface translations.",
+                'source': 'fallback'
+            })
+            return
+
+        atm_iv = post_data.get('atm_iv', [])
+        skew = post_data.get('skew', [])
+        expiries = post_data.get('expiries', [])
+
+        # Format context for LLM
+        context = (
+            f"Expiries: {', '.join(expiries) if expiries else 'Unknown'}\n"
+            f"ATM IV (%): {', '.join([str(v) for v in atm_iv]) if atm_iv else 'Unknown'}\n"
+            f"25Delta Skew (Puts vs Calls %): {', '.join([str(v) for v in skew]) if skew else 'Unknown'}\n"
+        )
+
+        system_prompt = (
+            "You are AlphaSignal's quantitative volatility analyst. "
+            "The user is looking at a 3D Implied Volatility Surface chart. "
+            "Write exactly two short paragraphs in plain English (max 100 words total). "
+            "First paragraph: Summarize what the data (ATM IV curve and Skew) is showing. Negative skew means calls are favoured, positive means puts. "
+            "Second paragraph: What is the actionable takeaway for a retail trader (e.g. are options cheap/expensive, are traders buying crash protection or breakout FOMO)? "
+            "DO NOT give financial advice disclaimers. Use an engaging, professional tone."
+        )
+
+        user_prompt = f"Here is the raw options surface data:\n{context}\nTranslate this into plain English insights."
+
+        try:
+            resp = client.chat.completions.create(
+                model='gpt-4o-mini',
+                messages=[
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user',   'content': user_prompt}
+                ],
+                max_tokens=250,
+                temperature=0.6
+            )
+            val = resp.choices[0].message.content.strip()
+            self.send_json({'explanation': val, 'source': 'gpt-4o-mini'})
+        except Exception as e:
+            print(f'[Explain Surface] GPT error: {e}')
+            self.send_json({'explanation': f'Analysis unavailable: {str(e)}', 'source': 'error'})
+
     def handle_market_brief(self):
         """AI Daily Market Brief — 4h cached, all logged-in users."""
         global _brief_cache

@@ -354,8 +354,41 @@ async function renderLiquidityView(tabs = null) {
             skew = (grid[putIdx] || []).map((iv, i) => parseFloat((iv - (grid[callIdx]?.[i] || iv)).toFixed(2)));
         }
 
-        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommVolChart" role="img" aria-label="Volatility surface chart"></canvas></div></div>`;
+        display.innerHTML = `
+            <div class="card">
+                <div style="height:420px"><canvas id="gommVolChart" role="img" aria-label="Volatility surface chart"></canvas></div>
+                <div style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem;">
+                    <button id="ai-translate-btn" class="setup-generator-btn" style="width:100%; font-size:0.75rem; padding:10px;">
+                        ✨ In Plain English
+                    </button>
+                    <div id="ai-translate-box" style="display:none; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5;"></div>
+                </div>
+            </div>`;
         setTimeout(() => {
+            document.getElementById('ai-translate-btn')?.addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                const box = document.getElementById('ai-translate-box');
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined spin" style="font-size:14px;vertical-align:middle;margin-right:8px">sync</span> Translating matrix...`;
+                box.style.display = 'block';
+                box.innerHTML = `<div class="skeleton-card" style="height:60px"></div>`;
+                try {
+                    const resp = await fetchAPI('/explain-surface', 'POST', {
+                        atm_iv: atmRow, skew: skew, expiries: labels 
+                    });
+                    if (resp && resp.explanation) {
+                        box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 AI SURFACE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                    } else {
+                        throw new Error('Empty response');
+                    }
+                } catch (err) {
+                    box.innerHTML = `<span style="color:var(--risk-high)">AI Engine offline. Configure your API key.</span>`;
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = `✨ In Plain English`;
+                }
+            });
+
             const ctx = document.getElementById('gommVolChart')?.getContext('2d');
             if (!ctx) return;
             new Chart(ctx, {
