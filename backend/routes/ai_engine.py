@@ -236,6 +236,59 @@ class AIEngineRoutesMixin:
             print(f'[Signal Thesis] GPT error: {e}')
             self.send_json({'thesis': f'Analysis unavailable: {str(e)}', 'source': 'error'})
 
+    def handle_explain_chart(self, post_data):
+        client = _get_client()
+        if not client:
+            self.send_json({
+                'explanation': "AI processing is offline. Please configure your OPENAI_API_KEY to enable chart translations.",
+                'source': 'fallback'
+            })
+            return
+
+        chart_type = post_data.get('chart_type')
+        data = post_data.get('data')
+
+        if not chart_type or not data:
+            self.send_json({'explanation': "Missing chart_type or data.", 'source': 'error'})
+            return
+
+        personas = {
+            'funding': "You are an institutional crypto yield arbitrageur analyzing global perpetual funding rates.",
+            'pulse': "You are a derivatives risk manager analyzing live liquidation clusters overlaid on price action.",
+            'cvd': "You are a macro order flow analyst dissecting Cumulative Volume Delta against price.",
+            'exchange': "You are an on-chain analyst monitoring macro exchange net position flows.",
+            'derivatives': "You are a crypto whale tracker monitoring live large block-trade flux and option derivatives flow.",
+            'comparative': "You are a macro portfolio manager benchmarking an active asset against BTC."
+        }
+
+        persona = personas.get(chart_type, "You are a quantitative financial analyst.")
+
+        system_prompt = (
+            f"{persona} "
+            "Write exactly two concise paragraphs in plain English (max 100 words total). "
+            "First paragraph: Detail analytically what the data structure is showing right now. "
+            "Second paragraph: What is the high-level, actionable takeaway for a retail trader? "
+            "Never use financial advice disclaimers. Use a crisp, authoritative tone."
+        )
+
+        user_prompt = f"Chart Type: {chart_type.upper()}\nRaw Datastream:\n{json.dumps(data)}\n\nTranslate this structural data into an actionable plain English summary."
+
+        try:
+            resp = client.chat.completions.create(
+                model='gpt-4o-mini',
+                messages=[
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user',   'content': user_prompt}
+                ],
+                max_tokens=250,
+                temperature=0.6
+            )
+            val = resp.choices[0].message.content.strip()
+            self.send_json({'explanation': val, 'source': 'gpt-4o-mini'})
+        except Exception as e:
+            print(f'[Explain Chart] GPT error: {e}')
+            self.send_json({'explanation': f'Analysis unavailable: {str(e)}', 'source': 'error'})
+
     def handle_explain_tape(self, post_data):
         client = _get_client()
         if not client:

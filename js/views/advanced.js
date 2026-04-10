@@ -189,6 +189,10 @@ async function renderAdvPulse(symbol) {
     }
 
     const ro = new ResizeObserver(e => { if(e.length>0 && e[0].target===chartContainer) chart.resize(e[0].contentRect.width, 500); });
+    injectAIChartTranslator(container.querySelector('.intel-card-inner'), 'pulse', () => ({ 
+        symbol: symbol, 
+        liquidations: typeof markers !== 'undefined' ? markers.slice(-30) : [] 
+    }));
     ro.observe(chartContainer);
 }
 
@@ -699,6 +703,11 @@ async function renderAdvDerivatives(symbol, interval) {
     }
     
     const ro = new ResizeObserver(e => { if(e.length > 0 && e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
+    injectAIChartTranslator(container, 'derivatives', () => ({ 
+        symbol: symbol, 
+        cvd: cvdData.slice(-30), 
+        blocks: liqData.slice(-30) 
+    }));
     ro.observe(container);
 }
 
@@ -731,6 +740,12 @@ async function renderAdvComparative(interval) {
     
     chart.applyOptions({ localization: { priceFormatter: p => p.toFixed(2) + '%' } });
     const ro = new ResizeObserver(e => { if(e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
+    injectAIChartTranslator(container, 'comparative', () => ({ 
+        symbol_active: sym, 
+        benchmark: 'BTC', 
+        active_returns: (() => { if (!activeData.length) return []; let start = activeData[0].close; return activeData.slice(-30).map(d => ({time: d.time, value: ((d.close - start)/start)*100})); })(),
+        btc_returns: (() => { if (!btcData.length) return []; let start = btcData[0].close; return btcData.slice(-30).map(d => ({time: d.time, value: ((d.close - start)/start)*100})); })()
+    }));
     ro.observe(container);
 }
 
@@ -752,6 +767,10 @@ async function renderAdvCVD(symbol) {
         cvdSeries.setData(data.map(d=>({time: d.time, value: d.cvd})));
         
         const ro = new ResizeObserver(e => { if(e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
+        injectAIChartTranslator(container, 'cvd', () => ({ 
+            symbol: symbol, 
+            cvd: data.map(d => d.cvd).slice(-30) 
+        }));
         ro.observe(container);
         chart.timeScale().fitContent();
     } catch(e) { container.innerHTML = '<div class="error-msg">Fetch failed.</div>'; }
@@ -779,6 +798,10 @@ async function renderAdvExchange(symbol) {
         })));
         
         const ro = new ResizeObserver(e => { if(e[0].target===container) chart.resize(e[0].contentRect.width, 500); });
+        injectAIChartTranslator(container, 'exchange', () => ({ 
+            symbol: symbol, 
+            exchange_net_flows: data.map(d => d.exch_flow).slice(-30) 
+        }));
         ro.observe(container);
         chart.timeScale().fitContent();
     } catch(e) { container.innerHTML = '<div class="error-msg">Fetch failed.</div>'; }
@@ -868,6 +891,8 @@ async function renderAdvFundingHeatmap() {
                 grid.innerHTML += `<div title="${display}" style="height:28px;background:${color};border-radius:3px;cursor:default;transition:all 0.2s;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'"></div>`;
             });
         });
+        
+        injectAIChartTranslator(container.querySelector('div'), 'funding', () => data);
     } catch(e) { console.error('Funding heatmap error:', e); }
 }
 
@@ -1427,4 +1452,54 @@ async function renderAdvOptionsSurface(symbol) {
     });
     _ro.observe(container);
     if (window.activeDepth3D) window.activeDepth3D._ro = _ro;
+}
+
+// ─── Universal AI Translator Injector ─────────────────────────────────────────
+function injectAIChartTranslator(containerElement, chartType, dataExtractorCallback) {
+    if (!containerElement) return;
+    const hookId = `ai-hook-${chartType}`;
+    
+    if (document.getElementById(`${hookId}-btn`)) return;
+
+    const uiStr = `
+        <div style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.5rem; display:flex; flex-direction:column; align-items:center; flex-shrink:0; grid-column: 1 / -1;">
+            <button id="${hookId}-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
+                <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
+            </button>
+            <div id="${hookId}-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5; box-sizing:border-box;"></div>
+        </div>
+    `;
+    
+    const wrapper = document.createElement('div');
+    wrapper.style.width = '100%';
+    wrapper.innerHTML = uiStr;
+    containerElement.appendChild(wrapper);
+
+    setTimeout(() => {
+        document.getElementById(`${hookId}-btn`)?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const box = document.getElementById(`${hookId}-box`);
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-outlined spin" style="font-size:14px;vertical-align:middle;margin-right:8px">sync</span> Translating...`;
+            box.style.display = 'block';
+            box.innerHTML = `<div class="skeleton-card" style="height:60px"></div>`;
+            try {
+                const dataPayload = await dataExtractorCallback();
+                const resp = await fetchAPI('/explain-chart', 'POST', {
+                    chart_type: chartType,
+                    data: dataPayload
+                });
+                if (resp && resp.explanation) {
+                    box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;">🤖 AI TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                } else {
+                    throw new Error('Empty response');
+                }
+            } catch (err) {
+                box.innerHTML = `<span style="color:var(--risk-high)">AI Engine offline. Configure your API key.</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English`;
+            }
+        });
+    }, 100);
 }
