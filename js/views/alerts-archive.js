@@ -1304,7 +1304,7 @@ window.saveAlertSettings = async function() {
 
     if (result?.success) {
 
-        showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? 'Ô£ô' : 'Ô£ù'}  Telegram: ${result.has_telegram ? 'Ô£ô' : 'Ô£ù'}`, 'success');
+        showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? '\u2713' : '\u2717'}  Telegram: ${result.has_telegram ? '\u2713' : '\u2717'}`, 'success');
 
         // Refresh poller sensitivity immediately -- new threshold takes effect on next poll
 
