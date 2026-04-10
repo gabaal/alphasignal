@@ -5474,7 +5474,7 @@ class InstitutionalRoutesMixin:
                 monthly[ym] = round(monthly.get(ym, 0) + (t['pnl_pct'] * ALLOCATION), 2)
 
             self.send_json({
-                'trades':          trades[-50:],
+                'trades':          trades,
                 'rolling_sharpe':  rolling_sharpe,
                 'monthly_returns': monthly,
                 'equity_curve':    [round(e, 2) for e in equity],

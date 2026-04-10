@@ -1568,6 +1568,11 @@ async function renderRegime(tabs = null) {
 
     renderRegimeHeatmap('regime-heatmap-container', data.history);
 
+    setTimeout(() => {
+        if (window.injectAIChartTranslator) {
+            injectAIChartTranslator(appEl.querySelector('.view-header'), 'regime', () => data);
+        }
+    }, 50);
 }
 
 

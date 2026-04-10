@@ -262,7 +262,8 @@ class AIEngineRoutesMixin:
             'depth': "You are an institutional market maker analyzing resting order book liquidity and spoof walls. The data passed are the top 30 live bid and ask levels.",
             'stress': "You are a quantitative portfolio risk manager. Analyze the asset-specific beta, alpha, and overall systemic tension, explaining the relative drawdown risk in plain English.",
             'macro': "You are a macro-economist and bond strategist. Analyze the incoming economic catalysts and the shape of the Treasury Yield Curve, explaining the impact on risk-asset liquidity in plain English.",
-            'matrix': "You are a quantitative portfolio manager analyzing a 60-day cross-asset correlation matrix. Explain which assets are highly correlated, which provide diversification (decoupled), and how a retail trader should adjust their portfolio based on these relationships. Keep it under 100 words in plain English."
+            'matrix': "You are a quantitative portfolio manager analyzing a 60-day cross-asset correlation matrix. Explain which assets are highly correlated, which provide diversification (decoupled), and how a retail trader should adjust their portfolio based on these relationships. Keep it under 100 words in plain English.",
+            'regime': "You are an institutional quant researcher specializing in Markov-Switching market cycles. Analyze the current regime, trend bias, volatility, and SMA variance, and explain what tactical shifts a trader should make based on this phase. Keep it under 100 words in plain English."
         }
 
         persona = personas.get(chart_type, "You are a quantitative financial analyst.")
