@@ -258,7 +258,8 @@ class AIEngineRoutesMixin:
             'cvd': "You are a macro order flow analyst dissecting Cumulative Volume Delta against price.",
             'exchange': "You are an on-chain analyst monitoring macro exchange net position flows.",
             'derivatives': "You are a crypto whale tracker monitoring live large block-trade flux and option derivatives flow.",
-            'comparative': "You are a macro portfolio manager benchmarking an active asset against BTC."
+            'comparative': "You are a macro portfolio manager benchmarking an active asset against BTC.",
+            'depth': "You are an institutional market maker analyzing resting order book liquidity and spoof walls. The data passed are the top 30 live bid and ask levels."
         }
 
         persona = personas.get(chart_type, "You are a quantitative financial analyst.")

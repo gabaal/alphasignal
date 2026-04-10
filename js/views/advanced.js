@@ -608,6 +608,7 @@ async function renderAdvDepth(symbol) {
                 const latest = history.data[history.data.length - 1];
                 const rawBids = Object.entries(latest.bids || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a, b) => b[0] - a[0]);
                 const rawAsks = Object.entries(latest.asks || {}).map(([p, v]) => [parseFloat(p), parseFloat(v)]).sort((a, b) => a[0] - b[0]);
+                if (window.activeDepth3D) { window.activeDepth3D._rawBids = rawBids; window.activeDepth3D._rawAsks = rawAsks; }
                 rebuildBars(rawBids, rawAsks);
             }
         } catch (e) { console.error('3D Depth fallback error:', e); }
@@ -621,6 +622,7 @@ async function renderAdvDepth(symbol) {
             lastRebuild = now;
             const rawBids = [...data.bids].sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
             const rawAsks = [...data.asks].sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+            if (window.activeDepth3D) { window.activeDepth3D._rawBids = rawBids; window.activeDepth3D._rawAsks = rawAsks; }
             rebuildBars(rawBids, rawAsks);
         });
     }
@@ -633,6 +635,12 @@ async function renderAdvDepth(symbol) {
         camera.updateProjectionMatrix();
     });
     ro.observe(container);
+
+    injectAIChartTranslator(container, 'depth', () => ({
+        symbol: symbol,
+        bids: (window.activeDepth3D?._rawBids || []).slice(0, 30),
+        asks: (window.activeDepth3D?._rawAsks || []).slice(0, 30)
+    }));
 }
 
 // TAB 3: Derivatives (Live CVD & Block Trades)
