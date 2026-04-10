@@ -917,6 +917,13 @@ async function loadOptionsFlow(currency, source) {
                     <td style="padding:7px 10px;font-weight:700;color:var(--accent)">${s.oi.toLocaleString()}</td>
                 </tr>`).join('');
         }
+
+        setTimeout(() => {
+            if (window.injectAIChartTranslator) {
+                injectAIChartTranslator(appEl.querySelector('.view-header'), 'options', () => d);
+            }
+        }, 50);
+
     } catch(e) {
         showToast('OPTIONS FLOW', 'Error: ' + e.message, 'alert');
     }
