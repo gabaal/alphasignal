@@ -347,6 +347,12 @@ async function renderStressHub(tabs = null) {
     };
 
     window._drawStressTable();
+
+    injectAIChartTranslator(document.getElementById('risk-attribution-area'), 'stress', () => ({
+        systemic_risk: window._lastStressData.systemic_risk,
+        hotspots: window._lastStressData.hotspots,
+        asset_risk: window._lastStressData.asset_risk.slice(0, 15)
+    }));
 }
 
 async function renderChainVelocity(tabs = null) {

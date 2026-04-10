@@ -259,7 +259,9 @@ class AIEngineRoutesMixin:
             'exchange': "You are an on-chain analyst monitoring macro exchange net position flows.",
             'derivatives': "You are a crypto whale tracker monitoring live large block-trade flux and option derivatives flow.",
             'comparative': "You are a macro portfolio manager benchmarking an active asset against BTC.",
-            'depth': "You are an institutional market maker analyzing resting order book liquidity and spoof walls. The data passed are the top 30 live bid and ask levels."
+            'depth': "You are an institutional market maker analyzing resting order book liquidity and spoof walls. The data passed are the top 30 live bid and ask levels.",
+            'stress': "You are a quantitative portfolio risk manager. Analyze the asset-specific beta, alpha, and overall systemic tension, explaining the relative drawdown risk in plain English.",
+            'macro': "You are a macro-economist and bond strategist. Analyze the incoming economic catalysts and the shape of the Treasury Yield Curve, explaining the impact on risk-asset liquidity in plain English."
         }
 
         persona = personas.get(chart_type, "You are a quantitative financial analyst.")

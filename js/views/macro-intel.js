@@ -448,6 +448,15 @@ async function renderMacroCalendar(tabs = null) {
                 }
             }
         });
+
+        injectAIChartTranslator(document.getElementById('yc-footer').parentElement, 'macro', () => ({
+            economic_events: data.events.slice(0, 5),
+            yield_curve: {
+                labels: labels,
+                yields: yieldsData,
+                inverted: inverted
+            }
+        }));
     }, 50);
 }
 
