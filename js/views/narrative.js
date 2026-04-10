@@ -72,7 +72,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                         return `<div style="margin-bottom:12px">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                                 <span style="font-size:0.65rem;font-weight:800;color:${color}">${medal} ${cat}</span>
-                                <span style="font-size:0.6rem;color:var(--text-dim)">${count} signal${count !== 1 ? 's' : ''}</span>
+                                <span style="font-size:0.6rem;color:var(--text-dim)">${Math.round(count)} signal${Math.round(count) !== 1 ? 's' : ''}</span>
                             </div>
                             <div style="height:4px;background:${alphaColor(0.06)};border-radius:2px">
                                 <div style="height:4px;background:${color};border-radius:2px;width:${pct}%;transition:width 1s ease"></div>
