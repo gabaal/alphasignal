@@ -772,26 +772,8 @@ async function loadStrategyReport() {
         </div>
 
         <!-- Recent Trade Log -->
-        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
-            <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">RECENT TRADES (LAST 50)</div>
-            <div style="overflow-x:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:0.74rem">
-                    <thead><tr style="border-bottom:1px solid var(--border)">
-                        ${['Ticker','Signal','Entry','Exit','Entry $','Exit $','P&L'].map(h=>`<th style="padding:8px 12px;text-align:left;font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">${h}</th>`).join('')}
-                    </tr></thead>
-                    <tbody>
-                        ${trades.slice(0,50).map(t => `<tr style="border-bottom:1px solid ${alphaColor(0.04)}">
-                            <td style="padding:8px 12px;font-weight:700;color:var(--accent)">${t.ticker}</td>
-                            <td style="padding:8px 12px;font-size:0.65rem;color:var(--text-dim)">${t.signal.replace(/_/g,' ')}</td>
-                            <td style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem">${t.entry_date}</td>
-                            <td style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem">${t.exit_date}</td>
-                            <td style="padding:8px 12px;font-family:var(--font-mono)">${formatPrice(t.entry_price)}</td>
-                            <td style="padding:8px 12px;font-family:var(--font-mono)">${formatPrice(t.exit_price)}</td>
-                            <td style="padding:8px 12px;font-weight:800;color:${t.pnl_pct>=0?'#22c55e':'#ef4444'}">${t.pnl_pct>=0?'+':''}${t.pnl_pct}%</td>
-                        </tr>`).join('')}
-                    </tbody>
-                </table>
-            </div>
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem" id="sr-trade-log-container">
+            ${skeleton(1)}
         </div>
         `;
 
@@ -847,6 +829,92 @@ async function loadStrategyReport() {
             exportCSV(trades, `strategy_report_${hold}d_${new Date().toISOString().split('T')[0]}.csv`);
             showToast('EXPORT', `Strategy Report exported (${trades.length} trades).`, 'success');
         };
+
+        // ── Trade Log Rendering ───────────────────────────────────────
+        window._tradeData = trades;
+        window._tradeSortKey = 'entry_date';
+        window._tradeSortDir = -1;
+        window._tradePage = 1;
+
+        window._setTradeSort = function(key) {
+            if (window._tradeSortKey === key) {
+                window._tradeSortDir *= -1;
+            } else {
+                window._tradeSortKey = key;
+                window._tradeSortDir = -1;
+            }
+            window._drawTradeLog();
+        };
+
+        window._drawTradeLog = function() {
+            const container = document.getElementById('sr-trade-log-container');
+            if (!container) return;
+
+            let logData = [...window._tradeData];
+
+            if (window._tradeSortKey) {
+                logData.sort((a, b) => {
+                    let vA = a[window._tradeSortKey];
+                    let vB = b[window._tradeSortKey];
+                    if (typeof vA === 'string') vA = vA.toLowerCase();
+                    if (typeof vB === 'string') vB = vB.toLowerCase();
+                    if (vA < vB) return -1 * window._tradeSortDir;
+                    if (vA > vB) return 1 * window._tradeSortDir;
+                    return 0;
+                });
+            }
+
+            const perPage = 25;
+            const totalPages = Math.ceil(logData.length / perPage);
+            if (window._tradePage > totalPages && totalPages > 0) window._tradePage = totalPages;
+            const startIdx = (window._tradePage - 1) * perPage;
+            const pageData = logData.slice(startIdx, startIdx + perPage);
+
+            const thStyle = "cursor:pointer; padding:8px 12px; text-align:left; font-size:0.55rem; font-weight:900; letter-spacing:1.5px; color:var(--text-dim); user-select:none; white-space:nowrap;";
+            
+            const getSortIcon = (key) => {
+                if (window._tradeSortKey !== key) return '<span style="opacity:0.3; font-size:10px">&#9650;</span>';
+                return window._tradeSortDir === 1 ? '<span style="font-size:10px; color:var(--accent)">&#9650;</span>' : '<span style="font-size:10px; color:var(--accent)">&#9660;</span>';
+            };
+
+            container.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+                    <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);">RECENT TRADES (\${logData.length})</div>
+                    <div style="display:flex; align-items:center; gap:15px">
+                        <button class="filter-btn" \${window._tradePage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : \`onclick="window._tradePage--; window._drawTradeLog()"\`}>&larr; Prev</button>
+                        <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page \${window._tradePage} of \${totalPages || 1}</span>
+                        <button class="filter-btn" \${window._tradePage === totalPages || totalPages === 0 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : \`onclick="window._tradePage++; window._drawTradeLog()"\`}>Next &rarr;</button>
+                    </div>
+                </div>
+                <div style="overflow-x:auto">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.74rem">
+                        <thead><tr style="border-bottom:1px solid var(--border)">
+                            <th style="\${thStyle}" onclick="window._setTradeSort('ticker')">Ticker \${getSortIcon('ticker')}</th>
+                            <th style="\${thStyle}" onclick="window._setTradeSort('signal')">Signal \${getSortIcon('signal')}</th>
+                            <th style="\${thStyle}" onclick="window._setTradeSort('entry_date')">Entry \${getSortIcon('entry_date')}</th>
+                            <th style="\${thStyle}" onclick="window._setTradeSort('exit_date')">Exit \${getSortIcon('exit_date')}</th>
+                            <th style="\${thStyle}" onclick="window._setTradeSort('entry_price')">Entry $ \${getSortIcon('entry_price')}</th>
+                            <th style="\${thStyle}" onclick="window._setTradeSort('exit_price')">Exit $ \${getSortIcon('exit_price')}</th>
+                            <th style="\${thStyle}" onclick="window._setTradeSort('pnl_pct')">P&L \${getSortIcon('pnl_pct')}</th>
+                        </tr></thead>
+                        <tbody>
+                            \${pageData.map(t => \`<tr style="border-bottom:1px solid \${alphaColor(0.04)}">
+                                <td style="padding:8px 12px;font-weight:700;color:var(--accent)">\${t.ticker}</td>
+                                <td style="padding:8px 12px;font-size:0.65rem;color:var(--text-dim)">\${t.signal.replace(/_/g,' ')}</td>
+                                <td style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem">\${t.entry_date}</td>
+                                <td style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem">\${t.exit_date}</td>
+                                <td style="padding:8px 12px;font-family:var(--font-mono)">\${formatPrice(t.entry_price)}</td>
+                                <td style="padding:8px 12px;font-family:var(--font-mono)">\${formatPrice(t.exit_price)}</td>
+                                <td style="padding:8px 12px;font-weight:800;color:\${t.pnl_pct>=0?'#22c55e':'#ef4444'}">\${t.pnl_pct>=0?'+':''}\${t.pnl_pct}%</td>
+                            </tr>\`).join('')}
+                            \${pageData.length === 0 ? '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--text-dim)">No trades to display.</td></tr>' : ''}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        };
+
+        window._drawTradeLog();
 
     } catch(e) {
         showToast('STRATEGY REPORT', 'Failed to load: ' + e.message, 'alert');
