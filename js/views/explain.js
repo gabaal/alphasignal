@@ -6,7 +6,7 @@ function renderSystemGauge(canvasId, value, colorLow, colorHigh) {
         type: 'doughnut',
         data: {
             labels: ['Value', 'Remaining'],
-            datasets: [{ data: [value, 100 - value], backgroundColor: [primaryColor, alphaColor(0.05)], borderWidth: 0, circumference: 180, rotation: 270 }]
+            datasets: [{ data: [value, 100 - value], backgroundColor: [primaryColor, window.alphaColor(0.05)], borderWidth: 0, circumference: 180, rotation: 270 }]
         },
         options: {
             responsive: true, maintainAspectRatio: false, cutout: '80%',
@@ -40,10 +40,10 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
                 ${detailedDesc}
             </div>
             <div class="doc-features" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:3rem">
-                ${sections.map(s => `<div style="background:${alphaColor(0.02)};padding:1.5rem;border-radius:8px;border:1px solid ${alphaColor(0.05)}"><h3 style="color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;font-size:1.1rem"><span class="material-symbols-outlined" style="margin-right:8px;font-size:20px">${s.icon}</span>${s.title}</h3><p style="color:var(--text-dim);line-height:1.5;font-size:0.9rem">${s.desc}</p></div>`).join('')}
+                ${sections.map(s => `<div style="background:${window.alphaColor(0.02)};padding:1.5rem;border-radius:8px;border:1px solid ${window.alphaColor(0.05)}"><h3 style="color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;font-size:1.1rem"><span class="material-symbols-outlined" style="margin-right:8px;font-size:20px">${s.icon}</span>${s.title}</h3><p style="color:var(--text-dim);line-height:1.5;font-size:0.9rem">${s.desc}</p></div>`).join('')}
             </div>
-            ${caseStudies.length > 0 ? `<div style="margin-bottom:3rem"><h3 style="color:var(--text-main);margin-bottom:1.5rem;border-bottom:1px solid ${alphaColor(0.1)};padding-bottom:0.5rem;display:flex;align-items:center"><span class="material-symbols-outlined" style="margin-right:8px;color:var(--accent)">experiment</span>Practical Case Studies</h3><div style="display:grid;gap:1rem">${caseStudies.map(cs => `<div style="background:rgba(255,165,0,0.03);padding:1.5rem;border-radius:8px;border:1px dotted rgba(255,165,0,0.2)"><h4 style="color:#ffa500;margin-bottom:0.5rem;font-size:1rem;display:flex;align-items:center"><span class="material-symbols-outlined" style="margin-right:8px;font-size:18px">lightbulb</span>${cs.title}</h4><p style="color:var(--text-main);line-height:1.6;font-size:0.92rem">${cs.text}</p></div>`).join('')}</div></div>` : ''}
-            ${dataSources ? `<div style="background:${alphaColor(0.03)};padding:1.2rem;border-radius:8px;margin-bottom:2rem;border:1px solid ${alphaColor(0.05)};font-size:0.85rem;color:var(--text-dim)"><div style="display:flex;align-items:center;margin-bottom:0.5rem;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:0.5px"><span class="material-symbols-outlined" style="margin-right:6px;font-size:16px">source</span>Data Provenance &amp; Sources</div>${dataSources}</div>` : ''}
+            ${caseStudies.length > 0 ? `<div style="margin-bottom:3rem"><h3 style="color:var(--text-main);margin-bottom:1.5rem;border-bottom:1px solid ${window.alphaColor(0.1)};padding-bottom:0.5rem;display:flex;align-items:center"><span class="material-symbols-outlined" style="margin-right:8px;color:var(--accent)">experiment</span>Practical Case Studies</h3><div style="display:grid;gap:1rem">${caseStudies.map(cs => `<div style="background:rgba(255,165,0,0.03);padding:1.5rem;border-radius:8px;border:1px dotted rgba(255,165,0,0.2)"><h4 style="color:#ffa500;margin-bottom:0.5rem;font-size:1rem;display:flex;align-items:center"><span class="material-symbols-outlined" style="margin-right:8px;font-size:18px">lightbulb</span>${cs.title}</h4><p style="color:var(--text-main);line-height:1.6;font-size:0.92rem">${cs.text}</p></div>`).join('')}</div></div>` : ''}
+            ${dataSources ? `<div style="background:${window.alphaColor(0.03)};padding:1.2rem;border-radius:8px;margin-bottom:2rem;border:1px solid ${window.alphaColor(0.05)};font-size:0.85rem;color:var(--text-dim)"><div style="display:flex;align-items:center;margin-bottom:0.5rem;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:0.5px"><span class="material-symbols-outlined" style="margin-right:6px;font-size:16px">source</span>Data Provenance &amp; Sources</div>${dataSources}</div>` : ''}
             <div style="display:flex;gap:1rem;flex-wrap:wrap">
                 <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;border:1px solid var(--text-dim) !important;border-radius:8px;"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> RETURN TO HELP HUB</button>
                 ${targetView ? `<button class="intel-action-btn" onclick="switchView('${targetView}')" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--text-main);font-weight:800;border:1px solid var(--text-dim) !important;border-radius:8px;"><span class="material-symbols-outlined" style="font-size:18px;color:var(--text-main)">open_in_new</span> OPEN VIEW</button>` : ''}
@@ -78,7 +78,7 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
             <h2 style="display:flex;align-items:center;flex-wrap:wrap;gap:12px">
                 <span class="material-symbols-outlined" style="vertical-align:middle;color:${hubColor};font-size:1.4rem">${hubIcon}</span>
                 ${title}
-                <span style="font-size:0.5rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:${alphaColor(0.05)};color:var(--text-dim);border:1px solid ${alphaColor(0.08)}">VIEW REFERENCE</span>
+                <span style="font-size:0.5rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:${window.alphaColor(0.05)};color:var(--text-dim);border:1px solid ${window.alphaColor(0.08)}">VIEW REFERENCE</span>
             </h2>
             <p style="color:var(--text-dim);line-height:1.7;max-width:700px;margin-top:0.5rem">${summary}</p>
         </div>
@@ -87,8 +87,8 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
             ${components.map((c, i) => {
                 const ts = typeStyles[c.type] || typeStyles['CHART'];
                 return `
-                <div style="background:${alphaColor(0.015)};border:1px solid ${alphaColor(0.07)};border-radius:12px;overflow:hidden;transition:border-color 0.2s" onmouseover="this.style.borderColor=alphaColor(0.15)" onmouseout="this.style.borderColor=alphaColor(0.07)">
-                    <div style="padding:1.1rem 1.4rem;background:${alphaColor(0.02)};border-bottom:1px solid ${alphaColor(0.05)};display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+                <div style="background:${window.alphaColor(0.015)};border:1px solid ${window.alphaColor(0.07)};border-radius:12px;overflow:hidden;transition:border-color 0.2s" onmouseover="this.style.borderColor=window.alphaColor(0.15)" onmouseout="this.style.borderColor=window.alphaColor(0.07)">
+                    <div style="padding:1.1rem 1.4rem;background:${window.alphaColor(0.02)};border-bottom:1px solid ${window.alphaColor(0.05)};display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
                         <div style="display:flex;align-items:center;gap:12px">
                             <div style="width:36px;height:36px;border-radius:8px;background:${ts.bg};border:1px solid ${ts.border};display:flex;align-items:center;justify-content:center;flex-shrink:0">
                                 <span class="material-symbols-outlined" style="font-size:18px;color:${ts.color}">${c.icon}</span>
@@ -119,18 +119,18 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
             }).join('')}
 
             ${relatedDocs.length ? `
-            <div style="padding-top:1.2rem;border-top:1px solid ${alphaColor(0.06)}">
+            <div style="padding-top:1.2rem;border-top:1px solid ${window.alphaColor(0.06)}">
                 <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:0.8rem;display:flex;align-items:center;gap:6px">
                     <span class="material-symbols-outlined" style="font-size:13px">link</span>RELATED GUIDES
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
-                    ${relatedDocs.map(r => `<button onclick="switchView('${r.route}')" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.1)};color:var(--text-dim);font-size:0.72rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;font-family:inherit" onmouseover="this.style.borderColor=alphaColor(0.3);this.style.color='var(--text)'" onmouseout="this.style.borderColor=alphaColor(0.1);this.style.color='var(--text-dim)'">
+                    ${relatedDocs.map(r => `<button onclick="switchView('${r.route}')" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;background:${window.alphaColor(0.04)};border:1px solid ${window.alphaColor(0.1)};color:var(--text-dim);font-size:0.72rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;font-family:inherit" onmouseover="this.style.borderColor=window.alphaColor(0.3);this.style.color='var(--text)'" onmouseout="this.style.borderColor=window.alphaColor(0.1);this.style.color='var(--text-dim)'">
                         <span class="material-symbols-outlined" style="font-size:13px">${r.icon || 'article'}</span>${r.name}
                     </button>`).join('')}
                 </div>
             </div>` : ''}
 
-            <div style="display:flex;gap:1rem;flex-wrap:wrap;padding-top:1rem;border-top:1px solid ${alphaColor(0.06)}">
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;padding-top:1rem;border-top:1px solid ${window.alphaColor(0.06)}">
                 <button class="intel-action-btn outline" onclick="switchView('help')" style="display:flex;align-items:center;gap:8px;width:auto;border:1px solid var(--text-dim) !important;border-radius:8px;">
                     <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span> HELP HUB
                 </button>

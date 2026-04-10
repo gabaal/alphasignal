@@ -476,6 +476,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             self.send_error(500, 'Internal server error')
 
     def do_GET(self):
+        print(f"[{datetime.now()}] DEBUG: do_GET hit for path: {self.path}", flush=True)
         # S2: rate limit GET requests (AI endpoints get stricter limit)
         ip = self.client_address[0]
         if self.path.startswith('/api/') and not _rate_check(ip, self.path):
@@ -641,7 +642,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
                     self.handle_exchange_keys_post(auth_info, data)
                 elif self.command == 'DELETE':
-                    import urllib.parse
+                    # import urllib.parse (removed to prevent shadowing)
                     query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
                     item_id = query.get('id', [None])[0]
                     if item_id:
@@ -776,7 +777,13 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             else:
                 super().do_GET()
         except Exception as e:
-            print(f'[{datetime.now()}] Global do_GET error: {e}')
+            print(f'[{datetime.now()}] Global do_GET error: {e}', flush=True)
+            import traceback
+            traceback.print_exc()
+            try:
+                self.send_error_json(f'Internal Server Error: {str(e)}', 500)
+            except:
+                pass
 
     def handle_onboarding_complete(self, auth_info, post_data):
         """Log when a user completes or skips the onboarding wizard."""
