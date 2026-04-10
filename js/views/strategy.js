@@ -1,7 +1,8 @@
 async function renderStrategyLab(tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     // Restore last-used ticker & strategy from localStorage
-    const savedTicker   = localStorage.getItem('sl_ticker')   || 'BTC-USD';
+    let savedTicker   = localStorage.getItem('sl_ticker')   || 'BTC-USD';
+    if (savedTicker === '_custom') savedTicker = 'BTC-USD';
     const savedStrategy = localStorage.getItem('sl_strategy') || 'trend_regime';
     runStrategyBacktest(savedTicker, savedStrategy, 20, 50, tabs);
 }

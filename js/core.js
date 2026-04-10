@@ -908,7 +908,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
             <div class="strategy-controls">
                 <div class="control-box">
                     <label>ASSET SELECTION</label>
-                    <select id="strat-ticker" class="strat-select" onchange="window._slPersist(this.value, null); runStrategyBacktest(this.value, document.getElementById('strat-type').value, document.getElementById('strat-fast')?.value || 20, document.getElementById('strat-slow')?.value || 50)">
+                    <select id="strat-ticker" class="strat-select" onchange="if(this.value === '_custom'){ window._slPersist('_custom', null); } else { window._slPersist(this.value, null); runStrategyBacktest(this.value, document.getElementById('strat-type').value, document.getElementById('strat-fast')?.value || 20, document.getElementById('strat-slow')?.value || 50); }">
                         <option value="BTC-USD" ${ticker === 'BTC-USD' ? 'selected' : ''}>BTC-USD (Bitcoin)</option>
                         <option value="ETH-USD" ${ticker === 'ETH-USD' ? 'selected' : ''}>ETH-USD (Ethereum)</option>
                         <option value="SOL-USD" ${ticker === 'SOL-USD' ? 'selected' : ''}>SOL-USD (Solana)</option>
