@@ -1287,7 +1287,10 @@ async function loadRiskMatrix(tickers = null) {
             }
         });
 
-        injectAIChartTranslator(document.querySelector('.rotation-matrix-container'), 'matrix', () => data.correlations);
+        injectAIChartTranslator(document.querySelector('.rotation-matrix-container'), 'matrix', () => ({
+            tickers: tks,
+            matrix: data.matrix
+        }));
     }, 50);
 }
 
