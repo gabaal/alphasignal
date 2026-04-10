@@ -657,7 +657,7 @@ async function renderStrategyReport(tabs = null) {
 async function loadStrategyReport() {
     const hold = document.getElementById('sr-hold')?.value || '5';
     try {
-        const data = await fetchAPI(`/backtest-v2?hold=${hold}&limit=500`);
+        const data = await fetchAPI(`/backtest-v2?hold=${hold}&limit=10000`);
         if (!data || !data.trades || !data.trades.length) {
             showToast('STRATEGY REPORT', 'No backtest data available. Run the Backtester V2 first.', 'alert');
             return;

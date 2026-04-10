@@ -523,7 +523,7 @@ async function loadBacktesterV2() {
         if (el) el.innerHTML = '<span style="font-size:0.8rem;color:var(--text-dim)">...</span>';
     });
     try {
-        const data = await fetchAPI('/backtest-v2?hold=' + hold + '&limit=200');
+        const data = await fetchAPI('/backtest-v2?hold=' + hold + '&limit=10000');
         // Show error toast for any error condition
         if (data.error || !data.trades || !data.trades.length) {
             const msg = data.error || 'No signal history yet. Signals generate automatically as the system runs.';
