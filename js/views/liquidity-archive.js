@@ -106,9 +106,13 @@ async function renderLiquidityView(tabs = null) {
         }
 
         const walls = data.walls;
-        // Case-insensitive side check in case backend sends 'bid'/'Bid'/'BID'
-        let bids = walls.filter(w => String(w.side).toLowerCase() === 'bid').sort((a,b) => b.price - a.price);
-        let asks = walls.filter(w => String(w.side).toLowerCase() === 'ask').sort((a,b) => a.price - b.price);
+        function aggWalls(arr) {
+            const m = new Map();
+            arr.forEach(w => { const p = Math.round(w.price); m.set(p, (m.get(p)||0) + w.size); });
+            return Array.from(m, ([price, size]) => ({price, size})).filter(w => w.size >= 0.01);
+        }
+        let bids = aggWalls(walls.filter(w => String(w.side).toLowerCase() === 'bid')).sort((a,b) => b.price - a.price);
+        let asks = aggWalls(walls.filter(w => String(w.side).toLowerCase() === 'ask')).sort((a,b) => a.price - b.price);
 
         const currentPrice = data.current_price || (bids.length > 0 ? bids[0].price * 1.001 : 84000);
 
@@ -201,8 +205,8 @@ async function renderLiquidityView(tabs = null) {
                     const fresh = await fetchAPI('/liquidity?ticker=BTC-USD');
                     if (!fresh || !fresh.walls) return;
 
-                    let fb = fresh.walls.filter(w => String(w.side).toLowerCase() === 'bid').sort((a,b) => b.price - a.price);
-                    let fa = fresh.walls.filter(w => String(w.side).toLowerCase() === 'ask').sort((a,b) => a.price - b.price);
+                    let fb = aggWalls(fresh.walls.filter(w => String(w.side).toLowerCase() === 'bid')).sort((a,b) => b.price - a.price);
+                    let fa = aggWalls(fresh.walls.filter(w => String(w.side).toLowerCase() === 'ask')).sort((a,b) => a.price - b.price);
                     const bt = fb.reduce((s,b) => s + b.size, 0);
                     const at = fa.reduce((s,a) => s + a.size, 0);
 
