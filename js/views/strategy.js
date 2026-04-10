@@ -334,6 +334,12 @@ async function renderStressHub(tabs = null) {
                 </div>
             </div>
         `;
+        // Inject translator after replacing layout
+        injectAIChartTranslator(area, 'stress', () => ({
+            systemic_risk: window._lastStressData.systemic_risk,
+            hotspots: window._lastStressData.hotspots,
+            asset_risk: window._lastStressData.asset_risk.slice(0, 15)
+        }));
     };
 
     window._setStressSort = function(key) {
@@ -347,12 +353,6 @@ async function renderStressHub(tabs = null) {
     };
 
     window._drawStressTable();
-
-    injectAIChartTranslator(document.getElementById('risk-attribution-area'), 'stress', () => ({
-        systemic_risk: window._lastStressData.systemic_risk,
-        hotspots: window._lastStressData.hotspots,
-        asset_risk: window._lastStressData.asset_risk.slice(0, 15)
-    }));
 }
 
 async function renderChainVelocity(tabs = null) {
