@@ -682,47 +682,47 @@ window._drawBtv2Log = function() {
 
     container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:8px">
-            <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim)">RECENT TRADE LOG (\${logData.length})</div>
+            <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim)">RECENT TRADE LOG (${logData.length})</div>
             <div style="display:flex; align-items:center; gap:15px">
                 <button class="btv2-export-btn" onclick="window._btv2ExportCSV()" style="margin-right:15px">
                     <span class="material-symbols-outlined" style="font-size:13px">download</span> EXPORT CSV
                 </button>
-                <button class="filter-btn" \${window._btv2Page === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : \`onclick="window._btv2Page--; window._drawBtv2Log()"\`}>&larr; Prev</button>
-                <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page \${window._btv2Page} of \${totalPages || 1}</span>
-                <button class="filter-btn" \${window._btv2Page === totalPages || totalPages === 0 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : \`onclick="window._btv2Page++; window._drawBtv2Log()"\`}>Next &rarr;</button>
+                <button class="filter-btn" ${window._btv2Page === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : `onclick="window._btv2Page--; window._drawBtv2Log()"`}>&larr; Prev</button>
+                <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${window._btv2Page} of ${totalPages || 1}</span>
+                <button class="filter-btn" ${window._btv2Page === totalPages || totalPages === 0 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : `onclick="window._btv2Page++; window._drawBtv2Log()"`}>Next &rarr;</button>
             </div>
         </div>
         <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem" role="table">
                 <thead><tr style="border-bottom:1px solid var(--border)">
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('ticker')">Ticker \${getSortIcon('ticker')}</th>
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('signal')">Signal \${getSortIcon('signal')}</th>
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('entry_date')">Entry \${getSortIcon('entry_date')}</th>
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('exit_date')">Exit \${getSortIcon('exit_date')}</th>
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('entry_price')">Entry $ \${getSortIcon('entry_price')}</th>
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('exit_price')">Exit $ \${getSortIcon('exit_price')}</th>
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('pnl_pct')">Strat P&L \${getSortIcon('pnl_pct')}</th>
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('btc_pnl')">BTC P&L \${getSortIcon('btc_pnl')}</th>
-                    <th style="\${thStyle}" onclick="window._setBtv2Sort('alpha')">Alpha \${getSortIcon('alpha')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('ticker')">Ticker ${getSortIcon('ticker')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('signal')">Signal ${getSortIcon('signal')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('entry_date')">Entry ${getSortIcon('entry_date')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('exit_date')">Exit ${getSortIcon('exit_date')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('entry_price')">Entry $ ${getSortIcon('entry_price')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('exit_price')">Exit $ ${getSortIcon('exit_price')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('pnl_pct')">Strat P&L ${getSortIcon('pnl_pct')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('btc_pnl')">BTC P&L ${getSortIcon('btc_pnl')}</th>
+                    <th style="${thStyle}" onclick="window._setBtv2Sort('alpha')">Alpha ${getSortIcon('alpha')}</th>
                 </tr></thead>
                 <tbody>
-                    \${pageData.map(t => {
+                    ${pageData.map(t => {
                         const pnlColor = t.pnl_pct >= 0 ? '#22c55e' : '#ef4444';
                         const btcColor = t.btc_pnl >= 0 ? '#f7931a' : '#ef4444';
                         const alpha = +(t.pnl_pct - t.btc_pnl).toFixed(1);
-                        return \`<tr style="background:\${alphaColor(0.02)}">
-                            <td style="padding:8px 10px;font-weight:700">\${t.ticker}</td>
-                            <td style="padding:8px 10px"><span style="font-size:0.6rem;padding:2px 7px;border-radius:10px;background:rgba(0,212,170,0.1);color:#00d4aa">\${t.signal.replace(/_/g,' ')}</span></td>
-                            <td style="padding:8px 10px;color:var(--text-dim)">\${t.entry_date}</td>
-                            <td style="padding:8px 10px;color:var(--text-dim)">\${t.exit_date}</td>
-                            <td style="padding:8px 10px">$\${t.entry_price.toLocaleString()}</td>
-                            <td style="padding:8px 10px">$\${t.exit_price.toLocaleString()}</td>
-                            <td style="padding:8px 10px;font-weight:700;color:\${pnlColor}">\${t.pnl_pct>=0?'+':''}\${t.pnl_pct}%</td>
-                            <td style="padding:8px 10px;color:\${btcColor}">\${t.btc_pnl>=0?'+':''}\${t.btc_pnl}%</td>
-                            <td style="padding:8px 10px"><span style="font-size:0.6rem;padding:2px 6px;border-radius:8px;background:\${alpha>=0?'rgba(0,212,170,0.1)':'rgba(239,68,68,0.1)'};color:\${alpha>=0?'#00d4aa':'#ef4444'}">\${alpha>=0?'+':''}\${alpha}% \${alpha>=0?'ALPHA':'BETA'}</span></td>
-                        </tr>\`;
+                        return `<tr style="background:${alphaColor(0.02)}">
+                            <td style="padding:8px 10px;font-weight:700">${t.ticker}</td>
+                            <td style="padding:8px 10px"><span style="font-size:0.6rem;padding:2px 7px;border-radius:10px;background:rgba(0,212,170,0.1);color:#00d4aa">${t.signal.replace(/_/g,' ')}</span></td>
+                            <td style="padding:8px 10px;color:var(--text-dim)">${t.entry_date}</td>
+                            <td style="padding:8px 10px;color:var(--text-dim)">${t.exit_date}</td>
+                            <td style="padding:8px 10px">$${t.entry_price.toLocaleString()}</td>
+                            <td style="padding:8px 10px">$${t.exit_price.toLocaleString()}</td>
+                            <td style="padding:8px 10px;font-weight:700;color:${pnlColor}">${t.pnl_pct>=0?'+':''}${t.pnl_pct}%</td>
+                            <td style="padding:8px 10px;color:${btcColor}">${t.btc_pnl>=0?'+':''}${t.btc_pnl}%</td>
+                            <td style="padding:8px 10px"><span style="font-size:0.6rem;padding:2px 6px;border-radius:8px;background:${alpha>=0?'rgba(0,212,170,0.1)':'rgba(239,68,68,0.1)'};color:${alpha>=0?'#00d4aa':'#ef4444'}">${alpha>=0?'+':''}${alpha}% ${alpha>=0?'ALPHA':'BETA'}</span></td>
+                        </tr>`;
                     }).join('')}
-                    \${pageData.length === 0 ? '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--text-dim)">No data</td></tr>' : ''}
+                    ${pageData.length === 0 ? '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--text-dim)">No data</td></tr>' : ''}
                 </tbody>
             </table>
         </div>
