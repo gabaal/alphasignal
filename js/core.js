@@ -861,8 +861,37 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
 
 async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs = null) {
     if (!tabs && typeof alphaHubTabs !== 'undefined') tabs = alphaHubTabs;
+
+    appEl.innerHTML = `
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">science</span> Strategy Lab <span class="premium-badge pulse">PRO</span></h1>
+                <p>Validate quantitative alphas using high-fidelity historical simulations.</p>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto; padding:4px 8px; font-size:0.6rem; display:flex; align-items:center; gap:4px; flex-shrink:0" onclick="switchView('explain-playbook')"><span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS</button>
+        </div>
+        ${tabs ? renderHubTabs('lab', tabs) : ''}
+        ${skeleton(2)}
+    `;
+
     const data = await fetchAPI(`/backtest?ticker=${ticker}&strategy=${strategy}&fast=${fast}&slow=${slow}`);
-    if (!data || !data.summary) return;
+    if (!data || !data.summary) {
+        appEl.innerHTML = `
+            <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
+                    <h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">science</span> Strategy Lab <span class="premium-badge pulse">PRO</span></h1>
+                    <p>Validate quantitative alphas using high-fidelity historical simulations.</p>
+                </div>
+            </div>
+            ${tabs ? renderHubTabs('lab', tabs) : ''}
+            <div style="padding:2rem;text-align:center;color:var(--risk-high)">
+                Failed to simulate strategy backtest. Engine temporarily offline.
+            </div>
+        `;
+        return;
+    }
     
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
