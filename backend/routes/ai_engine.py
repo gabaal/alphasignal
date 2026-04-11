@@ -354,24 +354,26 @@ class AIEngineRoutesMixin:
             })
             return
 
-        current_w = post_data.get('current_weights', {})
-        optimal_w = post_data.get('optimal_weights', {})
+        basket = post_data.get('basket', 'Unknown Basket')
+        metrics = post_data.get('metrics', {})
+        weights = post_data.get('weights', [])
 
         context = (
-            f"Current Portfolio Allocation: {json.dumps(current_w)}\n"
-            f"Markowitz Optimal Allocation: {json.dumps(optimal_w)}\n"
+            f"Portfolio Basket: {basket}\n"
+            f"Risk & Performance Metrics: {json.dumps(metrics)}\n"
+            f"Mathematical Markowitz Optimal Allocation: {json.dumps(weights)}\n"
         )
 
         system_prompt = (
             "You are a Chief Investment Officer at a premier quantitative hedge fund. "
-            "A portfolio manager has submitted their current asset allocation weights vs the calculated mathematical optimal Markowitz Efficient Frontier weights. "
-            "Write exactly two concise paragraphs in plain English (max 100 words total). "
-            "First paragraph: Analyze the deviation. Tell them explicitly which assets they are overexposed to and which ones they are underexposed to relative to the optimal mathematical target. "
-            "Second paragraph: Provide a strict, actionable rebalancing mandate (e.g. 'Trim BTC exposure by X% and scale into SOL to reduce portfolio variance drag'). "
+            "A portfolio manager has structured a custom basket of assets and passed them through a Markowitz Efficient Frontier engine. "
+            "Write exactly two concise paragraphs in plain English (max 120 words total). "
+            "First paragraph: Provide the theoretical rationale for the generated weights. Explain WHY certain assets were heavily allocated (e.g., strong momentum, low correlation/variance) versus others that received low allocations. Reference the provided Sharpe, VaR, or Beta metrics if relevant. "
+            "Second paragraph: Provide a strict, actionable execution mandate (e.g., 'Execute this optimal weighting to cap portfolio Volatility while capturing isolated Alpha'). "
             "DO NOT give financial advice disclaimers. Maintain a crisp, authoritative institutional tone."
         )
 
-        user_prompt = f"Here is the portfolio state:\n{context}\nIssue a clear rebalancing memo based entirely on the differences between these two weight structures."
+        user_prompt = f"Here is the portfolio state:\n{context}\nIssue a clear rebalancing memo based entirely on these risk metrics and optimal weight structure."
 
         try:
             resp = client.chat.completions.create(
