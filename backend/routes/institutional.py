@@ -707,7 +707,10 @@ class InstitutionalRoutesMixin:
     def handle_portfolio_execute(self, post_data):
         try:
             # 1. Calculate Optimal Allocations (Re-using logic from handle_portfolio_optimize)
-            assets = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD']
+            basket_str = post_data.get('basket', 'BTC-USD,ETH-USD,SOL-USD,LINK-USD,ADA-USD')
+            assets = [a.strip() for a in basket_str.split(',') if a.strip()]
+            if not assets:
+                assets = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD']
             stats = []
             for ticker in assets:
                 try:
@@ -772,9 +775,12 @@ class InstitutionalRoutesMixin:
                 price = targets.get(t['ticker'], {}).get('price', 0.0)
                 if price == 0.0:
                     try:
-                        sdf = yf.download(t['ticker'], period='1d', progress=False)
-                        price = float(sdf['Close'].iloc[-1])
-                    except: price = 0.0
+                        df = CACHE.download(t['ticker'], period='5d', interval='1d')
+                        closes = self._get_price_series(df, t['ticker'])
+                        price = float(closes.dropna().iloc[-1]) if closes is not None else 0.0
+                    except Exception as e:
+                        print(f"[{datetime.now()}] EXEC_SELL_PRICE_ERROR {t['ticker']}: {e}")
+                        price = 0.0
                 
                 weight_val = float(t.get('weight', 0.0))
                 # Target price should not be the portfolio weight percentage. Defaulting to 0.0 for market rebalance tickets.

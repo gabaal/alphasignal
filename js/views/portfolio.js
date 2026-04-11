@@ -589,8 +589,18 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
 window.executeRebalance = async function() {
     if (!confirm("CONFIRM_EXECUTION: Are you sure you want to dispatch rebalancing tickets to the institutional ledger?")) return;
     
+    let activeBasket = 'BTC-USD,ETH-USD,SOL-USD,LINK-USD,ADA-USD';
+    const zone = document.getElementById('portfolio-basket-zone');
+    if (zone) {
+        const assets = Array.from(zone.querySelectorAll('.draggable-asset')).map(x => x.dataset.asset);
+        if (assets.length > 0) activeBasket = assets.join(',');
+    }
+    
     try {
-        const res = await fetchAPI('/portfolio/execute', 'POST', { email: localStorage.getItem('user_email') || 'geraldbaalham@live.co.uk' });
+        const res = await fetchAPI('/portfolio/execute', 'POST', { 
+            email: localStorage.getItem('user_email') || 'geraldbaalham@live.co.uk',
+            basket: activeBasket
+        });
         if (res && res.status === 'SUCCESS') {
             showToast("REBALANCE_COMPLETE", res.message, "success");
             // Auto-navigate to ledger after brief delay
