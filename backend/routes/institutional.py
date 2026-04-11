@@ -5276,14 +5276,29 @@ class InstitutionalRoutesMixin:
             query     = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             hold_bars = int(query.get('hold', ['5'])[0])
             limit     = int(query.get('limit', ['200'])[0])
+            start_date= query.get('start', [''])[0]
+            end_date  = query.get('end', [''])[0]
 
             # 1. Pull signal history from DB
             conn = sqlite3.connect(DB_PATH)
             c    = conn.cursor()
-            c.execute('''SELECT ticker, type, price, timestamp
+            
+            sql_query = '''SELECT ticker, type, price, timestamp
                          FROM alerts_history
-                         WHERE price > 0
-                         ORDER BY timestamp DESC LIMIT ?''', (limit,))
+                         WHERE price > 0'''
+            params = []
+            
+            if start_date:
+                sql_query += ' AND timestamp >= ?'
+                params.append(start_date + 'T00:00:00Z')
+            if end_date:
+                sql_query += ' AND timestamp <= ?'
+                params.append(end_date + 'T23:59:59Z')
+                
+            sql_query += ' ORDER BY timestamp DESC LIMIT ?'
+            params.append(limit)
+
+            c.execute(sql_query, params)
             rows = c.fetchall()
             conn.close()
 

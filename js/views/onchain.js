@@ -481,11 +481,15 @@ async function renderBacktesterV2(tabs = null) {
             <div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD PERIOD</label>
-                <select id="btv2-hold" onchange="if(this.value==='20'){showToast('BACKTESTER','20-day hold reduces signal density and increases volatility. Consider 5–10 days for more reliable statistics.','info');}" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
+                <select id="btv2-hold" onchange="if(this.value==='20'){showToast('BACKTESTER','20-day hold reduces signal density and increases volatility. Consider 5-10 days for more reliable statistics.','info');}" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:0.75rem">
                     <option value="3">3 Days</option><option value="5" selected>5 Days</option>
                     <option value="10">10 Days</option><option value="20">20 Days</option>
                 </select>
-                <button onclick="loadBacktesterV2()" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:8px 18px;border-radius:8px;font-weight:800;font-size:0.75rem;cursor:pointer;letter-spacing:1px">RUN BACKTEST</button>
+                <label style="font-size:0.7rem;color:var(--text-dim);margin-left:8px">START</label>
+                <input type="date" id="btv2-start" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:0.75rem;font-family:'JetBrains Mono'">
+                <label style="font-size:0.7rem;color:var(--text-dim);margin-left:8px">END</label>
+                <input type="date" id="btv2-end" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:0.75rem;font-family:'JetBrains Mono'">
+                <button onclick="loadBacktesterV2()" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:8px 18px;border-radius:8px;font-weight:800;font-size:0.75rem;cursor:pointer;letter-spacing:1px;margin-left:8px">RUN</button>
             </div>
         </div>
         <div id="btv2-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem">
@@ -517,13 +521,15 @@ async function renderBacktesterV2(tabs = null) {
 
 async function loadBacktesterV2() {
     const hold = document.getElementById('btv2-hold') ? document.getElementById('btv2-hold').value : '5';
+    const start = document.getElementById('btv2-start') ? document.getElementById('btv2-start').value : '';
+    const end = document.getElementById('btv2-end') ? document.getElementById('btv2-end').value : '';
     if (hold === '20') showToast('BACKTESTER', '20-day hold: lower signal density, higher volatility. Best for trend-following signals.', 'info');
     ['win-rate','total-trades','total-return','sharpe','max-drawdown','profit-factor','calmar'].forEach(id => {
         const el = document.getElementById('btv2-' + id);
         if (el) el.innerHTML = '<span style="font-size:0.8rem;color:var(--text-dim)">...</span>';
     });
     try {
-        const data = await fetchAPI('/backtest-v2?hold=' + hold + '&limit=10000');
+        const data = await fetchAPI(`/backtest-v2?hold=${hold}&limit=10000&start=${start}&end=${end}`);
         // Show error toast for any error condition
         if (data.error || !data.trades || !data.trades.length) {
             const msg = data.error || 'No signal history yet. Signals generate automatically as the system runs.';
