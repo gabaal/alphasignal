@@ -782,6 +782,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 })
             elif path == '/health':
                 self.handle_health()
+            elif path == '/api/prices':
+                self.handle_live_prices()
             elif path == '/' and query_params.get('view') == ['signal'] and query_params.get('id'):
                 self.handle_ssr_permalink(query_params['id'][0])
             else:
@@ -867,4 +869,23 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         except Exception as e:
             print(f'[SSR Error] {e}')
             super().do_GET()
+
+    def handle_live_prices(self):
+        import yfinance as yf
+        import time
+        tickers = {'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD'}
+        res = {}
+        for sym, tick in tickers.items():
+            cache = self._price_cache.get(sym)
+            if cache and isinstance(cache, tuple) and (time.time() - cache[1] < 15):
+                res[sym] = cache[0]
+            else:
+                try:
+                    px = yf.Ticker(tick).fast_info.get('last_price') or yf.Ticker(tick).fast_info.get('lastPrice')
+                    if px:
+                        px = round(float(px), 2)
+                        res[sym] = px
+                        self._price_cache[sym] = (px, time.time())
+                except: pass
+        self.send_json(res)
 

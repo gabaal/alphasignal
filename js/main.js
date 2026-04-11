@@ -574,64 +574,77 @@ function initLiveAlphaScroller() {
 function initLivePriceStream() {
     if (window.liveWS) return; // Prevent multiple connections
     let retryDelay = 2000;
+    window.wsFailCount = 0;
+
+    function handlePriceData(p) {
+        if (!window.livePrices) window.livePrices = {};
+        Object.assign(window.livePrices, p); // BTC, ETH, SOL from WS
+
+        // ── Watchlist Target Price Alerts ──────────────────────
+        if (typeof checkWatchlistAlerts === 'function' && window.isAuthenticatedUser) checkWatchlistAlerts(p);
+
+        if (p.BTC) {
+            window.currentBTCPrice = p.BTC;
+            if (typeof pushSparklinePrice === 'function') pushSparklinePrice(p.BTC);
+            const btcText = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            const elLanding = document.getElementById('btc-price-landing');
+            if (elLanding) elLanding.textContent = `BTC: ${btcText}`;
+
+            const dot = document.getElementById('live-dot');
+            if (dot) { dot.style.opacity = '1'; setTimeout(() => { dot.style.opacity = '0.4'; }, 300); }
+        }
+        ['ETH', 'SOL'].forEach(sym => {
+            if (p[sym]) {
+                const els = document.querySelectorAll(`[data-live-price="${sym}"]`);
+                els.forEach(e => e.textContent = `$${p[sym].toLocaleString('en-US', {minimumFractionDigits: 2})}`);
+            }
+        });
+    }
+
+    function initHttpFallback() {
+        if (window.priceFallbackInterval) return;
+        console.warn("[Matrix] Firewall detected. Downgrading to HTTP Long-Polling Fallback.");
+        window.priceFallbackInterval = setInterval(async () => {
+            try {
+                const p = await fetchAPI('/prices');
+                if (p) handlePriceData(p);
+            } catch (e) {}
+        }, 5000);
+        
+        // Ensure signals still poll locally if WS is explicitly dead
+        if (typeof startSignalPoller === 'function') setInterval(startSignalPoller, 60000);
+    }
 
     function connect() {
         try {
-            ws = new WebSocket('ws://localhost:8007');
+            if (window.wsFailCount >= 3) {
+                initHttpFallback();
+                return;
+            }
+
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const ws = new WebSocket(wsProtocol + window.location.hostname + ':8007');
+
+            ws.onopen = () => { window.wsFailCount = 0; };
 
             ws.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
-                    
                     if (msg.type === 'prices') {
-                        const p = msg.data;
-
-                        // ── Populate global live price cache (used by alert card P&L) ──
-                        if (!window.livePrices) window.livePrices = {};
-                        Object.assign(window.livePrices, p); // BTC, ETH, SOL from WS
-
-                        // ── Watchlist Target Price Alerts ──────────────────────
-                        if (isAuthenticatedUser) checkWatchlistAlerts(p);
-
-                        if (p.BTC) {
-                            currentBTCPrice = p.BTC;
-                            // Feed the header sparkline with every live tick
-                            if (typeof pushSparklinePrice === 'function') pushSparklinePrice(p.BTC);
-                            const btcText = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                            
-                            
-                            const elLanding = document.getElementById('btc-price-landing');
-                            if (elLanding) elLanding.textContent = `BTC: ${btcText}`;
-
-                            const dot = document.getElementById('live-dot');
-                            if (dot) { dot.style.opacity = '1'; setTimeout(() => { dot.style.opacity = '0.4'; }, 300); }
-                        }
-                        ['ETH', 'SOL'].forEach(sym => {
-                            if (p[sym]) {
-                                const els = document.querySelectorAll(`[data-live-price="${sym}"]`);
-                                els.forEach(e => e.textContent = `$${p[sym].toLocaleString('en-US', {minimumFractionDigits: 2})}`);
-                            }
-                        });
-
-                        // ── Update Alpha Scroller from WS push ──
+                        handlePriceData(msg.data);
                         if (msg.top_alpha && window.updateLiveAlphaScroller) {
                             window.updateLiveAlphaScroller(msg.top_alpha);
                         }
-
-                        // Feature 2: Bell badge removed per user feedback
                     } else if (msg.type === 'new_alert' || msg.type === 'alert') {
                         const d = msg.data;
-
-                        // B17 fix: fire showSignalToast immediately on WS push (was: generic showToast → ~60s delay).
-                        // Respect the same sensitivity gate as the 60s poller.
                         const alertsOn = typeof _pollerSettings !== 'undefined' ? _pollerSettings.alerts_enabled : true;
-                        if (alertsOn && isPremiumUser) {
+                        if (alertsOn && window.isPremiumUser) {
                             const predReturn = d.predicted_return != null
                                 ? Math.abs(parseFloat(d.predicted_return)) * 100
                                 : Math.abs(parseFloat(d.z_score ?? 0));
                             const userThresh = typeof _pollerSettings !== 'undefined' ? _pollerSettings.z_threshold : 2.0;
                             if (predReturn >= userThresh || d.severity === 'critical' || d.severity === 'high') {
-                                // Map WS alert data to showSignalToast-compatible shape
                                 showSignalToast({
                                     ticker: d.ticker || d.signal_type || 'SIGNAL',
                                     direction: d.type && d.type.includes('BULL') ? 'LONG' :
@@ -640,13 +653,11 @@ function initLivePriceStream() {
                                     predicted_return: d.predicted_return ?? null
                                 });
                             }
-                        } else if (!isPremiumUser) {
-                            // Free users: plain toast (no rich signal toast)
+                        } else if (!window.isPremiumUser) {
                             const ticker = d.ticker || d.signal_type || 'SIGNAL';
                             showToast('\uD83D\uDD14 ' + ticker, d.content || d.message || '', 'alert');
                         }
 
-                        // Bump the alerts badge
                         const alertBadge = document.getElementById('alerts-badge-count');
                         if (alertBadge) {
                             const cur = parseInt(alertBadge.textContent || '0', 10);
@@ -654,7 +665,6 @@ function initLivePriceStream() {
                             alertBadge.style.display = 'inline-flex';
                         }
 
-                        // Live-prepend card if Alerts view is open
                         if (msg.type === 'new_alert') {
                             const alertList = document.getElementById('live-alert-list');
                             if (alertList) {
@@ -677,6 +687,7 @@ function initLivePriceStream() {
             };
 
             ws.onclose = () => {
+                window.wsFailCount++;
                 retryDelay = Math.min(retryDelay * 1.5, 30000);
                 setTimeout(connect, retryDelay);
             };
@@ -685,6 +696,7 @@ function initLivePriceStream() {
 
             window.liveWS = ws;
         } catch(e) {
+            window.wsFailCount++;
             setTimeout(connect, retryDelay);
         }
     }
