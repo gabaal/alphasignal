@@ -279,7 +279,9 @@ function renderDocsViewOIRadar() {
                     'IV Smile flatter than historical baseline = volatility compression; breakout imminent',
                     'Both tails symmetric and elevated = market pricing in a large move, direction unknown',
                     'Right-tail IV exceeds left-tail = call skew; institutions expect rally or are hedging short'
-                         {
+                ]
+            },
+            {
                 name: 'OI Divergence Bubble Map', type: 'CHART', icon: 'bubble_chart',
                 description: 'A bubble scatter chart plotting 24h Price Change (X-axis) against 24h OI Change (Y-axis) for 8 assets simultaneously. Bubble size = absolute OI ($B). Colour coding: Orange = price up + OI up (long-squeeze risk), Red = price down + OI up (short-trap risk), Yellow = price up + OI down (long unwind), Grey = price down + OI down (de-leveraging).',
                 howToRead: 'Each bubble is one asset. Assets in the orange quadrant (top-right) are most vulnerable to a long squeeze - OI is growing as price rises, meaning traders are adding longs into a rally. Assets in the red quadrant (top-left) are building a squeeze setup on the short side.',
