@@ -18,6 +18,14 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
     const activeBasket = (customBasket || 'BTC-USD,ETH-USD,SOL-USD,LINK-USD,ADA-USD').split(',').map(s => s.trim());
     const availableAssets = universe.filter(u => !activeBasket.includes(u));
 
+    window._lastPortfolioExport = Object.assign({}, data.metrics);
+    window._lastPortfolioExport['portfolio_assets'] = activeBasket.join('; ');
+    if (optData) {
+        window._lastPortfolioExport['optimal_sharpe_prob'] = optData.optimal_sharpe;
+        window._lastPortfolioExport['optimal_sharpe_weights'] = optData.max_sharpe ? Object.entries(optData.max_sharpe).map(e => e[0] + ':' + (e[1]*100).toFixed(1)+'%').join('; ') : '';
+        window._lastPortfolioExport['min_vol_weights'] = optData.min_vol ? Object.entries(optData.min_vol).map(e => e[0] + ':' + (e[1]*100).toFixed(1)+'%').join('; ') : '';
+    }
+
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Institutional Hub</h2>
@@ -93,7 +101,14 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
             <!-- RIGHT COLUMN: Analysis & Weights -->
             <div style="display:flex; flex-direction:column; gap:2rem">
                 <div class="card" style="padding:1.5rem; ">
-                    <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">INSTITUTIONAL RISK SCORECARD</h3>
+
+                    <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px; display:flex; justify-content:space-between; align-items:center;">
+                        INSTITUTIONAL RISK SCORECARD
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="exportCSV(window._lastPortfolioExport, 'portfolio_metrics')" class="intel-action-btn mini outline" style="padding:4px 8px; font-size:0.5rem; display:flex; align-items:center; gap:4px" title="Export Risk Data">CSV <span class="material-symbols-outlined" style="font-size:10px">download</span></button>
+                            <button onclick="exportJSON(window._lastPortfolioExport, 'portfolio_metrics')" class="intel-action-btn mini outline" style="padding:4px 8px; font-size:0.5rem; display:flex; align-items:center; gap:4px" title="Export Risk Data">JSON <span class="material-symbols-outlined" style="font-size:10px">download</span></button>
+                        </div>
+                    </h3>
                     <div class="metrics-grid" style="display:grid; grid-template-columns: 1fr; gap:1.2rem">
                         <div class="metric-item">
                             <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim)">ALPHA GENERATION</div>

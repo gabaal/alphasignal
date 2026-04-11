@@ -306,7 +306,13 @@ async function renderStressHub(tabs = null) {
         area.innerHTML = `
             <div class="asset-risk-table">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                    <h3 style="font-size:0.9rem; color:var(--accent); letter-spacing:1px; margin:0">ASSET-SPECIFIC BETA & ALPHA ATTRIBUTION</h3>
+                    <div style="display:flex; align-items:center; gap:15px">
+                        <h3 style="font-size:0.9rem; color:var(--accent); letter-spacing:1px; margin:0">ASSET-SPECIFIC BETA & ALPHA ATTRIBUTION</h3>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="exportCSV(window._lastStressData.asset_risk, 'stress_attribution')" class="intel-action-btn mini outline" style="padding:4px 8px; font-size:0.5rem; display:flex; align-items:center; gap:4px" title="Export Risk Data">CSV <span class="material-symbols-outlined" style="font-size:10px">download</span></button>
+                            <button onclick="exportJSON(window._lastStressData.asset_risk, 'stress_attribution')" class="intel-action-btn mini outline" style="padding:4px 8px; font-size:0.5rem; display:flex; align-items:center; gap:4px" title="Export Risk Data">JSON <span class="material-symbols-outlined" style="font-size:10px">download</span></button>
+                        </div>
+                    </div>
                     <div style="display:flex; align-items:center; gap:15px">
                         <button class="filter-btn" ${_stressPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : `onclick="window._stressPage--; window._drawStressTable()"`}>&larr; Prev</button>
                         <span style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono'">Page ${window._stressPage} of ${totalPages || 1}</span>

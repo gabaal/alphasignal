@@ -695,22 +695,45 @@ function exportCSV(data, filename) {
         showPaywall(true);
         return;
     }
-    if (!data || !data.length) return;
-    const headers = Object.keys(data[0]);
+    if (!data) return;
+    
+    // Auto-wrap single objects into arrays for CSV flattening
+    let processData = Array.isArray(data) ? data : [data];
+    if (processData.length === 0) return;
+    
+    const headers = Object.keys(processData[0]);
     const csvContent = [
         headers.join(','),
-        ...data.map(row => headers.map(h => {
+        ...processData.map(row => headers.map(h => {
             const val = row[h];
+            if (Array.isArray(val)) return `"${val.join('; ')}"`;
             return typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : val;
         }).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
+    link.href = URL.createObjectURL(blob);
+    link.download = filename + '.csv';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportJSON(data, filename) {
+    if (!window.isPremiumUser) {
+        showPaywall(true);
+        return;
+    }
+    if (!data) return;
+
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename + '.json';
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
