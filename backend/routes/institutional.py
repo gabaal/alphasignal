@@ -2215,16 +2215,7 @@ class InstitutionalRoutesMixin:
             print(f'AI Analyst Error: {e}')
             self.send_json({'summary': f'<h3>Engine Error</h3><p>Could not synthesize intelligence for {ticker}. Check server logs.</p>', 'outlook': 'NEUTRAL'})
 
-        try:
-            news = self.get_context_news()
-            # handle_alerts removed from here to consolidate with the database-backed version below
-            for n in news:
-                if n['sentiment'] != 'NEUTRAL':
-                    if 'Surge' in n['headline'] or 'Shock' in n['headline'] or 'Risk' in n['headline']:
-                        alerts.append({'type': 'NEWS', 'ticker': n['ticker'], 'message': f"FLASH: {n['headline']}", 'severity': 'high', 'timestamp': n['time']})
-        except:
-            pass
-        self.send_json(alerts[:10])
+
 
     def handle_benchmark(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)

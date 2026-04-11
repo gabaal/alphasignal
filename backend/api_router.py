@@ -142,9 +142,6 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
 
     def send_json(self, data):
         try:
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
             def sanitize(obj):
                 if isinstance(obj, (float, np.float64, np.float32)):
                     if np.isnan(obj) or np.isinf(obj):
@@ -162,17 +159,25 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     return None
                 return obj
             clean_data = sanitize(data)
-            self.wfile.write(json.dumps(clean_data, default=str).encode('utf-8'))
+            json_bytes = json.dumps(clean_data, default=str).encode('utf-8')
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(json_bytes)))
+            self.end_headers()
+            self.wfile.write(json_bytes)
         except Exception as e:
             print(f'[{datetime.now()}] send_json error: {e}')
 
-    def send_error_json(self, message, code=500):
+    def send_error_json(self, message, code=400):
         try:
             print(f'[{datetime.now()}] API_ERROR ({code}): {message}')
+            json_bytes = json.dumps({'error': str(message), 'success': False}).encode('utf-8')
             self.send_response(code)
             self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(json_bytes)))
             self.end_headers()
-            self.wfile.write(json.dumps({'error': str(message), 'success': False}).encode('utf-8'))
+            self.wfile.write(json_bytes)
         except Exception as e:
             print(f'[{datetime.now()}] send_error_json error: {e}')
 
