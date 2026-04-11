@@ -1,8 +1,8 @@
 async function renderExchangeKeys() {
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:-4px;margin-right:8px;color:var(--accent)">api</span>Exchange Keys</h1>
-            <p style="color:var(--text-dim)">Securely connect external exchange APIs for 1-Click execution from the AlphaSignal Terminal.</p>
+            <h1><span class="material-symbols-outlined" style="vertical-align:-4px;margin-right:8px;color:var(--accent)">api</span>KeyVault</h1>
+            <p style="color:var(--text-dim)">Securely connect external exchange APIs for 1-Click execution from the terminal. Protected by AES-128 institutional encryption.</p>
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; max-width:1100px; margin:0 auto;">
@@ -31,11 +31,11 @@ async function renderExchangeKeys() {
                     <input type="password" id="api-secret-input" placeholder="Paste your API Secret..." style="width:100%;padding:12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;color:white;font-family:var(--font-mono);font-size:0.85rem">
                 </div>
 
-                <button class="intel-action-btn" style="width:100%" onclick="saveExchangeKey()">SECURE & LINK ACCOUNT</button>
+                <button class="intel-action-btn" style="width:100%" onclick="saveExchangeKey()">ENCRYPT & LINK ACCOUNT</button>
 
                 <p style="font-size:0.7rem;color:var(--text-dim);margin-top:1.5rem;display:flex;gap:6px;align-items:flex-start">
                     <span class="material-symbols-outlined" style="font-size:14px;color:var(--risk-low)">lock</span>
-                    Keys are encrypted at rest. We recommend creating an API key restricted to ONLY 'Trade' permissions, disabling 'Withdrawal' access entirely.
+                    Keys are locally AES-128 encrypted at rest via the KeyVault. We recommend creating an API key restricted to 'Trade' permissions only, disabling 'Withdrawal' access completely.
                 </p>
             </div>
 

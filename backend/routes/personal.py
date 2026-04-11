@@ -1,6 +1,7 @@
 import json, urllib.parse
 from datetime import datetime
 from backend.database import SupabaseClient, SUPABASE_URL, SUPABASE_HEADERS
+from backend.keyvault import KeyVault
 import requests
 
 class PersonalRoutesMixin:
@@ -250,10 +251,13 @@ class PersonalRoutesMixin:
             if not exchange or not api_key or not api_secret:
                 return self.send_json({'error': 'exchange, api_key, and api_secret are required'})
 
+            # Encrypt secret "at rest"
+            encrypted_secret = KeyVault.encrypt_secret(api_secret)
+
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute('''INSERT OR REPLACE INTO exchange_keys (user_email, exchange, api_key, api_secret) VALUES (?, ?, ?, ?)''',
-                      (user_email, exchange, api_key, api_secret))
+                      (user_email, exchange, api_key, encrypted_secret))
             conn.commit()
             conn.close()
             self.send_json({'success': True})
@@ -286,18 +290,25 @@ class PersonalRoutesMixin:
             # Validate they have at least one exchange key
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute('SELECT id FROM exchange_keys WHERE user_email = ? LIMIT 1', (user_email,))
+            c.execute('SELECT exchange, api_secret FROM exchange_keys WHERE user_email = ? LIMIT 1', (user_email,))
             has_key = c.fetchone()
             if not has_key:
                 conn.close()
                 return self.send_json({'error': 'No Exchange API keys configured. Please add one in Integrations.'})
+            
+            # Securely decrypt the secret to bridge the gap for exchange payload
+            exchange_nm = has_key[0]
+            decrypted_secret = KeyVault.decrypt_secret(has_key[1])
+            if not decrypted_secret:
+                conn.close()
+                return self.send_json({'error': 'Exchange API key decryption failed. KeyVault mismatch or corrupted secret.'})
 
             # Insert simulated trade into trade_ledger
             c.execute('''INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                      (user_email, ticker, f"{action} ({qty_or_size}) [API]", 0.0, 0.0, 0.0, 0.0, 0.0))
+                      (user_email, ticker, f"{action} ({qty_or_size}) [API: {exchange_nm}]", 0.0, 0.0, 0.0, 0.0, 0.0))
             conn.commit()
             conn.close()
-            self.send_json({'success': True, 'message': f'Trade {action} {ticker} executed and logged.'})
+            self.send_json({'success': True, 'message': f'Trade {action} {ticker} routed explicitly to {exchange_nm} using decrypted KeyVault secrets.'})
         except Exception as e:
             self.send_json({'error': str(e)})
