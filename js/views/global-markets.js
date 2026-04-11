@@ -701,9 +701,12 @@ async function renderYieldLab(tabs = null) {
 window.renderLobHeatmap = async function(tabs = null) {
     if (!tabs) tabs = globalHubTabs;
     appEl.innerHTML = `
-        <div class="view-header">
-            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">blur_on</span>LOB Heatmap <span class="premium-badge">LIVE</span></h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">blur_on</span>LOB Heatmap <span class="premium-badge">LIVE</span></h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-lob-heatmap')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('lob', tabs)}
         <div style="color:var(--text-dim)">Loading High-Density LOB...</div>
@@ -713,9 +716,12 @@ window.renderLobHeatmap = async function(tabs = null) {
     if (data.error) { appEl.innerHTML += `<div style="color:red">${data.error}</div>`; return; }
     
     appEl.innerHTML = `
-        <div class="view-header">
-            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">blur_on</span>LOB Heatmap <span class="premium-badge">LIVE</span></h1>
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">blur_on</span>LOB Heatmap <span class="premium-badge">LIVE</span></h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-lob-heatmap')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('lob', tabs)}
         <div class="glass-card" style="padding:1.5rem">

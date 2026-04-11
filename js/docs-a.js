@@ -5,8 +5,9 @@ function renderHelp() {
           docs: [
             { name: 'ETF Flows', desc: '3 components: Stacked bar chart, Daily leaderboard table, Cumulative waterfall chart', route: 'docs-etf-flows', icon: 'account_balance' },
             { name: 'Liquidations', desc: '3 components: Cascade scanner chart, Total rekt stat, Largest single order stat', route: 'docs-liquidations', icon: 'local_fire_department' },
-            { name: 'OI Radar', desc: '4 components: Exchange spider chart, IV smile curve, OI divergence bubble map, Attribution table', route: 'docs-oi-radar', icon: 'track_changes' },
+            { name: 'OI Radar', desc: '5 components: Exchange spider chart, IV smile curve, OI divergence bubble map, Attribution table, OI x Funding Matrix', route: 'docs-oi-radar', icon: 'track_changes' },
             { name: 'CME Gaps', desc: '1 component: Active magnet levels registry', route: 'docs-cme-gaps', icon: 'candlestick_chart' },
+            { name: 'LOB Heatmap', desc: '1 component: High-density Limit Order Book visual depth canvas', route: 'docs-lob-heatmap', icon: 'blur_on' },
           ]
         },
         { id: 'macro-intel', name: 'Macro Intelligence', icon: 'monitoring', color: '#a78bfa', view: 'macro-hub',
@@ -24,6 +25,7 @@ function renderHelp() {
             { name: 'ML Alpha Engine', desc: '3 components: Prediction table, Feature importance bar chart, Model accuracy gauge', route: 'docs-ml-engine', icon: 'smart_toy' },
             { name: 'Alpha Score', desc: '2 components: Composite ranking table with score bars, Grade distribution', route: 'docs-alpha-score', icon: 'electric_bolt' },
             { name: 'Strategy Lab', desc: '4 components: Strategy selector, Equity curve, Guppy ribbon, Monte Carlo bands', route: 'docs-strategy-lab', icon: 'science' },
+            { name: 'Market Profile (TPO)', desc: '1 component: Interactive horizontal volume distribution and Point of Control (POC)', route: 'docs-volume-profile', icon: 'bar_chart' },
             { name: 'Backtester V2', desc: '3 components: Rolling Sharpe chart, Monthly P&L heatmap calendar, Trade summary stats', route: 'docs-backtester', icon: 'history' },
             { name: 'Signal Archive', desc: '2 components: Historical signal table, Running P&L tracker', route: 'docs-signal-archive', icon: 'archive' },
             { name: 'Narrative Galaxy', desc: '2 components: Force-directed galaxy graph, Velocity indicator table', route: 'docs-narrative', icon: 'hub' },
@@ -43,10 +45,11 @@ function renderHelp() {
             { name: 'Whale Pulse', desc: '3 components: Whale transaction feed, Execution time polar chart, Volume bubble scatter', route: 'docs-whale-pulse', icon: 'waves' },
             { name: 'Whale Pulse & Chain Velocity', desc: '2 components: Velocity time-series chart, Cross-chain Sankey diagram', route: 'docs-whale-pulse', icon: 'speed' },
             { name: 'On-Chain Analytics', desc: '9 components: MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Realized Price, Hash Ribbons, Investor Sentiment Index, CVD, Exchange Net Flow', route: 'docs-onchain', icon: 'link' },
-            { name: 'Options Flow', desc: '4 components: Put/Call ratio gauge, Max Pain chart, IV Smile, Top OI strikes table', route: 'docs-options-flow', icon: 'waterfall_chart' },
+            { name: 'Options Flow', desc: '5 components: Put/Call ratio gauge, Max Pain chart, IV Smile, Top OI strikes table, IV Term Structure', route: 'docs-options-flow', icon: 'waterfall_chart' },
             { name: 'Newsroom', desc: '2 components: Live news feed with sentiment tags, Keyword frequency heatmap', route: 'docs-newsroom', icon: 'newspaper' },
             { name: 'TradingView Hub', desc: '13 widgets: Market Overview, Symbol Comparison, Technical Analysis (BTC/ETH/SOL/BNB), Screener, Economic Calendar, Hotlists, Crypto Heatmap, Forex Cross Rates, Forex Heat Map, S&P 500 Sector Heatmap', route: 'docs-tradingview-hub', icon: 'show_chart' },
             { name: 'Custom Charts', desc: '4 charts: BTC Dominance area chart, Funding Rate bar chart, MVRV/SOPR Overlay, 30-Day Rolling Volatility — all built on live backend data', route: 'docs-custom-charts', icon: 'bar_chart' },
+            { name: 'Dealer Gamma Exposure', desc: '1 component: Call vs Put Gamma exposure profile', route: 'docs-gex', icon: 'analytics' },
           ]
         },
         { id: 'audit-hub', name: 'Audit & Performance', icon: 'trending_up', color: '#60a5fa', view: 'audit-hub',
@@ -276,12 +279,10 @@ function renderDocsViewOIRadar() {
                     'IV Smile flatter than historical baseline = volatility compression; breakout imminent',
                     'Both tails symmetric and elevated = market pricing in a large move, direction unknown',
                     'Right-tail IV exceeds left-tail = call skew; institutions expect rally or are hedging short'
-                ]
-            },
-            {
+                         {
                 name: 'OI Divergence Bubble Map', type: 'CHART', icon: 'bubble_chart',
                 description: 'A bubble scatter chart plotting 24h Price Change (X-axis) against 24h OI Change (Y-axis) for 8 assets simultaneously. Bubble size = absolute OI ($B). Colour coding: Orange = price up + OI up (long-squeeze risk), Red = price down + OI up (short-trap risk), Yellow = price up + OI down (long unwind), Grey = price down + OI down (de-leveraging).',
-                howToRead: 'Each bubble is one asset. Assets in the orange quadrant (top-right) are most vulnerable to a long squeeze — OI is growing as price rises, meaning traders are adding longs into a rally. Assets in the red quadrant (top-left) are building a squeeze setup on the short side.',
+                howToRead: 'Each bubble is one asset. Assets in the orange quadrant (top-right) are most vulnerable to a long squeeze - OI is growing as price rises, meaning traders are adding longs into a rally. Assets in the red quadrant (top-left) are building a squeeze setup on the short side.',
                 signals: [
                     'Large BTC bubble in orange quadrant = high leverage long squeeze risk for the overall market',
                     'Multiple small-cap coins in red quadrant simultaneously = coordinated short-squeeze signal',
@@ -289,7 +290,18 @@ function renderDocsViewOIRadar() {
                     'A single asset migrating from grey to orange over consecutive days = accumulation detected'
                 ]
             },
+            {
+                name: 'OI x Funding Squeeze Matrix', type: 'CHART', icon: 'grid_on',
+                description: 'A dynamic heatmap matrix crossing Open Interest concentration with funding/basis divergence to isolate Long/Short trap probability.',
+                howToRead: 'High OI combined with highly negative funding indicates an aggressive short build-up. High OI with high positive funding indicates over-leveraged longs.',
+                signals: [
+                    'High OI + Extreme Negative Funding = High probability of a violent Short Squeeze',
+                    'High OI + Extreme Positive Funding = Longs overextended; flush risk elevated',
+                    'Matrix clustering in the top right = Market structurally primed for a directional volatile break'
+                ]
+            }
         ]
+
     });
 }
 
@@ -593,6 +605,46 @@ function renderDocsViewPlainEnglish() {
               description: 'Available on the Narrative Galaxy graph. Understands social velocity and isolates high-momentum themes driving price.',
               howToRead: 'The AI will distill complex clustering into a single dominant market thesis.',
               signals: ['"Narrative exhaustion detected" = Theme is heavily discussed but momentum is slowing; risk-off marker'] }
+        ]
+    });
+}
+
+function renderDocsViewLOBHeatmap() {
+    renderViewDocPage({
+        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        title: 'LOB Heatmap', viewId: 'lob-heatmap',
+        summary: 'High-density visual representation of limit order book (LOB) depth across 50 resting bid/ask price levels. Identifies institutional liquidity walls and spoofed orders before they execute.',
+        components: [
+            {
+                name: 'Limit Order Book (LOB) Density Canvas', type: 'CHART', icon: 'blur_on',
+                description: 'An advanced heat-gradient canvas component mapping 50 levels of bid/ask liquidity. Dark blue/black indicates thin liquidity; bright cyan/yellow indicates dense resting orders (liquidity walls).',
+                howToRead: 'Follow the brightest yellow/cyan bands. Price is magnetically drawn to these high-liquidity zones. Sudden disappearance of a bright band indicates order spoofing or pulling.',
+                signals: [
+                    'Bright band at round number = institutional limit order resting; likely short-term reversal upon hitting',
+                    'Dark zone between current price and a bright band = low friction path; price will move quickly',
+                    'Asymmetrical brightness (dense bids, thin asks) = bullish structural support underneath current price'
+                ]
+            }
+        ]
+    });
+}
+
+function renderDocsViewVolumeProfile() {
+    renderViewDocPage({
+        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        title: 'Market Profile (TPO)', viewId: 'volume-profile',
+        summary: 'Time-Price Opportunity (TPO) mapping of traded volume at specific price levels. Highlights the Value Area and Point of Control (POC) to establish institutional fair value.',
+        components: [
+            {
+                name: 'Horizontal Volume Distribution', type: 'CHART', icon: 'bar_chart',
+                description: 'A horizontal bar chart showing cumulative volume traded at each price level over the selected timeframe. Calculates Value Area High (VAH), Value Area Low (VAL), and the Point of Control (POC).',
+                howToRead: 'The Point of Control (POC) is the single price level with the most volume. Price tends to mean-revert to the POC. The Value Area contains 70% of the volume; breakouts from this area are significant.',
+                signals: [
+                    'Price extending far above POC = overvalued short-term; expect mean reversion',
+                    'High Volume Node forming = new acceptance of price; establishes strong support/resistance',
+                    'Low Volume Node (gap between peaks) = low friction zone; price will traverse this rapidly'
+                ]
+            }
         ]
     });
 }

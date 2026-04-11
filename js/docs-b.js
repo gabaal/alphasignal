@@ -327,6 +327,16 @@ function renderDocsViewOptionsFlow() {
                     'Large put wall 5-10% below price = institutional floor being defended',
                     'Balanced call and put OI at same strike = key battleground level; direction of break is significant'
                 ]
+            },
+            {
+                name: 'IV Term Structure', type: 'CHART', icon: 'timeline',
+                description: 'A stepped-curve mapping ATM (At-The-Money) Implied Volatility across upcoming Expiry Dates to detect contango or backwardation skews.',
+                howToRead: 'Normal structure (Contango) slopes upward: long-term IV > short-term IV. Inverted structure (Backwardation) slopes downward: short-term IV > long-term IV, indicating immediate market fear.',
+                signals: [
+                    'Term structure inverting (Short-term IV spiking above Long-term) = panic hedging; market expects immediate turbulent event',
+                    'Front-month IV collapsing below back-month = volatility crush post-event; return to stable regime',
+                    'Kink in the curve (elevated IV at a specific date) = market pricing in a scheduled catalyst (e.g. CPI, ETF decision)'
+                ]
             }
         ]
     });
@@ -1224,6 +1234,26 @@ function renderDocsViewHowSignalsWork() {
                     'If price data becomes unavailable, the auto-close cycle skips that ticker — the signal stays open until data returns',
                     'A signal can remain ACTIVE indefinitely if it never hits the +10% target or the −3% stop',
                     'SHORT signals profit when price falls — always check the direction label in the Archive to interpret ROI correctly'
+                ]
+            }
+        ]
+    });
+}
+
+function renderDocsViewGEX() {
+    renderViewDocPage({
+        hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
+        title: 'Dealer Gamma Exposure', viewId: 'gex-profile',
+        summary: 'Exposes market maker (dealer) hedging pressure by mapping the net Gamma exposure of the options market. Indicates whether dealers will suppress volatility or amplify price movements.',
+        components: [
+            {
+                name: 'Net Gamma Profile Chart', type: 'CHART', icon: 'analytics',
+                description: 'A bar chart plotting Call Gamma (Positive, Green) and Put Gamma (Negative, Red) normalized against the current Spot Price. Displays where dealers are long or short Gamma.',
+                howToRead: 'When dealers are Long Gamma (price near large green bars), they hedge by buying dips and selling rallies, suppressing volatility. When Short Gamma (near red bars), they hedge by selling into weakness and buying into strength, amplifying volatility.',
+                signals: [
+                    'Spot crossing into Short Gamma territory (Red) = volatility expansion; expect outsized moves',
+                    'Huge Positive Gamma strike above price = strong magnetic resistance ceiling',
+                    'Zero Gamma level (Flip Point) = critical transition zone from calm to volatile market regime'
                 ]
             }
         ]
