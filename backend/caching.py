@@ -124,9 +124,12 @@ class DataCache:
                 if column:
                     try:
                         data = raw.xs(column, axis=1, level=0)
-                    except:
-                        if column in raw.columns.levels[0]:
-                            data = raw[column]
+                    except KeyError:
+                        try:
+                            data = raw.xs(column, axis=1, level=1)
+                        except KeyError:
+                            if column in raw.columns.levels[0]:
+                                data = raw[column]
                 else:
                     # Keep MultiIndex, do not flatten to Ticker_Metric
                     data = raw

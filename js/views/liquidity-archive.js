@@ -421,8 +421,9 @@ async function renderLiquidityView(tabs = null) {
                 box.style.display = 'block';
                 box.innerHTML = `<div class="skeleton-card" style="height:60px"></div>`;
                 try {
-                    const resp = await fetchAPI('/explain-surface', 'POST', {
-                        atm_iv: atmRow, skew: skew, expiries: labels 
+                    const resp = await fetchAPI('/explain-chart', 'POST', {
+                        chart_type: 'options',
+                        data: { atm_iv: atmRow, skew: skew, expiries: labels }
                     });
                     if (resp && resp.explanation) {
                         box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 AI SURFACE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;

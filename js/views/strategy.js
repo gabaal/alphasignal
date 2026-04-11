@@ -590,20 +590,3 @@ async function renderPortfolioOptimizer(tabs = null) {
     renderPortfolioLab(null, tabs);
 }
 
-async function executeRebalance() {
-    if (!confirm("CONFIRM_EXECUTION: Are you sure you want to dispatch rebalancing tickets to the institutional ledger?")) return;
-    
-    try {
-        const res = await fetchAPI('/portfolio/execute', 'POST', { email: localStorage.getItem('user_email') || 'geraldbaalham@live.co.uk' });
-        if (res && res.status === 'SUCCESS') {
-            showToast("REBALANCE_COMPLETE", res.message, "success");
-            // Auto-navigate to ledger after brief delay
-            setTimeout(() => switchView('trade-ledger'), 1200);
-        } else {
-            showToast("EXECUTION_REJECTED", "Rebalancing failed. Risk limits exceeded or engine timeout.", "alert");
-        }
-    } catch (e) {
-        showToast("SYSTEM_DISCONNECT", "Lost connection to Execution Gateway.", "alert");
-    }
-}
-

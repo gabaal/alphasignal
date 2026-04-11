@@ -345,6 +345,50 @@ class AIEngineRoutesMixin:
             print(f'[Explain Tape] GPT error: {e}')
             self.send_json({'explanation': f'Analysis unavailable: {str(e)}', 'source': 'error'})
 
+    def handle_explain_rebalance(self, post_data):
+        client = _get_client()
+        if not client:
+            self.send_json({
+                'explanation': "AI processing is offline. Please configure your OPENAI_API_KEY to enable rebalancing strategies.",
+                'source': 'fallback'
+            })
+            return
+
+        current_w = post_data.get('current_weights', {})
+        optimal_w = post_data.get('optimal_weights', {})
+
+        context = (
+            f"Current Portfolio Allocation: {json.dumps(current_w)}\n"
+            f"Markowitz Optimal Allocation: {json.dumps(optimal_w)}\n"
+        )
+
+        system_prompt = (
+            "You are a Chief Investment Officer at a premier quantitative hedge fund. "
+            "A portfolio manager has submitted their current asset allocation weights vs the calculated mathematical optimal Markowitz Efficient Frontier weights. "
+            "Write exactly two concise paragraphs in plain English (max 100 words total). "
+            "First paragraph: Analyze the deviation. Tell them explicitly which assets they are overexposed to and which ones they are underexposed to relative to the optimal mathematical target. "
+            "Second paragraph: Provide a strict, actionable rebalancing mandate (e.g. 'Trim BTC exposure by X% and scale into SOL to reduce portfolio variance drag'). "
+            "DO NOT give financial advice disclaimers. Maintain a crisp, authoritative institutional tone."
+        )
+
+        user_prompt = f"Here is the portfolio state:\n{context}\nIssue a clear rebalancing memo based entirely on the differences between these two weight structures."
+
+        try:
+            resp = client.chat.completions.create(
+                model='gpt-4o-mini',
+                messages=[
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user',   'content': user_prompt}
+                ],
+                max_tokens=250,
+                temperature=0.6
+            )
+            val = resp.choices[0].message.content.strip()
+            self.send_json({'explanation': val, 'source': 'gpt-4o-mini'})
+        except Exception as e:
+            print(f'[Explain Rebalance] GPT error: {e}')
+            self.send_json({'explanation': f'Analysis unavailable: {str(e)}', 'source': 'error'})
+
     def handle_explain_surface(self, post_data):
         client = _get_client()
         if not client:

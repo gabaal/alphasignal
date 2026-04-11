@@ -14,7 +14,7 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
         return;
     }
 
-    const universe = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD', 'BNB-USD', 'XRP-USD', 'DOGE-USD', 'MATIC-USD', 'DOT-USD', 'AVAX-USD', 'LTC-USD', 'UNI-USD', 'NEAR-USD', 'APT-USD', 'ARB-USD', 'SUI-USD', 'OP-USD', 'TIA-USD', 'INJ-USD'];
+    const universe = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD', 'BNB-USD', 'XRP-USD', 'DOGE-USD', 'MATIC-USD', 'DOT-USD', 'AVAX-USD', 'LTC-USD', 'UNI-USD', 'NEAR-USD', 'APT-USD', 'ARB-USD', 'SUI-USD', 'OP-USD', 'TIA-USD', 'INJ-USD', 'WULF', 'MARA', 'RIOT', 'CLSK', 'HIVE', 'CAN', 'IREN', 'COIN', 'MSTR', 'HOOD', 'IBIT', 'SPY', 'QQQ', 'NVDA'];
     const activeBasket = (customBasket || 'BTC-USD,ETH-USD,SOL-USD,LINK-USD,ADA-USD').split(',').map(s => s.trim());
     const availableAssets = universe.filter(u => !activeBasket.includes(u));
 
@@ -243,6 +243,39 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
         renderPortfolioLab(activeBasket.join(','), customWeightsArray.join(','));
     };
 
+    window.renderAIRebalancer = async function() {
+        const box = document.getElementById('ai-rebalancer-section');
+        if (!box) return;
+        
+        box.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:#00d4aa;font-weight:900;margin-bottom:0.5rem"><span class="material-symbols-outlined spin" style="font-size:1rem;">sync</span> Synthesizing rebalancing memo...</div>`;
+        const btn = document.querySelector('button[onclick*="renderAIRebalancer"]');
+        if (btn) btn.disabled = true;
+
+        try {
+            const currentWeights = data.allocation || {};
+            // optData.allocations is an array of {asset: 'BTC', target_weight: 0.5}
+            const optimalWeights = {};
+            if (optData && optData.allocations) {
+                optData.allocations.forEach(a => { optimalWeights[a.asset] = parseFloat((a.target_weight * 100).toFixed(1)); });
+            }
+
+            const resp = await fetchAPI('/explain-rebalance', 'POST', {
+                current_weights: currentWeights,
+                optimal_weights: optimalWeights
+            });
+
+            if (resp && resp.explanation) {
+                box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 CIO REBALANCING DIRECTIVE</div><div style="color:var(--text); font-size:1.05rem; line-height: 1.6">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+            } else {
+                throw new Error('Empty optimization response');
+            }
+        } catch (err) {
+            box.innerHTML = `<span style="color:var(--risk-high)">AI Rebalancer temporarily offline.</span>`;
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    };
+
     // 1. Portfolio vs Benchmark Chart
     try {
         const ctxPort = document.getElementById('portfolioChart').getContext('2d');
@@ -465,22 +498,33 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
                             backgroundColor: ef.points.map(p => sharpeColor(p.sharpe)),
                             pointRadius: 3,
                             pointHoverRadius: 5,
+                            order: 2
                         },
                         ef.max_sharpe ? {
                             label: '★ Max Sharpe',
                             data: [{ x: ef.max_sharpe.vol, y: ef.max_sharpe.ret }],
                             backgroundColor: '#7dd3fc',
+                            pointBackgroundColor: '#7dd3fc',
+                            borderColor: '#ffffff',
+                            pointBorderColor: '#ffffff',
+                            borderWidth: 2,
                             pointRadius: 12,
                             pointStyle: 'star',
                             pointHoverRadius: 14,
+                            order: 0
                         } : null,
                         ef.min_vol ? {
                             label: '★ Min Volatility',
                             data: [{ x: ef.min_vol.vol, y: ef.min_vol.ret }],
                             backgroundColor: '#ffffff',
+                            pointBackgroundColor: '#ffffff',
+                            borderColor: '#3b82f6',
+                            pointBorderColor: '#3b82f6',
+                            borderWidth: 2,
                             pointRadius: 12,
                             pointStyle: 'star',
                             pointHoverRadius: 14,
+                            order: 1
                         } : null,
                     ].filter(Boolean)
                 },
@@ -500,14 +544,14 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
                     },
                     scales: {
                         x: {
-                            title: { display: true, text: 'Annualised Volatility (%)', color: 'var(--text-dim)', font: { size: 10 } },
+                            title: { display: true, text: 'Annualised Volatility (%)', color: '#9ca3af', font: { size: 10 } },
                             grid: { color: alphaColor(0.04) },
-                            ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' }
+                            ticks: { color: '#9ca3af', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' }
                         },
                         y: {
-                            title: { display: true, text: 'Annualised Return (%)', color: 'var(--text-dim)', font: { size: 10 } },
+                            title: { display: true, text: 'Annualised Return (%)', color: '#9ca3af', font: { size: 10 } },
                             grid: { color: alphaColor(0.04) },
-                            ticks: { color: 'var(--text-dim)', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' }
+                            ticks: { color: '#9ca3af', font: { family: 'JetBrains Mono', size: 9 }, callback: v => v + '%' }
                         }
                     }
                 }
@@ -542,3 +586,19 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
     }, 800);
 }
 
+window.executeRebalance = async function() {
+    if (!confirm("CONFIRM_EXECUTION: Are you sure you want to dispatch rebalancing tickets to the institutional ledger?")) return;
+    
+    try {
+        const res = await fetchAPI('/portfolio/execute', 'POST', { email: localStorage.getItem('user_email') || 'geraldbaalham@live.co.uk' });
+        if (res && res.status === 'SUCCESS') {
+            showToast("REBALANCE_COMPLETE", res.message, "success");
+            // Auto-navigate to ledger after brief delay
+            setTimeout(() => switchView('trade-ledger'), 1200);
+        } else {
+            showToast("EXECUTION_REJECTED", "Rebalancing failed. Risk limits exceeded or engine timeout.", "alert");
+        }
+    } catch (e) {
+        showToast("SYSTEM_DISCONNECT", "Lost connection to Execution Gateway.", "alert");
+    }
+};

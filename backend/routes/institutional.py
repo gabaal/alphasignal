@@ -777,10 +777,11 @@ class InstitutionalRoutesMixin:
                     except: price = 0.0
                 
                 weight_val = float(t.get('weight', 0.0))
+                # Target price should not be the portfolio weight percentage. Defaulting to 0.0 for market rebalance tickets.
                 c.execute('''INSERT INTO trade_ledger 
                             (user_email, ticker, action, price, target, stop, rr, slippage) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                         (user_email, t['ticker'], t['action'], float(price), weight_val, 0.0, 0.0, 0.01))
+                         (user_email, t['ticker'], t['action'], float(price), 0.0, 0.0, 0.0, 0.01))
             
             # 5. Update Portfolio Snapshot with new targets
             new_assets_json = json.dumps(list(targets.keys()))
@@ -4659,7 +4660,8 @@ class InstitutionalRoutesMixin:
                     valid_weights = [1.0 / len(valid_selected)] * len(valid_selected)
                 weights = pd.Series(valid_weights, index=valid_selected)
             else:
-                weights = pd.Series(1.0 / len(valid_selected), index=valid_selected)
+                valid_weights = [1.0 / len(valid_selected)] * len(valid_selected)
+                weights = pd.Series(valid_weights, index=valid_selected)
                 
             port_rets = (returns[valid_selected] * weights).sum(axis=1)
             cum_rets_port = (1 + port_rets).cumprod()
