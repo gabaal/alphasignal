@@ -1554,20 +1554,20 @@ window.renderVolumeProfile = async function(tabs = null) {
     const headerHtml = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
-                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">leaderboard</span>Volume Profile (TPO) <span class="premium-badge">PRO</span></h1>
             </div>
             <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;" onclick="switchView('docs-volume-profile')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
     `;
-    appEl.innerHTML = headerHtml + window.renderHubTabs('profile', window._analyticsHubTabs || tabs) + `<div style="color:var(--text-dim)">Loading Volume Profile...</div>`;
+    appEl.innerHTML = headerHtml + window.renderHubTabs('profile', typeof alphaHubTabs !== 'undefined' ? alphaHubTabs : tabs) + `<div style="color:var(--text-dim)">Loading Volume Profile...</div>`;
     const data = await fetchAPI('/volume-profile?ticker=BTC');
     if(data.error) { appEl.innerHTML = `<div style="color:red">${data.error}</div>`; return; }
     
     const labels = data.profile.map(p => p.price);
     const volumes = data.profile.map(p => p.volume);
     
-    appEl.innerHTML = headerHtml + window.renderHubTabs('profile', window._analyticsHubTabs || tabs) + `
+    appEl.innerHTML = headerHtml + window.renderHubTabs('profile', typeof alphaHubTabs !== 'undefined' ? alphaHubTabs : tabs) + `
         <div class="glass-card" style="padding:1.5rem">
             <div style="display:flex;justify-content:space-between">
                 <h3>Market Profile (TPO)</h3>

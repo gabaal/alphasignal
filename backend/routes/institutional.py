@@ -6221,10 +6221,15 @@ class InstitutionalRoutesMixin:
             
             try:
                 data = CACHE.download(f'{ticker}-USD', period='60d', interval='1h')
-                closes = data['Close'].dropna().values
-                volumes = data['Volume'].dropna().values
-            except:
-                self.send_json({'error': 'No data'})
+                # Resolve column names (yfinance MultiIndex flattens to strings like "('Close', 'BTC-USD')" in JSON cache)
+                close_col = next((c for c in data.columns if 'Close' in str(c)), 'Close')
+                vol_col = next((c for c in data.columns if 'Volume' in str(c)), 'Volume')
+                closes = data[close_col].dropna().values.flatten()
+                volumes = data[vol_col].dropna().values.flatten()
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_json({'error': f'No data: {str(e)}'})
                 return
             
             if len(closes) == 0:
