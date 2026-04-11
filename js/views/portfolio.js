@@ -169,7 +169,14 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
                             <div style="display:flex;align-items:center;gap:8px;color:#00d4aa;font-weight:900;margin-bottom:0.5rem"><span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite">sync</span> Synthesizing rebalancing memo...</div>
                             <div id="ai-rebalancer-output"></div>
                         </div>
-                        <button class="intel-action-btn" style="margin-top:1.5rem; width:100%" onclick="executeRebalance()">
+                        <div style="margin-top:1.5rem; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.7rem; color:var(--text-dim); font-weight:900; letter-spacing:1px">NETWORK ROUTING</span>
+                            <select id="execution-routing-mode" style="background:transparent; border:1px solid var(--border); color:white; font-size:0.65rem; padding:4px 8px; border-radius:4px; font-family:'JetBrains Mono'">
+                                <option value="local">LOCAL LEDGER</option>
+                                <option value="binance_testnet">BINANCE TESTNET (PAPER)</option>
+                            </select>
+                        </div>
+                        <button class="intel-action-btn" style="margin-top:0.5rem; width:100%" onclick="executeRebalance()">
                             <span class="material-symbols-outlined" style="font-size:1.1rem; vertical-align:middle; margin-right:8px">sync_alt</span>
                             EXECUTE REBALANCE
                         </button>
@@ -614,7 +621,8 @@ window.executeRebalance = async function() {
     try {
         const res = await fetchAPI('/portfolio/execute', 'POST', { 
             email: localStorage.getItem('user_email') || 'geraldbaalham@live.co.uk',
-            basket: activeBasket
+            basket: activeBasket,
+            mode: document.getElementById('execution-routing-mode')?.value || 'local'
         });
         if (res && res.status === 'SUCCESS') {
             showToast("REBALANCE_COMPLETE", res.message, "success");
