@@ -444,6 +444,10 @@ function renderDocsViewSignals() {
               description: '6-axis radar scoring confidence for a selected asset: Momentum, Volatility, Network Activity, Liquidity, Social Hype, Dev Commits. Asset selectable via dropdown.',
               howToRead: 'Large even hexagon = well-rounded conviction. Lopsided shape = single-factor signal, lower reliability.',
               signals: ['High Momentum + Network Activity + Liquidity = strongest signal trinity','High Social Hype + Low Network Activity = hype pump; extreme caution','All axes below 40 = asset is dormant; skip regardless of Z-score'] },
+            { name: 'Signal Permalink Engine', type: 'AUTOMATION', icon: 'link',
+              description: 'Native sharing mechanic attached to each Signal Card. Generates a deterministic URL (`?view=signal&id={ticker}`) that allows external or internal routing directly to a specific asset\'s live intelligence feed.',
+              howToRead: 'Click the "Copy Permalink" button to copy the sharable institutional view of this asset. When pasted into the browser, it forces the terminal to fetch live ticker data on load.',
+              signals: ['Send permalinks to team members for peer-review before executing large allocations','Use permalinks in your own external documentation or note-taking systems to link back to live AlphaSignal state'] }
         ]
     });
 }
@@ -577,18 +581,18 @@ function renderDocsViewPlainEnglish() {
               description: 'Available on the TradingView Advanced charting view (Live Order Tape). It reads the continuous websocket feed of block trades, isolating institutional accumulation or distribution in the last 100 ticks.',
               howToRead: 'Look for the "Aggressor" detection to see if blocks are hitting the bid or the ask. Read the "Regime" conclusion.',
               signals: ['"Sustained Ask-hitting" = aggressive long buying into resistance','Block clusters > $5M = whales stepping in to absorb retail flow'] },
-            { name: 'Volatility Surface Context (Quant Persona)', type: 'AI', icon: 'auto_awesome',
-              description: 'Available on the Order Flow Volatility Surface view. It ingests the multi-expiry Options Implied Volatility matrix to read term structure and smile characteristics.',
+            { name: 'Institutional Options Context (Quant Persona)', type: 'AI', icon: 'auto_awesome',
+              description: 'Available on the Institutional Options Scanner view. It ingests the multi-expiry Options Implied Volatility matrix across Deribit and Equity Proxies to read term structure and smile characteristics.',
               howToRead: 'If the AI notes "Contango", longer-dated options are more expensive (normal). "Backwardation" implies near-term panic or event pricing.',
               signals: ['Call Skew identified = Institutions are aggressively buying upside exposure','Left-tail premium = Heavy put buying, downside protection being accumulated'] },
-            { name: 'Depth Walls Context (Tape Persona)', type: 'AI', icon: 'auto_awesome',
-              description: 'Available on the Liquidity Archive Depth Walls view. Understands bidirectional order book depth and quantifies resting limit order resistance.',
-              howToRead: 'It highlights the ratio of Bids to Asks to identify imbalance (skew).',
-              signals: ['"Bid Wall absorbed" = Buyers previously stacked liquidity which is now being exhausted','Imbalance heavily skewed Ask = significant price ceiling detected'] },
-            { name: 'Liquidation Flux Context (Risk Persona)', type: 'AI', icon: 'auto_awesome',
-              description: 'Available on the Liquidity Archive Liquidation Flux view. Analyzes the delta between Long/Short liquidation clusters and estimated Open Interest.',
-              howToRead: 'The AI will flag which directional squeeze was more violent and predict "magnet" levels where leverage remains concentrated.',
-              signals: ['"Short Squeeze exhausted" = Shorts were blown out, market resetting','Concentrated Long liquidations without price drop = Strong spot buying absorbing the forced sells'] }
+            { name: 'Ecosystem Capital Flow (Flow Persona)', type: 'AI', icon: 'auto_awesome',
+              description: 'Available in the Chain Velocity Sankey view. Reads cross-chain value velocity to determine which L1 ecosystems are absorbing capital in real-time.',
+              howToRead: 'Focus on where stablecoin inflows are being directed. The AI isolates genuine flow from circular wash trading.',
+              signals: ['Concentrated flow into an L1 ecosystem without price move = leading indicator of rotation'] },
+            { name: 'Narrative Galaxy Context (Narrative Persona)', type: 'AI', icon: 'auto_awesome',
+              description: 'Available on the Narrative Galaxy graph. Understands social velocity and isolates high-momentum themes driving price.',
+              howToRead: 'The AI will distill complex clustering into a single dominant market thesis.',
+              signals: ['"Narrative exhaustion detected" = Theme is heavily discussed but momentum is slowing; risk-off marker'] }
         ]
     });
 }

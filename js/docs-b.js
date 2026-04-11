@@ -296,11 +296,11 @@ function renderDocsViewOptionsFlow() {
     renderViewDocPage({
         hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
         title: 'Options Flow', viewId: 'options-flow',
-        summary: 'Deribit options market structure analysis. Institutional options positioning reveals expected volatility, directional bias, and key price levels that large players are hedging around.',
+        summary: 'Multi-source options market structure analysis. Institutional options positioning reveals expected volatility, directional bias, and key price levels that large players are hedging around. Now aggregates Deribit alongside Equity Proxies (MARA, COIN, MSTR, HOOD).',
         components: [
             {
                 name: 'Put/Call Ratio Gauge', type: 'GAUGE', icon: 'donut_large',
-                description: 'A gauge showing the current Put/Call OI ratio for BTC options across all Deribit expiries. Ratio > 1 = more puts outstanding than calls (bearish hedging). Ratio < 1 = more calls outstanding (bullish positioning). Green zone: 0.5-0.8. Red zone: >1.2.',
+                description: 'A gauge showing the current Put/Call OI ratio across all aggregated expiries (BTC + Equity Proxies). Ratio > 1 = more puts outstanding than calls (bearish hedging). Ratio < 1 = more calls outstanding (bullish positioning). Green zone: 0.5-0.8. Red zone: >1.2.',
                 howToRead: 'Contrarian indicator at extremes. Very high P/C ratio (>1.5) = too much bearish hedging = market often reverses up. Very low P/C ratio (<0.4) = overconfident calls = market often corrects.',
                 signals: [
                     'P/C ratio >1.5 = extreme put buying; contrarian buy signal for spot',
@@ -309,8 +309,8 @@ function renderDocsViewOptionsFlow() {
                 ]
             },
             {
-                name: 'IV Smile Curve (Deribit 30D)', type: 'CHART', icon: 'show_chart',
-                description: 'Implied Volatility plotted vs strike moneyness from -30% (OTM Puts) to +30% (OTM Calls). The dashed baseline shows 30-day historical volatility.',
+                name: 'IV Smile Curve (Aggregated 30D)', type: 'CHART', icon: 'show_chart',
+                description: 'Implied Volatility plotted vs strike moneyness from -30% (OTM Puts) to +30% (OTM Calls). The dashed baseline shows 30-day historical volatility. Blends crypto-native IV with traditional finance equity proxies.',
                 howToRead: 'Steeper left tail (OTM Puts high IV) = institutions buying downside protection. A right-skewed smile = call premium elevated = bullish institutional hedging.',
                 signals: [
                     'Left tail IV >80% with right <65% = institutional put-buying; real fear of downside',
@@ -508,6 +508,15 @@ function renderDocsViewStressLab() {
                     '5th percentile loss >15% = portfolio is too risky for the capital at stake',
                     'Distribution skewed left (fat left tail) = downside risk is asymmetrically higher than upside',
                     'Narrow distribution (tight bell) = portfolio risk well-contained; current sizing is appropriate'
+                ]
+            },
+            {
+                name: 'Asset-Specific Beta & Alpha Attribution', type: 'TABLE', icon: 'leaderboard',
+                description: 'An interactive matrix breaking down isolated asset risk metrics. Includes isolated Beta, Volatility, Sharpe, and VaR. Now features dynamic sorting and CSV/JSON payload streaming for institutional risk models.',
+                howToRead: 'Sort by Beta to find the assets contributing the most directional market risk. Sort by VaR to identify the most dangerous isolated positions. Use the EXPORT buttons to log this data to external risk models.',
+                signals: [
+                    'An individual asset with Beta >1.5 and Negative Alpha = a net drag on portfolio efficiency; immediate trim target',
+                    'Asset isolated VaR >20% = statistically dangerous sizing; strict stop losses mandatory'
                 ]
             }
         ]
@@ -757,16 +766,15 @@ function renderDocsViewMyTerminal() {
     renderViewDocPage({
         hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
         title: 'My Terminal', viewId: 'my-terminal',
-        summary: 'Your personalised terminal dashboard. Track watchlist performance, manage notification preferences, and access account settings from a centralised personal hub.',
+        summary: 'Your personalised terminal dashboard. Track cross-asset watchlist performance (Crypto & Equities), manage live price targets, and access notification preferences from a centralised personal hub.',
         components: [
             {
-                name: 'Watchlist Table with Live P&L', type: 'TABLE', icon: 'bookmark_add',
-                description: 'Your saved assets displayed as a live table: Ticker, Added Price, Current Price, P&L ($), P&L (%), 24h Change %, and AlphaSignal Grade. Updates every 30 seconds. Colour-coded: green rows = profitable positions, red rows = underwater.',
-                howToRead: 'Sort by P&L % to see biggest winners and losers at a glance. The Grade column shows whether the signal engine still rates the asset favourably relative to when you added it.',
+                name: 'Watchlist Table with Live P&L and Targets', type: 'TABLE', icon: 'bookmark_add',
+                description: 'Your saved assets displayed as a live table: Ticker, Added Price, Current Price (live enriched via YFinance API for equities or Binance for crypto), P&L, Target Price, and Status. Now features inline target editing — click any target price to modify it instantly without leaving the view. Colour-coded: green rows = profitable positions, red rows = underwater.',
+                howToRead: 'Sort by P&L % to see biggest winners and losers at a glance. The Status column visually indicates how close an asset is to hitting your custom target price.',
                 signals: [
-                    'Grade dropping from A to C while P&L positive = take profits; system losing conviction',
-                    'Grade improving to A while P&L negative = model sees recovery; averaging down may be appropriate',
-                    'All watchlist positions negative with grades declining = broad market weakness; review overall exposure'
+                    'Status reads "TARGET HIT!" = execute planned exit strategy; thesis has played out',
+                    'All watchlist positions negative = broad market weakness; review overall exposure'
                 ]
             },
             {
