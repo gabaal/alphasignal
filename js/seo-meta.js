@@ -195,6 +195,18 @@ function updateSEOMeta(view) {
             title: 'Advanced Charting Suite — Professional Institutional Charts',
             desc: 'Professional institutional charting with TradingView integration, funding rate heatmap, 3D volatility surface, tape imbalance histogram, CVD chart, and multi-asset overlays.'
         },
+        'lob-heatmap': {
+            title: 'Limit Order Book (LOB) Heatmap | AlphaSignal',
+            desc: 'High-density visual representation of limit order book (LOB) depth across 50 resting bid/ask price levels. Identifies institutional liquidity walls and spoofed orders.'
+        },
+        'volume-profile': {
+            title: 'Market Profile (TPO) & Volume Profile | AlphaSignal',
+            desc: 'Time-Price Opportunity (TPO) mapping of traded volume at specific price levels. Highlights the Value Area and Point of Control (POC) to establish institutional fair value.'
+        },
+        'gex-profile': {
+            title: 'Dealer Gamma Exposure (GEX) Profile | AlphaSignal',
+            desc: 'Exposes market maker (dealer) hedging pressure by mapping the net Gamma exposure of the options market. Indicates whether dealers will suppress volatility or amplify price movements.'
+        },
 
         // === STANDALONE ===
         'mindshare': {
@@ -365,6 +377,9 @@ function updateSEOMeta(view) {
         'docs-my-terminal': { title: 'My Terminal — Watchlist & Notification Guide | AlphaSignal Docs', desc: 'Documentation for the AlphaSignal My Terminal personal hub. Covers the live P&L watchlist table, portfolio summary stats, and notification preference controls — with signals for grade changes and optimal alert configuration.' },
         'docs-ask-terminal': { title: 'Ask Terminal — AI Chat Guide | AlphaSignal Docs', desc: 'Technical reference for the Alpha Signal Ask Terminal AI interface. Explains the GPT-4o chat with live terminal context injection and dynamic suggested query chips — with best practice question patterns for market analysis.' },
         'docs-command-center': { title: 'Command Center — Dashboard Guide | AlphaSignal Docs', desc: 'Documentation for the AlphaSignal Command Center home screen. Explains the Alpha Score vs Z-Score scatter plot, Hub Quick-Link Grid, BTC sparkline, and System Conviction Dials — the single-glance intelligence overview for every session.' },
+        'docs-lob-heatmap': { title: 'LOB Heatmap — Limit Order Deep Dive | AlphaSignal Docs', desc: 'Documentation for the Limit Order Book (LOB) Heatmap. Learn to read bid/ask walls, liquidity voids, and institutional spoofing.' },
+        'docs-volume-profile': { title: 'Volume Profile (TPO) — Market Profile Guide | AlphaSignal Docs', desc: 'Documentation for the Volume Profile view. Learn how to interpret Value Area High/Low and Point of Control (POC) for Bitcoin and other assets.' },
+        'docs-gex': { title: 'Dealer Gamma Exposure (GEX) — Dynamics Guide | AlphaSignal Docs', desc: 'Documentation for the GEX Profile. Learn to read market maker hedging pressure, zero-gamma levels, and options-driven volatility.' },
 
         // === MISC ROUTES ===
         'signal': {
