@@ -160,6 +160,7 @@ const viewMap = {
     'docs-daily-workflow': renderDocsViewDailyWorkflow,
     'docs-how-signals-work': renderDocsViewHowSignalsWork,
     'docs-integrations': renderDocsViewIntegrations,
+    'docs-plain-english': renderDocsViewPlainEnglish,
     'signal': () => {
         const params = new URLSearchParams(window.location.search);
         const ticker = params.get('ticker') || params.get('id');

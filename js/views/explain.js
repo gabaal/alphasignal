@@ -35,7 +35,7 @@ function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies 
         <div class="view-header"><h1>${title} — Terminal Documentation</h1></div>
         <div class="doc-container" style="max-width:900px;margin:0 auto;padding-top:2rem;padding-bottom:5rem">
             <p style="font-size:1.1rem;color:var(--text-dim);margin-bottom:1.5rem;line-height:1.6;font-weight:500">${subtitle}</p>
-            <div style="background:rgba(0,242,255,0.03);border-left:2px solid var(--accent);padding:1.5rem;margin-bottom:2.5rem;color:var(--text-main);line-height:1.7;font-size:0.95rem;border-radius:0 8px 8px 0">
+            <div style="background:rgba(0,242,255,0.03);border-left:2px solid var(--accent);padding:1.5rem;margin-bottom:2.5rem;color:var(--text-main);line-height:1.7;font-size:1.15rem;border-radius:0 8px 8px 0">
                 <h4 style="color:var(--accent);margin-bottom:0.5rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:1px">Institutional Overview</h4>
                 ${detailedDesc}
             </div>
@@ -95,7 +95,7 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
                             </div>
                             <div>
                                 <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:2px">COMPONENT ${String(i + 1).padStart(2, '0')} / ${String(components.length).padStart(2, '0')}</div>
-                                <div style="font-size:0.95rem;font-weight:700;color:var(--text)">${c.name}</div>
+                                <div style="font-size:1.15rem;font-weight:700;color:var(--text)">${c.name}</div>
                             </div>
                         </div>
                         <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;padding:4px 12px;border-radius:100px;background:${ts.bg};color:${ts.color};border:1px solid ${ts.border};white-space:nowrap">${c.type}</span>

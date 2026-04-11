@@ -4624,24 +4624,70 @@ class InstitutionalRoutesMixin:
                 })
             except Exception:
                 pass
-    def handle_live_portfolio_sim(self, custom_basket):
+    def handle_live_portfolio_sim(self, custom_basket, custom_weights=None):
         try:
             selected = [t.strip() for t in custom_basket.split(',')]
-            data = CACHE.download(selected + ['BTC-USD'], period='35d', interval='1d', column='Close')
+            tickers_to_fetch = list(set(selected + ['BTC-USD']))
+            data = CACHE.download(tickers_to_fetch, period='35d', interval='1d', column='Close')
             if data is None or data.empty:
                 self.send_error_json('Insufficient simulation data for custom basket.')
                 return
-            returns = data.pct_change().dropna()
-            weights = pd.Series(1.0 / len(selected), index=selected)
-            port_rets = (returns[selected] * weights).sum(axis=1)
+
+            valid_selected = [c for c in selected if c in data.columns and data[c].count() > 10]
+            if not valid_selected:
+                self.send_error_json('No valid simulation data found for requested basket.')
+                return
+            
+            if 'BTC-USD' not in data.columns or data['BTC-USD'].count() < 10:
+                self.send_error_json('Missing benchmark data for simulation.')
+                return
+
+            cols_to_use = list(set(valid_selected + ['BTC-USD']))
+            returns = data[cols_to_use].pct_change().dropna()
+            if returns.empty:
+                self.send_error_json('Insufficient overlapping timeline data for simulation.')
+                return
+
+            if custom_weights:
+                hw = [float(w) for w in custom_weights.split(',')]
+                w_dict = {t: hw[i] if i < len(hw) else 0.0 for i, t in enumerate(selected)}
+                valid_weights = [w_dict.get(t, 0.0) for t in valid_selected]
+                s = sum(valid_weights)
+                if s > 0:
+                    valid_weights = [w/s for w in valid_weights]
+                else:
+                    valid_weights = [1.0 / len(valid_selected)] * len(valid_selected)
+                weights = pd.Series(valid_weights, index=valid_selected)
+            else:
+                weights = pd.Series(1.0 / len(valid_selected), index=valid_selected)
+                
+            port_rets = (returns[valid_selected] * weights).sum(axis=1)
             cum_rets_port = (1 + port_rets).cumprod()
             cum_rets_bench = (1 + returns['BTC-USD']).cumprod()
+            
             total_return = (cum_rets_port.iloc[-1] - 1) * 100
             bench_return = (cum_rets_bench.iloc[-1] - 1) * 100
             history = []
             for date, val in cum_rets_port.items():
                 history.append({'date': date.strftime('%Y-%m-%d'), 'portfolio': round((val - 1) * 100, 2), 'benchmark': round((cum_rets_bench.loc[date] - 1) * 100, 2)})
-            self.send_json({'status': 'success', 'metrics': {'total_return': round(total_return, 2), 'benchmark_return': round(bench_return, 2), 'sharpe': 1.5, 'max_drawdown': round((cum_rets_port / cum_rets_port.cummax() - 1).min() * 100, 2), 'alpha_gen': round(total_return - bench_return, 2)}, 'allocation': {t.split('-')[0]: round(100 / len(selected), 1) for t in selected}, 'history': history})
+                
+            port_mean = port_rets.mean()
+            volatility_ann = port_rets.std() * np.sqrt(365) * 100
+            var_95 = np.percentile(port_rets, 5) * 100
+            
+            covariance = np.cov(port_rets, returns['BTC-USD'])[0][1]
+            variance = np.var(returns['BTC-USD'])
+            beta = covariance / variance if variance > 0 else 1.0
+            
+            downside_returns = port_rets[port_rets < 0]
+            downside_std = downside_returns.std() * np.sqrt(365)
+            sortino = port_mean * 365 / downside_std if downside_std > 0 else 0
+            
+            correlation_matrix = returns[valid_selected].corr().round(2).to_dict()
+
+            alloc_dict = {t.split('-')[0]: round(valid_weights[i] * 100, 1) for i, t in enumerate(valid_selected)}
+
+            self.send_json({'status': 'success', 'metrics': {'total_return': round(total_return, 2), 'benchmark_return': round(bench_return, 2), 'sharpe': 1.5, 'max_drawdown': round((cum_rets_port / cum_rets_port.cummax() - 1).min() * 100, 2), 'alpha_gen': round(total_return - bench_return, 2), 'var_95': round(var_95, 2), 'beta': round(beta, 2), 'sortino': round(sortino, 2), 'volatility_ann': round(volatility_ann, 2), 'correlation_matrix': correlation_matrix}, 'allocation': alloc_dict, 'history': history})
         except Exception as e:
             self.send_error_json(f'Live Simulation Error: {e}')
 
@@ -4713,8 +4759,9 @@ class InstitutionalRoutesMixin:
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             custom_basket = query.get('basket', [None])[0]
+            custom_weights = query.get('weights', [None])[0]
             if custom_basket:
-                self.handle_live_portfolio_sim(custom_basket)
+                self.handle_live_portfolio_sim(custom_basket, custom_weights)
                 return
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row

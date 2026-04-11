@@ -315,41 +315,64 @@ async function renderLiquidityView(tabs = null) {
             return;
         }
         const sorted = [...liqData.clusters].sort((a, b) => a.price - b.price);
-        display.innerHTML = `<div class="card"><div style="height:420px"><canvas id="gommLiqChart" role="img" aria-label="Liquidity flux chart"></canvas></div></div>`;
+        display.innerHTML = `<div class="card">
+            <div style="height:420px"><canvas id="gommLiqChart" role="img" aria-label="Liquidity flux chart"></canvas></div>
+            <div style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.5rem; display:flex; flex-direction:column; align-items:center;">
+                <button id="ai-translate-liq-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
+                </button>
+                <div id="ai-translate-liq-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:1.15rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
+            </div>
+        </div>`;
         setTimeout(() => {
             const ctx = document.getElementById('gommLiqChart')?.getContext('2d');
-            if (!ctx) return;
-            new Chart(ctx, {
-                type: 'bar',
-                data: { labels: sorted.map(c => parseFloat(c.price).toFixed(0)),
-                    datasets: [
-                        { type: 'line', label: 'Est. OI', data: sorted.map((c,i) => 50 + Math.sin(i/2)*20 + c.intensity*5), borderColor: '#7dd3fc', borderWidth: 2, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
-                        { label: 'Short Liq', data: sorted.map(c => c.side === 'SHORT' ? c.intensity * 10 : 0), backgroundColor: 'rgba(34,197,94,0.7)', yAxisID: 'y' },
-                        { label: 'Long Liq',  data: sorted.map(c => c.side === 'LONG'  ? c.intensity * 10 : 0), backgroundColor: 'rgba(239,68,68,0.7)',  yAxisID: 'y' }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-                    scales: {
-                        x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Price Level ($)', color: '#666', font: { size: 9 } } },
-                        y:  { type: 'linear', position: 'left',  grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Liquidation Volume', color: '#888', font: { size: 9 } } },
-                        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: 'Est. OI', color: '#7dd3fc', font: { size: 9 } } }
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: sorted.map(c => parseFloat(c.price).toFixed(0)),
+                        datasets: [
+                            { type: 'line', label: 'Est. OI', data: sorted.map((c,i) => 50 + Math.sin(i/2)*20 + c.intensity*5), borderColor: '#7dd3fc', borderWidth: 2, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
+                            { label: 'Short Liq', data: sorted.map(c => c.side === 'SHORT' ? c.intensity * 10 : 0), backgroundColor: 'rgba(34,197,94,0.7)', yAxisID: 'y' },
+                            { label: 'Long Liq',  data: sorted.map(c => c.side === 'LONG'  ? c.intensity * 10 : 0), backgroundColor: 'rgba(239,68,68,0.7)',  yAxisID: 'y' }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Price Level ($)', color: '#666', font: { size: 9 } } },
+                            y:  { type: 'linear', position: 'left',  grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Liquidation Volume', color: '#888', font: { size: 9 } } },
+                            y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: 'Est. OI', color: '#7dd3fc', font: { size: 9 } } }
+                        }
                     }
-                }
-            });
-
-            if (typeof injectAIChartTranslator === 'function') {
-                injectAIChartTranslator(display.querySelector('.card'), 'pulse', () => {
-                    // Pass the liquidation clusters data up to the AI
-                    return {
-                        clusters: sorted.map(c => ({
-                            price: c.price,
-                            side: c.side,
-                            intensity: c.intensity
-                        }))
-                    };
                 });
             }
 
+            const btn = document.getElementById('ai-translate-liq-btn');
+            if (btn) {
+                btn.addEventListener('click', async (e) => {
+                    const box = document.getElementById('ai-translate-liq-box');
+                    btn.disabled = true;
+                    btn.innerHTML = `<span class="material-symbols-outlined spin" style="font-size:14px;vertical-align:middle;margin-right:8px">sync</span> Analyzing liquidations...`;
+                    box.style.display = 'block';
+                    box.innerHTML = `<div class="skeleton-card" style="height:60px"></div>`;
+                    try {
+                        const resp = await fetchAPI('/explain-chart', 'POST', {
+                            chart_type: 'pulse',
+                            symbol: document.getElementById('liq-search-input')?.value || 'BTC-USD',
+                            data: sorted.map(c => ({ price: c.price, side: c.side, intensity: c.intensity }))
+                        });
+                        if (resp && resp.explanation) {
+                            box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 AI TACTICAL OVERVIEW</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                        } else {
+                            throw new Error('Empty response');
+                        }
+                    } catch (err) {
+                        box.innerHTML = `<span style="color:var(--risk-high)">AI Engine offline. Configure your API key.</span>`;
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English`;
+                    }
+                });
+            }
         }, 50);
     }
 
@@ -383,10 +406,10 @@ async function renderLiquidityView(tabs = null) {
             <div class="card">
                 <div style="height:420px"><canvas id="gommVolChart" role="img" aria-label="Volatility surface chart"></canvas></div>
                 <div style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem; display:flex; flex-direction:column; align-items:center;">
-                    <button id="ai-translate-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
+                    <button id="ai-translate-btn" class="setup-generator-btn" style="font-size:1.15rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
                         <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
                     </button>
-                    <div id="ai-translate-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.95rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
+                    <div id="ai-translate-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:1.15rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
                 </div>
             </div>`;
         setTimeout(() => {

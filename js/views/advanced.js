@@ -968,10 +968,10 @@ function renderAdvTapeImbalance(symbol) {
             </div>
             <!-- AI Translator Container -->
             <div style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.5rem; display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
-                <button id="ai-translate-tape-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
+                <button id="ai-translate-tape-btn" class="setup-generator-btn" style="font-size:1.15rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
                     <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
                 </button>
-                <div id="ai-translate-tape-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.95rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
+                <div id="ai-translate-tape-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:1.15rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
             </div>
         </div>`;
 
@@ -1152,10 +1152,10 @@ async function renderAdvOptionsSurface(symbol) {
         
         <!-- AI Translator Container -->
         <div style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem; display:flex; flex-direction:column; align-items:center;">
-            <button id="ai-translate-adv-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
+            <button id="ai-translate-adv-btn" class="setup-generator-btn" style="font-size:1.15rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
                 <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
             </button>
-            <div id="ai-translate-adv-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.95rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
+            <div id="ai-translate-adv-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:1.15rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
         </div>`;
 
     const canvas = document.getElementById('volsurf-canvas');
@@ -1499,10 +1499,10 @@ function injectAIChartTranslator(containerElement, chartType, dataExtractorCallb
 
     const uiStr = `
         <div style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.5rem; display:flex; flex-direction:column; align-items:center; flex-shrink:0; grid-column: 1 / -1;">
-            <button id="${hookId}-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
+            <button id="${hookId}-btn" class="setup-generator-btn" style="font-size:1.15rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
                 <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
             </button>
-            <div id="${hookId}-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.95rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
+            <div id="${hookId}-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:1.15rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
         </div>
     `;
     

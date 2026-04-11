@@ -1,6 +1,7 @@
-async function renderPortfolioLab(customBasket = null, tabs = null) {
+async function renderPortfolioLab(customBasket = null, customWeights = null, tabs = null) {
     appEl.innerHTML = skeleton(1);
-    const endpoint = customBasket ? `/portfolio-sim?basket=${customBasket}` : '/portfolio-sim';
+    let endpoint = customBasket ? `/portfolio-sim?basket=${customBasket}` : '/portfolio-sim';
+    if (customWeights) endpoint += (endpoint.includes('?') ? '&' : '?') + `weights=${customWeights}`;
     const [data, optData] = await Promise.all([
         fetchAPI(endpoint),
         fetchAPI('/portfolio_optimize')
@@ -12,6 +13,10 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
         </div>`;
         return;
     }
+
+    const universe = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD', 'BNB-USD', 'XRP-USD', 'DOGE-USD', 'MATIC-USD', 'DOT-USD', 'AVAX-USD', 'LTC-USD', 'UNI-USD', 'NEAR-USD', 'APT-USD', 'ARB-USD', 'SUI-USD', 'OP-USD', 'TIA-USD', 'INJ-USD'];
+    const activeBasket = (customBasket || 'BTC-USD,ETH-USD,SOL-USD,LINK-USD,ADA-USD').split(',').map(s => s.trim());
+    const availableAssets = universe.filter(u => !activeBasket.includes(u));
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -26,22 +31,22 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:1.5rem; margin-bottom: 2rem">
             <div class="card" style="padding:1.5rem; border-top: 4px solid var(--accent)">
                 <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim); margin-bottom:10px">VALUE AT RISK (95% CI)</div>
-                <div id="var-val" style="font-size:1.8rem; font-weight:900">-</div>
+                <div id="var-val" style="font-size:1.8rem; font-weight:900">${data.metrics.var_95 !== undefined ? data.metrics.var_95.toFixed(2) + '%' : '-'}</div>
                 <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">EST DAILY VAR</div>
             </div>
             <div class="card" style="padding:1.5rem; border-top: 4px solid var(--risk-low)">
                 <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim); margin-bottom:10px">PORTFOLIO BETA</div>
-                <div id="beta-val" style="font-size:1.8rem; font-weight:900">-</div>
+                <div id="beta-val" style="font-size:1.8rem; font-weight:900">${data.metrics.beta !== undefined ? data.metrics.beta.toFixed(2) : '-'}</div>
                 <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">VS BTC INDEX</div>
             </div>
             <div class="card" style="padding:1.5rem; border-top: 4px solid #f7931a">
                 <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim); margin-bottom:10px">SORTINO RATIO</div>
-                <div id="sortino-val" style="font-size:1.8rem; font-weight:900">-</div>
+                <div id="sortino-val" style="font-size:1.8rem; font-weight:900">${data.metrics.sortino !== undefined ? data.metrics.sortino.toFixed(2) : '-'}</div>
                 <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">DOWNSIDE ADJ</div>
             </div>
             <div class="card" style="padding:1.5rem; border-top: 4px solid white">
                 <div style="font-size:0.6rem; font-weight:900; color:var(--text-dim); margin-bottom:10px">ANN. VOLATILITY</div>
-                <div id="vol-val" style="font-size:1.8rem; font-weight:900">-</div>
+                <div id="vol-val" style="font-size:1.8rem; font-weight:900">${data.metrics.volatility_ann !== undefined ? data.metrics.volatility_ann.toFixed(2) + '%' : '-'}</div>
                 <div style="font-size:0.6rem; color:var(--text-dim); margin-top:5px">REALIZED 30D</div>
             </div>
         </div>
@@ -57,16 +62,30 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                 </div>
                 
                 <div class="card" style="padding:1.5rem; background:rgba(0, 242, 255, 0.03); border:1px solid var(--accent)">
-                    <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">CUSTOM PORTFOLIO BUILDER</h3>
-                    <div style="display:flex; flex-direction:column; gap:1rem">
-                        <p style="font-size:0.7rem; color:var(--text-dim)">Input target symbols for institutional basket simulation.</p>
-                        <input type="text" id="portfolio-basket" placeholder="BTC-USD, ETH-USD, SOL-USD..." 
-                               style="background:${alphaColor(0.05)}; border:1px solid var(--border); color:white; padding:12px; border-radius:8px; font-family:inherit"
-                               value="${customBasket || ''}">
-                        <button class="action-btn-styled" style="width:100%" 
-                                onclick="renderPortfolioLab(document.getElementById('portfolio-basket').value)">
-                            SIMULATE BASKET
-                        </button>
+                    <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>CUSTOM PORTFOLIO BUILDER</span>
+                        <label style="font-size:0.55rem; color:white; display:flex; align-items:center; gap:6px; cursor:pointer;" title="Apply ML Alpha Weightings or Equal Weight">
+                            <input type="checkbox" id="ml-weight-toggle" checked>
+                            <span style="font-weight:700">ML ALPHA WEIGHTINGS</span>
+                        </label>
+                    </h3>
+                    <div style="display:flex; flex-direction:column; gap:1.5rem">
+                        <!-- Asset Universe -->
+                        <div>
+                            <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:8px; font-weight:900; letter-spacing:1px">ASSET UNIVERSE (DRAG TO BASKET)</div>
+                            <div id="asset-universe-zone" style="display:flex; flex-wrap:wrap; gap:8px; min-height:45px; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px dashed rgba(255,255,255,0.1)">
+                                ${availableAssets.map(a => `<div class="draggable-asset" draggable="true" data-asset="${a}" style="padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:100px; font-size:0.75rem; color:white; cursor:grab; user-select:none; display:flex; align-items:center; gap:4px;"><span class="material-symbols-outlined" style="font-size:12px; color:var(--text-dim)">add</span>${a.replace('-USD','')}</div>`).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Dropzone Basket -->
+                        <div>
+                            <div style="font-size:0.65rem; color:var(--accent); margin-bottom:8px; font-weight:900; letter-spacing:1px">SIMULATION BASKET (DROP HERE)</div>
+                            <div id="portfolio-basket-zone" style="display:flex; flex-wrap:wrap; gap:8px; min-height:60px; padding:15px; background:rgba(0,242,255,0.05); border-radius:8px; border:1px solid rgba(0,242,255,0.2)">
+                                ${activeBasket.map(a => `<div class="draggable-asset in-basket" draggable="true" data-asset="${a}" style="padding:6px 12px; background:rgba(0,242,255,0.15); border:1px solid rgba(0,242,255,0.3); border-radius:100px; font-size:0.75rem; color:#00f2ff; cursor:grab; user-select:none; display:flex; align-items:center; gap:4px; font-weight:700" onclick="removeAssetFromBasket('${a}')"><span class="material-symbols-outlined" style="font-size:12px; color:rgba(0,242,255,0.5)">close</span>${a.replace('-USD','')}</div>`).join('')}
+                            </div>
+                            <p style="font-size:0.65rem; color:var(--text-dim); margin-top:10px; line-height:1.4;">Drag assets to construct your portfolio. Changes trigger instantaneous ML re-calculation of VaR, Beta, and Markowitz allocation frontiers.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -93,9 +112,12 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     <h3 style="margin-bottom:1.5rem; font-size:0.9rem; color:var(--accent); letter-spacing:1px">CONSTITUENT WEIGHTINGS</h3>
                     <div class="weights-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:10px; margin-bottom: 20px">
                         ${Object.entries(data.allocation).map(([ticker, weight]) => `
-                            <div style="background:${alphaColor(0.03)}; padding:8px; border-radius:6px; display:flex; justify-content:space-between; border:1px solid ${alphaColor(0.05)}">
+                            <div style="background:${alphaColor(0.03)}; padding:8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid ${alphaColor(0.05)}">
                                 <span style="font-size:0.65rem; font-weight:900; color:white">${ticker.split('-')[0]}</span>
-                                <span style="font-size:0.65rem; color:var(--accent)">${weight}%</span>
+                                <div style="display:flex; align-items:center;">
+                                    <input type="number" class="manual-weight-input" data-ticker="${ticker.split('-')[0]}" value="${weight.toFixed(1)}" step="0.1" min="0" max="100" style="width:40px; background:transparent; border:none; color:var(--accent); text-align:right; font-size:0.65rem; font-weight:700; outline:none;" onchange="updatePortfolioWeights()">
+                                    <span style="font-size:0.65rem; color:var(--text-dim)">%</span>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
@@ -145,6 +167,82 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
         </div>
     `;
 
+    // 0. Attach Drag & Drop Listeners
+    const universeZone = document.getElementById('asset-universe-zone');
+    const basketZone = document.getElementById('portfolio-basket-zone');
+
+    document.querySelectorAll('.draggable-asset').forEach(el => {
+        el.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', el.dataset.asset);
+            e.dataTransfer.effectAllowed = 'move';
+            el.style.opacity = '0.5';
+        });
+        el.addEventListener('dragend', (e) => {
+            el.style.opacity = '1';
+        });
+    });
+
+    [universeZone, basketZone].forEach(zone => {
+        if(!zone) return;
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            zone.style.borderColor = 'var(--accent)';
+        });
+        zone.addEventListener('dragleave', (e) => {
+            zone.style.borderColor = zone.id === 'portfolio-basket-zone' ? 'rgba(0,242,255,0.2)' : 'rgba(255,255,255,0.1)';
+        });
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.style.borderColor = zone.id === 'portfolio-basket-zone' ? 'rgba(0,242,255,0.2)' : 'rgba(255,255,255,0.1)';
+            const asset = e.dataTransfer.getData('text/plain');
+            if (!asset) return;
+
+            let currentBasketPaths = Array.from(basketZone.querySelectorAll('.draggable-asset')).map(x => x.dataset.asset);
+            
+            if (zone.id === 'portfolio-basket-zone') {
+                if (!currentBasketPaths.includes(asset)) {
+                    currentBasketPaths.push(asset);
+                    renderPortfolioLab(currentBasketPaths.join(','));
+                }
+            } else if (zone.id === 'asset-universe-zone') {
+                if (currentBasketPaths.includes(asset)) {
+                    currentBasketPaths = currentBasketPaths.filter(x => x !== asset);
+                    if (currentBasketPaths.length === 0) return alert('Basket cannot be empty');
+                    renderPortfolioLab(currentBasketPaths.join(','));
+                }
+            }
+        });
+    });
+
+    window.removeAssetFromBasket = function(asset) {
+        let currentBasketPaths = Array.from(document.getElementById('portfolio-basket-zone').querySelectorAll('.draggable-asset')).map(x => x.dataset.asset);
+        if (currentBasketPaths.includes(asset)) {
+            currentBasketPaths = currentBasketPaths.filter(x => x !== asset);
+            if (currentBasketPaths.length === 0) return alert('Basket cannot be empty');
+            renderPortfolioLab(currentBasketPaths.join(','));
+        }
+    };
+
+    window.updatePortfolioWeights = function() {
+        const inputs = Array.from(document.querySelectorAll('.manual-weight-input'));
+        const activeBasket = Array.from(document.getElementById('portfolio-basket-zone').querySelectorAll('.draggable-asset')).map(x => x.dataset.asset);
+        
+        const weightsMap = {};
+        inputs.forEach(input => {
+            let val = parseFloat(input.value) || 0;
+            if (val < 0) val = 0;
+            weightsMap[input.dataset.ticker] = val;
+        });
+        
+        const customWeightsArray = activeBasket.map(asset => {
+             const baseTicker = asset.split('-')[0];
+             return weightsMap[baseTicker] || 0;
+        });
+        
+        renderPortfolioLab(activeBasket.join(','), customWeightsArray.join(','));
+    };
+
     // 1. Portfolio vs Benchmark Chart
     try {
         const ctxPort = document.getElementById('portfolioChart').getContext('2d');
@@ -156,13 +254,13 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                     {
                         label: 'ALPHA PORTFOLIO',
                         data: data.history.map(h => h.portfolio),
-                        borderColor: 'var(--accent)',
-                        backgroundColor: 'rgba(0, 242, 255, 0.05)',
+                        borderColor: '#00f2ff',
+                        backgroundColor: 'rgba(0, 242, 255, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.1,
                         pointRadius: 2,
-                        pointBackgroundColor: 'var(--accent)'
+                        pointBackgroundColor: '#00f2ff'
                     },
                     {
                         label: 'BTC BENCHMARK',
@@ -181,12 +279,12 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
                 scales: {
                     x: { 
                         grid: { display: false }, 
-                        ticks: { color: 'var(--text-dim)', font: { size: 10, family: 'JetBrains Mono' } } 
+                        ticks: { color: '#9ca3af', font: { size: 10, family: 'JetBrains Mono' } } 
                     },
                     y: { 
-                        grid: { color: alphaColor(0.05) }, 
-                        ticks: { color: 'var(--text-dim)', font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' },
-                        title: { display: true, text: 'Portfolio Return (%)', color: 'var(--text-dim)', font: { size: 9 } }
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }, 
+                        ticks: { color: '#9ca3af', font: { size: 10, family: 'JetBrains Mono' }, callback: v => v + '%' },
+                        title: { display: true, text: 'Portfolio Return (%)', color: '#9ca3af', font: { size: 9 } }
                     }
                 },
                 plugins: {
@@ -271,6 +369,34 @@ async function renderPortfolioLab(customBasket = null, tabs = null) {
             });
         } catch (e) {
             console.error("Optimizer Chart Error:", e);
+        }
+    }
+
+    // 3. Correlation Heatmap
+    if (data.metrics && data.metrics.correlation_matrix) {
+        const matrixObj = data.metrics.correlation_matrix;
+        const container = document.getElementById('correlation-heatmap');
+        if (container) {
+            const assets = Object.keys(matrixObj);
+            const n = assets.length;
+            container.style.gridTemplateColumns = `auto repeat(${n}, 1fr)`;
+            
+            let html = `<div></div>`; // Top left empty
+            assets.forEach(a => html += `<div style="font-size:0.55rem; color:var(--text-dim); text-align:center; padding-bottom:5px; font-weight:700">${a.replace('-USD','')}</div>`);
+            
+            assets.forEach(row => {
+                html += `<div style="font-size:0.55rem; color:var(--text-dim); display:flex; align-items:center; padding-right:5px; font-weight:700">${row.replace('-USD','')}</div>`;
+                assets.forEach(col => {
+                    const val = matrixObj[row][col];
+                    let bg, textColor;
+                    if (val === 1.0) { bg = `rgba(0, 242, 255, 0.4)`; textColor = 'white'; }
+                    else if (val > 0) { bg = `rgba(0, 242, 255, ${val * 0.6})`; textColor = val > 0.4 ? 'black' : 'var(--text-dim)'; }
+                    else { bg = `rgba(255, 80, 80, ${Math.abs(val) * 0.6})`; textColor = Math.abs(val) > 0.4 ? 'black' : 'var(--text-dim)'; }
+                    
+                    html += `<div style="background:${bg}; color:${textColor}; font-size:0.6rem; font-weight:800; display:flex; align-items:center; justify-content:center; border-radius:4px; height: 35px;">${val.toFixed(2)}</div>`;
+                });
+            });
+            container.innerHTML = html;
         }
     }
 

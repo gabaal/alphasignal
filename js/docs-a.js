@@ -84,6 +84,7 @@ function renderHelp() {
           docs: [
             { name: 'My Terminal', desc: '3 components: Watchlist table with live P&L, Portfolio summary stats, Notification controls', route: 'docs-my-terminal', icon: 'bookmark_add' },
             { name: 'Ask Terminal', desc: '2 components: AI chat interface, Suggested query chips', route: 'docs-ask-terminal', icon: 'smart_toy' },
+            { name: 'In Plain English AI', desc: 'Context-aware AI Chart Translator applied to institutional data views.', route: 'docs-plain-english', icon: 'auto_awesome' },
             { name: 'Command Center', desc: '9 live components: Fear/Greed gauge, ETF Net Flows, Volatility Regime, Market Pulse correlations, Scatter plot, Confidence Radar, Macro Correlation Matrix, CME Gaps, BTC sparkline', route: 'docs-command-center', icon: 'dashboard' },
             { name: 'Daily Workflow Playbook', desc: 'A structured 20-minute daily session guide — Morning Brief, Signal Review, Macro Context, Trade Decision, End-of-Day review', route: 'docs-daily-workflow', icon: 'today' },
           ]
@@ -561,6 +562,33 @@ function renderDocsViewNarrative() {
               description: 'Narratives ranked by 7-day mention growth velocity. Shows: Name, Current Volume, 7D Change %, Peak Volume, and Momentum tag (ACCELERATING / PEAKING / FADING).',
               howToRead: 'ACCELERATING = early-to-mid stage, best entry. PEAKING = late stage, good for exits. FADING = actively avoid.',
               signals: ['New narrative hitting ACCELERATING from zero = ground floor opportunity','Narrative showing PEAKING + price at ATH = exit signal; distribute into narrative strength','Multiple narratives FADING simultaneously = broad exhaustion; correction likely'] },
+        ]
+    });
+}
+
+// ============= AI DOCUMENTATION =============
+function renderDocsViewPlainEnglish() {
+    renderViewDocPage({
+        hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
+        title: 'In Plain English AI', viewId: 'home',
+        summary: 'The "In Plain English" AI Translator is a context-aware ML component injected directly into high-density institutional charts. It dynamically synthesises raw order flow, volatility options, and liquidation cascades into actionable risk management memos without leaving the terminal.',
+        components: [
+            { name: 'Live Tape Context (Pulse Persona)', type: 'AI', icon: 'auto_awesome',
+              description: 'Available on the TradingView Advanced charting view (Live Order Tape). It reads the continuous websocket feed of block trades, isolating institutional accumulation or distribution in the last 100 ticks.',
+              howToRead: 'Look for the "Aggressor" detection to see if blocks are hitting the bid or the ask. Read the "Regime" conclusion.',
+              signals: ['"Sustained Ask-hitting" = aggressive long buying into resistance','Block clusters > $5M = whales stepping in to absorb retail flow'] },
+            { name: 'Volatility Surface Context (Quant Persona)', type: 'AI', icon: 'auto_awesome',
+              description: 'Available on the Order Flow Volatility Surface view. It ingests the multi-expiry Options Implied Volatility matrix to read term structure and smile characteristics.',
+              howToRead: 'If the AI notes "Contango", longer-dated options are more expensive (normal). "Backwardation" implies near-term panic or event pricing.',
+              signals: ['Call Skew identified = Institutions are aggressively buying upside exposure','Left-tail premium = Heavy put buying, downside protection being accumulated'] },
+            { name: 'Depth Walls Context (Tape Persona)', type: 'AI', icon: 'auto_awesome',
+              description: 'Available on the Liquidity Archive Depth Walls view. Understands bidirectional order book depth and quantifies resting limit order resistance.',
+              howToRead: 'It highlights the ratio of Bids to Asks to identify imbalance (skew).',
+              signals: ['"Bid Wall absorbed" = Buyers previously stacked liquidity which is now being exhausted','Imbalance heavily skewed Ask = significant price ceiling detected'] },
+            { name: 'Liquidation Flux Context (Risk Persona)', type: 'AI', icon: 'auto_awesome',
+              description: 'Available on the Liquidity Archive Liquidation Flux view. Analyzes the delta between Long/Short liquidation clusters and estimated Open Interest.',
+              howToRead: 'The AI will flag which directional squeeze was more violent and predict "magnet" levels where leverage remains concentrated.',
+              signals: ['"Short Squeeze exhausted" = Shorts were blown out, market resetting','Concentrated Long liquidations without price drop = Strong spot buying absorbing the forced sells'] }
         ]
     });
 }
