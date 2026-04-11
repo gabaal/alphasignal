@@ -619,7 +619,7 @@ function renderAdvancedChart() {
         </div>
 
         <div class="card" style="padding:1rem; min-height:500px; position:relative;">
-            <div id="advanced-chart-container" style="width:100%; height:500px; border-radius:8px; overflow:hidden;"></div>
+            <div id="advanced-chart-container" style="width:100%; min-height:500px; border-radius:8px;"></div>
             
             <div id="heatmap-legend-overlay" style="position:absolute; top:20px; left:20px; z-index:10; background:rgba(13,17,23,0.85); border:1px solid ${alphaColor(0.1)}; border-radius:8px; padding:10px; font-size:0.65rem; color:#d1d5db; pointer-events:none; backdrop-filter:blur(8px); display:none; flex-direction:column; gap:6px;">
                 <div style="font-weight:900; color:var(--accent); letter-spacing:1.5px; margin-bottom:2px; font-size:0.55rem; text-transform:uppercase">Liquidity Atlas</div>

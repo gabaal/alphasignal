@@ -358,6 +358,22 @@ function renderDepth2DFallback(container, symbol) {
 
     // Expose to cleanupAdvChart
     window.activeDepth3D = { animId: null, renderer: null, _ref: { alive: false }, _ro: ro2d, _rafId: () => { if (_rafId) cancelAnimationFrame(_rafId); } };
+
+    injectAIChartTranslator(container, 'depth', () => {
+        let bidVol = 0, askVol = 0;
+        _rawBids.slice(0, 50).forEach(b => bidVol += parseFloat(b[1]));
+        _rawAsks.slice(0, 50).forEach(a => askVol += parseFloat(a[1]));
+        return {
+            symbol: symbol,
+            top_bid_walls: [..._rawBids].sort((a, b) => parseFloat(b[1]) - parseFloat(a[1])).slice(0, 3).map(b => ({ price: b[0], size: b[1] })),
+            top_ask_walls: [..._rawAsks].sort((a, b) => parseFloat(b[1]) - parseFloat(a[1])).slice(0, 3).map(a => ({ price: a[0], size: a[1] })),
+            imbalance: {
+                ratio_bid_to_ask: askVol ? (bidVol / askVol).toFixed(2) : 0,
+                bid_vol_top50: bidVol.toFixed(2),
+                ask_vol_top50: askVol.toFixed(2)
+            }
+        };
+    });
 }
 
 async function renderAdvDepth(symbol) {
@@ -636,11 +652,23 @@ async function renderAdvDepth(symbol) {
     });
     ro.observe(container);
 
-    injectAIChartTranslator(container, 'depth', () => ({
-        symbol: symbol,
-        bids: (window.activeDepth3D?._rawBids || []).slice(0, 30),
-        asks: (window.activeDepth3D?._rawAsks || []).slice(0, 30)
-    }));
+    injectAIChartTranslator(container, 'depth', () => {
+        const rawBids = window.activeDepth3D?._rawBids || [];
+        const rawAsks = window.activeDepth3D?._rawAsks || [];
+        let bidVol = 0, askVol = 0;
+        rawBids.slice(0, 50).forEach(b => bidVol += parseFloat(b[1]));
+        rawAsks.slice(0, 50).forEach(a => askVol += parseFloat(a[1]));
+        return {
+            symbol: symbol,
+            top_bid_walls: [...rawBids].sort((a, b) => parseFloat(b[1]) - parseFloat(a[1])).slice(0, 3).map(b => ({ price: b[0], size: b[1] })),
+            top_ask_walls: [...rawAsks].sort((a, b) => parseFloat(b[1]) - parseFloat(a[1])).slice(0, 3).map(a => ({ price: a[0], size: a[1] })),
+            imbalance: {
+                ratio_bid_to_ask: askVol ? (bidVol / askVol).toFixed(2) : 0,
+                bid_vol_top50: bidVol.toFixed(2),
+                ask_vol_top50: askVol.toFixed(2)
+            }
+        };
+    });
 }
 
 // TAB 3: Derivatives (Live CVD & Block Trades)
@@ -943,7 +971,7 @@ function renderAdvTapeImbalance(symbol) {
                 <button id="ai-translate-tape-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
                     <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
                 </button>
-                <div id="ai-translate-tape-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5; box-sizing:border-box;"></div>
+                <div id="ai-translate-tape-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.95rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
             </div>
         </div>`;
 
@@ -1127,7 +1155,7 @@ async function renderAdvOptionsSurface(symbol) {
             <button id="ai-translate-adv-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
                 <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
             </button>
-            <div id="ai-translate-adv-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5; box-sizing:border-box;"></div>
+            <div id="ai-translate-adv-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.95rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
         </div>`;
 
     const canvas = document.getElementById('volsurf-canvas');
@@ -1474,7 +1502,7 @@ function injectAIChartTranslator(containerElement, chartType, dataExtractorCallb
             <button id="${hookId}-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
                 <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
             </button>
-            <div id="${hookId}-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5; box-sizing:border-box;"></div>
+            <div id="${hookId}-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.95rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
         </div>
     `;
     

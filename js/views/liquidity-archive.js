@@ -239,6 +239,17 @@ async function renderLiquidityView(tabs = null) {
                 } catch(e) { /* silent — skip noisy poll failures */ }
             }, 1000);
 
+            if (typeof injectAIChartTranslator === 'function') {
+                injectAIChartTranslator(display.querySelector('.card'), 'depth', () => {
+                    return {
+                        top_bids: topBids.slice(0, 3).map(b => ({ price: b.price, size: b.size })),
+                        top_asks: topAsks.slice(0, 3).map(a => ({ price: a.price, size: a.size })),
+                        imbalance: document.getElementById('gomm-imbalance')?.textContent || '0%',
+                        total_depth: document.getElementById('gomm-depth')?.textContent || '0 BTC'
+                    };
+                });
+            }
+
         }, 50);
     }
 
@@ -325,6 +336,20 @@ async function renderLiquidityView(tabs = null) {
                     }
                 }
             });
+
+            if (typeof injectAIChartTranslator === 'function') {
+                injectAIChartTranslator(display.querySelector('.card'), 'pulse', () => {
+                    // Pass the liquidation clusters data up to the AI
+                    return {
+                        clusters: sorted.map(c => ({
+                            price: c.price,
+                            side: c.side,
+                            intensity: c.intensity
+                        }))
+                    };
+                });
+            }
+
         }, 50);
     }
 
@@ -361,7 +386,7 @@ async function renderLiquidityView(tabs = null) {
                     <button id="ai-translate-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
                         <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
                     </button>
-                    <div id="ai-translate-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.8rem; color:var(--text); line-height:1.5; box-sizing:border-box;"></div>
+                    <div id="ai-translate-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.95rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
                 </div>
             </div>`;
         setTimeout(() => {

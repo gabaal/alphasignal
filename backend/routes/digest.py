@@ -5,7 +5,7 @@ from backend.services import NOTIFY
 
 def _fix(s):
     """Decode mojibake: UTF-8 bytes that were mis-read as Latin-1 and re-encoded.
-    e.g. â€" -> — (em-dash), ðŸ"Š -> 📊 (emoji).
+    e.g. — -> — (em-dash), 📊 -> 📊 (emoji).
     Falls back to original string if decoding fails."""
     try:
         return s.encode('latin-1').decode('utf-8')
@@ -13,14 +13,14 @@ def _fix(s):
         return s
 
 
-# â”€â”€ Configurable send time (UTC) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Configurable send time (UTC) ──────────────────────────────
 DIGEST_HOUR_UTC   = int(os.getenv('DIGEST_HOUR_UTC',   '7'))
 DIGEST_MINUTE_UTC = int(os.getenv('DIGEST_MINUTE_UTC', '30'))
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 # DATA HELPERS
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 
 def _get_top_signals(limit=5):
     """Top signals from last 24h by severity, then recency."""
@@ -176,15 +176,15 @@ def _get_eligible_users():
         return []
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 # EMAIL DIGEST  (Resend API)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 
 def _sev_color(sev):
     return {'CRITICAL': '#ef4444', 'HIGH': '#fb923c', 'MEDIUM': '#facc15'}.get(sev, '#94a3b8')
 
 def _sev_label(sev):
-    return {'CRITICAL': 'ðŸ”´ CRITICAL', 'HIGH': 'ðŸŸ  HIGH', 'MEDIUM': 'ðŸŸ¡ MEDIUM'}.get(sev, 'âšª LOW')
+    return {'CRITICAL': '🔴 CRITICAL', 'HIGH': '🟠 HIGH', 'MEDIUM': '🟡 MEDIUM'}.get(sev, '⚪ LOW')
 
 
 def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excerpt=None):
@@ -221,7 +221,7 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
             ticker   = s.get('ticker', '?').replace('-USD', '')
             sig_type = s.get('type', '').replace('_', ' ')
             price_str = f"${s['price']:,.4f}" if s.get('price') else ''
-            raw_msg  = s.get('message') or ''
+            raw_msg  = _fix(s.get('message') or '')
             msg      = raw_msg[:120] + ('...' if len(raw_msg) > 120 else '')
             msg_row  = (
                 f'<tr><td colspan="2" style="padding-top:6px;">'
@@ -258,7 +258,7 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
         signal_rows = """
         <tr>
           <td style="padding:24px 28px;text-align:center;color:#64748b;font-family:Arial,sans-serif;font-size:13px;">
-            No signals fired in the last 24h â€” markets were quiet.
+            No signals fired in the last 24h — markets were quiet.
           </td>
         </tr>"""
 
@@ -299,7 +299,7 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
                 </tr>
                 <tr>
                   <td colspan="2" style="padding-top:12px;">
-                    <span style="font-family:Arial,sans-serif;font-size:12px;color:#6b7280;">{now} Â· 07:30 UTC</span>
+                    <span style="font-family:Arial,sans-serif;font-size:12px;color:#6b7280;">{now} · 07:30 UTC</span>
                   </td>
                 </tr>
               </table>
@@ -340,7 +340,7 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
           <tr>
             <td style="padding:16px 28px 8px;background:#0d1117;">
               <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;
-                letter-spacing:3px;color:#6b7280;">TOP SIGNALS â€” LAST 24H</span>
+                letter-spacing:3px;color:#6b7280;">TOP SIGNALS — LAST 24H</span>
             </td>
           </tr>
 
@@ -366,7 +366,7 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
                 You're receiving this because you enabled alerts on
                 <a href="{terminal_url}" style="color:#4b5563;text-decoration:none;">alphasignal.digital</a>.<br>
                 <a href="{terminal_url}/?view=alert-settings" style="color:#4b5563;">Unsubscribe</a>
-                &nbsp;Â·&nbsp;
+                &nbsp;·&nbsp;
                 <a href="{terminal_url}" style="color:#4b5563;">AlphaSignal Terminal</a>
               </span>
             </td>
@@ -385,7 +385,7 @@ def _send_resend_email(to_email, subject, html_body):
     api_key  = os.getenv('RESEND_API_KEY', '')
     from_addr = os.getenv('RESEND_FROM', 'AlphaSignal <digest@alphasignal.digital>')
     if not api_key:
-        print('[Digest] RESEND_API_KEY not set â€” skipping email', flush=True)
+        print('[Digest] RESEND_API_KEY not set — skipping email', flush=True)
         return False
     try:
         resp = requests.post(
@@ -413,9 +413,9 @@ def _send_resend_email(to_email, subject, html_body):
         return False
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 # TELEGRAM DIGEST
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 # ----------------------------------------------------------------------------
 
 def _build_telegram_digest(user_email, signals, btc_price):
@@ -437,7 +437,7 @@ def _build_telegram_digest(user_email, signals, btc_price):
             sig_type = (s.get('type') or '').replace('_', ' ')
             price_str = f"@ ${s['price']:,.2f}" if s.get('price') else ''
             parts.append(f"{icon} <b>{ticker}</b> - {sig_type} {price_str}".strip())
-            msg = s.get('message') or ''
+            msg = _fix(s.get('message') or '')
             if msg:
                 safe_msg = msg[:80] + ('...' if len(msg) > 80 else '')
                 parts.append(f"   <i>{safe_msg}</i>")
@@ -460,7 +460,7 @@ def _build_discord_digest(user_email, signals, btc_price):
         icon   = {'CRITICAL': '[!!]', 'HIGH': '[!]', 'MEDIUM': '[-]'}.get(sev, '[ok]')
         ticker = s.get('ticker', '?').replace('-USD', '')
         price_str = f"@ ${s['price']:,.2f}" if s.get('price') else ''
-        msg    = (s.get('message', '') or '')[:100]
+        msg    = _fix(s.get('message', '') or '')[:100]
         fields.append({
             "name": f"{icon} {ticker} - {s.get('type','')} {price_str}",
             "value": msg or "No details",
@@ -521,7 +521,7 @@ def send_digest_to_user(user_email):
             except Exception as e:
                 print(f"[Digest] Telegram error for {user_email}: {e}")
 
-        # â”€â”€ Discord â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ── Discord ────────────────────────────────────────────
         try:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
@@ -539,14 +539,14 @@ def send_digest_to_user(user_email):
         print(f"[Digest] Fatal error for {user_email}: {e}")
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 # CRON SCHEDULER
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 
 def start_digest_cron():
     """Background daemon: fires digest at DIGEST_HOUR_UTC:DIGEST_MINUTE_UTC UTC daily."""
     def _loop():
-        print(f"[Digest] Cron started â€” will send at {DIGEST_HOUR_UTC:02d}:{DIGEST_MINUTE_UTC:02d} UTC daily", flush=True)
+        print(f"[Digest] Cron started — will send at {DIGEST_HOUR_UTC:02d}:{DIGEST_MINUTE_UTC:02d} UTC daily", flush=True)
         while True:
             try:
                 now    = datetime.utcnow()
@@ -575,12 +575,12 @@ def start_digest_cron():
     return t
 
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 # HTTP ROUTE MIXIN
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────
 
 class DigestRoutesMixin:
-    """POST /api/digest/send â€” manual trigger for testing."""
+    """POST /api/digest/send — manual trigger for testing."""
     def handle_digest_send(self, auth_info):
         try:
             user_email = auth_info.get('email')
