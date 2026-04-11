@@ -629,8 +629,16 @@ function initLivePriceStream() {
                 return;
             }
 
+            const hostname = window.location.hostname;
+            // Prevent noisy wss:// failures on production due to unproxied 8007 ports
+            if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+                console.log("[Network] Production environment detected. Sidelining WS for Secure HTTP long-polling.");
+                initHttpFallback();
+                return;
+            }
+
             const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            const ws = new WebSocket(wsProtocol + window.location.hostname + ':8007');
+            const ws = new WebSocket(wsProtocol + hostname + ':8007');
 
             ws.onopen = () => { window.wsFailCount = 0; };
 
