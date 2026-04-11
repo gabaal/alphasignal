@@ -791,6 +791,12 @@ async function renderOptionsFlow(tabs = null) {
                 <canvas id="opts-smile-chart" role="img" aria-label="Options implied volatility smile chart" height="220"></canvas>
             </div>
             <div class="glass-card" style="padding:1.5rem">
+                <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV TERM STRUCTURE (ATM)</div>
+                <canvas id="opts-term-chart" role="img" aria-label="Options term structure chart" height="220"></canvas>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr;gap:1.5rem;margin-bottom:1.5rem">
+            <div class="glass-card" style="padding:1.5rem">
                 <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">PUT / CALL VOLUME SPLIT</div>
                 <canvas id="opts-pcr-chart" role="img" aria-label="Put/call ratio chart" height="220" style="max-width:220px;margin:0 auto;display:block"></canvas>
             </div>
@@ -889,6 +895,30 @@ async function loadOptionsFlow(currency, source) {
                             label: 'IV %', data: d.iv_smile.map(p => p.iv),
                             borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)',
                             borderWidth: 2, tension: 0.4, pointRadius: 3, fill: true
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: {
+                        x: { ticks: { color: '#6b7280', font: { size: 9 } }, grid: { color: alphaColor(0.04) } },
+                        y: { ticks: { color: '#9ca3af', callback: v => v + '%' }, grid: { color: alphaColor(0.04) } }
+                    }}
+                });
+            }
+        }
+
+        // IV Term Structure
+        if (d.term_structure && d.term_structure.length) {
+            const tc = document.getElementById('opts-term-chart');
+            if (tc) {
+                if (tc._chart) tc._chart.destroy();
+                tc._chart = new Chart(tc, {
+                    type: 'line',
+                    data: {
+                        labels: d.term_structure.map(p => p.expiry),
+                        datasets: [{
+                            label: 'ATM IV %', data: d.term_structure.map(p => p.iv),
+                            borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,0.1)',
+                            borderWidth: 2, tension: 0.1, pointRadius: 4, fill: true,
+                            stepped: 'middle'
                         }]
                     },
                     options: { responsive: true, plugins: { legend: { display: false } }, scales: {
@@ -1462,3 +1492,127 @@ async function renderCustomAnalytics(tabs) {
     });
     Object.values(containers).forEach(cn => { if (cn) ro.observe(cn); });
 }
+
+
+// GEX and Volume Profiles
+
+window.renderGexProfile = async function(tabs = null) {
+    const headerHtml = `
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">ssid_chart</span>Dealer Gamma (GEX) <span class="premium-badge">PRO</span></h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;" onclick="switchView('docs-gex')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+        </div>
+    `;
+    appEl.innerHTML = headerHtml + window.renderHubTabs('gex', window._analyticsHubTabs || tabs) + `<div style="color:var(--text-dim)">Loading GEX...</div>`;
+    const data = await fetchAPI('/gex-profile?ticker=BTC');
+    if(data.error) { appEl.innerHTML = `<div style="color:red">${data.error}</div>`; return; }
+    
+    // We render a chart using Chart.js on a Canvas element
+    const labels = data.profile.map(p => p.strike);
+    const gammas = data.profile.map(p => p.gamma);
+    
+    appEl.innerHTML = headerHtml + window.renderHubTabs('gex', window._analyticsHubTabs || tabs) + `
+        <div class="glass-card" style="padding:1.5rem">
+            <div style="display:flex;justify-content:space-between">
+                <h3>Dealer Gamma Exposure (GEX)</h3>
+                <span class="badge outline"">Spot: $${data.spot}</span>
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1rem">Positive gamma (calls) suppresses volatility. Negative gamma (puts) amplifies it.</p>
+            <div style="height:350px;position:relative"><canvas id="gexChart"></canvas></div>
+        </div>
+    `;
+    
+    new Chart(document.getElementById('gexChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Net Gamma',
+                data: gammas,
+                backgroundColor: gammas.map(g => g >= 0 ? 'rgba(0, 212, 170, 0.6)' : 'rgba(255, 68, 68, 0.6)'),
+                borderColor: gammas.map(g => g >= 0 ? '#00d4aa' : '#ff4444'),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: alphaColor(0.5) } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: alphaColor(0.5) } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+};
+
+window.renderVolumeProfile = async function(tabs = null) {
+    const headerHtml = `
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">leaderboard</span>Volume Profile (TPO) <span class="premium-badge">PRO</span></h1>
+            </div>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;" onclick="switchView('docs-volume-profile')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+        </div>
+    `;
+    appEl.innerHTML = headerHtml + window.renderHubTabs('profile', window._analyticsHubTabs || tabs) + `<div style="color:var(--text-dim)">Loading Volume Profile...</div>`;
+    const data = await fetchAPI('/volume-profile?ticker=BTC');
+    if(data.error) { appEl.innerHTML = `<div style="color:red">${data.error}</div>`; return; }
+    
+    const labels = data.profile.map(p => p.price);
+    const volumes = data.profile.map(p => p.volume);
+    
+    appEl.innerHTML = headerHtml + window.renderHubTabs('profile', window._analyticsHubTabs || tabs) + `
+        <div class="glass-card" style="padding:1.5rem">
+            <div style="display:flex;justify-content:space-between">
+                <h3>Market Profile (TPO)</h3>
+                <span class="badge outline"">Spot: $${data.spot}</span>
+            </div>
+            <div style="display:flex;gap:15px;margin:1rem 0">
+                <div style="background:var(--bg-input);padding:10px;border-radius:8px;flex:1">
+                    <div style="font-size:0.7rem;color:var(--text-dim)">POINT OF CONTROL</div>
+                    <div style="font-size:1.2rem;font-weight:700;color:var(--accent)">$${data.poc}</div>
+                </div>
+                <div style="background:var(--bg-input);padding:10px;border-radius:8px;flex:1">
+                    <div style="font-size:0.7rem;color:var(--text-dim)">VALUE AREA HIGH</div>
+                    <div style="font-size:1.2rem;font-weight:700">$${data.vah}</div>
+                </div>
+                <div style="background:var(--bg-input);padding:10px;border-radius:8px;flex:1">
+                    <div style="font-size:0.7rem;color:var(--text-dim)">VALUE AREA LOW</div>
+                    <div style="font-size:1.2rem;font-weight:700">$${data.val}</div>
+                </div>
+            </div>
+            <div style="height:400px;position:relative"><canvas id="volChart"></canvas></div>
+        </div>
+    `;
+    
+    new Chart(document.getElementById('volChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Volume Profile',
+                data: volumes,
+                backgroundColor: labels.map(p => (p >= data.val && p <= data.vah) ? 'rgba(188, 19, 254, 0.4)' : 'rgba(255,255,255,0.1)'),
+                borderColor: labels.map(p => p === data.poc ? '#00d4aa' : 'transparent'),
+                borderWidth: labels.map(p => p === data.poc ? 2 : 0)
+            }]
+        },
+        options: {
+            indexAxis: 'y', // Horizontal Bar Chart
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { display: false },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: alphaColor(0.5) } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+};

@@ -161,6 +161,9 @@ const viewMap = {
     'docs-how-signals-work': renderDocsViewHowSignalsWork,
     'docs-integrations': renderDocsViewIntegrations,
     'docs-plain-english': renderDocsViewPlainEnglish,
+    'gex-profile': typeof renderGexProfile !== 'undefined' ? renderGexProfile : () => {},
+    'volume-profile': typeof renderVolumeProfile !== 'undefined' ? renderVolumeProfile : () => {},
+    'lob-heatmap': typeof renderLobHeatmap !== 'undefined' ? renderLobHeatmap : () => {},
     'signal': () => {
         const params = new URLSearchParams(window.location.search);
         const ticker = params.get('ticker') || params.get('id');
@@ -923,8 +926,9 @@ function renderDocsAIEngine() {
 // Respects the Alerts Hub sensitivity slider (z_threshold) and
 // the alerts_enabled toggle — both set via /alert-settings API.
 // ════════════════════════════════════════════════════════════════
-let _signalPollerInterval = null;
-let _pollerSettings = { z_threshold: 2.0, alerts_enabled: true }; // live cache from /alert-settings
+var _signalPollerInterval = null;
+var _pollerSettings = { z_threshold: 2.0, alerts_enabled: true }; // live cache from /alert-settings
+
 
 async function _loadPollerSettings() {
     try {

@@ -379,6 +379,40 @@ async function renderOIRadar(tabs = null) {
         { name: 'CME', oi: 12.1, delta: 18, funding: 0 }
     ];
 
+    // Options Implied Volatility (IV) Smile Curve rendering
+    const smileCtx = document.getElementById('ivSmileChart');
+    if (smileCtx) {
+        new Chart(smileCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['-30%', '-20%', '-10%', 'ATM', '+10%', '+20%', '+30%'],
+                datasets: [{
+                    label: '30D IV',
+                    data: [72, 65, 59, 55, 59, 67, 78], // Synthetic smile curve reflecting an OTM put skew
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139,92,246,0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#8b5cf6',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: c => c.raw + '%' } }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)', callback: v => v + '%' } }
+                }
+            }
+        });
+    }
+
     const ctx = document.getElementById('oiRadarChart').getContext('2d');
     new Chart(ctx, {
         type: 'radar',
@@ -420,69 +454,58 @@ async function renderOIRadar(tabs = null) {
         }
     });
 
-    document.getElementById('oi-attribution').innerHTML = exchanges.map(ex => `
-        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border)">
-            <span style="font-size:0.75rem; font-weight:700">${ex.name}</span>
-            <div style="text-align:right">
-                <div style="font-size:0.75rem; font-weight:900">$${ex.oi}B</div>
-                <div style="font-size:0.55rem; color:${ex.delta >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">${ex.delta >= 0 ? '+' : ''}${ex.delta}% DELTA</div>
+    // Fetch OI Funding details from Backend
+    fetchAPI('/oi-funding-heatmap').then(oiData => {
+        if (!oiData || oiData.error) return;
+        
+        const matrixEl = document.createElement('div');
+        matrixEl.className = 'card';
+        matrixEl.style.marginTop = '2rem';
+        matrixEl.innerHTML = `
+            <div class="card-header" style="margin-bottom:15px">
+                <h3>Open Interest x Funding Divergence Matrix <span style="font-size:0.8rem;color:var(--text-dim)">(Last 14D)</span></h3>
+                <span class="label-tag">SQUEEZE MAP</span>
             </div>
-        </div>
-    `).join('');
-
-    // Render IV Smile
-    setTimeout(() => {
-        const smileCtx = document.getElementById('ivSmileChart');
-        if (smileCtx) {
-            new Chart(smileCtx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['-30% (Deep OTM Put)', '-20%', '-10%', 'ATM (0%)', '+10%', '+20%', '+30% (Deep OTM Call)'],
-                    datasets: [
-                        {
-                            label: 'Implied Volatility (IV %)',
-                            data: [82.4, 75.1, 64.2, 58.0, 61.5, 66.8, 72.3],
-                            borderColor: '#7dd3fc',
-                            backgroundColor: 'rgba(0, 242, 255, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4,
-                            pointBackgroundColor: '#fff',
-                            pointBorderColor: '#7dd3fc'
-                        },
-                        {
-                            label: 'Historical Volatility Benchmark (30D)',
-                            data: [60.5, 60.5, 60.5, 60.5, 60.5, 60.5, 60.5],
-                            borderColor: alphaColor(0.2),
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 0,
-                            fill: false,
-                            tension: 0
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { intersect: false, mode: 'index' },
-                    plugins: {
-                        legend: { labels: { color: '#8b949e', font: { family: 'Outfit', size: 11 } } },
-                        tooltip: { backgroundColor: 'rgba(13, 17, 23, 0.95)', titleColor: '#7dd3fc', bodyColor: '#e6edf3', padding: 12 }
-                    },
-                    scales: {
-                        x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 } } },
-                        y: { 
-                            title: { display: true, text: 'Implied Volatility (%)', color: '#8b949e' },
-                            grid: { color: alphaColor(0.05) }, 
-                            ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v + '%' } 
-                        }
-                    }
+            <div style="height:350px;width:100%;position:relative;"><canvas id="oiMatrixChart"></canvas></div>
+            <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
+                Red marks extreme short-bias + high OI (Long Squeeze). Green indicates extreme long-bias + high OI (Short Trap).
+            </div>
+        `;
+        appEl.appendChild(matrixEl);
+        
+        setTimeout(() => {
+            const mCtx = document.getElementById('oiMatrixChart');
+            if(!mCtx) return;
+            
+            const ds = oiData.heatmap.map((row, i) => {
+                return {
+                    label: row.asset,
+                    data: row.scores,
+                    backgroundColor: row.scores.map(s => {
+                        const n = Math.min(Math.abs(s), 1);
+                        return s > 0 ? `rgba(255,68,68,${n})` : `rgba(34,197,94,${n})`;
+                    }),
+                    borderRadius: 4
                 }
             });
-        }
-    }, 50);
+            
+            new Chart(mCtx, {
+                type: 'bar',
+                data: {
+                    labels: oiData.dates,
+                    datasets: ds
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display:false } },
+                        y: { stacked: true, display: false }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }, 100);
+    });
 
     // OI Bubble Scatter — price delta vs OI delta, sized by absolute OI
     const oiBubbleEl = document.createElement('div');
@@ -673,7 +696,74 @@ async function renderYieldLab(tabs = null) {
             </table>
         </div>
     `;
-}
-
-
-
+};
+// ============= LOB Heatmap View =============
+window.renderLobHeatmap = async function(tabs = null) {
+    if (!tabs) tabs = globalHubTabs;
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">blur_on</span>LOB Heatmap <span class="premium-badge">LIVE</span></h1>
+        </div>
+        ${renderHubTabs('lob', tabs)}
+        <div style="color:var(--text-dim)">Loading High-Density LOB...</div>
+    `;
+    
+    const data = await fetchAPI('/lob-heatmap?ticker=BTC');
+    if (data.error) { appEl.innerHTML += `<div style="color:red">${data.error}</div>`; return; }
+    
+    appEl.innerHTML = `
+        <div class="view-header">
+            <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
+            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">blur_on</span>LOB Heatmap <span class="premium-badge">LIVE</span></h1>
+        </div>
+        ${renderHubTabs('lob', tabs)}
+        <div class="glass-card" style="padding:1.5rem">
+            <div style="display:flex;justify-content:space-between">
+                <h3>Limit Order Book (LOB) Density</h3>
+                <span class="badge outline">${data.ticker} / Spot: ${data.prices[Math.floor(data.prices.length/2)]}</span>
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1rem">Visualizing resting limit orders. Brighter colors indicate heavier liquidity walls.</p>
+            <div style="height:500px;width:100%;position:relative;"><canvas id="lobChart"></canvas></div>
+        </div>
+    `;
+    
+    const datasets = [];
+    const minD = Math.min(...data.density.flat());
+    const maxD = Math.max(...data.density.flat());
+    
+    for(let i=0; i<data.prices.length; i++) {
+        datasets.push({
+            label: `Level ${data.prices[i]}`,
+            data: data.density.map(t => t[i]),
+            backgroundColor: data.density.map(t => {
+                const norm = (t[i] - minD) / (maxD - minD);
+                // Heatmap from dark blue to bright cyan to yellow
+                if (norm < 0.3) return `rgba(0, 50, 100, ${norm+0.1})`;
+                if (norm < 0.7) return `rgba(0, 242, 255, ${norm})`;
+                return `rgba(255, 230, 0, ${norm})`;
+            }),
+            borderWidth: 0,
+            barPercentage: 1.0,
+            categoryPercentage: 1.0
+        });
+    }
+    
+    new Chart(document.getElementById('lobChart'), {
+        type: 'bar',
+        data: {
+            labels: data.timestamps,
+            datasets: datasets
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { color: alphaColor(0.5) } },
+                y: { stacked: true, display: false }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+};

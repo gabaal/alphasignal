@@ -17,9 +17,10 @@ function renderHubTabs(activeTab, tabs) {
 
 // ============= Global Markets Hub =============
 const globalHubTabs = [
+    { id: 'lob', label: 'LOB HEATMAP', view: 'lob-heatmap', icon: 'blur_on' },
     { id: 'etf', label: 'ETF FLOWS', view: 'etf-flows', icon: 'account_balance' },
     { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
-    { id: 'oi', label: 'OI RADAR', view: 'oi-radar', icon: 'track_changes' },
+    { id: 'oi', label: 'OI MATRIX', view: 'oi-radar', icon: 'track_changes' },
     { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
 ];
 
@@ -47,6 +48,7 @@ async function renderMacroHub() {
 const alphaHubTabs = [
     { id: 'signals',      label: 'LIVE SIGNALS',    view: 'signals',        icon: 'radar' },
     { id: 'score',        label: 'ALPHA SCORE',      view: 'alpha-score',    icon: 'bolt' },
+    { id: 'profile',      label: 'MARKET PROFILE',   view: 'volume-profile', icon: 'leaderboard' },
     { id: 'lab',          label: 'STRATEGY LAB',     view: 'strategy-lab',   icon: 'science' },
     { id: 'backtester',   label: 'BACKTESTER V2',    view: 'backtester-v2',  icon: 'analytics' },
     { id: 'archive',      label: 'SIGNAL ARCHIVE',   view: 'signal-archive', icon: 'archive' },
@@ -73,10 +75,11 @@ async function renderInstitutionalHub() {
 
 // ============= Analytics Hub =============
 const analyticsHubTabs = [
+    { id: 'options',       label: 'OPTIONS FLOW',   view: 'options-flow',      icon: 'ssid_chart' },
+    { id: 'gex',           label: 'GAMMA EXPOSURE', view: 'gex-profile',       icon: 'bar_chart' },
     { id: 'whales',        label: 'WHALE PULSE',    view: 'whales',            icon: 'waves' },
     { id: 'velocity',      label: 'CHAIN VELOCITY', view: 'velocity',          icon: 'speed' },
     { id: 'onchain',       label: 'ON-CHAIN STATS', view: 'onchain',           icon: 'link' },
-    { id: 'options',       label: 'OPTIONS FLOW',   view: 'options-flow',      icon: 'ssid_chart' },
     { id: 'newsroom',      label: 'NEWSROOM',       view: 'newsroom',          icon: 'newspaper' },
     { id: 'custom',        label: 'CUSTOM CHARTS',  view: 'custom-analytics',  icon: 'bar_chart' }
 ];

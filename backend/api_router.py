@@ -597,6 +597,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_tape()
             elif path == '/api/generate-setup':
                 self.handle_setup_generation()
+            elif path == '/api/gex-profile':
+                self.handle_gex_profile()
+            elif path == '/api/volume-profile':
+                self.handle_volume_profile()
+            elif path == '/api/lob-heatmap':
+                self.handle_lob_heatmap()
+            elif path == '/api/oi-funding-heatmap':
+                self.handle_oi_funding_heatmap()
             elif path == '/api/whales':
                 self.handle_whales()
             elif path.startswith('/api/liquidation-map'):

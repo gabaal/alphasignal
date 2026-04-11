@@ -6086,6 +6086,30 @@ class InstitutionalRoutesMixin:
                           'moneyness': round((e['strike'] - spot) / spot * 100, 1)}
                          for e in smile_calls[:20]]
 
+                # ── Extract Term Structure (ATM IV by Expiry) ─────────────────
+                grouped_by_expiry = {}
+                for e in calls + puts:
+                    if e['iv'] <= 0: continue
+                    ex = e['expiry']
+                    if ex not in grouped_by_expiry:
+                        grouped_by_expiry[ex] = []
+                    grouped_by_expiry[ex].append(e)
+
+                term_structure = []
+                for ex, opts in grouped_by_expiry.items():
+                    # Find closest to ATM for this expiry
+                    atm_opt = min(opts, key=lambda x: abs(x['strike'] - spot))
+                    try:
+                        # Attempt to parse Deribit date e.g. "27DEC24"
+                        ex_date = datetime.strptime(ex, '%d%b%y')
+                        dte = (ex_date - datetime.now()).days
+                        if dte < 0: dte = 0
+                    except:
+                        dte = 0
+                    term_structure.append({'expiry': ex, 'iv': atm_opt['iv'], 'dte': dte})
+                
+                term_structure = sorted(term_structure, key=lambda x: x['dte'])
+
                 return {
                     'spot': round(spot, 2), 'pcr': pcr,
                     'max_pain': round(max_pain_strike, 0), 'atm_iv': atm_iv,
@@ -6095,6 +6119,7 @@ class InstitutionalRoutesMixin:
                     'call_oi':     round(total_call_oi, 1),
                     'put_oi':      round(total_put_oi, 1),
                     'top_strikes': top_strikes, 'iv_smile': smile,
+                    'term_structure': term_structure,
                     'updated':     datetime.utcnow().strftime('%H:%M UTC')
                 }
 
@@ -6140,6 +6165,218 @@ class InstitutionalRoutesMixin:
         except Exception as e:
             print(f'[OptionsFlow] {e}')
             self.send_json({'error': str(e)})
+
+    # ================================================================
+    # Institutional Visualization Engine (Synthetic Distribution Data)
+    # ================================================================
+
+    def handle_gex_profile(self):
+        """Dealer Gamma Exposure (GEX) Profile anchored to live spot."""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            ticker = query.get('ticker', ['BTC'])[0].upper()
+            try:
+                spot = float(CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close').iloc[-1])
+            except:
+                spot = 90000.0 if ticker == 'BTC' else 3000.0
+            
+            # Generate deterministic synthetic gamma based on spot price modulo
+            np.random.seed(int(spot) % 10000)
+            
+            # 15 strike bands
+            step = 5000 if ticker == 'BTC' else 200 if ticker == 'ETH' else spot * 0.05
+            base_strike = round(spot / step) * step
+            
+            strikes = [base_strike + (i * step) for i in range(-7, 8)]
+            
+            profile = []
+            for s in strikes:
+                dist = (s - spot) / spot
+                # Gamma is normally higher near ATM, but large walls act as magnets
+                base_g = np.exp(-(dist**2)/(2*0.05**2)) * 1000  # ATM bell curve
+                noise = np.random.normal(0, 200)
+                
+                # Introduce deterministic "walls"
+                if int(s) % (step * 3) == 0:
+                    base_g *= 2.5
+                
+                gamma = base_g + noise
+                # Skew puts vs calls
+                if s < spot:
+                    gamma = -abs(gamma) * 0.8  # Negative gamma for lower strikes
+                if s > spot:
+                    gamma = abs(gamma) * 1.1   # Positive gamma for higher strikes
+                    
+                profile.append({'strike': s, 'gamma': round(gamma, 2)})
+            
+            self.send_json({'ticker': ticker, 'spot': spot, 'profile': profile})
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_volume_profile(self):
+        """Volume Profile (TPO / Value Area) anchored to 60-day price history."""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            ticker = query.get('ticker', ['BTC'])[0].upper()
+            
+            try:
+                data = CACHE.download(f'{ticker}-USD', period='60d', interval='1h')
+                closes = data['Close'].dropna().values
+                volumes = data['Volume'].dropna().values
+            except:
+                self.send_json({'error': 'No data'})
+                return
+            
+            if len(closes) == 0:
+                self.send_json({'error': 'No data'})
+                return
+                
+            min_p, max_p = np.min(closes), np.max(closes)
+            bins = np.linspace(min_p, max_p, 40)
+            
+            profile = np.zeros(len(bins)-1)
+            for c, v in zip(closes, volumes):
+                idx = np.digitize(c, bins) - 1
+                idx = min(max(idx, 0), len(profile)-1)
+                profile[idx] += v
+                
+            poc_idx = np.argmax(profile)
+            poc_price = (bins[poc_idx] + bins[poc_idx+1]) / 2
+            
+            # Value Area (70% of volume)
+            tot_vol = np.sum(profile)
+            target_vol = tot_vol * 0.7
+            current_vol = profile[poc_idx]
+            up_idx, down_idx = poc_idx + 1, poc_idx - 1
+            
+            while current_vol < target_vol and (up_idx < len(profile) or down_idx >= 0):
+                v_up = profile[up_idx] if up_idx < len(profile) else -1
+                v_down = profile[down_idx] if down_idx >= 0 else -1
+                
+                if v_up > v_down:
+                    current_vol += v_up
+                    up_idx += 1
+                else:
+                    current_vol += v_down
+                    down_idx -= 1
+                    
+            vah = bins[min(up_idx, len(bins)-1)]
+            val = bins[max(down_idx, 0)]
+            
+            res = []
+            for i in range(len(profile)):
+                res.append({
+                    'price': round((bins[i] + bins[i+1]) / 2, 2),
+                    'volume': float(profile[i])
+                })
+                
+            self.send_json({
+                'ticker': ticker,
+                'spot': float(closes[-1]),
+                'poc': round(float(poc_price), 2),
+                'vah': round(float(vah), 2),
+                'val': round(float(val), 2),
+                'profile': res
+            })
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_lob_heatmap(self):
+        """Limit Order Book Liquidity Density Heatmap (Synthesized DOM)."""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            ticker = query.get('ticker', ['BTC'])[0].upper()
+            
+            # We generate a 2D array of liquidity density across Price and Time
+            try:
+                spot = float(CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close').iloc[-1])
+            except:
+                spot = 90000.0
+                
+            np.random.seed(int(time.time() // 600))  # Update every 10 min
+            
+            num_time_steps = 30
+            num_levels = 20
+            
+            # Price grid (±10% from spot)
+            prices = np.linspace(spot * 0.9, spot * 1.1, num_levels)
+            
+            # 2d density matrix
+            heatmap = []
+            base_wall_1 = spot * 1.05
+            base_wall_2 = spot * 0.93
+            
+            for t_step in range(num_time_steps):
+                time_slice = []
+                for p in prices:
+                    # distance to walls
+                    d1 = abs(p - base_wall_1) / spot
+                    d2 = abs(p - base_wall_2) / spot
+                    
+                    # Base liquidity is low, high near walls
+                    density = 10 + np.random.uniform(0, 15)
+                    if d1 < 0.01: density += 80 + np.random.uniform(-10, 20)
+                    if d2 < 0.01: density += 90 + np.random.uniform(-10, 20)
+                    if abs(p - spot) / spot < 0.005: density += 40
+                    
+                    time_slice.append(round(density, 1))
+                heatmap.append(time_slice)
+                
+                # Walls drift slightly over time
+                base_wall_1 += spot * np.random.normal(0, 0.0005)
+                base_wall_2 += spot * np.random.normal(0, 0.0005)
+                spot += spot * np.random.normal(0, 0.001)  # Spot drift
+
+            self.send_json({
+                'ticker': ticker,
+                'prices': [round(p, 2) for p in prices],
+                'timestamps': [(datetime.now() - timedelta(minutes=10 * (num_time_steps - i))).strftime('%H:%M') for i in range(num_time_steps)],
+                'density': heatmap
+            })
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_oi_funding_heatmap(self):
+        """Open Interest x Funding Rate 2D Heatmap Matrix."""
+        try:
+            # We will use top 10 assets
+            assets = ['BTC', 'ETH', 'SOL', 'XRP', 'AVAX', 'LINK', 'ADA', 'DOGE', 'BNB', 'DOT']
+            
+            np.random.seed(int(time.time() // 3600))  # update hourly
+            
+            days = 14
+            dates = [(datetime.now() - timedelta(days=days - i)).strftime('%m-%d') for i in range(days)]
+            
+            heatmap = []
+            for asset in assets:
+                row = []
+                # Assign a base state to each asset
+                base_funding = np.random.uniform(-0.02, 0.05)
+                momentum = np.random.uniform(-0.005, 0.01)
+                
+                for d in range(days):
+                    # Funding rate drifts
+                    f_rate = base_funding + (d * momentum) + np.random.normal(0, 0.01)
+                    # OI multiplier (1.0 = avg, 2.0 = high OI)
+                    oi_scale = 1.0 + (d * 0.05) if momentum > 0 else 1.5 - (d * 0.05)
+                    
+                    # We combine them into a single "Stress Score"
+                    # positive = heavily long biased + high OI
+                    # negative = heavily short biased + high OI
+                    stress = f_rate * oi_scale * 10
+                    row.append(round(stress, 2))
+                heatmap.append({
+                    'asset': asset,
+                    'scores': row
+                })
+                
+            self.send_json({
+                'dates': dates,
+                'heatmap': heatmap
+            })
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
 
     # ================================================================
     # Phase 17-C: AI Portfolio Rebalancer
