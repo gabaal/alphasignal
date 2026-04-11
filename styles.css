@@ -4534,7 +4534,10 @@ input:focus, select:focus, textarea:focus {
 
     /* ── All inline grids with 2+ cols: collapse ── */
     [style*="grid-template-columns: 1fr 1.5fr"],
+    [style*="grid-template-columns: 1.5fr 1fr"],
     [style*="grid-template-columns: 1fr 1fr"],
+    [style*="grid-template-columns: 2fr 1fr"],
+    [style*="grid-template-columns: 1fr 2fr"],
     [style*="grid-template-columns: 320px"],
     [style*="grid-template-columns: 3fr"],
     [style*="grid-template-columns: 2fr"] {
@@ -4559,9 +4562,10 @@ input:focus, select:focus, textarea:focus {
         grid-template-columns: repeat(2, 1fr) !important;
     }
 
-    /* ── Charts: allow taller canvases for scatter/equity ── */
-    canvas:not(#riskScatterChart) { max-height: 240px !important; }
+    /* ── Charts: allow taller canvases for specific module interfaces ── */
+    canvas:not(#riskScatterChart, #ivSmileChart, #gexChart, .profile-chart) { max-height: 250px !important; }
     #riskScatterChart { max-height: 400px !important; }
+    #ivSmileChart, #gexChart { max-height: 350px !important; }
 
     /* ── Matrix container: scroll ── */
     .rotation-matrix-container,

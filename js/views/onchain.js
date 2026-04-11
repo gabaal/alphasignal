@@ -1573,7 +1573,7 @@ window.renderVolumeProfile = async function(tabs = null) {
                 <h3>Market Profile (TPO)</h3>
                 <span class="badge outline"">Spot: $${data.spot}</span>
             </div>
-            <div style="display:flex;gap:15px;margin:1rem 0">
+            <div style="display:flex;gap:15px;margin:1rem 0;flex-wrap:wrap">
                 <div style="background:var(--bg-input);padding:10px;border-radius:8px;flex:1">
                     <div style="font-size:0.7rem;color:var(--text-dim)">POINT OF CONTROL</div>
                     <div style="font-size:1.2rem;font-weight:700;color:var(--accent)">$${data.poc}</div>
