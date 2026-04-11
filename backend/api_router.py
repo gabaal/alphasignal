@@ -782,6 +782,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 })
             elif path == '/health':
                 self.handle_health()
+            elif path == '/' and query_params.get('view') == ['signal'] and query_params.get('id'):
+                self.handle_ssr_permalink(query_params['id'][0])
             else:
                 super().do_GET()
         except Exception as e:
@@ -830,4 +832,39 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         except Exception as e:
             print(f'[Onboarding] Error: {e}')
             self.send_json({'success': False, 'error': str(e)})
+
+    def handle_ssr_permalink(self, ticker):
+        price = "fetching..."
+        bias = "Unknown"
+        z_score = "0.00"
+        
+        cache = self._signals_cache.get('data', [])
+        for item in cache:
+            if item.get('ticker') == ticker:
+                price = item.get('price', price)
+                bias = str(item.get('sentiment', bias)).upper()
+                z_score = str(item.get('z_score', z_score))
+                break
+                
+        try:
+            with open('index.html', 'r', encoding='utf-8') as f:
+                html = f.read()
+                
+            og_tags = f"""
+    <meta property="og:title" content="AlphaSignal Institutional | {ticker} Live Signal" />
+    <meta property="og:description" content="Technical Bias: {bias} | Standard Deviation (Z-Score): {z_score} | Active Price: ${price}." />
+    <meta property="og:image" content="https://alphasignal.digital/assets/preview.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+            """
+            
+            html = html.replace('</head>', og_tags + '\n</head>')
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(html.encode('utf-8'))
+        except Exception as e:
+            print(f'[SSR Error] {e}')
+            super().do_GET()
 
