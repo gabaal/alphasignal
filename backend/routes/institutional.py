@@ -4743,12 +4743,14 @@ class InstitutionalRoutesMixin:
                 self.send_error_json('Insufficient correlation data.')
                 return
             corr_matrix = data.pct_change().dropna().corr()
-            formatted = []
+            matrix = []
             tickers = corr_matrix.columns.tolist()
-            for i, t1 in enumerate(tickers):
+            for t1 in tickers:
+                row = []
                 for t2 in tickers:
-                    formatted.append({'x': t1.split('-')[0], 'y': t2.split('-')[0], 'v': round(float(corr_matrix.loc[t1, t2]), 2)})
-            self.send_json({'status': 'success', 'matrix': formatted, 'tickers': [t.split('-')[0] for t in tickers]})
+                    row.append(round(float(corr_matrix.loc[t1, t2]), 2))
+                matrix.append(row)
+            self.send_json({'status': 'success', 'matrix': matrix, 'tickers': [t.split('-')[0] for t in tickers]})
         except Exception as e:
             self.send_error_json(f'Correlation Error: {e}')
 
@@ -5278,6 +5280,14 @@ class InstitutionalRoutesMixin:
             limit     = int(query.get('limit', ['200'])[0])
             start_date= query.get('start', [''])[0]
             end_date  = query.get('end', [''])[0]
+            ema_str   = query.get('ema', [''])[0]
+            alpha_str = query.get('alpha', [''])[0]
+            
+            ema_filter = int(ema_str) if ema_str and ema_str.isdigit() else None
+            try:
+                alpha_filter = float(alpha_str) if alpha_str else None
+            except ValueError:
+                alpha_filter = None
 
             # 1. Pull signal history from DB
             conn = sqlite3.connect(DB_PATH)
@@ -5449,6 +5459,41 @@ class InstitutionalRoutesMixin:
                     direction = 1
                 else:
                     direction = -1  # conservative: unknown bearish
+
+                # -- APPLY FILTERS --
+                if ema_filter:
+                    sorted_past = [k for k in sorted_ts if k <= entry_bar_ts]
+                    if len(sorted_past) >= ema_filter:
+                        vals = [prices_dict[k] for k in sorted_past[-ema_filter*2:]]
+                        ema_val = pd.Series(vals).ewm(span=ema_filter, adjust=False).mean().iloc[-1]
+                        if direction == 1 and entry_pr <= ema_val:
+                            continue # Filtered out
+                        if direction == -1 and entry_pr >= ema_val:
+                            continue # Filtered out
+                    else:
+                        continue
+                        
+                if alpha_filter is not None:
+                    sorted_past = [k for k in sorted_ts if k <= entry_bar_ts]
+                    if len(sorted_past) >= 30:
+                        pr_30d_ago = prices_dict[sorted_past[-30]]
+                        asset_ret_30d = (entry_pr - pr_30d_ago) / pr_30d_ago * 100
+                        
+                        btc_entry_ts = min(btc_prices, key=lambda t: abs(t - entry_bar_ts), default=None)
+                        btc_30d_ts = min(btc_prices, key=lambda t: abs(t - sorted_past[-30]), default=None)
+                        
+                        if btc_entry_ts and btc_30d_ts and btc_prices.get(btc_entry_ts) and btc_prices.get(btc_30d_ts):
+                            btc_ret_30d = (btc_prices[btc_entry_ts] - btc_prices[btc_30d_ts]) / btc_prices[btc_30d_ts] * 100
+                            alpha_30d = asset_ret_30d - btc_ret_30d
+                            if direction == 1 and alpha_30d < alpha_filter:
+                                continue
+                            if direction == -1 and (alpha_30d * -1) < alpha_filter:
+                                continue
+                        else:
+                            continue
+                    else:
+                        continue
+
                 pnl_pct   = direction * (exit_pr - entry_pr) / entry_pr * 100
                 pnl_pct   = max(-50.0, min(50.0, pnl_pct))  # cap at ±50% per trade
 

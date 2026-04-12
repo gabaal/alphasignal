@@ -113,6 +113,15 @@ function renderDocsViewPortfolioOptimizer() {
                     'Frontier shifting downward = all portfolios expected to earn less; risk-off regime',
                     'Current portfolio ON the frontier = already optimal; focus on regime monitoring'
                 ]
+            },
+            {
+                name: 'Cross-Asset Correlation Matrix (30D)', type: 'CHART', icon: 'grid_on',
+                description: 'A live 15x15 dynamic D3 heatmap plotting Pearson correlations between the top institutional assets over a 35-day window. Updates instantly when the basket is simulated.',
+                howToRead: 'Dark green squares (+1.0) = perfectly correlated. Red squares (-1.0) = inversely correlated. Grey (0) = fully decorrelated. The more red/grey in the matrix, the more diversified the exposure.',
+                signals: [
+                    'Heavy green clustering = portfolio is effectively a single directional bet; diversify immediately',
+                    'Assets showing red correlation to BTC = excellent hedges during downturns'
+                ]
             }
         ]
     });
@@ -794,6 +803,14 @@ function renderDocsViewMyTerminal() {
                 signals: [
                     'Disabling Regime Change push notifications = high risk; regime shifts are the most impactful events',
                     'Best practice: enable push for Z-Score >2.0 and Regime Change only; check terminal manually for others'
+                ]
+            },
+            {
+                name: 'Proprietary AI Memory (RAG)', type: 'AI', icon: 'memory',
+                description: 'A Retrieval-Augmented Generation (RAG) knowledge base. Enter unique institutional insights, quantitative rules, or proprietary parameters here.',
+                howToRead: 'These memory blocks are permanently fed to the AI personas across the terminal. They instruct the AI how you specifically trade.',
+                signals: [
+                    'Add specific risk management limits to Memory, and the AI will warn you if a setup violates them'
                 ]
             }
         ]

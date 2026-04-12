@@ -606,6 +606,11 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
             console.error('Efficient Frontier render error:', e);
         }
     }, 800);
+
+    // Render Phase 6 Correlation Array
+    if (typeof loadCorrelationMatrix === 'function') {
+        loadCorrelationMatrix(activeBasket.join(','), 'correlation-heatmap', '/portfolio/correlations');
+    }
 }
 
 window.executeRebalance = async function() {

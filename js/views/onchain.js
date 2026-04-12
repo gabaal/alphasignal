@@ -489,7 +489,14 @@ async function renderBacktesterV2(tabs = null) {
                 <input type="date" id="btv2-start" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:0.75rem;font-family:'JetBrains Mono'">
                 <label style="font-size:0.7rem;color:var(--text-dim);margin-left:8px">END</label>
                 <input type="date" id="btv2-end" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:0.75rem;font-family:'JetBrains Mono'">
+                <label style="font-size:0.7rem;color:var(--text-dim);margin-left:8px">EMA TRND ></label>
+                <input type="number" id="btv2-ema" placeholder="50" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 8px;border-radius:6px;font-size:0.75rem;width:60px">
+                <label style="font-size:0.7rem;color:var(--text-dim);margin-left:8px">ALPHA % ></label>
+                <input type="number" id="btv2-alpha" placeholder="1.0" step="0.5" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 8px;border-radius:6px;font-size:0.75rem;width:60px">
                 <button onclick="loadBacktesterV2()" style="background:linear-gradient(135deg,#00d4aa,#00a896);color:#000;border:none;padding:8px 18px;border-radius:8px;font-weight:800;font-size:0.75rem;cursor:pointer;letter-spacing:1px;margin-left:8px">RUN</button>
+                <button id="btv2-commit-btn" onclick="saveBacktestToMemory()" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);padding:8px 10px;border-radius:8px;font-weight:800;font-size:0.65rem;cursor:pointer;letter-spacing:1px;margin-left:8px;display:none;align-items:center;gap:4px">
+                    <span class="material-symbols-outlined" style="font-size:14px">memory</span>RAG COMMIT
+                </button>
             </div>
         </div>
         <div id="btv2-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem">
@@ -523,13 +530,21 @@ async function loadBacktesterV2() {
     const hold = document.getElementById('btv2-hold') ? document.getElementById('btv2-hold').value : '5';
     const start = document.getElementById('btv2-start') ? document.getElementById('btv2-start').value : '';
     const end = document.getElementById('btv2-end') ? document.getElementById('btv2-end').value : '';
+    const ema = document.getElementById('btv2-ema') ? document.getElementById('btv2-ema').value : '';
+    const alpha = document.getElementById('btv2-alpha') ? document.getElementById('btv2-alpha').value : '';
     if (hold === '20') showToast('BACKTESTER', '20-day hold: lower signal density, higher volatility. Best for trend-following signals.', 'info');
     ['win-rate','total-trades','total-return','sharpe','max-drawdown','profit-factor','calmar'].forEach(id => {
         const el = document.getElementById('btv2-' + id);
         if (el) el.innerHTML = '<span style="font-size:0.8rem;color:var(--text-dim)">...</span>';
     });
     try {
-        const data = await fetchAPI(`/backtest-v2?hold=${hold}&limit=10000&start=${start}&end=${end}`);
+        const urlParams = new URLSearchParams({ hold, limit: 10000 });
+        if (start) urlParams.append('start', start);
+        if (end) urlParams.append('end', end);
+        if (ema) urlParams.append('ema', ema);
+        if (alpha) urlParams.append('alpha', alpha);
+        
+        const data = await fetchAPI('/backtest-v2?' + urlParams.toString());
         // Show error toast for any error condition
         if (data.error || !data.trades || !data.trades.length) {
             const msg = data.error || 'No signal history yet. Signals generate automatically as the system runs.';
@@ -585,9 +600,51 @@ async function loadBacktesterV2() {
                 showToast('EXPORT', 'Backtest trades exported as CSV.', 'success');
             };
             renderBtv2Table(data.trades.slice().reverse());
+            
+            // Show commit button if inputs were used
+            const commitBtn = document.getElementById('btv2-commit-btn');
+            if (commitBtn && (ema || alpha)) {
+                commitBtn.style.display = 'flex';
+                commitBtn.dataset.ema = ema;
+                commitBtn.dataset.alpha = alpha;
+                commitBtn.dataset.sharpe = s.sharpe || 0;
+            } else if (commitBtn) {
+                commitBtn.style.display = 'none';
+            }
         }
     } catch(e) {
         showToast('BACKTESTER', 'Failed: ' + e.message, 'alert');
+    }
+}
+
+async function saveBacktestToMemory() {
+    const btn = document.getElementById('btv2-commit-btn');
+    if (!btn) return;
+    const ema = btn.dataset.ema;
+    const alpha = btn.dataset.alpha;
+    const sharpe = btn.dataset.sharpe;
+    if (!ema && !alpha) return;
+    
+    let content = 'Only execute signals that meet the following validated threshold: ';
+    if (ema) content += `Asset price MUST be above the ${ema} EMA trend boundary. `;
+    if (alpha) content += `Asset 30-Day cumulative return MUST be outperforming the BTC benchmark by at least ${alpha}%. `;
+    content += `(Validated by Backtester V2 with Sharpe: ${sharpe})`;
+    
+    try {
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;animation:spin 1s linear infinite">sync</span> SAVING...';
+        await fetchAPI('/user/ai-memory', 'POST', {
+            title: `Validated Quant Constraint [EMA/Alpha]`,
+            content: content
+        });
+        showToast('RAG MEMORY', 'Backtest constraints committed to AI Persona memory banks.', 'success');
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">check_circle</span> COMMITTED';
+        btn.style.color = '#10b981';
+        btn.style.borderColor = 'rgba(16,185,129,0.3)';
+        btn.style.background = 'rgba(16,185,129,0.1)';
+        btn.onclick = null;
+    } catch(e) {
+        showToast('RAG MEMORY', 'Failed to commit to memory: ' + e.message, 'alert');
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px">error</span> FAILED';
     }
 }
 

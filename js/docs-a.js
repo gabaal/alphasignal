@@ -97,6 +97,11 @@ function renderHelp() {
             { name: 'API Keys & Webhooks', desc: '2 components: Exchange API secure linking, Outbound Algorithmic Webhook config', route: 'docs-integrations', icon: 'key' }
           ]
         },
+        { id: 'system-architecture', name: 'Terminal Philosophy', icon: 'account_tree', color: '#8b5cf6', view: 'help',
+          docs: [
+            { name: 'Conceptual Framework', desc: 'How to mentally perceive each Analytical Hub. A high-level guide to Macro Intel vs Order Flow vs ML Strategy.', route: 'docs-conceptual-framework', icon: 'psychology' }
+          ]
+        },
     ];
 
     appEl.innerHTML = `
@@ -645,6 +650,65 @@ function renderDocsViewVolumeProfile() {
                     'Price extending far above POC = overvalued short-term; expect mean reversion',
                     'High Volume Node forming = new acceptance of price; establishes strong support/resistance',
                     'Low Volume Node (gap between peaks) = low friction zone; price will traverse this rapidly'
+                ]
+            }
+        ]
+    });
+}
+
+// ============= TERMINAL PHILOSOPHY =============
+function renderDocsViewConceptualFramework() {
+    renderViewDocPage({
+        hub: 'Terminal Philosophy', hubIcon: 'account_tree', hubColor: '#8b5cf6',
+        title: 'Conceptual Framework', viewId: 'help',
+        summary: 'A high-level philosophical guide to navigating the AlphaSignal Terminal. Understand the exact purpose and intended execution flow across the six core analytical hubs.',
+        components: [
+            {
+                name: '1. Macro Intelligence Hub', type: 'CONCEPT', icon: 'public',
+                description: '"What is the weather?" — This hub is where your day begins. It abstracts away complex TradFi correlation matrices, Treasury yield curves, and macroeconomic calendars. Its sole purpose is to determine whether the baseline market regime is expansionary (pro-risk) or contractionary (risk-off).',
+                howToRead: 'If the regime is contractionary here, ignore bullish signals in other hubs. The Macro Intel Hub overrides everything else.',
+                signals: [
+                    'Sets the global directional bias before looking at individual assets'
+                ]
+            },
+            {
+                name: '2. Analytics Hub', type: 'CONCEPT', icon: 'analytics',
+                description: '"What is the institutional reality?" — The Analytics Hub cuts through social media noise by looking purely at capital flow. It combines Whale monitoring (block transfers), On-Chain cycle positioning (MVRV, SOPR), and Options Flow (put/call skew).',
+                howToRead: 'Use this hub to identify accumulation and distribution. If whales are sending ETH to exchanges while the Option smile shows a steep put skew, institutions are hedging for a crash.',
+                signals: [
+                    'Validates or invalidates the narratives seen in the broader market'
+                ]
+            },
+            {
+                name: '3. Order Flow (GOMM)', type: 'CONCEPT', icon: 'blur_on',
+                description: '"Where are the sharks swimming?" — Order Flow is the final step before execution. It reads the micro-fluctuations in the combined exchange limit order books (LOB) and the live high-volume execution tape.',
+                howToRead: 'Once you have a thesis from Macro and Analytics, use Order Flow to pinpoint the exact entry level. Do not enter blindly — wait for the execution tape to show institutional absorption at your chosen level.',
+                signals: [
+                    'Used purely for tactical entry and exit precision, not long-term bias'
+                ]
+            },
+            {
+                name: '4. Quant Strategy Lab', type: 'CONCEPT', icon: 'electric_bolt',
+                description: '"Where is the statistical edge?" — This is the quantitative core. The ML Engine tracks live alpha divergence and runs real-time backtests for hundreds of assets. It translates complex datasets into simple Z-scores (standard deviations from the mean).',
+                howToRead: 'When a Z-score crosses 2.0, the asset is behaving with statistical anomaly. This hub generates the actual trade ideas that you then validate with Order Flow.',
+                signals: [
+                    'Provides the raw material (trade ideas) for your daily workflow'
+                ]
+            },
+            {
+                name: '5. Institutional Hub', type: 'CONCEPT', icon: 'key',
+                description: '"How do we manage risk?" — Built on Modern Portfolio Theory, this hub manages the entire basket of assets. It calculates Value-at-Risk (VaR) and provides AI-driven Markowitz rebalancing recommendations.',
+                howToRead: 'Before committing more capital, run it through the Portfolio Optimizer. If the new asset drastically increases your 15x15 Matrix correlation, the AI will reject the trade as redundant risk.',
+                signals: [
+                    'Prevents catastrophic correlation cascades in your portfolio'
+                ]
+            },
+            {
+                name: '6. Trade Ledger Audit', type: 'CONCEPT', icon: 'trending_up',
+                description: '"Is my performance genuine edge or just beta?" — The accountability layer. It tracks every executed trade against the broader BTC benchmark to determine if you are actually generating Alpha.',
+                howToRead: 'Review this monthly. If your Beta attribution is high and Alpha is negative, your strategy is merely riding the broader market trend with poor execution.',
+                signals: [
+                    'The ultimate source of truth for strategy effectiveness'
                 ]
             }
         ]

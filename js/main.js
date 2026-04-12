@@ -162,6 +162,7 @@ const viewMap = {
     'docs-how-signals-work': renderDocsViewHowSignalsWork,
     'docs-integrations': renderDocsViewIntegrations,
     'docs-plain-english': renderDocsViewPlainEnglish,
+    'docs-conceptual-framework': typeof renderDocsViewConceptualFramework !== 'undefined' ? renderDocsViewConceptualFramework : () => {},
     'docs-lob-heatmap': typeof renderDocsViewLOBHeatmap !== 'undefined' ? renderDocsViewLOBHeatmap : () => {},
     'docs-gex': typeof renderDocsViewGEX !== 'undefined' ? renderDocsViewGEX : () => {},
     'docs-volume-profile': typeof renderDocsViewVolumeProfile !== 'undefined' ? renderDocsViewVolumeProfile : () => {},

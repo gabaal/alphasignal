@@ -556,12 +556,13 @@ async function exportReport() {
 }
 
 
-async function loadCorrelationMatrix(tickers) {
-    const container = document.getElementById('corr-chart');
+async function loadCorrelationMatrix(tickers, containerId = 'corr-chart', endpointUrl = null) {
+    const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = `<div style="padding:2rem; text-align:center; color:var(--text-dim); font-size:0.75rem">Computing correlations...</div>`;
 
-    const data = await fetchAPI(`/correlation?tickers=${tickers}&period=60d`);
+    const url = endpointUrl || `/correlation?tickers=${tickers}&period=60d`;
+    const data = await fetchAPI(url);
     if (!data || data.error || !data.matrix) {
         container.innerHTML = `<div style="padding:2rem; text-align:center; color:#ef4444; font-size:0.75rem">Could not load data. Try a different basket.</div>`;
         return;
@@ -575,7 +576,7 @@ async function loadCorrelationMatrix(tickers) {
     const height = size * n + margin.top + margin.bottom + 50;
 
     container.innerHTML = '';
-    const svg = d3.select('#corr-chart')
+    const svg = d3.select('#' + containerId)
         .append('svg')
         .attr('width', width)
         .attr('height', height);
