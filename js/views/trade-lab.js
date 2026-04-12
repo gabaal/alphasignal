@@ -1,4 +1,4 @@
-﻿async function renderTradeLab(tabs = null) {
+async function renderTradeLab(tabs = null) {
     if (!tabs) tabs = institutionalHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -130,9 +130,12 @@ async function renderTradeLedger(tabs = null) {
         if (!res || res.error) {
             appEl.innerHTML = `
                 <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance</h2>
-                    <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">list_alt</span>Trade Ledger <span class="premium-badge">AUDIT</span></h1>
+                    <div>
+                        <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance Hub</h2>
+                        <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">list_alt</span>Trade Ledger <span class="premium-badge">AUDIT</span></h1>
+                    </div>
                 </div>
+                ${renderHubTabs('ledger', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Institutional Trade Ledger</h2>
                 <div class="paywall-feature-block">
                     <span class="material-symbols-outlined" style="font-size:4rem; color:var(--accent); margin-bottom:1.5rem">history_edu</span>
@@ -189,8 +192,9 @@ async function renderTradeLedger(tabs = null) {
             appEl.innerHTML = modalHtml + `
                 <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px">
                     <div>
-                        <h2>Institutional Trade Ledger</h2>
-                        <p class="subtitle" style="margin:0">Auditable record of generated neural execution tickets.</p>
+                        <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance Hub</h2>
+                        <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">list_alt</span>Trade Ledger <span class="premium-badge">AUDIT</span></h1>
+                        <p class="subtitle" style="margin:4px 0 0 0">Auditable record of generated neural execution tickets.</p>
                     </div>
                     <div style="display:flex; align-items:center; gap:15px; margin-bottom:5px">
                         <button class="filter-btn" id="btn-prev-ledger" aria-label="Go to previous ledger page" ${currentPage === 1 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : ''}>&larr; Prev</button>
@@ -201,6 +205,7 @@ async function renderTradeLedger(tabs = null) {
                         </button>
                     </div>
                 </div>
+                ${renderHubTabs('ledger', tabs)}
 
                 <div class="ledger-container">
                     <table class="ledger-table">
