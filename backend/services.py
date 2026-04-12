@@ -514,7 +514,7 @@ class HarvestService:
             
             # Phase 8: Alpha Alert Generation
             try:
-                self.generate_alpha_alerts(data)
+                self.generate_alpha_alerts(data, current_regime=last_regime)
             except Exception as e:
                 print(f"Alpha Generation Error: {e}")
             
@@ -661,7 +661,7 @@ class HarvestService:
         finally:
             conn.close()
 
-    def generate_alpha_alerts(self, data):
+    def generate_alpha_alerts(self, data, current_regime=None):
         """Phase 8: Predict Alpha signals using ML engine using high-efficiency batch data."""
         if data is None or data.empty: return
         
@@ -771,6 +771,45 @@ class HarvestService:
                                                 except Exception as we:
                                                     print(f"[AlgoWebhook] Error pushing to {t_email}: {we}")
                                             threading.Thread(target=_fire_algo, daemon=True).start()
+                                            
+                                        # --- NEW: Internal Algo Bots ---
+                                        try:
+                                            import sqlite3
+                                            from backend.database import DB_PATH
+                                            bot_conn = sqlite3.connect(DB_PATH)
+                                            bot_c = bot_conn.cursor()
+                                            bot_c.execute("SELECT id, name, condition_zscore, condition_regime, action_side, action_amount, action_exchange, asset, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email = ? AND status = 'active'", (target_email,))
+                                            bots = bot_c.fetchall()
+                                            
+                                            for b_id, b_name, b_z, b_regime, b_side, b_amt, b_exch, b_asset, b_tp_pct, b_sl_pct in bots:
+                                                if (pred_return * 100) >= b_z:
+                                                    if b_asset != 'ANY' and b_asset != ticker:
+                                                        continue
+                                                    if b_regime != 'ANY' and current_regime and current_regime != b_regime:
+                                                        continue
+                                                    
+                                                    action_dir = 'BUY' if pred_return > 0 else 'SELL'
+                                                    if b_side != 'MATCH_SIGNAL':
+                                                        action_dir = b_side.upper()
+                                                    
+                                                    trade_action = f"{action_dir} (${b_amt}) [Bot: {b_name} | API: {b_exch}]"
+                                                    
+                                                    tp_price = 0.0
+                                                    sl_price = 0.0
+                                                    if b_tp_pct and b_tp_pct > 0:
+                                                        tp_price = curr_p * (1 + (b_tp_pct/100)) if action_dir == 'BUY' else curr_p * (1 - (b_tp_pct/100))
+                                                    if b_sl_pct and b_sl_pct > 0:
+                                                        sl_price = curr_p * (1 - (b_sl_pct/100)) if action_dir == 'BUY' else curr_p * (1 + (b_sl_pct/100))
+                                                        
+                                                    bot_c.execute("INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                                                                  (target_email, ticker, trade_action, curr_p, round(tp_price, 4), round(sl_price, 4), 0.0, 0.0))
+                                                    bot_c.execute("UPDATE trading_bots SET last_triggered = ? WHERE id = ?", (datetime.now().isoformat(), b_id))
+                                                    print(f"[AlgoBot] Executed {b_name} for {target_email} on {ticker}")
+                                            bot_conn.commit()
+                                            bot_conn.close()
+                                        except Exception as be:
+                                            print(f"[AlgoBot] Error checking bots for {target_email}: {be}")
+                                        # --------------------------------
                                     
                                     # The standard push_webhook logic below still gates on z_thresh
                                     if pred_return * 100 < user_z_thresh:

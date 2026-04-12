@@ -21,8 +21,8 @@ class KeyVault:
         secret = os.environ.get("KEYVAULT_SECRET")
         if not secret:
             logger.warning("KEYVAULT_SECRET not found in environment. Generating local DEV runtime key. Secrets saved during this session will become invalid across restarts unless KEYVAULT_SECRET is pinned.")
-            # Generate a consistent mock one using some host details if we want, but purely local memory is safer
-            secret = Fernet.generate_key()
+            # Use a deterministic static fallback key for local dev so restarts don't invalidate DB secrets
+            secret = b'f8S2bWvL4kP9jZ1qR5yH7xF3nM0cX8vT6dJ2wK4gH9A='
             os.environ["KEYVAULT_SECRET"] = secret.decode('utf-8')
         else:
             # Must be a 32 url-safe base64-encoded bytes string

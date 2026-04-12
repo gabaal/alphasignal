@@ -111,6 +111,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_price_alerts_delete(auth_info, item_id)
             elif path.startswith('/api/trade-ledger'):
                 self.handle_trade_ledger_delete(auth_info, item_id)
+            elif path.startswith('/api/algo-bots'):
+                query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                q_id = query.get('id', [None])[0]
+                self.handle_trading_bots_delete(auth_info, q_id or item_id)
+            elif path.startswith('/api/user/exchange-keys'):
+                # Extract id from query if it exists instead of path segment
+                query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                q_id = query.get('id', [None])[0]
+                self.handle_exchange_keys_delete(auth_info, q_id or item_id)
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -401,6 +410,26 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 auth_info = self.is_authenticated()
                 if auth_info: self.handle_onboarding_complete(auth_info, post_data)
                 else: self.send_response(401); self.end_headers()
+            elif path == '/api/user/exchange-keys':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_exchange_keys_post(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
+            elif path == '/api/algo-bots':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_trading_bots_post(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
+            elif path == '/api/algo-bots/toggle':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_trading_bots_toggle(auth_info, post_data.get('id'))
+                else: self.send_response(401); self.end_headers()
+            elif path == '/api/algo-bots/backtest':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_algo_backtest(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
+            elif path == '/api/execute-trade':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_execute_trade(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
             elif path.startswith('/api/signal/') and path.endswith('/close'):
                 # POST /api/signal/{id}/close  — manually deactivate a signal
                 auth_info = self.is_authenticated()
@@ -656,25 +685,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             elif path == '/api/user/settings':
                 self.handle_user_settings()
             elif path == '/api/user/exchange-keys':
-                if self.command == 'GET':
-                    self.handle_exchange_keys_get(auth_info)
-                elif self.command == 'POST':
-                    length = min(int(self.headers.get('Content-Length', 0)), 8192)
-                    data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
-                    self.handle_exchange_keys_post(auth_info, data)
-                elif self.command == 'DELETE':
-                    # import urllib.parse (removed to prevent shadowing)
-                    query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-                    item_id = query.get('id', [None])[0]
-                    if item_id:
-                        self.handle_exchange_keys_delete(auth_info, item_id)
-                    else:
-                        self.send_json({'error': 'id required'})
-            elif path == '/api/execute-trade':
-                if self.command == 'POST':
-                    length = min(int(self.headers.get('Content-Length', 0)), 8192)
-                    data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
-                    self.handle_execute_trade(auth_info, data)
+                self.handle_exchange_keys_get(auth_info)
             elif path == '/api/leaderboard':
                 self.handle_leaderboard()
             elif path == '/api/trade-lab':
@@ -771,6 +782,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             elif path == '/api/market-brief':
                 auth_info = auth_info or self.is_authenticated()
                 if auth_info: self.handle_market_brief()
+                else: self.send_response(401); self.end_headers()
+            elif path == '/api/algo-bots':
+                auth_info = auth_info or self.is_authenticated()
+                if auth_info: self.handle_trading_bots_get(auth_info)
                 else: self.send_response(401); self.end_headers()
             elif path.startswith('/api/signal/'):
                 # Public: /api/signal/{id} â€” no auth required for sharing

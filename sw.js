@@ -66,8 +66,10 @@ self.addEventListener('fetch', event => {
           url.pathname.endsWith('.png') ||
           url.pathname.endsWith('.ico')
         )) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          if (event.request.url.startsWith('http')) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          }
         }
         return response;
       });

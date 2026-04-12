@@ -325,5 +325,27 @@ def init_db():
         opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         notes TEXT
     )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS trading_bots (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email TEXT NOT NULL,
+        name TEXT NOT NULL,
+        asset TEXT NOT NULL,
+        condition_zscore REAL,
+        condition_regime TEXT,
+        action_side TEXT,
+        action_amount REAL,
+        action_exchange TEXT,
+        take_profit_pct REAL DEFAULT 0.0,
+        stop_loss_pct REAL DEFAULT 0.0,
+        status TEXT DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_triggered DATETIME
+    )''')
+    try:
+        c.execute("ALTER TABLE trading_bots ADD COLUMN take_profit_pct REAL DEFAULT 0.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE trading_bots ADD COLUMN stop_loss_pct REAL DEFAULT 0.0")
+    except: pass
     conn.commit()
     conn.close()
