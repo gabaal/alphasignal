@@ -1,7 +1,7 @@
 async function renderAlgoHub() {
     appEl.innerHTML = `
         <div class="view-header">
-            <h1><span class="material-symbols-outlined" style="vertical-align:-4px;margin-right:8px;color:var(--accent)">smart_toy</span>Algo Hub</h1>
+            <h1><span class="material-symbols-outlined" style="vertical-align:-4px;margin-right:8px;color:var(--accent)">smart_toy</span>Live Algo Builder</h1>
             <p style="color:var(--text-dim)">Construct no-code algorithmic trading bots. When AI signals trigger your logic, trades are automatically routed to your connected KeyVault exchange.</p>
         </div>
 

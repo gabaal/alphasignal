@@ -133,12 +133,32 @@ class AIEngineRoutesMixin:
             })
             return
 
+        # --- Fetch Proprietary Firm Memory (RAG) ---
+        proprietary_memory = ""
+        auth_info = self.is_authenticated() if hasattr(self, 'is_authenticated') else None
+        if auth_info and auth_info.get('email'):
+            try:
+                import sqlite3
+                from backend.database import DB_PATH
+                conn = sqlite3.connect(DB_PATH)
+                c = conn.cursor()
+                c.execute("SELECT title, content FROM ai_knowledge_base WHERE user_email=?", (auth_info['email'],))
+                rows = c.fetchall()
+                conn.close()
+                if rows:
+                    proprietary_memory = "\n\n<proprietary_firm_memory>\nUse the following institutional firm guidelines and research unconditionally:\n"
+                    for r in rows:
+                        proprietary_memory += f"Title: {r[0]}\n{r[1]}\n\n"
+                    proprietary_memory += "</proprietary_firm_memory>\n"
+            except Exception as e:
+                print(f"[RAG Error] Failed to fetch ai_knowledge_base: {e}")
+
         system_prompt = (
             "You are AlphaSignal Terminal — an institutional-grade crypto intelligence platform. "
             "Answer user questions about crypto markets, trading strategies, on-chain data, and "
             "the signals shown in the terminal. Be concise (max 150 words), precise, and actionable. "
             "Use markdown for formatting. Never give financial advice disclaimers — this is a professional tool."
-        )
+        ) + proprietary_memory
 
         try:
             resp = client.chat.completions.create(
@@ -209,13 +229,34 @@ class AIEngineRoutesMixin:
             f"stop-losses, and targets in your thesis MUST be quoted relative to this live price."
         ) if live_price else ""
 
+        # --- Fetch Proprietary Firm Memory (RAG) ---
+        proprietary_memory = ""
+        auth_info = self.is_authenticated() if hasattr(self, 'is_authenticated') else None
+        if auth_info and auth_info.get('email'):
+            try:
+                import sqlite3
+                from backend.database import DB_PATH
+                conn = sqlite3.connect(DB_PATH)
+                c = conn.cursor()
+                c.execute("SELECT title, content FROM ai_knowledge_base WHERE user_email=?", (auth_info['email'],))
+                rows = c.fetchall()
+                conn.close()
+                if rows:
+                    proprietary_memory = " <proprietary_firm_memory> Use the following firm bias for trading logic: "
+                    for r in rows:
+                        proprietary_memory += f"[{r[0]}: {r[1]}] "
+                    proprietary_memory += "</proprietary_firm_memory>"
+            except Exception as e:
+                pass
+
+
         system_prompt = (
             "You are an institutional crypto/equity analyst. Write exactly 2 sentences. "
             "First sentence: explain the technical setup driving this signal. "
             "Second sentence: the tactical entry rationale and key risk. "
             "CRITICAL: Use ONLY the live price given in the prompt for any price references. "
             "Never invent or use historical price levels. Max 80 words total."
-        )
+        ) + proprietary_memory
         user_prompt = (
             f"Generate a trade thesis for: {ticker}, Signal={signal}, Z-Score={zscore}\u03c3.{price_anchor}"
         )

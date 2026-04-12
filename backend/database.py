@@ -347,5 +347,12 @@ def init_db():
     try:
         c.execute("ALTER TABLE trading_bots ADD COLUMN stop_loss_pct REAL DEFAULT 0.0")
     except: pass
+    c.execute('''CREATE TABLE IF NOT EXISTS ai_knowledge_base (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email TEXT NOT NULL,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )''')
     conn.commit()
     conn.close()

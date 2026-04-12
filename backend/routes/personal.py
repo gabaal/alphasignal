@@ -224,6 +224,106 @@ class PersonalRoutesMixin:
         except Exception as e:
             self.send_json({'error': str(e)})
 
+    # ── OMS DASHBOARD (LIVE EXCHANGE INTEGRATION) ─────────────
+    def handle_oms_dashboard(self, auth_info):
+        try:
+            import time, hmac, hashlib
+            import sqlite3
+            from backend.database import DB_PATH
+            from backend.keyvault import KeyVault
+
+            user_email = auth_info['email']
+
+            # 1. Fetch Binance keys from Vault
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('SELECT api_key, api_secret FROM exchange_keys WHERE user_email = ? AND exchange = ? ORDER BY created_at DESC LIMIT 1', (user_email, 'BINANCE'))
+            row = c.fetchone()
+
+            if not row:
+                conn.close()
+                return self.send_json({'error': 'No Binance keys configured. Please add them in the Institutional Data Hub.'})
+
+            api_key = row[0]
+            enc_secret = row[1]
+            api_secret = KeyVault.decrypt_secret(enc_secret)
+
+            if not api_secret:
+                conn.close()
+                return self.send_json({'error': 'Failed to decrypt API secret using KeyVault.'})
+
+            # Helper for Binance HMAC signed requests
+            def binance_request(endpoint, method='GET'):
+                url = f"https://fapi.binance.com{endpoint}"
+                timestamp = int(time.time() * 1000)
+                query = f"timestamp={timestamp}"
+                signature = hmac.new(api_secret.encode('utf-8'), query.encode('utf-8'), hashlib.sha256).hexdigest()
+                full_url = f"{url}?{query}&signature={signature}"
+                headers = {'X-MBX-APIKEY': api_key}
+                try:
+                    r = requests.request(method, full_url, headers=headers, timeout=5)
+                    return r.json() if r.status_code == 200 else {'error': r.text}
+                except Exception as ex:
+                    return {'error': str(ex)}
+
+            # 2. Fetch Balances (Futures Account)
+            account_data = binance_request('/fapi/v2/account')
+            if 'error' in account_data:
+                conn.close()
+                return self.send_json({'error': f"Binance API Error: {account_data['error']}"})
+
+            total_margin_balance = sum(float(a['marginBalance']) for a in account_data.get('assets', []) if float(a['marginBalance']) > 0)
+            available_balance = sum(float(a['availableBalance']) for a in account_data.get('assets', []) if float(a['availableBalance']) > 0)
+            unrealized_pnl = sum(float(a['unrealizedProfit']) for a in account_data.get('assets', []))
+
+            # 3. Fetch Open Positions
+            positions_data = binance_request('/fapi/v2/positionRisk')
+            if isinstance(positions_data, dict) and 'error' in positions_data:
+                conn.close()
+                return self.send_json({'error': f"Binance Positions Error: {positions_data['error']}"})
+
+            open_positions = []
+            if isinstance(positions_data, list):
+                for p in positions_data:
+                    amt = float(p.get('positionAmt', 0))
+                    if amt != 0:
+                        is_long = amt > 0
+                        ticker = p.get('symbol').replace('USDT', '-USD')
+                        
+                        # Check if a bot manages this position
+                        c.execute("SELECT name, tp_pct, sl_pct FROM trading_bots WHERE user_email=? AND asset=? AND status='active'", (user_email, ticker))
+                        b_row = c.fetchone()
+                        
+                        pos_obj = {
+                            'ticker': ticker,
+                            'side': 'LONG' if is_long else 'SHORT',
+                            'qty': abs(amt),
+                            'entry_price': float(p.get('entryPrice', 0)),
+                            'mark_price': float(p.get('markPrice', 0)),
+                            'unrealized_pnl': float(p.get('unRealizedProfit', 0)),
+                            'leverage': int(p.get('leverage', 1)),
+                            'liquidation_price': float(p.get('liquidationPrice', 0)),
+                            'bot_managed': bool(b_row),
+                            'bot_name': b_row[0] if b_row else None,
+                            'tp_pct': b_row[1] if b_row else None,
+                            'sl_pct': b_row[2] if b_row else None,
+                        }
+                        open_positions.append(pos_obj)
+
+            conn.close()
+
+            self.send_json({
+                'balances': {
+                    'total_margin': total_margin_balance,
+                    'available': available_balance,
+                    'unrealized_pnl': unrealized_pnl
+                },
+                'positions': open_positions
+            })
+
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
     # ── INTEGRATIONS ──────────────────────────────────────────
     def handle_exchange_keys_get(self, auth_info):
         try:
@@ -310,6 +410,56 @@ class PersonalRoutesMixin:
             conn.commit()
             conn.close()
             self.send_json({'success': True, 'message': f'Trade {action} {ticker} routed explicitly to {exchange_nm} using decrypted KeyVault secrets.'})
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    # ── TRADING BOTS ──────────────────────────────────────────
+    # ── AI PERSONA KNOWLEDGE BASE (RAG) ───────────────────────
+    def handle_ai_knowledge_get(self, auth_info):
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            user_email = auth_info['email']
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('SELECT id, title, content, created_at FROM ai_knowledge_base WHERE user_email = ? ORDER BY created_at DESC', (user_email,))
+            rows = c.fetchall()
+            conn.close()
+            items = [{'id': r[0], 'title': r[1], 'content': r[2], 'created_at': r[3]} for r in rows]
+            self.send_json(items)
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_ai_knowledge_post(self, auth_info, data):
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            user_email = auth_info['email']
+            title = data.get('title', '').strip()
+            content = data.get('content', '').strip()
+            if not title or not content:
+                return self.send_json({'error': 'Title and content are required.'})
+            
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('INSERT INTO ai_knowledge_base (user_email, title, content) VALUES (?, ?, ?)', (user_email, title, content))
+            conn.commit()
+            conn.close()
+            self.send_json({'success': True})
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
+    def handle_ai_knowledge_delete(self, auth_info, item_id):
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            user_email = auth_info['email']
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('DELETE FROM ai_knowledge_base WHERE id = ? AND user_email = ?', (item_id, user_email))
+            conn.commit()
+            conn.close()
+            self.send_json({'success': True})
         except Exception as e:
             self.send_json({'error': str(e)})
 

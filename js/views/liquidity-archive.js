@@ -148,10 +148,15 @@ async function renderLiquidityView(tabs = null) {
         topAsks.forEach(a => { cumA += a.size; askLevels.push({ price: a.price, cum: cumA }); });
 
         // X-axis: bids displayed low→high (left of mid), then asks low→high (right of mid)
-        const bidReversed = [...bidLevels].reverse(); // now lowest→highest bid
-        const labels    = [...bidReversed.map(b => `$${b.price.toFixed(0)}`), ...askLevels.map(a => `$${a.price.toFixed(0)}`)];
-        const bidData   = [...bidReversed.map(b => b.cum),  ...askLevels.map(() => null)];
-        const askData   = [...bidReversed.map(() => null),  ...askLevels.map(a => a.cum)];
+        // With linear axis, we just provide [{x, y}] coordinates directly.
+        const bidData = [...bidLevels].reverse().map(b => ({ x: b.price, y: b.cum })); 
+        // Ensure bids touch zero exactly at the current mid price (or closest Ask)
+        const midPrice = asks.length > 0 ? asks[0].price : (currentPrice || bids[0]?.price * 1.001 || 84000);
+        bidData.push({ x: midPrice, y: 0 });
+
+        const askData = [];
+        askData.push({ x: midPrice, y: 0 }); // Anchor asks to zero at mid price
+        askLevels.forEach(a => askData.push({ x: a.price, y: a.cum }));
 
         // Y-axis max = same for both sides so curves are visually balanced
         const maxDepth = Math.max(cumB, cumA);
@@ -175,10 +180,12 @@ async function renderLiquidityView(tabs = null) {
             // This guarantees both curves fill their own axis, regardless of size difference
             window._gommWallChartInst = new Chart(ctx, {
                 type: 'line',
-                data: { labels, datasets: [
-                    { label: 'Bid Depth (BTC)',  data: bidData, borderColor: 'rgba(34,197,94,1)',  backgroundColor: 'rgba(34,197,94,0.2)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, spanGaps: false, yAxisID: 'y'  },
-                    { label: 'Ask Depth (BTC)',  data: askData, borderColor: 'rgba(239,68,68,1)',  backgroundColor: 'rgba(239,68,68,0.2)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, spanGaps: false, yAxisID: 'y1' }
-                ]},
+                data: {
+                    datasets: [
+                        { label: 'Bid Depth (BTC)',  data: bidData, borderColor: 'rgba(34,197,94,1)',  backgroundColor: 'rgba(34,197,94,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y'  },
+                        { label: 'Ask Depth (BTC)',  data: askData, borderColor: 'rgba(239,68,68,1)',  backgroundColor: 'rgba(239,68,68,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y1' }
+                    ]
+                },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
@@ -188,7 +195,7 @@ async function renderLiquidityView(tabs = null) {
                         tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '—'} BTC` } }
                     },
                     scales: {
-                        x:  { grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 16, font: { size: 10 } } },
+                        x:  { type: 'linear', grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 12, callback: v => '$'+v.toLocaleString() } },
                         y:  { position: 'left',  grid: { color: 'rgba(34,197,94,0.08)' },  ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: '← Bid Depth (BTC)', color: 'rgba(34,197,94,0.7)' }, min: 0 },
                         y1: { position: 'right', grid: { drawOnChartArea: false },           ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: 'Ask Depth (BTC) →', color: 'rgba(239,68,68,0.7)' }, min: 0 }
                     }
@@ -223,12 +230,15 @@ async function renderLiquidityView(tabs = null) {
                     const bLvl = [], aLvl = []; let cb = 0, ca = 0;
                     fb.slice(0,20).forEach(b => { cb += b.size; bLvl.push({ price: b.price, cum: cb }); });
                     fa.slice(0,20).forEach(a => { ca += a.size; aLvl.push({ price: a.price, cum: ca }); });
-                    const br = [...bLvl].reverse();
+                    const midP = fa.length > 0 ? fa[0].price : (fresh.current_price || fb[0]?.price * 1.001 || 84000);
+                    const bData = [...bLvl].reverse().map(b => ({x: b.price, y: b.cum}));
+                    bData.push({x: midP, y: 0});
+                    
+                    const aData = [{x: midP, y: 0}, ...aLvl.map(a => ({x: a.price, y: a.cum}))];
 
                     const chart = window._gommWallChartInst;
-                    chart.data.labels          = [...br.map(b => `$${b.price.toFixed(0)}`), ...aLvl.map(a => `$${a.price.toFixed(0)}`)];
-                    chart.data.datasets[0].data = [...br.map(b => b.cum), ...aLvl.map(() => null)];
-                    chart.data.datasets[1].data = [...br.map(() => null), ...aLvl.map(a => a.cum)];
+                    chart.data.datasets[0].data = bData;
+                    chart.data.datasets[1].data = aData;
                     chart.update('active');
 
                     // Refresh sidebar stats

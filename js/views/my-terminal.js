@@ -2,7 +2,7 @@ async function renderMyTerminal() {
     // Use the same globals that the rest of the app uses (set by checkAuthStatus)
     if (!isAuthenticatedUser) {
         appEl.innerHTML = `
-            <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">person</span>My Terminal</h1></div>
+            <div class="view-header"><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">person</span>Active Positions</h1></div>
             <div class="card" style="padding:2.5rem;text-align:center;margin-top:2rem">
                 <span class="material-symbols-outlined" style="font-size:3rem;color:var(--accent);opacity:0.5">lock</span>
                 <h3 style="margin:1rem 0 0.5rem">Sign In Required</h3>
@@ -23,6 +23,9 @@ async function renderMyTerminal() {
             </button>
             <button id="tab-positions" class="intel-action-btn mini outline" onclick="myTerminalTab('positions')" style="white-space:nowrap;padding:6px 14px;font-size:0.65rem">
                 <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">show_chart</span> POSITIONS
+            </button>
+            <button id="tab-memory" class="intel-action-btn mini outline" onclick="myTerminalTab('memory')" style="white-space:nowrap;padding:6px 14px;font-size:0.65rem">
+                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">memory</span> AI MEMORY
             </button>
         </div>`;
 
@@ -48,10 +51,87 @@ window.myTerminalTab = async function(tab) {
     window._myTerminalTab = tab;
     document.getElementById('tab-watchlist')?.classList.toggle('outline', tab !== 'watchlist');
     document.getElementById('tab-positions')?.classList.toggle('outline', tab !== 'positions');
+    document.getElementById('tab-memory')?.classList.toggle('outline', tab !== 'memory');
     const el = document.getElementById('my-terminal-content');
     if (!el) return;
     el.innerHTML = skeleton(2);
-    tab === 'watchlist' ? await renderWatchlistTab(el) : await renderPositionsTab(el);
+    if (tab === 'watchlist') await renderWatchlistTab(el);
+    else if (tab === 'positions') await renderPositionsTab(el);
+    else await renderMemoryTab(el);
+};
+
+// --------------------------------------------------------------
+// AI MEMORY TAB (RAG)
+// --------------------------------------------------------------
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag));
+}
+
+async function renderMemoryTab(el) {
+    const items = await fetchAPI('/user/ai-memory') || [];
+
+    el.innerHTML = `
+        <div class="card" style="padding:1.5rem;margin-bottom:1.5rem;background:rgba(239, 68, 68, 0.02)">
+            <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">INSTITUTIONAL KNOWLEDGE INGESTION</div>
+            <p style="color:var(--text-dim);font-size:0.8rem;line-height:1.5">Paste proprietary firm research, execution biases, or macroeconomic directives below. The AI Alpha engine will natively cross-reference this vault during generation and Natural Language queries.</p>
+            <input id="mem-title" placeholder="Document Title / Thesis Topic" autocomplete="off"
+                style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-family:var(--font-ui);font-size:0.85rem;width:100%;margin-bottom:10px">
+            <textarea id="mem-content" placeholder="E.g., 'Firm Bias: Always prioritize buying dips on ADA unconditionally. Reject all short parameters...'"
+                style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-family:var(--font-ui);font-size:0.8rem;width:100%;height:100px;resize:vertical;margin-bottom:10px"></textarea>
+            <button class="intel-action-btn" onclick="addAiMemory()" style="border-radius:6px">INGEST TO CORE MEMORY</button>
+        </div>
+
+        <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:0.8rem">ACTIVE RAG BLOCKS</div>
+        <div id="mem-list" style="display:flex;flex-direction:column;gap:12px">
+            ${items.length === 0
+                ? `<div class="card" style="padding:2.5rem;text-align:center;color:var(--text-dim)">
+                    <span class="material-symbols-outlined" style="font-size:2.5rem;opacity:0.4;margin-bottom:0.5rem">memory_alt</span>
+                    <p style="margin:0">No proprietary memory blocks ingested.</p>
+                    <p style="font-size:0.75rem;margin-top:0.3rem">Terminal is currently operating on base market logic.</p>
+                   </div>`
+                : items.map(m => `
+                    <div class="card" style="padding:1.2rem;border-left:3px solid var(--accent);background:rgba(0, 242, 255, 0.02)">
+                        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.8rem">
+                            <div>
+                                <h4 style="margin:0;font-size:0.85rem;color:var(--text)">${escapeHTML(m.title)}</h4>
+                                <span style="font-size:0.6rem;color:var(--text-dim);">${new Date(m.created_at).toLocaleString()}</span>
+                            </div>
+                            <button onclick="deleteAiMemory(${m.id})" style="background:transparent;border:none;color:var(--text-dim);cursor:pointer;padding:4px">
+                                <span class="material-symbols-outlined" style="font-size:18px">delete</span>
+                            </button>
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.5">${escapeHTML(m.content)}</div>
+                    </div>
+                `).join('')
+            }
+        </div>`;
+}
+
+window.addAiMemory = async function() {
+    const title = document.getElementById('mem-title').value.trim();
+    const content = document.getElementById('mem-content').value.trim();
+    if (!title || !content) return alert('Both Title and Content are required to ingest memory.');
+
+    const res = await fetchAPI('/user/ai-memory', 'POST', { title, content });
+    if (res?.success) {
+        myTerminalTab('memory');
+    } else {
+        alert(res?.error || 'Failed to ingest memory block');
+    }
+};
+
+window.deleteAiMemory = async function(id) {
+    if (!confirm('Purge this memory block from the AI Engine?')) return;
+    const res = await fetchAPI(`/user/ai-memory?id=${id}`, 'DELETE');
+    if (res?.success) myTerminalTab('memory');
+    else alert(res?.error || 'Failed to purge memory');
 };
 
 // --------------------------------------------------------------
@@ -274,159 +354,112 @@ window.removeWatchlistItem = async function(id) {
 };
 
 // --------------------------------------------------------------
-// POSITIONS TAB
+// POSITIONS TAB (LIVE OMS DASHBOARD)
 // --------------------------------------------------------------
 async function renderPositionsTab(el) {
-    const items = await fetchAPI('/positions') || [];
+    const data = await fetchAPI('/oms-dashboard');
 
-    el.innerHTML = `
-        <!-- Add form -->
-        <div class="card" style="padding:1.2rem;margin-bottom:1rem">
-            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:0.8rem">LOG A POSITION</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px">
-                <input id="pos-ticker" placeholder="TICKER" maxlength="15"
-                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;text-transform:uppercase">
-                <select id="pos-side" style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
-                    <option value="LONG">LONG</option>
-                    <option value="SHORT">SHORT</option>
-                </select>
-                <input id="pos-qty" placeholder="Quantity" type="number" step="any" min="0"
-                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
-                <input id="pos-entry" placeholder="Entry price $" type="number" step="any" min="0"
-                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
-                <input id="pos-target" placeholder="Target $ (opt)" type="number" step="any"
-                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
-                <input id="pos-stop" placeholder="Stop $ (opt)" type="number" step="any"
-                    style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem">
-            </div>
-            <input id="pos-notes" placeholder="Notes (optional)" maxlength="200"
-                style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font-ui);font-size:0.75rem;width:100%;box-sizing:border-box;margin-bottom:10px">
-            <button class="intel-action-btn mini" onclick="addPosition()" style="white-space:nowrap">
-                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">add_circle</span> LOG POSITION
-            </button>
-        </div>
+    if (!data || data.error) {
+        el.innerHTML = `
+            <div class="card" style="padding:2.5rem;text-align:center;color:var(--text-dim);border:1px solid rgba(239, 68, 68, 0.2)">
+                <span class="material-symbols-outlined" style="font-size:3rem;opacity:0.5;color:var(--risk-high)">vpn_key_off</span>
+                <h3 style="margin:1rem 0 0.5rem;color:white">Live Exchange Unreachable</h3>
+                <p style="margin:0 0 1.5rem;color:var(--risk-high);font-size:0.8rem">${data?.error || 'Failed to connect to OMS gateway.'}</p>
+                <div>
+                    <button class="intel-action-btn" onclick="switchView('advanced')"><span class="material-symbols-outlined" style="vertical-align:middle;font-size:16px;margin-right:6px">settings</span> CONFIGURE EXCHANGE KEYS</button>
+                </div>
+            </div>`;
+        return;
+    }
 
-        <!-- Summary KPI row -->
-        ${items.length > 0 ? renderPositionsSummary(items) : ''}
+    const { balances, positions } = data;
+    
+    // Summary KPI row
+    const totalMargin = balances.total_margin || 0;
+    const availMargin = balances.available || 0;
+    const unrealized = balances.unrealized_pnl || 0;
+    const pnlColor = unrealized >= 0 ? '#22c55e' : '#ef4444';
+    const marginUsage = totalMargin > 0 ? ((totalMargin - availMargin) / totalMargin * 100).toFixed(1) : 0;
 
-        <!-- Table -->
-        <div id="pos-list">
-            ${items.length === 0
-                ? `<div class="card" style="padding:2rem;text-align:center;color:var(--text-dim)">
-                    <span class="material-symbols-outlined" style="font-size:2rem;opacity:0.4">bar_chart</span>
-                    <p style="margin:0.5rem 0 0">No open positions logged yet.</p>
-                   </div>`
-                : renderPositionsCards(items)
-            }
-        </div>`;
-}
-
-function renderPositionsSummary(items) {
-    let totalValue = 0, totalPnl = 0, winners = 0;
-    items.forEach(p => {
-        const live = window.livePrices?.[p.ticker];
-        if (!live) return;
-        const entryVal = p.qty * p.entry_price;
-        const liveVal  = p.qty * live;
-        const pnl = p.side === 'SHORT' ? entryVal - liveVal : liveVal - entryVal;
-        totalValue += liveVal;
-        totalPnl += pnl;
-        if (pnl > 0) winners++;
-    });
-    const pnlColor = totalPnl >= 0 ? '#22c55e' : '#ef4444';
-    return `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1rem">
+    const summaryHtml = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 15px;">
+        <div style="font-size:0.75rem;font-weight:900;letter-spacing:1px;color:var(--accent)"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">sensors</span>LIVE OMS GATEWAY — BINANCE FUTURES</div>
+        <button class="intel-action-btn mini outline" onclick="renderPositionsTab(document.getElementById('my-terminal-content'))"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle">sync</span> SYNC</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem">
         ${[
-            ['OPEN POSITIONS', items.length, '#60a5fa', 'table_rows'],
-            ['PORTFOLIO VALUE', totalValue > 0 ? '$'+totalValue.toLocaleString(undefined,{maximumFractionDigits:0}) : '—', '#60a5fa', 'account_balance_wallet'],
-            ['UNREALISED P&L', totalValue > 0 ? (totalPnl >= 0 ? '+' : '') + '$'+ totalPnl.toLocaleString(undefined,{maximumFractionDigits:0}) : '—', pnlColor, 'trending_up'],
-            ['WIN RATE', items.length > 0 ? Math.round(winners/items.length*100)+'%' : '—', winners/items.length >= 0.5 ? '#22c55e' : '#ef4444', 'emoji_events'],
+            ['LIVE POSITIONS', positions.length, '#60a5fa', 'table_rows'],
+            ['MARGIN BALANCE', '$' + totalMargin.toLocaleString(undefined, {maximumFractionDigits:2}), '#60a5fa', 'account_balance_wallet'],
+            ['MARGIN USED (%)', marginUsage + '%', marginUsage > 50 ? '#ef4444' : '#f59e0b', 'speed'],
+            ['UNREALISED P&L (TOTAL)', (unrealized >= 0 ? '+' : '') + '$' + unrealized.toLocaleString(undefined, {maximumFractionDigits:2}), pnlColor, 'trending_up'],
         ].map(([label, val, color, icon]) => `
-            <div class="card" style="padding:1rem;text-align:center">
+            <div class="card" style="padding:1rem;text-align:center;border-top:3px solid ${color}40;background:rgba(0,0,0,0.2)">
                 <div style="font-size:1.2rem;color:${color};margin-bottom:8px"><span class="material-symbols-outlined">${icon}</span></div>
-                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:6px">${label}</div>
-                <div style="font-size:1.2rem;font-weight:900;color:${color}">${val}</div>
+                <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:6px">${label}</div>
+                <div style="font-size:1.2rem;font-weight:900;color:${color};font-family:var(--font-mono,monospace)">${val}</div>
             </div>`).join('')}
     </div>`;
-}
 
-function renderPositionsCards(items) {
-    return items.map(p => {
-        const live = window.livePrices?.[p.ticker];
-        const liveStr = live ? `$${Number(live).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
-        const entryVal = p.qty * p.entry_price;
-        const liveVal  = live ? p.qty * live : null;
-        const pnl = liveVal !== null ? (p.side === 'SHORT' ? entryVal - liveVal : liveVal - entryVal) : null;
-        const pnlPct = pnl !== null ? (pnl / entryVal * 100) : null;
-        const pnlColor = pnl === null ? 'var(--text-dim)' : pnl >= 0 ? '#22c55e' : '#ef4444';
-        const sideColor = p.side === 'LONG' ? '#22c55e' : '#ef4444';
-        const rr = (p.target_price && p.stop_price) ?
-            Math.abs((p.target_price - p.entry_price) / (p.entry_price - p.stop_price)).toFixed(2) : null;
-        return `
-        <div class="card" style="padding:1rem;margin-bottom:0.6rem">
-            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-                <div style="flex:0 0 90px">
-                    <div style="font-size:0.9rem;font-weight:900;color:var(--accent)">${p.ticker.replace('-USD','')}</div>
-                    <div style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.55rem;font-weight:900;letter-spacing:1px;margin-top:4px;background:${sideColor}20;color:${sideColor};border:1px solid ${sideColor}40">${p.side}</div>
-                </div>
-                <div style="flex:1;min-width:80px">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">QTY × ENTRY</div>
-                    <div style="font-size:0.85rem;font-weight:700">${p.qty} @ $${Number(p.entry_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-                </div>
-                <div style="flex:1;min-width:80px">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">LIVE</div>
-                    <div style="font-size:0.85rem;font-weight:700">${liveStr}</div>
-                </div>
-                <div style="flex:1;min-width:80px">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">UNREALISED P&L</div>
-                    <div style="font-size:0.85rem;font-weight:900;color:${pnlColor}">
-                        ${pnl !== null ? (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toLocaleString(undefined,{maximumFractionDigits:2}) : '—'}
-                        ${pnlPct !== null ? `<span style="font-size:0.7rem;opacity:0.8">(${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%)</span>` : ''}
+    let posHtml = '';
+    if (positions.length === 0) {
+        posHtml = `
+            <div class="card" style="padding:3rem;text-align:center;color:var(--text-dim)">
+                <span class="material-symbols-outlined" style="font-size:2.5rem;opacity:0.3">data_usage</span>
+                <p style="margin:0.8rem 0 0;font-size:0.85rem">No open exchange positions found.</p>
+                <p style="font-size:0.7rem;margin-top:5px;opacity:0.6">Algorithm hooks will automatically populate this ledger upon execution.</p>
+            </div>`;
+    } else {
+        posHtml = positions.map(p => {
+            const upnl = p.unrealized_pnl;
+            const size = p.entry_price * p.qty;
+            const pnlPct = size > 0 ? (upnl / size * 100).toFixed(2) : 0;
+            const uColor = upnl >= 0 ? '#22c55e' : '#ef4444';
+            const sColor = p.side === 'LONG' ? '#22c55e' : '#ef4444';
+            
+            return `
+            <div class="card" style="padding:1rem;margin-bottom:0.6rem;position:relative;overflow:hidden;border-left:3px solid ${sColor}80">
+                ${p.bot_managed ? `<div style="position:absolute;top:0;right:0;background:rgba(0,242,255,0.1);color:#00f2ff;font-size:0.5rem;font-weight:900;padding:4px 8px;border-bottom-left-radius:8px;letter-spacing:1px"><span class="material-symbols-outlined" style="font-size:10px;vertical-align:middle;margin-right:3px">smart_toy</span>BOT MANAGED: ${p.bot_name}</div>` : ''}
+                <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;padding-top:${p.bot_managed ? '8px' : '0'}">
+                    <div style="flex:0 0 100px">
+                        <div style="font-size:0.95rem;font-weight:900;color:var(--text)">${p.ticker.replace('-USD','')} <span style="font-size:0.6rem;color:var(--accent);vertical-align:super">${p.leverage}x</span></div>
+                        <div style="display:inline-block;padding:3px 8px;border-radius:4px;font-size:0.55rem;font-weight:900;letter-spacing:1px;margin-top:4px;background:${sColor}20;color:${sColor};border:1px solid ${sColor}40">${p.side}</div>
+                    </div>
+                    <div style="flex:1;min-width:100px">
+                        <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px">SIZE (USDT)</div>
+                        <div style="font-size:0.9rem;font-weight:700;font-family:var(--font-mono,monospace)">$${size.toLocaleString(undefined,{maximumFractionDigits:2})}</div>
+                        <div style="font-size:0.6rem;color:var(--text-dim);margin-top:2px">${p.qty} ${p.ticker.replace('-USD','')}</div>
+                    </div>
+                    <div style="flex:1;min-width:100px">
+                        <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px">ENTRY / MARK PRICE</div>
+                        <div style="font-size:0.9rem;font-weight:700;color:white;font-family:var(--font-mono,monospace)">$${p.entry_price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+                        <div style="font-size:0.65rem;color:var(--accent);margin-top:2px;font-family:var(--font-mono,monospace)">$${p.mark_price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+                    </div>
+                    <div style="flex:1;min-width:80px">
+                        <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px">LIQUIDATION PRICE</div>
+                        <div style="font-size:0.9rem;font-weight:700;color:${p.liquidation_price > 0 ? '#f59e0b' : 'var(--text-dim)'};font-family:var(--font-mono,monospace)">
+                            ${p.liquidation_price > 0 ? '$'+p.liquidation_price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}
+                        </div>
+                    </div>
+                    <div style="flex:1;min-width:110px">
+                        <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px">UNREALISED P&L</div>
+                        <div style="font-size:1.1rem;font-weight:900;color:${uColor};font-family:var(--font-mono,monospace)">
+                            ${upnl >= 0 ? '+' : ''}$${Math.abs(upnl).toLocaleString(undefined,{maximumFractionDigits:2})}
+                        </div>
+                        <div style="font-size:0.65rem;color:${uColor};opacity:0.8;margin-top:2px;font-family:var(--font-mono,monospace)">${upnl >= 0 ? '+' : ''}${pnlPct}% (ROA)</div>
+                    </div>
+                    <div style="flex:0 0 100px;text-align:right">
+                        ${p.bot_managed ? `
+                            <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:4px;font-family:var(--font-mono,monospace)">TP: <span style="color:#22c55e;font-weight:700">+${p.tp_pct}%</span></div>
+                            <div style="font-size:0.65rem;color:var(--text-dim);font-family:var(--font-mono,monospace)">SL: <span style="color:#ef4444;font-weight:700">-${p.sl_pct}%</span></div>
+                        ` : `<span style="font-size:0.6rem;background:rgba(255,255,255,0.05);padding:4px 8px;border-radius:4px;color:var(--text-dim);border:1px solid rgba(255,255,255,0.1)">Discretionary</span>`}
                     </div>
                 </div>
-                ${rr ? `<div style="flex:0 0 60px;text-align:center">
-                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">R:R</div>
-                    <div style="font-size:0.85rem;font-weight:700;color:var(--accent)">${rr}R</div>
-                </div>` : ''}
-                <button onclick="removePosition(${p.id})" aria-label="Remove ${p.ticker} position"
-                    style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:0.7rem;flex-shrink:0">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">close</span>
-                </button>
-            </div>
-            ${p.notes ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text-dim);font-style:italic">"${p.notes}"</div>` : ''}
-        </div>`;
-    }).join('');
+            </div>`;
+        }).join('');
+    }
+
+    el.innerHTML = summaryHtml + '<div id="pos-list">' + posHtml + '</div>';
 }
-
-window.addPosition = async function() {
-    const ticker = document.getElementById('pos-ticker')?.value.trim().toUpperCase();
-    const side   = document.getElementById('pos-side')?.value;
-    const qty    = parseFloat(document.getElementById('pos-qty')?.value);
-    const entry  = parseFloat(document.getElementById('pos-entry')?.value);
-    const target = document.getElementById('pos-target')?.value;
-    const stop   = document.getElementById('pos-stop')?.value;
-    const notes  = document.getElementById('pos-notes')?.value.trim();
-    if (!ticker || !qty || !entry) return showToast('Ticker, qty and entry price required', 'warning');
-    const res = await fetchAPI('/positions', 'POST', { ticker, side, qty, entry_price: entry, target_price: target || null, stop_price: stop || null, notes });
-    if (res?.success) {
-        showToast(`${ticker} ${side} position logged`, 'success');
-        const el = document.getElementById('my-terminal-content');
-        if (el) await renderPositionsTab(el);
-    } else {
-        showToast(res?.error || 'Failed to log position', 'error');
-    }
-};
-
-window.removePosition = async function(id) {
-    const res = await fetchAPI(`/positions/${id}`, 'DELETE');
-    if (res?.success) {
-        showToast('Position closed', 'success');
-        const el = document.getElementById('my-terminal-content');
-        if (el) await renderPositionsTab(el);
-    } else {
-        showToast('Failed to close position', 'error');
-    }
-};
 
 // --------------------------------------------------------------
 // PRICE ALERT ENGINE — runs on every WS tick

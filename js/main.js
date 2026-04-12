@@ -620,28 +620,41 @@ function initLivePriceStream() {
         }, 5000);
         
         // Ensure signals still poll locally if WS is explicitly dead
-        if (typeof startSignalPoller === 'function') setInterval(startSignalPoller, 60000);
+        if (typeof startSignalPoller === 'function') {
+            window.signalFallbackInterval = setInterval(startSignalPoller, 60000);
+        }
     }
 
     function connect() {
         try {
-            if (window.wsFailCount >= 3) {
+            if (window.wsFailCount >= 5) {
                 initHttpFallback();
                 return;
             }
 
             const hostname = window.location.hostname;
-            // Prevent noisy wss:// failures on production due to unproxied 8007 ports
-            if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-                console.log("[Network] Production environment detected. Sidelining WS for Secure HTTP long-polling.");
-                initHttpFallback();
-                return;
-            }
-
+            const useLocalPort = (hostname === 'localhost' || hostname === '127.0.0.1');
             const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            const ws = new WebSocket(wsProtocol + hostname + ':8007');
+            
+            // Route through /ws in production to bypass corporate firewalls (only standard 443 open)
+            const wsUrl = useLocalPort 
+                ? `${wsProtocol}${hostname}:8007` 
+                : `${wsProtocol}${window.location.host}/ws`;
 
-            ws.onopen = () => { window.wsFailCount = 0; };
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => { 
+                window.wsFailCount = 0; 
+                if (window.priceFallbackInterval) {
+                    clearInterval(window.priceFallbackInterval);
+                    window.priceFallbackInterval = null;
+                }
+                if (window.signalFallbackInterval) {
+                    clearInterval(window.signalFallbackInterval);
+                    window.signalFallbackInterval = null;
+                }
+                console.log("[Matrix] Upgraded to Secure WebSocket stream. Polling suspended.");
+            };
 
             ws.onmessage = (event) => {
                 try {

@@ -260,8 +260,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                 <div class="nav-item" data-view="macro-hub" aria-label="View Macro Intelligence Hub (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">monitoring</span> Macro Intel
                 </div>
-                <div class="nav-item" data-view="alpha-hub" aria-label="View Alpha Strategy Hub (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">electric_bolt</span> Alpha Strategy
+                <div class="nav-item" data-view="alpha-hub" aria-label="View Quant Strategy Lab (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">electric_bolt</span> Quant Strategy Lab
                 </div>
                 <div class="nav-item" data-view="institutional-hub" aria-label="View Institutional Hub (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">key</span> Institutional Hub
@@ -275,8 +275,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                 <div class="nav-item" data-view="mindshare" aria-label="View Social Mindshare (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">psychology</span> Mindshare
                 </div>
-                <div class="nav-item" data-view="audit-hub" aria-label="View Execution & Audit (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">trending_up</span> Audit & Performance
+                <div class="nav-item" data-view="audit-hub" aria-label="View Trade Ledger Audit (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">trending_up</span> Trade Ledger Audit
                 </div>
                 <div class="nav-item" data-view="risk-hub" aria-label="View Risk & Stress Lab (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">grid_on</span> Risk & Stress
@@ -292,16 +292,20 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                     <span class="alert-badge" id="alert-badge" style="display:none" aria-label="Active Alerts Count">0</span>
                     <span id="alerts-nav-live-dot" class="live-dot" style="display:none;margin-left:4px"></span>
                 </div>
-                <div class="nav-item" data-view="my-terminal" aria-label="My Terminal — Personal Watchlist & Positions">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">person</span> My Terminal
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">EXECUTION & AUTOMATION</div>
+                
+                <div class="nav-item" data-view="my-terminal" aria-label="Active Positions — Manual Tracking">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">person</span> Active Positions
                     <span class="premium-badge" style="font-size:0.5rem;background:rgba(0,242,255,0.15);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PERSONAL</span>
                 </div>
 
-                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INTEGRATIONS</div>
-                <div class="nav-item" data-view="algo-hub" aria-label="Manage Automated Algorithmic Hub (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Automated Algo Hub
+                <div class="nav-item" data-view="algo-hub" aria-label="Manage Live Algo Builder (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Live Algo Builder
                     <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
                 </div>
+
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INTEGRATIONS</div>
+                
                 <div class="nav-item" data-view="exchange-keys" aria-label="Manage Exchange API Keys (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">api</span> Exchange Keys
                     <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
@@ -701,15 +705,15 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="js/views/portfolio.js?v=2.52" defer></script>
     <script src="js/views/narrative.js?v=2.52" defer></script>
     <script src="js/views/trade-lab.js?v=2.52" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.52" defer></script>
+    <script src="js/views/liquidity-archive.js?v=2.53" defer></script>
     <script src="js/views/alerts-archive.js?v=2.52" defer></script>
     <script src="js/views/advanced.js?v=2.52" defer></script>
     <script src="js/views/onchain.js?v=2.52" defer></script>
     <script src="js/views/command-center.js?v=2.52" defer></script>
     <script src="js/views/home.js?v=2.53" defer></script>
-    <script src="js/views/algo-hub.js?v=2.55"></script>
+    <script src="js/views/algo-hub.js?v=2.56"></script>
     <script src="js/views/explain.js?v=2.53" defer></script>
-    <script src="js/views/my-terminal.js?v=2.53" defer></script>
+    <script src="js/views/my-terminal.js?v=2.6"></script>
     <script src="js/views/signal-permalink.js?v=2.53" defer></script>
     <script src="js/views/onboarding.js?v=2.53" defer></script>
     <script src="js/views/price-alerts.js?v=2.53" defer></script>
@@ -718,11 +722,11 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="js/views/exchange-keys.js?v=2.53" defer></script>
     <script src="js/views/webhooks.js?v=2.53" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.53" defer></script>
-    <script src="js/docs-b.js?v=2.53" defer></script>
+    <script src="js/docs-a.js?v=2.54" defer></script>
+    <script src="js/docs-b.js?v=2.54" defer></script>
     <script src="js/export.js?v=2.53" defer></script>
     <script src="js/seo-meta.js?v=2.53" defer></script>
-    <script src="js/main.js?v=2.53" defer></script>
+    <script src="js/main.js?v=2.55" defer></script>
     <script src="js/router.js?v=2.53" defer></script>
 
     <!-- Notification Settings Modal -->

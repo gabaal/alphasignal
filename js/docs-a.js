@@ -19,7 +19,7 @@ function renderHelp() {
             { name: 'Market Regime', desc: '3 components: Regime classifier gauge, Transition matrix, Regime heatmap history', route: 'docs-regime', icon: 'category' },
           ]
         },
-        { id: 'alpha-strategy', name: 'Alpha Strategy', icon: 'electric_bolt', color: '#facc15', view: 'alpha-hub',
+        { id: 'alpha-strategy', name: 'Quant Strategy Lab', icon: 'electric_bolt', color: '#facc15', view: 'alpha-hub',
           docs: [
             { name: 'Signal Intelligence', desc: '3 components: Signal cards, Firing density histogram, Z-score bell curve (Confidence Radar now on Command Center)', route: 'docs-signals', icon: 'radar' },
             { name: 'ML Alpha Engine', desc: '3 components: Prediction table, Feature importance bar chart, Model accuracy gauge', route: 'docs-ml-engine', icon: 'smart_toy' },
@@ -52,7 +52,7 @@ function renderHelp() {
             { name: 'Dealer Gamma Exposure', desc: '1 component: Call vs Put Gamma exposure profile', route: 'docs-gex', icon: 'analytics' },
           ]
         },
-        { id: 'audit-hub', name: 'Audit & Performance', icon: 'trending_up', color: '#60a5fa', view: 'audit-hub',
+        { id: 'audit-hub', name: 'Trade Ledger Audit', icon: 'trending_up', color: '#60a5fa', view: 'audit-hub',
           docs: [
             { name: 'Trade Ledger', desc: '2 components: Trade log table with P&L, Performance attribution breakdown', route: 'docs-trade-ledger', icon: 'receipt_long' },
             { name: 'Performance Dashboard', desc: '3 components: Win rate stat cards, Monthly ROI heatmap calendar, Equity curve', route: 'docs-performance', icon: 'bar_chart' },
@@ -83,9 +83,9 @@ function renderHelp() {
             { name: 'Market Brief', desc: '1 component: AI-generated daily market brief with structured sections', route: 'docs-market-brief', icon: 'summarize' },
           ]
         },
-        { id: 'personal', name: 'Personal', icon: 'person', color: '#34d399', view: 'my-terminal',
+        { id: 'personal', name: 'Active Positions', icon: 'person', color: '#34d399', view: 'my-terminal',
           docs: [
-            { name: 'My Terminal', desc: '3 components: Watchlist table with live P&L, Portfolio summary stats, Notification controls', route: 'docs-my-terminal', icon: 'bookmark_add' },
+            { name: 'Active Positions', desc: '3 components: Watchlist table with live P&L, Portfolio summary stats, Notification controls', route: 'docs-my-terminal', icon: 'bookmark_add' },
             { name: 'Ask Terminal', desc: '2 components: AI chat interface, Suggested query chips', route: 'docs-ask-terminal', icon: 'smart_toy' },
             { name: 'In Plain English AI', desc: 'Context-aware AI Chart Translator applied to institutional data views.', route: 'docs-plain-english', icon: 'auto_awesome' },
             { name: 'Command Center', desc: '9 live components: Fear/Greed gauge, ETF Net Flows, Volatility Regime, Market Pulse correlations, Scatter plot, Confidence Radar, Macro Correlation Matrix, CME Gaps, BTC sparkline', route: 'docs-command-center', icon: 'dashboard' },
@@ -432,7 +432,7 @@ function renderDocsViewRegime() {
 // ============= ALPHA STRATEGY HUB =============
 function renderDocsViewSignals() {
     renderViewDocPage({
-        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Signal Intelligence', viewId: 'signals',
         relatedDocs: [
             { name: 'ML Engine', route: 'docs-ml-engine', icon: 'smart_toy' },
@@ -467,7 +467,7 @@ function renderDocsViewSignals() {
 }
 function renderDocsViewMLEngine() {
     renderViewDocPage({
-        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'ML Alpha Engine', viewId: 'signals',
         summary: 'The dual-model ensemble (LSTM + XGBoost) generates 24h price direction predictions. This view exposes the model internals ? confidence scores, feature importances, and agreement metrics.',
         components: [
@@ -488,7 +488,7 @@ function renderDocsViewMLEngine() {
 }
 function renderDocsViewAlphaScore() {
     renderViewDocPage({
-        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Alpha Score', viewId: 'alpha-score',
         summary: 'A composite 0-100 ranking of every tracked asset across momentum, sentiment, on-chain activity, ML prediction, and volatility. The most efficient single-screen opportunity screener.',
         components: [
@@ -505,7 +505,7 @@ function renderDocsViewAlphaScore() {
 }
 function renderDocsViewStrategyLab() {
     renderViewDocPage({
-        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Strategy Lab', viewId: 'strategy-lab',
         summary: 'Live strategy testing with institutional metrics. Select a pre-built strategy, configure parameters, and see the equity curve, statistical metrics, and Monte Carlo confidence bands update in real-time.',
         components: [
@@ -530,7 +530,7 @@ function renderDocsViewStrategyLab() {
 }
 function renderDocsViewBacktester() {
     renderViewDocPage({
-        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Backtester V2', viewId: 'backtester-v2',
         summary: 'Institutional-grade backtests across the full AlphaSignal history. Every metric is computed on actual historical signals ? not reconstructed or curve-fitted.',
         components: [
@@ -551,7 +551,7 @@ function renderDocsViewBacktester() {
 }
 function renderDocsViewSignalArchive() {
     renderViewDocPage({
-        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Signal Archive', viewId: 'signal-archive',
         summary: 'Historical record of every signal generated, with outcome tracking. Build conviction in the methodology and identify which categories have the strongest track record.',
         components: [
@@ -568,7 +568,7 @@ function renderDocsViewSignalArchive() {
 }
 function renderDocsViewNarrative() {
     renderViewDocPage({
-        hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Narrative Galaxy', viewId: 'narrative',
         summary: 'Force-directed network graph of market narrative strength and velocity across social media, on-chain data, and news. Narratives gaining momentum often precede price action.',
         components: [
@@ -587,7 +587,7 @@ function renderDocsViewNarrative() {
 // ============= AI DOCUMENTATION =============
 function renderDocsViewPlainEnglish() {
     renderViewDocPage({
-        hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
+        hub: 'Active Positions', hubIcon: 'person', hubColor: '#34d399',
         title: 'In Plain English AI', viewId: 'home',
         summary: 'The "In Plain English" AI Translator is a context-aware ML component injected directly into high-density institutional charts. It dynamically synthesises raw order flow, volatility options, and liquidation cascades into actionable risk management memos without leaving the terminal.',
         components: [

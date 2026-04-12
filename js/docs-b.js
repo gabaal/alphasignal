@@ -375,7 +375,7 @@ function renderDocsViewNewsroom() {
 // ============= AUDIT & PERFORMANCE =============
 function renderDocsViewTradeLedger() {
     renderViewDocPage({
-        hub: 'Audit & Performance', hubIcon: 'trending_up', hubColor: '#60a5fa',
+        hub: 'Trade Ledger Audit', hubIcon: 'trending_up', hubColor: '#60a5fa',
         title: 'Trade Ledger', viewId: 'trade-ledger',
         summary: 'A complete auditable log of all trades made using AlphaSignal recommendations. Tracks execution against signal, measures slippage, and builds a verifiable track record.',
         components: [
@@ -405,7 +405,7 @@ function renderDocsViewTradeLedger() {
 
 function renderDocsViewPerformance() {
     renderViewDocPage({
-        hub: 'Audit & Performance', hubIcon: 'trending_up', hubColor: '#60a5fa',
+        hub: 'Trade Ledger Audit', hubIcon: 'trending_up', hubColor: '#60a5fa',
         title: 'Performance Dashboard', viewId: 'audit-hub',
         relatedDocs: [
             { name: 'Trade Ledger', route: 'docs-trade-ledger', icon: 'receipt_long' },
@@ -774,8 +774,8 @@ function renderDocsViewMarketBrief() {
 // ============= PERSONAL =============
 function renderDocsViewMyTerminal() {
     renderViewDocPage({
-        hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
-        title: 'My Terminal', viewId: 'my-terminal',
+        hub: 'Active Positions', hubIcon: 'person', hubColor: '#34d399',
+        title: 'Active Positions', viewId: 'my-terminal',
         summary: 'Your personalised terminal dashboard. Track cross-asset watchlist performance (Crypto & Equities), manage live price targets, and access notification preferences from a centralised personal hub.',
         components: [
             {

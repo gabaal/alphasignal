@@ -43,6 +43,8 @@ _RATE_LIMITS = {
 }
 
 def _rate_key(path: str) -> str:
+    if '/api/user/ai-memory' in path:
+        return 'default'
     if '/auth/login' in path or '/auth/signup' in path:
         return 'auth'
     if any(x in path for x in ('ai-analyst', 'ask-terminal', 'signal-thesis', 'ai-memo', 'explain-surface', 'explain-tape', 'explain-chart', 'explain-rebalance')):
@@ -120,6 +122,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
                 q_id = query.get('id', [None])[0]
                 self.handle_exchange_keys_delete(auth_info, q_id or item_id)
+            elif path.startswith('/api/user/ai-memory'):
+                query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                q_id = query.get('id', [None])[0]
+                self.handle_ai_knowledge_delete(auth_info, q_id or item_id)
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -414,6 +420,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 auth_info = self.is_authenticated()
                 if auth_info: self.handle_exchange_keys_post(auth_info, post_data)
                 else: self.send_response(401); self.end_headers()
+            elif path == '/api/user/ai-memory':
+                auth_info = self.is_authenticated()
+                if auth_info: self.handle_ai_knowledge_post(auth_info, post_data)
+                else: self.send_response(401); self.end_headers()
             elif path == '/api/algo-bots':
                 auth_info = self.is_authenticated()
                 if auth_info: self.handle_trading_bots_post(auth_info, post_data)
@@ -548,7 +558,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             auth_info = None
             if path.startswith('/api/'):
                 public_routes = ['/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard', '/api/funding-rates', '/api/options-signal']
-                free_auth_routes = ['/api/watchlist', '/api/positions', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete', '/api/alert-settings', '/api/user/settings']
+                free_auth_routes = ['/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete', '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory']
                 # /api/signal/{id} is fully public â€” no auth gate for shared links
                 if path.startswith('/api/signal/'):
                     pass  # skip gate, handle_signal_permalink does not require auth
@@ -573,6 +583,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
 
             if path == '/api/auth/status':
                 self.handle_auth_status(auth_info)
+            elif path == '/api/user/ai-memory':
+                self.handle_ai_knowledge_get(auth_info)
             elif path == '/api/config':
                 self.handle_config()
             elif path == '/api/search':
@@ -686,6 +698,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_user_settings()
             elif path == '/api/user/exchange-keys':
                 self.handle_exchange_keys_get(auth_info)
+            elif path == '/api/user/ai-memory':
+                self.handle_ai_knowledge_get(auth_info)
             elif path == '/api/leaderboard':
                 self.handle_leaderboard()
             elif path == '/api/trade-lab':
@@ -768,6 +782,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_yield_lab()
             elif path == '/api/watchlist':
                 self.handle_watchlist_get(auth_info)
+            elif path == '/api/oms-dashboard':
+                self.handle_oms_dashboard(auth_info)
             elif path == '/api/positions':
                 self.handle_positions_get(auth_info)
             elif path == '/api/price-alerts':
