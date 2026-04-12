@@ -18,7 +18,7 @@ async function renderHome() {
                     </div>
                     <h1>Institutional Intelligence Terminal. <span>Live.</span></h1>
                     <p class="hero-subtitle">
-                        AlphaSignal is a multi-hub institutional intelligence terminal for Bitcoin, crypto, and macro markets. Real-time Z-score signals, AI portfolio rebalancing, options flow, whale tracking, macro calendars, and 60+ analytical views — synthesised by AI, verified by institutional order flow.
+                        AlphaSignal is a multi-hub institutional intelligence terminal for Bitcoin, crypto, and macro markets. Real-time Z-score signals, KeyVault 1-Click execution, AI portfolio rebalancing, options flow, whale tracking, and 60+ analytical views — translated into Plain English by AI, verified by institutional order flow.
                     </p>
                     <div class="hero-actions">
                         ${!isAuthenticatedUser ? `
@@ -137,9 +137,9 @@ async function renderHome() {
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
                         ${[
                             { icon: 'account_circle', view: 'my-terminal', color: '#00f2ff', title: 'My Terminal — Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
-                            { icon: 'notifications_active', view: 'my-terminal', color: '#22c55e', title: 'Real-Time Price Alerts', desc: 'Target price crossing alerts fire as browser notifications the instant a watched asset hits your price — backed by the live WebSocket price stream.' },
-                            { icon: 'link', view: 'alerts', color: '#8b5cf6', title: 'Signal Permalinks', desc: 'Every signal gets a public shareable URL with live vs signal price performance, AI thesis analysis, and one-click Add to Watchlist for visitors.' },
-                            { icon: 'install_mobile', view: 'home', color: '#f59e0b', title: 'PWA + Daily Digest', desc: 'Install AlphaSignal as a native app on iOS and Android. 07:30 UTC morning digest delivers top signals to Discord and Telegram automatically.' }
+                            { icon: 'gavel', view: 'exchange-keys', color: '#22c55e', title: 'KeyVault 1-Click Execution', desc: 'Institutional-grade secure storage for your exchange API keys. Execute AI-generated signals instantly with 1-click trade routing directly from the terminal.' },
+                            { icon: 'language', view: 'ask-terminal', color: '#8b5cf6', title: 'Plain English AI', desc: 'Demystify complex institutional data. Our integrated AI translators distill high-density market analytics into actionable, plain English insights across all terminal modules.' },
+                            { icon: 'webhook', view: 'webhooks', color: '#f59e0b', title: 'Integrations Hub', desc: 'Connect AlphaSignal directly to your infrastructure with custom Webhooks and Telegram/Discord bots, enabling automated strategy execution and alerting pipelines.' }
                         ].map(f => `
                             <div class="glass-card" onclick="switchView('${f.view}')" style="cursor:pointer;padding:1.5rem;border:1px solid ${alphaColor(0.05)};transition:all 0.2s"
                                  onmouseover="this.style.borderColor='${f.color}';this.style.background=alphaColor(0.02)"
