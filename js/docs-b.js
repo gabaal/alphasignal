@@ -4,7 +4,7 @@
 // ============= INSTITUTIONAL HUB =============
 function renderDocsViewTokenUnlocks() {
     renderViewDocPage({
-        hub: 'Institutional Hub', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Token Unlocks', viewId: 'institutional-hub',
         summary: 'Track scheduled token unlock events across major protocols. Unlocks represent new circulating supply entering the market, often causing short-term sell pressure from early investors and team members.',
         components: [
@@ -35,7 +35,7 @@ function renderDocsViewTokenUnlocks() {
 
 function renderDocsViewYieldLab() {
     renderViewDocPage({
-        hub: 'Institutional Hub', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
         title: 'DeFi Yield Lab', viewId: 'yield-lab',
         summary: 'Compare real yield opportunities across major DeFi protocols. Separates genuine yield (from protocol revenue) from inflationary token emissions that inflate APY numbers artificially.',
         components: [
@@ -65,7 +65,7 @@ function renderDocsViewYieldLab() {
 
 function renderDocsViewPortfolioOptimizer() {
     renderViewDocPage({
-        hub: 'Institutional Hub', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Portfolio Optimizer', viewId: 'portfolio-optimizer',
         summary: 'ML-powered portfolio construction using Modern Portfolio Theory combined with regime-adaptive weights. Generates optimal allocations that maximise risk-adjusted return for the current market environment.',
         components: [
@@ -129,7 +129,7 @@ function renderDocsViewPortfolioOptimizer() {
 
 function renderDocsViewTradeLab() {
     renderViewDocPage({
-        hub: 'Institutional Hub', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Trade Idea Lab', viewId: 'tradelab',
         summary: 'Structure and evaluate trade ideas with institutional discipline. Build a complete trade thesis including entry rationale, risk/reward calculation, and position sizing before committing capital.',
         components: [
@@ -460,7 +460,7 @@ function renderDocsViewPerformance() {
 // ============= RISK & STRESS =============
 function renderDocsViewRiskMatrix() {
     renderViewDocPage({
-        hub: 'Risk & Stress', hubIcon: 'grid_on', hubColor: '#ef4444',
+        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Risk Matrix', viewId: 'risk-hub',
         relatedDocs: [
             { name: 'Stress Test Lab', route: 'docs-stress-lab', icon: 'warning' },
@@ -505,7 +505,7 @@ function renderDocsViewRiskMatrix() {
 
 function renderDocsViewStressLab() {
     renderViewDocPage({
-        hub: 'Risk & Stress', hubIcon: 'grid_on', hubColor: '#ef4444',
+        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Stress Test Lab', viewId: 'stress',
         summary: 'Simulate how your current portfolio would perform under historical extreme market scenarios. Preparation is the difference between surviving a crash and being liquidated.',
         components: [

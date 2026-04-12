@@ -15,8 +15,16 @@ function renderHubTabs(activeTab, tabs) {
     `;
 }
 
-// ============= Global Markets Hub =============
-const globalHubTabs = [
+// ============= Macro Intelligence Hub =============
+const macroHubTabs = [
+    { id: 'macro', label: 'MACRO COMPASS', view: 'macro-hub', icon: 'public' },
+    { id: 'briefing', label: 'MARKET BRIEFING', view: 'briefing', icon: 'description' },
+    { id: 'flow', label: 'CAPITAL FLOWS', view: 'flow', icon: 'swap_horiz' },
+    { id: 'rotation', label: 'SECTOR ROTATION', view: 'rotation', icon: 'rotate_right' },
+    { id: 'capital-rotation', label: 'CAPITAL ROTATION', view: 'capital-rotation', icon: 'donut_large' },
+    { id: 'correlation', label: 'CORREL MATRIX', view: 'correlation-matrix', icon: 'grid_4x4' },
+    { id: 'calendar', label: 'MACRO CALENDAR', view: 'macro-calendar', icon: 'event' },
+    { id: 'regime', label: 'MARKET REGIME', view: 'regime', icon: 'layers' },
     { id: 'lob', label: 'LOB HEATMAP', view: 'lob-heatmap', icon: 'blur_on' },
     { id: 'etf', label: 'ETF FLOWS', view: 'etf-flows', icon: 'account_balance' },
     { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
@@ -24,24 +32,8 @@ const globalHubTabs = [
     { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
 ];
 
-async function renderGlobalHub() {
-    renderETFFlows(globalHubTabs);
-}
-
-// ============= Macro Intelligence Hub =============
-const macroHubTabs = [
-    { id: 'briefing', label: 'MARKET BRIEFING', view: 'briefing', icon: 'description' },
-    { id: 'flow', label: 'CAPITAL FLOWS', view: 'flow', icon: 'swap_horiz' },
-    { id: 'rotation', label: 'SECTOR ROTATION', view: 'rotation', icon: 'rotate_right' },
-    { id: 'capital-rotation', label: 'CAPITAL ROTATION', view: 'capital-rotation', icon: 'donut_large' },
-    { id: 'macro', label: 'MACRO COMPASS', view: 'macro-hub', icon: 'public' },
-    { id: 'correlation', label: 'CORRELATION Matrix', view: 'correlation-matrix', icon: 'grid_4x4' },
-    { id: 'calendar', label: 'MACRO CALENDAR', view: 'macro-calendar', icon: 'event' },
-    { id: 'regime', label: 'MARKET REGIME', view: 'regime', icon: 'layers' }
-];
-
 async function renderMacroHub() {
-    renderBriefing(macroHubTabs); 
+    renderMacroSync('ALL', macroHubTabs); 
 }
 
 // ============= Alpha Strategy Hub =============
@@ -59,18 +51,19 @@ async function renderAlphaHub() {
     renderSignals('ALL', alphaHubTabs);
 }
 
-// ============= Institutional Hub =============
+// ============= Portfolio & Risk Lab =============
 const institutionalHubTabs = [
+    { id: 'optimizer', label: 'PORTFOLIO OPTIMIZER', view: 'portfolio-optimizer', icon: 'auto_mode' },
+    { id: 'risk', label: 'RISK MATRIX', view: 'risk', icon: 'grid_on' },
+    { id: 'stress', label: 'STRESS LAB', view: 'stress', icon: 'warning_amber' },
+    { id: 'tradelab', label: 'TRADE IDEA LAB', view: 'tradelab', icon: 'experiment' },
     { id: 'unlocks', label: 'TOKEN UNLOCKS', view: 'token-unlocks', icon: 'key' },
     { id: 'yield', label: 'YIELD LAB', view: 'yield-lab', icon: 'biotech' },
-    { id: 'optimizer', label: 'PORTFOLIO OPTIMIZER', view: 'portfolio-optimizer', icon: 'auto_mode' },
-
-    { id: 'tradelab', label: 'TRADE IDEA LAB', view: 'tradelab', icon: 'experiment' },
     { id: 'rebalancer', label: 'AI REBALANCER', view: 'ai-rebalancer', icon: 'smart_toy' }
 ];
 
 async function renderInstitutionalHub() {
-    renderTokenUnlocks(institutionalHubTabs);
+    renderPortfolioOptimizer(institutionalHubTabs);
 }
 
 // ============= Analytics Hub =============
@@ -80,8 +73,10 @@ const analyticsHubTabs = [
     { id: 'whales',        label: 'WHALE PULSE',    view: 'whales',            icon: 'waves' },
     { id: 'velocity',      label: 'CHAIN VELOCITY', view: 'velocity',          icon: 'speed' },
     { id: 'onchain',       label: 'ON-CHAIN STATS', view: 'onchain',           icon: 'link' },
+    { id: 'mindshare',     label: 'MINDSHARE',      view: 'mindshare',         icon: 'psychology' },
     { id: 'newsroom',      label: 'NEWSROOM',       view: 'newsroom',          icon: 'newspaper' },
-    { id: 'custom',        label: 'CUSTOM CHARTS',  view: 'custom-analytics',  icon: 'bar_chart' }
+    { id: 'custom',        label: 'CUSTOM CHARTS',  view: 'custom-analytics',  icon: 'bar_chart' },
+    { id: 'advanced-charting', label: 'ADVANCED CHARTING', view: 'advanced-charting', icon: 'candlestick_chart' }
 ];
 
 async function renderAnalyticsHub() {
@@ -99,23 +94,14 @@ async function renderAuditHub() {
     renderPerformanceDashboard(auditHubTabs);
 }
 
-// ============= Risk & Stress Lab Hub =============
-const riskHubTabs = [
-    { id: 'risk', label: 'RISK MATRIX', view: 'risk', icon: 'grid_on' },
-    { id: 'stress', label: 'STRESS LAB', view: 'stress', icon: 'warning_amber' }
-];
-
-async function renderRiskHub() {
-    renderRiskMatrix(riskHubTabs);
-}
-
-// ============= Alerts Hub =============
+// ============= Alerts & Webhooks Hub =============
 const alertsHubTabs = [
     { id: 'alerts',            label: 'LIVE ALERTS',    view: 'alerts-hub',        icon: 'notifications' },
     { id: 'price-alerts',      label: 'PRICE ALERTS',   view: 'price-alerts-hub',  icon: 'add_alert' },
     { id: 'signal-leaderboard',label: 'LEADERBOARD',    view: 'leaderboard-hub',   icon: 'leaderboard' },
     { id: 'market-brief',      label: 'MARKET BRIEF',   view: 'market-brief-hub',  icon: 'article' },
     { id: 'signal-archive',    label: 'SIGNAL ARCHIVE', view: 'signal-archive',    icon: 'archive' },
+    { id: 'webhooks',          label: 'WEBHOOKS',       view: 'webhooks',          icon: 'webhook' }
 ];
 
 // Hub-aware wrappers — each view shows the shared tab bar

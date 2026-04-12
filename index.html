@@ -241,79 +241,59 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
             
 
             <nav class="sidebar-nav" role="navigation">
+                <!-- [ TOP LEVEL ] -->
                 <div class="nav-item active" data-view="command-center" aria-label="View Institutional Command Center">
                     <span class="icon material-symbols-outlined" aria-hidden="true">dashboard</span> Command Center
                 </div>
-                <div class="nav-item" data-view="home" aria-label="View Landing Page">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">home</span> Welcome
-                </div>
                 <div class="nav-item" data-view="signals" aria-label="View Signals">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">radar</span>
-                    Signals
+                    <span class="icon material-symbols-outlined" aria-hidden="true">radar</span> Live Signals
                 </div>
 
-                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INTELLIGENCE HUBS</div>
+                <!-- [ INSTITUTIONAL WORKFLOW ] -->
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INSTITUTIONAL WORKFLOW</div>
 
-                <div class="nav-item" data-view="global-hub" aria-label="View Global Markets Hub (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">public</span> Global Markets
+                <div class="nav-item" data-view="macro-hub" aria-label="View Macro Intelligence">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">monitoring</span> Macro Intelligence
                 </div>
-                <div class="nav-item" data-view="macro-hub" aria-label="View Macro Intelligence Hub (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">monitoring</span> Macro Intel
+                <div class="nav-item" data-view="analytics-hub" aria-label="View Capital Flow & Analytics (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">analytics</span> Flow & Analytics
+                </div>
+                <div class="nav-item" data-view="liquidity" aria-label="View Order Flow GOMM (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">bar_chart</span> Order Flow (GOMM)
                 </div>
                 <div class="nav-item" data-view="alpha-hub" aria-label="View Quant Strategy Lab (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">electric_bolt</span> Quant Strategy Lab
                 </div>
-                <div class="nav-item" data-view="institutional-hub" aria-label="View Institutional Hub (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">key</span> Institutional Hub
-                </div>
-                <div class="nav-item" data-view="analytics-hub" aria-label="View Analytics Terminal (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">analytics</span> Analytics Hub
-                </div>
-
-                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">TERMINAL MODULES</div>
-
-                <div class="nav-item" data-view="mindshare" aria-label="View Social Mindshare (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">psychology</span> Mindshare
+                <div class="nav-item" data-view="institutional-hub" aria-label="View Portfolio & Risk Lab (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">key</span> Portfolio & Risk Lab
                 </div>
                 <div class="nav-item" data-view="audit-hub" aria-label="View Trade Ledger Audit (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">trending_up</span> Trade Ledger Audit
                 </div>
-                <div class="nav-item" data-view="risk-hub" aria-label="View Risk & Stress Lab (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">grid_on</span> Risk & Stress
-                </div>
-                <div class="nav-item" data-view="advanced-charting" aria-label="View Advanced Charting (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">candlestick_chart</span> Advanced Charting
-                </div>
-                <div class="nav-item" data-view="liquidity" aria-label="View Order Flow GOMM (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">bar_chart</span> Order Flow
-                </div>
-                <div class="nav-item" data-view="alerts-hub" aria-label="Alerts Hub — Live Alerts, Price Alerts, Leaderboard, Market Brief">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">notifications_active</span> Alerts Hub
-                    <span class="alert-badge" id="alert-badge" style="display:none" aria-label="Active Alerts Count">0</span>
-                    <span id="alerts-nav-live-dot" class="live-dot" style="display:none;margin-left:4px"></span>
-                </div>
+
+                <!-- [ EXECUTION & AUTOMATION ] -->
                 <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">EXECUTION & AUTOMATION</div>
                 
                 <div class="nav-item" data-view="my-terminal" aria-label="Active Positions — Manual Tracking">
                     <span class="icon material-symbols-outlined" aria-hidden="true">person</span> Active Positions
                     <span class="premium-badge" style="font-size:0.5rem;background:rgba(0,242,255,0.15);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PERSONAL</span>
                 </div>
-
                 <div class="nav-item" data-view="algo-hub" aria-label="Manage Live Algo Builder (Premium)">
                     <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Live Algo Builder
                     <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
                 </div>
-
-                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INTEGRATIONS</div>
-                
+                <div class="nav-item" data-view="alerts-hub" aria-label="Alerts Hub — Live Alerts, Price Alerts, Leaderboard, Market Brief">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">notifications_active</span> Alerts & Webhooks
+                    <span class="alert-badge" id="alert-badge" style="display:none" aria-label="Active Alerts Count">0</span>
+                    <span id="alerts-nav-live-dot" class="live-dot" style="display:none;margin-left:4px"></span>
+                </div>
                 <div class="nav-item" data-view="exchange-keys" aria-label="Manage Exchange API Keys (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">api</span> Exchange Keys
+                    <span class="icon material-symbols-outlined" aria-hidden="true">api</span> KeyVault Integrations
                     <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
                 </div>
-                <div class="nav-item" data-view="webhooks" aria-label="Manage Outbound Webhooks (Premium)">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">webhook</span> Webhooks
-                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
-                </div>
+
+                <!-- [ SYSTEM ] -->
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">SYSTEM</div>
 
                 <div class="nav-item" data-view="ask-terminal" aria-label="Ask the Terminal AI">
                     <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Ask Terminal <span class="premium-badge" style="font-size:0.5rem;background:#bc13fe;color:black;padding:1px 5px;border-radius:4px;margin-left:2px">AI</span>
@@ -678,7 +658,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="js/heatmap_engine.js?v=2.52" defer></script>
     <script src="js/charts.js?v=2.52" defer></script>
     <!-- views/ modules (split from views.js) — hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.52" defer></script>
+    <script src="js/views/hub-nav.js?v=2.60" defer></script>
     <script src="js/views/global-markets.js?v=2.52" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
@@ -722,12 +702,12 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="js/views/exchange-keys.js?v=2.53" defer></script>
     <script src="js/views/webhooks.js?v=2.53" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.54" defer></script>
-    <script src="js/docs-b.js?v=2.54" defer></script>
+    <script src="js/docs-a.js?v=2.60" defer></script>
+    <script src="js/docs-b.js?v=2.60" defer></script>
     <script src="js/export.js?v=2.53" defer></script>
     <script src="js/seo-meta.js?v=2.53" defer></script>
-    <script src="js/main.js?v=2.55" defer></script>
-    <script src="js/router.js?v=2.53" defer></script>
+    <script src="js/main.js?v=2.61" defer></script>
+    <script src="js/router.js?v=2.61" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->

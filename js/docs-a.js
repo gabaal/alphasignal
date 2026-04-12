@@ -1,15 +1,6 @@
 // ============= Help Hub — Sidebar-Mirrored Index =============
 function renderHelp() {
     const hubs = [
-        { id: 'global-markets', name: 'Global Markets', icon: 'public', color: '#00f2ff', view: 'global-hub',
-          docs: [
-            { name: 'ETF Flows', desc: '3 components: Stacked bar chart, Daily leaderboard table, Cumulative waterfall chart', route: 'docs-etf-flows', icon: 'account_balance' },
-            { name: 'Liquidations', desc: '3 components: Cascade scanner chart, Total rekt stat, Largest single order stat', route: 'docs-liquidations', icon: 'local_fire_department' },
-            { name: 'OI Radar', desc: '5 components: Exchange spider chart, IV smile curve, OI divergence bubble map, Attribution table, OI x Funding Matrix', route: 'docs-oi-radar', icon: 'track_changes' },
-            { name: 'CME Gaps', desc: '1 component: Active magnet levels registry', route: 'docs-cme-gaps', icon: 'candlestick_chart' },
-            { name: 'LOB Heatmap', desc: '1 component: High-density Limit Order Book visual depth canvas', route: 'docs-lob-heatmap', icon: 'blur_on' },
-          ]
-        },
         { id: 'macro-intel', name: 'Macro Intelligence', icon: 'monitoring', color: '#a78bfa', view: 'macro-hub',
           docs: [
             { name: 'Strategy Briefing', desc: '3 components: AI institutional memo, Conviction dials, BTC benchmark chart', route: 'docs-briefing', icon: 'memory' },
@@ -17,6 +8,11 @@ function renderHelp() {
             { name: 'Macro Compass', desc: '3 components: Macro correlation heatmap, Yield curve chart, DXY overlay', route: 'docs-macro-compass', icon: 'explore' },
             { name: 'Macro Calendar', desc: '2 components: Economic event calendar, BTC impact score table', route: 'docs-macro-calendar', icon: 'calendar_month' },
             { name: 'Market Regime', desc: '3 components: Regime classifier gauge, Transition matrix, Regime heatmap history', route: 'docs-regime', icon: 'category' },
+            { name: 'ETF Flows', desc: '3 components: Stacked bar chart, Daily leaderboard table, Cumulative waterfall chart', route: 'docs-etf-flows', icon: 'account_balance' },
+            { name: 'Liquidations', desc: '3 components: Cascade scanner chart, Total rekt stat, Largest single order stat', route: 'docs-liquidations', icon: 'local_fire_department' },
+            { name: 'OI Radar', desc: '5 components: Exchange spider chart, IV smile curve, OI divergence bubble map, Attribution table, OI x Funding Matrix', route: 'docs-oi-radar', icon: 'track_changes' },
+            { name: 'CME Gaps', desc: '1 component: Active magnet levels registry', route: 'docs-cme-gaps', icon: 'candlestick_chart' },
+            { name: 'LOB Heatmap', desc: '1 component: High-density Limit Order Book visual depth canvas', route: 'docs-lob-heatmap', icon: 'blur_on' },
           ]
         },
         { id: 'alpha-strategy', name: 'Quant Strategy Lab', icon: 'electric_bolt', color: '#facc15', view: 'alpha-hub',
@@ -32,12 +28,14 @@ function renderHelp() {
             { name: 'How Signals Work', desc: 'Full system explainer: data harvest, ML inference, rule detection, ROI calc, stop loss automation, alert delivery & signal archive lifecycle', route: 'docs-how-signals-work', icon: 'schema' },
           ]
         },
-        { id: 'institutional-hub', name: 'Institutional Hub', icon: 'key', color: '#fb923c', view: 'institutional-hub',
+        { id: 'institutional-hub', name: 'Portfolio & Risk Lab', icon: 'key', color: '#fb923c', view: 'institutional-hub',
           docs: [
             { name: 'Token Unlocks', desc: '2 components: Unlock schedule table, Supply impact score badges', route: 'docs-token-unlocks', icon: 'lock_open' },
             { name: 'DeFi Yield Lab', desc: '3 components: Protocol APY comparison table, Avg staking stat, Risk score bar', route: 'docs-yield-lab', icon: 'savings' },
             { name: 'Portfolio Optimizer', desc: '3 components: ML rebalancing table, Radar allocation chart, Efficient frontier scatter', route: 'docs-portfolio-optimizer', icon: 'account_tree' },
             { name: 'Trade Idea Lab', desc: '2 components: Thesis builder form, Risk/reward calculator', route: 'docs-tradelab', icon: 'tips_and_updates' },
+            { name: 'Risk Matrix', desc: '3 components: VaR gauge, Volatility-adjusted position sizer, Correlation scatter plot', route: 'docs-risk-matrix', icon: 'shield' },
+            { name: 'Stress Test Lab', desc: '2 components: Scenario stress table, Z-score distribution chart', route: 'docs-stress-lab', icon: 'warning' },
           ]
         },
         { id: 'analytics-hub', name: 'Analytics Hub', icon: 'analytics', color: '#22c55e', view: 'analytics-hub',
@@ -58,12 +56,6 @@ function renderHelp() {
             { name: 'Performance Dashboard', desc: '3 components: Win rate stat cards, Monthly ROI heatmap calendar, Equity curve', route: 'docs-performance', icon: 'bar_chart' },
           ]
         },
-        { id: 'risk-hub', name: 'Risk & Stress', icon: 'grid_on', color: '#ef4444', view: 'risk-hub',
-          docs: [
-            { name: 'Risk Matrix', desc: '3 components: VaR gauge, Volatility-adjusted position sizer, Correlation scatter plot', route: 'docs-risk-matrix', icon: 'shield' },
-            { name: 'Stress Test Lab', desc: '2 components: Scenario stress table, Z-score distribution chart', route: 'docs-stress-lab', icon: 'warning' },
-          ]
-        },
         { id: 'advanced-charting', name: 'Advanced Charting', icon: 'candlestick_chart', color: '#c084fc', view: 'advanced-charting',
           docs: [
             { name: 'Charting Suite', desc: '5 components: Candle chart, Volume Profile, CVD, Exchange Inflow/Outflow, Market Depth', route: 'docs-charting-suite', icon: 'candlestick_chart' },
@@ -75,7 +67,7 @@ function renderHelp() {
             { name: 'Liquidity Dashboard', desc: '3 components: Orderbook depth chart, Execution tape feed, Institutional liquidity heatmap', route: 'docs-order-flow', icon: 'bar_chart' },
           ]
         },
-        { id: 'alerts-hub', name: 'Alerts Hub', icon: 'notifications_active', color: '#f43f5e', view: 'alerts-hub',
+        { id: 'alerts-hub', name: 'Alerts & Webhooks', icon: 'notifications_active', color: '#f43f5e', view: 'alerts-hub',
           docs: [
             { name: 'Live Signal Alerts', desc: '2 components: Alert feed cards, Severity filter controls', route: 'docs-alerts', icon: 'notifications' },
             { name: 'Price Alerts', desc: '2 components: Alert manager table, Target price form', route: 'docs-price-alerts', icon: 'price_check' },
@@ -92,7 +84,7 @@ function renderHelp() {
             { name: 'Daily Workflow Playbook', desc: 'A structured 20-minute daily session guide — Morning Brief, Signal Review, Macro Context, Trade Decision, End-of-Day review', route: 'docs-daily-workflow', icon: 'today' },
           ]
         },
-        { id: 'integrations-hub', name: 'Integrations Hub', icon: 'cable', color: '#ef4444', view: 'exchange-keys',
+        { id: 'integrations-hub', name: 'KeyVault Integrations', icon: 'cable', color: '#ef4444', view: 'exchange-keys',
           docs: [
             { name: 'API Keys & Webhooks', desc: '2 components: Exchange API secure linking, Outbound Algorithmic Webhook config', route: 'docs-integrations', icon: 'key' }
           ]
@@ -141,7 +133,7 @@ function renderHelp() {
 // ============= GLOBAL MARKETS HUB =============
 function renderDocsViewETFFlows() {
     renderViewDocPage({
-        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
         title: 'ETF Flows', viewId: 'etf-flows',
         relatedDocs: [
             { name: 'Liquidations', route: 'docs-liquidations', icon: 'local_fire_department' },
@@ -199,7 +191,7 @@ function renderDocsViewETFFlows() {
 
 function renderDocsViewLiquidations() {
     renderViewDocPage({
-        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
         title: 'Liquidations', viewId: 'liquidations',
         relatedDocs: [
             { name: 'ETF Flows', route: 'docs-etf-flows', icon: 'account_balance' },
@@ -245,7 +237,7 @@ function renderDocsViewLiquidations() {
 
 function renderDocsViewOIRadar() {
     renderViewDocPage({
-        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
         title: 'OI Radar', viewId: 'oi-radar',
         relatedDocs: [
             { name: 'Liquidations', route: 'docs-liquidations', icon: 'local_fire_department' },
@@ -314,7 +306,7 @@ function renderDocsViewOIRadar() {
 
 function renderDocsViewCMEGaps() {
     renderViewDocPage({
-        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
         title: 'CME Gaps', viewId: 'cme-gaps',
         summary: 'CME Bitcoin Futures trade only on weekdays (Sunday 6PM to Friday 5PM ET). Gaps form when the Friday closing price differs materially from the Sunday opening price. These unfilled price voids act as institutional "magnet" levels that price is statistically drawn to fill.',
         components: [
@@ -618,7 +610,7 @@ function renderDocsViewPlainEnglish() {
 
 function renderDocsViewLOBHeatmap() {
     renderViewDocPage({
-        hub: 'Global Markets', hubIcon: 'public', hubColor: '#00f2ff',
+        hub: 'Macro Intelligence', hubIcon: 'monitoring', hubColor: '#a78bfa',
         title: 'LOB Heatmap', viewId: 'lob-heatmap',
         summary: 'High-density visual representation of limit order book (LOB) depth across 50 resting bid/ask price levels. Identifies institutional liquidity walls and spoofed orders before they execute.',
         components: [
