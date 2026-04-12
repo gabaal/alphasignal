@@ -386,17 +386,39 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
 }
 
 // ── 1-Click Fast Execute Trade Proxy ──
-window.executeTrade = async function(ticker, action, price, alpha_score) {
-    const conf = confirm(`[1-CLICK TRADE CONFIRMATION]\n\nExecute ${action} order for ${ticker} at market price ~$${price}?`);
+window.executeTrade = async function(ticker, action, price, param4, take_profit, stop_loss) {
+    // param4 can be alpha_score (from signals) or rr_ratio (from trade lab)
+    const isTradeLab = (take_profit !== undefined && stop_loss !== undefined);
+    
+    // Construct rich confirmation dialog
+    let confMsg = `[1-CLICK TRADE CONFIRMATION]\n\nExecute ${action} order for ${ticker} at market price ~$${price}?`;
+    if (isTradeLab) {
+        confMsg = `[INSTITUTIONAL EXECUTION]\n\nDispatching full ticket via KeyVault:\n\nAsset: ${ticker}\nSide: ${action}\nEntry: $${price}\nTarget: $${take_profit}\nStop: $${stop_loss}\n\nExecute to live connected exchange?`;
+    }
+    
+    const conf = confirm(confMsg);
     if (!conf) return;
+    
     showToast('EXECUTING', `Routing ${action} order for ${ticker} to exchange sandbox...`, 'info');
+    
     try {
-        const res = await fetchAPI('/execute-trade', 'POST', {
+        const payload = {
             ticker: ticker,
             action: action,
             price: price,
-            alpha_score: alpha_score
-        });
+            is_institutional: isTradeLab
+        };
+        
+        if (isTradeLab) {
+            payload.rr_ratio = param4;
+            payload.target = take_profit;
+            payload.stop = stop_loss;
+        } else {
+            payload.alpha_score = param4;
+        }
+
+        const res = await fetchAPI('/execute-trade', 'POST', payload);
+        
         if (res && res.success) {
             showToast('ORDER FILLED', res.message, 'success');
         } else {

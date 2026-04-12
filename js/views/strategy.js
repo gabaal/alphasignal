@@ -593,6 +593,6 @@ function renderSankeyDiagram({ nodes, links }) {
 // REDUNDANT - Combined with renderPortfolioLab
 async function renderPortfolioOptimizer(tabs = null) {
     if (!tabs) tabs = institutionalHubTabs;
-    renderPortfolioLab(null, tabs);
+    renderPortfolioLab(null, null, tabs);
 }
 

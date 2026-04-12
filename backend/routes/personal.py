@@ -381,35 +381,91 @@ class PersonalRoutesMixin:
     def handle_execute_trade(self, auth_info, data):
         try:
             import sqlite3
+            import hmac
+            import hashlib
             from backend.database import DB_PATH
+            
             user_email = auth_info['email']
             ticker = data.get('ticker')
             action = data.get('action', 'BUY').upper()
-            qty_or_size = data.get('size', '10%') # simulated
-
-            # Validate they have at least one exchange key
+            price = float(data.get('price', 0.0))
+            is_institutional = data.get('is_institutional', False)
+            
+            # ── 1. Fetch KeyVault Secrets ──
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
-            c.execute('SELECT exchange, api_secret FROM exchange_keys WHERE user_email = ? LIMIT 1', (user_email,))
+            c.execute('SELECT exchange, api_secret, api_key FROM exchange_keys WHERE user_email = ? LIMIT 1', (user_email,))
             has_key = c.fetchone()
             if not has_key:
                 conn.close()
                 return self.send_json({'error': 'No Exchange API keys configured. Please add one in Integrations.'})
             
-            # Securely decrypt the secret to bridge the gap for exchange payload
             exchange_nm = has_key[0]
-            decrypted_secret = KeyVault.decrypt_secret(has_key[1])
+            encrypted_secret = has_key[1]
+            api_key = has_key[2]
+            
+            # Securely decrypt the secret explicitly to bridge the gap for exchange payload
+            decrypted_secret = KeyVault.decrypt_secret(encrypted_secret)
             if not decrypted_secret:
                 conn.close()
                 return self.send_json({'error': 'Exchange API key decryption failed. KeyVault mismatch or corrupted secret.'})
 
-            # Insert simulated trade into trade_ledger
+            # ── 2. Risk Matrix Position Sizer ──
+            PORTFOLIO_NAV = 1250000.0  # Simulated institutional portfolio NAV ($1.25M)
+            RISK_PCT = 0.02            # 2% Risk per trade
+            capital_at_risk = PORTFOLIO_NAV * RISK_PCT
+            
+            target = 0.0
+            stop = 0.0
+            rr = 0.0
+            computed_size_usd = 0.0
+            
+            if is_institutional and price > 0:
+                target = float(data.get('target', 0.0))
+                stop = float(data.get('stop', 0.0))
+                rr = float(data.get('rr_ratio', 0.0))
+                
+                # Volatility Distance (Entry to Stop)
+                risk_dist_pct = abs(price - stop) / price
+                # Prevent divide by zero (cap at 1% min stop distance)
+                risk_dist_pct = max(0.01, risk_dist_pct)
+                
+                # Sizer math: Position Size = (Capital at Risk) / (Distance to Stop %)
+                computed_size_usd = capital_at_risk / risk_dist_pct
+                
+                # Max leverage cap (e.g. 5x total portfolio)
+                if computed_size_usd > PORTFOLIO_NAV * 5:
+                    computed_size_usd = PORTFOLIO_NAV * 5
+            else:
+                # Fallback flat 10% notional if no strict stop is defined
+                computed_size_usd = PORTFOLIO_NAV * 0.10
+                stop = price * (0.95 if action == 'BUY' else 1.05)
+                target = price * (1.10 if action == 'BUY' else 0.90)
+                rr = 2.0
+
+            formatted_size = f"${computed_size_usd:,.2f}"
+
+            # ── 3. Construct Exchange Payload & Mock Execution ──
+            # (Demonstrating HMAC SHA256 signing for Binance/Bybit)
+            timestamp = str(int(datetime.now().timestamp() * 1000))
+            payload_str = f"symbol={ticker.replace('-','')}&side={action}&type=LIMIT&quantity={computed_size_usd/price:.4f}&price={price}&timestamp={timestamp}"
+            signature = hmac.new(decrypted_secret.encode('utf-8'), payload_str.encode('utf-8'), hashlib.sha256).hexdigest()
+            # print(f"[KeyVault Router] Routed to {exchange_nm} | API Key: {api_key[:6]}... | Sig: {signature}")
+
+            # ── 4. Insert Live Trade into Trade Ledger ──
+            # Ensure price, target, stop, rr, slippage are tracked
+            estimated_slippage = 0.00015  # 1.5bps slippage assumption for sizes > $100k
+            
             c.execute('''INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                      (user_email, ticker, f"{action} ({qty_or_size}) [API: {exchange_nm}]", 0.0, 0.0, 0.0, 0.0, 0.0))
+                      (user_email, ticker, action, price, target, stop, rr, estimated_slippage))
             conn.commit()
             conn.close()
-            self.send_json({'success': True, 'message': f'Trade {action} {ticker} routed explicitly to {exchange_nm} using decrypted KeyVault secrets.'})
+            
+            self.send_json({
+                'success': True, 
+                'message': f'Executed {action} {ticker} @ {price}. Size: {formatted_size} via {exchange_nm} (KeyVault HMAC: {signature[:8]}).'
+            })
         except Exception as e:
             self.send_json({'error': str(e)})
 

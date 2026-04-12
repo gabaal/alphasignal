@@ -1,5 +1,5 @@
 async function renderETFFlows(tabs = null) {
-    if (!tabs) tabs = globalHubTabs;
+    if (!tabs) tabs = macroHubTabs;
     const tabHTML = tabs ? renderHubTabs('etf', tabs) : '';
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -187,7 +187,7 @@ async function renderETFFlows(tabs = null) {
 
 // ============= Liquidations View =============
 async function renderLiquidations(tabs = null) {
-    if (!tabs) tabs = globalHubTabs;
+    if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
             <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
@@ -266,7 +266,7 @@ async function renderLiquidations(tabs = null) {
 
 // ============= CME Gaps View =============
 async function renderCMEGaps(tabs = null) {
-    if (!tabs) tabs = globalHubTabs;
+    if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
             <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
@@ -337,7 +337,7 @@ async function renderCMEGaps(tabs = null) {
 
 // ============= OI Radar View =============
 async function renderOIRadar(tabs = null) {
-    if (!tabs) tabs = globalHubTabs;
+    if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `
         <div class="view-header">
             <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
@@ -699,7 +699,7 @@ async function renderYieldLab(tabs = null) {
 };
 // ============= LOB Heatmap View =============
 window.renderLobHeatmap = async function(tabs = null) {
-    if (!tabs) tabs = globalHubTabs;
+    if (!tabs) tabs = macroHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;">
             <div>

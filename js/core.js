@@ -1386,6 +1386,10 @@ async function runNeuralSetup(ticker) {
                         <span class="material-symbols-outlined" style="vertical-align:middle; font-size:1.2rem; margin-right:5px">receipt_long</span>
                         GENERATE EXECUTION TICKET
                     </button>
+                    <button class="intel-action-btn" style="flex:1; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444" onclick="window.executeTrade('${setup.ticker}', '${setup.action}', ${setup.parameters.entry}, ${setup.parameters.rr_ratio}, ${setup.parameters.take_profit_1}, ${setup.parameters.stop_loss})">
+                        <span class="material-symbols-outlined" style="vertical-align:middle; font-size:1.2rem; margin-right:5px">rocket_launch</span>
+                        1-CLICK EXECUTE
+                    </button>
                 </div>
             </div>`;
         area.innerHTML += `
@@ -1474,9 +1478,16 @@ function showTradeTicket(setup = null) {
                     <div style="font-weight:700">INSTRUCTION: LIMIT ORDER / GTC</div>
                     <div>Verified by AlphaSignal Intelligence Hub</div>
                 </div>
-                <button class="ticket-copy-btn" id="copy-ticket-btn" onclick="copyTicketToClipboard('${ticketId}')">
-                    COPY TO CLIPBOARD
-                </button>
+                <div style="display:flex; gap:10px">
+                    <button class="ticket-copy-btn" id="copy-ticket-btn" onclick="copyTicketToClipboard('${ticketId}')">
+                        <span class="material-symbols-outlined" style="vertical-align:middle; font-size:1.1rem; margin-right:4px">content_copy</span>
+                        COPY TO CLIPBOARD
+                    </button>
+                    <button class="ticket-copy-btn" style="background:rgba(239,68,68,0.1); border-color:#ef4444; color:#ef4444" onclick="window.executeTrade('${s.ticker}', '${s.action}', ${s.parameters.entry}, ${s.parameters.rr_ratio}, ${s.parameters.take_profit_1}, ${s.parameters.stop_loss})">
+                        <span class="material-symbols-outlined" style="vertical-align:middle; font-size:1.1rem; margin-right:4px">rocket_launch</span>
+                        1-CLICK EXECUTE
+                    </button>
+                </div>
             </div>
             <input type="hidden" id="raw-ticket-${ticketId}" value="${ticketText}">
         </div>
