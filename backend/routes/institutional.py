@@ -5634,19 +5634,25 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             if post_data:
-                z = float(post_data.get('z_threshold', 2.0))
+                c.execute('SELECT z_threshold, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold, discord_webhook, telegram_chat_id FROM user_settings WHERE user_email=?', (email,))
+                ext = c.fetchone()
+                
+                z = float(post_data.get('z_threshold', ext[0] if ext and ext[0] is not None else 2.0))
                 z = max(0.5, min(z, 10.0))
-                whale_t  = float(post_data.get('whale_threshold', 5.0))
-                depeg_t  = float(post_data.get('depeg_threshold', 1.0))
-                vol_t    = float(post_data.get('vol_spike_threshold', 2.0))
-                cme_t    = float(post_data.get('cme_gap_threshold', 1.0))
-                discord  = str(post_data.get('discord_webhook', '')).strip()
-                telegram = str(post_data.get('telegram_chat_id', '')).strip()
-                enabled  = bool(post_data.get('alerts_enabled', True))
+                whale_t  = float(post_data.get('whale_threshold', ext[2] if ext and ext[2] is not None else 5.0))
+                depeg_t  = float(post_data.get('depeg_threshold', ext[3] if ext and ext[3] is not None else 1.0))
+                vol_t    = float(post_data.get('vol_spike_threshold', ext[4] if ext and ext[4] is not None else 2.0))
+                cme_t    = float(post_data.get('cme_gap_threshold', ext[5] if ext and ext[5] is not None else 1.0))
+                rebalance_t = float(post_data.get('rebalance_threshold', ext[6] if ext and ext[6] is not None else 2.5))
+                discord  = str(post_data.get('discord_webhook', ext[7] if ext and ext[7] is not None else '')).strip()
+                telegram = str(post_data.get('telegram_chat_id', ext[8] if ext and ext[8] is not None else '')).strip()
+                
+                enabled_raw = post_data.get('alerts_enabled')
+                enabled = bool(enabled_raw) if enabled_raw is not None else (bool(ext[1]) if ext else True)
                 # Upsert all settings, preserving existing webhook if new one not provided
                 c.execute("""INSERT INTO user_settings (user_email, z_threshold, alerts_enabled, discord_webhook, telegram_chat_id,
-                                                         whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold)
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                                         whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                              ON CONFLICT(user_email) DO UPDATE SET
                                z_threshold        = excluded.z_threshold,
                                alerts_enabled     = excluded.alerts_enabled,
@@ -5654,9 +5660,10 @@ class InstitutionalRoutesMixin:
                                depeg_threshold    = excluded.depeg_threshold,
                                vol_spike_threshold = excluded.vol_spike_threshold,
                                cme_gap_threshold  = excluded.cme_gap_threshold,
+                               rebalance_threshold = excluded.rebalance_threshold,
                                discord_webhook    = CASE WHEN excluded.discord_webhook != '' THEN excluded.discord_webhook ELSE discord_webhook END,
                                telegram_chat_id   = CASE WHEN excluded.telegram_chat_id != '' THEN excluded.telegram_chat_id ELSE telegram_chat_id END""",
-                          (email, z, enabled, discord, telegram, whale_t, depeg_t, vol_t, cme_t))
+                          (email, z, enabled, discord, telegram, whale_t, depeg_t, vol_t, cme_t, rebalance_t))
                 conn.commit()
                 # Re-read to confirm
                 c.execute('SELECT discord_webhook, telegram_chat_id FROM user_settings WHERE user_email=?', (email,))
@@ -5682,9 +5689,9 @@ class InstitutionalRoutesMixin:
                 has_telegram = bool(saved[1]) if saved else bool(telegram)
                 self.send_json({'success': True, 'z_threshold': z, 'has_discord': has_discord, 'has_telegram': has_telegram,
                                 'whale_threshold': whale_t, 'depeg_threshold': depeg_t,
-                                'vol_spike_threshold': vol_t, 'cme_gap_threshold': cme_t})
+                                'vol_spike_threshold': vol_t, 'cme_gap_threshold': cme_t, 'rebalance_threshold': rebalance_t})
             else:
-                c.execute('SELECT z_threshold, discord_webhook, telegram_chat_id, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold FROM user_settings WHERE user_email=?', (email,))
+                c.execute('SELECT z_threshold, discord_webhook, telegram_chat_id, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold FROM user_settings WHERE user_email=?', (email,))
                 row = c.fetchone()
                 conn.close()
                 if row:
@@ -5702,12 +5709,13 @@ class InstitutionalRoutesMixin:
                         'depeg_threshold':    row[5] if row[5] is not None else 1.0,
                         'vol_spike_threshold': row[6] if row[6] is not None else 2.0,
                         'cme_gap_threshold':  row[7] if row[7] is not None else 1.0,
+                        'rebalance_threshold': row[8] if row[8] is not None else 2.5,
                     })
                 else:
                     self.send_json({'z_threshold': 2.0, 'has_discord': False, 'has_telegram': False, 'alerts_enabled': True,
                                     'discord_masked': '', 'telegram_masked': '',
                                     'whale_threshold': 5.0, 'depeg_threshold': 1.0,
-                                    'vol_spike_threshold': 2.0, 'cme_gap_threshold': 1.0})
+                                    'vol_spike_threshold': 2.0, 'cme_gap_threshold': 1.0, 'rebalance_threshold': 2.5})
         except Exception as e:
             print(f'[AlertSettings] {e}')
             import traceback; traceback.print_exc()

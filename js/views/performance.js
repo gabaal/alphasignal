@@ -743,32 +743,9 @@ async function loadStrategyReport() {
             <div id="sr-calendar" style="display:flex;flex-wrap:wrap;gap:10px"></div>
         </div>
 
-        <!-- Per-Ticker Breakdown -->
-        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
-            <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">PER-TICKER PERFORMANCE</div>
-            <div style="overflow-x:auto">
-                <table style="width:100%;border-collapse:collapse;font-size:0.75rem">
-                    <thead><tr style="border-bottom:1px solid var(--border)">
-                        ${['Ticker','Trades','Avg PnL','Win Rate','Total PnL'].map(h=>`<th style="padding:8px 12px;text-align:left;font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">${h}</th>`).join('')}
-                    </tr></thead>
-                    <tbody>
-                        ${tickerRows.map(r => `<tr style="border-bottom:1px solid ${alphaColor(0.04)}">
-                            <td style="padding:8px 12px;font-weight:700;color:var(--accent)">${r.ticker}</td>
-                            <td style="padding:8px 12px;color:var(--text-dim)">${r.trades}</td>
-                            <td style="padding:8px 12px;font-weight:700;color:${r.avgPnl>=0?'#22c55e':'#ef4444'}">${r.avgPnl>=0?'+':''}${r.avgPnl}%</td>
-                            <td style="padding:8px 12px">
-                                <div style="display:flex;align-items:center;gap:6px">
-                                    <div style="flex:1;height:4px;background:${alphaColor(0.08)};border-radius:2px;overflow:hidden">
-                                        <div style="width:${r.winRate}%;height:100%;background:${r.winRate>=50?'#22c55e':'#ef4444'};border-radius:2px"></div>
-                                    </div>
-                                    <span style="color:${r.winRate>=50?'#22c55e':'#ef4444'};font-weight:700">${r.winRate}%</span>
-                                </div>
-                            </td>
-                            <td style="padding:8px 12px;font-weight:700;color:${r.totalPnl>=0?'#22c55e':'#ef4444'}">${r.totalPnl>=0?'+':''}${r.totalPnl}%</td>
-                        </tr>`).join('')}
-                    </tbody>
-                </table>
-            </div>
+        <!-- Per-Ticker Breakdown (container for dynamic sortable table) -->
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem" id="sr-ticker-table-container">
+            ${skeleton(1)}
         </div>
 
         <!-- Recent Trade Log -->
@@ -829,6 +806,80 @@ async function loadStrategyReport() {
             exportCSV(trades, `strategy_report_${hold}d_${new Date().toISOString().split('T')[0]}.csv`);
             showToast('EXPORT', `Strategy Report exported (${trades.length} trades).`, 'success');
         };
+
+        // ── Ticker Table Rendering ────────────────────────────────────
+        window._tickerData = tickerRows;
+        window._tickerSortKey = 'avgPnl';
+        window._tickerSortDir = -1;
+
+        window._setTickerSort = function(key) {
+            if (window._tickerSortKey === key) {
+                window._tickerSortDir *= -1;
+            } else {
+                window._tickerSortKey = key;
+                window._tickerSortDir = -1;
+            }
+            window._drawTickerTable();
+        };
+
+        window._drawTickerTable = function() {
+            const container = document.getElementById('sr-ticker-table-container');
+            if (!container) return;
+
+            let logData = [...window._tickerData];
+
+            if (window._tickerSortKey) {
+                logData.sort((a, b) => {
+                    let vA = a[window._tickerSortKey];
+                    let vB = b[window._tickerSortKey];
+                    if (typeof vA === 'string') vA = vA.toLowerCase();
+                    if (typeof vB === 'string') vB = vB.toLowerCase();
+                    if (vA < vB) return -1 * window._tickerSortDir;
+                    if (vA > vB) return 1 * window._tickerSortDir;
+                    return 0;
+                });
+            }
+
+            const thStyle = "cursor:pointer; padding:8px 12px; text-align:left; font-size:0.55rem; font-weight:900; letter-spacing:1.5px; color:var(--text-dim); user-select:none; white-space:nowrap;";
+            
+            const getSortIcon = (key) => {
+                if (window._tickerSortKey !== key) return '<span style="opacity:0.3; font-size:10px; margin-left:4px">&#9650;&#9660;</span>';
+                return window._tickerSortDir === 1 ? '<span style="font-size:10px; color:var(--accent); margin-left:4px">&#9650;</span>' : '<span style="font-size:10px; color:var(--accent); margin-left:4px">&#9660;</span>';
+            };
+
+            container.innerHTML = `
+                <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">PER-TICKER PERFORMANCE</div>
+                <div style="overflow-x:auto">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.75rem">
+                        <thead><tr style="border-bottom:1px solid var(--border)">
+                            <th style="${thStyle}" onclick="window._setTickerSort('ticker')">Ticker ${getSortIcon('ticker')}</th>
+                            <th style="${thStyle}" onclick="window._setTickerSort('trades')">Trades ${getSortIcon('trades')}</th>
+                            <th style="${thStyle}" onclick="window._setTickerSort('avgPnl')">Avg PnL ${getSortIcon('avgPnl')}</th>
+                            <th style="${thStyle}" onclick="window._setTickerSort('winRate')">Win Rate ${getSortIcon('winRate')}</th>
+                            <th style="${thStyle}" onclick="window._setTickerSort('totalPnl')">Total PnL ${getSortIcon('totalPnl')}</th>
+                        </tr></thead>
+                        <tbody>
+                            ${logData.map(r => `<tr style="border-bottom:1px solid ${alphaColor(0.04)}">
+                                <td style="padding:8px 12px;font-weight:700;color:var(--accent)">${r.ticker}</td>
+                                <td style="padding:8px 12px;color:var(--text-dim)">${r.trades}</td>
+                                <td style="padding:8px 12px;font-weight:700;color:${r.avgPnl>=0?'#22c55e':'#ef4444'}">${r.avgPnl>=0?'+':''}${r.avgPnl}%</td>
+                                <td style="padding:8px 12px">
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <div style="flex:1;height:4px;background:${alphaColor(0.08)};border-radius:2px;overflow:hidden">
+                                            <div style="width:${r.winRate}%;height:100%;background:${r.winRate>=50?'#22c55e':'#ef4444'};border-radius:2px"></div>
+                                        </div>
+                                        <span style="color:${r.winRate>=50?'#22c55e':'#ef4444'};font-weight:700">${r.winRate}%</span>
+                                    </div>
+                                </td>
+                                <td style="padding:8px 12px;font-weight:700;color:${r.totalPnl>=0?'#22c55e':'#ef4444'}">${r.totalPnl>=0?'+':''}${r.totalPnl}%</td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        };
+
+        window._drawTickerTable();
 
         // ── Trade Log Rendering ───────────────────────────────────────
         window._tradeData = trades;

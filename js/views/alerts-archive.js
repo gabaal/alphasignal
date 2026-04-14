@@ -772,6 +772,20 @@ async function renderAlerts(tabs = null) {
 
 
 
+                
+                    <!-- Portfolio Rebalance -->
+                    <div>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span> PORTFOLIO REBALANCE</span>
+                            <span id="rebalance-val-display" style="color:#ec4899;font-weight:900">2.5%</span>
+                        </label>
+                        <input type="range" id="rebalance-threshold-slider" min="0.5" max="10" step="0.1" value="2.5" aria-label="Portfolio rebalance predicted return threshold" aria-valuemin="0.5" aria-valuemax="10" aria-valuenow="2.5"
+                            oninput="document.getElementById('rebalance-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
+                            style="width:100%;accent-color:#ec4899;cursor:pointer">
+                        <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                            <span>0.5%</span><span>10%</span>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -1221,10 +1235,9 @@ async function renderAlerts(tabs = null) {
         setSlider('whale-threshold-slider',     'whale-val-display', s.whale_threshold,      v => parseFloat(v).toFixed(0) + 'M');
 
         setSlider('depeg-threshold-slider',     'depeg-val-display', s.depeg_threshold,      v => parseFloat(v).toFixed(1) + '%');
-
         setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + 'σ');
-
         setSlider('cme-gap-threshold-slider',   'cme-val-display',   s.cme_gap_threshold,    v => parseFloat(v).toFixed(1) + '%');
+        setSlider('rebalance-threshold-slider', 'rebalance-val-display', s.rebalance_threshold, v => parseFloat(v).toFixed(1) + '%');
 
 
 
@@ -1281,25 +1294,18 @@ window.saveAlertSettings = async function() {
     const z        = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
 
     const whale    = parseFloat(document.getElementById('whale-threshold-slider')?.value || 5.0);
-
     const depeg    = parseFloat(document.getElementById('depeg-threshold-slider')?.value || 1.0);
-
     const vol      = parseFloat(document.getElementById('vol-spike-threshold-slider')?.value || 2.0);
-
     const cme      = parseFloat(document.getElementById('cme-gap-threshold-slider')?.value || 1.0);
-
+    const rebalance = parseFloat(document.getElementById('rebalance-threshold-slider')?.value || 2.5);
     const enabled  = document.getElementById('alerts-enabled-toggle')?.checked !== false;
 
     const result = await fetchAPI('/alert-settings', 'POST', {
-
         discord_webhook: discord, telegram_chat_id: telegram,
-
         z_threshold: z, alerts_enabled: enabled,
-
         whale_threshold: whale, depeg_threshold: depeg,
-
-        vol_spike_threshold: vol, cme_gap_threshold: cme
-
+        vol_spike_threshold: vol, cme_gap_threshold: cme,
+        rebalance_threshold: rebalance
     });
 
     if (result?.success) {

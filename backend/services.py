@@ -352,6 +352,16 @@ class PortfolioSimulator:
         print(f"[{datetime.now()}] PortfolioSimulator: Starting simulation loop...")
         while self.running:
             try:
+                # Fetch globally configured Rebalance Threshold (minimum across active users)
+                try:
+                    with sqlite3.connect(DB_PATH) as _conn:
+                        _c = _conn.cursor()
+                        _c.execute('SELECT MIN(rebalance_threshold) FROM user_settings WHERE rebalance_threshold IS NOT NULL')
+                        _min_reb = _c.fetchone()[0]
+                        rebalance_thresh = (float(_min_reb) / 100.0) if _min_reb is not None else 0.025
+                except:
+                    rebalance_thresh = 0.025
+
                 # 1. Fetch current ML Predictions
                 all_tickers = [t for sub in UNIVERSE.values() for t in sub]
                 predictions = []
@@ -362,8 +372,8 @@ class PortfolioSimulator:
                         if isinstance(hist_df.columns, pd.MultiIndex):
                             hist_df.columns = [c[0] for c in hist_df.columns]
                         pred = ML_ENGINE.predict(ticker, hist_df)
-                        # PRODUCTION THRESHOLD: 2.5% predicted alpha for institutional-grade conviction
-                        if pred and pred['predicted_return'] >= 0.025:
+                        # PRODUCTION THRESHOLD: Dynamically loaded from user settings
+                        if pred and pred['predicted_return'] >= rebalance_thresh:
                             predictions.append({'ticker': ticker, 'score': pred['predicted_return'], 'price': float(hist_df['Close'].iloc[-1])})
                 
                 if not predictions:
@@ -697,9 +707,17 @@ class HarvestService:
                 importance = prediction['feature_importance']
                 confidence = prediction.get('confidence', 0.75)
                 
-                # 3. Decision Logic: Alert if predicted return > 0.8% (lowered from 2.5%)
+                # Get minimum z_threshold across all active users
+                try:
+                    c.execute("SELECT MIN(z_threshold) FROM user_settings WHERE alerts_enabled = 1")
+                    _min_z = c.fetchone()[0]
+                    min_z_thresh = (float(_min_z) / 100.0) if _min_z is not None else 0.008
+                except:
+                    min_z_thresh = 0.008
+
+                # 3. Decision Logic: Alert if predicted return > min_z_thresh
                 signal_type = None
-                if pred_return >= 0.008:
+                if pred_return >= min_z_thresh:
                     signal_type = "ML_ALPHA_PREDICTION"
                     severity = 'critical' if pred_return >= 0.02 else 'high' if pred_return >= 0.01 else 'medium'
                     top_driver = max(importance, key=importance.get)
