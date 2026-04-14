@@ -605,14 +605,10 @@ class AIEngineRoutesMixin:
             f"Max Pain: {max_pain}\n"
             f"ATM IV: {atm_iv}%\n"
             f"IV Rank: {iv_rank}\n"
-            f"Zero-Gamma Pivot: ${zero_gamma}
-"
-            f"Expected 7D Move: ±${exp_move}
-"
-            f"25-Delta Skew: {skew}%
-"
-            f"Unusual Flow Anomalies: {anomalies} strikes
-"
+            f"Zero-Gamma Pivot: ${zero_gamma}\n"
+            f"Expected 7D Move: ±${exp_move}\n"
+            f"25-Delta Skew: {skew}%\n"
+            f"Unusual Flow Anomalies: {anomalies} strikes\n"
         )
         
         system_prompt = (
