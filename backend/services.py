@@ -444,6 +444,13 @@ class HarvestService:
 
     def run(self):
         print(f"[{datetime.now()}] Harvester service starting...")
+        
+        # Phase 0: Wait for ML Engine to finish warming up
+        print(f"[{datetime.now()}] Waiting for ML Alpha Engine to train models...")
+        while not ML_ENGINE.models and self.running:
+            time.sleep(2)
+        print(f"[{datetime.now()}] Models ready, commencing harvest cycle...")
+        
         last_regime = None
         while self.running:
             try:
