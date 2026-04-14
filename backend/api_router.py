@@ -931,5 +931,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         res[sym] = px
                         self._price_cache[sym] = (px, time.time())
                 except: pass
-        self.send_json(res)
+                
+        try:
+            from backend.routes.institutional import InstitutionalRoutesMixin
+            sc = InstitutionalRoutesMixin._signals_cache
+            res['top_alpha'] = sc['data'][:10] if (sc and sc.get('data')) else []
+        except:
+            res['top_alpha'] = []
 
+        self.send_json(res)

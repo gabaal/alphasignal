@@ -577,6 +577,13 @@ function initLiveAlphaScroller() {
     
     // Initial state until WebSocket pushes first chunk
     scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">SYNCING LIVE ALPHA STREAM...</span>';
+    
+    // Pre-fetch public signals to populate ticker tape immediately before WebSocket/Fallback kicks in
+    fetchAPI('/signals').then(data => {
+        if (data && Array.isArray(data) && data.length > 0) {
+            window.updateLiveAlphaScroller(data.slice(0, 10));
+        }
+    }).catch(e => {});
 }
 
 function initLivePriceStream() {
@@ -616,7 +623,12 @@ function initLivePriceStream() {
         window.priceFallbackInterval = setInterval(async () => {
             try {
                 const p = await fetchAPI('/prices');
-                if (p) handlePriceData(p);
+                if (p) {
+                    handlePriceData(p);
+                    if (p.top_alpha && window.updateLiveAlphaScroller) {
+                        window.updateLiveAlphaScroller(p.top_alpha);
+                    }
+                }
             } catch (e) {}
         }, 5000);
         
