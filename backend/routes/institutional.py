@@ -5975,6 +5975,7 @@ class InstitutionalRoutesMixin:
             calls_agg, puts_agg = {}, {}
             total_oi_c, total_oi_p, total_vol_c, total_vol_p = 0, 0, 0, 0
             ivs_by_strike = {}
+            all_contracts = []
 
             for exp in exps[:4]:
                 try:
@@ -5987,6 +5988,7 @@ class InstitutionalRoutesMixin:
                         calls_agg[s] = calls_agg.get(s, 0) + oi
                         total_oi_c += oi; total_vol_c += vol
                         if iv > 0: ivs_by_strike.setdefault(s, []).append(iv)
+                        all_contracts.append({'strike': s, 'type': 'C', 'expiry': str(exp), 'iv': round(iv*100, 1), 'volume': vol, 'oi': oi})
                     for _, row in chain.puts.iterrows():
                         s = float(row['strike'])
                         oi  = int(row.get('openInterest') or 0)
@@ -5995,6 +5997,7 @@ class InstitutionalRoutesMixin:
                         puts_agg[s]  = puts_agg.get(s, 0) + oi
                         total_oi_p += oi; total_vol_p += vol
                         if iv > 0: ivs_by_strike.setdefault(s, []).append(iv)
+                        all_contracts.append({'strike': s, 'type': 'P', 'expiry': str(exp), 'iv': round(iv*100, 1), 'volume': vol, 'oi': oi})
                 except: continue
 
             if not calls_agg and not puts_agg:
@@ -6031,11 +6034,29 @@ class InstitutionalRoutesMixin:
                 below = sum(1 for v in all_ivs if v < atm_raw)
                 iv_pct_rank = round(below / len(all_ivs) * 100)
 
+            top_strikes = sorted(all_contracts, key=lambda x: x['oi'], reverse=True)[:12]
+            for ts in top_strikes:
+                ts['anomalous'] = bool(ts.get('volume', 0) > ts.get('oi', 0) and ts.get('volume', 0) > 10)
+
+            put_skew_ivs = [e['iv'] for e in all_contracts if e['type'] == 'P' and abs(e['strike'] - spot * 0.90) / spot < 0.05 and e['iv'] > 0]
+            call_skew_ivs = [e['iv'] for e in all_contracts if e['type'] == 'C' and abs(e['strike'] - spot * 1.10) / spot < 0.05 and e['iv'] > 0]
+            put_skew = sum(put_skew_ivs)/max(len(put_skew_ivs), 1)
+            call_skew = sum(call_skew_ivs)/max(len(call_skew_ivs), 1)
+            skew = round(put_skew - call_skew, 2)
+
+            exp_move = round(spot * (atm_iv / 100) * (7/365)**0.5, 2)
+
+            strike_oi = {}
+            for e in all_contracts: strike_oi[e['strike']] = strike_oi.get(e['strike'], 0) + e['oi']
+            zero_gamma = sorted(strike_oi.keys(), key=lambda s: strike_oi[s], reverse=True)[0] if strike_oi else spot
+
             result = {
                 'pcr': pcr, 'max_pain': round(max_pain, 2),
                 'atm_iv': atm_iv, 'iv_pct_rank': iv_pct_rank,
                 'call_oi': total_oi_c, 'put_oi': total_oi_p,
                 'call_vol': total_vol_c, 'put_vol': total_vol_p,
+                'skew': skew, 'exp_move': exp_move, 'zero_gamma': zero_gamma,
+                'top_strikes': top_strikes, 'term_structure': [],
                 'iv_smile': smile_data, 'spot': round(spot, 2),
                 'source': 'CBOE · yfinance',
                 'updated': datetime.utcnow().strftime('%H:%M UTC'),
@@ -6133,6 +6154,20 @@ class InstitutionalRoutesMixin:
                     / max(len(all_ivs), 1) * 100, 0) if all_ivs else 50
 
                 top_strikes  = sorted(calls + puts, key=lambda x: x['oi'], reverse=True)[:12]
+                for ts in top_strikes:
+                    ts['anomalous'] = bool(ts.get('volume', 0) > ts.get('oi', 0) and ts.get('volume', 0) > 10)
+
+                put_skew_ivs = [e['iv'] for e in puts if abs(e['strike'] - spot * 0.90) / spot < 0.05 and e['iv'] > 0]
+                call_skew_ivs = [e['iv'] for e in calls if abs(e['strike'] - spot * 1.10) / spot < 0.05 and e['iv'] > 0]
+                put_skew = sum(put_skew_ivs)/max(len(put_skew_ivs), 1)
+                call_skew = sum(call_skew_ivs)/max(len(call_skew_ivs), 1)
+                skew = round(put_skew - call_skew, 2)
+
+                exp_move = round(spot * (atm_iv / 100) * (7/365)**0.5, 2)
+                
+                strike_oi = {}
+                for e in calls + puts: strike_oi[e['strike']] = strike_oi.get(e['strike'], 0) + e['oi']
+                zero_gamma = sorted(strike_oi.keys(), key=lambda s: strike_oi[s], reverse=True)[0] if strike_oi else spot
                 smile_calls  = sorted(
                     [e for e in calls if spot > 0 and 0.7 < e['strike'] / spot < 1.3 and e['iv'] > 0],
                     key=lambda x: x['strike'])
@@ -6172,6 +6207,7 @@ class InstitutionalRoutesMixin:
                     'put_volume':  round(total_put_vol, 1),
                     'call_oi':     round(total_call_oi, 1),
                     'put_oi':      round(total_put_oi, 1),
+                    'exp_move':    exp_move, 'skew': skew, 'zero_gamma': zero_gamma,
                     'top_strikes': top_strikes, 'iv_smile': smile,
                     'term_structure': term_structure,
                     'updated':     datetime.utcnow().strftime('%H:%M UTC')

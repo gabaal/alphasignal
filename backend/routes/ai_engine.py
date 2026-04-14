@@ -594,7 +594,10 @@ class AIEngineRoutesMixin:
         atm_iv = post_data.get('atm_iv', 'N/A')
         iv_rank = post_data.get('iv_rank', 'N/A')
         call_oi = post_data.get('call_oi', 'N/A')
-        put_oi = post_data.get('put_oi', 'N/A')
+        skew = post_data.get('skew', 'N/A')
+        exp_move = post_data.get('exp_move', 'N/A')
+        zero_gamma = post_data.get('zero_gamma', 'N/A')
+        anomalies = post_data.get('anomalies', 0)
         
         context = (
             f"Asset: {ticker}\n"
@@ -602,16 +605,22 @@ class AIEngineRoutesMixin:
             f"Max Pain: {max_pain}\n"
             f"ATM IV: {atm_iv}%\n"
             f"IV Rank: {iv_rank}\n"
-            f"Call OI: {call_oi}\n"
-            f"Put OI: {put_oi}\n"
+            f"Zero-Gamma Pivot: ${zero_gamma}
+"
+            f"Expected 7D Move: ±${exp_move}
+"
+            f"25-Delta Skew: {skew}%
+"
+            f"Unusual Flow Anomalies: {anomalies} strikes
+"
         )
         
         system_prompt = (
             "You are AlphaSignal's quantitative volatility analyst. "
             "The user is viewing the Options Flow Scanner. "
             "Write exactly two short paragraphs in plain English (max 100 words total). "
-            "First paragraph: Summarize the current positioning based on the Put/Call Ratio, Max Pain, and Implied Volatility. "
-            "Second paragraph: Give an actionable takeaway for a trader based on the IV Rank and Open Interest imbalance (e.g., are options cheap/expensive, are institutions bidding calls for a breakout or puts for a hedge?). "
+            "First paragraph: Summarize institutional positioning based on PCR, the Expected Move boundaries, and whether they are pinned at the Zero-Gamma strike. "
+            "Second paragraph: Give an actionable structural takeaway based on the Skew (are they heavily bidding puts for fear or calls for FOMO?) and identify if there is unusual volume anomalous flow occurring today. "
             "Keep it highly professional, quantitative, and engaging. DO NOT give financial advice disclaimers."
         )
         

@@ -850,8 +850,8 @@ async function renderOptionsFlow(tabs = null) {
             </div>
         </div>
         <div id="opts-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
-            ${['Put/Call Ratio','Max Pain','ATM IV','IV Rank','Call OI','Put OI'].map(s =>
-                `<div class="glass-card" style="padding:1rem;text-align:center"><div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${s}</div><div class="opts-stat" id="opts-${s.toLowerCase().replace(/[^a-z]/g,'-')}" style="font-size:1.3rem;font-weight:800;color:var(--accent)">--</div></div>`
+            ${['Put/Call Ratio','Max Pain','Exp Move','25-D Skew','ATM IV','IV Rank','Call OI','Put OI'].map(s =>
+                `<div class="glass-card" style="padding:1rem;text-align:center"><div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${s}</div><div class="opts-stat" id="opts-${s.toLowerCase().replace(/[^a-z0-9]/g,'-')}" style="font-size:1.3rem;font-weight:800;color:var(--accent)">--</div></div>`
             ).join('')}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
@@ -918,7 +918,7 @@ async function loadOptionsFlow(currency, source) {
                 el.style.background = 'linear-gradient(135deg,#f7931a,#ff6b00)';
         }
     }
-    ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'].forEach(id => {
+    ['put-call-ratio','max-pain','exp-move','25-d-skew','atm-iv','iv-rank','call-oi','put-oi'].forEach(id => {
         const el = document.getElementById('opts-' + id);
         if (el) el.innerHTML = '<span style="font-size:0.8rem;color:var(--text-dim)">...</span>';
     });
@@ -943,9 +943,9 @@ async function loadOptionsFlow(currency, source) {
             return;
         }
 
-        const ids = ['put-call-ratio','max-pain','atm-iv','iv-rank','call-oi','put-oi'];
-        const vals = [d.pcr, '$' + (d.max_pain||0).toLocaleString(), d.atm_iv + '%', d.iv_pct_rank + 'th', d.call_oi, d.put_oi];
-        const colors = [d.pcr > 1 ? '#ef4444' : '#22c55e','#00d4aa','#8b5cf6','#ffd700','#22c55e','#ef4444'];
+        const ids = ['put-call-ratio','max-pain','exp-move','25-d-skew','atm-iv','iv-rank','call-oi','put-oi'];
+        const vals = [d.pcr, '$' + (d.max_pain||0).toLocaleString(), '±$' + (d.exp_move||0), (d.skew||0) + '%', d.atm_iv + '%', d.iv_pct_rank + 'th', (d.call_oi||0).toLocaleString(), (d.put_oi||0).toLocaleString()];
+        const colors = [d.pcr > 1 ? '#ef4444' : '#22c55e', '#00d4aa', '#8b5cf6', d.skew > 0 ? '#ef4444' : '#22c55e', '#00d4aa', '#8b5cf6', '#22c55e', '#ef4444'];
         ids.forEach((id, i) => {
             const el = document.getElementById('opts-' + id);
             if (el) { el.textContent = vals[i]; el.style.color = colors[i]; }
@@ -1018,7 +1018,7 @@ async function loadOptionsFlow(currency, source) {
                     <td style="padding:7px 10px"><span style="font-size:0.6rem;padding:2px 7px;border-radius:10px;background:${s.type==='C'?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${s.type==='C'?'#22c55e':'#ef4444'}">${s.type==='C'?'CALL':'PUT'}</span></td>
                     <td style="padding:7px 10px;color:var(--text-dim);font-size:0.7rem">${s.expiry}</td>
                     <td style="padding:7px 10px;color:#8b5cf6;font-weight:700">${s.iv}%</td>
-                    <td style="padding:7px 10px">${s.volume.toLocaleString()}</td>
+                    <td style="padding:7px 10px${s.anomalous ? ';color:#ef4444;font-weight:900;text-shadow:0 0 5px rgba(239,68,68,0.5)' : ''}">${s.volume.toLocaleString()}</td>
                     <td style="padding:7px 10px;font-weight:700;color:var(--accent)">${s.oi.toLocaleString()}</td>
                 </tr>`).join('');
         }
@@ -1033,8 +1033,10 @@ async function loadOptionsFlow(currency, source) {
                 max_pain: d.max_pain,
                 atm_iv: d.atm_iv,
                 iv_rank: d.iv_pct_rank,
-                call_oi: d.call_oi,
-                put_oi: d.put_oi
+                skew: d.skew,
+                exp_move: d.exp_move,
+                zero_gamma: d.zero_gamma,
+                anomalies: d.top_strikes ? d.top_strikes.filter(s => s.anomalous).length : 0
             }).then(resp => {
                 if (resp && resp.explanation) {
                     aiBox.innerHTML = `
