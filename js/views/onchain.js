@@ -1024,7 +1024,7 @@ async function loadOptionsFlow(currency, source) {
         const aiBox = document.getElementById('opts-ai-synthesis');
         if (aiBox) {
             aiBox.innerHTML = '<div class="ai-typing" style="height:40px"></div>';
-            fetchAPI('/api/options-synthesis', 'POST', {
+            fetchAPI('/options-synthesis', 'POST', {
                 ticker: currency,
                 pcr: d.pcr,
                 max_pain: d.max_pain,
