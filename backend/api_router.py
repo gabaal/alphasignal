@@ -396,6 +396,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_explain_chart(post_data)
             elif path == '/api/explain-rebalance':
                 self.handle_explain_rebalance(post_data)
+            elif path == '/api/options-synthesis':
+                self.handle_explain_options(post_data)
             elif path == '/api/watchlist':
                 auth_info = self.is_authenticated()
                 if auth_info: self.handle_watchlist_post(auth_info, post_data)

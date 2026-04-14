@@ -579,3 +579,59 @@ class AIEngineRoutesMixin:
             print(f'[Market Brief] GPT error: {e}')
             self.send_json({'error': str(e)})
 
+    def handle_explain_options(self, post_data):
+        client = _get_client()
+        if not client:
+            self.send_json({
+                'explanation': "AI processing is offline. Please configure your OPENAI_API_KEY to enable options synthesis.",
+                'source': 'fallback'
+            })
+            return
+
+        ticker = post_data.get('ticker', 'Unknown')
+        pcr = post_data.get('pcr', 'N/A')
+        max_pain = post_data.get('max_pain', 'N/A')
+        atm_iv = post_data.get('atm_iv', 'N/A')
+        iv_rank = post_data.get('iv_rank', 'N/A')
+        call_oi = post_data.get('call_oi', 'N/A')
+        put_oi = post_data.get('put_oi', 'N/A')
+        
+        context = (
+            f"Asset: {ticker}\n"
+            f"Put/Call Ratio: {pcr}\n"
+            f"Max Pain: {max_pain}\n"
+            f"ATM IV: {atm_iv}%\n"
+            f"IV Rank: {iv_rank}\n"
+            f"Call OI: {call_oi}\n"
+            f"Put OI: {put_oi}\n"
+        )
+        
+        system_prompt = (
+            "You are AlphaSignal's quantitative volatility analyst. "
+            "The user is viewing the Options Flow Scanner. "
+            "Write exactly two short paragraphs in plain English (max 100 words total). "
+            "First paragraph: Summarize the current positioning based on the Put/Call Ratio, Max Pain, and Implied Volatility. "
+            "Second paragraph: Give an actionable takeaway for a trader based on the IV Rank and Open Interest imbalance (e.g., are options cheap/expensive, are institutions bidding calls for a breakout or puts for a hedge?). "
+            "Keep it highly professional, quantitative, and engaging. DO NOT give financial advice disclaimers."
+        )
+        
+        user_prompt = f"Here is the current options flow data for {ticker}:\n{context}\nProvide your synthesis."
+        
+        try:
+            resp = client.chat.completions.create(
+                model='gpt-4o-mini',
+                messages=[
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user',   'content': user_prompt}
+                ],
+                max_tokens=350,
+                temperature=0.7
+            )
+            explanation = resp.choices[0].message.content.strip()
+            self.send_json({
+                'explanation': explanation,
+                'source': 'gpt-4o-mini'
+            })
+        except Exception as e:
+            print(f'[AI Engine] Options Explain Error: {e}')
+            self.send_json({'error': str(e)})

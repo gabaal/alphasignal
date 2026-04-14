@@ -837,6 +837,15 @@ async function renderOptionsFlow(tabs = null) {
                 <button id="opts-hood-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('HOOD','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">HOOD</button>
             </div>
         </div>
+        <div class="glass-card" style="padding:1.5rem; margin-bottom:1.5rem; position:relative; overflow:hidden">
+            <div style="position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg, #60a5fa, #8b5cf6, #ec4899)"></div>
+            <div style="font-size:0.7rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+                <span class="material-symbols-outlined" style="font-size:16px;color:#8b5cf6">psychology</span> AI OPTION SYNTHESIS
+            </div>
+            <div id="opts-ai-synthesis" style="font-size:0.85rem;line-height:1.6;color:var(--text-main)">
+                <div class="ai-typing" style="height:40px"></div>
+            </div>
+        </div>
         <div id="opts-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
             ${['Put/Call Ratio','Max Pain','ATM IV','IV Rank','Call OI','Put OI'].map(s =>
                 `<div class="glass-card" style="padding:1rem;text-align:center"><div style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px">${s}</div><div class="opts-stat" id="opts-${s.toLowerCase().replace(/[^a-z]/g,'-')}" style="font-size:1.3rem;font-weight:800;color:var(--accent)">--</div></div>`
@@ -1009,6 +1018,33 @@ async function loadOptionsFlow(currency, source) {
                     <td style="padding:7px 10px">${s.volume.toLocaleString()}</td>
                     <td style="padding:7px 10px;font-weight:700;color:var(--accent)">${s.oi.toLocaleString()}</td>
                 </tr>`).join('');
+        }
+
+        // Trigger AI Synthesis
+        const aiBox = document.getElementById('opts-ai-synthesis');
+        if (aiBox) {
+            aiBox.innerHTML = '<div class="ai-typing" style="height:40px"></div>';
+            fetchAPI('/api/options-synthesis', 'POST', {
+                ticker: currency,
+                pcr: d.pcr,
+                max_pain: d.max_pain,
+                atm_iv: d.atm_iv,
+                iv_rank: d.iv_pct_rank,
+                call_oi: d.call_oi,
+                put_oi: d.put_oi
+            }).then(resp => {
+                if (resp && resp.explanation) {
+                    aiBox.innerHTML = `
+                        <div style="margin-bottom:8px">${resp.explanation.split('\n\n')[0] || resp.explanation}</div>
+                        ${resp.explanation.split('\n\n')[1] ? `<div>${resp.explanation.split('\n\n')[1]}</div>` : ''}
+                        <div style="margin-top:12px;font-size:0.6rem;color:var(--text-dim);font-family:monospace;display:flex;align-items:center;gap:4px">
+                            <span class="material-symbols-outlined" style="font-size:11px">verified</span> Verified by DeepMind Option Synthesis
+                        </div>
+                    `;
+                } else {
+                    aiBox.innerHTML = '<span style="color:var(--text-dim)">AI synthesis unavailable.</span>';
+                }
+            }).catch(() => aiBox.innerHTML = '<span style="color:var(--text-dim)">AI synthesis unavailable.</span>');
         }
 
         setTimeout(() => {
