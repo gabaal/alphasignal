@@ -41,9 +41,16 @@ class DataCache:
         # L3 (Supabase Primary)
         cloud_data = SupabaseClient.query("cache_store", filters=f"key=eq.{key}")
         if cloud_data:
-            data = json.loads(cloud_data[0]['value'])
-            self._cache[key] = (data, time.time())
-            return data
+            exp_val = cloud_data[0].get('expires_at')
+            try:
+                exp = float(exp_val) if exp_val is not None else float('inf')
+            except ValueError:
+                exp = float('inf')
+                
+            if exp > time.time():
+                data = json.loads(cloud_data[0]['value'])
+                self._cache[key] = (data, time.time())
+                return data
 
         return None
 
@@ -102,7 +109,13 @@ class DataCache:
         cached = self.get(key)
         if cached is not None:
             if isinstance(cached, dict) and 'df' in cached:
-                return pd.read_json(io.StringIO(cached['df']))
+                df = pd.read_json(io.StringIO(cached['df']))
+                import ast
+                if len(df.columns) > 0 and isinstance(df.columns[0], str) and df.columns[0].startswith("('") and df.columns[0].endswith("')"):
+                    try:
+                        df.columns = pd.MultiIndex.from_tuples([ast.literal_eval(c) for c in df.columns])
+                    except: pass
+                return df
             return cached
             
         try:
