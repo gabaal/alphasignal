@@ -835,6 +835,9 @@ async function renderOptionsFlow(tabs = null) {
                 <button id="opts-coin-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('COIN','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">COIN</button>
                 <button id="opts-mstr-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('MSTR','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">MSTR</button>
                 <button id="opts-hood-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('HOOD','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">HOOD</button>
+                <button id="opts-wulf-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('WULF','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">WULF</button>
+                <button id="opts-riot-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('RIOT','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">RIOT</button>
+                <button id="opts-clsk-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('CLSK','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">CLSK</button>
             </div>
         </div>
         <div class="glass-card" style="padding:1.5rem; margin-bottom:1.5rem; position:relative; overflow:hidden">
@@ -886,7 +889,7 @@ async function renderOptionsFlow(tabs = null) {
 
 const ALL_OPTS_BTNS = {
     deribit: { BTC:'opts-btc-btn', ETH:'opts-eth-btn', SOL:'opts-sol-btn', XRP:'opts-xrp-btn', AVAX:'opts-avax-btn', TRX:'opts-trx-btn' },
-    equity:  { MARA:'opts-mara-btn', COIN:'opts-coin-btn', MSTR:'opts-mstr-btn', HOOD:'opts-hood-btn' },
+    equity:  { MARA:'opts-mara-btn', COIN:'opts-coin-btn', MSTR:'opts-mstr-btn', HOOD:'opts-hood-btn', WULF:'opts-wulf-btn', RIOT:'opts-riot-btn', CLSK:'opts-clsk-btn' },
 };
 
 async function loadOptionsFlow(currency, source) {

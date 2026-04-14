@@ -5768,7 +5768,7 @@ class InstitutionalRoutesMixin:
         # Fetch equity options in background daemon thread (updates cache for next call)
         def _fetch_equities():
             import yfinance as yf
-            for sym in ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK']:
+            for sym in ['MSTR', 'COIN', 'MARA', 'HOOD', 'WULF', 'RIOT', 'CLSK']:
                 try:
                     tk = yf.Ticker(sym)
                     dates = tk.options
@@ -5952,7 +5952,7 @@ class InstitutionalRoutesMixin:
             import yfinance as yf
             query  = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             ticker = query.get('ticker', ['MARA'])[0].upper()
-            ALLOWED = {'MARA', 'COIN', 'MSTR', 'HOOD'}
+            ALLOWED = {'MARA', 'COIN', 'MSTR', 'HOOD', 'WULF', 'RIOT', 'CLSK'}
             if ticker not in ALLOWED:
                 self.send_json({'error': f'{ticker} not in equity options universe'}); return
 
