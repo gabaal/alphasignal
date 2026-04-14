@@ -344,7 +344,7 @@ async function saveNotificationSettings() {
     }
     
     try {
-        const z = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
+        const z = parseFloat(document.getElementById('z-modal-threshold-slider')?.value || 2.0);
         const res = await fetchAPI('/user/settings', 'POST', {
             discord_webhook: discord,
             telegram_chat_id: telegram,
