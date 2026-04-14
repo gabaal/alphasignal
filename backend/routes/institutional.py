@@ -2276,7 +2276,8 @@ class InstitutionalRoutesMixin:
                     prices = data[ticker].dropna()
                     if len(prices) < 2:
                         continue
-                    change = (float(prices.iloc[-1]) - float(prices.iloc[-2])) / float(prices.iloc[-2]) * 100
+                    prev_p = float(prices.iloc[-2])
+                    change = (float(prices.iloc[-1]) - prev_p) / (prev_p if prev_p > 0 else 1e-9) * 100
                     # Fix: align on common index before computing correlation
                     rets = prices.pct_change().dropna()
                     common_idx = btc_pct.index.intersection(rets.index)
