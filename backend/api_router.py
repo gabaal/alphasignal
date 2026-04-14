@@ -680,6 +680,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_correlation_matrix()
             elif path.startswith('/api/system-dials'):
                 self.handle_system_dials()
+            elif path == '/api/macro-regime':
+                self.handle_macro_regime()
             elif path.startswith('/api/macro'):
                 self.handle_macro()
             elif path == '/api/wallet-attribution':
