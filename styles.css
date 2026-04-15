@@ -1461,6 +1461,40 @@ input[type="range"]::-webkit-slider-thumb {
 .w-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .impact-badge { font-size: 0.6rem; font-weight: 900; padding: 4px 8px; border-radius: 4px; letter-spacing: 1px; border: 1px solid transparent; }
 .impact-extreme { background: rgba(255, 62, 62, 0.1); color: var(--risk-high); border-color: rgba(255, 62, 62, 0.2); }
+
+/* === Advanced Chart Zoom Modal Effect === */
+.zoomable-panel {
+    cursor: zoom-in;
+    transition: all 0.3s ease;
+}
+.zoomable-panel:hover {
+    filter: brightness(1.2);
+}
+.zoomable-panel.zoomed-chart {
+    position: fixed !important;
+    inset: 5vh 5vw !important;
+    height: 90vh !important;
+    width: 90vw !important;
+    z-index: 9999 !important;
+    background: rgba(10, 15, 25, 0.98) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(0, 242, 255, 0.5) !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8) !important;
+    cursor: zoom-out !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.zoomable-panel.zoomed-chart .chart-canvas-wrapper {
+    flex: 1 !important;
+    height: auto !important;
+    margin-bottom: 0 !important;
+}
+.zoomable-panel.zoomed-chart canvas {
+    height: 100% !important;
+    width: 100% !important;
+}
 .impact-high { background: rgba(255, 142, 62, 0.1); color: #ff8e3e; border-color: rgba(255, 142, 62, 0.2); }
 .impact-medium { background: rgba(125, 211, 252, 0.1); color: var(--accent); border-color: rgba(125, 211, 252, 0.2); }
 

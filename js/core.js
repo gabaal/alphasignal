@@ -733,35 +733,35 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <!-- ─── Advanced Charting Grid ──────────────────────────── -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
             <!-- ─── RSI (14) + Volume ───────────────────────────────── -->
-            <div>
+            <div class="zoomable-panel" onclick="this.classList.toggle('zoomed-chart'); setTimeout(() => window.dispatchEvent(new Event('resize')), 50);">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">RSI (14) · VOLUME</span>
                 <span id="detail-rsi-label" style="font-size:0.55rem;color:var(--text-dim);margin-left:auto"></span>
             </div>
-            <div style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+            <div class="chart-canvas-wrapper" style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
                 <canvas id="detail-rsi-chart"></canvas>
             </div>
         </div>
 
             <!-- ─── Z-Score Anomaly Index ───────────────────────────── -->
-            <div>
+            <div class="zoomable-panel" onclick="this.classList.toggle('zoomed-chart'); setTimeout(() => window.dispatchEvent(new Event('resize')), 50);">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">Z-SCORE ANOMALY INDEX</span>
                 <span id="detail-zscore-label" style="font-size:0.55rem;margin-left:auto"></span>
             </div>
-            <div style="height:110px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+            <div class="chart-canvas-wrapper" style="height:110px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
                 <canvas id="detail-zscore-chart"></canvas>
             </div>
         </div>
 
             <!-- ─── Signal History Scatter ──────────────────────────── -->
-            <div>
+            <div class="zoomable-panel" onclick="this.classList.toggle('zoomed-chart'); setTimeout(() => window.dispatchEvent(new Event('resize')), 50);">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">SIGNAL HISTORY · ${ticker}</span>
                 <span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">past 30 signals</span>
                 <span id="detail-scatter-label" style="font-size:0.55rem;margin-left:auto"></span>
             </div>
-            <div style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+            <div class="chart-canvas-wrapper" style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
                 <canvas id="detail-signal-scatter"></canvas>
             </div>
             <div style="display:flex;gap:12px;margin-top:6px">
