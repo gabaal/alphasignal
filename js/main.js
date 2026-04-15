@@ -749,7 +749,9 @@ function toggleOverlay(type) {
     window.activeOverlays[type] = !window.activeOverlays[type];
     const btn = event.target;
     btn.classList.toggle('active');
-    renderChart(window.currentHistory);
+    if (window.renderDetailOverlays) {
+        window.renderDetailOverlays();
+    }
 }
 
 // ============= Phase 15-B: AI Engine =============

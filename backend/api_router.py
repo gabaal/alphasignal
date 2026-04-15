@@ -638,6 +638,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_liquidity_history()
             elif path == '/api/equity-klines':
                 self.handle_equity_klines()
+            elif path.startswith('/api/klines'):
+                self.handle_klines()
             elif path == '/api/tape':
                 self.handle_tape()
             elif path == '/api/generate-setup':

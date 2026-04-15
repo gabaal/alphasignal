@@ -723,7 +723,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <div class="timeframe-bar">
             ${['1W','1M','60d','3M','6M'].map(tf => `<button class="tf-btn ${tf === period ? 'active' : ''}" onclick="openDetail('${ticker}','${category}',${correlation},${alpha},${sentiment},'${tf}',${isTracked})">${tf}</button>`).join('')}
         </div>
-        <div class="chart-container"><canvas id="priceChart"></canvas></div>
+        <div class="chart-container" id="price-chart-container" style="height:300px;border-radius:8px;overflow:hidden;"></div>
         
         <div class="institutional-timeline" style="margin-top:2rem">
             <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent)">INSTITUTIONAL EVENT TIMELINE</h3>
@@ -812,7 +812,92 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             </div>`;
     }
 
-    renderChart(history);
+    // Render OHLC candlestick chart via LightweightCharts
+    (async () => {
+        const chartEl = document.getElementById('price-chart-container');
+        if (!chartEl || !window.LightweightCharts) { return; }
+        chartEl.innerHTML = '';
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+        const lwChart = window.LightweightCharts.createChart(chartEl, {
+            layout: { background: { color: isDark ? '#09090b' : '#ffffff' }, textColor: isDark ? '#9ca3af' : '#374151', fontFamily: 'JetBrains Mono', fontSize: 10 },
+            grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } },
+            rightPriceScale: { borderColor: alphaColor(0.08) },
+            timeScale: { borderColor: alphaColor(0.08), timeVisible: true },
+            crosshair: { mode: window.LightweightCharts.CrosshairMode.Normal },
+            width: chartEl.clientWidth || 700,
+            height: 300
+        });
+        window._detailLwChart = lwChart;
+
+        const candleSeries = lwChart.addCandlestickSeries({ upColor: '#22c55e', downColor: '#ef4444', borderVisible: false, wickUpColor: '#22c55e', wickDownColor: '#ef4444' });
+        window._detailCandleSeries = candleSeries;
+
+        try {
+            const klinesData = await fetchAPI(`/klines?ticker=${ticker}&period=${yfPeriod}`);
+            if (klinesData && klinesData.length > 0) {
+                const sorted = klinesData.filter(d => d.time && d.close).sort((a,b) => a.time - b.time);
+                candleSeries.setData(sorted);
+                lwChart.timeScale().fitContent();
+                window._detailKlines = sorted;
+
+                // Draw EMA 12 / EMA 26 overlays if toggled
+                window.renderDetailOverlays = () => {
+                    if (window._ema12Series) { try { lwChart.removeSeries(window._ema12Series); } catch(e){} window._ema12Series = null; }
+                    if (window._ema26Series) { try { lwChart.removeSeries(window._ema26Series); } catch(e){} window._ema26Series = null; }
+                    if (window._bbUpperSeries) { try { lwChart.removeSeries(window._bbUpperSeries); } catch(e){} window._bbUpperSeries = null; }
+                    if (window._bbLowerSeries) { try { lwChart.removeSeries(window._bbLowerSeries); } catch(e){} window._bbLowerSeries = null; }
+
+                    const closes = window._detailKlines.map(d => d.close);
+                    const times  = window._detailKlines.map(d => d.time);
+
+                    if (window.activeOverlays?.ema) {
+                        // EMA helper
+                        const calcEMA = (data, span) => {
+                            const k = 2/(span+1); let ema = data[0];
+                            return data.map(v => { ema = v * k + ema * (1-k); return ema; });
+                        };
+                        const ema12 = calcEMA(closes, 12);
+                        const ema26 = calcEMA(closes, 26);
+                        window._ema12Series = lwChart.addLineSeries({ color: '#ff00ff', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+                        window._ema26Series = lwChart.addLineSeries({ color: '#ff8800', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+                        window._ema12Series.setData(times.map((t,i) => ({ time: t, value: ema12[i] })));
+                        window._ema26Series.setData(times.map((t,i) => ({ time: t, value: ema26[i] })));
+                    }
+
+                    if (window.activeOverlays?.vol) {
+                        // Bollinger Bands (20, 2σ)
+                        const window20 = 20;
+                        const bbs = closes.map((_, i) => {
+                            if (i < window20) return null;
+                            const slice = closes.slice(i - window20, i);
+                            const mean = slice.reduce((a,b)=>a+b,0)/window20;
+                            const std  = Math.sqrt(slice.reduce((a,b)=>a+(b-mean)**2,0)/window20);
+                            return { upper: mean + 2*std, lower: mean - 2*std };
+                        });
+                        window._bbUpperSeries = lwChart.addLineSeries({ color: 'rgba(0,242,255,0.3)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+                        window._bbLowerSeries = lwChart.addLineSeries({ color: 'rgba(0,242,255,0.3)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+                        window._bbUpperSeries.setData(times.filter((_,i)=>bbs[i]).map((t,i)=>({ time: t, value: bbs.filter(Boolean)[i]?.upper })).filter(d=>d.value));
+                        window._bbLowerSeries.setData(times.filter((_,i)=>bbs[i]).map((t,i)=>({ time: t, value: bbs.filter(Boolean)[i]?.lower })).filter(d=>d.value));
+                    }
+                };
+                window.renderDetailOverlays();
+            } else {
+                // Fallback to line chart using history data
+                const lineSeries = lwChart.addLineSeries({ color: '#00f2ff', lineWidth: 2, priceLineVisible: false });
+                const lineData = history.filter(h => h.date && h.price)
+                    .map(h => ({ time: Math.floor(new Date(h.date).getTime()/1000), value: h.price }))
+                    .sort((a,b) => a.time - b.time);
+                lineSeries.setData(lineData);
+                lwChart.timeScale().fitContent();
+            }
+        } catch(e) {
+            console.error('[Detail Chart] Error:', e);
+        }
+
+        // Responsive resize
+        const ro = new ResizeObserver(() => { lwChart.applyOptions({ width: chartEl.clientWidth }); });
+        ro.observe(chartEl);
+    })();
     renderDetailLiquidity(liqData);
     renderFlowAttribution(walletData);
 
