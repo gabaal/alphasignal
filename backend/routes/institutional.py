@@ -3353,7 +3353,10 @@ class InstitutionalRoutesMixin:
             self.send_json({'ticker': ticker, 'history': [], 'summary': f'Awaiting synchronization for {ticker}. Institutional flow monitoring active.', 'metrics': {'market_cap': 'TBD', 'vol_24h': 'TBD', 'dominance': 'TBD'}, 'recent_catalysts': ['Terminal sync in progress'], 'timeline': []})
             return
         data = raw_data.squeeze()
-        prices = pd.Series([float(p) for p in data.values], index=data.index) if hasattr(data, 'values') else pd.Series([float(data)])
+        if isinstance(data, pd.DataFrame):
+            data = data.iloc[:, 0]
+        prices_arr = np.ravel(data.values) if hasattr(data, 'values') else [data]
+        prices = pd.Series([float(p) for p in prices_arr], index=data.index if hasattr(data, 'index') else [0])
         ema12 = prices.ewm(span=12).mean() if len(prices) > 1 else prices
         ema26 = prices.ewm(span=26).mean() if len(prices) > 1 else prices
         rolling_std = prices.rolling(window=20).std() if len(prices) > 20 else pd.Series([0] * len(prices))
