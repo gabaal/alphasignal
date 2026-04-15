@@ -152,7 +152,7 @@ UNIVERSE = {
     'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD'],
     'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD', 'GRT-USD', 'IO-USD'],
     'STABLES':  ['USDC-USD', 'USDT-USD'],
-    'MEMES':    ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD', 'PEPE-USD', 'MOG-USD'],
+    'MEMES':    ['DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD', 'PEPE-USD', 'MOG-USD'],
     'PYTH':     ['PYTH-USD'],
 }
 

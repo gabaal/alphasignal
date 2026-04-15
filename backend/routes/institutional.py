@@ -5123,7 +5123,7 @@ class InstitutionalRoutesMixin:
                 'L1': ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'XRP-USD'],
                 'MINERS': ['MARA', 'RIOT', 'CLSK', 'IREN', 'WULF'],
                 'DEFI': ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'UNI-USD'],
-                'MEMES': ['DOGE-USD', 'SHIB-USD', 'BONK-USD', 'WIF-USD', 'PEPE-USD'],
+                'MEMES': ['DOGE-USD', 'BONK-USD', 'WIF-USD', 'PEPE-USD'],
                 'AI': ['FET-USD', 'RENDER-USD', 'WLD-USD', 'GRT-USD', 'TAO-USD'],
             }
             hotspots = []
