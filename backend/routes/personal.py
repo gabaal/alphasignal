@@ -445,26 +445,65 @@ class PersonalRoutesMixin:
 
             formatted_size = f"${computed_size_usd:,.2f}"
 
-            # ── 3. Construct Exchange Payload & Mock Execution ──
+            # ── 3. Order Reconciliation & L2 Book Walking (VWAP) ──
+            try:
+                from backend.routes.realdata import fetch_binance_depth
+                raw_ticker = ticker.replace('-', '')
+                depth = fetch_binance_depth(raw_ticker, limit=50)
+                
+                true_vwap = price
+                estimated_slippage = 0.00015
+                
+                if depth and ('bids' in depth) and ('asks' in depth):
+                    books = depth['asks'] if action == 'BUY' else depth['bids']
+                    remaining_usd = computed_size_usd
+                    filled_qty = 0.0
+                    total_cost = 0.0
+                    
+                    for level in books:
+                        lvl_price = float(level[0])
+                        lvl_qty = float(level[1])
+                        lvl_usd_capacity = lvl_price * lvl_qty
+                        
+                        if remaining_usd <= lvl_usd_capacity:
+                            # Partial fill limit exhausted
+                            take_qty = remaining_usd / lvl_price
+                            filled_qty += take_qty
+                            total_cost += remaining_usd
+                            remaining_usd = 0.0
+                            break
+                        else:
+                            # Level fully consumed
+                            filled_qty += lvl_qty
+                            total_cost += lvl_usd_capacity
+                            remaining_usd -= lvl_usd_capacity
+                    
+                    if filled_qty > 0:
+                        true_vwap = total_cost / filled_qty
+                        estimated_slippage = abs(true_vwap - price) / price if price > 0 else 0
+                
+                price = true_vwap
+            except Exception as e:
+                print(f"[KeyVault Router] VWAP Book Walk Error: {e}")
+                estimated_slippage = 0.00015
+
+            # ── 4. Construct Exchange Payload & Mock Execution ──
             # (Demonstrating HMAC SHA256 signing for Binance/Bybit)
             timestamp = str(int(datetime.now().timestamp() * 1000))
-            payload_str = f"symbol={ticker.replace('-','')}&side={action}&type=LIMIT&quantity={computed_size_usd/price:.4f}&price={price}&timestamp={timestamp}"
+            payload_str = f"symbol={ticker.replace('-','')}&side={action}&type=LIMIT&quantity={computed_size_usd/price:.4f}&price={price:.2f}&timestamp={timestamp}"
             signature = hmac.new(decrypted_secret.encode('utf-8'), payload_str.encode('utf-8'), hashlib.sha256).hexdigest()
-            # print(f"[KeyVault Router] Routed to {exchange_nm} | API Key: {api_key[:6]}... | Sig: {signature}")
 
-            # ── 4. Insert Live Trade into Trade Ledger ──
-            # Ensure price, target, stop, rr, slippage are tracked
-            estimated_slippage = 0.00015  # 1.5bps slippage assumption for sizes > $100k
-            
+            # ── 5. Insert Live Trade into Trade Ledger ──
             c.execute('''INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
                       (user_email, ticker, action, price, target, stop, rr, estimated_slippage))
             conn.commit()
             conn.close()
             
+            slippage_bps = estimated_slippage * 10000
             self.send_json({
                 'success': True, 
-                'message': f'Executed {action} {ticker} @ {price}. Size: {formatted_size} via {exchange_nm} (KeyVault HMAC: {signature[:8]}).'
+                'message': f'FILLED {action} {ticker} @ ${price:,.2f} | Size: {formatted_size} | Slippage: {slippage_bps:.2f} bps'
             })
         except Exception as e:
             self.send_json({'error': str(e)})

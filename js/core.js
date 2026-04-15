@@ -175,13 +175,26 @@ async function openAIAnalyst(ticker, dir = null, zscore = null) {
                 </span>
             </div>`;
             content.appendChild(thesisWrap);
-
-            const thesisData = await fetchAPI(`/signal-thesis?ticker=${ticker}&signal=${dir}&zscore=${zscore}`);
-            const thesisBody = document.getElementById('ai-modal-thesis-body');
-            if (thesisBody) {
-                const text = thesisData?.thesis || 'Analysis unavailable.';
-                thesisBody.innerHTML = `<span style="color:rgba(139,92,246,0.8);font-size:0.72rem;font-weight:900;letter-spacing:1px;display:block;margin-bottom:6px">${ticker} · ${dir} · Z: ${zscore}s</span>${text}`;
-            }
+            try {
+                const thesisBody = document.getElementById('ai-modal-thesis-body');
+                if (thesisBody) {
+                    let fullText = `<span style="color:rgba(139,92,246,0.8);font-size:0.72rem;font-weight:900;letter-spacing:1px;display:block;margin-bottom:6px">${ticker} &bull; ${dir} &bull; Z: ${zscore}s</span>`;
+                    thesisBody.innerHTML = fullText + `<span style="opacity:0.6;animation:pulse 1s infinite">Thinking...</span>`;
+                    let chunksReceived = '';
+                    await window.fetchStreamingAPI(`/signal-thesis?ticker=${ticker}&signal=${dir}&zscore=${zscore}&stream=true`, 'GET', null, 
+                        (chunk) => {
+                            chunksReceived += chunk;
+                            thesisBody.innerHTML = fullText + formatMemoMarkdown(chunksReceived) + '<span style="opacity:0.6">█</span>';
+                        },
+                        () => {
+                            thesisBody.innerHTML = fullText + formatMemoMarkdown(chunksReceived);
+                        },
+                        (err) => {
+                            thesisBody.innerHTML = fullText + `<span style="color:#ef4444">Error: ${err}</span>`;
+                        }
+                    );
+                }
+            } catch(e) { /* thesis non-critical */ }
         } catch(e) { /* thesis non-critical */ }
     }
 
@@ -693,6 +706,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         return;
     }
     const { history } = data;
+    const currentPrice = history && history.length > 0 ? (history[history.length - 1].price || history[history.length - 1].close || 0) : 0;
     
     window.currentReportData = {
         summary: data.summary,
@@ -704,7 +718,10 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <div class="detail-header">
             <div><span class="category-label">${category}</span><h2>${ticker} Intelligence</h2></div>
             <div style="display:flex; gap:1rem; align-items:flex-start">
-
+                <button class="intel-action-btn" style="width:auto; margin-right: 0.5rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444" onclick="window.executeTrade('${ticker}', '${alpha >= 0 ? "LONG" : "SHORT"}', ${currentPrice}, ${alpha})">
+                    1-CLICK EXECUTE
+                    <span class="material-symbols-outlined" style="font-size: 18px; margin-left: 6px; vertical-align: middle;">rocket_launch</span>
+                </button>
                 <button class="intel-action-btn" style="width:auto; margin-right: 0.5rem" onclick="generateAssetReport('${ticker}')">DOWNLOAD PDF <span class="material-symbols-outlined" style="font-size: 18px; margin-left: 6px; vertical-align: middle;">picture_as_pdf</span></button>
                 <button class="intel-action-btn" style="width:auto" onclick="openAIAnalyst('${ticker}')">RUN AI DEEP-DIVE <span class="material-symbols-outlined" style="font-size: 18px; margin-left: 6px; vertical-align: middle;">smart_toy</span></button>
             </div>
@@ -733,7 +750,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <!-- ─── Advanced Charting Grid ──────────────────────────── -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
             <!-- ─── RSI (14) + Volume ───────────────────────────────── -->
-            <div class="zoomable-panel" onclick="this.classList.toggle('zoomed-chart'); setTimeout(() => window.dispatchEvent(new Event('resize')), 50);">
+            <div class="zoomable-panel" onclick="expandChart('detail-rsi-vol', 'RSI & Volume Profile')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">RSI (14) · VOLUME</span>
                 <span id="detail-rsi-label" style="font-size:0.55rem;color:var(--text-dim);margin-left:auto"></span>
@@ -744,7 +761,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         </div>
 
             <!-- ─── Z-Score Anomaly Index ───────────────────────────── -->
-            <div class="zoomable-panel" onclick="this.classList.toggle('zoomed-chart'); setTimeout(() => window.dispatchEvent(new Event('resize')), 50);">
+            <div class="zoomable-panel" onclick="expandChart('detail-zscore', 'Z-Score Oscillator')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">Z-SCORE ANOMALY INDEX</span>
                 <span id="detail-zscore-label" style="font-size:0.55rem;margin-left:auto"></span>
@@ -755,7 +772,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         </div>
 
             <!-- ─── Signal History Scatter ──────────────────────────── -->
-            <div class="zoomable-panel" onclick="this.classList.toggle('zoomed-chart'); setTimeout(() => window.dispatchEvent(new Event('resize')), 50);">
+            <div class="zoomable-panel" onclick="expandChart('detail-signal-scatter', 'Signal History')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">SIGNAL HISTORY · ${ticker}</span>
                 <span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">past 30 signals</span>
@@ -1972,5 +1989,45 @@ async function fetchBinanceKlines(symbol, interval, limit=500) {
         return []; 
     }
 }
+
+// ============================================================
+// Modal Chart Inspector (Zoom Overlay)
+// ============================================================
+
+window.expandChart = function(sourceId, title) {
+    const sourceChart = Chart.getChart(sourceId);
+    if (!sourceChart) return;
+    
+    document.getElementById('chart-zoom-title').innerHTML = `<span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">zoom_in</span>${title}`;
+    document.getElementById('chart-zoom-overlay').classList.remove('hidden');
+
+    const ctx = document.getElementById('chart-zoom-canvas').getContext('2d');
+    
+    // Destroy existing chart in modal if there is one
+    const existingChart = Chart.getChart('chart-zoom-canvas');
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    // Merge options to ensure it fills the large modal properly
+    const newOptions = Object.assign({}, sourceChart.config.options);
+    newOptions.responsive = true;
+    newOptions.maintainAspectRatio = false;
+    
+    // Make fonts larger for the modal context
+    if (newOptions.scales) {
+        Object.keys(newOptions.scales).forEach(key => {
+            if (newOptions.scales[key].ticks) {
+                newOptions.scales[key].ticks.font = { size: 12, family: "'JetBrains Mono', monospace" };
+            }
+        });
+    }
+
+    new Chart(ctx, {
+        type: sourceChart.config.type,
+        data: sourceChart.config.data,
+        options: newOptions
+    });
+};
 
 // TAB 1: Overview (Price + Volume + EMA 20/50 + RSI Placeholder)

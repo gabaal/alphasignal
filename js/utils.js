@@ -761,5 +761,63 @@ function exportJSON(data, filename) {
     document.body.removeChild(link);
 }
 
+// =========================================================
+// Server-Sent Events (SSE) Streaming Fetch Client 
+// =========================================================
+window.fetchStreamingAPI = async function(endpoint, method = 'GET', body = null, onChunk, onDone, onError) {
+    try {
+        const options = { 
+            method, 
+            headers: body ? { 'Content-Type': 'application/json' } : {}, 
+            credentials: 'include' 
+        };
+        if (body) options.body = JSON.stringify(body);
+        
+        const res = await fetch(`${API_BASE}${endpoint}`, options);
+        if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(txt || `HTTP error! status: ${res.status}`);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let done = false;
+
+        while (!done) {
+            const { value, done: readerDone } = await reader.read();
+            done = readerDone;
+            if (value) {
+                const chunk = decoder.decode(value, { stream: !done });
+                const lines = chunk.split('\n');
+                for (let line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.substring(6).trim();
+                        if (dataStr === '[DONE]') continue;
+                        if (dataStr) {
+                            try {
+                                const parsed = JSON.parse(dataStr);
+                                if (parsed.error) {
+                                    if (onError) onError(parsed.error);
+                                } else if (parsed.text != null) {
+                                  onChunk(parsed.text);
+                                } else if (parsed.memo || parsed.brief || parsed.thesis || parsed.answer) {
+                                    // Fallback if the backend returned JSON directly without streaming array (cache hit fallback)
+                                    onChunk(parsed.memo || parsed.brief || parsed.thesis || parsed.answer);
+                                }
+                            } catch (e) {
+                                // sometimes chunks are split mid-JSON depending on TCP fragmentation
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (onDone) onDone();
+    } catch (e) {
+        console.error("SSE Error:", e);
+        if (onError) onError(e.message);
+    }
+}
+
 // ============= ETF Flows View =============
 // ============= Hub Shared Logic =============

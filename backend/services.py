@@ -714,19 +714,29 @@ class HarvestService:
                 importance = prediction['feature_importance']
                 confidence = prediction.get('confidence', 0.75)
                 
+                # Calculate true statistical Z-Score from returns
+                try:
+                    returns = hist_df['Close'].pct_change().dropna()
+                    std_val = returns.std()
+                    z_score = float((returns.iloc[-1] - returns.mean()) / std_val) if len(returns) > 10 and std_val > 0 else 0.0
+                except:
+                    z_score = 0.0
+                
+                if np.isnan(z_score): z_score = 0.0
+
                 # Get minimum z_threshold across all active users
                 try:
                     c.execute("SELECT MIN(z_threshold) FROM user_settings WHERE alerts_enabled = 1")
                     _min_z = c.fetchone()[0]
-                    min_z_thresh = (float(_min_z) / 100.0) if _min_z is not None else 0.008
+                    min_z_thresh = float(_min_z) if _min_z is not None else 2.0
                 except:
-                    min_z_thresh = 0.008
+                    min_z_thresh = 2.0
 
-                # 3. Decision Logic: Alert if predicted return > min_z_thresh
+                # 3. Decision Logic: Alert if absolute Z-Score > min_z_thresh
                 signal_type = None
-                if pred_return >= min_z_thresh:
+                if abs(z_score) >= min_z_thresh:
                     signal_type = "ML_ALPHA_PREDICTION"
-                    severity = 'critical' if pred_return >= 0.02 else 'high' if pred_return >= 0.01 else 'medium'
+                    severity = 'critical' if abs(z_score) >= 3.0 else 'high' if abs(z_score) >= 2.5 else 'medium'
                     top_driver = max(importance, key=importance.get)
                     message = f"ML Engine predicts +{pred_return*100:.1f}% alpha window. Primary driver: {top_driver.upper()} ({(importance[top_driver]*100):.1f}% confidence)."
                 
@@ -745,7 +755,7 @@ class HarvestService:
                         c.execute("SELECT id FROM alerts_history WHERE ticker=? AND user_email=? AND timestamp > datetime('now', '-1 hours')", (ticker, target_email))
                         if c.fetchone(): continue
                         _direction = 'LONG' if pred_return > 0 else 'SHORT'
-                        _z = round(pred_return * 100, 2)
+                        _z = round(z_score, 2)
                         _alpha = round(pred_return * 100, 2)
                         _cat = next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
                         c.execute(
@@ -778,7 +788,7 @@ class HarvestService:
                                     user_z_thresh = float(row[1]) if row[1] else 2.0
                                     algo_url = row[2] if len(row) > 2 and row[2] else None
 
-                                    if pred_return * 100 >= user_z_thresh:
+                                    if abs(z_score) >= user_z_thresh:
                                         # Issue Algorithmic Trade Webhook if configured
                                         if algo_url:
                                             def _fire_algo(url=algo_url, t_email=target_email):
@@ -788,7 +798,7 @@ class HarvestService:
                                                         "ticker": ticker,
                                                         "price": curr_p,
                                                         "signal_type": signal_type,
-                                                        "alpha_score": round(pred_return * 100, 2),
+                                                        "alpha_score": _alpha,
                                                         "timestamp": datetime.now().isoformat(),
                                                     }
                                                     import requests
@@ -807,7 +817,7 @@ class HarvestService:
                                             bots = bot_c.fetchall()
                                             
                                             for b_id, b_name, b_z, b_regime, b_side, b_amt, b_exch, b_asset, b_tp_pct, b_sl_pct in bots:
-                                                if (pred_return * 100) >= b_z:
+                                                if abs(z_score) >= b_z:
                                                     if b_asset != 'ANY' and b_asset != ticker:
                                                         continue
                                                     if b_regime != 'ANY' and current_regime and current_regime != b_regime:
@@ -837,7 +847,7 @@ class HarvestService:
                                         # --------------------------------
                                     
                                     # The standard push_webhook logic below still gates on z_thresh
-                                    if pred_return * 100 < user_z_thresh:
+                                    if abs(z_score) < user_z_thresh:
                                         continue
                                     direction = 'LONG' if pred_return > 0 else 'SHORT'
                                     color = 0x22c55e if pred_return > 0 else 0xef4444
@@ -850,10 +860,10 @@ class HarvestService:
                                         fields=[
                                             {"name": "Direction", "value": direction, "inline": True},
                                             {"name": "Current Price", "value": f"${curr_p:,.4f}", "inline": True},
-                                            {"name": "Predicted Alpha", "value": f"+{pred_return*100:.2f}%", "inline": True},
-                                            {"name": "Primary Driver", "value": top_driver.upper(), "inline": True},
+                                            {"name": "Z-Score", "value": f"{z_score:+.2f}σ", "inline": True},
+                                            {"name": "Predicted Alpha", "value": f"{_alpha:+.2f}%", "inline": True},
                                             {"name": "ML Confidence", "value": f"{confidence*100:.0f}%", "inline": True},
-                                            {"name": "Your Threshold", "value": f"{user_z_thresh:.1f}%", "inline": True},
+                                            {"name": "Your Threshold", "value": f"±{user_z_thresh:.1f}σ", "inline": True},
                                         ]
                                     )
                         except Exception as ne:

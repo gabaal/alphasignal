@@ -59,8 +59,9 @@ class AIEngineRoutesMixin:
 
     def handle_ai_memo(self):
         global _memo_cache
+        is_stream = 'stream=true' in self.path.lower()
         now_ts = time.time()
-        if _memo_cache['content'] and (now_ts - _memo_cache['ts']) < _MEMO_TTL:
+        if not is_stream and _memo_cache['content'] and (now_ts - _memo_cache['ts']) < _MEMO_TTL:
             self.send_json(_memo_cache['content'])
             return
 
@@ -102,8 +103,28 @@ class AIEngineRoutesMixin:
                     {'role': 'user',   'content': user_prompt}
                 ],
                 max_tokens=400,
-                temperature=0.7
+                temperature=0.7,
+                stream=is_stream
             )
+            
+            if is_stream:
+                import json
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Connection', 'keep-alive')
+                origin = self.headers.get('Origin', '')
+                cors_origin = origin if origin in {'https://alphasignal.digital', 'https://www.alphasignal.digital', 'http://localhost:8006', 'http://127.0.0.1:8006'} else 'https://alphasignal.digital'
+                self.send_header('Access-Control-Allow-Origin', cors_origin)
+                self.end_headers()
+                
+                for chunk in resp:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        self.wfile.write(f"data: {json.dumps({'text': delta})}\n\n".encode('utf-8'))
+                        self.wfile.flush()
+                return
+
             memo_text = resp.choices[0].message.content.strip()
             result = {
                 'generated_at': datetime.utcnow().strftime('%d %b %Y %H:%M UTC'),
@@ -114,9 +135,17 @@ class AIEngineRoutesMixin:
             self.send_json(result)
         except Exception as e:
             print(f'[AI Memo] GPT error: {e}')
-            self.send_json(_static_fallback_memo())
+            if is_stream:
+                import json
+                try:
+                    self.wfile.write(f"data: {json.dumps({'error': str(e)})}\n\n".encode('utf-8'))
+                    self.wfile.flush()
+                except: pass
+            else:
+                self.send_json(_static_fallback_memo())
 
     def handle_ask_terminal(self, post_data):
+        is_stream = 'stream=true' in self.path.lower()
         query = post_data.get('query', '').strip()
         if not query:
             self.send_json({'error': 'No query provided'})
@@ -168,15 +197,43 @@ class AIEngineRoutesMixin:
                     {'role': 'user',   'content': query}
                 ],
                 max_tokens=300,
-                temperature=0.6
+                temperature=0.6,
+                stream=is_stream
             )
+            
+            if is_stream:
+                import json
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Connection', 'keep-alive')
+                origin = self.headers.get('Origin', '')
+                cors_origin = origin if origin in {'https://alphasignal.digital', 'https://www.alphasignal.digital', 'http://localhost:8006', 'http://127.0.0.1:8006'} else 'https://alphasignal.digital'
+                self.send_header('Access-Control-Allow-Origin', cors_origin)
+                self.end_headers()
+                
+                for chunk in resp:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        self.wfile.write(f"data: {json.dumps({'text': delta})}\n\n".encode('utf-8'))
+                        self.wfile.flush()
+                return
+
             answer = resp.choices[0].message.content.strip()
             self.send_json({'answer': answer, 'source': 'gpt-4o-mini'})
         except Exception as e:
             print(f'[Ask Terminal] GPT error: {e}')
-            self.send_json({'answer': f'Error: {str(e)}', 'source': 'error'})
+            if is_stream:
+                import json
+                try:
+                    self.wfile.write(f"data: {json.dumps({'error': str(e)})}\n\n".encode('utf-8'))
+                    self.wfile.flush()
+                except: pass
+            else:
+                self.send_json({'answer': f'Error: {str(e)}', 'source': 'error'})
 
     def handle_signal_thesis(self):
+        is_stream = 'stream=true' in self.path.lower()
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker  = query.get('ticker', ['BTC'])[0]
         signal  = query.get('signal', ['LONG'])[0]
@@ -269,13 +326,39 @@ class AIEngineRoutesMixin:
                     {'role': 'user',   'content': user_prompt}
                 ],
                 max_tokens=120,
-                temperature=0.5
+                temperature=0.5,
+                stream=is_stream
             )
+            
+            if is_stream:
+                import json
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Connection', 'keep-alive')
+                origin = self.headers.get('Origin', '')
+                cors_origin = origin if origin in {'https://alphasignal.digital', 'https://www.alphasignal.digital', 'http://localhost:8006', 'http://127.0.0.1:8006'} else 'https://alphasignal.digital'
+                self.send_header('Access-Control-Allow-Origin', cors_origin)
+                self.end_headers()
+                for chunk in resp:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        self.wfile.write(f"data: {json.dumps({'text': delta})}\n\n".encode('utf-8'))
+                        self.wfile.flush()
+                return
+
             thesis = resp.choices[0].message.content.strip()
             self.send_json({'thesis': thesis, 'ticker': ticker, 'signal': signal, 'source': 'gpt-4o-mini'})
         except Exception as e:
             print(f'[Signal Thesis] GPT error: {e}')
-            self.send_json({'thesis': f'Analysis unavailable: {str(e)}', 'source': 'error'})
+            if is_stream:
+                import json
+                try:
+                    self.wfile.write(f"data: {json.dumps({'error': str(e)})}\n\n".encode('utf-8'))
+                    self.wfile.flush()
+                except: pass
+            else:
+                self.send_json({'thesis': f'Analysis unavailable: {str(e)}', 'source': 'error'})
 
     def handle_explain_chart(self, post_data):
         client = _get_client()

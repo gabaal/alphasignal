@@ -769,16 +769,25 @@ async function loadAIMemo() {
     const meta = document.getElementById('ai-memo-meta');
     if (!body) return;
     try {
-        const data = await fetchAPI('/ai-memo');
-        if (data && data.memo) {
-            const html = formatMemoMarkdown(data.memo);
-            body.innerHTML = `<p>${html}</p>`;
-            if (meta) meta.innerHTML = `Generated ${data.generated_at} &bull; <span style="color:${data.source === 'gpt-4o-mini' ? '#bc13fe' : '#888'}">${data.source === 'gpt-4o-mini' ? 'GPT-4o-mini' : 'Static Template'}</span>`;
-        } else {
-            body.innerHTML = '<p style="color:var(--text-dim)">Memo unavailable -- check API key configuration.</p>';
-        }
+        let fullText = '';
+        body.innerHTML = '';
+        if (meta) meta.innerHTML = `Streaming intelligence... <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:12px;vertical-align:middle;margin-left:4px">sync</span>`;
+        
+        await window.fetchStreamingAPI('/ai-memo?stream=true', 'GET', null, 
+            (chunk) => {
+                fullText += chunk;
+                body.innerHTML = `<p>${formatMemoMarkdown(fullText)}<span style="opacity:0.6">█</span></p>`;
+            },
+            () => {
+                body.innerHTML = `<p>${formatMemoMarkdown(fullText)}</p>`;
+                if (meta) meta.innerHTML = `Generated just now &bull; <span style="color:#bc13fe">GPT-4o-mini (SSE)</span>`;
+            },
+            (err) => {
+                body.innerHTML = `<p style="color:var(--text-dim)">Memo unavailable: ${err}</p>`;
+            }
+        );
     } catch(e) {
-        body.innerHTML = '<p style="color:var(--text-dim)">Failed to load AI memo.</p>';
+        body.innerHTML = '<p style="color:var(--text-dim)">Failed to connect to AI Stream Engine.</p>';
     }
 }
 
@@ -859,18 +868,23 @@ async function submitAIQuery(prefill) {
     history.scrollTop = history.scrollHeight;
 
     try {
-        const resp = await fetch('/api/ask-terminal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query })
-        });
-        const data = await resp.json();
+        let fullText = '';
         const el = document.getElementById(respId);
-        if (el && data.answer) {
-            el.innerHTML = formatMemoMarkdown(data.answer);
-        } else if (el) {
-            el.innerHTML = '<span style="color:#ef4444">No response</span>';
-        }
+        if (el) el.innerHTML = '';
+        
+        await window.fetchStreamingAPI('/ask-terminal?stream=true', 'POST', { query }, 
+            (chunk) => {
+                fullText += chunk;
+                if (el) el.innerHTML = formatMemoMarkdown(fullText) + '<span style="opacity:0.6">█</span>';
+                history.scrollTop = history.scrollHeight;
+            },
+            () => {
+                if (el) el.innerHTML = formatMemoMarkdown(fullText);
+            },
+            (err) => {
+                if (el) el.innerHTML = `<span style="color:#ef4444">Error: ${err}</span>`;
+            }
+        );
     } catch(e) {
         const el = document.getElementById(respId);
         if (el) el.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
