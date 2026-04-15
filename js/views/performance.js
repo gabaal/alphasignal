@@ -485,7 +485,7 @@ async function renderFlows(tabs = null) {
 // ============= Heatmap View =============
 function renderDetailLiquidity(data) {
     const container = document.getElementById('liquidity-map');
-    if (!data.levels || !data.levels.length) {
+    if (!data || !data.levels || !data.levels.length) {
         container.innerHTML = '<p class="empty-state">No depth data available.</p>';
         return;
     }
