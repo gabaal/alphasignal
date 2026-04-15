@@ -724,6 +724,11 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             ${['1W','1M','60d','3M','6M'].map(tf => `<button class="tf-btn ${tf === period ? 'active' : ''}" onclick="openDetail('${ticker}','${category}',${correlation},${alpha},${sentiment},'${tf}',${isTracked})">${tf}</button>`).join('')}
         </div>
         <div class="chart-container" id="price-chart-container" style="height:300px;border-radius:8px;overflow:hidden;"></div>
+        <div class="overlay-controls" style="margin-top:0.75rem; display:flex; gap:10px; align-items:center">
+            <label style="font-size:0.7rem; color:var(--text-dim); font-weight:700">ADVANCED OVERLAYS:</label>
+            <button class="timeframe-btn" onclick="toggleOverlay('ema')">EMA (12/26)</button>
+            <button class="timeframe-btn" onclick="toggleOverlay('vol')">VOL RIBBONS</button>
+        </div>
         
         <div class="institutional-timeline" style="margin-top:2rem">
             <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent)">INSTITUTIONAL EVENT TIMELINE</h3>
@@ -776,11 +781,6 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                     <div class="deriv-box"><label>Long/Short Ratio</label><span>${derivData.longShortRatio}</span></div>
                 </div>
             </div>
-        </div>
-        <div class="overlay-controls" style="margin-top:1.5rem; display:flex; gap:10px; align-items:center">
-            <label style="font-size:0.7rem; color:var(--text-dim); font-weight:700">ADVANCED OVERLAYS:</label>
-            <button class="timeframe-btn" onclick="toggleOverlay('ema')">EMA (12/26)</button>
-            <button class="timeframe-btn" onclick="toggleOverlay('vol')">VOL RIBBONS</button>
         </div>
         
         <div class="tape-reader-section" style="margin-top:2rem; border-top:1px solid var(--border); padding-top:1.5rem">
