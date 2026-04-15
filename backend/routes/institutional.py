@@ -244,7 +244,8 @@ class InstitutionalRoutesMixin:
             if data is None or (hasattr(data, 'empty') and data.empty):
                 self.send_json({'error': f'No data for {ticker}'}); return
 
-            prices = data.squeeze().dropna() if hasattr(data, 'squeeze') else data
+            prices = data.squeeze() if hasattr(data, 'squeeze') else data
+            if hasattr(prices, 'replace'): prices = prices.replace(0, np.nan).dropna()
             if len(prices) < 2:
                 self.send_json({'error': f'Insufficient data for {ticker}'}); return
 
@@ -2273,11 +2274,11 @@ class InstitutionalRoutesMixin:
                 try:
                     if ticker not in data.columns:
                         continue
-                    prices = data[ticker].dropna()
+                    prices = data[ticker].replace(0, np.nan).dropna()
                     if len(prices) < 2:
                         continue
                     prev_p = float(prices.iloc[-2])
-                    change = (float(prices.iloc[-1]) - prev_p) / (prev_p if prev_p > 0 else 1e-9) * 100
+                    change = (float(prices.iloc[-1]) - prev_p) / prev_p * 100
                     # Fix: align on common index before computing correlation
                     rets = prices.pct_change().dropna()
                     common_idx = btc_pct.index.intersection(rets.index)
