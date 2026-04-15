@@ -114,7 +114,7 @@ const viewMap = {
     'market-brief': renderMarketBrief,
     'alerts-hub': renderAlertsHub,
     'price-alerts-hub': renderPriceAlertsHub,
-    'leaderboard-hub':  renderLeaderboardHub,
+    'leaderboard-hub': renderLeaderboardHub,
     'market-brief-hub': renderMarketBriefHub,
     // ---- docs-* per-view documentation routes (docs-a.js) ----
     'docs-etf-flows': renderDocsViewETFFlows,
@@ -162,13 +162,13 @@ const viewMap = {
     'docs-how-signals-work': renderDocsViewHowSignalsWork,
     'docs-integrations': renderDocsViewIntegrations,
     'docs-plain-english': renderDocsViewPlainEnglish,
-    'docs-conceptual-framework': typeof renderDocsViewConceptualFramework !== 'undefined' ? renderDocsViewConceptualFramework : () => {},
-    'docs-lob-heatmap': typeof renderDocsViewLOBHeatmap !== 'undefined' ? renderDocsViewLOBHeatmap : () => {},
-    'docs-gex': typeof renderDocsViewGEX !== 'undefined' ? renderDocsViewGEX : () => {},
-    'docs-volume-profile': typeof renderDocsViewVolumeProfile !== 'undefined' ? renderDocsViewVolumeProfile : () => {},
-    'gex-profile': typeof renderGexProfile !== 'undefined' ? renderGexProfile : () => {},
-    'volume-profile': typeof renderVolumeProfile !== 'undefined' ? renderVolumeProfile : () => {},
-    'lob-heatmap': typeof renderLobHeatmap !== 'undefined' ? renderLobHeatmap : () => {},
+    'docs-conceptual-framework': typeof renderDocsViewConceptualFramework !== 'undefined' ? renderDocsViewConceptualFramework : () => { },
+    'docs-lob-heatmap': typeof renderDocsViewLOBHeatmap !== 'undefined' ? renderDocsViewLOBHeatmap : () => { },
+    'docs-gex': typeof renderDocsViewGEX !== 'undefined' ? renderDocsViewGEX : () => { },
+    'docs-volume-profile': typeof renderDocsViewVolumeProfile !== 'undefined' ? renderDocsViewVolumeProfile : () => { },
+    'gex-profile': typeof renderGexProfile !== 'undefined' ? renderGexProfile : () => { },
+    'volume-profile': typeof renderVolumeProfile !== 'undefined' ? renderVolumeProfile : () => { },
+    'lob-heatmap': typeof renderLobHeatmap !== 'undefined' ? renderLobHeatmap : () => { },
     'signal': () => {
         const params = new URLSearchParams(window.location.search);
         const ticker = params.get('ticker') || params.get('id');
@@ -189,15 +189,15 @@ const viewMap = {
 function shareSignal(ticker, alpha, sentiment, zScore) {
     const sentimentLabel = sentiment > 0.1 ? 'BULLISH' : (sentiment < -0.1 ? 'BEARISH' : 'NEUTRAL');
     const text = `🚨 AlphaSignal Terminal Update: $${ticker}\n\n` +
-                 `📈 Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
-                 `🧠 Sentiment Synthesis: ${sentimentLabel}\n` +
-                 `⚡ Z-Score Intensity: ${zScore.toFixed(2)}\n\n` +
-                 `Institutional intelligence detected. View the full terminal:\n`;
-    
+        `📈 Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
+        `🧠 Sentiment Synthesis: ${sentimentLabel}\n` +
+        `⚡ Z-Score Intensity: ${zScore.toFixed(2)}\n\n` +
+        `Institutional intelligence detected. View the full terminal:\n`;
+
     // Construct sharing URL
     const url = `https://alphasignal.digital/?view=signals&ticker=${ticker}`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-    
+
     console.log("Sharing signal:", ticker);
     window.open(twitterUrl, '_blank');
 }
@@ -205,7 +205,7 @@ function shareSignal(ticker, alpha, sentiment, zScore) {
 window._thesisCache = window._thesisCache || {};
 
 async function toggleInlineThesis(ticker, dir, zscore, cardId) {
-    const bodyEl    = document.getElementById(`${cardId}-thesis`);
+    const bodyEl = document.getElementById(`${cardId}-thesis`);
     const chevronEl = document.getElementById(`${cardId}-chevron`);
     if (!bodyEl) return;
 
@@ -249,12 +249,12 @@ async function showNotificationSettings(visible) {
     console.log(`[AlphaSignal] Notification Settings Modal: ${visible ? 'OPEN' : 'CLOSE'}`);
     const modal = document.getElementById('notification-modal');
     const layout = document.querySelector('.layout');
-    
+
     if (!modal) {
         console.error('[AlphaSignal] ERROR: #notification-modal not found in DOM.');
         return;
     }
-    
+
     if (visible) {
         // Fetch settings and bot info in parallel
         const [settings, botInfo] = await Promise.all([
@@ -279,18 +279,18 @@ async function showNotificationSettings(visible) {
 
         // Show connected vs unlinked state
         const connectedEl = document.getElementById('tg-status-connected');
-        const unlinkedEl  = document.getElementById('tg-status-unlinked');
-        const emailEl     = document.getElementById('tg-linked-email');
+        const unlinkedEl = document.getElementById('tg-status-unlinked');
+        const emailEl = document.getElementById('tg-linked-email');
 
         if (chatId) {
             if (connectedEl) connectedEl.style.display = 'flex';
-            if (unlinkedEl)  unlinkedEl.style.display  = 'none';
-            if (emailEl)     emailEl.textContent = settings?.user_email
+            if (unlinkedEl) unlinkedEl.style.display = 'none';
+            if (emailEl) emailEl.textContent = settings?.user_email
                 ? `Linked to ${settings.user_email} \u00b7 chat_id ${chatId}`
                 : `chat_id ${chatId}`;
         } else {
             if (connectedEl) connectedEl.style.display = 'none';
-            if (unlinkedEl)  unlinkedEl.style.display  = 'flex';
+            if (unlinkedEl) unlinkedEl.style.display = 'flex';
         }
 
         if (document.getElementById('alerts-enabled'))
@@ -327,12 +327,12 @@ async function saveNotificationSettings() {
     console.log('[AlphaSignal] Persisting Alert Configuration...');
     const discord = document.getElementById('discord-webhook').value.trim();
     const telegram = document.getElementById('telegram-chat-id').value.trim();
-    const enabled    = document.getElementById('alerts-enabled').checked;
-    const digestOn   = document.getElementById('digest-enabled')?.checked ?? true;
+    const enabled = document.getElementById('alerts-enabled').checked;
+    const digestOn = document.getElementById('digest-enabled')?.checked ?? true;
     const errorEl = document.getElementById('notif-error');
-    
+
     if (errorEl) errorEl.classList.add('hidden');
-    
+
     // Basic validation for Discord
     if (discord && !discord.startsWith('https://discord.com/api/webhooks/')) {
         if (errorEl) {
@@ -342,7 +342,7 @@ async function saveNotificationSettings() {
         console.warn('[AlphaSignal] Invalid Discord Webhook format.');
         return;
     }
-    
+
     try {
         const z = parseFloat(document.getElementById('z-modal-threshold-slider')?.value || 2.0);
         const res = await fetchAPI('/user/settings', 'POST', {
@@ -353,7 +353,7 @@ async function saveNotificationSettings() {
         });
         // Also persist z_threshold via Phase 17-A endpoint
         await fetchAPI('/alert-settings', 'POST', { z_threshold: z });
-        
+
         if (res && res.success) {
             console.log('[AlphaSignal] Settings Sync Complete.');
             showToast("ALERTS_CONFIGURED: Advanced intelligence hooks updated successfully.");
@@ -373,27 +373,27 @@ function renderRegimeHeatmap(containerId, history) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
-    
+
     const width = container.clientWidth || 800;
     const height = container.clientHeight || 200;
     const margin = { top: 10, right: 10, bottom: 20, left: 30 };
-    
+
     const svg = d3.select(`#${containerId}`)
         .append("svg")
         .attr("width", width)
         .attr("height", height)
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
-        
+
     const xScale = d3.scaleBand()
         .domain(history.map(d => d.date))
         .range([0, width - margin.left - margin.right])
         .padding(0.1);
-        
+
     const yScale = d3.scaleLinear()
         .domain([0, 1])
         .range([height - margin.top - margin.bottom, 0]);
-        
+
     const colorScale = d3.scaleOrdinal()
         .domain(["High-Vol Expansion", "Low-Vol Compression", "Neutral / Accumulation"])
         .range(["#ef5350", "#26a69a", "#ffa726"]);
@@ -411,7 +411,7 @@ function renderRegimeHeatmap(containerId, history) {
         .style('pointer-events', 'none')
         .style('z-index', '9999')
         .style('display', 'none');
-        
+
     svg.selectAll("rect")
         .data(history)
         .enter()
@@ -422,23 +422,23 @@ function renderRegimeHeatmap(containerId, history) {
         .attr("height", height - margin.top - margin.bottom)
         .attr("fill", d => colorScale(d.regime))
         .attr("opacity", 0.6)
-        .on("mouseover", function(event, d) {
+        .on("mouseover", function (event, d) {
             d3.select(this).attr("opacity", 1);
             tooltip.style('display', 'block')
                 .html(`<span style="color:var(--accent,#00f2ff);font-weight:900">${d.date}</span><br/>${d.regime}`);
         })
-        .on("mousemove", function(event) {
+        .on("mousemove", function (event) {
             tooltip.style('left', (event.clientX + 14) + 'px').style('top', (event.clientY - 10) + 'px');
         })
-        .on("mouseout", function() {
+        .on("mouseout", function () {
             d3.select(this).attr("opacity", 0.6);
             tooltip.style('display', 'none');
         });
-        
+
     // Abstract Axis
     svg.append("g")
         .attr("transform", `translate(0,${height - margin.top - margin.bottom})`)
-        .call(d3.axisBottom(xScale).tickValues(xScale.domain().filter((d,i) => !(i%10))))
+        .call(d3.axisBottom(xScale).tickValues(xScale.domain().filter((d, i) => !(i % 10))))
         .style("font-size", "8px")
         .style("color", alphaColor(0.3));
 }
@@ -446,23 +446,23 @@ function renderRegimeHeatmap(containerId, history) {
 function renderCorrelationHeatmap(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container || !data) return;
-    
+
     // Normalize data structure (Handle both Portfolio and Macro formats)
     const labels = data.tickers || data.assets || [];
     if (!labels.length) return;
-    
+
     const matrix = data.matrix || [];
     const n = labels.length;
-    
+
     container.style.display = 'grid';
     container.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
-    
+
     container.innerHTML = matrix.map(cell => {
         // v = correlation value
         const v = cell.v !== undefined ? cell.v : cell.correlation;
         const xLabel = cell.x || cell.assetA;
         const yLabel = cell.y || cell.assetB;
-        
+
         const opacity = Math.abs(v);
         const color = v > 0 ? `rgba(0, 242, 255, ${opacity})` : `rgba(255, 62, 62, ${opacity})`;
         return `<div style="aspect-ratio:1; background:${color}; display:flex; align-items:center; justify-content:center; font-size:0.4rem; font-weight:900; color:white; border:1px solid rgba(0,0,0,0.1)" title="${xLabel} vs ${yLabel}: ${v}">
@@ -526,7 +526,7 @@ async function initFearGreedGauge() {
                 animation: { animateRotate: true, animateScale: false }
             }
         });
-    } catch(e) {}
+    } catch (e) { }
 }
 
 function renderDocsTopologies() {
@@ -561,7 +561,7 @@ function initLiveAlphaScroller() {
     const scroller = document.getElementById('alpha-scroller');
     if (!scroller) return;
 
-    window.updateLiveAlphaScroller = function(topSignals) {
+    window.updateLiveAlphaScroller = function (topSignals) {
         if (!scroller) return;
         if (Array.isArray(topSignals) && topSignals.length > 0) {
             const html = topSignals.map(s => {
@@ -569,21 +569,21 @@ function initLiveAlphaScroller() {
                 const dir = s.alpha >= 0 ? 'LONG' : 'SHORT';
                 return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(s.alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(s.price)}</span></span>`;
             }).join('');
-            scroller.innerHTML = html + html; 
+            scroller.innerHTML = html + html;
         } else {
             scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
         }
     };
-    
+
     // Initial state until WebSocket pushes first chunk
     scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">SYNCING LIVE ALPHA STREAM...</span>';
-    
+
     // Pre-fetch public signals to populate ticker tape immediately before WebSocket/Fallback kicks in
     fetchAPI('/signals').then(data => {
         if (data && Array.isArray(data) && data.length > 0) {
             window.updateLiveAlphaScroller(data.slice(0, 10));
         }
-    }).catch(e => {});
+    }).catch(e => { });
 }
 
 function initLivePriceStream() {
@@ -601,8 +601,8 @@ function initLivePriceStream() {
         if (p.BTC) {
             window.currentBTCPrice = p.BTC;
             if (typeof pushSparklinePrice === 'function') pushSparklinePrice(p.BTC);
-            const btcText = `$${p.BTC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            
+            const btcText = `$${p.BTC.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
             const elLanding = document.getElementById('btc-price-landing');
             if (elLanding) elLanding.textContent = `BTC: ${btcText}`;
 
@@ -612,7 +612,7 @@ function initLivePriceStream() {
         ['ETH', 'SOL'].forEach(sym => {
             if (p[sym]) {
                 const els = document.querySelectorAll(`[data-live-price="${sym}"]`);
-                els.forEach(e => e.textContent = `$${p[sym].toLocaleString('en-US', {minimumFractionDigits: 2})}`);
+                els.forEach(e => e.textContent = `$${p[sym].toLocaleString('en-US', { minimumFractionDigits: 2 })}`);
             }
         });
     }
@@ -629,9 +629,9 @@ function initLivePriceStream() {
                         window.updateLiveAlphaScroller(p.top_alpha);
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
         }, 5000);
-        
+
         // Ensure signals still poll locally if WS is explicitly dead
         if (typeof startSignalPoller === 'function') {
             window.signalFallbackInterval = setInterval(startSignalPoller, 60000);
@@ -648,16 +648,16 @@ function initLivePriceStream() {
             const hostname = window.location.hostname;
             const useLocalPort = (hostname === 'localhost' || hostname === '127.0.0.1');
             const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            
+
             // Route through /ws in production to bypass corporate firewalls (only standard 443 open)
-            const wsUrl = useLocalPort 
-                ? `${wsProtocol}${hostname}:8007` 
+            const wsUrl = useLocalPort
+                ? `${wsProtocol}${hostname}:8007`
                 : `${wsProtocol}${window.location.host}/ws`;
 
             const ws = new WebSocket(wsUrl);
 
-            ws.onopen = () => { 
-                window.wsFailCount = 0; 
+            ws.onopen = () => {
+                window.wsFailCount = 0;
                 if (window.priceFallbackInterval) {
                     clearInterval(window.priceFallbackInterval);
                     window.priceFallbackInterval = null;
@@ -689,7 +689,7 @@ function initLivePriceStream() {
                                 showSignalToast({
                                     ticker: d.ticker || d.signal_type || 'SIGNAL',
                                     direction: d.type && d.type.includes('BULL') ? 'LONG' :
-                                               d.type && d.type.includes('BEAR') ? 'SHORT' : 'ALERT',
+                                        d.type && d.type.includes('BEAR') ? 'SHORT' : 'ALERT',
                                     z_score: d.z_score ?? null,
                                     predicted_return: d.predicted_return ?? null
                                 });
@@ -711,20 +711,20 @@ function initLivePriceStream() {
                             if (alertList) {
                                 const sevColor = d.severity === 'high' || d.severity === 'critical' ? 'var(--risk-high)' : d.severity === 'medium' ? 'var(--accent)' : 'var(--text-dim)';
                                 const ts = new Date(d.timestamp);
-                                const tsDisplay = ts.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                                const tsDisplay = ts.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                                 const entryPrice = d.price && parseFloat(d.price) > 0 ? parseFloat(d.price) : null;
                                 const card = document.createElement('div');
                                 card.className = 'alert-card ' + (d.severity || 'medium');
                                 card.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ' + sevColor + ';border-radius:12px;padding:1.5rem;margin-bottom:1rem;animation:dropdownFadeIn 0.3s ease';
-                                const priceHtml = entryPrice ? '<span style="font-family:var(--font-mono);font-weight:700">ENTRY $' + entryPrice.toLocaleString('en-US',{maximumFractionDigits:4}) + '</span>' : '';
-                                card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:8px"><span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:rgba(0,242,255,0.08);color:var(--accent);border:1px solid rgba(0,242,255,0.2)">' + (d.type||'').replace(/_/g,' ') + '</span><span style="font-size:0.7rem;color:var(--accent);font-weight:900">' + (d.ticker||'') + '</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;color:var(--text-dim);font-family:var(--font-mono)">' + tsDisplay + '</span><span style="font-size:0.6rem;color:var(--accent);font-weight:700;padding:2px 8px;border:1px solid rgba(0,242,255,0.3);border-radius:100px;background:rgba(0,242,255,0.06)">LIVE</span></div></div><p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 10px">' + (d.content||'') + '</p>' + priceHtml;
+                                const priceHtml = entryPrice ? '<span style="font-family:var(--font-mono);font-weight:700">ENTRY $' + entryPrice.toLocaleString('en-US', { maximumFractionDigits: 4 }) + '</span>' : '';
+                                card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:8px"><span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:rgba(0,242,255,0.08);color:var(--accent);border:1px solid rgba(0,242,255,0.2)">' + (d.type || '').replace(/_/g, ' ') + '</span><span style="font-size:0.7rem;color:var(--accent);font-weight:900">' + (d.ticker || '') + '</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;color:var(--text-dim);font-family:var(--font-mono)">' + tsDisplay + '</span><span style="font-size:0.6rem;color:var(--accent);font-weight:700;padding:2px 8px;border:1px solid rgba(0,242,255,0.3);border-radius:100px;background:rgba(0,242,255,0.06)">LIVE</span></div></div><p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 10px">' + (d.content || '') + '</p>' + priceHtml;
                                 alertList.prepend(card);
                             }
                         }
                     } else if (msg.type === 'regime_shift') {
                         showToast('\u26A0\uFE0F REGIME SHIFT', 'Market shifted from ' + msg.data.old + ' to ' + msg.data.new + '.', 'regime');
                     }
-                } catch(e) {}
+                } catch (e) { }
             };
 
             ws.onclose = () => {
@@ -736,7 +736,7 @@ function initLivePriceStream() {
             ws.onerror = () => ws.close();
 
             window.liveWS = ws;
-        } catch(e) {
+        } catch (e) {
             window.wsFailCount++;
             setTimeout(connect, retryDelay);
         }
@@ -772,8 +772,8 @@ async function loadAIMemo() {
         let fullText = '';
         body.innerHTML = '';
         if (meta) meta.innerHTML = `Streaming intelligence... <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:12px;vertical-align:middle;margin-left:4px">sync</span>`;
-        
-        await window.fetchStreamingAPI('/ai-memo?stream=true', 'GET', null, 
+
+        await window.fetchStreamingAPI('/ai-memo?stream=true', 'GET', null,
             (chunk) => {
                 fullText += chunk;
                 body.innerHTML = `<p>${formatMemoMarkdown(fullText)}<span style="opacity:0.6">█</span></p>`;
@@ -786,7 +786,7 @@ async function loadAIMemo() {
                 body.innerHTML = `<p style="color:var(--text-dim)">Memo unavailable: ${err}</p>`;
             }
         );
-    } catch(e) {
+    } catch (e) {
         body.innerHTML = '<p style="color:var(--text-dim)">Failed to connect to AI Stream Engine.</p>';
     }
 }
@@ -813,7 +813,7 @@ async function renderAskTerminal() {
         <div style="max-width:780px;margin:0 auto">
             <!-- Suggested queries -->
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem">
-                ${['What is the current Bitcoin regime?','Which strategy has the best Sharpe ratio?','Explain funding rate heatmap signals','What does a negative Z-Score mean?','Compare BTC vs ETH momentum'].map(q => `
+                ${['What is the current Bitcoin regime?', 'Which strategy has the best Sharpe ratio?', 'Explain funding rate heatmap signals', 'What does a negative Z-Score mean?', 'Compare BTC vs ETH momentum'].map(q => `
                     <button onclick="submitAIQuery('${q}')" style="background:rgba(188,19,254,0.08);border:1px solid rgba(188,19,254,0.2);color:#bc13fe;padding:6px 14px;border-radius:20px;font-size:0.7rem;cursor:pointer;transition:all 0.2s ease" onmouseover="this.style.background='rgba(188,19,254,0.18)'" onmouseout="this.style.background='rgba(188,19,254,0.08)'">${q}</button>
                 `).join('')}
             </div>
@@ -871,8 +871,8 @@ async function submitAIQuery(prefill) {
         let fullText = '';
         const el = document.getElementById(respId);
         if (el) el.innerHTML = '';
-        
-        await window.fetchStreamingAPI('/ask-terminal?stream=true', 'POST', { query }, 
+
+        await window.fetchStreamingAPI('/ask-terminal?stream=true', 'POST', { query },
             (chunk) => {
                 fullText += chunk;
                 if (el) el.innerHTML = formatMemoMarkdown(fullText) + '<span style="opacity:0.6">█</span>';
@@ -885,7 +885,7 @@ async function submitAIQuery(prefill) {
                 if (el) el.innerHTML = `<span style="color:#ef4444">Error: ${err}</span>`;
             }
         );
-    } catch(e) {
+    } catch (e) {
         const el = document.getElementById(respId);
         if (el) el.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
     } finally {
@@ -927,7 +927,7 @@ async function openSignalThesisModal(ticker, signal, zscore) {
             el.innerHTML = `<p>${formatMemoMarkdown(data.thesis)}</p>`;
             if (meta) meta.textContent = `Source: ${data.source === 'gpt-4o-mini' ? 'GPT-4o-mini' : 'Template'}`;
         }
-    } catch(e) {
+    } catch (e) {
         const el = document.getElementById('thesis-body');
         if (el) el.innerHTML = `<span style="color:#ef4444">Failed: ${e.message}</span>`;
     }
@@ -988,7 +988,7 @@ async function _loadPollerSettings() {
     try {
         const s = await fetchAPI('/alert-settings');
         if (s && !s.error) {
-            _pollerSettings.z_threshold    = parseFloat(s.z_threshold  ?? 2.0);
+            _pollerSettings.z_threshold = parseFloat(s.z_threshold ?? 2.0);
             _pollerSettings.alerts_enabled = s.alerts_enabled !== false;
         }
     } catch (e) { /* silent — keep defaults */ }
