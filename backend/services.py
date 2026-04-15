@@ -809,8 +809,6 @@ class HarvestService:
                                             
                                         # --- NEW: Internal Algo Bots ---
                                         try:
-                                            import sqlite3
-                                            from backend.database import DB_PATH
                                             bot_conn = sqlite3.connect(DB_PATH)
                                             bot_c = bot_conn.cursor()
                                             bot_c.execute("SELECT id, name, condition_zscore, condition_regime, action_side, action_amount, action_exchange, asset, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email = ? AND status = 'active'", (target_email,))
