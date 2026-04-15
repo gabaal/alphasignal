@@ -166,6 +166,13 @@ async function renderSignalPermalink(id) {
                 </div>
             </div>
 
+            <!-- Price Chart -->
+            <div style="margin-bottom:1.5rem">
+                <div style="font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">PRICE HISTORY (60D)</div>
+                <div id="permalink-chart-container" style="width:100%;height:250px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.2)"></div>
+            </div>
+
+
             <!-- Action buttons -->
             <div style="display:flex;gap:10px;flex-wrap:wrap">
                 <button onclick="addToWatchlist_quick('${activeTicker}')"
@@ -237,6 +244,46 @@ async function renderSignalPermalink(id) {
                 else if (thesisEl) thesisEl.textContent = 'Thesis generation unavailable — check AI engine configuration.';
             } catch (_) {}
         }
+        
+        // Render Lightweight Chart
+        try {
+            const chartContainer = document.getElementById('permalink-chart-container');
+            if (chartContainer && window.LightweightCharts) {
+                const chart = window.LightweightCharts.createChart(chartContainer, {
+                    layout: { background: { type: 'solid', color: 'transparent' }, textColor: 'rgba(255,255,255,0.5)' },
+                    grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
+                    timeScale: { borderColor: 'rgba(255,255,255,0.05)' },
+                    rightPriceScale: { borderColor: 'rgba(255,255,255,0.05)' },
+                    crosshair: { mode: window.LightweightCharts.CrosshairMode.Normal }
+                });
+                
+                const candlestickSeries = chart.addCandlestickSeries({
+                    upColor: '#22c55e', downColor: '#ef4444', 
+                    borderVisible: false, 
+                    wickUpColor: '#22c55e', wickDownColor: '#ef4444'
+                });
+                
+                const klinesData = await fetchAPI(`/klines?ticker=${encodeURIComponent(activeTicker)}&period=60d`);
+                if (klinesData && klinesData.length > 0) {
+                    candlestickSeries.setData(klinesData);
+                    chart.timeScale().fitContent();
+                    
+                    // Add a ResizeObserver to adapt to modal resizes
+                    const ro = new ResizeObserver(entries => {
+                        if (entries.length === 0 || entries[0].target !== chartContainer) return;
+                        const newRect = entries[0].contentRect;
+                        chart.applyOptions({ height: newRect.height, width: newRect.width });
+                    });
+                    ro.observe(chartContainer);
+                } else {
+                    chartContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:0.7rem;">Chart data unavailable</div>';
+                }
+            }
+        } catch (e) {
+            console.error('[Permalink Chart] Error:', e);
+        }
+
+
 
     } catch (err) {
         console.error('[Permalink] Error:', err);

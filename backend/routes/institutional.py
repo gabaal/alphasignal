@@ -3351,6 +3351,28 @@ class InstitutionalRoutesMixin:
             print(f'Strategy compare error: {e}')
             self.send_json({'error': str(e)})
 
+
+    def handle_klines(self):
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        period = query.get('period', ['60d'])[0]
+        
+        raw_data = CACHE.download(ticker, period=period)
+        if raw_data is None or (hasattr(raw_data, 'empty') and raw_data.empty):
+            self.send_json([])
+            return
+            
+        prices = []
+        for index, row in raw_data.iterrows():
+            prices.append({
+                'time': int(index.timestamp()),
+                'open': float(row['Open']) if 'Open' in raw_data.columns else float(row.iloc[0]),
+                'high': float(row['High']) if 'High' in raw_data.columns else float(row.iloc[0]),
+                'low': float(row['Low']) if 'Low' in raw_data.columns else float(row.iloc[0]),
+                'close': float(row['Close']) if 'Close' in raw_data.columns else float(row.iloc[0])
+            })
+        self.send_json(prices)
+
     def handle_history(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
