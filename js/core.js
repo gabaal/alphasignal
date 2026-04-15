@@ -730,8 +730,10 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             <button class="timeframe-btn" onclick="toggleOverlay('vol')">VOL RIBBONS</button>
         </div>
         
-        <!-- ─── RSI (14) + Volume ───────────────────────────────── -->
-        <div style="margin-top:1.25rem">
+        <!-- ─── Advanced Charting Grid ──────────────────────────── -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+            <!-- ─── RSI (14) + Volume ───────────────────────────────── -->
+            <div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">RSI (14) · VOLUME</span>
                 <span id="detail-rsi-label" style="font-size:0.55rem;color:var(--text-dim);margin-left:auto"></span>
@@ -741,8 +743,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             </div>
         </div>
 
-        <!-- ─── Z-Score Anomaly Index ───────────────────────────── -->
-        <div style="margin-top:1rem">
+            <!-- ─── Z-Score Anomaly Index ───────────────────────────── -->
+            <div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">Z-SCORE ANOMALY INDEX</span>
                 <span id="detail-zscore-label" style="font-size:0.55rem;margin-left:auto"></span>
@@ -752,8 +754,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             </div>
         </div>
 
-        <!-- ─── Signal History Scatter ──────────────────────────── -->
-        <div style="margin-top:1rem">
+            <!-- ─── Signal History Scatter ──────────────────────────── -->
+            <div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">SIGNAL HISTORY · ${ticker}</span>
                 <span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">past 30 signals</span>
@@ -766,6 +768,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; LONG · TP hit</span>
                 <span style="font-size:0.5rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; SHORT · SL hit</span>
                 <span style="font-size:0.5rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9651; Open signal</span>
+            </div>
             </div>
         </div>
 
