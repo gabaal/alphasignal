@@ -3361,17 +3361,40 @@ class InstitutionalRoutesMixin:
         if raw_data is None or (hasattr(raw_data, 'empty') and raw_data.empty):
             self.send_json([])
             return
-            
+        
+        # Flatten multi-level column headers (yfinance sometimes returns MultiIndex)
+        if isinstance(raw_data.columns, pd.MultiIndex):
+            raw_data.columns = raw_data.columns.get_level_values(0)
+        
+        # Helper to safely extract a scalar float from a row value
+        def safe_float(val):
+            if val is None:
+                return None
+            if hasattr(val, 'iloc'):
+                val = val.iloc[0]
+            try:
+                v = float(val)
+                return None if (v != v) else v  # NaN check
+            except (TypeError, ValueError):
+                return None
+
         prices = []
         for index, row in raw_data.iterrows():
+            o = safe_float(row.get('Open',  row.get('open',  None)))
+            h = safe_float(row.get('High',  row.get('high',  None)))
+            l = safe_float(row.get('Low',   row.get('low',   None)))
+            c = safe_float(row.get('Close', row.get('close', None)))
+            if None in (o, h, l, c):
+                continue
             prices.append({
-                'time': int(index.timestamp()),
-                'open': float(row['Open']) if 'Open' in raw_data.columns else float(row.iloc[0]),
-                'high': float(row['High']) if 'High' in raw_data.columns else float(row.iloc[0]),
-                'low': float(row['Low']) if 'Low' in raw_data.columns else float(row.iloc[0]),
-                'close': float(row['Close']) if 'Close' in raw_data.columns else float(row.iloc[0])
+                'time':  int(index.timestamp()),
+                'open':  o,
+                'high':  h,
+                'low':   l,
+                'close': c
             })
         self.send_json(prices)
+
 
     def handle_history(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
