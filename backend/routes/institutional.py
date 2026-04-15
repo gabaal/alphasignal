@@ -3,7 +3,7 @@ import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, st
 from backend.routes.realdata import (
     fetch_defi_llama_chains, fetch_binance_trades, fetch_volume_by_hour,
     fetch_funding_rate_history, fetch_deribit_iv, fetch_deribit_iv_surface,
-    fetch_github_commits, fetch_binance_klines, fetch_retail_fomo
+    fetch_github_commits, fetch_binance_klines, fetch_retail_fomo, fetch_binance_depth
 )
 import yfinance as yf
 import numpy as np
@@ -3350,7 +3350,29 @@ class InstitutionalRoutesMixin:
         except Exception as e:
             print(f'Strategy compare error: {e}')
             self.send_json({'error': str(e)})
-
+    def handle_orderbook(self):
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        
+        # Map yahoo finance format (e.g. BTC-USD) to Binance symbol (e.g. BTCUSDT)
+        base = ticker.split('-')[0].upper() if '-' in ticker else ticker.upper()
+        symbol = f"{base}USDT"
+        
+        try:
+            depth = fetch_binance_depth(symbol, limit=20) # Only need ~20 levels for modal
+            if not depth or 'bids' not in depth:
+                return self.send_json({'levels': []})
+                
+            levels = []
+            for price, qty in depth['bids']:
+                levels.append({'price': float(price), 'size': float(qty), 'side': 'BID'})
+            for price, qty in depth['asks']:
+                levels.append({'price': float(price), 'size': float(qty), 'side': 'ASK'})
+                
+            self.send_json({'levels': levels})
+        except Exception as e:
+            print(f"Error serving orderbook for {symbol}: {e}")
+            self.send_json({'levels': []})
 
     def handle_klines(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)

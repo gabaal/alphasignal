@@ -260,6 +260,28 @@ def fetch_binance_trades(symbol: str = 'BTCUSDT', limit: int = 50) -> list:
     return []
 
 
+# ─── Binance REST — Order Book Depth ─────────────────────────────────────────
+def fetch_binance_depth(symbol: str = 'BTCUSDT', limit: int = 100) -> dict:
+    """Real limit order book snapshots from Binance spot — cached 2s."""
+    cache_key = f'depth_{symbol}_{limit}'
+    cached = _get(cache_key)
+    if cached is not None:
+        return cached
+    try:
+        r = requests.get(
+            'https://api.binance.com/api/v3/depth',
+            params={'symbol': symbol, 'limit': limit},
+            timeout=3
+        )
+        if r.status_code == 200:
+            data = r.json()
+            _set(cache_key, data, ttl=2)
+            return data
+    except Exception as e:
+        print(f'[BinanceDepth] {e}')
+    return {}
+
+
 # ─── Binance FAPI — Funding Rate History ──────────────────────────────────────
 def fetch_funding_rate_history(symbol: str = 'BTCUSDT', limit: int = 90) -> list:
     """Real 8h funding rate snapshots from Binance FAPI — cached 1h."""

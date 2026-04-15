@@ -677,7 +677,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
 
     const [data, liqData, derivData, walletData, factorData] = await Promise.all([
         fetchAPI(`/history?ticker=${ticker}&period=${yfPeriod}`),
-        fetchAPI(`/liquidity?ticker=${ticker}`),
+        fetchAPI(`/orderbook?ticker=${ticker}`),
         fetchAPI(`/derivatives?ticker=${ticker}`),
         fetchAPI(`/wallet-attribution?ticker=${ticker}`),
         fetchAPI(`/factor-web?ticker=${ticker}`)
@@ -921,6 +921,40 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                         window._bbUpperSeries.setData(times.filter((_,i)=>bbs[i]).map((t,i)=>({ time: t, value: bbs.filter(Boolean)[i]?.upper })).filter(d=>d.value));
                         window._bbLowerSeries.setData(times.filter((_,i)=>bbs[i]).map((t,i)=>({ time: t, value: bbs.filter(Boolean)[i]?.lower })).filter(d=>d.value));
                     }
+
+                    // Draw AI Signal Markers on candles
+                    if (window._detailAlerts && window._detailAlerts.length > 0) {
+                        const markers = [];
+                        window._detailAlerts.forEach(a => {
+                            if (!a.entry_date) return;
+                            const ts = Math.floor(new Date(a.entry_date).getTime() / 1000);
+                            
+                            // Map down to closest valid candle time
+                            let closestTime = null;
+                            let minDiff = Infinity;
+                            for (let i = 0; i < times.length; i++) {
+                                const diff = Math.abs(times[i] - ts);
+                                if (diff < minDiff && diff < 86400 * 2) { // Allow up to 2 days shift relative to daily candles
+                                    minDiff = diff;
+                                    closestTime = times[i];
+                                }
+                            }
+                            
+                            if (closestTime) {
+                                const isLong = a.direction === 'LONG';
+                                markers.push({
+                                    time: closestTime,
+                                    position: isLong ? 'belowBar' : 'aboveBar',
+                                    color: isLong ? '#22c55e' : '#ef4444',
+                                    shape: isLong ? 'arrowUp' : 'arrowDown',
+                                    text: a.type || a.direction
+                                });
+                            }
+                        });
+                        // Deduplicate markers by time
+                        const uniqueMarkers = Object.values(markers.reduce((acc, m) => { acc[m.time] = m; return acc; }, {})).sort((a,b) => a.time - b.time);
+                        candleSeries.setMarkers(uniqueMarkers);
+                    }
                 };
                 window.renderDetailOverlays();
             } else {
@@ -1083,6 +1117,9 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         if (!ctx) return;
         try {
             const alerts = await fetchAPI(`/alerts?ticker=${ticker}&limit=30`);
+            window._detailAlerts = alerts || [];
+            if (window.renderDetailOverlays) window.renderDetailOverlays();
+
             if (!alerts || !alerts.length) {
                 ctx.closest('div').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:0.7rem;">No signal history yet</div>';
                 return;
