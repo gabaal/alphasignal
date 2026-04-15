@@ -3386,12 +3386,14 @@ class InstitutionalRoutesMixin:
             c = safe_float(row.get('Close', row.get('close', None)))
             if None in (o, h, l, c):
                 continue
+            v = safe_float(row.get('Volume', row.get('volume', None))) or 0
             prices.append({
-                'time':  int(index.timestamp()),
-                'open':  o,
-                'high':  h,
-                'low':   l,
-                'close': c
+                'time':   int(index.timestamp()),
+                'open':   o,
+                'high':   h,
+                'low':    l,
+                'close':  c,
+                'volume': v
             })
         self.send_json(prices)
 

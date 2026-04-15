@@ -730,6 +730,45 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             <button class="timeframe-btn" onclick="toggleOverlay('vol')">VOL RIBBONS</button>
         </div>
         
+        <!-- ─── RSI (14) + Volume ───────────────────────────────── -->
+        <div style="margin-top:1.25rem">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">RSI (14) · VOLUME</span>
+                <span id="detail-rsi-label" style="font-size:0.55rem;color:var(--text-dim);margin-left:auto"></span>
+            </div>
+            <div style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+                <canvas id="detail-rsi-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- ─── Z-Score Anomaly Index ───────────────────────────── -->
+        <div style="margin-top:1rem">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">Z-SCORE ANOMALY INDEX</span>
+                <span id="detail-zscore-label" style="font-size:0.55rem;margin-left:auto"></span>
+            </div>
+            <div style="height:110px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+                <canvas id="detail-zscore-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- ─── Signal History Scatter ──────────────────────────── -->
+        <div style="margin-top:1rem">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">SIGNAL HISTORY · ${ticker}</span>
+                <span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">past 30 signals</span>
+                <span id="detail-scatter-label" style="font-size:0.55rem;margin-left:auto"></span>
+            </div>
+            <div style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+                <canvas id="detail-signal-scatter"></canvas>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:6px">
+                <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; LONG · TP hit</span>
+                <span style="font-size:0.5rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; SHORT · SL hit</span>
+                <span style="font-size:0.5rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9651; Open signal</span>
+            </div>
+        </div>
+
         <div class="institutional-timeline" style="margin-top:2rem">
             <h3 style="margin-bottom:1rem; font-size:0.9rem; color:var(--accent)">INSTITUTIONAL EVENT TIMELINE</h3>
             <div class="catalyst-list">
@@ -898,6 +937,216 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         const ro = new ResizeObserver(() => { lwChart.applyOptions({ width: chartEl.clientWidth }); });
         ro.observe(chartEl);
     })();
+
+    // ── Chart helpers ─────────────────────────────────────────────────
+    const _monoFont = { family: 'JetBrains Mono', size: 9 };
+    const _gridColor = alphaColor(0.04);
+
+    function computeRSI(closes, period = 14) {
+        const rsi = new Array(closes.length).fill(null);
+        let avgGain = 0, avgLoss = 0;
+        for (let i = 1; i <= period && i < closes.length; i++) {
+            const diff = closes[i] - closes[i - 1];
+            if (diff > 0) avgGain += diff; else avgLoss -= diff;
+        }
+        avgGain /= period; avgLoss /= period;
+        if (closes.length > period) rsi[period] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+        for (let i = period + 1; i < closes.length; i++) {
+            const diff = closes[i] - closes[i - 1];
+            avgGain = (avgGain * (period - 1) + Math.max(diff, 0)) / period;
+            avgLoss = (avgLoss * (period - 1) + Math.max(-diff, 0)) / period;
+            rsi[i] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+        }
+        return rsi;
+    }
+
+    function computeZScoreSeries(prices, window = 20) {
+        return prices.map((_, i) => {
+            if (i < window) return null;
+            const slice = prices.slice(i - window, i);
+            const mean = slice.reduce((a, b) => a + b, 0) / window;
+            const std  = Math.sqrt(slice.reduce((a, b) => a + (b - mean) ** 2, 0) / window);
+            return std === 0 ? 0 : (prices[i] - mean) / std;
+        });
+    }
+
+    // ── 1. RSI (14) + Volume ──────────────────────────────────────────
+    (async () => {
+        // Wait briefly for lwChart klines to populate window._detailKlines
+        await new Promise(r => setTimeout(r, 800));
+        const klines = window._detailKlines;
+        const ctx = document.getElementById('detail-rsi-chart');
+        if (!ctx || !klines || klines.length < 15) return;
+
+        const closes  = klines.map(k => k.close);
+        const volumes = klines.map(k => k.volume || 0);
+        const labels  = klines.map(k => {
+            const d = new Date(k.time * 1000);
+            return d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+        });
+        const rsi = computeRSI(closes, 14);
+        const lastRSI = rsi.filter(v => v !== null).at(-1);
+        const labelEl = document.getElementById('detail-rsi-label');
+        if (labelEl && lastRSI !== undefined) {
+            labelEl.textContent = `RSI ${lastRSI.toFixed(1)}`;
+            labelEl.style.color = lastRSI > 70 ? '#ef4444' : lastRSI < 30 ? '#22c55e' : '#94a3b8';
+        }
+
+        const volColors = klines.map((k, i) =>
+            i > 0 && k.close >= klines[i - 1].close ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)');
+
+        new Chart(ctx.getContext('2d'), {
+            data: {
+                labels,
+                datasets: [
+                    { type: 'line',  label: 'RSI',    data: rsi,     borderColor: '#8b5cf6',            borderWidth: 1.5, pointRadius: 0, fill: false,              yAxisID: 'yRSI',  tension: 0.2 },
+                    { type: 'line',  label: 'OB 70',  data: new Array(labels.length).fill(70), borderColor: 'rgba(239,68,68,0.3)',  borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, yAxisID: 'yRSI' },
+                    { type: 'line',  label: 'OS 30',  data: new Array(labels.length).fill(30), borderColor: 'rgba(34,197,94,0.3)',  borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, yAxisID: 'yRSI' },
+                    { type: 'bar',   label: 'Volume', data: volumes, backgroundColor: volColors,                                                                         yAxisID: 'yVol' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: {
+                        filter: item => item.datasetIndex === 0,
+                        callbacks: { label: ctx => `RSI: ${ctx.parsed.y?.toFixed(1) ?? '—'}` }
+                    }
+                },
+                scales: {
+                    x:    { display: false, grid: { display: false } },
+                    yRSI: { position: 'left',  min: 0, max: 100, grid: { color: _gridColor }, ticks: { color: '#888', font: _monoFont, maxTicksLimit: 5 } },
+                    yVol: { position: 'right', display: false }
+                }
+            }
+        });
+    })();
+
+    // ── 2. Z-Score Anomaly Index ──────────────────────────────────────
+    (() => {
+        const ctx = document.getElementById('detail-zscore-chart');
+        if (!ctx || !history || history.length < 21) return;
+
+        const prices = history.map(h => h.price);
+        const labels = history.map(h => h.date);
+        const zs     = computeZScoreSeries(prices, 20);
+        const lastZ  = zs.filter(v => v !== null).at(-1);
+
+        const labelEl = document.getElementById('detail-zscore-label');
+        if (labelEl && lastZ !== undefined) {
+            labelEl.textContent = `Z = ${lastZ.toFixed(2)}`;
+            labelEl.style.color = Math.abs(lastZ) > 2 ? '#ef4444' : Math.abs(lastZ) > 1 ? '#facc15' : '#22c55e';
+        }
+
+        const lineColors = zs.map(z => {
+            if (z === null) return 'transparent';
+            if (z >  2 || z < -2) return '#ef4444';
+            if (z >  1 || z < -1) return '#facc15';
+            return '#22c55e';
+        });
+
+        new Chart(ctx.getContext('2d'), {
+            data: {
+                labels,
+                datasets: [
+                    { type: 'line', label: '+2σ', data: new Array(labels.length).fill(2),  borderColor: 'rgba(239,68,68,0.3)',  borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, yAxisID: 'yZ' },
+                    { type: 'line', label: '-2σ', data: new Array(labels.length).fill(-2), borderColor: 'rgba(239,68,68,0.3)',  borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, yAxisID: 'yZ' },
+                    { type: 'line', label: 'Z',   data: zs, borderColor: '#00f2ff', borderWidth: 1.5, pointRadius: 0, fill: false,
+                      segment: { borderColor: ctx2 => {
+                          const v = ctx2.p1.parsed.y;
+                          return Math.abs(v) > 2 ? '#ef4444' : Math.abs(v) > 1 ? '#facc15' : '#22c55e';
+                      }},
+                      yAxisID: 'yZ', tension: 0.2
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: { filter: i => i.datasetIndex === 2, callbacks: { label: c => `Z-Score: ${c.parsed.y?.toFixed(2) ?? '—'}` } } },
+                scales: {
+                    x:  { display: false, grid: { display: false } },
+                    yZ: { position: 'left', grid: { color: _gridColor }, ticks: { color: '#888', font: _monoFont, maxTicksLimit: 5 } }
+                }
+            }
+        });
+    })();
+
+    // ── 3. Signal History Scatter ─────────────────────────────────────
+    (async () => {
+        const ctx = document.getElementById('detail-signal-scatter');
+        if (!ctx) return;
+        try {
+            const alerts = await fetchAPI(`/alerts?ticker=${ticker}&limit=30`);
+            if (!alerts || !alerts.length) {
+                ctx.closest('div').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:0.7rem;">No signal history yet</div>';
+                return;
+            }
+            const labelEl = document.getElementById('detail-scatter-label');
+            const tpHits  = alerts.filter(a => a.closed_at && a.outcome === 'TP').length;
+            const slHits  = alerts.filter(a => a.closed_at && a.outcome === 'SL').length;
+            const opens   = alerts.filter(a => !a.closed_at).length;
+            if (labelEl) {
+                const wr = tpHits + slHits > 0 ? Math.round(tpHits / (tpHits + slHits) * 100) : 0;
+                labelEl.textContent = `WR ${wr}% · ${opens} open`;
+                labelEl.style.color = wr >= 55 ? '#22c55e' : wr >= 40 ? '#facc15' : '#ef4444';
+            }
+
+            const scatterData = alerts.map((a, i) => {
+                const pct = a.entry_price && a.tp1_price
+                    ? ((a.tp1_price - a.entry_price) / a.entry_price * 100 * (a.direction === 'SHORT' ? -1 : 1))
+                    : 0;
+                return { x: i, y: parseFloat(pct.toFixed(2)), outcome: a.outcome, dir: a.direction, closed: !!a.closed_at };
+            });
+
+            const pointColor = scatterData.map(d => {
+                if (!d.closed) return 'rgba(250,204,21,0.7)';
+                return d.outcome === 'TP' ? 'rgba(34,197,94,0.75)' : 'rgba(239,68,68,0.75)';
+            });
+            const pointStyle = scatterData.map(d => d.closed ? 'circle' : 'triangle');
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Signals',
+                        data: scatterData,
+                        backgroundColor: pointColor,
+                        pointStyle: pointStyle,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: c => {
+                                    const d = c.raw;
+                                    return `${d.dir || '?'} · ${d.y > 0 ? '+' : ''}${d.y}% · ${d.closed ? (d.outcome || 'Closed') : 'Open'}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false, grid: { display: false } },
+                        y: {
+                            grid: { color: _gridColor },
+                            ticks: { color: '#888', font: _monoFont, callback: v => (v >= 0 ? '+' : '') + v + '%' },
+                            // zero baseline
+                            afterDataLimits: axis => { const m = Math.max(Math.abs(axis.min), Math.abs(axis.max), 1); axis.min = -m; axis.max = m; }
+                        }
+                    }
+                }
+            });
+        } catch(e) { console.warn('[Signal Scatter]', e); }
+    })();
+
     renderDetailLiquidity(liqData);
     renderFlowAttribution(walletData);
 
