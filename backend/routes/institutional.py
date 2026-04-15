@@ -236,7 +236,10 @@ class InstitutionalRoutesMixin:
                     return
 
             # Cache miss — compute inline for this single ticker
-            btc_data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close').squeeze()
+            btc_df = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close')
+            btc_data = btc_df.iloc[:, 0] if hasattr(btc_df, 'iloc') and len(getattr(btc_df, 'columns', [])) > 0 else btc_df.squeeze() if hasattr(btc_df, 'squeeze') else btc_df
+            if len(btc_data) < 2:
+                self.send_json({'error': 'Insufficient BTC data'}); return
             btc_pct  = btc_data.pct_change().dropna()
             btc_change_pct = float((btc_data.iloc[-1] - btc_data.iloc[-2]) / btc_data.iloc[-2] * 100)
 
@@ -244,9 +247,9 @@ class InstitutionalRoutesMixin:
             if data is None or (hasattr(data, 'empty') and data.empty):
                 self.send_json({'error': f'No data for {ticker}'}); return
 
-            prices = data.squeeze() if hasattr(data, 'squeeze') else data
+            prices = data.iloc[:, 0] if hasattr(data, 'iloc') and len(getattr(data, 'columns', [])) > 0 else data.squeeze() if hasattr(data, 'squeeze') else data
             if hasattr(prices, 'replace'): prices = prices.replace(0, np.nan).dropna()
-            if len(prices) < 2:
+            if len(prices) < 10:
                 self.send_json({'error': f'Insufficient data for {ticker}'}); return
 
             change = float((prices.iloc[-1] - prices.iloc[-2]) / prices.iloc[-2] * 100)
@@ -2266,7 +2269,10 @@ class InstitutionalRoutesMixin:
         all_tickers = sorted(list(set(universe_tickers + tracked)))
         results = []
         try:
-            btc_data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close').squeeze()
+            btc_df = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close')
+            btc_data = btc_df.iloc[:, 0] if hasattr(btc_df, 'iloc') and len(getattr(btc_df, 'columns', [])) > 0 else btc_df.squeeze() if hasattr(btc_df, 'squeeze') else btc_df
+            if len(btc_data) < 2:
+                raise ValueError("Insufficient BTC market data.")
             btc_pct = btc_data.pct_change().dropna()
             data = CACHE.download(all_tickers, period='60d', interval='1d', column='Close')
             btc_change_pct = (float(btc_data.iloc[-1]) - float(btc_data.iloc[-2])) / float(btc_data.iloc[-2]) * 100
@@ -2275,7 +2281,7 @@ class InstitutionalRoutesMixin:
                     if ticker not in data.columns:
                         continue
                     prices = data[ticker].replace(0, np.nan).dropna()
-                    if len(prices) < 2:
+                    if len(prices) < 10:
                         continue
                     prev_p = float(prices.iloc[-2])
                     change = (float(prices.iloc[-1]) - prev_p) / prev_p * 100
