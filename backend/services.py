@@ -751,8 +751,8 @@ class HarvestService:
                         enabled_users = []
 
                     for target_email in enabled_users:
-                        # Per-user anti-spam: skip if this user already has this ticker in last 5 mins
-                        c.execute("SELECT id FROM alerts_history WHERE ticker=? AND user_email=? AND timestamp > datetime('now', '-5 minutes')", (ticker, target_email))
+                        # Per-user anti-spam: skip if this user already has this ticker in last 1h
+                        c.execute("SELECT id FROM alerts_history WHERE ticker=? AND user_email=? AND timestamp > datetime('now', '-1 hours')", (ticker, target_email))
                         if c.fetchone(): continue
                         _direction = 'LONG' if pred_return > 0 else 'SHORT'
                         _z = round(z_score, 2)
@@ -967,7 +967,7 @@ class HarvestService:
                             rule_users = []
 
                         for ru_email in rule_users:
-                            c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-5 minutes')",
+                            c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-2 hours')",
                                       (ticker, sig_type, ru_email))
                             if c.fetchone(): continue
                             _dir = 'LONG' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'SHORT' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
