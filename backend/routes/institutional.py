@@ -6560,10 +6560,11 @@ class InstitutionalRoutesMixin:
             c = conn.cursor()
 
             # 1. Pull top ML predictions from last 24h
-            c.execute("""SELECT symbol, predicted_return, confidence
+            c.execute("""SELECT symbol, MAX(predicted_return), confidence
                          FROM ml_predictions
                          WHERE timestamp > datetime('now', '-24 hours')
-                         ORDER BY predicted_return DESC LIMIT 15""")
+                         GROUP BY symbol
+                         ORDER BY MAX(predicted_return) DESC LIMIT 15""")
             preds = c.fetchall()
 
             if not preds:
