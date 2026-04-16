@@ -951,12 +951,12 @@ async function renderSignalArchive(tabs = null) {
                             ${dirArrow} ${dirLabel}
                         </span>
                     </td>
-                    <td data-label="ACTIONS" style="padding:8px 12px;text-align:center;white-space:nowrap">
-                        <button onclick="openDetail('${s.ticker}','CRYPTO')" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
-                        <button onclick="showSignalDetail(null,'${s.ticker}')" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="AI Analysis">AI</button>
+                    <td data-label="ACTIONS" style="padding:8px 12px;text-align:center;white-space:nowrap" onclick="event.stopPropagation()">
+                        <button onclick="openDetail('${s.ticker}','CRYPTO');event.stopPropagation()" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
+                        <button onclick="showSignalDetail(null,'${s.ticker}');event.stopPropagation()" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="AI Analysis">AI</button>
                         ${s.state === 'CLOSED'
-                            ? `<button onclick="window._archiveReopenSignal(${s.id},this)" style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.3);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">REOPEN</button>`
-                            : `<button onclick="window._archiveCloseSignal(${s.id},this)" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">CLOSE</button>`
+                            ? `<button onclick="window._archiveReopenSignal(${s.id},this);event.stopPropagation()" style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.3);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">REOPEN</button>`
+                            : `<button onclick="window._archiveCloseSignal(${s.id},this);event.stopPropagation()" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">CLOSE</button>`
                         }
                     </td>
                 </tr>`;
@@ -1134,7 +1134,11 @@ async function renderSignalArchive(tabs = null) {
     window.loadData = loadData; // expose for RESET button
 
     // ── Signal Close / Reopen handlers ────────────────────────────
+    // Guard set: prevents duplicate API calls if the button is somehow clicked twice
+    const _closingInFlight = new Set();
     window._archiveCloseSignal = async function(id, btn) {
+        if (_closingInFlight.has(id)) return;   // already in progress — ignore duplicate
+        _closingInFlight.add(id);
         btn.disabled = true; btn.textContent = '...';
         try {
             const res = await fetch(`/api/signal/${id}/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
@@ -1146,6 +1150,8 @@ async function renderSignalArchive(tabs = null) {
         } catch(e) {
             showToast('ERROR', `Could not close signal: ${e.message}`, 'alert');
             btn.disabled = false; btn.textContent = 'CLOSE';
+        } finally {
+            _closingInFlight.delete(id);
         }
     };
     window._archiveReopenSignal = async function(id, btn) {
