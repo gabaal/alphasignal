@@ -29,7 +29,8 @@ const macroHubTabs = [
     { id: 'etf', label: 'ETF FLOWS', view: 'etf-flows', icon: 'account_balance' },
     { id: 'liquidations', label: 'LIQUIDATIONS', view: 'liquidations', icon: 'local_fire_department' },
     { id: 'oi', label: 'OI MATRIX', view: 'oi-radar', icon: 'track_changes' },
-    { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' }
+    { id: 'gaps', label: 'CME GAPS', view: 'cme-gaps', icon: 'pivot_table_chart' },
+    { id: 'overview', label: 'HUB OVERVIEW', view: 'docs-hub-macro', icon: 'menu_book' }
 ];
 
 async function renderMacroHub() {
@@ -44,7 +45,8 @@ const alphaHubTabs = [
     { id: 'lab',          label: 'STRATEGY LAB',     view: 'strategy-lab',   icon: 'science' },
     { id: 'backtester',   label: 'BACKTESTER V2',    view: 'backtester-v2',  icon: 'analytics' },
     { id: 'archive',      label: 'SIGNAL ARCHIVE',   view: 'signal-archive', icon: 'archive' },
-    { id: 'narrative',    label: 'NARRATIVE GALAXY',  view: 'narrative',      icon: 'hub' }
+    { id: 'narrative',    label: 'NARRATIVE GALAXY',  view: 'narrative',      icon: 'hub' },
+    { id: 'overview',     label: 'HUB OVERVIEW',     view: 'docs-hub-alpha', icon: 'menu_book' }
 ];
 
 async function renderAlphaHub() {
@@ -59,7 +61,8 @@ const institutionalHubTabs = [
     { id: 'tradelab', label: 'TRADE IDEA LAB', view: 'tradelab', icon: 'experiment' },
     { id: 'unlocks', label: 'TOKEN UNLOCKS', view: 'token-unlocks', icon: 'key' },
     { id: 'yield', label: 'YIELD LAB', view: 'yield-lab', icon: 'biotech' },
-    { id: 'rebalancer', label: 'AI REBALANCER', view: 'ai-rebalancer', icon: 'smart_toy' }
+    { id: 'rebalancer', label: 'AI REBALANCER', view: 'ai-rebalancer', icon: 'smart_toy' },
+    { id: 'overview', label: 'HUB OVERVIEW', view: 'docs-hub-portfolio', icon: 'menu_book' }
 ];
 
 async function renderInstitutionalHub() {
@@ -76,7 +79,8 @@ const analyticsHubTabs = [
     { id: 'mindshare',     label: 'MINDSHARE',      view: 'mindshare',         icon: 'psychology' },
     { id: 'newsroom',      label: 'NEWSROOM',       view: 'newsroom',          icon: 'newspaper' },
     { id: 'custom',        label: 'CUSTOM CHARTS',  view: 'custom-analytics',  icon: 'bar_chart' },
-    { id: 'advanced-charting', label: 'ADVANCED CHARTING', view: 'advanced-charting', icon: 'candlestick_chart' }
+    { id: 'advanced-charting', label: 'ADVANCED CHARTING', view: 'advanced-charting', icon: 'candlestick_chart' },
+    { id: 'overview',      label: 'HUB OVERVIEW',   view: 'docs-hub-analytics', icon: 'menu_book' }
 ];
 
 async function renderAnalyticsHub() {
@@ -87,7 +91,8 @@ async function renderAnalyticsHub() {
 const auditHubTabs = [
     { id: 'performance',      label: 'PERFORMANCE',     view: 'performance-dashboard', icon: 'trending_up' },
     { id: 'ledger',           label: 'TRADE LEDGER',    view: 'trade-ledger',          icon: 'list_alt' },
-    { id: 'strategy-report',  label: 'STRATEGY REPORT', view: 'strategy-report',       icon: 'insert_chart' }
+    { id: 'strategy-report',  label: 'STRATEGY REPORT', view: 'strategy-report',       icon: 'insert_chart' },
+    { id: 'overview',         label: 'HUB OVERVIEW',    view: 'docs-hub-audit',        icon: 'menu_book' }
 ];
 
 async function renderAuditHub() {
@@ -101,7 +106,8 @@ const alertsHubTabs = [
     { id: 'signal-leaderboard',label: 'LEADERBOARD',    view: 'leaderboard-hub',   icon: 'leaderboard' },
     { id: 'market-brief',      label: 'MARKET BRIEF',   view: 'market-brief-hub',  icon: 'article' },
     { id: 'signal-archive',    label: 'SIGNAL ARCHIVE', view: 'signal-archive',    icon: 'archive' },
-    { id: 'webhooks',          label: 'WEBHOOKS',       view: 'webhooks',          icon: 'webhook' }
+    { id: 'webhooks',          label: 'WEBHOOKS',       view: 'webhooks',          icon: 'webhook' },
+    { id: 'overview',          label: 'HUB OVERVIEW',   view: 'docs-hub-alerts',   icon: 'menu_book' }
 ];
 
 // Hub-aware wrappers — each view shows the shared tab bar

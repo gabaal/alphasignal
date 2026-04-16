@@ -3,6 +3,7 @@ function renderHelp() {
     const hubs = [
         { id: 'macro-intel', name: 'Macro Intelligence', icon: 'monitoring', color: '#a78bfa', view: 'macro-hub',
           docs: [
+            { name: 'Hub Overview', desc: 'Comprehensive guide to the Macro Intelligence Hub, defining key terms and its institutional purpose.', route: 'docs-hub-macro', icon: 'visibility' },
             { name: 'Strategy Briefing', desc: '3 components: AI institutional memo, Conviction dials, BTC benchmark chart', route: 'docs-briefing', icon: 'memory' },
             { name: 'Sector Rotation', desc: '2 components: Sector momentum treemap, Rotation matrix table', route: 'docs-rotation', icon: 'swap_horiz' },
             { name: 'Macro Compass', desc: '3 components: Macro correlation heatmap, Yield curve chart, DXY overlay', route: 'docs-macro-compass', icon: 'explore' },
@@ -17,6 +18,7 @@ function renderHelp() {
         },
         { id: 'alpha-strategy', name: 'Strategy & Backtester', icon: 'electric_bolt', color: '#facc15', view: 'alpha-hub',
           docs: [
+            { name: 'Hub Overview', desc: 'Comprehensive guide to the Alpha Strategy & Backtester Hub, defining key terms and its institutional purpose.', route: 'docs-hub-alpha', icon: 'visibility' },
             { name: 'Signal Intelligence', desc: '3 components: Signal cards, Firing density histogram, Z-score bell curve (Confidence Radar now on Dashboard)', route: 'docs-signals', icon: 'radar' },
             { name: 'ML Alpha Engine', desc: '3 components: Prediction table, Feature importance bar chart, Model accuracy gauge', route: 'docs-ml-engine', icon: 'smart_toy' },
             { name: 'Alpha Score', desc: '2 components: Composite ranking table with score bars, Grade distribution', route: 'docs-alpha-score', icon: 'electric_bolt' },
@@ -30,6 +32,7 @@ function renderHelp() {
         },
         { id: 'institutional-hub', name: 'Portfolio & Risk', icon: 'key', color: '#fb923c', view: 'institutional-hub',
           docs: [
+            { name: 'Hub Overview', desc: 'Comprehensive guide to the Portfolio & Risk Hub, defining key terms and its institutional purpose.', route: 'docs-hub-portfolio', icon: 'visibility' },
             { name: 'Token Unlocks', desc: '2 components: Unlock schedule table, Supply impact score badges', route: 'docs-token-unlocks', icon: 'lock_open' },
             { name: 'DeFi Yield Lab', desc: '3 components: Protocol APY comparison table, Avg staking stat, Risk score bar', route: 'docs-yield-lab', icon: 'savings' },
             { name: 'Portfolio Optimizer', desc: '3 components: ML rebalancing table, Radar allocation chart, Efficient frontier scatter', route: 'docs-portfolio-optimizer', icon: 'account_tree' },
@@ -40,6 +43,7 @@ function renderHelp() {
         },
         { id: 'analytics-hub', name: 'Market Analytics', icon: 'analytics', color: '#22c55e', view: 'analytics-hub',
           docs: [
+            { name: 'Hub Overview', desc: 'Comprehensive guide to the Market Analytics Hub, defining key terms and its institutional purpose.', route: 'docs-hub-analytics', icon: 'visibility' },
             { name: 'Whale Pulse', desc: '3 components: Whale transaction feed, Execution time polar chart, Volume bubble scatter', route: 'docs-whale-pulse', icon: 'waves' },
             { name: 'Whale Pulse & Chain Velocity', desc: '2 components: Velocity time-series chart, Cross-chain Sankey diagram', route: 'docs-whale-pulse', icon: 'speed' },
             { name: 'On-Chain Analytics', desc: '9 components: MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Realized Price, Hash Ribbons, Investor Sentiment Index, CVD, Exchange Net Flow', route: 'docs-onchain', icon: 'link' },
@@ -52,6 +56,7 @@ function renderHelp() {
         },
         { id: 'audit-hub', name: 'Trade Ledger Audit', icon: 'trending_up', color: '#60a5fa', view: 'audit-hub',
           docs: [
+            { name: 'Hub Overview', desc: 'Comprehensive guide to the Trade Ledger & Audit Hub, defining key terms and its institutional purpose.', route: 'docs-hub-audit', icon: 'visibility' },
             { name: 'Trade Ledger', desc: '2 components: Trade log table with P&L, Performance attribution breakdown', route: 'docs-trade-ledger', icon: 'receipt_long' },
             { name: 'Performance Dashboard', desc: '3 components: Win rate stat cards, Monthly ROI heatmap calendar, Equity curve', route: 'docs-performance', icon: 'bar_chart' },
           ]
@@ -69,6 +74,7 @@ function renderHelp() {
         },
         { id: 'alerts-hub', name: 'Alerts & Webhooks', icon: 'notifications_active', color: '#f43f5e', view: 'alerts-hub',
           docs: [
+            { name: 'Hub Overview', desc: 'Comprehensive guide to the Alerts & Webhooks Hub, defining key terms and its institutional purpose.', route: 'docs-hub-alerts', icon: 'visibility' },
             { name: 'Live Signal Alerts', desc: '2 components: Alert feed cards, Severity filter controls', route: 'docs-alerts', icon: 'notifications' },
             { name: 'Price Alerts', desc: '2 components: Alert manager table, Target price form', route: 'docs-price-alerts', icon: 'price_check' },
             { name: 'Signal Leaderboard', desc: '1 component: Ranked leaderboard table with win rate and ROI', route: 'docs-signal-leaderboard', icon: 'leaderboard' },
@@ -77,6 +83,7 @@ function renderHelp() {
         },
         { id: 'personal', name: 'Active Positions', icon: 'person', color: '#34d399', view: 'my-terminal',
           docs: [
+            { name: 'Hub Overview', desc: 'Comprehensive guide to the Active Positions (My Terminal) Hub, defining key terms and its institutional purpose.', route: 'docs-hub-my-terminal', icon: 'visibility' },
             { name: 'Active Positions', desc: '3 components: Watchlist table with live P&L, Portfolio summary stats, Notification controls', route: 'docs-my-terminal', icon: 'bookmark_add' },
             { name: 'Ask Terminal', desc: '2 components: AI chat interface, Suggested query chips', route: 'docs-ask-terminal', icon: 'smart_toy' },
             { name: 'In Plain English AI', desc: 'Context-aware AI Chart Translator applied to institutional data views.', route: 'docs-plain-english', icon: 'auto_awesome' },
@@ -86,6 +93,7 @@ function renderHelp() {
         },
         { id: 'integrations-hub', name: 'Exchange Connections', icon: 'cable', color: '#ef4444', view: 'exchange-keys',
           docs: [
+            { name: 'Hub Overview', desc: 'Comprehensive guide to the Exchange Connections Hub, defining key terms and its institutional purpose.', route: 'docs-hub-exchange', icon: 'visibility' },
             { name: 'API Keys & Webhooks', desc: '2 components: Exchange API secure linking, Outbound Algorithmic Webhook config', route: 'docs-integrations', icon: 'key' }
           ]
         },
