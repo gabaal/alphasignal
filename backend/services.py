@@ -90,10 +90,28 @@ def get_orderbook_imbalance(ticker):
     return random.uniform(-0.2, 0.2)
 
 class NotificationService:
+    # In-memory cooldown: key=(user_email, ticker, sig_type) → last_sent unix timestamp
+    # Prevents duplicate Telegram/Discord pushes within ALERT_COOLDOWN_SECS even when
+    # the harvester fires every 60s and the signal condition remains continuously true.
+    _push_cooldown: dict = {}
+    ALERT_COOLDOWN_SECS: int = 3 * 3600  # 3 hours
+
     @staticmethod
     def _tg_escape(text: str) -> str:
         """Escape special chars for Telegram HTML mode: only &, <, > need escaping."""
         return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+    @staticmethod
+    def is_on_cooldown(user_email: str, ticker: str, sig_type: str) -> bool:
+        """Return True if this (user, ticker, signal) combo was pushed within the cooldown window."""
+        key = (user_email, ticker, sig_type)
+        last = NotificationService._push_cooldown.get(key)
+        return last is not None and (time.time() - last) < NotificationService.ALERT_COOLDOWN_SECS
+
+    @staticmethod
+    def mark_sent(user_email: str, ticker: str, sig_type: str):
+        """Record that we just sent this alert so future calls within the window are suppressed."""
+        NotificationService._push_cooldown[(user_email, ticker, sig_type)] = time.time()
 
     @staticmethod
     def push_webhook(user_email, title, message, data=None, embed_color=0x00f2ff, fields=None):
@@ -847,6 +865,10 @@ class HarvestService:
                                     # The standard push_webhook logic below still gates on z_thresh
                                     if abs(z_score) < user_z_thresh:
                                         continue
+                                    # 3-hour push cooldown — suppress duplicate ML alerts per user
+                                    if NotificationService.is_on_cooldown(target_email, ticker, signal_type):
+                                        continue
+                                    NotificationService.mark_sent(target_email, ticker, signal_type)
                                     direction = 'LONG' if pred_return > 0 else 'SHORT'
                                     color = 0x22c55e if pred_return > 0 else 0xef4444
                                     top_driver = max(importance, key=importance.get)
@@ -967,7 +989,8 @@ class HarvestService:
                             rule_users = []
 
                         for ru_email in rule_users:
-                            c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-2 hours')",
+                            # 3-hour DB dedup: skip if we already recorded this alert within 3h
+                            c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-3 hours')",
                                       (ticker, sig_type, ru_email))
                             if c.fetchone(): continue
                             _dir = 'LONG' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'SHORT' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
@@ -1021,6 +1044,12 @@ class HarvestService:
                                                 continue
                                         direction = 'BULLISH' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'BEARISH' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
                                         embed_color = 0x22c55e if direction == 'BULLISH' else 0xef4444 if direction == 'BEARISH' else 0x00f2ff
+                                        # 3-hour push cooldown: suppress duplicate Telegram/Discord
+                                        # pushes even if DB anti-spam somehow passes (e.g. first fire
+                                        # in this cycle before the INSERT is committed).
+                                        if NotificationService.is_on_cooldown(n_email, ticker, sig_type):
+                                            continue
+                                        NotificationService.mark_sent(n_email, ticker, sig_type)
                                         NOTIFY.push_webhook(
                                             n_email,
                                             f"{sig_type.replace('_', ' ')}: {ticker}",
