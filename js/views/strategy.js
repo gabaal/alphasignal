@@ -164,7 +164,7 @@ async function renderNewsroom(tabs = null) {
 
 
 async function renderRiskMatrix(tabs = null) {
-    if (!tabs) tabs = riskHubTabs;
+    if (!tabs) tabs = institutionalHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
@@ -195,7 +195,7 @@ async function renderRiskMatrix(tabs = null) {
 }
 
 async function renderStressHub(tabs = null) {
-    if (!tabs) tabs = riskHubTabs;
+    if (!tabs) tabs = institutionalHubTabs;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
