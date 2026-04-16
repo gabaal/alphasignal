@@ -1,6 +1,6 @@
-const CACHE_NAME = 'alphasignal-v1.76';
+const CACHE_NAME = 'alphasignal-v1.80-pwa';
 
-// Core shell files to cache for offline use
+// Core shell files to pre-cache
 const SHELL_FILES = [
   '/',
   '/index.html',
@@ -10,15 +10,14 @@ const SHELL_FILES = [
   '/icon-512.png',
   '/assets/pwa-icon-192.png',
   '/assets/pwa-icon-512.png',
-  '/js/utils.js?v=1.57',
-  '/js/auth.js?v=1.57',
-  '/js/core.js?v=1.57',
-  '/js/main.js?v=1.57',
-  '/js/router.js?v=1.57',
-  '/js/charts.js?v=1.57'
+  '/js/utils.js',
+  '/js/auth.js',
+  '/js/core.js',
+  '/js/main.js',
+  '/js/router.js',
+  '/js/charts.js'
 ];
 
-// Install: cache the app shell
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
@@ -26,7 +25,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate: clean up old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -35,16 +33,15 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch: network-first for API calls, cache-first for shell
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Always go network-first for API calls and WebSocket upgrades
+  // Network-first for API calls and WebSockets
   if (url.pathname.startsWith('/api/') || event.request.url.startsWith('ws')) {
-    return; // Let the browser handle it normally
+    return;
   }
 
-  // For navigation requests (HTML), network first with offline fallback
+  // Navigation requests: Network-first, fallback to index.html from cache
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() =>
@@ -54,25 +51,38 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache first for static assets (JS, CSS, images)
+  // Stale-While-Revalidate for JS/CSS/Images
+  if (
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.ico')
+  ) {
+    event.respondWith(
+      caches.match(event.request).then(cachedResponse => {
+        const fetchPromise = fetch(event.request).then(networkResponse => {
+          if (networkResponse.ok && event.request.url.startsWith('http')) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, clone);
+            });
+          }
+          return networkResponse;
+        }).catch(() => {
+          // Ignore network errors for background revalidation
+        });
+        
+        // Return cached immediately if available, else wait for network
+        return cachedResponse || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // Cache-first fallback for anything else
   event.respondWith(
     caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        // Cache successful responses for static assets
-        if (response.ok && (
-          url.pathname.endsWith('.js') ||
-          url.pathname.endsWith('.css') ||
-          url.pathname.endsWith('.png') ||
-          url.pathname.endsWith('.ico')
-        )) {
-          if (event.request.url.startsWith('http')) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-          }
-        }
-        return response;
-      });
+      return cached || fetch(event.request);
     })
   );
 });
