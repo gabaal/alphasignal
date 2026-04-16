@@ -37,6 +37,37 @@ async function renderTradeLab(tabs = null) {
                 </div>
             </section>
         </div>
+        
+        <section class="alpha-decay-section" style="margin-top:3rem">
+            <div class="glass-card" style="padding:1.5rem">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Decay Engine</h2>
+                        <h3 style="font-size:1.1rem;color:var(--text);margin:0;display:flex;align-items:center;gap:8px">
+                            <span class="material-symbols-outlined" style="color:var(--accent)">scatter_plot</span>
+                            Signal Edge Half-Life Simulation
+                        </h3>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button id="decay-regime-high" class="intel-action-btn mini" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none">HIGH-VOL REGIME</button>
+                        <button id="decay-regime-low" class="intel-action-btn mini outline" style="border-color:rgba(139,92,246,0.5);color:#8b5cf6">LOW-VOL REGIME</button>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 250px 1fr; gap:2rem; align-items:center;">
+                    <div style="background:rgba(0,0,0,0.2); padding:1.5rem; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px">EST. HALF-LIFE</div>
+                        <div id="decay-hl-val" style="font-size:2.5rem;font-weight:900;color:var(--risk-high);font-family:var(--font-mono);line-height:1">18<span style="font-size:1rem;color:var(--text-dim)">m</span></div>
+                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:1rem;line-height:1.5">
+                            In <span id="decay-mode-text" style="color:#ef4444;font-weight:700">high-volatility</span> environments, institutional edges decay rapidly as HFTs arbitrate inefficiencies. Execute within <span id="decay-action-text" style="color:white;font-weight:700">5-10 minutes</span> to capture peak expected alpha.
+                        </div>
+                    </div>
+                    <div style="height:250px; position:relative;">
+                        <canvas id="alpha-decay-chart" role="img" aria-label="Alpha Decay Scatter Plot" style="width:100%; height:100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="leaderboard-section" style="margin-top:3rem">
             <div class="section-header">
                 <span class="material-symbols-outlined">military_tech</span>
@@ -120,6 +151,136 @@ async function renderTradeLab(tabs = null) {
         const ticker = document.getElementById('gen-ticker').value || 'BTC-USD';
         runNeuralSetup(ticker);
     };
+
+    // 4. Render Alpha Decay scatter plot dynamically
+    renderAlphaDecayScatter('high');
+
+    // Attach toggle listeners
+    const highBtn = document.getElementById('decay-regime-high');
+    const lowBtn = document.getElementById('decay-regime-low');
+    if (highBtn && lowBtn) {
+        highBtn.onclick = () => {
+            highBtn.style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
+            highBtn.style.color = 'white';
+            highBtn.className = 'intel-action-btn mini';
+            lowBtn.style.background = 'transparent';
+            lowBtn.style.color = '#8b5cf6';
+            lowBtn.className = 'intel-action-btn mini outline';
+            renderAlphaDecayScatter('high');
+        };
+        lowBtn.onclick = () => {
+            lowBtn.style.background = 'linear-gradient(135deg,#8b5cf6,#6d28d9)';
+            lowBtn.style.color = 'white';
+            lowBtn.className = 'intel-action-btn mini';
+            highBtn.style.background = 'transparent';
+            highBtn.style.color = '#ef4444';
+            highBtn.className = 'intel-action-btn mini outline';
+            renderAlphaDecayScatter('low');
+        };
+    }
 }
 
+// Global variable to keep track of chart instance so it can be destroyed/updated
+window._alphaDecayChart = null;
+
+function renderAlphaDecayScatter(regime) {
+    const ctx = document.getElementById('alpha-decay-chart');
+    if (!ctx) return;
+
+    if (window._alphaDecayChart) {
+        window._alphaDecayChart.destroy();
+    }
+
+    const hlVal = document.getElementById('decay-hl-val');
+    const modeTxt = document.getElementById('decay-mode-text');
+    const actionTxt = document.getElementById('decay-action-text');
+
+    let halfLife, modeColor, modeWord, actionWord, decayRate;
+
+    if (regime === 'high') {
+        halfLife = 18;
+        modeColor = '#ef4444';
+        modeWord = 'high-volatility';
+        actionWord = '5-10 minutes';
+        decayRate = 0.08;
+    } else {
+        halfLife = 120;
+        modeColor = '#8b5cf6';
+        modeWord = 'low-volatility';
+        actionWord = '60-90 minutes';
+        decayRate = 0.015;
+    }
+
+    if(hlVal) hlVal.innerHTML = `${halfLife}<span style="font-size:1rem;color:var(--text-dim)">m</span>`;
+    if(hlVal) hlVal.style.color = modeColor;
+    if(modeTxt) { modeTxt.textContent = modeWord; modeTxt.style.color = modeColor; }
+    if(actionTxt) actionTxt.textContent = actionWord;
+
+    // Generate scatter data mapping Minutes (X) to Expected Alpha Return % (Y)
+    const scatterData = [];
+    const trendLine = [];
+    const maxTime = regime === 'high' ? 60 : 240;
+    const initialAlpha = regime === 'high' ? 4.5 : 2.0;
+
+    for (let t = 0; t <= maxTime; t += (regime === 'high' ? 2 : 10)) {
+        // Base exponential decay
+        const expectedAlpha = initialAlpha * Math.exp(-decayRate * t);
+        trendLine.push({ x: t, y: expectedAlpha });
+        
+        // Add random scatter points around the expectation to simulate distinct trade observations
+        for (let i = 0; i < 3; i++) {
+            const noise = (Math.random() - 0.5) * (expectedAlpha * 0.4);
+            scatterData.push({ x: t + (Math.random()*2 - 1), y: Math.max(0, expectedAlpha + noise) });
+        }
+    }
+
+    window._alphaDecayChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Historical Trades',
+                    data: scatterData,
+                    backgroundColor: regime === 'high' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(139, 92, 246, 0.4)',
+                    borderColor: 'transparent',
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                },
+                {
+                    label: 'Alpha Decay Curve',
+                    data: trendLine,
+                    type: 'line',
+                    borderColor: modeColor,
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, labels: { color: '#9ca3af', font: { size: 10 } } },
+                tooltip: { enabled: false }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Time After Signal (Minutes)', color: '#6b7280', font: { size: 10, weight: 'bold' } },
+                    grid: { color: alphaColor(0.05) },
+                    ticks: { color: '#9ca3af' },
+                    min: 0,
+                    max: maxTime
+                },
+                y: {
+                    title: { display: true, text: 'Realized Alpha (%)', color: '#6b7280', font: { size: 10, weight: 'bold' } },
+                    grid: { color: alphaColor(0.05) },
+                    ticks: { color: '#9ca3af', callback: v => v.toFixed(1) + '%' },
+                    min: 0
+                }
+            }
+        }
+    });
+}
 
