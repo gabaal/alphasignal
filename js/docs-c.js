@@ -8,10 +8,10 @@ function renderHubOverviewPage({ hubId, icon, color, title, tagline, purpose, wh
     const termRows = (keyTerms || []).map(t => `
         <div style="padding:1rem 1.25rem;border-bottom:1px solid ${alphaColor(0.05)}">
             <div style="display:flex;align-items:flex-start;gap:12px">
-                <span class="material-symbols-outlined" style="font-size:16px;color:${color};margin-top:2px;flex-shrink:0">${t.icon || 'help_outline'}</span>
+                <span class="material-symbols-outlined" style="font-size:18px;color:${color};margin-top:2px;flex-shrink:0">${t.icon || 'help_outline'}</span>
                 <div>
-                    <span style="font-size:0.8rem;font-weight:800;color:var(--text);letter-spacing:0.5px">${t.term}</span>
-                    <p style="font-size:0.75rem;color:var(--text-dim);line-height:1.65;margin:4px 0 0">${t.def}</p>
+                    <span style="font-size:0.95rem;font-weight:800;color:var(--text);letter-spacing:0.5px">${t.term}</span>
+                    <p style="font-size:0.85rem;color:var(--text-dim);line-height:1.65;margin:4px 0 0">${t.def}</p>
                 </div>
             </div>
         </div>`).join('');
@@ -20,57 +20,57 @@ function renderHubOverviewPage({ hubId, icon, color, title, tagline, purpose, wh
         <div onclick="switchView('${v.route || ''}')" style="background:${alphaColor(0.025)};border:1px solid ${alphaColor(0.06)};border-radius:12px;padding:1.25rem 1.4rem;cursor:${v.route ? 'pointer' : 'default'};transition:background 0.18s;position:relative"
             onmouseover="this.style.background=alphaColor(0.05)" onmouseout="this.style.background=alphaColor(0.025)">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                <span class="material-symbols-outlined" style="font-size:18px;color:${color}">${v.icon}</span>
-                <span style="font-size:0.85rem;font-weight:800;color:var(--text)">${v.name}</span>
-                ${v.badge ? `<span style="font-size:0.55rem;font-weight:700;padding:2px 7px;border-radius:100px;background:${alphaColor(0.07)};border:1px solid ${alphaColor(0.12)};color:${color}">${v.badge}</span>` : ''}
+                <span class="material-symbols-outlined" style="font-size:19px;color:${color}">${v.icon}</span>
+                <span style="font-size:0.95rem;font-weight:800;color:var(--text)">${v.name}</span>
+                ${v.badge ? `<span style="font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:100px;background:${alphaColor(0.07)};border:1px solid ${alphaColor(0.12)};color:${color}">${v.badge}</span>` : ''}
             </div>
-            <p style="font-size:0.75rem;color:var(--text-dim);line-height:1.65;margin:0 0 8px">${v.desc}</p>
-            ${v.howToUse ? `<p style="font-size:0.72rem;color:${alphaColor(0.9)};line-height:1.6;margin:0;border-top:1px solid ${alphaColor(0.05)};padding-top:8px"><span style="font-weight:800;color:${color}">How to use:</span> ${v.howToUse}</p>` : ''}
-            ${v.route ? `<span class="material-symbols-outlined" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:14px;color:${alphaColor(0.2)}">chevron_right</span>` : ''}
+            <p style="font-size:0.85rem;color:var(--text-dim);line-height:1.65;margin:0 0 8px">${v.desc}</p>
+            ${v.howToUse ? `<p style="font-size:0.82rem;color:${alphaColor(0.9)};line-height:1.6;margin:0;border-top:1px solid ${alphaColor(0.05)};padding-top:8px"><span style="font-weight:800;color:${color}">How to use:</span> ${v.howToUse}</p>` : ''}
+            ${v.route ? `<span class="material-symbols-outlined" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;color:${alphaColor(0.2)}">chevron_right</span>` : ''}
         </div>`).join('');
 
     const relatedChips = (relatedHubs || []).map(r => `
-        <button onclick="switchView('${r.view}')" style="background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.08)};color:var(--text-dim);padding:6px 14px;border-radius:100px;font-size:0.65rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s"
+        <button onclick="switchView('${r.view}')" style="background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.08)};color:var(--text-dim);padding:6px 14px;border-radius:100px;font-size:0.75rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s"
             onmouseover="this.style.borderColor='${color}';this.style.color='${color}'" onmouseout="this.style.borderColor=alphaColor(0.08);this.style.color='var(--text-dim)'">
-            <span class="material-symbols-outlined" style="font-size:13px">${r.icon}</span>${r.name}
+            <span class="material-symbols-outlined" style="font-size:14px">${r.icon}</span>${r.name}
         </button>`).join('');
 
     appEl.innerHTML = `
         <div style="max-width:860px;padding-bottom:5rem">
             <!-- Header -->
             <div class="view-header" style="margin-bottom:2rem">
-                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:${color};text-transform:uppercase;margin:0 0 6px">Hub Overview</h2>
+                <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:${color};text-transform:uppercase;margin:0 0 6px">Hub Overview</h2>
                 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:0.75rem">
-                    <span class="material-symbols-outlined" style="font-size:2rem;color:${color}">${icon}</span>
-                    <h1 style="margin:0;font-size:1.6rem;font-weight:900">${title}</h1>
-                    <button onclick="switchView('help')" style="margin-left:auto;background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.1)};color:var(--text-dim);padding:5px 12px;border-radius:100px;font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:5px"
+                    <span class="material-symbols-outlined" style="font-size:2.2rem;color:${color}">${icon}</span>
+                    <h1 style="margin:0;font-size:1.8rem;font-weight:900">${title}</h1>
+                    <button onclick="switchView('help')" style="margin-left:auto;background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.1)};color:var(--text-dim);padding:5px 12px;border-radius:100px;font-size:0.7rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:5px"
                         onmouseover="this.style.borderColor='${color}';this.style.color='${color}'" onmouseout="this.style.borderColor=alphaColor(0.1);this.style.color='var(--text-dim)'">
-                        <span class="material-symbols-outlined" style="font-size:13px">arrow_back</span> ALL DOCS
+                        <span class="material-symbols-outlined" style="font-size:14px">arrow_back</span> ALL DOCS
                     </button>
                 </div>
-                <p style="font-size:1rem;color:${color};font-weight:700;margin:0 0 8px;line-height:1.5">${tagline}</p>
-                <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.7;margin:0">${purpose}</p>
+                <p style="font-size:1.1rem;color:${color};font-weight:700;margin:0 0 8px;line-height:1.5">${tagline}</p>
+                <p style="font-size:0.95rem;color:var(--text-dim);line-height:1.7;margin:0">${purpose}</p>
             </div>
 
             <!-- Who is it for -->
             <div style="background:${alphaColor(0.03)};border:1px solid ${alphaColor(0.07)};border-left:3px solid ${color};border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem">
-                <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:${color};margin-bottom:6px">WHO IS THIS FOR?</div>
-                <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.7;margin:0">${whoIsItFor}</p>
+                <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:${color};margin-bottom:6px">WHO IS THIS FOR?</div>
+                <p style="font-size:0.95rem;color:var(--text-dim);line-height:1.7;margin:0">${whoIsItFor}</p>
             </div>
 
             <!-- Key Terms Glossary -->
             ${termRows ? `
             <div style="border:1px solid ${alphaColor(0.07)};border-radius:14px;overflow:hidden;margin-bottom:2rem">
                 <div style="padding:0.9rem 1.25rem;background:${alphaColor(0.03)};border-bottom:1px solid ${alphaColor(0.06)};display:flex;align-items:center;gap:8px">
-                    <span class="material-symbols-outlined" style="color:${color};font-size:1rem">menu_book</span>
-                    <span style="font-size:0.75rem;font-weight:900;letter-spacing:1px;color:${color}">KEY CONCEPTS & TERMINOLOGY</span>
+                    <span class="material-symbols-outlined" style="color:${color};font-size:1.1rem">menu_book</span>
+                    <span style="font-size:0.85rem;font-weight:900;letter-spacing:1px;color:${color}">KEY CONCEPTS & TERMINOLOGY</span>
                 </div>
                 ${termRows}
             </div>` : ''}
 
             <!-- Views in this hub -->
             <div style="margin-bottom:2rem">
-                <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">VIEWS IN THIS HUB</div>
+                <div style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">VIEWS IN THIS HUB</div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:12px">
                     ${viewCards}
                 </div>
@@ -80,16 +80,16 @@ function renderHubOverviewPage({ hubId, icon, color, title, tagline, purpose, wh
             ${workflowTip ? `
             <div style="background:${alphaColor(0.03)};border:1px solid ${alphaColor(0.07)};border-radius:12px;padding:1.1rem 1.4rem;margin-bottom:2rem">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                    <span class="material-symbols-outlined" style="color:${color};font-size:18px">tips_and_updates</span>
-                    <span style="font-size:0.7rem;font-weight:900;letter-spacing:1px;color:${color}">WORKFLOW TIP</span>
+                    <span class="material-symbols-outlined" style="color:${color};font-size:20px">tips_and_updates</span>
+                    <span style="font-size:0.8rem;font-weight:900;letter-spacing:1px;color:${color}">WORKFLOW TIP</span>
                 </div>
-                <p style="font-size:0.78rem;color:var(--text-dim);line-height:1.7;margin:0">${workflowTip}</p>
+                <p style="font-size:0.9rem;color:var(--text-dim);line-height:1.7;margin:0">${workflowTip}</p>
             </div>` : ''}
 
             <!-- Related hubs -->
             ${relatedChips ? `
             <div>
-                <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px">RELATED HUBS</div>
+                <div style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px">RELATED HUBS</div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px">${relatedChips}</div>
             </div>` : ''}
         </div>`;
