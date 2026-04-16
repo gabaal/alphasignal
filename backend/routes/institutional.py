@@ -3475,7 +3475,8 @@ class InstitutionalRoutesMixin:
             results = []
             for ticker in all_tickers:
                 sentiment = get_sentiment(ticker)
-                if sentiment < 0.1:
+                # Allow neutral (0.0) or mildly bearish assets through so ATR grading can take effect
+                if sentiment < -0.1:
                     continue
                 data = CACHE.download(ticker, period='30d', interval='1d', column='Close')
                 if data is None or data.empty or len(data) < 2:
