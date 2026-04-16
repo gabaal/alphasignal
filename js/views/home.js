@@ -28,8 +28,8 @@ async function renderHome() {
                         <button class="intel-action-btn large secondary" onclick="switchView('my-terminal')" title="My Terminal — Watchlist & Positions">
                             <span class="material-symbols-outlined" style="margin-right:8px">account_circle</span> MY TERMINAL
                         </button>`}
-                        <button class="intel-action-btn large secondary" onclick="switchView('command-center')" title="View Institutional Command Center" aria-label="Command Center">
-                            <span class="material-symbols-outlined" style="margin-right:8px">dashboard</span> COMMAND CENTER
+                        <button class="intel-action-btn large secondary" onclick="switchView('command-center')" title="View Dashboard" aria-label="Dashboard">
+                            <span class="material-symbols-outlined" style="margin-right:8px">dashboard</span> DASHBOARD
                         </button>
                     </div>
 
@@ -76,7 +76,7 @@ async function renderHome() {
                         { icon: 'monitoring', hub: 'macro-hub', name: 'Macro Intel Hub', desc: 'AI market briefing, capital flows, sector rotation, correlation matrix, macro event calendar with historical BTC impact scores, and market regime classification.', badge: 'AI', views: ['Briefing', 'Capital Flows', 'Sector Rotation', 'Macro Calendar', 'Regime'] },
                         { icon: 'electric_bolt', hub: 'alpha-hub', name: 'Alpha Strategy Hub', desc: 'Z-score signal intelligence, ML alpha engine, multi-factor alpha scoring, strategy lab, signal backtester v2, signal archive, and narrative galaxy.', badge: 'ML', views: ['Signals', 'Alpha Score', 'Strategy Lab', 'Backtester', 'Narrative'] },
                         { icon: 'key', hub: 'institutional-hub', name: 'Institutional Hub', desc: 'Token unlock schedule, DeFi yield lab, Monte Carlo portfolio optimizer with AI rebalancing, and AI-assisted trade idea lab with one-click execution.', badge: 'NEW', views: ['Token Unlocks', 'Yield Lab', 'Portfolio Optimizer', 'Trade Idea Lab'] },
-                        { icon: 'analytics', hub: 'analytics-hub', name: 'Analytics Hub', desc: 'Whale pulse tracker, cross-chain velocity engine, real MVRV/SOPR on-chain data, Deribit options flow scanner, and AI-tagged newsroom.', badge: 'ON-CHAIN', views: ['Whale Pulse', 'Chain Velocity', 'On-Chain', 'Options Flow', 'Newsroom'] },
+                        { icon: 'analytics', hub: 'analytics-hub', name: 'Market Analytics Hub', desc: 'Whale pulse tracker, cross-chain velocity engine, real MVRV/SOPR on-chain data, Deribit options flow scanner, and AI-tagged newsroom.', badge: 'ON-CHAIN', views: ['Whale Pulse', 'Chain Velocity', 'On-Chain', 'Options Flow', 'Newsroom'] },
                         { icon: 'assignment', hub: 'audit-hub', name: 'Audit & Performance Hub', desc: 'Persistent institutional trade ledger, AI thesis archive, performance dashboard with monthly P&L calendar, and BTC benchmark comparison.', badge: 'AUDIT', views: ['Trade Ledger', 'Performance Dashboard'] },
                         { icon: 'shield_with_heart', hub: 'risk-hub', name: 'Risk & Stress Hub', desc: 'Real-time risk matrix for position sizing, tail-risk stress lab with macro scenario modelling, and Z-score volatility regime overlay.', badge: 'RISK', views: ['Risk Matrix', 'Stress Lab'] },
                         { icon: 'candlestick_chart', hub: 'advanced-charting', name: 'Advanced Charting', desc: 'TradingView professional integration, funding rate heatmap, 3D volatility surface, tape imbalance histogram, and CVD charting with multi-timeframe overlays.', badge: 'PRO', views: ['TradingView', 'Funding Heatmap', '3D Vol Surface', 'CVD Chart'] }
@@ -121,7 +121,7 @@ async function renderHome() {
                 </div>
                 <div style="text-align:center;margin-top:2rem">
                     <button class="intel-action-btn outline" onclick="switchView('command-center')">
-                        <span class="material-symbols-outlined" style="margin-right:8px;vertical-align:middle">dashboard</span>VIEW FULL COMMAND CENTER
+                        <span class="material-symbols-outlined" style="margin-right:8px;vertical-align:middle">dashboard</span>VIEW DASHBOARD
                     </button>
                 </div>
             </section>

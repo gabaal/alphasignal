@@ -946,7 +946,7 @@ function renderDocsAIEngine() {
             </div>
             <div class="glass-card" style="padding:1.5rem">
                 <h3 style="color:#bc13fe;margin-bottom:1rem">Ask the Terminal</h3>
-                <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">Natural language query interface. Ask anything about markets, strategies, signals, or analytical concepts. The AI has context about AlphaSignal's capabilities and uses GPT-4o-mini for concise, actionable responses. Accessible via the <strong>Command Center</strong> sidebar item.</p>
+                <p style="color:var(--text-dim);line-height:1.7;font-size:0.9rem">Natural language query interface. Ask anything about markets, strategies, signals, or analytical concepts. The AI has context about AlphaSignal's capabilities and uses GPT-4o-mini for concise, actionable responses. Accessible via the <strong>Dashboard</strong> sidebar item.</p>
             </div>
             <div class="glass-card" style="padding:1.5rem">
                 <h3 style="color:#bc13fe;margin-bottom:1rem">Signal Thesis Generator</h3>

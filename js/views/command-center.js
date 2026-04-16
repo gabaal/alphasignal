@@ -4,7 +4,7 @@ async function renderCommandCenter() {
             <div style="flex:1; min-width:0">
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap">
                     <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px;width:100%">Institutional Hub</h2>
-                    <h1 style="margin:0"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:6px; color:var(--accent); font-size:1.2rem">dashboard</span>Institutional Command Center</h1>
+                    <h1 style="margin:0"><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:6px; color:var(--accent); font-size:1.2rem">dashboard</span>Dashboard</h1>
                     <span class="premium-badge" style="flex-shrink:0">MASTER VIEW</span>
                 </div>
                 <p style="color:var(--text-dim); margin-top:0.5rem">Consolidated real-time intelligence across Macro, Global, and Alpha hubs.</p>

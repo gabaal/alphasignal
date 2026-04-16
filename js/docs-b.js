@@ -4,7 +4,7 @@
 // ============= INSTITUTIONAL HUB =============
 function renderDocsViewTokenUnlocks() {
     renderViewDocPage({
-        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Token Unlocks', viewId: 'institutional-hub',
         summary: 'Track scheduled token unlock events across major protocols. Unlocks represent new circulating supply entering the market, often causing short-term sell pressure from early investors and team members.',
         components: [
@@ -35,7 +35,7 @@ function renderDocsViewTokenUnlocks() {
 
 function renderDocsViewYieldLab() {
     renderViewDocPage({
-        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk', hubIcon: 'key', hubColor: '#fb923c',
         title: 'DeFi Yield Lab', viewId: 'yield-lab',
         summary: 'Compare real yield opportunities across major DeFi protocols. Separates genuine yield (from protocol revenue) from inflationary token emissions that inflate APY numbers artificially.',
         components: [
@@ -65,7 +65,7 @@ function renderDocsViewYieldLab() {
 
 function renderDocsViewPortfolioOptimizer() {
     renderViewDocPage({
-        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Portfolio Optimizer', viewId: 'portfolio-optimizer',
         summary: 'ML-powered portfolio construction using Modern Portfolio Theory combined with regime-adaptive weights. Generates optimal allocations that maximise risk-adjusted return for the current market environment.',
         components: [
@@ -129,7 +129,7 @@ function renderDocsViewPortfolioOptimizer() {
 
 function renderDocsViewTradeLab() {
     renderViewDocPage({
-        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Trade Idea Lab', viewId: 'tradelab',
         summary: 'Structure and evaluate trade ideas with institutional discipline. Build a complete trade thesis including entry rationale, risk/reward calculation, and position sizing before committing capital.',
         components: [
@@ -460,7 +460,7 @@ function renderDocsViewPerformance() {
 // ============= RISK & STRESS =============
 function renderDocsViewRiskMatrix() {
     renderViewDocPage({
-        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Risk Matrix', viewId: 'risk-hub',
         relatedDocs: [
             { name: 'Stress Test Lab', route: 'docs-stress-lab', icon: 'warning' },
@@ -505,7 +505,7 @@ function renderDocsViewRiskMatrix() {
 
 function renderDocsViewStressLab() {
     renderViewDocPage({
-        hub: 'Portfolio & Risk Lab', hubIcon: 'key', hubColor: '#fb923c',
+        hub: 'Portfolio & Risk', hubIcon: 'key', hubColor: '#fb923c',
         title: 'Stress Test Lab', viewId: 'stress',
         summary: 'Simulate how your current portfolio would perform under historical extreme market scenarios. Preparation is the difference between surviving a crash and being liquidated.',
         components: [
@@ -640,10 +640,10 @@ function renderDocsViewIntegrations() {
     });
 }
 
-// ============= ORDER FLOW (GOMM) =============
+// ============= LIQUIDITY & ORDER FLOW =============
 function renderDocsViewOrderFlow() {
     renderViewDocPage({
-        hub: 'Order Flow (GOMM)', hubIcon: 'bar_chart', hubColor: '#00f2ff',
+        hub: 'Liquidity & Order Flow', hubIcon: 'bar_chart', hubColor: '#00f2ff',
         title: 'Liquidity Dashboard', viewId: 'liquidity',
         summary: 'Real-time order flow analysis using the Global Order Market Microstructure (GOMM) model. Reveals where institutional liquidity is positioned, identifying high-probability trade locations.',
         components: [
@@ -849,7 +849,7 @@ function renderDocsViewAskTerminal() {
 function renderDocsViewCommandCenter() {
     renderViewDocPage({
         hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
-        title: 'Command Center', viewId: 'command-center',
+        title: 'Dashboard', viewId: 'command-center',
         summary: 'The home screen of the AlphaSignal Terminal. A high-density command dashboard giving an instant read of all critical system metrics in a single view — market regime, conviction dials, live ETF flows, BTC macro correlations, signal confidence, and hub quick-access.',
         components: [
             {
@@ -1028,7 +1028,7 @@ function renderDocsViewDailyWorkflow() {
         title: 'Daily Workflow Playbook',
         viewId: 'command-center',
         relatedDocs: [
-            { name: 'Command Center',   route: 'docs-command-center',   icon: 'dashboard'      },
+            { name: 'Dashboard',   route: 'docs-command-center',   icon: 'dashboard'      },
             { name: 'Signal Intelligence', route: 'docs-signals',       icon: 'radar'          },
             { name: 'Market Regime',    route: 'docs-regime',           icon: 'category'       },
             { name: 'Charting Suite',   route: 'docs-charting-suite',   icon: 'candlestick_chart' },
@@ -1037,7 +1037,7 @@ function renderDocsViewDailyWorkflow() {
         components: [
             {
                 name: 'Phase 1 — Morning Brief (5 min)', type: 'WIDGET', icon: 'wb_sunny',
-                description: 'Open the <span onclick="switchView(\'command-center\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Command Center</span> first. The three critical reads on open are the <span onclick="switchView(\'command-center\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Fear &amp; Greed gauge</span> (market risk posture), the <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Macro Regime Radar</span> (is the underlying regime still intact from yesterday?), and the <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Sector Treemap</span> (where is capital flowing right now?). These three together establish the day\'s strategic context before a single signal is evaluated. Fear &amp; Greed below 30 combined with a Liquidity-positive regime is historically a strong accumulation environment — in this configuration, signals are weighted more aggressively. Fear &amp; Greed above 75 combined with HIGH-VOL expansion demands tighter stops and smaller sizes regardless of signal quality.',
+                description: 'Open the <span onclick="switchView(\'command-center\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Dashboard</span> first. The three critical reads on open are the <span onclick="switchView(\'command-center\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Fear &amp; Greed gauge</span> (market risk posture), the <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Macro Regime Radar</span> (is the underlying regime still intact from yesterday?), and the <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Sector Treemap</span> (where is capital flowing right now?). These three together establish the day\'s strategic context before a single signal is evaluated. Fear &amp; Greed below 30 combined with a Liquidity-positive regime is historically a strong accumulation environment — in this configuration, signals are weighted more aggressively. Fear &amp; Greed above 75 combined with HIGH-VOL expansion demands tighter stops and smaller sizes regardless of signal quality.',
                 howToRead: 'Read left to right: Regime first (strategic context), Fear/Greed second (sentiment overlay), Sector Treemap third (capital flow direction). All three together tell you whether today is an offensive or defensive day.',
                 signals: [
                     'Fear &amp; Greed < 25 + Regime LIQUIDITY POSITIVE = aggressive accumulation environment',

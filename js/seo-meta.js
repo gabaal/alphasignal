@@ -6,9 +6,9 @@ function updateSEOMeta(view) {
             desc: 'AlphaSignal is a real-time institutional intelligence terminal for Bitcoin, crypto, and macro markets. AI-powered signals, options flow, whale tracking, portfolio optimiser, macro calendar, and 60+ analytical views.'
         },
 
-        // === COMMAND CENTER ===
+        // === DASHBOARD ===
         'command-center': {
-            title: 'Institutional Command Center',
+            title: 'Dashboard',
             desc: 'Consolidated real-time intelligence dashboard aggregating key signals from all AlphaSignal hubs — ETF flows, macro correlation, top alpha signals, and system conviction dials.'
         },
         'ask-terminal': {
@@ -72,9 +72,9 @@ function updateSEOMeta(view) {
             desc: 'Statistical classification of Bitcoin market cycles using Markov-Switching approximation. Identifies Accumulation, Distribution, Trending Bull, and Trending Bear regimes in real-time.'
         },
 
-        // === QUANT STRATEGY LAB ===
+        // === STRATEGY & BACKTESTER ===
         'alpha-hub': {
-            title: 'Quant Strategy Lab — Institutional Signal Intelligence',
+            title: 'Strategy & Backtester — Institutional Signal Intelligence',
             desc: 'Institutional AI alpha synthesis, Z-score signal generation, ML alpha scoring, strategy lab, signal backtester, archive, and narrative galaxy — all in one strategy hub.'
         },
         'signals': {
@@ -214,7 +214,7 @@ function updateSEOMeta(view) {
             desc: 'NLP-driven social sentiment and narrative dominance tracking across Bitcoin, Ethereum, and 50+ crypto assets. Real-time crowd positioning and mindshare shift detection.'
         },
         'liquidity': {
-            title: 'Order Flow Magnitude Monitor (GOMM) — Institutional Tape',
+            title: 'Liquidity & Order Flow — Institutional Tape',
             desc: 'Visualise professional liquidity walls, order book depth, CVD divergence, and institutional execution tape. Identify large block order flow before price discovery completes.'
         },
         'heatmap': {
@@ -243,14 +243,14 @@ function updateSEOMeta(view) {
         // redirect to their docs-* equivalents. Kept here for SEO title/desc fallback only.
         'explain-signals': { title: 'Signal Intelligence Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-signals. AlphaSignal Z-score deviation signals across 50+ institutional crypto assets.' },
         'explain-briefing': { title: 'AI Briefing Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-briefing. GPT-4o macro memo and system conviction dials.' },
-        'explain-liquidity': { title: 'Order Flow GOMM Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-order-flow. Institutional liquidity walls, tape imbalance, CVD.' },
+        'explain-liquidity': { title: 'Liquidity & Order Flow Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-order-flow. Institutional liquidity walls, tape imbalance, CVD.' },
         'explain-ml-engine': { title: 'ML Alpha Engine Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-ml-engine. LSTM predictions, confidence delta, signal correlation.' },
         'explain-whales': { title: 'Whale Pulse Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-whale-pulse. Institutional on-chain transaction tracker.' },
         'explain-mindshare': { title: 'Narrative Galaxy Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-narrative. NLP cluster map and narrative velocity.' },
         'explain-benchmark': { title: 'Performance Dashboard Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-performance. Portfolio equity curve and P&L attribution.' },
         'explain-alerts': { title: 'Live Alerts Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-alerts. Z-score alert feed, severity levels, filter controls.' },
         'explain-zscore': { title: 'Z-Score & Stress Lab Docs | AlphaSignal', desc: 'Z-Score interpretation guide. See docs-signals and docs-stress-lab for full per-chart documentation.' },
-        'explain-alpha': { title: 'Quant Strategy Lab Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-alpha-score. Composite alpha ranking and grade distribution.' },
+        'explain-alpha': { title: 'Strategy & Backtester Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-alpha-score. Composite alpha ranking and grade distribution.' },
         'explain-correlation': { title: 'Correlation Matrix Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-onchain. Cross-asset correlation matrix methodology.' },
         'explain-sentiment': { title: 'Sentiment Engine Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-newsroom. AI sentiment tagging and news feed signals.' },
         'explain-risk': { title: 'Risk Matrix Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-risk-matrix. Portfolio VaR and position sizing guide.' },
@@ -288,7 +288,7 @@ function updateSEOMeta(view) {
         'explain-newsroom': { title: 'Newsroom Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-newsroom. AI sentiment feed and keyword heatmap.' },
         'explain-trade-ledger': { title: 'Trade Ledger Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-trade-ledger. Execution log, P&L attribution, CSV export.' },
         'explain-heatmap': { title: 'Market Heatmap Docs | AlphaSignal', desc: 'Z-score heatmap across the 50+ asset universe. See the Help Hub for full documentation.' },
-        'explain-command-center': { title: 'Command Center Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-command-center. Hub quick-links, BTC sparkline, conviction dials.' },
+        'explain-command-center': { title: 'Dashboard Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-command-center. Hub quick-links, BTC sparkline, conviction dials.' },
         'explain-ask-terminal': { title: 'Ask Terminal Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-ask-terminal. GPT-4o AI chat with terminal context injection.' },
         'explain-my-terminal': { title: 'Active Positions Docs | AlphaSignal', desc: 'Full per-chart documentation now at docs-my-terminal. Live P&L watchlist, win rate, notifications.' },
 
@@ -369,14 +369,14 @@ function updateSEOMeta(view) {
         'docs-tradingview-hub': { title: 'TradingView Hub Docs - 13 Widget Guide | AlphaSignal', desc: 'Complete documentation for the AlphaSignal TradingView Intelligence Hub. Covers all 13 live widgets: Market Overview, Symbol Comparison, TA Gauges (BTC/ETH/SOL/BNB), Crypto Screener, Economic Calendar, Hotlists, Crypto Heatmap, Forex Cross Rates, Forex Heat Map, and S&P 500 Sector Heatmap — with actionable signal rules for each.' },
         'docs-custom-charts': { title: 'Custom Analytics Charts Docs - 5 Chart Guide | AlphaSignal', desc: 'Technical reference for the AlphaSignal Custom Analytics tab. Documents 5 proprietary charts: BTC Dominance (60D), Funding Rate bars (live Binance FAPI), MVRV/SOPR Overlay (normalized 0-1), 30-Day Rolling Volatility (annualised), and Cross-Asset Correlation Matrix (10 assets, 90-day Pearson) ? with institutional signal rules.' },
         'docs-tradingview': { title: 'TradingView Widget — Embedded Chart Guide | AlphaSignal Docs', desc: 'Documentation for the AlphaSignal TradingView integration. Covers the embedded TradingView Pro chart with all built-in indicators, drawing tools, and multi-timeframe analysis directly inside the terminal.' },
-        'docs-order-flow': { title: 'Liquidity Dashboard — GOMM Order Flow Guide | AlphaSignal Docs', desc: 'Technical reference for the Alpha Signal GOMM Liquidity Dashboard. Explains the aggregated order book, live execution tape, and institutional liquidity heatmap — with signals for identifying high-probability institutional price levels.' },
+        'docs-order-flow': { title: 'Liquidity Dashboard — Liquidity & Order Flow Guide | AlphaSignal Docs', desc: 'Technical reference for the Alpha Signal Liquidity Dashboard. Explains the aggregated order book, live execution tape, and institutional liquidity heatmap — with signals for identifying high-probability institutional price levels.' },
         'docs-alerts': { title: 'Live Signal Alerts — Alert Feed Guide | AlphaSignal Docs', desc: 'Documentation for AlphaSignal Live Alerts. Explains alert feed cards, severity levels (LOW / MEDIUM / HIGH / CRITICAL), and filter controls — including signal rules for CRITICAL Z-Score and Regime Change alert responses.' },
         'docs-price-alerts': { title: 'Price Alerts — Custom Trigger Guide | AlphaSignal Docs', desc: 'Documentation for the Alpha Signal Price Alerts view. Covers the alert manager table, creation form, and browser push notification setup — with best practice rules for pairing entry alerts with corresponding stop alerts.' },
         'docs-signal-leaderboard': { title: 'Signal Leaderboard — Performance Ranking Guide | AlphaSignal Docs', desc: 'Documentation for the AlphaSignal Signal Leaderboard. Explains the ranked performance table with 7D / 30D / 90D / All-Time filtering — identifying which signal types generate genuine repeatable alpha across all market regimes.' },
         'docs-market-brief': { title: 'AI Market Brief — Daily Memo Guide | AlphaSignal Docs', desc: 'Documentation for the Alpha Signal Market Brief. Explains the five-section AI daily brief (Overnight Summary, Signal Environment, Macro Watch, Risk Signals, Actionable Ideas) — generated by GPT-4o with live terminal data injection.' },
         'docs-my-terminal': { title: 'Active Positions — Watchlist & Notification Guide | AlphaSignal Docs', desc: 'Documentation for the AlphaSignal Active Positions personal hub. Covers the live P&L watchlist table, portfolio summary stats, and notification preference controls — with signals for grade changes and optimal alert configuration.' },
         'docs-ask-terminal': { title: 'Ask Terminal — AI Chat Guide | AlphaSignal Docs', desc: 'Technical reference for the Alpha Signal Ask Terminal AI interface. Explains the GPT-4o chat with live terminal context injection and dynamic suggested query chips — with best practice question patterns for market analysis.' },
-        'docs-command-center': { title: 'Command Center — Dashboard Guide | AlphaSignal Docs', desc: 'Documentation for the AlphaSignal Command Center home screen. Explains the Alpha Score vs Z-Score scatter plot, Hub Quick-Link Grid, BTC sparkline, and System Conviction Dials — the single-glance intelligence overview for every session.' },
+        'docs-command-center': { title: 'Dashboard — Overview Guide | AlphaSignal Docs', desc: 'Documentation for the AlphaSignal Dashboard home screen. Explains the Alpha Score vs Z-Score scatter plot, Hub Quick-Link Grid, BTC sparkline, and System Conviction Dials — the single-glance intelligence overview for every session.' },
         'docs-lob-heatmap': { title: 'LOB Heatmap — Limit Order Deep Dive | AlphaSignal Docs', desc: 'Documentation for the Limit Order Book (LOB) Heatmap. Learn to read bid/ask walls, liquidity voids, and institutional spoofing.' },
         'docs-volume-profile': { title: 'Volume Profile (TPO) — Market Profile Guide | AlphaSignal Docs', desc: 'Documentation for the Volume Profile view. Learn how to interpret Value Area High/Low and Point of Control (POC) for Bitcoin and other assets.' },
         'docs-gex': { title: 'Dealer Gamma Exposure (GEX) — Dynamics Guide | AlphaSignal Docs', desc: 'Documentation for the GEX Profile. Learn to read market maker hedging pressure, zero-gamma levels, and options-driven volatility.' },

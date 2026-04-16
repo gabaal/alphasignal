@@ -15,9 +15,9 @@ function renderHelp() {
             { name: 'LOB Heatmap', desc: '1 component: High-density Limit Order Book visual depth canvas', route: 'docs-lob-heatmap', icon: 'blur_on' },
           ]
         },
-        { id: 'alpha-strategy', name: 'Quant Strategy Lab', icon: 'electric_bolt', color: '#facc15', view: 'alpha-hub',
+        { id: 'alpha-strategy', name: 'Strategy & Backtester', icon: 'electric_bolt', color: '#facc15', view: 'alpha-hub',
           docs: [
-            { name: 'Signal Intelligence', desc: '3 components: Signal cards, Firing density histogram, Z-score bell curve (Confidence Radar now on Command Center)', route: 'docs-signals', icon: 'radar' },
+            { name: 'Signal Intelligence', desc: '3 components: Signal cards, Firing density histogram, Z-score bell curve (Confidence Radar now on Dashboard)', route: 'docs-signals', icon: 'radar' },
             { name: 'ML Alpha Engine', desc: '3 components: Prediction table, Feature importance bar chart, Model accuracy gauge', route: 'docs-ml-engine', icon: 'smart_toy' },
             { name: 'Alpha Score', desc: '2 components: Composite ranking table with score bars, Grade distribution', route: 'docs-alpha-score', icon: 'electric_bolt' },
             { name: 'Strategy Lab', desc: '4 components: Strategy selector, Equity curve, Guppy ribbon, Monte Carlo bands', route: 'docs-strategy-lab', icon: 'science' },
@@ -28,7 +28,7 @@ function renderHelp() {
             { name: 'How Signals Work', desc: 'Full system explainer: data harvest, ML inference, rule detection, ROI calc, stop loss automation, alert delivery & signal archive lifecycle', route: 'docs-how-signals-work', icon: 'schema' },
           ]
         },
-        { id: 'institutional-hub', name: 'Portfolio & Risk Lab', icon: 'key', color: '#fb923c', view: 'institutional-hub',
+        { id: 'institutional-hub', name: 'Portfolio & Risk', icon: 'key', color: '#fb923c', view: 'institutional-hub',
           docs: [
             { name: 'Token Unlocks', desc: '2 components: Unlock schedule table, Supply impact score badges', route: 'docs-token-unlocks', icon: 'lock_open' },
             { name: 'DeFi Yield Lab', desc: '3 components: Protocol APY comparison table, Avg staking stat, Risk score bar', route: 'docs-yield-lab', icon: 'savings' },
@@ -38,7 +38,7 @@ function renderHelp() {
             { name: 'Stress Test Lab', desc: '2 components: Scenario stress table, Z-score distribution chart', route: 'docs-stress-lab', icon: 'warning' },
           ]
         },
-        { id: 'analytics-hub', name: 'Analytics Hub', icon: 'analytics', color: '#22c55e', view: 'analytics-hub',
+        { id: 'analytics-hub', name: 'Market Analytics', icon: 'analytics', color: '#22c55e', view: 'analytics-hub',
           docs: [
             { name: 'Whale Pulse', desc: '3 components: Whale transaction feed, Execution time polar chart, Volume bubble scatter', route: 'docs-whale-pulse', icon: 'waves' },
             { name: 'Whale Pulse & Chain Velocity', desc: '2 components: Velocity time-series chart, Cross-chain Sankey diagram', route: 'docs-whale-pulse', icon: 'speed' },
@@ -62,7 +62,7 @@ function renderHelp() {
             { name: 'TradingView Widget', desc: '1 component: Full TradingView professional chart with pre-loaded institutional studies', route: 'docs-tradingview', icon: 'show_chart' },
           ]
         },
-        { id: 'order-flow', name: 'Order Flow (GOMM)', icon: 'bar_chart', color: '#00f2ff', view: 'liquidity',
+        { id: 'order-flow', name: 'Liquidity & Order Flow', icon: 'bar_chart', color: '#00f2ff', view: 'liquidity',
           docs: [
             { name: 'Liquidity Dashboard', desc: '3 components: Orderbook depth chart, Execution tape feed, Institutional liquidity heatmap', route: 'docs-order-flow', icon: 'bar_chart' },
           ]
@@ -80,11 +80,11 @@ function renderHelp() {
             { name: 'Active Positions', desc: '3 components: Watchlist table with live P&L, Portfolio summary stats, Notification controls', route: 'docs-my-terminal', icon: 'bookmark_add' },
             { name: 'Ask Terminal', desc: '2 components: AI chat interface, Suggested query chips', route: 'docs-ask-terminal', icon: 'smart_toy' },
             { name: 'In Plain English AI', desc: 'Context-aware AI Chart Translator applied to institutional data views.', route: 'docs-plain-english', icon: 'auto_awesome' },
-            { name: 'Command Center', desc: '9 live components: Fear/Greed gauge, ETF Net Flows, Volatility Regime, Market Pulse correlations, Scatter plot, Confidence Radar, Macro Correlation Matrix, CME Gaps, BTC sparkline', route: 'docs-command-center', icon: 'dashboard' },
+            { name: 'Dashboard', desc: '9 live components: Fear/Greed gauge, ETF Net Flows, Volatility Regime, Market Pulse correlations, Scatter plot, Confidence Radar, Macro Correlation Matrix, CME Gaps, BTC sparkline', route: 'docs-command-center', icon: 'dashboard' },
             { name: 'Daily Workflow Playbook', desc: 'A structured 20-minute daily session guide — Morning Brief, Signal Review, Macro Context, Trade Decision, End-of-Day review', route: 'docs-daily-workflow', icon: 'today' },
           ]
         },
-        { id: 'integrations-hub', name: 'KeyVault Integrations', icon: 'cable', color: '#ef4444', view: 'exchange-keys',
+        { id: 'integrations-hub', name: 'Exchange Connections', icon: 'cable', color: '#ef4444', view: 'exchange-keys',
           docs: [
             { name: 'API Keys & Webhooks', desc: '2 components: Exchange API secure linking, Outbound Algorithmic Webhook config', route: 'docs-integrations', icon: 'key' }
           ]
@@ -429,7 +429,7 @@ function renderDocsViewRegime() {
 // ============= ALPHA STRATEGY HUB =============
 function renderDocsViewSignals() {
     renderViewDocPage({
-        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Strategy & Backtester', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Signal Intelligence', viewId: 'signals',
         relatedDocs: [
             { name: 'ML Engine', route: 'docs-ml-engine', icon: 'smart_toy' },
@@ -464,7 +464,7 @@ function renderDocsViewSignals() {
 }
 function renderDocsViewMLEngine() {
     renderViewDocPage({
-        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Strategy & Backtester', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'ML Alpha Engine', viewId: 'signals',
         summary: 'The dual-model ensemble (LSTM + XGBoost) generates 24h price direction predictions. This view exposes the model internals ? confidence scores, feature importances, and agreement metrics.',
         components: [
@@ -485,7 +485,7 @@ function renderDocsViewMLEngine() {
 }
 function renderDocsViewAlphaScore() {
     renderViewDocPage({
-        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Strategy & Backtester', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Alpha Score', viewId: 'alpha-score',
         summary: 'A composite 0-100 ranking of every tracked asset across momentum, sentiment, on-chain activity, ML prediction, and volatility. The most efficient single-screen opportunity screener.',
         components: [
@@ -502,7 +502,7 @@ function renderDocsViewAlphaScore() {
 }
 function renderDocsViewStrategyLab() {
     renderViewDocPage({
-        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Strategy & Backtester', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Strategy Lab', viewId: 'strategy-lab',
         summary: 'Live strategy testing with institutional metrics. Select a pre-built strategy, configure parameters, and see the equity curve, statistical metrics, and Monte Carlo confidence bands update in real-time.',
         components: [
@@ -527,7 +527,7 @@ function renderDocsViewStrategyLab() {
 }
 function renderDocsViewBacktester() {
     renderViewDocPage({
-        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Strategy & Backtester', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Backtester V2', viewId: 'backtester-v2',
         summary: 'Institutional-grade backtests across the full AlphaSignal history. Every metric is computed on actual historical signals ? not reconstructed or curve-fitted.',
         components: [
@@ -548,7 +548,7 @@ function renderDocsViewBacktester() {
 }
 function renderDocsViewSignalArchive() {
     renderViewDocPage({
-        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Strategy & Backtester', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Signal Archive', viewId: 'signal-archive',
         summary: 'Historical record of every signal generated, with outcome tracking. Build conviction in the methodology and identify which categories have the strongest track record.',
         components: [
@@ -565,7 +565,7 @@ function renderDocsViewSignalArchive() {
 }
 function renderDocsViewNarrative() {
     renderViewDocPage({
-        hub: 'Quant Strategy Lab', hubIcon: 'electric_bolt', hubColor: '#facc15',
+        hub: 'Strategy & Backtester', hubIcon: 'electric_bolt', hubColor: '#facc15',
         title: 'Narrative Galaxy', viewId: 'narrative',
         summary: 'Force-directed network graph of market narrative strength and velocity across social media, on-chain data, and news. Narratives gaining momentum often precede price action.',
         components: [
@@ -672,7 +672,7 @@ function renderDocsViewConceptualFramework() {
                 ]
             },
             {
-                name: '3. Order Flow (GOMM)', type: 'CONCEPT', icon: 'blur_on',
+                name: '3. Liquidity & Order Flow', type: 'CONCEPT', icon: 'blur_on',
                 description: '"Where are the sharks swimming?" — Order Flow is the final step before execution. It reads the micro-fluctuations in the combined exchange limit order books (LOB) and the live high-volume execution tape.',
                 howToRead: 'Once you have a thesis from Macro and Analytics, use Order Flow to pinpoint the exact entry level. Do not enter blindly — wait for the execution tape to show institutional absorption at your chosen level.',
                 signals: [
@@ -680,7 +680,7 @@ function renderDocsViewConceptualFramework() {
                 ]
             },
             {
-                name: '4. Quant Strategy Lab', type: 'CONCEPT', icon: 'electric_bolt',
+                name: '4. Strategy & Backtester', type: 'CONCEPT', icon: 'electric_bolt',
                 description: '"Where is the statistical edge?" — This is the quantitative core. The ML Engine tracks live alpha divergence and runs real-time backtests for hundreds of assets. It translates complex datasets into simple Z-scores (standard deviations from the mean).',
                 howToRead: 'When a Z-score crosses 2.0, the asset is behaving with statistical anomaly. This hub generates the actual trade ideas that you then validate with Order Flow.',
                 signals: [

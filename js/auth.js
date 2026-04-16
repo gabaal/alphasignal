@@ -200,7 +200,7 @@ async function handleAuth(isSignup) {
             await checkAuthStatus();
             // Show onboarding for first-time users (localStorage flag prevents repeat)
             setTimeout(() => window.maybeShowOnboarding?.(), 600);
-            // Land in Command Center after login
+            // Land in Dashboard after login
             if (!window.maybeShowOnboarding || localStorage.getItem('alphasignal_onboarded')) {
                 switchView('command-center');
             }
