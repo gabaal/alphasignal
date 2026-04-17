@@ -122,6 +122,16 @@ function renderHelp() {
             { name: 'Narrative Velocity', desc: 'Semantic Sentiment Analysis', href: '/academy/ai-narrative-velocity-sentiment', icon: 'hub' },
             { name: 'Market Regimes', desc: 'Hidden Markov Models in trading', href: '/academy/hidden-markov-market-regimes', icon: 'category' },
             { name: 'Options Volatility', desc: 'The IV Smile and Term Structure', href: '/academy/options-implied-volatility-smile', icon: 'show_chart' },
+            { name: 'Risk to Reward', desc: 'Mastering the Risk to Reward Ratio', href: '/academy/mastering-risk-to-reward-ratio', icon: 'balance' },
+            { name: 'Trading Psychology', desc: 'Overcoming FOMO and Panic', href: '/academy/trading-psychology-fomo-panic', icon: 'psychology' },
+            { name: 'Support & Resistance', desc: 'Identifying structural market zones', href: '/academy/support-and-resistance-fundamentals', icon: 'layers' },
+            { name: 'Position Sizing', desc: 'Leverage Strategies and Survival', href: '/academy/position-sizing-and-leverage', icon: 'scale' },
+            { name: 'Moving Averages', desc: 'Trading MA Crossovers', href: '/academy/trading-moving-average-crossovers', icon: 'ssid_chart' },
+            { name: 'RSI and MACD', desc: 'Momentum Oscillators Explained', href: '/academy/rsi-macd-momentum-oscillators', icon: 'speed' },
+            { name: 'Fibonacci Retracements', desc: 'Golden ratios in crypto markets', href: '/academy/fibonacci-retracements-crypto', icon: 'architecture' },
+            { name: 'Breakout Trading', desc: 'Trading volatility compressions', href: '/academy/breakout-trading-strategies', icon: 'open_in_new' },
+            { name: 'Setting Stop Losses', desc: 'How to properly set a structural stop loss', href: '/academy/how-to-set-proper-stop-loss', icon: 'gpp_maybe' },
+            { name: 'Trading Journals', desc: 'The importance of a trading journal', href: '/academy/importance-of-trading-journal', icon: 'menu_book' },
           ]
         },
     ];
