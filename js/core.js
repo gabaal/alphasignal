@@ -782,9 +782,9 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 <canvas id="detail-signal-scatter"></canvas>
             </div>
             <div style="display:flex;gap:12px;margin-top:6px">
-                <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; LONG - TP hit</span>
-                <span style="font-size:0.5rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; SHORT - SL hit</span>
-                <span style="font-size:0.5rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9651; Open signal</span>
+                <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; WIN (TP/Expiry)</span>
+                <span style="font-size:0.5rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; LOSS (SL/Expiry)</span>
+                <span style="font-size:0.5rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9651; Open Signal</span>
             </div>
             </div>
         </div>
@@ -1169,9 +1169,9 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 return;
             }
             const labelEl = document.getElementById('detail-scatter-label');
-            const tpHits  = alerts.filter(a => a.outcome === 'WIN').length;
-            const slHits  = alerts.filter(a => a.outcome === 'LOSS').length;
-            const opens   = alerts.filter(a => a.outcome === 'OPEN').length;
+            const tpHits  = alerts.filter(a => a.closed && a.outcome === 'WIN').length;
+            const slHits  = alerts.filter(a => a.closed && a.outcome === 'LOSS').length;
+            const opens   = alerts.filter(a => !a.closed).length;
             if (labelEl) {
                 const wr = tpHits + slHits > 0 ? Math.round(tpHits / (tpHits + slHits) * 100) : 0;
                 labelEl.textContent = `WR ${wr}% - ${opens} open`;
@@ -1183,7 +1183,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 let out = undefined;
                 if (a.outcome === 'WIN') out = 'TP';
                 else if (a.outcome === 'LOSS') out = 'SL';
-                return { x: i, y: parseFloat(pct.toFixed(2)), outcome: out, dir: a.direction, closed: a.outcome !== 'OPEN' };
+                return { x: i, y: parseFloat(pct.toFixed(2)), outcome: out, dir: a.direction, closed: !!a.closed };
             });
 
             const pointColor = scatterData.map(d => {
