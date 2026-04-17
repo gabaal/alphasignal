@@ -300,7 +300,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         grid: { display: false },
                         ticks: {
                             color: alphaColor(0.2),
-                            font: { family: 'JetBrains Mono', size: 8 },
+                            font: { family: 'JetBrains Mono', size: 10 },
                             maxTicksLimit: 6,
                             maxRotation: 0
                         }
@@ -311,11 +311,11 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         grid: { color: alphaColor(0.05), drawBorder: false },
                         ticks: {
                             color: alphaColor(0.35),
-                            font: { family: 'JetBrains Mono', size: 8 },
+                            font: { family: 'JetBrains Mono', size: 10 },
                             maxTicksLimit: 5,
                             stepSize: 5
                         },
-                        title: { display: true, text: 'Signals Fired', color: alphaColor(0.2), font: { size: 8 } },
+                        title: { display: true, text: 'Signals Fired', color: alphaColor(0.2), font: { size: 10 } },
                         suggestedMax: 30
                     }
                 }
@@ -423,11 +423,11 @@ async function renderSignals(category = 'ALL', tabs = null) {
                                 if (Math.abs(v) >= 0.5)  return 'rgba(0,242,255,0.75)';
                                 return alphaColor(0.7);
                             },
-                            font: { family: 'JetBrains Mono', size: 8 },
+                            font: { family: 'JetBrains Mono', size: 10 },
                             maxRotation: 0,
                             maxTicksLimit: 9  // show every other label to avoid crowding
                         },
-                        title: { display: true, text: 'Z-Score (-)', color: alphaColor(0.2), font: { size: 8 } }
+                        title: { display: true, text: 'Z-Score (-)', color: alphaColor(0.2), font: { size: 10 } }
                     },
                     y: {
                         display: true,
@@ -435,10 +435,10 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         grid: { color: alphaColor(0.05), drawBorder: false },
                         ticks: {
                             color: alphaColor(0.3),
-                            font: { family: 'JetBrains Mono', size: 8 },
+                            font: { family: 'JetBrains Mono', size: 10 },
                             maxTicksLimit: 4
                         },
-                        title: { display: true, text: 'Count', color: alphaColor(0.2), font: { size: 8 } }
+                        title: { display: true, text: 'Count', color: alphaColor(0.2), font: { size: 10 } }
                     }
                 }
             }
