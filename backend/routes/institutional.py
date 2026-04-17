@@ -2354,17 +2354,32 @@ class InstitutionalRoutesMixin:
         MAX_DAYS =  7     # max hold period in days
 
         try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            filter_ticker = query.get('ticker', [None])[0]
+
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
-            c.execute("""
-                SELECT id, type, ticker, message, severity, price, timestamp
-                FROM alerts_history
-                WHERE price IS NOT NULL AND price > 0
-                  AND timestamp < datetime('now', '-1 hours')
-                ORDER BY timestamp DESC
-                LIMIT 200
-            """)
+            
+            if filter_ticker:
+                c.execute("""
+                    SELECT id, type, ticker, message, severity, price, timestamp
+                    FROM alerts_history
+                    WHERE price IS NOT NULL AND price > 0
+                      AND ticker = ?
+                      AND timestamp < datetime('now', '-1 hours')
+                    ORDER BY timestamp DESC
+                    LIMIT 200
+                """, (filter_ticker,))
+            else:
+                c.execute("""
+                    SELECT id, type, ticker, message, severity, price, timestamp
+                    FROM alerts_history
+                    WHERE price IS NOT NULL AND price > 0
+                      AND timestamp < datetime('now', '-1 hours')
+                    ORDER BY timestamp DESC
+                    LIMIT 200
+                """)
             signals = [dict(r) for r in c.fetchall()]
             conn.close()
 

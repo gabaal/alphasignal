@@ -1133,7 +1133,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         const ctx = document.getElementById('detail-signal-scatter');
         if (!ctx) return;
         try {
-            const alerts = await fetchAPI(`/alerts?ticker=${ticker}&limit=30`);
+            const resp = await fetchAPI(`/signal-leaderboard?ticker=${ticker}`);
+            const alerts = (resp && resp.signals ? resp.signals : []).slice(0, 30);
             window._detailAlerts = alerts || [];
             if (window.renderDetailOverlays) window.renderDetailOverlays();
 
@@ -1142,9 +1143,9 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 return;
             }
             const labelEl = document.getElementById('detail-scatter-label');
-            const tpHits  = alerts.filter(a => a.closed_at && a.outcome === 'TP').length;
-            const slHits  = alerts.filter(a => a.closed_at && a.outcome === 'SL').length;
-            const opens   = alerts.filter(a => !a.closed_at).length;
+            const tpHits  = alerts.filter(a => a.outcome === 'WIN').length;
+            const slHits  = alerts.filter(a => a.outcome === 'LOSS').length;
+            const opens   = alerts.filter(a => a.outcome === 'OPEN').length;
             if (labelEl) {
                 const wr = tpHits + slHits > 0 ? Math.round(tpHits / (tpHits + slHits) * 100) : 0;
                 labelEl.textContent = `WR ${wr}% - ${opens} open`;
@@ -1152,10 +1153,11 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             }
 
             const scatterData = alerts.map((a, i) => {
-                const pct = a.entry_price && a.tp1_price
-                    ? ((a.tp1_price - a.entry_price) / a.entry_price * 100 * (a.direction === 'SHORT' ? -1 : 1))
-                    : 0;
-                return { x: i, y: parseFloat(pct.toFixed(2)), outcome: a.outcome, dir: a.direction, closed: !!a.closed_at };
+                const pct = a.move_pct || 0;
+                let out = undefined;
+                if (a.outcome === 'WIN') out = 'TP';
+                else if (a.outcome === 'LOSS') out = 'SL';
+                return { x: i, y: parseFloat(pct.toFixed(2)), outcome: out, dir: a.direction, closed: a.outcome !== 'OPEN' };
             });
 
             const pointColor = scatterData.map(d => {
