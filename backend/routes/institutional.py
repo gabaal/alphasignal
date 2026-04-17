@@ -3424,6 +3424,28 @@ class InstitutionalRoutesMixin:
         ticker = query.get('ticker', ['BTC-USD'])[0]
         period = query.get('period', ['60d'])[0]
         
+        # High-Fidelity Crypto Parsing (prevent yfinance micro-cap 6-decimal rounding)
+        if '-USD' in ticker:
+            try:
+                symbol = ticker.split('-')[0] + 'USDT'
+                limit = 60 if period == '60d' else 30 if period == '1m' else 90 if period == '3m' else 180 if period == '6m' else 7 if period == '1w' else 30
+                b_klines = fetch_binance_klines(symbol, '1d', limit)
+                if b_klines and len(b_klines) > 0:
+                    prices = []
+                    for k in b_klines:
+                        prices.append({
+                            'time':   k['unix_time'],
+                            'open':   k['open'],
+                            'high':   k['high'],
+                            'low':    k['low'],
+                            'close':  k['close'],
+                            'volume': k.get('volume', 0)
+                        })
+                    self.send_json(prices)
+                    return
+            except Exception as e:
+                print(f"[handle_klines] high-fidelity interception failed for {ticker}: {e}")
+        
         raw_data = CACHE.download(ticker, period=period)
         if raw_data is None or (hasattr(raw_data, 'empty') and raw_data.empty):
             self.send_json([])
