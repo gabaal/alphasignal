@@ -820,7 +820,6 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 signal_id = path.split('/')[-1]
                 self.handle_signal_permalink(signal_id)
             elif path == '/api/telegram/link':
-                import os
                 token = os.getenv('TELEGRAM_BOT_TOKEN', '')
                 bot_name = ''
                 if token:
@@ -846,17 +845,18 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 # Semantic Clean URL Routing & SPA Fallback
                 safe_path = path.lstrip('/')
                 
-                # Assume static assets have an extension (like .js, .css, .png)
-                # If no extension is present and it is not index, we attempt to serve static HTML, or fallback to SPA index
+                print(f"DEBUGGING ROUTER: safe_path={safe_path}", flush=True)
+                
                 if '.' not in safe_path and safe_path != "":
-                    # 1. Check if the user is requesting /docs/etf-flows -> docs/etf-flows.html
                     html_target = f"{safe_path}.html"
+                    print(f"DEBUGGING ROUTER: html_target={html_target}, exists={os.path.exists(html_target)}", flush=True)
                     if os.path.exists(html_target):
                         self.path = f"/{html_target}"
+                        print(f"DEBUGGING ROUTER: set self.path={self.path}", flush=True)
                     else:
-                        # 2. Check if the user is requesting a non-docs route like /liquidations -> serve index.html (SPA handles routing via path)
                         self.path = "/index.html"
                 
+                print(f"DEBUGGING ROUTER: Calling super().do_GET() with self.path={self.path}", flush=True)
                 super().do_GET()
         except Exception as e:
             print(f'[{datetime.now()}] Global do_GET error: {e}', flush=True)
