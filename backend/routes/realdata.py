@@ -123,31 +123,127 @@ def fetch_network_congestion() -> int:
     return 35  # conservative static fallback
 
 
-# ─── Retail FOMO (Google Trends via pytrends) ─────────────────────────────────
+# ─── Retail FOMO (Composite: CoinGecko Trending + Binance Volume + BTC Momentum)
 def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
-    """Google Trends interest 0-100 — cached 1h (Trends itself updates hourly).
-    Returns {'value': int, 'source': 'google_trends' | 'fear_greed_fallback'}.
-    Falls back to Fear & Greed if pytrends is rate-limited."""
+    """Composite retail FOMO score 0-100 — cached 30min.
+    Components (weighted):
+      40% — CoinGecko trending coins sentiment (price changes of trending coins)
+      35% — Binance BTC 24h volume vs 7-day average (volume spike ratio)
+      25% — Short-term BTC momentum (7-period RSI from hourly candles)
+    Returns {'value': int, 'source': 'composite' | 'fear_greed_fallback'}.
+    """
     cache_key = f'fomo_{keyword}'
     cached = _get(cache_key)
     if cached is not None:
         return cached
+
+    scores = []
+    weights = []
+
+    # ── Component 1: CoinGecko Trending Coins (40%) ──────────────────────────
+    # Measures retail attention — when trending coins are pumping, retail is FOMOing
     try:
-        from pytrends.request import TrendReq
-        pt = TrendReq(hl='en-US', tz=0, timeout=(4, 10))
-        pt.build_payload([keyword], timeframe='now 7-d')
-        df = pt.interest_over_time()
-        if not df.empty and keyword in df.columns:
-            weekly_avg = int(round(df[keyword].mean()))
-            result = {'value': weekly_avg, 'source': 'google_trends'}
-            _set(cache_key, result, ttl=3600)   # 1h — matches Google Trends update cadence
-            return result
+        r = requests.get(
+            'https://api.coingecko.com/api/v3/search/trending',
+            timeout=8,
+            headers={'Accept': 'application/json', 'User-Agent': 'AlphaSignal/2.0'}
+        )
+        if r.status_code == 200:
+            coins = r.json().get('coins', [])
+            if coins:
+                # Score based on price change of trending coins
+                price_changes = []
+                for c in coins[:7]:
+                    item = c.get('item', {})
+                    data = item.get('data', {})
+                    pch = data.get('price_change_percentage_24h', {})
+                    usd_change = pch.get('usd', 0) if isinstance(pch, dict) else 0
+                    price_changes.append(float(usd_change))
+
+                if price_changes:
+                    # Average 24h change of trending coins
+                    avg_change = sum(price_changes) / len(price_changes)
+                    # Map: -10% → 0, 0% → 40, +5% → 65, +15% → 90, +25%+ → 100
+                    trending_score = 40 + avg_change * 4
+                    trending_score = max(0, min(100, int(trending_score)))
+                    scores.append(trending_score)
+                    weights.append(0.40)
+                    print(f'[FOMO/CoinGecko] trending avg_change={avg_change:+.1f}% → score={trending_score}')
     except Exception as e:
-        print(f'[FOMO/pytrends] {e}')
-    # Fallback: derive from Fear & Greed index (cached separately at 6h)
+        print(f'[FOMO/CoinGecko] {e}')
+
+    # ── Component 2: Binance BTC Volume Spike (35%) ──────────────────────────
+    # 24h volume vs 7-day average — spikes indicate retail piling in
+    try:
+        r = requests.get(
+            'https://api.binance.com/api/v3/klines',
+            params={'symbol': 'BTCUSDT', 'interval': '1d', 'limit': 8},
+            timeout=5
+        )
+        if r.status_code == 200:
+            klines = r.json()
+            if len(klines) >= 2:
+                # k[7] = quote asset volume (USDT)
+                volumes = [float(k[7]) for k in klines]
+                current_vol = volumes[-1]
+                avg_vol_7d = sum(volumes[:-1]) / max(len(volumes) - 1, 1)
+
+                if avg_vol_7d > 0:
+                    ratio = current_vol / avg_vol_7d
+                    # Map: 0.5x → 15, 1.0x → 50, 1.5x → 72, 2.0x → 85, 3.0x+ → 100
+                    vol_score = int(50 + (ratio - 1.0) * 45)
+                    vol_score = max(0, min(100, vol_score))
+                    scores.append(vol_score)
+                    weights.append(0.35)
+                    print(f'[FOMO/Binance] vol_ratio={ratio:.2f}x → score={vol_score}')
+    except Exception as e:
+        print(f'[FOMO/Binance] {e}')
+
+    # ── Component 3: BTC Short-Term RSI (25%) ────────────────────────────────
+    # High RSI on hourly candles = overheated retail buying
+    try:
+        r = requests.get(
+            'https://api.binance.com/api/v3/klines',
+            params={'symbol': 'BTCUSDT', 'interval': '1h', 'limit': 24},
+            timeout=5
+        )
+        if r.status_code == 200:
+            klines = r.json()
+            closes = [float(k[4]) for k in klines]
+            if len(closes) >= 15:
+                # Calculate 14-period RSI
+                deltas = [closes[i] - closes[i-1] for i in range(1, len(closes))]
+                gains = [d if d > 0 else 0 for d in deltas]
+                losses = [-d if d < 0 else 0 for d in deltas]
+                avg_gain = sum(gains[-14:]) / 14
+                avg_loss = sum(losses[-14:]) / 14
+                if avg_loss == 0:
+                    rsi = 100
+                else:
+                    rs = avg_gain / avg_loss
+                    rsi = 100 - (100 / (1 + rs))
+                # RSI naturally maps to 0-100 FOMO (RSI > 70 = overbought/FOMO)
+                rsi_score = max(0, min(100, int(rsi)))
+                scores.append(rsi_score)
+                weights.append(0.25)
+                print(f'[FOMO/RSI] hourly_rsi={rsi:.1f} → score={rsi_score}')
+    except Exception as e:
+        print(f'[FOMO/RSI] {e}')
+
+    # ── Combine components ───────────────────────────────────────────────────
+    if scores:
+        total_weight = sum(weights)
+        composite = sum(s * w for s, w in zip(scores, weights)) / total_weight
+        value = max(0, min(100, int(round(composite))))
+        result = {'value': value, 'source': 'composite'}
+        _set(cache_key, result, ttl=1800)  # 30min cache
+        print(f'[FOMO] Composite={value} from {len(scores)} components')
+        return result
+
+    # Fallback: derive from Fear & Greed index
     fg = fetch_fear_greed()
     result = {'value': fg['value'], 'source': 'fear_greed_fallback'}
-    _set(cache_key, result, ttl=900)  # cache fallback 15min so it retries pytrends sooner
+    _set(cache_key, result, ttl=900)
     return result
 
 
