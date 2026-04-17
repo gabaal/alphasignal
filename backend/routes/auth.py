@@ -6,10 +6,10 @@ from backend.caching import CACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, NotificationService
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
 
-# ── Body cap (shared with api_router) ──────────────────────────────────────
+# - Body cap (shared with api_router) -
 _MAX_BODY_BYTES = 1 * 1024 * 1024
 
-# ── S1: Session cache — avoids Supabase+Stripe round-trip on every request ─
+# - S1: Session cache - avoids Supabase+Stripe round-trip on every request -
 # Key: SHA-256[:16] of raw token  |  Value: (auth_info_dict, timestamp)
 _SESSION_CACHE: dict = {}
 _SESSION_LOCK   = threading.Lock()
@@ -41,7 +41,7 @@ def _session_cache_invalidate(token: str):
     with _SESSION_LOCK:
         _SESSION_CACHE.pop(key, None)
 
-# ── S4: Login attempt tracker — lock after 5 failures within 15 min ────────
+# - S4: Login attempt tracker - lock after 5 failures within 15 min -
 _LOGIN_ATTEMPTS: dict = {}
 _LOGIN_LOCK      = threading.Lock()
 _LOGIN_MAX       = 5    # max failures before lockout
@@ -91,19 +91,19 @@ class AuthRoutesMixin:
         if not token:
             return None
 
-        # Test-token bypass — development only (APP_ENV=production disables this)
+        # Test-token bypass - development only (APP_ENV=production disables this)
         if os.getenv('APP_ENV', 'development') != 'production' and token.startswith('test-token-'):
             is_p  = 'premium' in token or 'institutional' in token
             email = 'test@example.com' if not is_p else 'premium@example.com'
             return {'authenticated': True, 'email': email, 'user_id': 'test-uid-123',
                     'is_premium': is_p, 'has_stripe_id': False, 'stripe_customer_id': None}
 
-        # ── S1: Session cache hit ──────────────────────────────────────────
+        # - S1: Session cache hit -
         cached = _session_cache_get(token)
         if cached:
             return cached
 
-        # ── Full Supabase + Stripe verification ────────────────────────────
+        # - Full Supabase + Stripe verification -
         url     = f'{SUPABASE_URL}/auth/v1/user'
         headers = {**SUPABASE_HEADERS, 'Authorization': f'Bearer {token}'}
         try:
@@ -206,7 +206,7 @@ class AuthRoutesMixin:
             if not chat_id:
                 self.send_error_json('No Chat ID provided.')
                 return
-            msg = '🛡️ **AlphaSignal Institutional Hub**\n\nPROBE_SUCCESS: Strategic connection established. Tactical signals will now be dispatched to this node.\n\n_Systemized by Alpha Engine v4.2_'
+            msg = '- **AlphaSignal Institutional Hub**\n\nPROBE_SUCCESS: Strategic connection established. Tactical signals will now be dispatched to this node.\n\n_Systemized by Alpha Engine v4.2_'
             success = NotificationService.send_telegram_alert(msg, chat_id)
             if success:
                 self.send_json({'success': True})

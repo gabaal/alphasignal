@@ -165,7 +165,7 @@ async function renderMacroSync(tabs = null) {
                         labels: ssrData.labels,
                         datasets: [
                             {
-                                label: 'SSR (BTC Market Cap ÷ Stablecoin Supply)',
+                                label: 'SSR (BTC Market Cap - Stablecoin Supply)',
                                 data: ssrData.ssr,
                                 borderColor: '#7dd3fc',
                                 backgroundColor: 'rgba(0, 242, 255, 0.1)',
@@ -351,11 +351,11 @@ async function renderRotation(tabs = null) {
             </div>
         </div>`;
     
-    // Capital Rotation Sunburst moved to its own view â€” see renderCapitalRotation()
+    // Capital Rotation Sunburst moved to its own view - see renderCapitalRotation()
 }
 
 // ============================================================
-// Capital Rotation Sunburst â€” standalone Macro Intel tab
+// Capital Rotation Sunburst - standalone Macro Intel tab
 // ============================================================
 async function renderCapitalRotation(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
@@ -366,7 +366,7 @@ async function renderCapitalRotation(tabs = null) {
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">donut_large</span>Capital Rotation <span class="premium-badge">LIVE</span></h1>
                 <p style="color:var(--text-dim);font-size:0.8rem;margin-top:6px">
                     30-day momentum-weighted allocation map across Crypto, Equities, Bonds &amp; Commodities.
-                    Click any segment to drill into its sub-allocation — click the centre label to reset.
+                    Click any segment to drill into its sub-allocation - click the centre label to reset.
                 </p>
             </div>
         </div>
@@ -376,14 +376,14 @@ async function renderCapitalRotation(tabs = null) {
             <div id="cr-summary-bar" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px">
                 <div style="display:flex;gap:6px;align-items:center">
                     <div class="loader" style="width:14px;height:14px;border-width:2px"></div>
-                    <span style="font-size:0.65rem;color:var(--text-dim)">Loading live market data…</span>
+                    <span style="font-size:0.65rem;color:var(--text-dim)">Loading live market data-</span>
                 </div>
             </div>
             <div id="sunburst-container" style="width:100%;display:flex;justify-content:center;padding-bottom:1.5rem;"></div>
         </div>
     `;
 
-    // ── Fetch live data ──────────────────────────────────────────────────
+    // - Fetch live data -
     let root_data;
     try {
         const data = await fetchAPI('/capital-rotation');
@@ -392,7 +392,7 @@ async function renderCapitalRotation(tabs = null) {
             // Populate summary bar from API
             document.getElementById('cr-summary-bar').innerHTML = `
                 <div>
-                    <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:6px">ALLOCATION INTELLIGENCE · LIVE 30D</div>
+                    <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:6px">ALLOCATION INTELLIGENCE - LIVE 30D</div>
                     <div style="display:flex;gap:20px;flex-wrap:wrap">
                         ${(data.summary || []).map(s => `
                             <div style="text-align:center">
@@ -406,8 +406,8 @@ async function renderCapitalRotation(tabs = null) {
                 </div>
                 <div style="font-size:0.55rem;color:var(--text-dim);text-align:right;line-height:1.8">
                     Model: 30D Momentum-Weighted<br>
-                    Source: ${data.source || 'yfinance · Live'}<br>
-                    Updated: ${data.updated || '—'}
+                    Source: ${data.source || 'yfinance - Live'}<br>
+                    Updated: ${data.updated || '-'}
                 </div>
             `;
         } else {
@@ -415,7 +415,7 @@ async function renderCapitalRotation(tabs = null) {
         }
     } catch(e) {
         document.getElementById('cr-summary-bar').innerHTML =
-            `<div style="color:#ef4444;font-size:0.75rem">⚠ Live data unavailable: ${e.message}. Using last-known allocation model.</div>`;
+            `<div style="color:#ef4444;font-size:0.75rem">- Live data unavailable: ${e.message}. Using last-known allocation model.</div>`;
         // Fallback to static model
         root_data = {
             name: 'Total Capital', value: 0, children: [
@@ -491,7 +491,7 @@ async function renderCapitalRotation(tabs = null) {
             .style('cursor', 'pointer');
 
         paths.append('title').text(d =>
-            `${d.ancestors().map(d => d.data.name).reverse().slice(1).join(' › ')}\n` +
+            `${d.ancestors().map(d => d.data.name).reverse().slice(1).join(' - ')}\n` +
             `${d.value}% allocation\n${(d.data.perf >= 0 ? '+' : '')}${d.data.perf?.toFixed(1) || 0}% 30D`
         );
 
@@ -558,7 +558,7 @@ async function renderCapitalRotation(tabs = null) {
                 const perfStr = (next.data.perf >= 0 ? '+' : '') + (next.data.perf?.toFixed(1) || '0') + '%';
                 const col = next.data.perf >= 0 ? '#22c55e' : '#ef4444';
                 centerName.text(next.data.name).attr('fill', getColor(next));
-                centerSub.text(`${next.value}% · ${perfStr}`).attr('fill', col);
+                centerSub.text(`${next.value}% - ${perfStr}`).attr('fill', col);
                 const rows = (next.children || []).map(c => {
                     const cp = (c.data.perf >= 0 ? '+' : '') + (c.data.perf?.toFixed(1) || '0') + '%';
                     const cc = c.data.perf >= 0 ? '#22c55e' : '#ef4444';
@@ -571,7 +571,7 @@ async function renderCapitalRotation(tabs = null) {
                 detailEl.style.display = 'block';
                 detailEl.innerHTML = `
                     <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px;font-weight:700">
-                        ${next.data.name.toUpperCase()} BREAKDOWN · CLICK CENTRE TO RESET
+                        ${next.data.name.toUpperCase()} BREAKDOWN - CLICK CENTRE TO RESET
                     </div>
                     <table style="width:100%;border-collapse:collapse">${rows}</table>`;
             }

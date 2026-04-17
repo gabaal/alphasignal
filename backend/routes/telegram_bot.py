@@ -1,20 +1,20 @@
 """
 AlphaSignal Telegram Bot
-────────────────────────
+-
 Runs as a background long-polling thread.
 
 Commands:
-  /start <token>  — Link your AlphaSignal account (token = registered email base64)
-  /link  <email>  — Alternative: link by email directly (dev convenience)
-  /status         — Show linked account and alert status
-  /unsub          — Disable Telegram alerts (keeps account linked)
-  /resub          — Re-enable Telegram alerts
-  /help           — List available commands
+  /start <token>  - Link your AlphaSignal account (token = registered email base64)
+  /link  <email>  - Alternative: link by email directly (dev convenience)
+  /status         - Show linked account and alert status
+  /unsub          - Disable Telegram alerts (keeps account linked)
+  /resub          - Re-enable Telegram alerts
+  /help           - List available commands
 
 Flow:
   1. User opens bot (t.me/<botname>), sends /start
   2. Bot asks for their AlphaSignal email
-  3. User replies with email — bot saves chat_id to user_settings
+  3. User replies with email - bot saves chat_id to user_settings
   4. Morning digest + live alerts now reach them on Telegram
 """
 
@@ -26,16 +26,16 @@ import requests
 from datetime import datetime
 from backend.database import DB_PATH
 
-# ── State: pending link sessions ─────────────────────────────────────────────
+# - State: pending link sessions -
 # chat_id -> 'awaiting_email'
 _PENDING = {}
 _PENDING_LOCK = threading.Lock()
 
 BOT_URL_BASE = None   # set at start time from env
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 # Telegram API helpers
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 
 def _bot_url(method):
     token = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -68,9 +68,9 @@ def _get_updates(offset):
     return []
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 # DB helpers
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 
 def _find_user_by_email(email):
     """Return (user_email, alerts_enabled, telegram_chat_id) or None."""
@@ -124,7 +124,7 @@ def _upsert_chat_id(email, chat_id, alerts_enabled=1):
 
 
 def _set_telegram_alerts_enabled(chat_id, enabled):
-    """B7: toggles only telegram_alerts_enabled — leaves global alerts_enabled intact.
+    """B7: toggles only telegram_alerts_enabled - leaves global alerts_enabled intact.
     This means /unsub silences Telegram only; Discord and terminal alerts stay on."""
     try:
         conn = sqlite3.connect(DB_PATH)
@@ -154,17 +154,17 @@ def _email_is_registered(email):
         return False
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 # Command handlers
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 
 def _handle_start(chat_id, args):
     existing = _find_user_by_chat_id(chat_id)
     if existing:
         email, alerts_on = existing
         _send(chat_id, (
-            f"✅ Already linked to *{email}*\n"
-            f"Alerts: {'🟢 ON' if alerts_on else '🔴 OFF'}\n\n"
+            f"- Already linked to *{email}*\n"
+            f"Alerts: {'- ON' if alerts_on else '- OFF'}\n\n"
             "Use /status to check or /unsub to disable alerts."
         ))
         return
@@ -173,7 +173,7 @@ def _handle_start(chat_id, args):
         _PENDING[chat_id] = 'awaiting_email'
 
     _send(chat_id, (
-        "👋 Welcome to *AlphaSignal Terminal*!\n\n"
+        "- Welcome to *AlphaSignal Terminal*!\n\n"
         "To receive your morning digest and live alerts, "
         "please reply with the *email address* you used to register on AlphaSignal.\n\n"
         "_(e.g. `trader@example.com`)_"
@@ -184,32 +184,32 @@ def _handle_status(chat_id):
     row = _find_user_by_chat_id(chat_id)
     if not row:
         _send(chat_id, (
-            "❌ Not linked yet.\n\n"
+            "- Not linked yet.\n\n"
             "Send /start to connect your AlphaSignal account."
         ))
         return
     email, alerts_on = row
     _send(chat_id, (
-        f"📊 *AlphaSignal — Account Status*\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"📧 Email: `{email}`\n"
-        f"🔔 Alerts: {'🟢 Enabled' if alerts_on else '🔴 Disabled'}\n"
-        f"🕐 Digest: Daily at 07:30 UTC\n\n"
+        f"- *AlphaSignal - Account Status*\n"
+        f"-\n"
+        f"- Email: `{email}`\n"
+        f"- Alerts: {'- Enabled' if alerts_on else '- Disabled'}\n"
+        f"- Digest: Daily at 07:30 UTC\n\n"
         "Use /unsub to pause or /resub to re-enable."
     ))
 
 
 def _handle_unsub(chat_id):
-    # B7: use telegram-specific toggle — doesn't affect Discord or terminal alerts
+    # B7: use telegram-specific toggle - doesn't affect Discord or terminal alerts
     ok = _set_telegram_alerts_enabled(chat_id, False)
     if ok:
         _send(chat_id, (
-            "🔕 *Telegram alerts paused.*\n\n"
+            "- *Telegram alerts paused.*\n\n"
             "You won't receive Telegram notifications until you send /resub.\n"
             "_(Discord and terminal alerts are unaffected.)_"
         ))
     else:
-        _send(chat_id, "❌ Couldn't find your account. Send /start first.")
+        _send(chat_id, "- Couldn't find your account. Send /start first.")
 
 
 def _handle_resub(chat_id):
@@ -217,23 +217,23 @@ def _handle_resub(chat_id):
     ok = _set_telegram_alerts_enabled(chat_id, True)
     if ok:
         _send(chat_id, (
-            "🔔 *Telegram alerts re-enabled!*\n\n"
+            "- *Telegram alerts re-enabled!*\n\n"
             "You'll receive your morning digest at 07:30 UTC and live signal alerts."
         ))
     else:
-        _send(chat_id, "❌ Couldn't find your account. Send /start first.")
+        _send(chat_id, "- Couldn't find your account. Send /start first.")
 
 
 def _handle_help(chat_id):
     _send(chat_id, (
-        "📖 *AlphaSignal Bot — Commands*\n"
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        "/start   — Link your account\n"
-        "/status  — Check link & alert status\n"
-        "/unsub   — Pause all Telegram alerts\n"
-        "/resub   — Re-enable Telegram alerts\n"
-        "/help    — Show this message\n\n"
-        "🌐 [Open Terminal](https://alphasignal.digital)"
+        "- *AlphaSignal Bot - Commands*\n"
+        "-\n"
+        "/start   - Link your account\n"
+        "/status  - Check link & alert status\n"
+        "/unsub   - Pause all Telegram alerts\n"
+        "/resub   - Re-enable Telegram alerts\n"
+        "/help    - Show this message\n\n"
+        "- [Open Terminal](https://alphasignal.digital)"
     ))
 
 
@@ -241,14 +241,14 @@ def _handle_email_reply(chat_id, email):
     """Called when user is in 'awaiting_email' state and sends a plaintext message."""
     email = email.strip().lower()
     if '@' not in email or '.' not in email.split('@')[-1]:
-        _send(chat_id, "⚠️ That doesn't look like a valid email. Please try again.")
+        _send(chat_id, "- That doesn't look like a valid email. Please try again.")
         return
 
     # B8: Verify the email is a registered AlphaSignal account before linking.
     # This prevents arbitrary email takeover (a user typing someone else's email).
     if not _email_is_registered(email):
         _send(chat_id, (
-            "❌ No AlphaSignal account found for `" + email + "`\n\n"
+            "- No AlphaSignal account found for `" + email + "`\n\n"
             "Please register at [alphasignal.digital](https://alphasignal.digital) first, "
             "then come back and send /start."
         ))
@@ -259,22 +259,22 @@ def _handle_email_reply(chat_id, email):
         with _PENDING_LOCK:
             _PENDING.pop(chat_id, None)
         _send(chat_id, (
-            f"✅ *Account linked!*\n\n"
-            f"📧 `{email}`\n\n"
+            f"- *Account linked!*\n\n"
+            f"- `{email}`\n\n"
             "You'll receive:\n"
-            "• 🌅 Morning digest at *07:30 UTC* daily\n"
-            "• ⚡ Live signal alerts when high-severity signals fire\n\n"
+            "- Morning digest at *07:30 UTC* daily\n"
+            "- Live signal alerts when high-severity signals fire\n\n"
             "Use /status to check or /unsub to pause Telegram alerts at any time.\n\n"
-            "🚀 [Open AlphaSignal Terminal](https://alphasignal.digital)"
+            "- [Open AlphaSignal Terminal](https://alphasignal.digital)"
         ))
         print(f"[TelegramBot] Linked {email} -> chat_id {chat_id}")
     else:
-        _send(chat_id, "❌ Failed to save your details. Please try again later.")
+        _send(chat_id, "- Failed to save your details. Please try again later.")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 # Message dispatcher
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 
 def _dispatch(message):
     chat_id = message.get("chat", {}).get("id")
@@ -307,16 +307,16 @@ def _dispatch(message):
     else:
         # Unknown command or plain text with no pending state
         _send(chat_id, (
-            "🤖 Send /start to link your account, or /help for commands."
+            "- Send /start to link your account, or /help for commands."
         ))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 # Main polling loop
-# ─────────────────────────────────────────────────────────────────────────────
+# -
 
 def run_bot():
-    """Long-poll loop — runs forever in a daemon thread."""
+    """Long-poll loop - runs forever in a daemon thread."""
     token = os.getenv("TELEGRAM_BOT_TOKEN", "")
     if not token:
         print(f"[TelegramBot] WARN: TELEGRAM_BOT_TOKEN not set -- bot disabled.", flush=True)

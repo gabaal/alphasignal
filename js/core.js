@@ -126,7 +126,7 @@ async function exportDeepDivePDF() {
         // Footer
         pdf.setTextColor(60, 80, 100);
         pdf.setFontSize(6);
-        pdf.text('AlphaSignal Intelligence Desk · AI Analysis Layer v2.1 · alphasignal.digital', pageW / 2, pageH - 5, { align: 'center' });
+        pdf.text('AlphaSignal Intelligence Desk - AI Analysis Layer v2.1 - alphasignal.digital', pageW / 2, pageH - 5, { align: 'center' });
 
         const ticker = content.querySelector('h3')?.textContent?.replace('Intelligence Deep-Dive: ', '') || 'report';
         pdf.save(`AlphaSignal_DeepDive_${ticker}_${Date.now()}.pdf`);
@@ -184,7 +184,7 @@ async function openAIAnalyst(ticker, dir = null, zscore = null) {
                     await window.fetchStreamingAPI(`/signal-thesis?ticker=${ticker}&signal=${dir}&zscore=${zscore}&stream=true`, 'GET', null, 
                         (chunk) => {
                             chunksReceived += chunk;
-                            thesisBody.innerHTML = fullText + formatMemoMarkdown(chunksReceived) + '<span style="opacity:0.6">█</span>';
+                            thesisBody.innerHTML = fullText + formatMemoMarkdown(chunksReceived) + '<span style="opacity:0.6">-</span>';
                         },
                         () => {
                             thesisBody.innerHTML = fullText + formatMemoMarkdown(chunksReceived);
@@ -245,7 +245,7 @@ async function openAIAnalyst(ticker, dir = null, zscore = null) {
 
 
 // ============= Global Search Logic =============
-// Known instant-open tickers — bypass API roundtrip
+// Known instant-open tickers - bypass API roundtrip
 const INSTANT_TICKERS = {
     'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD', 'BNB': 'BNB-USD',
     'XRP': 'XRP-USD', 'ADA': 'ADA-USD', 'AVAX': 'AVAX-USD', 'DOT': 'DOT-USD',
@@ -263,13 +263,13 @@ const INSTANT_TICKERS = {
 
 // ============= Keyboard Shortcuts =============
 document.addEventListener('keydown', (e) => {
-    // Ctrl+K or Cmd+K — focus global search
+    // Ctrl+K or Cmd+K - focus global search
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         const searchEl = document.getElementById('global-search');
         if (searchEl) { searchEl.focus(); searchEl.select(); }
     }
-    // Escape — close search dropdown
+    // Escape - close search dropdown
     if (e.key === 'Escape') {
         const dd = document.getElementById('search-dropdown');
         if (dd) dd.classList.add('hidden');
@@ -333,7 +333,7 @@ async function executeSearch() {
     const raw = input.value.trim().toUpperCase();
     if (!raw) return;
 
-    // Instant open for known tickers — no API call needed
+    // Instant open for known tickers - no API call needed
     const resolved = INSTANT_TICKERS[raw];
     if (resolved) {
         input.value = '';
@@ -366,7 +366,7 @@ let currentSignalCategory = 'ALL';
 async function downloadPortfolioData(format) {
     const notifyBtn = document.querySelector(`button[onclick="downloadPortfolioData('${format}')"]`);
     const originalText = notifyBtn ? notifyBtn.innerHTML : '';
-    if (notifyBtn) notifyBtn.innerHTML = '⌛ ...';
+    if (notifyBtn) notifyBtn.innerHTML = '- ...';
 
     try {
         const link = document.createElement('a');
@@ -400,7 +400,7 @@ async function exportReport() {
         const now = new Date().toLocaleString();
         const user = document.getElementById('display-user-email')?.textContent || 'Institutional User';
         
-        // ── PAGE 1: HEADER ──────────────────────────────────────
+        // - PAGE 1: HEADER -
         doc.setFillColor(5, 7, 10);
         doc.rect(0, 0, 210, 45, 'F');
         // Accent stripe
@@ -412,13 +412,13 @@ async function exportReport() {
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
-        doc.text('ALPHASIGNAL™ — RESEARCH REPORT', 10, 27);
+        doc.text('ALPHASIGNAL- RESEARCH REPORT', 10, 27);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(100, 116, 139);
         doc.text(`GENERATED: ${now}  |  USER: ${user}  |  CONFIDENTIAL`, 10, 38);
 
-        // ── SECTION 1: PERFORMANCE METRICS ──────────────────────
+        // - SECTION 1: PERFORMANCE METRICS -
         let y = 55;
         doc.setFillColor(0, 212, 170);
         doc.rect(10, y, 190, 0.5, 'F');
@@ -443,7 +443,7 @@ async function exportReport() {
             y += 8;
         });
 
-        // ── SECTION 2: BACKTESTER SUMMARY ───────────────────────
+        // - SECTION 2: BACKTESTER SUMMARY -
         y += 4;
         doc.setFillColor(0, 212, 170);
         doc.rect(10, y, 190, 0.5, 'F');
@@ -470,7 +470,7 @@ async function exportReport() {
             y += 8;
         });
 
-        // ── SECTION 3: ALPHA SCORES ──────────────────────────────
+        // - SECTION 3: ALPHA SCORES -
         doc.addPage();
         y = 20;
         doc.setFillColor(0, 212, 170);
@@ -499,7 +499,7 @@ async function exportReport() {
             y += 8;
         });
 
-        // ── SECTION 4: MACRO EVENTS ──────────────────────────────
+        // - SECTION 4: MACRO EVENTS -
         if (macroData?.events?.length) {
             y += 6;
             if (y > 240) { doc.addPage(); y = 20; }
@@ -523,7 +523,7 @@ async function exportReport() {
             });
         }
 
-        // ── SECTION 5: EXECUTION TAPE ────────────────────────────
+        // - SECTION 5: EXECUTION TAPE -
         doc.addPage();
         y = 20;
         doc.setFillColor(0, 212, 170); doc.rect(10, y - 3, 190, 0.5, 'F'); y += 4;
@@ -548,13 +548,13 @@ async function exportReport() {
             y += 8;
         });
 
-        // ── FOOTER ───────────────────────────────────────────────
+        // - FOOTER -
         const totalPages = doc.internal.getNumberOfPages();
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
             doc.setFillColor(5, 7, 10); doc.rect(0, 285, 210, 12, 'F');
             doc.setFontSize(7); doc.setTextColor(100, 116, 139);
-            doc.text(`© 2026 ALPHASIGNAL TERMINAL  |  INSTITUTIONAL RESEARCH  |  PAGE ${i} OF ${totalPages}  |  CONFIDENTIAL`, 105, 292, null, null, 'center');
+            doc.text(`- 2026 ALPHASIGNAL TERMINAL  |  INSTITUTIONAL RESEARCH  |  PAGE ${i} OF ${totalPages}  |  CONFIDENTIAL`, 105, 292, null, null, 'center');
         }
 
         doc.save(`alphasignal_research_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -596,7 +596,7 @@ async function loadCorrelationMatrix(tickers, containerId = 'corr-chart', endpoi
 
     const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
-    // Color scale: red (-1) → grey (0) → green (+1)
+    // Color scale: red (-1) - grey (0) - green (+1)
     const colorScale = d3.scaleLinear()
         .domain([-1, 0, 1])
         .range(['#ef4444', '#1f2937', '#22c55e']);
@@ -646,7 +646,7 @@ async function loadCorrelationMatrix(tickers, containerId = 'corr-chart', endpoi
                 .on('mouseover', function(event) {
                     d3.select(this).attr('opacity', 1).attr('stroke', '#fff').attr('stroke-width', 1);
                     tooltip.style('display', 'block')
-                        .html(`<strong>${labels[i].replace('-USD','')} × ${labels[j].replace('-USD','')}</strong><br/>Correlation: <span style="color:${val >= 0 ? '#22c55e' : '#ef4444'}">${val >= 0 ? '+' : ''}${val.toFixed(3)}</span>`);
+                        .html(`<strong>${labels[i].replace('-USD','')} - ${labels[j].replace('-USD','')}</strong><br/>Correlation: <span style="color:${val >= 0 ? '#22c55e' : '#ef4444'}">${val >= 0 ? '+' : ''}${val.toFixed(3)}</span>`);
                 })
                 .on('mousemove', function(event) {
                     tooltip.style('left', (event.clientX + 12) + 'px').style('top', (event.clientY - 10) + 'px');
@@ -747,12 +747,12 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             <button class="timeframe-btn" onclick="toggleOverlay('vol')">VOL RIBBONS</button>
         </div>
         
-        <!-- ─── Advanced Charting Grid ──────────────────────────── -->
+        <!-- Advanced Charting Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
-            <!-- ─── RSI (14) + Volume ───────────────────────────────── -->
+            <!-- RSI (14) + Volume -->
             <div class="zoomable-panel" onclick="expandChart('detail-rsi-vol', 'RSI & Volume Profile')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">RSI (14) · VOLUME</span>
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">RSI (14) - VOLUME</span>
                 <span id="detail-rsi-label" style="font-size:0.55rem;color:var(--text-dim);margin-left:auto"></span>
             </div>
             <div class="chart-canvas-wrapper" style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
@@ -760,7 +760,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             </div>
         </div>
 
-            <!-- ─── Z-Score Anomaly Index ───────────────────────────── -->
+            <!-- Z-Score Anomaly Index -->
             <div class="zoomable-panel" onclick="expandChart('detail-zscore', 'Z-Score Oscillator')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">Z-SCORE ANOMALY INDEX</span>
@@ -771,10 +771,10 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             </div>
         </div>
 
-            <!-- ─── Signal History Scatter ──────────────────────────── -->
+            <!-- Signal History Scatter -->
             <div class="zoomable-panel" onclick="expandChart('detail-signal-scatter', 'Signal History')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">SIGNAL HISTORY · ${ticker}</span>
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">SIGNAL HISTORY - ${ticker}</span>
                 <span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">past 30 signals</span>
                 <span id="detail-scatter-label" style="font-size:0.55rem;margin-left:auto"></span>
             </div>
@@ -782,8 +782,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 <canvas id="detail-signal-scatter"></canvas>
             </div>
             <div style="display:flex;gap:12px;margin-top:6px">
-                <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; LONG · TP hit</span>
-                <span style="font-size:0.5rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; SHORT · SL hit</span>
+                <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; LONG - TP hit</span>
+                <span style="font-size:0.5rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; SHORT - SL hit</span>
                 <span style="font-size:0.5rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9651; Open signal</span>
             </div>
             </div>
@@ -924,7 +924,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                     }
 
                     if (window.activeOverlays?.vol) {
-                        // Bollinger Bands (20, 2σ)
+                        // Bollinger Bands (20, 2-)
                         const window20 = 20;
                         const bbs = closes.map((_, i) => {
                             if (i < window20) return null;
@@ -992,7 +992,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         ro.observe(chartEl);
     })();
 
-    // ── Chart helpers ─────────────────────────────────────────────────
+    // - Chart helpers -
     const _monoFont = { family: 'JetBrains Mono', size: 9 };
     const _gridColor = alphaColor(0.04);
 
@@ -1024,7 +1024,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         });
     }
 
-    // ── 1. RSI (14) + Volume ──────────────────────────────────────────
+    // - 1. RSI (14) + Volume -
     (async () => {
         // Wait briefly for lwChart klines to populate window._detailKlines
         await new Promise(r => setTimeout(r, 800));
@@ -1067,7 +1067,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                     datalabels: { display: false },
                     tooltip: {
                         filter: item => item.datasetIndex === 0,
-                        callbacks: { label: ctx => `RSI: ${ctx.parsed.y?.toFixed(1) ?? '—'}` }
+                        callbacks: { label: ctx => `RSI: ${ctx.parsed.y?.toFixed(1) ?? '-'}` }
                     }
                 },
                 scales: {
@@ -1079,7 +1079,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         });
     })();
 
-    // ── 2. Z-Score Anomaly Index ──────────────────────────────────────
+    // - 2. Z-Score Anomaly Index -
     (() => {
         const ctx = document.getElementById('detail-zscore-chart');
         if (!ctx || !history || history.length < 21) return;
@@ -1106,8 +1106,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             data: {
                 labels,
                 datasets: [
-                    { type: 'line', label: '+2σ', data: new Array(labels.length).fill(2),  borderColor: 'rgba(239,68,68,0.3)',  borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, yAxisID: 'yZ' },
-                    { type: 'line', label: '-2σ', data: new Array(labels.length).fill(-2), borderColor: 'rgba(239,68,68,0.3)',  borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, yAxisID: 'yZ' },
+                    { type: 'line', label: '+2-', data: new Array(labels.length).fill(2),  borderColor: 'rgba(239,68,68,0.3)',  borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, yAxisID: 'yZ' },
+                    { type: 'line', label: '-2-', data: new Array(labels.length).fill(-2), borderColor: 'rgba(239,68,68,0.3)',  borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, yAxisID: 'yZ' },
                     { type: 'line', label: 'Z',   data: zs, borderColor: '#00f2ff', borderWidth: 1.5, pointRadius: 0, fill: false,
                       segment: { borderColor: ctx2 => {
                           const v = ctx2.p1.parsed.y;
@@ -1119,7 +1119,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: { filter: i => i.datasetIndex === 2, callbacks: { label: c => `Z-Score: ${c.parsed.y?.toFixed(2) ?? '—'}` } } },
+                plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: { filter: i => i.datasetIndex === 2, callbacks: { label: c => `Z-Score: ${c.parsed.y?.toFixed(2) ?? '-'}` } } },
                 scales: {
                     x:  { display: false, grid: { display: false } },
                     yZ: { position: 'left', grid: { color: _gridColor }, ticks: { color: '#888', font: _monoFont, maxTicksLimit: 5 } }
@@ -1128,7 +1128,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         });
     })();
 
-    // ── 3. Signal History Scatter ─────────────────────────────────────
+    // - 3. Signal History Scatter -
     (async () => {
         const ctx = document.getElementById('detail-signal-scatter');
         if (!ctx) return;
@@ -1147,7 +1147,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             const opens   = alerts.filter(a => !a.closed_at).length;
             if (labelEl) {
                 const wr = tpHits + slHits > 0 ? Math.round(tpHits / (tpHits + slHits) * 100) : 0;
-                labelEl.textContent = `WR ${wr}% · ${opens} open`;
+                labelEl.textContent = `WR ${wr}% - ${opens} open`;
                 labelEl.style.color = wr >= 55 ? '#22c55e' : wr >= 40 ? '#facc15' : '#ef4444';
             }
 
@@ -1185,7 +1185,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                             callbacks: {
                                 label: c => {
                                     const d = c.raw;
-                                    return `${d.dir || '?'} · ${d.y > 0 ? '+' : ''}${d.y}% · ${d.closed ? (d.outcome || 'Closed') : 'Open'}`;
+                                    return `${d.dir || '?'} - ${d.y > 0 ? '+' : ''}${d.y}% - ${d.closed ? (d.outcome || 'Closed') : 'Open'}`;
                                 }
                             }
                         }
@@ -1310,7 +1310,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         <option value="ADA-USD" ${ticker === 'ADA-USD' ? 'selected' : ''}>ADA-USD (Cardano)</option>
                         <option value="AVAX-USD" ${ticker === 'AVAX-USD' ? 'selected' : ''}>AVAX-USD (Avalanche)</option>
                         <option value="XRP-USD" ${ticker === 'XRP-USD' ? 'selected' : ''}>XRP-USD (Ripple)</option>
-                        <option value="_custom" ${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'selected' : ''}>✏ Custom Symbol...</option>
+                        <option value="_custom" ${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'selected' : ''}>- Custom Symbol...</option>
                     </select>
                     <input id="strat-custom-ticker" type="text" placeholder="e.g. AAPL, DOGE-USD..." value="${!(['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker)) ? ticker : ''}" style="display:${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'block' : 'none'};width:100%;border-radius:8px;padding:10px;border:1px solid rgba(0,212,170,0.4);color:var(--text);font-family:'Outfit';margin-top:8px" onkeydown="if(event.key==='Enter'&&this.value.trim()){window._slPersist(this.value.trim(),null);runStrategyBacktest(this.value.trim(),document.getElementById('strat-type').value,20,50);}">
                     <script>document.getElementById('strat-ticker')?.addEventListener('change',function(){document.getElementById('strat-custom-ticker').style.display=this.value==='_custom'?'block':'none';});<\/script>
@@ -1320,7 +1320,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <div class="control-box">
                     <label>QUANT STRATEGY</label>
                     <select id="strat-type" class="strat-select" onchange="window._slPersist(null, this.value); runStrategyBacktest(document.getElementById('strat-ticker').value==='_custom'?(document.getElementById('strat-custom-ticker')?.value||'BTC-USD'):document.getElementById('strat-ticker').value, this.value, document.getElementById('strat-fast')?.value || 20, document.getElementById('strat-slow')?.value || 50)">
-                        <optgroup label="── Classic Technicals ──">
+                        <optgroup label="- Classic Technicals -">
                         <option value="trend_regime" ${strategy === 'trend_regime' ? 'selected' : ''}>EMA Crossover (Custom)</option>
                         <option value="volatility_breakout" ${strategy === 'volatility_breakout' ? 'selected' : ''}>Volatility Breakout (Keltner)</option>
                         <option value="rsi_mean_revert" ${strategy === 'rsi_mean_revert' ? 'selected' : ''}>RSI Mean Reversion (Trend-Filtered)</option>
@@ -1332,7 +1332,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         <option value="supertrend" ${strategy === 'supertrend' ? 'selected' : ''}>Adaptive Supertrend Volatility System</option>
                         <option value="obv_flow" ${strategy === 'obv_flow' ? 'selected' : ''}>Smart Money Flow Divergence (OBV/CVD)</option>
                         </optgroup>
-                        <optgroup label="── Phase 15 Quant ──">
+                        <optgroup label="- Phase 15 Quant -">
                         <option value="pairs_trading" ${strategy === 'pairs_trading' ? 'selected' : ''}>Pairs Trading (BTC/ETH Spread Z-Score)</option>
                         <option value="momentum_ignition" ${strategy === 'momentum_ignition' ? 'selected' : ''}>Momentum Ignition (20D Accel + Vol Spike)</option>
                         <option value="regime_carry" ${strategy === 'regime_carry' ? 'selected' : ''}>Regime-Filtered Carry (200D EMA)</option>
@@ -1414,7 +1414,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <div class="glass-card" style="margin-top: 20px; padding: 20px">
                     <div class="card-header" style="margin-bottom:15px">
                         <h3>Monte Carlo Trajectory Matrix</h3>
-                        <span class="label-tag">200 SIM · P5/P50/P95 BANDS</span>
+                        <span class="label-tag">200 SIM - P5/P50/P95 BANDS</span>
                     </div>
                     <div style="height: 350px; position:relative;">
                         <canvas id="monteCarloChart"></canvas>
@@ -1429,7 +1429,7 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <div class="glass-card" style="margin-top: 20px; padding: 20px">
                     <div class="card-header" style="margin-bottom:15px">
                         <h3>Walk-Forward Optimisation</h3>
-                        <span class="label-tag">6 FOLDS · 2Y HISTORY</span>
+                        <span class="label-tag">6 FOLDS - 2Y HISTORY</span>
                     </div>
                     <div id="walk-forward-panel" style="min-height:120px">
                         <div style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--text-dim);font-size:0.85rem">
@@ -1491,16 +1491,16 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
             if (wfData && wfData.folds) renderWalkForwardPanel(wfData);
         } catch(e) {
             const el = document.getElementById('walk-forward-panel');
-            if (el) el.innerHTML = '<p style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:1rem">Walk-forward unavailable — requires 2y of data.</p>';
+            if (el) el.innerHTML = '<p style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:1rem">Walk-forward unavailable - requires 2y of data.</p>';
         }
     }, 800);
 
-    // Strategy Leaderboard — auto-run silently after walk-forward completes
+    // Strategy Leaderboard - auto-run silently after walk-forward completes
     setTimeout(() => { if (typeof runStrategyCompare === 'function') runStrategyCompare(ticker); }, 1400);
 }
 
 function shareStrategyResult(ticker, returns) {
-    const text = `Validating my alpha on ${ticker} with AlphaSignal Strategy Lab. Strategy Return: ${returns}% (180D). 🚀 #AlphaSignal #CryptoIntelligence`;
+    const text = `Validating my alpha on ${ticker} with AlphaSignal Strategy Lab. Strategy Return: ${returns}% (180D). - #AlphaSignal #CryptoIntelligence`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
 }
 
@@ -1528,7 +1528,7 @@ function openNewsArticle(index) {
             ${news.content || `<p>${news.summary}</p><p>Full intelligence report is currently being synthesized by AlphaSignal Prime. Check back shortly for deep-dive analysis into the institutional flow dynamics of ${news.ticker}.</p>`}
         </div>
         <div class="article-footer">
-            <span>© 2026 AlphaSignal Institutional</span>
+            <span>- 2026 AlphaSignal Institutional</span>
             <button class="timeframe-btn" onclick="document.getElementById('news-modal').classList.add('hidden')">CLOSE INTEL</button>
         </div>
     `;
@@ -1572,11 +1572,11 @@ async function loadRiskMatrix(tickers = null) {
                 </span>
                 <span style="display:flex;align-items:center;gap:5px">
                     <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(0,242,255,0.75);flex-shrink:0"></span>
-                    <span style="color:rgba(0,242,255,0.9)">0 – +5% POSITIVE ALPHA</span>
+                    <span style="color:rgba(0,242,255,0.9)">0 - +5% POSITIVE ALPHA</span>
                 </span>
                 <span style="display:flex;align-items:center;gap:5px">
                     <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(250,204,21,0.8);flex-shrink:0"></span>
-                    <span style="color:rgba(250,204,21,0.9)">-5% – 0 SLIGHT DRAG</span>
+                    <span style="color:rgba(250,204,21,0.9)">-5% - 0 SLIGHT DRAG</span>
                 </span>
                 <span style="display:flex;align-items:center;gap:5px">
                     <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(239,68,68,0.85);flex-shrink:0"></span>
@@ -1608,7 +1608,7 @@ async function loadRiskMatrix(tickers = null) {
         </div>
     `;
 
-    // ── Efficient Frontier Scatter ─────────────────────────────────────────
+    // - Efficient Frontier Scatter -
     // Use real vol/alpha/return from the stress-test engine (already computed vs BTC)
     setTimeout(() => {
         const scatterCtx = document.getElementById('riskScatterChart');
@@ -1622,7 +1622,7 @@ async function loadRiskMatrix(tickers = null) {
                 ticker: a.ticker.split('-')[0],
                 beta: a.beta
             }));
-            // Filter extreme vol outliers — anything > 300% ann. vol skews the axis badly
+            // Filter extreme vol outliers - anything > 300% ann. vol skews the axis badly
             // (these are typically micro-caps or assets with corrupt price data)
             const VOL_CAP = 300;
             scatterPoints = raw.filter(p => p.x <= VOL_CAP);

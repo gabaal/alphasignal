@@ -72,13 +72,13 @@ async function renderWhales(tabs = null) {
                     </div>
                 </div>
             </div>
-        </div>`; // ← end of main innerHTML (after polar chart section)
+        </div>`; // - end of main innerHTML (after polar chart section)
 
     if (entityData && entityData.flow_history) {
         renderWhaleFlowChart(entityData.flow_history);
     }
 
-    // ── 1. Whale Wallet Flow Network chart (appears first) ──────────────
+    // - 1. Whale Wallet Flow Network chart (appears first) -
     const sankeyEl = document.createElement('div');
     sankeyEl.className = 'card';
     sankeyEl.style.cssText = 'padding:1.5rem;margin-top:2rem;border:1px solid rgba(0,242,255,0.12);';
@@ -87,7 +87,7 @@ async function renderWhales(tabs = null) {
             <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">account_balance_wallet</span>WHALE WALLET FLOW NETWORK</h3>
             <div style="display:flex;align-items:center;gap:10px">
                 <span style="font-size:0.55rem;color:var(--text-dim);">BTC/ETH 24H NET FLOWS BETWEEN ENTITY TYPES</span>
-                <span style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e">● LIVE · whale-sankey</span>
+                <span style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e">- LIVE - whale-sankey</span>
             </div>
         </div>
         <div style="height:260px;position:relative;"><canvas id="whaleSankeyCanvas" role="img" aria-label="Whale capital flow sankey diagram"></canvas></div>
@@ -158,7 +158,7 @@ async function renderWhales(tabs = null) {
         });
     }, 200);
 
-    // ── 2. Whale Transaction List (at the bottom) ───────────────────────
+    // - 2. Whale Transaction List (at the bottom) -
     const txListEl = document.createElement('div');
     txListEl.style.marginTop = '2rem';
     const whaleRows = data.results || data || [];

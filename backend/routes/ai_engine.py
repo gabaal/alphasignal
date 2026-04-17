@@ -1,9 +1,9 @@
 """
 Phase 15-B: AI Narrative Engine
 Provides GPT-4o-mini powered endpoints:
-  - /api/ai-memo       GET  — Daily institutional market memo (15min cache)
-  - /api/ask-terminal  POST — Natural language query with terminal context
-  - /api/signal-thesis GET  — 2-sentence trade thesis for a specific signal
+  - /api/ai-memo       GET  - Daily institutional market memo (15min cache)
+  - /api/ask-terminal  POST - Natural language query with terminal context
+  - /api/signal-thesis GET  - 2-sentence trade thesis for a specific signal
 """
 import json, urllib.parse, os, time
 from datetime import datetime
@@ -37,18 +37,18 @@ def _static_fallback_memo():
     return {
         'generated_at': now,
         'memo': (
-            "**Macro Context** — Global risk appetite remains compressed as central bank "
+            "**Macro Context** - Global risk appetite remains compressed as central bank "
             "forward guidance continues to weigh on leveraged positioning. Bitcoin dominance "
             "is consolidating near cycle highs, suggesting altcoin capital has not yet "
             "rotated in earnest. Watch for a DXY weakening catalyst.\n\n"
-            "**Key Opportunities** — On-chain accumulation patterns for BTC and ETH suggest "
+            "**Key Opportunities** - On-chain accumulation patterns for BTC and ETH suggest "
             "institutional wallets are absorbing spot supply at current levels. "
-            "The 180-day EMA crossover signal on SOL has historically preceded a 40–60% "
+            "The 180-day EMA crossover signal on SOL has historically preceded a 40-60% "
             "expansion phase. Risk-adjusted entries on crypto proxies (MSTR, MARA) "
             "offer favourable leverage to a BTC breakout.\n\n"
-            "**Risk Warnings** — Macro tail risks include unexpected CPI prints, geopolitical "
+            "**Risk Warnings** - Macro tail risks include unexpected CPI prints, geopolitical "
             "escalation affecting energy prices, and regulatory clarity timelines in the EU. "
-            "Funding rates on major perp pairs remain positive — a crowded long trade "
+            "Funding rates on major perp pairs remain positive - a crowded long trade "
             "could unwind rapidly on any negative catalyst."
         ),
         'source': 'static_template'
@@ -82,7 +82,7 @@ class AIEngineRoutesMixin:
         except Exception:
             pass
 
-        context = '\n'.join(context_lines) if context_lines else 'Live data unavailable — use general crypto market knowledge.'
+        context = '\n'.join(context_lines) if context_lines else 'Live data unavailable - use general crypto market knowledge.'
         system_prompt = (
             "You are an elite institutional crypto market analyst writing for a professional trading desk. "
             "Write in a concise, authoritative style. No bullet points. Three paragraphs only. "
@@ -183,10 +183,10 @@ class AIEngineRoutesMixin:
                 print(f"[RAG Error] Failed to fetch ai_knowledge_base: {e}")
 
         system_prompt = (
-            "You are AlphaSignal Terminal — an institutional-grade crypto intelligence platform. "
+            "You are AlphaSignal Terminal - an institutional-grade crypto intelligence platform. "
             "Answer user questions about crypto markets, trading strategies, on-chain data, and "
             "the signals shown in the terminal. Be concise (max 150 words), precise, and actionable. "
-            "Use markdown for formatting. Never give financial advice disclaimers — this is a professional tool."
+            "Use markdown for formatting. Never give financial advice disclaimers - this is a professional tool."
         ) + proprietary_memory
 
         try:
@@ -239,7 +239,7 @@ class AIEngineRoutesMixin:
         signal  = query.get('signal', ['LONG'])[0]
         zscore  = query.get('zscore', ['2.1'])[0]
 
-        # ── Fetch live price so the LLM is grounded to the actual current price ──
+        # - Fetch live price so the LLM is grounded to the actual current price -
         live_price = None
         try:
             import sqlite3
@@ -274,7 +274,7 @@ class AIEngineRoutesMixin:
                 'thesis': (
                     f"**{ticker} {signal} Setup:** Statistical Z-Score deviation of {zscore}\u03c3 "
                     f"indicates a high-conviction momentum expansion phase at {price_str}. "
-                    f"Institutional accumulation patterns corroborate directional bias — "
+                    f"Institutional accumulation patterns corroborate directional bias - "
                     f"target the next liquidity band with a 2:1 risk-reward profile."
                 ),
                 'source': 'template'
@@ -282,7 +282,7 @@ class AIEngineRoutesMixin:
             return
 
         price_anchor = (
-            f" The current live price is ${live_price:,.4f} — ALL price levels, entries, "
+            f" The current live price is ${live_price:,.4f} - ALL price levels, entries, "
             f"stop-losses, and targets in your thesis MUST be quoted relative to this live price."
         ) if live_price else ""
 
@@ -563,7 +563,7 @@ class AIEngineRoutesMixin:
             self.send_json({'explanation': f'Analysis unavailable: {str(e)}', 'source': 'error'})
 
     def handle_market_brief(self):
-        """AI Daily Market Brief — 4h cached, all logged-in users."""
+        """AI Daily Market Brief - 4h cached, all logged-in users."""
         global _brief_cache
         now_ts = time.time()
         _BRIEF_TTL = 4 * 3600  # 4 hours
@@ -595,7 +595,7 @@ class AIEngineRoutesMixin:
             """)
             sigs = cur.fetchall()
             for sig in sigs:
-                context_lines.append(f"Signal: {sig[1]} {sig[0]} ({sig[3]}) — {(sig[2] or '')[:80]}")
+                context_lines.append(f"Signal: {sig[1]} {sig[0]} ({sig[3]}) - {(sig[2] or '')[:80]}")
             db.close()
         except Exception:
             pass
@@ -606,16 +606,16 @@ class AIEngineRoutesMixin:
         if not client:
             result = {
                 'brief': (
-                    "**Macro Context** — Global risk appetite remains measured as institutional capital "
+                    "**Macro Context** - Global risk appetite remains measured as institutional capital "
                     "continues to rotate selectively into high-conviction crypto infrastructure plays. "
                     "Bitcoin dominance holds above 50%, signalling a defensive posture among large allocators.\n\n"
-                    "**BTC Outlook** — Price action is consolidating within a well-defined accumulation range. "
+                    "**BTC Outlook** - Price action is consolidating within a well-defined accumulation range. "
                     "On-chain data points to long-term holder supply absorption at current levels, with exchange "
-                    "reserves continuing their multi-month decline — a structurally bullish backdrop.\n\n"
-                    "**Top Signals** — The AlphaSignal engine flagged elevated RSI readings across L1 assets and "
+                    "reserves continuing their multi-month decline - a structurally bullish backdrop.\n\n"
+                    "**Top Signals** - The AlphaSignal engine flagged elevated RSI readings across L1 assets and "
                     "ML-alpha predictions on select DeFi tokens. Volume spikes on ETH and SOL suggest institutional "
                     "rebalancing ahead of a narrative catalyst window.\n\n"
-                    "**Risk Factors** — Key macro risk remains the Fed's forward guidance trajectory. "
+                    "**Risk Factors** - Key macro risk remains the Fed's forward guidance trajectory. "
                     "A hawkish surprise on this week's PCE print could trigger a short-term risk-off flush. "
                     "Manage position sizing accordingly and maintain stop discipline."
                 ),
@@ -689,7 +689,7 @@ class AIEngineRoutesMixin:
             f"ATM IV: {atm_iv}%\n"
             f"IV Rank: {iv_rank}\n"
             f"Zero-Gamma Pivot: ${zero_gamma}\n"
-            f"Expected 7D Move: ±${exp_move}\n"
+            f"Expected 7D Move: -${exp_move}\n"
             f"25-Delta Skew: {skew}%\n"
             f"Unusual Flow Anomalies: {anomalies} strikes\n"
         )

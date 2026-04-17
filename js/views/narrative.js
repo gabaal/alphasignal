@@ -32,7 +32,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         </div>
 
         <div class="galaxy-container" style="position:relative; width:100%; height:600px; background: ${document.documentElement.getAttribute('data-theme') === 'light' ? 'radial-gradient(circle at center, #ffffff 0%, #e2e8f0 100%)' : 'radial-gradient(circle at center, #0a0b1e 0%, #000 100%)'}; border-radius:16px; overflow:hidden; border:1px solid ${alphaColor(0.05)}">
-            <canvas id="galaxyCanvas" role="img" aria-label="Narrative galaxy bubble chart � social mindshare visualization" style="width:100%; height:100%"></canvas>
+            <canvas id="galaxyCanvas" role="img" aria-label="Narrative galaxy bubble chart - social mindshare visualization" style="width:100%; height:100%"></canvas>
             <div id="galaxyTooltip" class="galaxy-tooltip" style="display:none; position:absolute; pointer-events:none; z-index:1000"></div>
             
             <div class="galaxy-legend" style="position:absolute; bottom:20px; right:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;  padding:1rem; border-radius:8px; border:1px solid var(--border)">
@@ -111,7 +111,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         <!-- Sentiment Velocity Heatmap -->
         ${data.clusters && data.clusters.length ? `
         <div class="glass-card" style="padding:1.5rem;margin-top:1.5rem">
-            <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">NARRATIVE SENTIMENT VELOCITY � TOP 20 SIGNALS</div>
+            <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:1rem">NARRATIVE SENTIMENT VELOCITY - TOP 20 SIGNALS</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
                 ${(data.clusters || []).sort((a,b) => Math.abs(b.sentiment||0) - Math.abs(a.sentiment||0)).slice(0,20).map(c => {
                     const sent = c.sentiment || 0;
@@ -121,7 +121,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                     const bar   = Math.min(Math.abs(sent) * 100, 100);
                     const anchor = data.anchors?.[c.category] || {};
                     return `<div style="background:${bg};border:1px solid ${color}22;border-radius:8px;padding:10px">
-                        <div style="font-size:0.65rem;font-weight:800;color:var(--text);margin-bottom:2px">${(c.ticker||'�').replace('-USD','')}</div>
+                        <div style="font-size:0.65rem;font-weight:800;color:var(--text);margin-bottom:2px">${(c.ticker||'-').replace('-USD','')}</div>
                         <div style="font-size:0.5rem;color:var(--text-dim);margin-bottom:6px">${c.category || ''}</div>
                         <div style="height:3px;background:${alphaColor(0.06)};border-radius:2px;margin-bottom:4px">
                             <div style="height:3px;background:${color};border-radius:2px;width:${bar}%"></div>
@@ -145,7 +145,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
 
     let clusters = data.clusters || [];
 
-    // ── Axis layout constants ──────────────────────────────────────────────
+    // - Axis layout constants -
     const PAD_LEFT   = 52;   // room for Y-axis labels
     const PAD_BOTTOM = 36;   // room for X-axis labels
     const PAD_TOP    = 16;
@@ -153,25 +153,25 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     const plotW = rect.width  - PAD_LEFT - PAD_RIGHT;
     const plotH = rect.height - PAD_TOP  - PAD_BOTTOM;
 
-    // ── Map bubbles from sentiment + momentum onto padded plot area ──────────
-    // sentiment: –1.0 → +1.0  maps to  left → right (X axis)
-    // momentum:  –25% → +25%  maps to  bottom → top (Y axis, canvas inverted)
-    const SENT_RANGE = 1.0;   // clamp sentiment to ±1.0
-    const MOM_RANGE  = 7.5;   // clamp momentum  to ±7.5 %
+    // - Map bubbles from sentiment + momentum onto padded plot area -
+    // sentiment: -1.0 - +1.0  maps to  left - right (X axis)
+    // momentum:  -25% - +25%  maps to  bottom - top (Y axis, canvas inverted)
+    const SENT_RANGE = 1.0;   // clamp sentiment to -1.0
+    const MOM_RANGE  = 7.5;   // clamp momentum  to -7.5 %
 
     const stars = clusters.map(c => {
         const sent = Math.max(-SENT_RANGE, Math.min(SENT_RANGE, c.sentiment || 0));
         const mom  = Math.max(-MOM_RANGE,  Math.min(MOM_RANGE,  c.momentum  || 0));
-        // X: –1 → PAD_LEFT, +1 → PAD_LEFT + plotW
+        // X: -1 - PAD_LEFT, +1 - PAD_LEFT + plotW
         const x = PAD_LEFT + ((sent + SENT_RANGE) / (2 * SENT_RANGE)) * plotW;
-        // Y: +MOM → PAD_TOP (top), –MOM → PAD_TOP + plotH (bottom)
+        // Y: +MOM - PAD_TOP (top), -MOM - PAD_TOP + plotH (bottom)
         const y = PAD_TOP  + ((MOM_RANGE - mom) / (2 * MOM_RANGE)) * plotH;
         return { ...c, x, y };
     });
     const hoverScale = 1.2;
     let hoveredStar = null;
 
-    // ── Axis drawing helper ────────────────────────────────────────────────
+    // - Axis drawing helper -
     function drawAxes() {
         const TICK_COUNT  = 5;
         const TICK_LEN    = 4;
@@ -186,7 +186,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         ctx.font = '9px Inter, sans-serif';
         ctx.textBaseline = 'middle';
 
-        // ── Vertical grid lines + X-axis ticks ──
+        // - Vertical grid lines + X-axis ticks -
         for (let i = 0; i <= TICK_COUNT; i++) {
             const x = axisX + (plotW / TICK_COUNT) * i;
             // grid line
@@ -202,14 +202,14 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             ctx.moveTo(x, axisY);
             ctx.lineTo(x, axisY + TICK_LEN);
             ctx.stroke();
-            // label: sentiment –1.0 → +1.0
+            // label: sentiment -1.0 - +1.0
             const val = ((i / TICK_COUNT) * 2 - 1).toFixed(1);
             ctx.fillStyle = labelColor;
             ctx.textAlign = 'center';
             ctx.fillText((parseFloat(val) > 0 ? '+' : '') + val, x, axisY + TICK_LEN + 9);
         }
 
-        // ── Horizontal grid lines + Y-axis ticks ──
+        // - Horizontal grid lines + Y-axis ticks -
         for (let i = 0; i <= TICK_COUNT; i++) {
             const y = PAD_TOP + (plotH / TICK_COUNT) * i;
             // grid line
@@ -225,14 +225,14 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             ctx.moveTo(axisX - TICK_LEN, y);
             ctx.lineTo(axisX, y);
             ctx.stroke();
-            // label: momentum +5% → –5% (canvas Y inverted)
+            // label: momentum +5% -5% (canvas Y inverted)
             const val = (((TICK_COUNT - i) / TICK_COUNT) * 2 * MOM_RANGE - MOM_RANGE).toFixed(1);
             ctx.fillStyle = labelColor;
             ctx.textAlign = 'right';
             ctx.fillText((parseFloat(val) > 0 ? '+' : '') + val + '%', axisX - TICK_LEN - 3, y);
         }
 
-        // ── Axis lines ──
+        // - Axis lines -
         ctx.beginPath();
         ctx.strokeStyle = axisColor;
         ctx.lineWidth = 1;
@@ -244,7 +244,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         ctx.lineTo(axisX + plotW, axisY);
         ctx.stroke();
 
-        // ── Zero cross-hair lines ──
+        // - Zero cross-hair lines -
         const zeroX = axisX + plotW / 2;
         const zeroY = PAD_TOP + plotH / 2;
         ctx.beginPath();
@@ -258,18 +258,18 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // ── Axis labels ──
+        // - Axis labels -
         ctx.font = 'bold 9px Inter, sans-serif';
         ctx.fillStyle = accentColor;
         ctx.textAlign = 'center';
         ctx.letterSpacing = '1px';
         // X label
-        ctx.fillText('SENTIMENT  →', axisX + plotW / 2, axisY + PAD_BOTTOM - 4);
+        ctx.fillText('SENTIMENT  -', axisX + plotW / 2, axisY + PAD_BOTTOM - 4);
         // Y label (rotated)
         ctx.save();
         ctx.translate(10, PAD_TOP + plotH / 2);
         ctx.rotate(-Math.PI / 2);
-        ctx.fillText('MOMENTUM  ↑', 0, 0);
+        ctx.fillText('MOMENTUM  -', 0, 0);
         ctx.restore();
 
         ctx.restore();

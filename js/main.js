@@ -42,7 +42,7 @@ const viewMap = {
     tradelab: renderTradeLab,
     liquidity: renderLiquidityView,
     home: renderHome,
-    // Legacy explain-* routes — redirect to new docs-* equivalents
+    // Legacy explain-* routes - redirect to new docs-* equivalents
     'explain-signals': () => switchView('docs-signals'),
     'explain-briefing': () => switchView('docs-briefing'),
     'explain-liquidity': () => switchView('docs-order-flow'),
@@ -197,10 +197,10 @@ const viewMap = {
 
 function shareSignal(ticker, alpha, sentiment, zScore) {
     const sentimentLabel = sentiment > 0.1 ? 'BULLISH' : (sentiment < -0.1 ? 'BEARISH' : 'NEUTRAL');
-    const text = `🚨 AlphaSignal Terminal Update: $${ticker}\n\n` +
-        `📈 Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
-        `🧠 Sentiment Synthesis: ${sentimentLabel}\n` +
-        `⚡ Z-Score Intensity: ${zScore.toFixed(2)}\n\n` +
+    const text = `- AlphaSignal Terminal Update: $${ticker}\n\n` +
+        `- Relative Alpha: ${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%\n` +
+        `- Sentiment Synthesis: ${sentimentLabel}\n` +
+        `- Z-Score Intensity: ${zScore.toFixed(2)}\n\n` +
         `Institutional intelligence detected. View the full terminal:\n`;
 
     // Construct sharing URL
@@ -245,7 +245,7 @@ async function toggleInlineThesis(ticker, dir, zscore, cardId) {
         const data = await fetchAPI(`/signal-thesis?ticker=${ticker}&signal=${dir}&zscore=${zscore}`);
         const text = data?.thesis || 'Analysis unavailable.';
         const html = `<span style="color:rgba(188,19,254,0.7);font-size:0.72rem;font-weight:900;letter-spacing:1px;display:block;margin-bottom:6px">
-            ${ticker} · ${dir} · Z: ${zscore}σ</span>${text}`;
+            ${ticker} - ${dir} - Z: ${zscore}-</span>${text}`;
         window._thesisCache[cacheKey] = html;
         bodyEl.innerHTML = html;
     } catch (e) {
@@ -604,7 +604,7 @@ function initLivePriceStream() {
         if (!window.livePrices) window.livePrices = {};
         Object.assign(window.livePrices, p); // BTC, ETH, SOL from WS
 
-        // ── Watchlist Target Price Alerts ──────────────────────
+        // - Watchlist Target Price Alerts -
         if (typeof checkWatchlistAlerts === 'function' && window.isAuthenticatedUser) checkWatchlistAlerts(p);
 
         if (p.BTC) {
@@ -785,7 +785,7 @@ async function loadAIMemo() {
         await window.fetchStreamingAPI('/ai-memo?stream=true', 'GET', null,
             (chunk) => {
                 fullText += chunk;
-                body.innerHTML = `<p>${formatMemoMarkdown(fullText)}<span style="opacity:0.6">█</span></p>`;
+                body.innerHTML = `<p>${formatMemoMarkdown(fullText)}<span style="opacity:0.6">-</span></p>`;
             },
             () => {
                 body.innerHTML = `<p>${formatMemoMarkdown(fullText)}</p>`;
@@ -837,7 +837,7 @@ async function renderAskTerminal() {
                     style="flex:1;min-height:44px;max-height:120px;background:none;border:none;color:white;font-family:'Outfit';font-size:0.9rem;resize:none;outline:none;line-height:1.5"
                     onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitAIQuery()}"></textarea>
                 <button id="ask-terminal-send" onclick="submitAIQuery()" style="background:#bc13fe;border:none;color:white;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700;letter-spacing:1px;white-space:nowrap">
-                    ASK →
+                    ASK -
                 </button>
             </div>
             <div style="font-size:0.65rem;color:var(--text-dim);margin-top:8px;text-align:center">Press Enter to send &bull; Shift+Enter for new line &bull; Powered by GPT-4o-mini</div>
@@ -884,7 +884,7 @@ async function submitAIQuery(prefill) {
         await window.fetchStreamingAPI('/ask-terminal?stream=true', 'POST', { query },
             (chunk) => {
                 fullText += chunk;
-                if (el) el.innerHTML = formatMemoMarkdown(fullText) + '<span style="opacity:0.6">█</span>';
+                if (el) el.innerHTML = formatMemoMarkdown(fullText) + '<span style="opacity:0.6">-</span>';
                 history.scrollTop = history.scrollHeight;
             },
             () => {
@@ -898,7 +898,7 @@ async function submitAIQuery(prefill) {
         const el = document.getElementById(respId);
         if (el) el.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
     } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'ASK →'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'ASK -'; }
         history.scrollTop = history.scrollHeight;
     }
 }
@@ -917,7 +917,7 @@ async function openSignalThesisModal(ticker, signal, zscore) {
                     <span class="material-symbols-outlined" style="color:#bc13fe">psychology</span>
                     <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:#bc13fe">AI TRADE THESIS</span>
                 </div>
-                <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">${ticker} &bull; <span style="color:${signal === 'LONG' ? '#22c55e' : signal === 'SHORT' ? '#ef4444' : '#facc15'}">${signal}</span> &bull; Z-Score: ${zscore}Ïƒ</div>
+                <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">${ticker} &bull; <span style="color:${signal === 'LONG' ? '#22c55e' : signal === 'SHORT' ? '#ef4444' : '#facc15'}">${signal}</span> &bull; Z-Score: ${zscore}-</div>
                 <div id="thesis-body" style="font-size:0.9rem;line-height:1.7;color:var(--text);min-height:80px;margin-top:1rem">
                     <div style="display:flex;align-items:center;gap:8px;color:var(--text-dim)">
                         <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:18px">sync</span>Generating thesis...
@@ -969,9 +969,9 @@ function renderDocsAIEngine() {
         </div>`;
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// -
 // Phase 15-C: Export / Sharing Engine
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// -
 
 /**
  * Export any canvas element as a timestamped PNG download.
@@ -982,13 +982,13 @@ function renderDocsAIEngine() {
 // exportChartPNG, exportResearchReport, exportViewPDF, showExportMenu -> js/export.js
 // renderDocs* (second block) -> js/docs-b.js
 
-// ════════════════════════════════════════════════════════════════
-// v1.56 Feature: Live Signal Poller — ambient toast notifications
+// -
+// v1.56 Feature: Live Signal Poller - ambient toast notifications
 // PRO-gated. Polls /api/signals every 60s. Fires showSignalToast()
 // when a new signal ID appears vs localStorage._lastSignalId.
 // Respects the Alerts Hub sensitivity slider (z_threshold) and
-// the alerts_enabled toggle — both set via /alert-settings API.
-// ════════════════════════════════════════════════════════════════
+// the alerts_enabled toggle - both set via /alert-settings API.
+// -
 var _signalPollerInterval = null;
 var _pollerSettings = { z_threshold: 2.0, alerts_enabled: true }; // live cache from /alert-settings
 
@@ -1000,7 +1000,7 @@ async function _loadPollerSettings() {
             _pollerSettings.z_threshold = parseFloat(s.z_threshold ?? 2.0);
             _pollerSettings.alerts_enabled = s.alerts_enabled !== false;
         }
-    } catch (e) { /* silent — keep defaults */ }
+    } catch (e) { /* silent - keep defaults */ }
 }
 
 function startSignalPoller() {
@@ -1028,14 +1028,14 @@ function startSignalPoller() {
             const lastSeen = localStorage.getItem('_lastSignalId');
 
             if (latestId && latestId !== lastSeen) {
-                // New signal found — check against sensitivity threshold
+                // New signal found - check against sensitivity threshold
                 if (lastSeen !== null) {
                     // B14 fix: z_threshold is stored as % predicted alpha (e.g. 2.0 = 2%).
                     // Compare predicted_return * 100 (primary) or z_score as a % fallback.
-                    // Do NOT compare z_score (σ) directly — unit mismatch with z_threshold (%).
+                    // Do NOT compare z_score (-) directly - unit mismatch with z_threshold (%).
                     const predReturn = latest.predicted_return != null
-                        ? Math.abs(parseFloat(latest.predicted_return)) * 100   // decimal → %
-                        : Math.abs(parseFloat(latest.z_score ?? 0));            // σ fallback (approx)
+                        ? Math.abs(parseFloat(latest.predicted_return)) * 100   // decimal - %
+                        : Math.abs(parseFloat(latest.z_score ?? 0));            // - fallback (approx)
                     if (predReturn >= _pollerSettings.z_threshold) {
                         showSignalToast(latest);
                     }
@@ -1043,7 +1043,7 @@ function startSignalPoller() {
                 localStorage.setItem('_lastSignalId', latestId);
             }
         } catch (e) {
-            // Silent fail — poller must not break the terminal
+            // Silent fail - poller must not break the terminal
         }
     };
 

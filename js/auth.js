@@ -1,4 +1,4 @@
-// ── Fast-auth cache: skip network round-trip for returning users ──────────
+// - Fast-auth cache: skip network round-trip for returning users -
 const AUTH_CACHE_KEY = 'as_auth_v1';
 const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
@@ -88,7 +88,7 @@ function updatePremiumUI() {
         const canAccess = isPremiumUser || isFreeView || (isAuthenticatedUser && isFreeView);
         
         if (isPremiumUser || isPublicView) {
-            // Premium or public — fully unlock, remove all locks
+            // Premium or public - fully unlock, remove all locks
             const lock = item.querySelector('.premium-lock');
             if (lock) lock.remove();
             item.classList.remove('locked-nav');
@@ -98,7 +98,7 @@ function updatePremiumUI() {
             if (lock) lock.remove();
             item.classList.remove('locked-nav');
         } else if (!isAuthenticatedUser && isFreeView && !isPublicView) {
-            // Not logged in, free-tier view — show login lock
+            // Not logged in, free-tier view - show login lock
             item.classList.add('locked-nav');
             if (!item.querySelector('.premium-lock')) {
                 const lock = document.createElement('span');
@@ -263,7 +263,7 @@ async function manageSubscription() {
 }
 
 // ============================================================
-// Forgot Password — Supabase resetPasswordForEmail
+// Forgot Password - Supabase resetPasswordForEmail
 // ============================================================
 
 function initForgotPasswordLink() {
@@ -298,7 +298,7 @@ function showForgotPasswordPanel() {
         </button>
 
         <div style="text-align:center;margin-top:1.25rem">
-            <a href="#" onclick="restoreAuthPanel()" style="font-size:0.7rem;color:var(--text-dim);letter-spacing:0.5px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">← Back to sign in</a>
+            <a href="#" onclick="restoreAuthPanel()" style="font-size:0.7rem;color:var(--text-dim);letter-spacing:0.5px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">- Back to sign in</a>
         </div>
     `;
 }
@@ -326,10 +326,10 @@ async function handleForgotPassword() {
 
         if (error) throw error;
 
-        msgEl.textContent = '✓ Reset link sent — check your inbox (including spam).';
+        msgEl.textContent = '- Reset link sent - check your inbox (including spam).';
         msgEl.style.color = 'var(--risk-low)';
         msgEl.classList.remove('hidden');
-        btn.textContent = 'SENT ✓';
+        btn.textContent = 'SENT -';
     } catch (err) {
         msgEl.textContent = err.message || 'Failed to send reset email. Try again.';
         msgEl.style.color = 'var(--risk-high)';
@@ -346,7 +346,7 @@ function restoreAuthPanel() {
 }
 
 // ============================================================
-// Reset Password View — handles ?view=reset-password
+// Reset Password View - handles ?view=reset-password
 // reads Supabase token from URL hash automatically
 // ============================================================
 
@@ -407,7 +407,7 @@ async function handleResetPassword() {
         const { error } = await window._supabase.auth.updateUser({ password: newPw });
         if (error) throw error;
 
-        msgEl.textContent = '✓ Password updated. Redirecting to sign in...';
+        msgEl.textContent = '- Password updated. Redirecting to sign in...';
         msgEl.style.color = 'var(--risk-low)';
         msgEl.classList.remove('hidden');
 

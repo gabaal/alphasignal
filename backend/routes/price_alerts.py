@@ -1,5 +1,5 @@
 """
-Price Alert Routes — real-time threshold notifications
+Price Alert Routes - real-time threshold notifications
 GET  /api/price-alerts          list user's active alerts
 POST /api/price-alerts          create alert {ticker, target_price, direction, note}
 DELETE /api/price-alerts/<id>   delete alert
@@ -16,9 +16,9 @@ def _pa_escape(text):
     return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 
-# ─────────────────────────────────────────────────────────────
+# -
 # DB helpers
-# ─────────────────────────────────────────────────────────────
+# -
 
 def _init_price_alerts_table():
     conn = sqlite3.connect(DB_PATH)
@@ -54,9 +54,9 @@ def _get_current_price(ticker):
         return None
 
 
-# ─────────────────────────────────────────────────────────────
+# -
 # Notification helpers
-# ─────────────────────────────────────────────────────────────
+# -
 
 def _notify_price_alert(user_email, ticker, target_price, current_price, direction, note):
     ticker_clean = ticker.replace('-USD', '')
@@ -141,7 +141,7 @@ def _notify_price_alert(user_email, ticker, target_price, current_price, directi
             if row and row[0] and row[1]:  # has chat_id AND telegram not muted
                 icon = '\U0001f4c8' if direction == 'ABOVE' else '\U0001f4c9'
                 move_sign = '+' if move >= 0 else ''
-                # PA1: HTML mode — escape all user-supplied / computed content
+                # PA1: HTML mode - escape all user-supplied / computed content
                 msg = (
                     f"{icon} <b>Price Alert: {_pa_escape(ticker_clean)}</b>\n\n"
                     f"Your alert (<b>{'above' if direction == 'ABOVE' else 'below'}</b> "
@@ -178,7 +178,7 @@ def _archive_price_alert(user_email, ticker, target_price, current_price, direct
                 'price_alert',
                 ticker_clean,
                 f"Price alert triggered: {ticker_clean} {'above' if direction == 'ABOVE' else 'below'} "
-                f"${target_price:,.4f} — current ${current_price:,.4f} ({'+' if move>=0 else ''}{move:.2f}%)"
+                f"${target_price:,.4f} - current ${current_price:,.4f} ({'+' if move>=0 else ''}{move:.2f}%)"
                 + (f" | Note: {note}" if note else ""),
                 'HIGH',
                 datetime.utcnow().isoformat(),
@@ -191,16 +191,16 @@ def _archive_price_alert(user_email, ticker, target_price, current_price, direct
         print(f'[PriceAlert] Archive error: {e}', flush=True)
 
 
-# ─────────────────────────────────────────────────────────────
+# -
 # Background checker
-# ─────────────────────────────────────────────────────────────
+# -
 
 def start_price_alert_checker():
     """Check all active price alerts every 60 seconds."""
     _init_price_alerts_table()
 
     def _loop():
-        print('[PriceAlert] Checker started — polling every 60s', flush=True)
+        print('[PriceAlert] Checker started - polling every 60s', flush=True)
         while True:
             try:
                 conn = sqlite3.connect(DB_PATH)
@@ -264,9 +264,9 @@ def start_price_alert_checker():
     return t
 
 
-# ─────────────────────────────────────────────────────────────
+# -
 # HTTP Route Mixin
-# ─────────────────────────────────────────────────────────────
+# -
 
 class PriceAlertRoutesMixin:
 

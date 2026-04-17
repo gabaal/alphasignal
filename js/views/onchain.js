@@ -1,4 +1,4 @@
-// ── LightweightCharts axis label helper ──────────────────────────────────────
+// - LightweightCharts axis label helper -
 // Injects absolutely-positioned Y / X-axis titles onto any LW chart container.
 function _lwAxisLabel(container, yText, xText) {
     if (!container) return;
@@ -185,7 +185,7 @@ async function renderOnChain(tabs = null) {
         hashChart.addLineSeries({ color: alphaColor(0.4), lineWidth: 2, title: '60D Hash Ribbon' })
                  .setData(data.map(d=>({time: d.time, value: d.hash_slow})));
 
-        // â”â‚¬â”â‚¬ Investor Sentiment Index (composite: normalize MVRV + SOPR + Puell) â”â‚¬â”â‚¬
+        // - Investor Sentiment Index (composite: normalize MVRV + SOPR + Puell) -
         const sentimentData = (() => {
             const mvrvVals  = data.map(d => d.mvrv);
             const soprVals  = data.map(d => d.sopr);
@@ -203,13 +203,13 @@ async function renderOnChain(tabs = null) {
         // Zero baseline
         sentimentChart.addLineSeries({ color: alphaColor(0.2), lineWidth: 1, lineStyle: 2 }).setData(data.map(d => ({ time: d.time, value: 0 })));
 
-        // â”â‚¬â”â‚¬ CVD â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬
+        // - CVD -
         const cvdContainer = document.getElementById('cvd-chart');
         const cvdChart = LightweightCharts.createChart(cvdContainer, chartOpts(300));
         cvdChart.addAreaSeries({ topColor: 'rgba(96,165,250,0.4)', bottomColor: 'rgba(96,165,250,0.05)', lineColor: '#60a5fa', lineWidth: 2, title: 'CVD' })
                 .setData(data.map(d => ({ time: d.time, value: d.cvd })));
 
-        // â”â‚¬â”â‚¬ Exchange Net Flow â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬â”â‚¬
+        // - Exchange Net Flow -
         const exchflowContainer = document.getElementById('exchflow-chart');
         const exchflowChart = LightweightCharts.createChart(exchflowContainer, chartOpts(250));
         exchflowChart.addHistogramSeries({ priceFormat: { type: 'price', precision: 0 } })
@@ -228,7 +228,7 @@ async function renderOnChain(tabs = null) {
             { c: exchflowChart,   id: 'exchflow-chart',  h: 250 }
         ];
 
-        // ── Axis labels (HTML overlay — LightweightCharts has no native title API)
+        // - Axis labels (HTML overlay - LightweightCharts has no native title API)
         _lwAxisLabel(mvrvContainer,      'MVRV Z-SCORE',         'DATE');
         _lwAxisLabel(realizedContainer,  'PRICE (USD)',           'DATE');
         _lwAxisLabel(soprContainer,      'SOPR RATIO',           'DATE');
@@ -269,7 +269,7 @@ function openOnchainModal(type) {
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
                 '<div><div id="onchain-modal-title" style="font-size:0.9rem;font-weight:900;color:var(--accent);letter-spacing:1px"></div>' +
                 '<div id="onchain-modal-sub" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin-top:3px"></div></div>' +
-                '<button onclick="closeOnchainModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700">✕ CLOSE</button>' +
+                '<button onclick="closeOnchainModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:700">- CLOSE</button>' +
             '</div><div id="onchain-modal-chart" style="height:65vh;width:100%"></div></div>';
         document.body.appendChild(m);
     }
@@ -292,7 +292,7 @@ function openOnchainModal(type) {
         funding:     { title: 'FUNDING RATES',              sub: 'CURRENT 8H RATE - LIVE BINANCE FAPI',     yLabel: null,               htmlOnly: true  },
         'mvrv-sopr': { title: 'MVRV / SOPR OVERLAY',       sub: 'NORMALIZED 0-1',                          yLabel: 'NORM. VALUE (0-1)', htmlOnly: false },
         volatility:  { title: '30-DAY ROLLING VOLATILITY', sub: 'ANNUALISED',                              yLabel: 'VOL. (% ANN.)',    htmlOnly: false },
-        correlation: { title: 'CORRELATION MATRIX',         sub: '90-DAY ROLLING — 10 ASSETS',              yLabel: null,               htmlOnly: true  }
+        correlation: { title: 'CORRELATION MATRIX',         sub: '90-DAY ROLLING - 10 ASSETS',              yLabel: null,               htmlOnly: true  }
     };
     const cfg = configs[type] || { title: type.toUpperCase(), sub: '' };
     document.getElementById('onchain-modal-title').textContent = cfg.title;
@@ -303,7 +303,7 @@ function openOnchainModal(type) {
     if (container._lwChart) { try { container._lwChart.remove(); } catch(e){} container._lwChart = null; }
 
     // HTML-only modal (funding rates bar chart)
-﻿    if (cfg.htmlOnly) {
+-    if (cfg.htmlOnly) {
         // Funding rates: use cached data from /api/funding-rates
         if (type === 'funding') {
             const fr = window._fundingData;
@@ -442,7 +442,7 @@ function openOnchainModal(type) {
     }
     chart.timeScale().fitContent();
 
-    // Inject axis labels (HTML overlay — LightweightCharts has no native title API)
+    // Inject axis labels (HTML overlay - LightweightCharts has no native title API)
     if (cfg.yLabel) _lwAxisLabel(container, cfg.yLabel, 'DATE');
 
     // Resize on window resize
@@ -463,7 +463,7 @@ function closeOnchainModal() {
 
 
 // ================================================================
-// Phase 16-E: Backtester V2 Ã¢â‚¬” Real Signal History + Live Prices
+// Phase 16-E: Backtester V2 - Real Signal History + Live Prices
 // ================================================================
 
 async function renderBacktesterV2(tabs = null) {
@@ -523,7 +523,7 @@ async function renderBacktesterV2(tabs = null) {
             <div style="padding:2rem;text-align:center;color:var(--text-dim)">Click RUN BACKTEST to load</div>
         </div>
     `;
-    // Don't auto-run Ã¢â‚¬” let the user click RUN BACKTEST (avoids blank chart when no data)
+    // Don't auto-run - let the user click RUN BACKTEST (avoids blank chart when no data)
 }
 
 async function loadBacktesterV2() {
@@ -693,7 +693,7 @@ function renderBtv2Calendar(monthly) {
     }).join('');
 }
 
-// ── Interactive Paginated Table for Backtester V2 ──
+// - Interactive Paginated Table for Backtester V2 -
 
 window._setBtv2Sort = function(key) {
     if (window._btv2SortKey === key) {
@@ -829,7 +829,7 @@ async function renderOptionsFlow(tabs = null) {
             </div>
         </div>
         <div style="margin-bottom:1rem">
-            <div style="font-size:0.55rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px">EQUITY PROXIES <span style="color:#f59e0b">CBOE · yfinance</span></div>
+            <div style="font-size:0.55rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px">EQUITY PROXIES <span style="color:#f59e0b">CBOE - yfinance</span></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button id="opts-mara-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('MARA','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">MARA</button>
                 <button id="opts-coin-btn" class="intel-action-btn mini outline" onclick="loadOptionsFlow('COIN','equity')" style="border-color:rgba(245,158,11,0.5);color:#f59e0b">COIN</button>
@@ -955,7 +955,7 @@ async function loadOptionsFlow(currency, source) {
         }
 
         const ids = ['put-call-ratio','max-pain','exp-move','25-d-skew','atm-iv','iv-rank','call-oi','put-oi'];
-        const vals = [d.pcr, '$' + (d.max_pain||0).toLocaleString(), '±$' + (d.exp_move||0), (d.skew||0) + '%', d.atm_iv + '%', d.iv_pct_rank + 'th', (d.call_oi||0).toLocaleString(), (d.put_oi||0).toLocaleString()];
+        const vals = [d.pcr, '$' + (d.max_pain||0).toLocaleString(), '-$' + (d.exp_move||0), (d.skew||0) + '%', d.atm_iv + '%', d.iv_pct_rank + 'th', (d.call_oi||0).toLocaleString(), (d.put_oi||0).toLocaleString()];
         const colors = [d.pcr > 1 ? '#ef4444' : '#22c55e', '#00d4aa', '#8b5cf6', d.skew > 0 ? '#ef4444' : '#22c55e', '#00d4aa', '#8b5cf6', '#22c55e', '#ef4444'];
         ids.forEach((id, i) => {
             const el = document.getElementById('opts-' + id);
@@ -1360,7 +1360,7 @@ async function renderMacroCalendar(tabs = null) {
                     <div class="card-header">
                         <h3>CME FedWatch Target Rate</h3>
                         <span class="label-tag">CENTRAL BANK PROXY</span>
-                        <span id="fedwatch-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING…</span>
+                        <span id="fedwatch-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
                     </div>
                     <div style="font-size:3rem;font-weight:900;color:var(--accent);margin:20px 0 10px;display:flex;align-items:flex-end;gap:10px">
                         <span id="live-fed-rate">--</span><span style="font-size:1.5rem;color:var(--text-dim);margin-bottom:8px">%</span>
@@ -1374,7 +1374,7 @@ async function renderMacroCalendar(tabs = null) {
                     <div class="card-header">
                         <h3>Bitcoin / DXY Correlation</h3>
                         <span class="label-tag">GLOBAL LIQUIDITY</span>
-                        <span id="dxy-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING…</span>
+                        <span id="dxy-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
                     </div>
                     <div style="font-size:2.5rem;font-weight:900;color:#ef4444;margin:20px 0 10px;display:flex;align-items:center;gap:15px">
                         <span id="live-dxy-corr">--</span>
@@ -1395,10 +1395,10 @@ async function renderMacroCalendar(tabs = null) {
             const mrData = await fetchAPI('/macro-regime');
             if (mrData && !mrData.error) {
                 const fedBadge = document.getElementById('fedwatch-badge');
-                if (fedBadge) { fedBadge.textContent = '● LIVE CME'; fedBadge.style.color = '#22c55e'; fedBadge.style.background = 'rgba(34,197,94,0.12)'; }
+                if (fedBadge) { fedBadge.textContent = '- LIVE CME'; fedBadge.style.color = '#22c55e'; fedBadge.style.background = 'rgba(34,197,94,0.12)'; }
                 
                 const dxyBadge = document.getElementById('dxy-badge');
-                if (dxyBadge) { dxyBadge.textContent = '● LIVE DXY'; dxyBadge.style.color = '#ef4444'; dxyBadge.style.background = 'rgba(239,68,68,0.12)'; }
+                if (dxyBadge) { dxyBadge.textContent = '- LIVE DXY'; dxyBadge.style.color = '#ef4444'; dxyBadge.style.background = 'rgba(239,68,68,0.12)'; }
 
                 const fedEl = document.getElementById('live-fed-rate');
                 if (fedEl) fedEl.textContent = mrData.implied_fed_rate.toFixed(3);
@@ -1410,7 +1410,7 @@ async function renderMacroCalendar(tabs = null) {
                 }
                 
                 const dxyDesc = document.getElementById('live-dxy-desc');
-                if (dxyDesc) dxyDesc.innerHTML = `<span style="font-weight:900;color:${mrData.btc_dxy_correlation_90d < -0 ? '#ef4444' : '#22c55e'}">${mrData.status.toUpperCase()}</span> · Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.`;
+                if (dxyDesc) dxyDesc.innerHTML = `<span style="font-weight:900;color:${mrData.btc_dxy_correlation_90d < -0 ? '#ef4444' : '#22c55e'}">${mrData.status.toUpperCase()}</span> - Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.`;
             }
         } catch(e) { console.error('Macro regime error', e); }
     }, 100);
@@ -1555,7 +1555,7 @@ async function renderTradingViewHub(tabs) {
         injectTVWidget('tv-stock-heat','stock-heatmap',{exchanges:[],dataSource:'SPX500',grouping:'sector',blockSize:'market_cap_basic',blockColor:'change',locale:'en',symbolUrl:'',colorTheme:window.getTVTheme(),hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:'100%',height:500});
     }, 0);
 }
-// â”€â”€â”€ Custom Analytics Hub â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// - Custom Analytics Hub -
 async function renderCustomAnalytics(tabs) {
     if (!tabs) tabs = analyticsHubTabs;
     const chartOpts = (h) => ({ layout: { background: { color: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#09090b' }, textColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#334155' : '#d1d5db', fontFamily: 'JetBrains Mono' }, grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } }, height: h });
@@ -1579,7 +1579,7 @@ async function renderCustomAnalytics(tabs) {
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;margin-bottom:1rem">' +
             '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'mvrv-sopr\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><h3 style="margin:0">MVRV / SOPR Overlay</h3><span style="font-size:0.5rem;color:rgba(0,242,255,0.5);letter-spacing:2px;font-weight:700">CLICK TO EXPAND</span></div>' +
-                '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">MVRV Z-Score (red) and SOPR (green) normalized on the same axis — convergence zones signal inflection points.</p>' +
+                '<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:1rem">MVRV Z-Score (red) and SOPR (green) normalized on the same axis - convergence zones signal inflection points.</p>' +
                 '<div id="custom-mvrv-sopr" style="width:100%;height:280px"></div>' +
             '</div>' +
             '<div class="card" style="padding:1.5rem;cursor:pointer" onclick="openOnchainModal(\'volatility\')" onmouseenter="this.style.borderColor=\'var(--accent)\'" onmouseleave="this.style.borderColor=\'\'">' +
@@ -1627,7 +1627,7 @@ async function renderCustomAnalytics(tabs) {
     if (_oc)  window._onchainData     = _oc;
     if (_cm)  window._correlationData = _cm;
 
-    // â”€â”€ BTC Dominance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // - BTC Dominance -
     try {
         const dom = _dom;
         // (cached above)
@@ -1644,17 +1644,17 @@ async function renderCustomAnalytics(tabs) {
         }
     } catch(e) { containers.dominance.innerHTML = '<div class="error-msg">Dominance load failed</div>'; }
 
-    // â”€â”€ Funding Rates (per-asset current rates + BTC 24h history) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // - Funding Rates (per-asset current rates + BTC 24h history) -
     try {
         const fr = _fr;
         window._fundingData = fr;
         if (fr && fr.rows && fr.rows.length) {
             containers.funding.innerHTML = '';
-            // Render as a styled HTML bar table — more informative than a LW chart for point-in-time rates
+            // Render as a styled HTML bar table - more informative than a LW chart for point-in-time rates
             const rows = fr.rows;
             const maxAbs = Math.max(...rows.map(r => Math.abs(r.current)));
             containers.funding.innerHTML =
-                '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:8px;letter-spacing:1px">CURRENT 8H RATE — ' + (fr.source === 'binance_fapi' ? '<span style="color:#22c55e">LIVE BINANCE FAPI</span>' : 'SYNTHETIC') + '</div>' +
+                '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:8px;letter-spacing:1px">CURRENT 8H RATE - ' + (fr.source === 'binance_fapi' ? '<span style="color:#22c55e">LIVE BINANCE FAPI</span>' : 'SYNTHETIC') + '</div>' +
                 rows.map(r => {
                     const pct = maxAbs > 0 ? Math.abs(r.current) / maxAbs * 100 : 0;
                     const clr = r.current >= 0 ? '#00d4aa' : '#ef4444';
@@ -1671,7 +1671,7 @@ async function renderCustomAnalytics(tabs) {
         }
     } catch(e) { containers.funding.innerHTML = '<div class="error-msg">Funding rate load failed</div>'; }
 
-    // â”€â”€ MVRV + SOPR Overlay & Rolling Volatility (both from /onchain) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // - MVRV + SOPR Overlay & Rolling Volatility (both from /onchain) -
     try {
         const oc = _oc;
         if (oc && oc.length) {
@@ -1736,7 +1736,7 @@ async function renderCustomAnalytics(tabs) {
     } catch(e) { if (containers.correlation) containers.correlation.innerHTML = '<div class="error-msg">Correlation load failed</div>'; }
 
 
-    // â”€â”€ Resize observer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // - Resize observer -
     const chartList = Object.values(charts);
     const ro = new ResizeObserver(entries => {
         entries.forEach(e => {

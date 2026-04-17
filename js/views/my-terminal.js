@@ -165,7 +165,7 @@ async function renderWatchlistTab(el) {
             ${items.length === 0
                 ? `<div class="card" style="padding:2rem;text-align:center;color:var(--text-dim)">
                     <span class="material-symbols-outlined" style="font-size:2rem;opacity:0.4">visibility_off</span>
-                    <p style="margin:0.5rem 0 0">Your watchlist is empty — add a ticker above.</p>
+                    <p style="margin:0.5rem 0 0">Your watchlist is empty - add a ticker above.</p>
                    </div>`
                 : renderWatchlistCards(items)
             }
@@ -173,7 +173,7 @@ async function renderWatchlistTab(el) {
 }
 
 function renderWatchlistCards(items) {
-    // Portfolio summary — aggregate SINCE ADDED performance
+    // Portfolio summary - aggregate SINCE ADDED performance
     const withPerf = items.filter(i => {
         const sym = i.ticker.replace('-USD','').toUpperCase();
         const live = i.live_price || (window.livePrices?.[sym] || window.livePrices?.[i.ticker]);
@@ -212,7 +212,7 @@ function renderWatchlistCards(items) {
           </div></div>`;
     })() : '';
 
-    // — Grid table layout —
+    // - Grid table layout -
     // Columns: [80px ticker] [1fr live price] [1fr target] [1fr % to target] [1fr since added] [1fr note] [120px actions]
     const gridCols = '80px 1fr 1fr 1fr 1fr 1fr 120px';
 
@@ -230,8 +230,8 @@ function renderWatchlistCards(items) {
     const rows = items.map(item => {
         const sym = item.ticker.replace('-USD', '').toUpperCase();
         const livePx = item.live_price || (window.livePrices?.[sym] || window.livePrices?.[item.ticker]);
-        const pxStr = livePx ? `$${Number(livePx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
-        const targetStr = item.target_price ? `$${Number(item.target_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+        const pxStr = livePx ? `$${Number(livePx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '-';
+        const targetStr = item.target_price ? `$${Number(item.target_price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '-';
         const dist = (livePx && item.target_price) ? (((item.target_price - livePx) / livePx) * 100).toFixed(2) : null;
         const distColor = dist !== null ? (dist >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
 
@@ -256,11 +256,11 @@ function renderWatchlistCards(items) {
                 <!-- TARGET -->
                 <div style="font-size:0.95rem;font-weight:700;color:#f59e0b;font-family:var(--font-mono,monospace)">${targetStr}</div>
                 <!-- % TO TARGET -->
-                <div style="font-size:0.95rem;font-weight:700;color:${distColor};font-family:var(--font-mono,monospace)">${dist !== null ? (dist >= 0 ? '+' : '') + dist + '%' : '—'}</div>
+                <div style="font-size:0.95rem;font-weight:700;color:${distColor};font-family:var(--font-mono,monospace)">${dist !== null ? (dist >= 0 ? '+' : '') + dist + '%' : '-'}</div>
                 <!-- SINCE ADDED -->
-                <div style="font-size:0.95rem;font-weight:700;color:${sinceColor};font-family:var(--font-mono,monospace)">${sincePct !== null ? (Number(sincePct) >= 0 ? '+' : '') + sincePct + '%' : '—'}</div>
+                <div style="font-size:0.95rem;font-weight:700;color:${sinceColor};font-family:var(--font-mono,monospace)">${sincePct !== null ? (Number(sincePct) >= 0 ? '+' : '') + sincePct + '%' : '-'}</div>
                 <!-- NOTE -->
-                <div style="font-size:0.7rem;color:var(--text-dim);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px" title="${noteDisplay}">${noteDisplay ? '"' + noteDisplay + '"' : '—'}</div>
+                <div style="font-size:0.7rem;color:var(--text-dim);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px" title="${noteDisplay}">${noteDisplay ? '"' + noteDisplay + '"' : '-'}</div>
                 <!-- ACTIONS -->
                 <div style="display:flex;gap:5px;justify-content:flex-end">
                     <button onclick="openDetail('${item.ticker}','WATCHLIST')" title="View chart" aria-label="View ${item.ticker} chart"
@@ -383,7 +383,7 @@ async function renderPositionsTab(el) {
 
     const summaryHtml = `
     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 15px;">
-        <div style="font-size:0.75rem;font-weight:900;letter-spacing:1px;color:var(--accent)"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">sensors</span>LIVE OMS GATEWAY — BINANCE FUTURES</div>
+        <div style="font-size:0.75rem;font-weight:900;letter-spacing:1px;color:var(--accent)"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px">sensors</span>LIVE OMS GATEWAY - BINANCE FUTURES</div>
         <button class="intel-action-btn mini outline" onclick="renderPositionsTab(document.getElementById('my-terminal-content'))"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle">sync</span> SYNC</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem">
@@ -437,7 +437,7 @@ async function renderPositionsTab(el) {
                     <div style="flex:1;min-width:80px">
                         <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px">LIQUIDATION PRICE</div>
                         <div style="font-size:0.9rem;font-weight:700;color:${p.liquidation_price > 0 ? '#f59e0b' : 'var(--text-dim)'};font-family:var(--font-mono,monospace)">
-                            ${p.liquidation_price > 0 ? '$'+p.liquidation_price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}
+                            ${p.liquidation_price > 0 ? '$'+p.liquidation_price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '-'}
                         </div>
                     </div>
                     <div style="flex:1;min-width:110px">
@@ -462,7 +462,7 @@ async function renderPositionsTab(el) {
 }
 
 // --------------------------------------------------------------
-// PRICE ALERT ENGINE — runs on every WS tick
+// PRICE ALERT ENGINE - runs on every WS tick
 // --------------------------------------------------------------
 
 // Dedup set: tracks fired alerts so they don't repeat every tick
@@ -485,7 +485,7 @@ async function _refreshAlertCaches() {
         window._watchlistCache = wl || [];
         window._positionsCache = pos || [];
         window._alertCacheTs = now;
-    } catch(e) { /* silent fail — don't crash the WS loop */ }
+    } catch(e) { /* silent fail - don't crash the WS loop */ }
 }
 
 function _sendPriceAlert(title, body, type = 'success') {
@@ -531,7 +531,7 @@ window.checkWatchlistAlerts = async function(prices) {
             const pct = (((live - target) / target) * 100).toFixed(2);
             _sendPriceAlert(
                 `?? ${sym} HIT TARGET`,
-                `${sym} is at $${live.toLocaleString()} — your target of $${target.toLocaleString()} was reached! ${pct > 0 ? '+'+pct : pct}%`,
+                `${sym} is at $${live.toLocaleString()} - your target of $${target.toLocaleString()} was reached! ${pct > 0 ? '+'+pct : pct}%`,
                 'success'
             );
         }
@@ -561,7 +561,7 @@ window.checkWatchlistAlerts = async function(prices) {
                 const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
                 _sendPriceAlert(
                     `? ${sym} TARGET HIT`,
-                    `Your ${pos.side} hit $${target.toLocaleString()} — take profit? Entry: $${Number(pos.entry_price).toLocaleString()} · +${pnlPct}%`,
+                    `Your ${pos.side} hit $${target.toLocaleString()} - take profit? Entry: $${Number(pos.entry_price).toLocaleString()} - +${pnlPct}%`,
                     'success'
                 );
             }
@@ -578,7 +578,7 @@ window.checkWatchlistAlerts = async function(prices) {
                 const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
                 _sendPriceAlert(
                     `?? ${sym} STOP BREACHED`,
-                    `Your ${pos.side} stop of $${stop.toLocaleString()} was hit. Entry: $${Number(pos.entry_price).toLocaleString()} · -${pnlPct}%`,
+                    `Your ${pos.side} stop of $${stop.toLocaleString()} was hit. Entry: $${Number(pos.entry_price).toLocaleString()} -${pnlPct}%`,
                     'alert'
                 );
             }

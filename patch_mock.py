@@ -63,7 +63,7 @@
                     conn.commit()
                     NOTIFY.push_webhook(
                         user,
-                        f"TEST ALPHA SIGNAL: {ticker} — {direction}",
+                        f"TEST ALPHA SIGNAL: {ticker} - {direction}",
                         r"This is a mock institutional signal pushed via your IDE.",
                         embed_color=color,
                         fields=fields

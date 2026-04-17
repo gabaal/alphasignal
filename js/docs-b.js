@@ -1,4 +1,4 @@
-// docs-b.js — remaining hub documentation
+// docs-b.js - remaining hub documentation
 // Institutional | Analytics | Audit | Risk | Advanced Charting | Order Flow | Alerts | Personal
 
 // ============= INSTITUTIONAL HUB =============
@@ -11,7 +11,7 @@ function renderDocsViewTokenUnlocks() {
             {
                 name: 'Upcoming Unlock Schedule Table', type: 'TABLE', icon: 'lock_open',
                 description: 'A table listing all tracked token unlock events in chronological order. Each row shows: Token, Unlock Date, Amount (tokens + USD equivalent), % of Circulating Supply, Beneficiary category (Team / Investors / Community), and a Sell Pressure rating (LOW / MEDIUM / HIGH). Colour-coded by proximity: green (>30 days), amber (7-30 days), red (<7 days).',
-                howToRead: 'Sort by date ascending to see the most imminent risks. The % of Circulating Supply column is the most important — a small absolute dollar number can still be highly impactful if it is a large % of supply.',
+                howToRead: 'Sort by date ascending to see the most imminent risks. The % of Circulating Supply column is the most important - a small absolute dollar number can still be highly impactful if it is a large % of supply.',
                 signals: [
                     'Unlock >5% of circulating supply within 7 days = significant sell pressure likely',
                     'Team or VC unlock with HIGH sell pressure = insiders likely to liquidate; reduce exposure',
@@ -42,17 +42,17 @@ function renderDocsViewYieldLab() {
             {
                 name: 'Protocol APY Comparison Table', type: 'TABLE', icon: 'savings',
                 description: 'A ranked table of DeFi protocols showing: Protocol name, Asset, Base APY (from real revenue), Reward APY (token emissions), Total APY, TVL ($B), Risk Score (1-10), and a REAL YIELD flag. Sorted by real yield descending.',
-                howToRead: 'Focus on protocols with the REAL YIELD flag — these pay from actual fee revenue, not token printing. High total APY driven entirely by reward APY is unsustainable and will compress as token price falls.',
+                howToRead: 'Focus on protocols with the REAL YIELD flag - these pay from actual fee revenue, not token printing. High total APY driven entirely by reward APY is unsustainable and will compress as token price falls.',
                 signals: [
                     'Real yield >5% from a blue-chip protocol = institutional-grade opportunity',
                     'Total APY >100% with zero real yield = unsustainable farming; exit before rewards drop',
-                    'TVL declining while APY rising = capital leaving, remaining TVL earning more — health check needed'
+                    'TVL declining while APY rising = capital leaving, remaining TVL earning more - health check needed'
                 ]
             },
             {
                 name: 'Protocol Risk Score Bar', type: 'CHART', icon: 'shield',
                 description: 'A horizontal bar chart ranking protocols by composite risk score (1-10) combining: smart contract audit status, time since last audit, TVL concentration, developer activity, and insurance coverage.',
-                howToRead: 'Lower bar = lower risk. Use alongside APY — a protocol with risk score 9 offering 15% APY is not comparable to a risk score 2 protocol offering the same APY.',
+                howToRead: 'Lower bar = lower risk. Use alongside APY - a protocol with risk score 9 offering 15% APY is not comparable to a risk score 2 protocol offering the same APY.',
                 signals: [
                     'Risk score 1-3 with real yield >4% = institutional-grade allocation candidate',
                     'Risk score >7 regardless of APY = speculation only; size very small',
@@ -96,7 +96,7 @@ function renderDocsViewPortfolioOptimizer() {
             },
             {
                 name: 'ML Rebalancing Recommendation Table', type: 'TABLE', icon: 'account_tree',
-                description: 'Shows the current optimal portfolio weights per asset, current holdings (%), suggested change (+ increase / – decrease), and expected impact on portfolio Sharpe Ratio. The ML engine factors in the current regime classification.',
+                description: 'Shows the current optimal portfolio weights per asset, current holdings (%), suggested change (+ increase / - decrease), and expected impact on portfolio Sharpe Ratio. The ML engine factors in the current regime classification.',
                 howToRead: 'The Suggested Change column tells you what to do. Green = increase allocation. Red = reduce. The Sharpe Impact column shows how much each trade improves overall portfolio efficiency.',
                 signals: [
                     'Large increase suggestion for an asset currently at 0% = new opportunity identified',
@@ -177,7 +177,7 @@ function renderDocsViewWhalePulse() {
             {
                 name: 'Volume Bubble Scatter', type: 'CHART', icon: 'bubble_chart',
                 description: 'A scatter plot where each bubble = one whale transaction. X-axis = time (last 24h), Y-axis = transaction size ($M), bubble colour = inflow (red) or outflow (green). Large bubbles high on the Y-axis are the most significant.',
-                howToRead: 'Look for clusters of same-colour bubbles — multiple whales acting in the same direction simultaneously indicates coordinated activity.',
+                howToRead: 'Look for clusters of same-colour bubbles - multiple whales acting in the same direction simultaneously indicates coordinated activity.',
                 signals: [
                     '3+ green bubbles >$10M within 1 hour = coordinated accumulation event; high-conviction buy',
                     'Large red bubble at price resistance = institutional seller defending that level',
@@ -201,8 +201,8 @@ function renderDocsViewChainVelocity() {
         components: [
             {
                 name: 'Velocity Time-Series Chart', type: 'CHART', icon: 'speed',
-                description: 'A multi-line time-series chart showing volume acceleration (Velocity Score) for each tracked L1 over the past 30 days. Velocity = current 24h volume ÷ 5-day moving average volume. A score above 1.0 means volume is expanding relative to recent norms. Lines are colour-coded by chain: Ethereum (cyan), Solana (green), Avalanche (orange), Cardano (purple). The 1.0 baseline is drawn as a dashed white reference line.',
-                howToRead: 'Lines crossing above 1.0 from below = capital accelerating into that chain. Lines well above 2.0 = unusual surge — check whether it is organic demand or a one-off event. Lines persistently below 1.0 = capital leaving that ecosystem.',
+                description: 'A multi-line time-series chart showing volume acceleration (Velocity Score) for each tracked L1 over the past 30 days. Velocity = current 24h volume - 5-day moving average volume. A score above 1.0 means volume is expanding relative to recent norms. Lines are colour-coded by chain: Ethereum (cyan), Solana (green), Avalanche (orange), Cardano (purple). The 1.0 baseline is drawn as a dashed white reference line.',
+                howToRead: 'Lines crossing above 1.0 from below = capital accelerating into that chain. Lines well above 2.0 = unusual surge - check whether it is organic demand or a one-off event. Lines persistently below 1.0 = capital leaving that ecosystem.',
                 signals: [
                     'Solana velocity >1.8 while Ethereum <0.9 = active rotation from ETH to SOL; rotate sector exposure',
                     'All chains simultaneously above 1.5 = broad risk-on tide lifting all L1s; long basket exposure optimal',
@@ -213,18 +213,18 @@ function renderDocsViewChainVelocity() {
             {
                 name: 'Cross-Chain Capital Flow Sankey', type: 'CHART', icon: 'moving',
                 description: 'A D3.js Sankey flow diagram showing where capital entered the ecosystem (left: Fiat, BTC, Stables) and where it flowed to (right: individual L1 networks and DeFi verticals). Line thickness is proportional to 24h volume. Labels show the USD equivalent of each flow stream.',
-                howToRead: 'Follow the thickest lines to see where new capital is being deployed. A thick line entering Solana DeFi from Stables = new capital deploying into SOL-based yield strategies — a bullish indicator for SOL. Thin lines everywhere = capital is not moving between chains; range-bound market.',
+                howToRead: 'Follow the thickest lines to see where new capital is being deployed. A thick line entering Solana DeFi from Stables = new capital deploying into SOL-based yield strategies - a bullish indicator for SOL. Thin lines everywhere = capital is not moving between chains; range-bound market.',
                 signals: [
                     'Thick flow into L2s (Arbitrum, Optimism) from ETH = users seeking lower fees; ETH ecosystem healthy',
                     'Capital flowing from L1s back to Stables = risk reduction in progress; across-chain de-risking',
-                    'Heavy BTC → ETH Sankey line = ETH accumulation phase; likely precedes ETH outperformance',
+                    'Heavy BTC - ETH Sankey line = ETH accumulation phase; likely precedes ETH outperformance',
                     'Multiple chains receiving inflows from Fiat simultaneously = new retail entry; early market expansion'
                 ]
             },
             {
                 name: 'Network Signature Radar', type: 'CHART', icon: 'radar',
                 description: 'A 4-axis radar chart plotting each chain across: Momentum (price vs 20D MA), Social Heat (mention velocity), Liquidity (DEX volume rank), and Institutional Vigor (Z-score of volume acceleration). Each chain is a separate coloured polygon. A large, even polygon = well-rounded high-conviction chain.',
-                howToRead: 'A chain with large Momentum but small Liquidity = price moving on thin volume — unsustainable. A chain with high Social Heat but low Institutional Vigor = hype without capital confirmation. Strong Vigor + Momentum together = high-confidence rotation signal.',
+                howToRead: 'A chain with large Momentum but small Liquidity = price moving on thin volume - unsustainable. A chain with high Social Heat but low Institutional Vigor = hype without capital confirmation. Strong Vigor + Momentum together = high-confidence rotation signal.',
                 signals: [
                     'Chain dominating all four axes = strongest current opportunity; lead allocation target',
                     'High Social Heat + Low Vigor for a chain = narrative ahead of capital; wait for Vigor to confirm',
@@ -284,12 +284,12 @@ function renderDocsViewOnchain() {
                 signals: [
                     'NVT Signal above 150 = historically overvalued; reduce exposure',
                     'NVT Signal below 40 = deep value; long-term accumulation zone',
-                    'NVT falling as price rises = bullish — utility growing faster than price'
+                    'NVT falling as price rises = bullish - utility growing faster than price'
                 ]
             },
             {
                 name: 'Realised Price Overlay', type: 'CHART', icon: 'price_check',
-                description: 'Overlays the Realised Price (average cost basis of all BTC in existence) on the BTC price chart. When spot price is below Realised Price, the average holder is at a loss — historically a reliable capitulation zone.',
+                description: 'Overlays the Realised Price (average cost basis of all BTC in existence) on the BTC price chart. When spot price is below Realised Price, the average holder is at a loss - historically a reliable capitulation zone.',
                 howToRead: 'Price crossing above Realised Price from below = bull market re-entry signal (occurred early 2019, Jan 2023). Price falling below Realised Price = entering loss territory for average holders; panic selling risk rises.',
                 signals: [
                     'Spot reclaiming Realised Price from below = strong buy signal; historically led to new bull runs',
@@ -401,7 +401,7 @@ function renderDocsViewTradeLedger() {
             {
                 name: 'Performance Attribution Breakdown', type: 'CHART', icon: 'pie_chart',
                 description: 'A stacked bar chart breaking total P&L into attribution buckets: Alpha (signal-generated edge), Beta (market direction), and Noise (random variance). Allows understanding of what is actually driving returns.',
-                howToRead: 'A tall Alpha bar relative to Beta = the system is generating genuine signal-based edge rather than just riding the market. Heavy Beta exposure in a bull market is not skill — it is market exposure.',
+                howToRead: 'A tall Alpha bar relative to Beta = the system is generating genuine signal-based edge rather than just riding the market. Heavy Beta exposure in a bull market is not skill - it is market exposure.',
                 signals: [
                     'Alpha > Beta consistently = genuine edge; continue following the system',
                     'Beta > Alpha = returns simply from market exposure; consider just buying BTC',
@@ -471,8 +471,8 @@ function renderDocsViewRiskMatrix() {
         components: [
             {
                 name: 'Portfolio VaR Gauge', type: 'GAUGE', icon: 'shield',
-                description: 'A 180-degree gauge displaying current 1-day 95% Value-at-Risk as a percentage of portfolio value. VaR represents the maximum expected loss on 95% of trading days. The red zone begins at 5% VaR — the institutional threshold above which positions must be reduced.',
-                howToRead: 'Below 3% = conservative, well-managed risk. 3-5% = moderate, acceptable for active trading. Above 5% = excessive — reduce position sizes or add hedges immediately.',
+                description: 'A 180-degree gauge displaying current 1-day 95% Value-at-Risk as a percentage of portfolio value. VaR represents the maximum expected loss on 95% of trading days. The red zone begins at 5% VaR - the institutional threshold above which positions must be reduced.',
+                howToRead: 'Below 3% = conservative, well-managed risk. 3-5% = moderate, acceptable for active trading. Above 5% = excessive - reduce position sizes or add hedges immediately.',
                 signals: [
                     'VaR >5% = reduce open positions by 30-50% until VaR returns to safe zone',
                     'VaR rising without opening new trades = existing positions becoming more volatile; tighten stops',
@@ -482,7 +482,7 @@ function renderDocsViewRiskMatrix() {
             {
                 name: 'Volatility-Adjusted Position Sizer', type: 'FORM', icon: 'calculate',
                 description: 'Interactive calculator: input Asset, Entry Price, Stop Loss, and Account Size. Outputs exact position size (coins + USD) using a fixed 1% account risk rule, adjusted for the asset\'s current 14-day ATR.',
-                howToRead: 'The ATR adjustment means volatile assets automatically receive smaller position sizes. A stop-loss at 2x the ATR is considered statistically sound — beyond normal daily noise.',
+                howToRead: 'The ATR adjustment means volatile assets automatically receive smaller position sizes. A stop-loss at 2x the ATR is considered statistically sound - beyond normal daily noise.',
                 signals: [
                     'Suggested size <0.5% of portfolio = the stop is too wide; tighten it or skip the trade',
                     'Suggested size >5% = the stop is very tight; widen it to reduce false-stop risk',
@@ -512,7 +512,7 @@ function renderDocsViewStressLab() {
             {
                 name: 'Scenario Stress Test Table', type: 'TABLE', icon: 'warning',
                 description: 'Pre-loaded historical scenarios: March 2020 COVID Crash (-50% in 2 weeks), FTX Collapse Nov 2022 (-30% in 3 days), May 2021 China Mining Ban (-50%), Luna/UST Depeg (-90% for alts). Each row shows estimated portfolio P&L ($) and % loss if that scenario repeated today.',
-                howToRead: 'Find your worst scenario loss. If it exceeds your maximum acceptable drawdown, reduce position sizes now — not during the crash.',
+                howToRead: 'Find your worst scenario loss. If it exceeds your maximum acceptable drawdown, reduce position sizes now - not during the crash.',
                 signals: [
                     'Any scenario showing >20% portfolio loss = current sizing too aggressive; reduce now',
                     'March 2020 scenario showing manageable loss = portfolio is robust for systemic crashes',
@@ -552,7 +552,7 @@ function renderDocsViewChartingSuite() {
             {
                 name: 'OHLCV Candlestick Chart', type: 'CHART', icon: 'candlestick_chart',
                 description: 'Primary price chart with selectable timeframe (1m to 1W). Overlays available: 20/50/200 EMA, Bollinger Bands, VWAP, and AlphaSignal entry markers (green triangles) and exit markers (red triangles) from the signal engine.',
-                howToRead: 'Read candle body and wick structure: doji = indecision, marubozu = strong conviction, hammer = reversal. VWAP acts as the institutional fair value reference — price below VWAP is cheap, above is expensive intraday.',
+                howToRead: 'Read candle body and wick structure: doji = indecision, marubozu = strong conviction, hammer = reversal. VWAP acts as the institutional fair value reference - price below VWAP is cheap, above is expensive intraday.',
                 signals: [
                     'Price reclaiming VWAP from below in first 30 minutes of session = institutional morning buy',
                     'Three consecutive doji candles at resistance = indecision; breakout imminent',
@@ -561,8 +561,8 @@ function renderDocsViewChartingSuite() {
             },
             {
                 name: 'Volume Profile', type: 'CHART', icon: 'bar_chart',
-                description: 'Horizontal volume histogram displayed on the right side of the price chart. Each horizontal bar = total volume traded at that price level. The Point of Control (POC) is the price with the highest volume — the fairest value per the market.',
-                howToRead: 'High-volume nodes (thick bars) = strong support or resistance. Low-volume nodes (thin bars) = price moved through quickly — future price tends to traverse these zones rapidly.',
+                description: 'Horizontal volume histogram displayed on the right side of the price chart. Each horizontal bar = total volume traded at that price level. The Point of Control (POC) is the price with the highest volume - the fairest value per the market.',
+                howToRead: 'High-volume nodes (thick bars) = strong support or resistance. Low-volume nodes (thin bars) = price moved through quickly - future price tends to traverse these zones rapidly.',
                 signals: [
                     'Price approaching high-volume node from below = strong resistance ahead; reduce size',
                     'Low-volume node between current price and target = price likely to reach target rapidly once breakout confirms',
@@ -571,8 +571,8 @@ function renderDocsViewChartingSuite() {
             },
             {
                 name: 'Cumulative Volume Delta (CVD)', type: 'CHART', icon: 'show_chart',
-                description: 'The running total of buy-initiated volume minus sell-initiated volume. A rising CVD during a price rise confirms aggressive buyers are driving the move. A falling CVD during a price rise signals passive selling into strength — a divergence and warning.',
-                howToRead: 'CVD should confirm price direction. Rising price + rising CVD = genuine buying. Rising price + falling CVD = price pushed up by lack of sellers, not real demand — unsustainable.',
+                description: 'The running total of buy-initiated volume minus sell-initiated volume. A rising CVD during a price rise confirms aggressive buyers are driving the move. A falling CVD during a price rise signals passive selling into strength - a divergence and warning.',
+                howToRead: 'CVD should confirm price direction. Rising price + rising CVD = genuine buying. Rising price + falling CVD = price pushed up by lack of sellers, not real demand - unsustainable.',
                 signals: [
                     'Price at highs + CVD declining = bearish divergence; take profits or hedge',
                     'Price falling + CVD rising = selling exhaustion; buyers still present; potential reversal forming',
@@ -650,7 +650,7 @@ function renderDocsViewOrderFlow() {
             {
                 name: 'Aggregated Order Book Depth', type: 'CHART', icon: 'stacked_bar_chart',
                 description: 'Aggregated order book across Binance, Bybit, OKX, and Coinbase showing cumulative bid and ask depth in BTC equivalent. Updated every 250ms. X-axis shows price distance from mid (0.1% increments). Y-axis = cumulative volume.',
-                howToRead: 'Steep curves on the bid side = strong support. Steep curves on the ask side = strong resistance. A cliff on either side = thin liquidity ahead — high slippage risk if price reaches that level.',
+                howToRead: 'Steep curves on the bid side = strong support. Steep curves on the ask side = strong resistance. A cliff on either side = thin liquidity ahead - high slippage risk if price reaches that level.',
                 signals: [
                     'Bid curve 3x steeper than ask = significant buy imbalance; upward price pressure building',
                     'Sudden curve flattening on bids = large bid wall lifted; support removed; risk off',
@@ -686,7 +686,7 @@ function renderDocsViewAlerts() {
     renderViewDocPage({
         hub: 'Alerts Hub', hubIcon: 'notifications_active', hubColor: '#f43f5e',
         title: 'Live Signal Alerts', viewId: 'alerts-hub',
-        summary: 'Real-time push alerts from the AlphaSignal engine. Every alert represents a statistically significant event that has crossed your configured thresholds — designed to be actionable within minutes.',
+        summary: 'Real-time push alerts from the AlphaSignal engine. Every alert represents a statistically significant event that has crossed your configured thresholds - designed to be actionable within minutes.',
         components: [
             {
                 name: 'Alert Feed Cards', type: 'FEED', icon: 'notifications',
@@ -720,7 +720,7 @@ function renderDocsViewPriceAlerts() {
             {
                 name: 'Alert Manager Table', type: 'TABLE', icon: 'price_check',
                 description: 'Table of all configured price alerts showing: Asset, Alert Price, Direction (ABOVE / BELOW), Status (ACTIVE / TRIGGERED / EXPIRED), Distance to Target (%), and Created Date. TRIGGERED alerts highlighted in green or red depending on direction.',
-                howToRead: 'Sort by Distance ascending to see which alerts are closest to triggering. TRIGGERED alerts require review — decide whether to reload the alert or the thesis has been confirmed.',
+                howToRead: 'Sort by Distance ascending to see which alerts are closest to triggering. TRIGGERED alerts require review - decide whether to reload the alert or the thesis has been confirmed.',
                 signals: [
                     'Alert triggered during off-hours = missed opportunity or overnight move; review on open',
                     'Alert triggered multiple times at same price = the level is being tested repeatedly; significant technical level',
@@ -768,7 +768,7 @@ function renderDocsViewMarketBrief() {
         components: [
             {
                 name: 'Daily AI Market Brief', type: 'AI', icon: 'summarize',
-                description: 'A structured five-section brief generated by GPT-4o with live terminal data injected as context: (1) Overnight Summary — key price moves and volumes; (2) Signal Environment — Z-score distribution and top signals; (3) Macro Watch — upcoming events and correlation status; (4) Risk Signals — liquidation concentration and OI build-up; (5) Actionable Ideas — the top 2-3 setups for the day.',
+                description: 'A structured five-section brief generated by GPT-4o with live terminal data injected as context: (1) Overnight Summary - key price moves and volumes; (2) Signal Environment - Z-score distribution and top signals; (3) Macro Watch - upcoming events and correlation status; (4) Risk Signals - liquidation concentration and OI build-up; (5) Actionable Ideas - the top 2-3 setups for the day.',
                 howToRead: 'The Actionable Ideas section is the highest-value content. Read in order from top to bottom. The Overnight Summary provides context; the Actionable Ideas is where to spend your trading attention.',
                 signals: [
                     'Actionable Ideas section empty = model has no high-conviction setup; best day to observe, not trade',
@@ -789,7 +789,7 @@ function renderDocsViewMyTerminal() {
         components: [
             {
                 name: 'Watchlist Table with Live P&L and Targets', type: 'TABLE', icon: 'bookmark_add',
-                description: 'Your saved assets displayed as a live table: Ticker, Added Price, Current Price (live enriched via YFinance API for equities or Binance for crypto), P&L, Target Price, and Status. Now features inline target editing — click any target price to modify it instantly without leaving the view. Colour-coded: green rows = profitable positions, red rows = underwater.',
+                description: 'Your saved assets displayed as a live table: Ticker, Added Price, Current Price (live enriched via YFinance API for equities or Binance for crypto), P&L, Target Price, and Status. Now features inline target editing - click any target price to modify it instantly without leaving the view. Colour-coded: green rows = profitable positions, red rows = underwater.',
                 howToRead: 'Sort by P&L % to see biggest winners and losers at a glance. The Status column visually indicates how close an asset is to hitting your custom target price.',
                 signals: [
                     'Status reads "TARGET HIT!" = execute planned exit strategy; thesis has played out',
@@ -829,7 +829,7 @@ function renderDocsViewAskTerminal() {
                 howToRead: 'Ask specific, data-referencing questions for best results. "What does the current Z-score environment mean for BTC?" will produce better answers than "Is BTC going up?"',
                 signals: [
                     'Ask for a counter-argument to any trade idea to stress-test it before committing',
-                    'Ask to explain any chart or metric directly by name — the AI has full terminal documentation context',
+                    'Ask to explain any chart or metric directly by name - the AI has full terminal documentation context',
                     'Ask for a pre-trade checklist for a specific setup to ensure all risk parameters are verified'
                 ]
             },
@@ -850,16 +850,16 @@ function renderDocsViewCommandCenter() {
     renderViewDocPage({
         hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
         title: 'Dashboard', viewId: 'command-center',
-        summary: 'The home screen of the AlphaSignal Terminal. A high-density command dashboard giving an instant read of all critical system metrics in a single view — market regime, conviction dials, live ETF flows, BTC macro correlations, signal confidence, and hub quick-access.',
+        summary: 'The home screen of the AlphaSignal Terminal. A high-density command dashboard giving an instant read of all critical system metrics in a single view - market regime, conviction dials, live ETF flows, BTC macro correlations, signal confidence, and hub quick-access.',
         components: [
             {
                 name: 'Fear & Greed Gauge', type: 'GAUGE', icon: 'speed',
-                description: 'A live semi-circle doughnut gauge showing the current BTC Fear & Greed score (0–100). Computed in real-time from BTC price deviation vs SMA-50 and 30-day annualised volatility. Color shifts from red (Extreme Fear) through yellow (Neutral) to green (Extreme Greed).',
-                howToRead: 'Scores above 75 = Extreme Greed — historically a reversal warning zone. Scores below 25 = Extreme Fear — historically a high-probability accumulation zone.',
+                description: 'A live semi-circle doughnut gauge showing the current BTC Fear & Greed score (0-100). Computed in real-time from BTC price deviation vs SMA-50 and 30-day annualised volatility. Color shifts from red (Extreme Fear) through yellow (Neutral) to green (Extreme Greed).',
+                howToRead: 'Scores above 75 = Extreme Greed - historically a reversal warning zone. Scores below 25 = Extreme Fear - historically a high-probability accumulation zone.',
                 signals: [
                     'Score crossing 75 from below = sentiment overheat; consider reducing exposure',
                     'Score crossing 25 from above = capitulation zone; historically strong risk/reward for entries',
-                    'Score pinned between 40–60 for 5+ days = consolidation regime; wait for directional break'
+                    'Score pinned between 40-60 for 5+ days = consolidation regime; wait for directional break'
                 ]
             },
             {
@@ -883,7 +883,7 @@ function renderDocsViewCommandCenter() {
                 ]
             },
             {
-                name: 'Market Pulse — BTC Macro Correlations', type: 'WIDGET', icon: 'pulse_alert',
+                name: 'Market Pulse - BTC Macro Correlations', type: 'WIDGET', icon: 'pulse_alert',
                 description: 'Four live BTC correlations over 35 days: BTC/DXY (dollar), BTC/SPX (US equities), BTC/ETH (dominance), BTC/10Y (yield sensitivity). Each row shows a fill bar, RISK-ON/OFF/DECOUPLED badge, and signed Pearson coefficient. A LEAD-LAG strip shows whether BTC or alts are outperforming.',
                 howToRead: 'BTC/SPX > +0.6 = equities driving crypto. BTC/ETH dropping toward 0.6 = alt season rotation. BTC/10Y positive = rising yields pressuring crypto.',
                 signals: [
@@ -905,7 +905,7 @@ function renderDocsViewCommandCenter() {
             {
                 name: 'Macro Correlation Matrix', type: 'CHART', icon: 'grid_on',
                 description: 'Pairwise Pearson heatmap for BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, 10Y, and SPX. Cyan = positive correlation, red = negative. Opacity = strength. Click to expand into a full labelled grid.',
-                howToRead: 'All-cyan crypto block = beta market, assets moving together. SPX/10Y rows turning red vs crypto = macro decoupling — bullish.',
+                howToRead: 'All-cyan crypto block = beta market, assets moving together. SPX/10Y rows turning red vs crypto = macro decoupling - bullish.',
                 signals: [
                     'All crypto correlations above 0.7 = BTC dominance trade; alts suppressed',
                     'SPX row going negative vs BTC = BTC decoupling from equities; bullish',
@@ -914,8 +914,8 @@ function renderDocsViewCommandCenter() {
             },
             {
                 name: 'Signal Confidence Radar', type: 'CHART', icon: 'radar',
-                description: 'A 6-axis radar chart scoring selected assets across Momentum, Sentiment, Volatility, Trend, Liquidity, and Network (0–100 each). Use the ticker dropdown (BTC / ETH / SOL / LINK / ADA) to switch assets. Click the card to expand into a full-size modal with enhanced labels and tooltips.',
-                howToRead: 'Wide, evenly-filled polygon = balanced high-confidence signal. Single axis spike = one-dimensional — less reliable. Sentiment + Momentum both above 70 = narrative-aligned momentum; highest probability setup.',
+                description: 'A 6-axis radar chart scoring selected assets across Momentum, Sentiment, Volatility, Trend, Liquidity, and Network (0-100 each). Use the ticker dropdown (BTC / ETH / SOL / LINK / ADA) to switch assets. Click the card to expand into a full-size modal with enhanced labels and tooltips.',
+                howToRead: 'Wide, evenly-filled polygon = balanced high-confidence signal. Single axis spike = one-dimensional - less reliable. Sentiment + Momentum both above 70 = narrative-aligned momentum; highest probability setup.',
                 signals: [
                     'All 6 dimensions above 70 = highest conviction setup; rare',
                     'Momentum high + Sentiment low = price leading narrative; watch for confirmation or reversal',
@@ -935,7 +935,7 @@ function renderDocsViewCommandCenter() {
             {
                 name: 'BTC Price Sparkline', type: 'CHART', icon: 'show_chart',
                 description: 'Minimalist 24-hour BTC price sparkline in the header bar. Shows current price, 24h change %, and volatility regime badge. Polls every 5 minutes from the live Binance WebSocket feed.',
-                howToRead: 'Falling sparkline while signals bullish = divergence — investigate. Flat sparkline + CRITICAL alerts = on-chain event not yet in price.',
+                howToRead: 'Falling sparkline while signals bullish = divergence - investigate. Flat sparkline + CRITICAL alerts = on-chain event not yet in price.',
                 signals: [
                     'Sharp spike = significant 24h event; check Alert Feed',
                     'Flat line + multiple alerts = on-chain driven, not price-driven'
@@ -945,7 +945,7 @@ function renderDocsViewCommandCenter() {
     });
 }
 
-// ============= ANALYTICS HUB — TRADINGVIEW HUB =============
+// ============= ANALYTICS HUB - TRADINGVIEW HUB =============
 function renderDocsViewTradingViewHub() {
     renderViewDocPage({
         hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
@@ -955,7 +955,7 @@ function renderDocsViewTradingViewHub() {
             { name: 'Custom Charts', route: 'docs-custom-charts', icon: 'bar_chart' },
             { name: 'Charting Suite', route: 'docs-charting-suite', icon: 'candlestick_chart' },
         ],
-        summary: 'A dedicated hub of 13 TradingView-powered market intelligence widgets covering global crypto, equity sector, forex, and macro market data. All widgets are live, interactive, and powered by TradingView\'s public embed API — no account required.',
+        summary: 'A dedicated hub of 13 TradingView-powered market intelligence widgets covering global crypto, equity sector, forex, and macro market data. All widgets are live, interactive, and powered by TradingView\'s public embed API - no account required.',
         components: [
             {
                 name: 'Global Market Overview', type: 'WIDGET', icon: 'public',
@@ -964,14 +964,14 @@ function renderDocsViewTradingViewHub() {
                 signals: ['Indices red + Crypto green = crypto decorrelating, internal demand driving', 'All tabs red = broad risk-off; reduce leverage', 'Gold green + Nasdaq red = flight to safety; bearish for BTC short-term']
             },
             {
-                name: 'BTC · ETH · SOL Symbol Comparison', type: 'WIDGET', icon: 'compare_arrows',
+                name: 'BTC - ETH - SOL Symbol Comparison', type: 'WIDGET', icon: 'compare_arrows',
                 description: 'Normalized area chart comparing 12-month price performance for BTC, ETH, and SOL on the same axis (base = 0%). Shows relative outperformance and underperformance cycles across the L1 triad.',
                 howToRead: 'The divergence between lines reveals rotational opportunities. When ETH and SOL significantly lag BTC, an ETH/BTC or SOL/BTC long is a common rotation trade.',
                 signals: ['SOL diverging upward from BTC = altcoin season starting in L1 assets', 'All three lines converging downward = broad deleveraging; no safe haven in crypto', 'BTC dominant for >60 days while others flat = BTC accumulation cycle']
             },
             {
                 name: 'Technical Analysis Gauges (BTC / ETH / SOL / BNB)', type: 'WIDGET', icon: 'speed',
-                description: 'Four TradingView Technical Analysis summary gauges — one per asset (BTC, ETH, SOL, BNB). Each gauge aggregates 26 built-in indicators (RSI, MACD, Stochastic, CCI, ADX, and more) across all selected timeframes into one directional verdict: STRONG BUY, BUY, NEUTRAL, SELL, or STRONG SELL.',
+                description: 'Four TradingView Technical Analysis summary gauges - one per asset (BTC, ETH, SOL, BNB). Each gauge aggregates 26 built-in indicators (RSI, MACD, Stochastic, CCI, ADX, and more) across all selected timeframes into one directional verdict: STRONG BUY, BUY, NEUTRAL, SELL, or STRONG SELL.',
                 howToRead: 'The gauge needle sweeps from deep red (STRONG SELL) through grey (NEUTRAL) to deep green (STRONG BUY). Click any timeframe tab (1D, 1W, 1M) to change the underlying aggregation window.',
                 signals: ['All 4 gauges on STRONG BUY = rare broad momentum; significant upside probable', 'BTC NEUTRAL + ETH/SOL STRONG BUY = altcoin rotation in progress', 'All 4 gauges SELL = systematic weakness; avoid longs']
             },
@@ -984,25 +984,25 @@ function renderDocsViewTradingViewHub() {
             {
                 name: 'Economic Calendar', type: 'WIDGET', icon: 'calendar_month',
                 description: 'TradingView\'s live Economic Calendar showing all scheduled macro events with impact rating (high/medium/low), previous reading, consensus estimate, and actual result once released. Filtered to US, EU, UK, Japan, and China events.',
-                howToRead: 'High-impact events (red) cause the most BTC volatility. The "Actual vs Forecast" comparison at release time is what drives price moves — not the absolute value.',
+                howToRead: 'High-impact events (red) cause the most BTC volatility. The "Actual vs Forecast" comparison at release time is what drives price moves - not the absolute value.',
                 signals: ['Multiple high-impact events in one week = reduce leverage heading in', 'CPI Actual < Forecast = dovish surprise; bullish for BTC and risk assets', 'NFP miss = growth concerns; risk-off short-term']
             },
             {
                 name: 'Market Hotlists', type: 'WIDGET', icon: 'local_fire_department',
                 description: 'Three TradingView Hotlist panels showing real-time: Top Gainers (biggest % price increase), Top Losers (biggest % price decline), and Most Active Volume (highest trading volume). All on the same widget with tab switching. Each row shows a price sparkline of recent performance.',
-                howToRead: 'Top Gainers reveals what the market is chasing today. Most Active Volume shows where liquidity is concentrated — high volume = tighter spreads and more reliable signals.',
+                howToRead: 'Top Gainers reveals what the market is chasing today. Most Active Volume shows where liquidity is concentrated - high volume = tighter spreads and more reliable signals.',
                 signals: ['Same asset appearing in both Gainers and High Volume = strong confirmed move', 'Losers dominated by large-caps = broad market weakness', 'Low-cap coin in Gainers with no news = potential pump; do not chase']
             },
             {
                 name: 'Crypto Coins Heatmap', type: 'WIDGET', icon: 'grid_view',
-                description: 'Treemap visualization of the crypto market where each cell = one asset. Cell size = market cap. Cell colour = 24h price change (dark green = strong positive, dark red = strong negative). Zoomable — click a sector to drill into constituent assets.',
+                description: 'Treemap visualization of the crypto market where each cell = one asset. Cell size = market cap. Cell colour = 24h price change (dark green = strong positive, dark red = strong negative). Zoomable - click a sector to drill into constituent assets.',
                 howToRead: 'The overall colour of the heatmap gives an instant visual read on market breadth. Mostly green = broad rally. Large red BTC cell pulling everything down = systematic sell, not just altcoin weakness.',
                 signals: ['BTC green + most alts red = BTC dominance rising, risk-off for alts', 'Small-caps uniformly green while large-caps red = altcoin season early rotation', 'Dark green across the entire map = euphoria; historically precedes correction']
             },
             {
                 name: 'Forex Cross Rates Matrix', type: 'WIDGET', icon: 'currency_exchange',
                 description: 'Live cross-rate comparison table between EUR, USD, JPY, GBP, CHF, AUD, CAD, BTC, and ETH. Each cell shows the relative price of the row currency in terms of the column currency, colour-coded by 24h change.',
-                howToRead: 'Focus on the BTC and ETH rows. When BTC/USD is rising while BTC/EUR is flat, the USD is weakening — adding macro tailwind. If BTC is rising against all currencies simultaneously, it\'s genuine internal demand.',
+                howToRead: 'Focus on the BTC and ETH rows. When BTC/USD is rising while BTC/EUR is flat, the USD is weakening - adding macro tailwind. If BTC is rising against all currencies simultaneously, it\'s genuine internal demand.',
                 signals: ['BTC outperforming all fiat pairs = genuine bullish, not just dollar-weakness narrative', 'JPY strengthening against USD = carry trade unwinding; risk-off event likely', 'AUD/USD rising = commodity demand up; positive environment for risk assets']
             },
             {
@@ -1021,7 +1021,7 @@ function renderDocsViewTradingViewHub() {
     });
 }
 
-// ============= PERSONAL — DAILY WORKFLOW PLAYBOOK =============
+// ============= PERSONAL - DAILY WORKFLOW PLAYBOOK =============
 function renderDocsViewDailyWorkflow() {
     renderViewDocPage({
         hub: 'Personal', hubIcon: 'person', hubColor: '#34d399',
@@ -1033,11 +1033,11 @@ function renderDocsViewDailyWorkflow() {
             { name: 'Market Regime',    route: 'docs-regime',           icon: 'category'       },
             { name: 'Charting Suite',   route: 'docs-charting-suite',   icon: 'candlestick_chart' },
         ],
-        summary: 'A structured 20-minute daily session guide describing how to use the AlphaSignal Terminal from open to close — covering regime context, signal review, macro confirmation, trade entry, and end-of-day performance audit. Follow this sequence to ensure every trade decision is grounded in multi-factor confluence before execution.',
+        summary: 'A structured 20-minute daily session guide describing how to use the AlphaSignal Terminal from open to close - covering regime context, signal review, macro confirmation, trade entry, and end-of-day performance audit. Follow this sequence to ensure every trade decision is grounded in multi-factor confluence before execution.',
         components: [
             {
-                name: 'Phase 1 — Morning Brief (5 min)', type: 'WIDGET', icon: 'wb_sunny',
-                description: 'Open the <span onclick="switchView(\'command-center\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Dashboard</span> first. The three critical reads on open are the <span onclick="switchView(\'command-center\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Fear &amp; Greed gauge</span> (market risk posture), the <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Macro Regime Radar</span> (is the underlying regime still intact from yesterday?), and the <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Sector Treemap</span> (where is capital flowing right now?). These three together establish the day\'s strategic context before a single signal is evaluated. Fear &amp; Greed below 30 combined with a Liquidity-positive regime is historically a strong accumulation environment — in this configuration, signals are weighted more aggressively. Fear &amp; Greed above 75 combined with HIGH-VOL expansion demands tighter stops and smaller sizes regardless of signal quality.',
+                name: 'Phase 1 - Morning Brief (5 min)', type: 'WIDGET', icon: 'wb_sunny',
+                description: 'Open the <span onclick="switchView(\'command-center\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Dashboard</span> first. The three critical reads on open are the <span onclick="switchView(\'command-center\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Fear &amp; Greed gauge</span> (market risk posture), the <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Macro Regime Radar</span> (is the underlying regime still intact from yesterday?), and the <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Sector Treemap</span> (where is capital flowing right now?). These three together establish the day\'s strategic context before a single signal is evaluated. Fear &amp; Greed below 30 combined with a Liquidity-positive regime is historically a strong accumulation environment - in this configuration, signals are weighted more aggressively. Fear &amp; Greed above 75 combined with HIGH-VOL expansion demands tighter stops and smaller sizes regardless of signal quality.',
                 howToRead: 'Read left to right: Regime first (strategic context), Fear/Greed second (sentiment overlay), Sector Treemap third (capital flow direction). All three together tell you whether today is an offensive or defensive day.',
                 signals: [
                     'Fear &amp; Greed < 25 + Regime LIQUIDITY POSITIVE = aggressive accumulation environment',
@@ -1047,9 +1047,9 @@ function renderDocsViewDailyWorkflow() {
                 ]
             },
             {
-                name: 'Phase 2 — Signal Review (10 min)', type: 'CHART', icon: 'radar',
-                description: 'Navigate to <span onclick="switchView(\'signals\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Signal Hub</span>. Work through four screens in order: (1) <span onclick="switchView(\'signals\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Live Signals</span> — scan the Z-Score bell curve, target signals with Z &gt; 2.5 that are not tail outliers. Check the Firing Density histogram — a spike after a quiet period signals a breakout catalyst. (2) <span onclick="switchView(\'alpha-score\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Alpha Score</span> — sort descending, the top 5 assets above score 75 become today\'s watchlist. Cross-reference each against the <span onclick="switchView(\'signals\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Signal Confidence Radar</span> to confirm multi-factor support rather than a single-indicator pop. (3) <span onclick="switchView(\'strategy-lab\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Strategy Lab</span> — for any high-score asset, pull up the Guppy EMA ribbon. Short EMAs compressing above long EMAs signals tension before a breakout. (4) <span onclick="switchView(\'signal-archive\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Signal Archive</span> — filter ML_LONG + HIGH severity in the last 24h for the machine\'s highest-conviction calls of the session.',
-                howToRead: 'The sequence matters: Bell curve (market breadth) → Alpha Score (opportunity ranking) → Strategy Lab (entry timing) → Archive (ML confirmation). Do not jump to the Archive first — context from the previous steps prevents acting on isolated signals.',
+                name: 'Phase 2 - Signal Review (10 min)', type: 'CHART', icon: 'radar',
+                description: 'Navigate to <span onclick="switchView(\'signals\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Signal Hub</span>. Work through four screens in order: (1) <span onclick="switchView(\'signals\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Live Signals</span> - scan the Z-Score bell curve, target signals with Z &gt; 2.5 that are not tail outliers. Check the Firing Density histogram - a spike after a quiet period signals a breakout catalyst. (2) <span onclick="switchView(\'alpha-score\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Alpha Score</span> - sort descending, the top 5 assets above score 75 become today\'s watchlist. Cross-reference each against the <span onclick="switchView(\'signals\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Signal Confidence Radar</span> to confirm multi-factor support rather than a single-indicator pop. (3) <span onclick="switchView(\'strategy-lab\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Strategy Lab</span> - for any high-score asset, pull up the Guppy EMA ribbon. Short EMAs compressing above long EMAs signals tension before a breakout. (4) <span onclick="switchView(\'signal-archive\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Signal Archive</span> - filter ML_LONG + HIGH severity in the last 24h for the machine\'s highest-conviction calls of the session.',
+                howToRead: 'The sequence matters: Bell curve (market breadth) - Alpha Score (opportunity ranking) - Strategy Lab (entry timing) - Archive (ML confirmation). Do not jump to the Archive first - context from the previous steps prevents acting on isolated signals.',
                 signals: [
                     'Z > 2.5 + Positive Alpha % = extreme bullish outlier, primary long candidate',
                     'Alpha Score > 75 + ML_LONG in archive + HIGH severity = full-conviction setup',
@@ -1058,8 +1058,8 @@ function renderDocsViewDailyWorkflow() {
                 ]
             },
             {
-                name: 'Phase 3 — Macro Context (5 min)', type: 'TABLE', icon: 'monitoring',
-                description: 'Navigate to <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Macro Intel</span> then <span onclick="switchView(\'institutional-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Institutional</span>. The <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Macro Calendar</span> is checked first — FOMC, CPI, and NFP events within 48 hours require position sizes to be halved regardless of signal quality, as scheduled macro volatility is not alpha. The <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Yield Curve chart</span> confirms whether the bond market is pricing in stress that has not yet appeared in crypto price action. A deepening 2Y/10Y inversion indicates institutional risk-off that will eventually reach crypto. Finally, <span onclick="switchView(\'institutional-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Institutional &rarr; Capital Flows</span> reveals whether ETF net flow this week is positive or negative — institutional accumulation is the most reliable confirming signal for any bullish setup identified in Phase 2.',
+                name: 'Phase 3 - Macro Context (5 min)', type: 'TABLE', icon: 'monitoring',
+                description: 'Navigate to <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Macro Intel</span> then <span onclick="switchView(\'institutional-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Institutional</span>. The <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Macro Calendar</span> is checked first - FOMC, CPI, and NFP events within 48 hours require position sizes to be halved regardless of signal quality, as scheduled macro volatility is not alpha. The <span onclick="switchView(\'macro-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Yield Curve chart</span> confirms whether the bond market is pricing in stress that has not yet appeared in crypto price action. A deepening 2Y/10Y inversion indicates institutional risk-off that will eventually reach crypto. Finally, <span onclick="switchView(\'institutional-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Institutional &rarr; Capital Flows</span> reveals whether ETF net flow this week is positive or negative - institutional accumulation is the most reliable confirming signal for any bullish setup identified in Phase 2.',
                 howToRead: 'This phase is a filter, not a generator. It either confirms or veto-es setups from Phase 2. A perfect Phase 2 signal that collides with a FOMC event in 24h gets halved in size. A perfect Phase 2 signal with positive ETF flows and a normal yield curve gets full allocation.',
                 signals: [
                     'FOMC within 48h = halve all position sizes; close leveraged trades before the event',
@@ -1069,8 +1069,8 @@ function renderDocsViewDailyWorkflow() {
                 ]
             },
             {
-                name: 'Phase 4 — Trade Decision (5 min)', type: 'CHART', icon: 'candlestick_chart',
-                description: 'For each shortlisted asset from Phase 2 that passed the Phase 3 filter, open <span onclick="switchView(\'advanced-charting\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Advanced Charting &rarr; TradingView</span> to set the exact entry level. Then cross-reference two order-flow confirmations: (1) <span onclick="switchView(\'advanced-charting\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Market Depth 3D</span> — if the bid wall is 3&times; the ask wall near current price, that represents real institutional support. Do not enter if asks dominate. (2) <span onclick="switchView(\'liquidity\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Order Flow &rarr; Whale Pulse</span> — any large wallet accumulation in the last 6 hours confirms or contradicts the thesis. Contradicting whale data (selling into the Signal) is a veto. The final check is the <span onclick="switchView(\'liquidity\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Tape Imbalance</span> rolling indicator — positive and rising rolling imbalance with buy pressure absorbing sells is the entry trigger. All four must align before committing capital.',
+                name: 'Phase 4 - Trade Decision (5 min)', type: 'CHART', icon: 'candlestick_chart',
+                description: 'For each shortlisted asset from Phase 2 that passed the Phase 3 filter, open <span onclick="switchView(\'advanced-charting\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Advanced Charting &rarr; TradingView</span> to set the exact entry level. Then cross-reference two order-flow confirmations: (1) <span onclick="switchView(\'advanced-charting\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Market Depth 3D</span> - if the bid wall is 3&times; the ask wall near current price, that represents real institutional support. Do not enter if asks dominate. (2) <span onclick="switchView(\'liquidity\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Order Flow &rarr; Whale Pulse</span> - any large wallet accumulation in the last 6 hours confirms or contradicts the thesis. Contradicting whale data (selling into the Signal) is a veto. The final check is the <span onclick="switchView(\'liquidity\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Tape Imbalance</span> rolling indicator - positive and rising rolling imbalance with buy pressure absorbing sells is the entry trigger. All four must align before committing capital.',
                 howToRead: 'Think of this phase as a traffic-light check: TradingView sets the price level (WHERE to enter), Market Depth confirms liquidity support (IS the level defended?), Whale Pulse confirms smart money direction (WHO is on the right side?), Tape Imbalance confirms execution timing (WHEN to pull the trigger).',
                 signals: [
                     'Bid wall 3x ask wall near entry price = institutional support level, execute',
@@ -1080,9 +1080,9 @@ function renderDocsViewDailyWorkflow() {
                 ]
             },
             {
-                name: 'Phase 5 — End of Day (5 min)', type: 'STAT', icon: 'bar_chart',
-                description: 'Navigate to <span onclick="switchView(\'audit-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Audit &amp; Performance</span>. The <span onclick="switchView(\'audit-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Performance Dashboard</span> shows whether today\'s signals generated alpha — check the equity curve and rolling Sharpe. Once per week (not daily), navigate to <span onclick="switchView(\'institutional-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Institutional &rarr; AI Rebalancer</span> and run a full rebalance plan. Accept EXECUTE &rarr; TRADE LEDGER tickets only for ADD actions with an ML score above 80% — lower-confidence additions are deferred until the next weekly rebalance. Finally, check the <span onclick="switchView(\'risk-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Risk Matrix</span> — any position that now carries a high composite risk score due to the day\'s volatility should have its stop tightened or size reduced before close. The goal of this phase is not to make decisions but to measure and maintain discipline.',
-                howToRead: 'The audit phase is about honesty: did the system work today, and did you follow it? Compare the equity curve against BTC buy-and-hold. If you are underperforming after following the system, the regime may be misaligned — reduce sizes. If you are outperforming, increase systematic adherence and reduce discretionary overrides.',
+                name: 'Phase 5 - End of Day (5 min)', type: 'STAT', icon: 'bar_chart',
+                description: 'Navigate to <span onclick="switchView(\'audit-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Audit &amp; Performance</span>. The <span onclick="switchView(\'audit-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Performance Dashboard</span> shows whether today\'s signals generated alpha - check the equity curve and rolling Sharpe. Once per week (not daily), navigate to <span onclick="switchView(\'institutional-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Institutional &rarr; AI Rebalancer</span> and run a full rebalance plan. Accept EXECUTE &rarr; TRADE LEDGER tickets only for ADD actions with an ML score above 80% - lower-confidence additions are deferred until the next weekly rebalance. Finally, check the <span onclick="switchView(\'risk-hub\')" style="color:#34d399;cursor:pointer;text-decoration:underline;font-weight:700">Risk Matrix</span> - any position that now carries a high composite risk score due to the day\'s volatility should have its stop tightened or size reduced before close. The goal of this phase is not to make decisions but to measure and maintain discipline.',
+                howToRead: 'The audit phase is about honesty: did the system work today, and did you follow it? Compare the equity curve against BTC buy-and-hold. If you are underperforming after following the system, the regime may be misaligned - reduce sizes. If you are outperforming, increase systematic adherence and reduce discretionary overrides.',
                 signals: [
                     'Rolling Sharpe declining over 5 sessions = current regime misaligning with strategy; reduce sizing until it recovers',
                     'AI Rebalancer: ADD action with ML Score > 80% = execute ticket and log to Trade Ledger',
@@ -1093,7 +1093,7 @@ function renderDocsViewDailyWorkflow() {
         ]
     });
 }
-// ============= ANALYTICS HUB — CUSTOM CHARTS =============
+// ============= ANALYTICS HUB - CUSTOM CHARTS =============
 function renderDocsViewCustomCharts() {
     renderViewDocPage({
         hub: 'Analytics Hub', hubIcon: 'analytics', hubColor: '#22c55e',
@@ -1103,30 +1103,30 @@ function renderDocsViewCustomCharts() {
             { name: 'TradingView Hub', route: 'docs-tradingview-hub', icon: 'show_chart' },
             { name: 'OI Radar', route: 'docs-oi-radar', icon: 'track_changes' },
         ],
-        summary: 'Four proprietary charts built on AlphaSignal\'s own backend data using LightweightCharts. Unlike the TradingView Hub, these charts use real data from our API — BTC dominance via proxy market cap calculation, live Binance FAPI funding rates, on-chain metrics (MVRV, SOPR), and price-derived rolling volatility. Each card is click-to-expand into a full-screen modal.',
+        summary: 'Four proprietary charts built on AlphaSignal\'s own backend data using LightweightCharts. Unlike the TradingView Hub, these charts use real data from our API - BTC dominance via proxy market cap calculation, live Binance FAPI funding rates, on-chain metrics (MVRV, SOPR), and price-derived rolling volatility. Each card is click-to-expand into a full-screen modal.',
         components: [
             {
                 name: 'BTC Dominance', type: 'CHART', icon: 'currency_bitcoin',
                 description: 'Area chart showing Bitcoin\'s share of a three-asset proxy market cap (BTC, ETH, SOL) over 60 days. BTC displayed as an orange area fill, ETH as a blue line, Alts (SOL proxy) as a grey line. Data sourced from the /api/dominance endpoint using yfinance price data multiplied by approximate circulating supply.',
-                howToRead: 'The BTC area fill rising = Bitcoin increasing its share of the crypto market. Falling BTC dominance = capital flowing into altcoins. Watch for the grey Alts line surging while BTC falls — this signals altcoin season.',
+                howToRead: 'The BTC area fill rising = Bitcoin increasing its share of the crypto market. Falling BTC dominance = capital flowing into altcoins. Watch for the grey Alts line surging while BTC falls - this signals altcoin season.',
                 signals: ['BTC dominance rising above 60% = risk-off; institutional capital rotating into BTC only', 'Dominance falling while price rising = broad altcoin rally kicking in', 'ETH line crossing above historical average = ETH outperformance cycle; ETH/BTC long', 'All three converging = correlation spike; macro event likely driving all assets together']
             },
             {
                 name: 'Funding Rate Bar Chart', type: 'CHART', icon: 'percent',
                 description: 'Horizontal bar chart showing the current 8-hour perpetual funding rate for 8 assets: BTC, ETH, SOL, LINK, ADA, BNB, XRP, and DOGE. Bars are colour-coded: green = positive rate (longs paying shorts), red = negative rate (shorts paying longs). Each bar shows the absolute rate and the annualised equivalent. Data sourced live from Binance FAPI premiumIndex endpoint.',
-                howToRead: 'Longer green bars = market is heavily long on that asset — longs are paying a premium to hold positions. This is a crowded trade risk signal. Short red bars mean shorts are dominant — potential squeeze setup.',
+                howToRead: 'Longer green bars = market is heavily long on that asset - longs are paying a premium to hold positions. This is a crowded trade risk signal. Short red bars mean shorts are dominant - potential squeeze setup.',
                 signals: ['BTC funding > 0.05% (8h) = extremely crowded long; correction risk elevated', 'Negative funding across multiple assets = mass short positioning; potential squeeze setup', 'BTC positive while alts negative = divergence; alts at risk of being dragged down if BTC corrects', 'All bars near zero = balanced positioning; breakout more sustainable when it comes']
             },
             {
                 name: 'MVRV / SOPR Overlay', type: 'CHART', icon: 'stacked_line_chart',
-                description: 'Dual line chart with MVRV Z-Score (red) and SOPR (green) both normalized to 0–1 on the same axis using min-max scaling. This removes the different absolute scales of each metric and allows direct visual comparison of their cycle positioning. Data sourced from the /api/onchain endpoint.',
-                howToRead: 'When both lines converge near 0: market is at historical lows — classic accumulation zone. When both lines converge near 1: market is at historical highs — distribution zone. Divergence between the two (one high, one low) marks transitional periods.',
+                description: 'Dual line chart with MVRV Z-Score (red) and SOPR (green) both normalized to 0-1 on the same axis using min-max scaling. This removes the different absolute scales of each metric and allows direct visual comparison of their cycle positioning. Data sourced from the /api/onchain endpoint.',
+                howToRead: 'When both lines converge near 0: market is at historical lows - classic accumulation zone. When both lines converge near 1: market is at historical highs - distribution zone. Divergence between the two (one high, one low) marks transitional periods.',
                 signals: ['Both near 0 simultaneously = extremely strong buy signal; highest historical confidence', 'MVRV near 1 while SOPR still rising = MVRV topping first; phased exit recommended', 'SOPR crossing above 0.5 from below = on-chain participants moving into profit; momentum confirming', 'Both crossing 0.8+ = late cycle; reduce exposure, set trailing stops']
             },
             {
                 name: '30-Day Rolling Volatility', type: 'CHART', icon: 'ssid_chart',
-                description: 'Annualised 30-day rolling volatility chart (purple area fill) computed from daily log-returns of BTC price data from the on-chain API. Formula: √(30-day variance × 365) × 100. Spikes in this chart historically align with liquidation cascades, macro shocks, and regime transitions.',
-                howToRead: 'Low flat volatility (< 30%) = compressed market, energy coiling — breakout imminent. Rising volatility (> 60%) = regime change in progress. Extreme spike (> 100%) = crisis event.',
+                description: 'Annualised 30-day rolling volatility chart (purple area fill) computed from daily log-returns of BTC price data from the on-chain API. Formula: -(30-day variance - 365) - 100. Spikes in this chart historically align with liquidation cascades, macro shocks, and regime transitions.',
+                howToRead: 'Low flat volatility (< 30%) = compressed market, energy coiling - breakout imminent. Rising volatility (> 60%) = regime change in progress. Extreme spike (> 100%) = crisis event.',
                 signals: ['Volatility compressing to multi-year lows = major move imminent; direction unknown', 'Volatility spike then rapid collapse = false breakout or flash crash reversal setup', 'Sustained high volatility (> 60% for > 30 days) = trending regime; momentum strategies optimal', 'Volatility declining from peak = regime normalising; position sizes can increase']
             },
             {
@@ -1140,7 +1140,7 @@ function renderDocsViewCustomCharts() {
     });
 }
 
-// ============= HOW SIGNALS WORK — DEEP DIVE =============
+// ============= HOW SIGNALS WORK - DEEP DIVE =============
 function renderDocsViewHowSignalsWork() {
     renderViewDocPage({
         hub: 'Alpha Strategy', hubIcon: 'electric_bolt', hubColor: '#facc15',
@@ -1152,21 +1152,21 @@ function renderDocsViewHowSignalsWork() {
             { name: 'Live Alerts', route: 'docs-alerts', icon: 'notifications' },
             { name: 'ML Alpha Engine', route: 'docs-ml-engine', icon: 'smart_toy' },
         ],
-        summary: 'A complete technical walkthrough of the AlphaSignal signal engine — from raw data ingestion through ML inference and rule-based detection, to alert dispatch, archive storage, ROI tracking, stop-loss automation, and final signal closure. Understanding this pipeline helps you interpret every signal card, archive entry, and alert notification with full context.',
+        summary: 'A complete technical walkthrough of the AlphaSignal signal engine - from raw data ingestion through ML inference and rule-based detection, to alert dispatch, archive storage, ROI tracking, stop-loss automation, and final signal closure. Understanding this pipeline helps you interpret every signal card, archive entry, and alert notification with full context.',
         components: [
             {
-                name: 'Step 1 — Data Harvest (Every 30 Minutes)', type: 'SYSTEM', icon: 'download',
-                description: 'Every 30 minutes the backend HarvestService wakes on a background thread. It builds the full asset universe (50+ tickers across L1s, DeFi, memecoins, equities, and tracked watchlist assets) and downloads a single batch of 60-day daily OHLCV data in one API call. Simultaneously, on-chain sentiment scores are fetched per ticker, and real-time values are injected into the live ML feature row. Prices and volumes are also written to the market_ticks table, which powers the auto-close loop and price cache. This batch-first design means the engine makes one API call for all 50+ assets rather than individual requests — keeping data latency low and avoiding rate limits.',
-                howToRead: 'The harvest cycle is the heartbeat of the system. If market data is stale (weekends, API outages), signals will not fire. Price data older than the current 30-minute cycle will be supplemented by fallback calls for missing tickers. All downstream steps — ML inference, rule detection, auto-close — depend on data written in this step.',
+                name: 'Step 1 - Data Harvest (Every 30 Minutes)', type: 'SYSTEM', icon: 'download',
+                description: 'Every 30 minutes the backend HarvestService wakes on a background thread. It builds the full asset universe (50+ tickers across L1s, DeFi, memecoins, equities, and tracked watchlist assets) and downloads a single batch of 60-day daily OHLCV data in one API call. Simultaneously, on-chain sentiment scores are fetched per ticker, and real-time values are injected into the live ML feature row. Prices and volumes are also written to the market_ticks table, which powers the auto-close loop and price cache. This batch-first design means the engine makes one API call for all 50+ assets rather than individual requests - keeping data latency low and avoiding rate limits.',
+                howToRead: 'The harvest cycle is the heartbeat of the system. If market data is stale (weekends, API outages), signals will not fire. Price data older than the current 30-minute cycle will be supplemented by fallback calls for missing tickers. All downstream steps - ML inference, rule detection, auto-close - depend on data written in this step.',
                 signals: [
-                    'All signals require at least 30 bars of daily history — tickers with insufficient data are skipped',
+                    'All signals require at least 30 bars of daily history - tickers with insufficient data are skipped',
                     'Sentiment scores are fetched in a single batch to avoid serial API overhead',
                     'market_ticks entries from this cycle power both ML features and the auto-close price map',
-                    'Harvest errors are isolated per ticker — one failure never stops the rest of the cycle'
+                    'Harvest errors are isolated per ticker - one failure never stops the rest of the cycle'
                 ]
             },
             {
-                name: 'Step 2 — ML Signal Generation (Prediction Engine)', type: 'AI', icon: 'smart_toy',
+                name: 'Step 2 - ML Signal Generation (Prediction Engine)', type: 'AI', icon: 'smart_toy',
                 description: 'After the harvest, the ML engine runs inference on every ticker using a RandomForestRegressor trained on 8 features from 2 years of daily data: 1-day return, 5-day return, RSI-14, MACD, Bollinger Band position, volume 1-day change, sentiment score, and order book imbalance. The model predicts the expected 24-hour return. If predicted_return >= 0.8% (the alpha threshold), an ML_ALPHA_PREDICTION signal is generated. Severity scales by predicted alpha: >= 2% = CRITICAL, >= 1% = HIGH, < 1% = MEDIUM. A human-readable message names the top-weighted feature driving the prediction (e.g. "Primary driver: RSI_14 (31.2% confidence)"). Models are re-trained every 24 hours using a full 2-year lookback window across all tracked assets.',
                 howToRead: 'ML signals represent statistically significant departures from expected behaviour, calibrated on historical data. The severity badge shows how extreme the predicted alpha window is. The primary driver field tells you which factor the model weighted most for this specific asset call.',
                 signals: [
@@ -1177,80 +1177,80 @@ function renderDocsViewHowSignalsWork() {
                 ]
             },
             {
-                name: 'Step 3 — Rule-Based Signal Detection', type: 'SYSTEM', icon: 'rule',
-                description: 'In parallel with ML inference, a deterministic rule engine applies technical conditions to every ticker. Rules fire even before ML models have warmed up and act as a robust complement. RSI_OVERSOLD: RSI-14 drops below 30 (HIGH if < 25, MEDIUM otherwise). RSI_OVERBOUGHT: RSI-14 rises above 70. MACD_BULLISH_CROSS: MACD line crosses above the signal line AND volume simultaneously spikes more than 2 standard deviations above its 20-day mean. MACD_BEARISH_CROSS: MACD crosses below the signal line. VOLUME_SPIKE: volume exceeds 20-day mean by > 2 sigma, regardless of MACD direction. Each rule maps to a direction — RSI_OVERSOLD and MACD_BULLISH_CROSS = LONG; RSI_OVERBOUGHT and MACD_BEARISH_CROSS = SHORT; VOLUME_SPIKE = NEUTRAL. An anti-spam guard prevents the same rule firing for the same ticker and user within any 2-hour window.',
-                howToRead: 'Rule signals are faster and more transparent than ML signals — you can directly verify the trigger on any chart. Filter the Signal Archive by type (e.g. RSI_OVERSOLD) to review historical outcomes for that specific rule on specific tickers.',
+                name: 'Step 3 - Rule-Based Signal Detection', type: 'SYSTEM', icon: 'rule',
+                description: 'In parallel with ML inference, a deterministic rule engine applies technical conditions to every ticker. Rules fire even before ML models have warmed up and act as a robust complement. RSI_OVERSOLD: RSI-14 drops below 30 (HIGH if < 25, MEDIUM otherwise). RSI_OVERBOUGHT: RSI-14 rises above 70. MACD_BULLISH_CROSS: MACD line crosses above the signal line AND volume simultaneously spikes more than 2 standard deviations above its 20-day mean. MACD_BEARISH_CROSS: MACD crosses below the signal line. VOLUME_SPIKE: volume exceeds 20-day mean by > 2 sigma, regardless of MACD direction. Each rule maps to a direction - RSI_OVERSOLD and MACD_BULLISH_CROSS = LONG; RSI_OVERBOUGHT and MACD_BEARISH_CROSS = SHORT; VOLUME_SPIKE = NEUTRAL. An anti-spam guard prevents the same rule firing for the same ticker and user within any 2-hour window.',
+                howToRead: 'Rule signals are faster and more transparent than ML signals - you can directly verify the trigger on any chart. Filter the Signal Archive by type (e.g. RSI_OVERSOLD) to review historical outcomes for that specific rule on specific tickers.',
                 signals: [
                     'RSI_OVERSOLD below 25 (HIGH severity) in a confirmed uptrend = strongest mean-reversion long setup from the rule engine',
                     'MACD_BULLISH_CROSS alone without volume spike = weaker signal; wait for separate volume confirmation',
                     'MACD_BULLISH_CROSS and VOLUME_SPIKE firing simultaneously = highest-quality rule signal combination',
-                    'RSI_OVERBOUGHT in a strong trending regime — less reliable than in ranging markets; check Market Regime first'
+                    'RSI_OVERBOUGHT in a strong trending regime - less reliable than in ranging markets; check Market Regime first'
                 ]
             },
             {
-                name: 'Step 4 — Anti-Spam & Per-User Routing', type: 'SYSTEM', icon: 'filter_alt',
+                name: 'Step 4 - Anti-Spam & Per-User Routing', type: 'SYSTEM', icon: 'filter_alt',
                 description: 'Before any signal is written to the database, two guards are applied. First, a per-user duplicate check: the system queries alerts_history for any alert of the same ticker and user within the last 1 hour (ML signals) or 2 hours (rule-based). If a duplicate exists, the signal is skipped for that user. Second, each signal is inserted as a separate database row for every user who has alerts_enabled = true. Two users on the same platform can have completely different archives based on when they subscribed and their settings. Each stored signal record includes: type, ticker, message, severity, entry_price (price at moment of detection), timestamp, z_score/alpha, direction (LONG/SHORT/NEUTRAL), category (L1/DeFi/Equity/etc), and user_email.',
                 howToRead: 'If you notice a signal in the leaderboard that you did not receive, it was filtered by your anti-spam window or you had alerts_enabled off at that time. Your Signal Archive only shows signals routed to your account. The Signal Leaderboard shows system-wide performance across all users.',
                 signals: [
                     'Missed a signal you expected? Check if a prior alert for the same ticker was received within the spam window',
-                    'Anti-spam window resets every 2 hours — the same genuine setup can legitimately fire again after that window',
+                    'Anti-spam window resets every 2 hours - the same genuine setup can legitimately fire again after that window',
                     'alerts_enabled off = no signals inserted, even if all thresholds are crossed',
                     'Per-user routing means your archive is private; signals in the leaderboard are anonymised aggregates'
                 ]
             },
             {
-                name: 'Step 5 — Signal Archive (alerts_history Table)', type: 'TABLE', icon: 'archive',
-                description: 'Every signal is stored in the alerts_history SQLite table. A new signal enters with status = NULL (treated as "active") and no exit_price or final_roi. Core fields: id (primary key), type (signal rule name), ticker, message, severity, price (entry price at detection), timestamp, direction, category, user_email, z_score, alpha, status (active / closed), closed_at, exit_price, and final_roi. The Signal Archive view loads from this table with server-side pagination and filtering. A separate enrichment step in the backend computes derived state labels — ACTIVE, HIT_TP1, HIT_TP2, STOPPED, CLOSED — by comparing the live current price against the stored entry price each time the view is loaded. These state labels are computed fresh every time, not stored.',
+                name: 'Step 5 - Signal Archive (alerts_history Table)', type: 'TABLE', icon: 'archive',
+                description: 'Every signal is stored in the alerts_history SQLite table. A new signal enters with status = NULL (treated as "active") and no exit_price or final_roi. Core fields: id (primary key), type (signal rule name), ticker, message, severity, price (entry price at detection), timestamp, direction, category, user_email, z_score, alpha, status (active / closed), closed_at, exit_price, and final_roi. The Signal Archive view loads from this table with server-side pagination and filtering. A separate enrichment step in the backend computes derived state labels - ACTIVE, HIT_TP1, HIT_TP2, STOPPED, CLOSED - by comparing the live current price against the stored entry price each time the view is loaded. These state labels are computed fresh every time, not stored.',
                 howToRead: 'The "status" column in the raw database is either "active" (open, being monitored every 30 minutes) or "closed" (auto-closed). The richer state labels (HIT_TP1, HIT_TP2, STOPPED, ACTIVE) that you see in the Signal Archive UI are derived dynamically from live prices on every page load.',
                 signals: [
                     'ACTIVE = signal entry price was touched but neither +10% nor -3% has been reached yet; ROI is floating',
-                    'HIT_TP1 = signal has gained +5% from entry; this is an intermediate milestone — the signal remains open',
+                    'HIT_TP1 = signal has gained +5% from entry; this is an intermediate milestone - the signal remains open',
                     'HIT_TP2 = signal has gained +10% from entry; auto-close was or will shortly be triggered',
                     'STOPPED = signal lost -3% from entry; auto-close was triggered and this is the final state'
                 ]
             },
             {
-                name: 'Step 6 — ROI Calculation & Direction Logic', type: 'SYSTEM', icon: 'percent',
-                description: 'ROI is direction-aware. For LONG signals (RSI_OVERSOLD, MACD_BULLISH_CROSS, ML_ALPHA_PREDICTION, REGIME_BULL, WHALE_ACCUMULATION, VOLUME_SPIKE, SENTIMENT_SPIKE, MOMENTUM_BREAKOUT, LIQUIDITY_VACUUM): ROI = (current_price − entry_price) / entry_price × 100. For SHORT signals (RSI_OVERBOUGHT, MACD_BEARISH_CROSS, ML_SHORT): ROI = (entry_price − current_price) / entry_price × 100, so the signal profits from a price decrease. The auto-close thresholds are: TP1 = ROI >= +5% (intermediate milestone, signal stays open), TP2 = ROI >= +10% (auto-closed as a win), Stop Loss = ROI <= −3% (auto-closed as a loss). All calculations use the raw entry_price stored at the moment of detection. The 10%/−3% ratio represents a 3.3:1 reward-to-risk ratio — an institutional-grade minimum before any signal is considered worth monitoring.',
-                howToRead: 'The ROI displayed in the Signal Archive for ACTIVE signals is live — it recalculates each time you load the view. For CLOSED signals, the final_roi column contains the exact stamped value from the auto-close event. A STOPPED signal at −3% ROI may look like a small loss on the card, but the system correctly identified and closed it before it could become larger.',
+                name: 'Step 6 - ROI Calculation & Direction Logic', type: 'SYSTEM', icon: 'percent',
+                description: 'ROI is direction-aware. For LONG signals (RSI_OVERSOLD, MACD_BULLISH_CROSS, ML_ALPHA_PREDICTION, REGIME_BULL, WHALE_ACCUMULATION, VOLUME_SPIKE, SENTIMENT_SPIKE, MOMENTUM_BREAKOUT, LIQUIDITY_VACUUM): ROI = (current_price - entry_price) / entry_price - 100. For SHORT signals (RSI_OVERBOUGHT, MACD_BEARISH_CROSS, ML_SHORT): ROI = (entry_price - current_price) / entry_price - 100, so the signal profits from a price decrease. The auto-close thresholds are: TP1 = ROI >= +5% (intermediate milestone, signal stays open), TP2 = ROI >= +10% (auto-closed as a win), Stop Loss = ROI <= -3% (auto-closed as a loss). All calculations use the raw entry_price stored at the moment of detection. The 10%/-3% ratio represents a 3.3:1 reward-to-risk ratio - an institutional-grade minimum before any signal is considered worth monitoring.',
+                howToRead: 'The ROI displayed in the Signal Archive for ACTIVE signals is live - it recalculates each time you load the view. For CLOSED signals, the final_roi column contains the exact stamped value from the auto-close event. A STOPPED signal at -3% ROI may look like a small loss on the card, but the system correctly identified and closed it before it could become larger.',
                 signals: [
-                    'A SHORT signal showing positive ROI means price fell from entry — the direction logic is working correctly',
+                    'A SHORT signal showing positive ROI means price fell from entry - the direction logic is working correctly',
                     'Signal at HIT_TP1 (+5%) and still ACTIVE = system believes the +10% target may still be reachable; manage your own position accordingly',
-                    'STOPPED at exactly −3% = auto-close triggered at the threshold; do not re-enter without fresh confluence signals',
-                    'Final ROI stamped in the final_roi column on close is the exact auto-close value — not an estimate or mark-to-market'
+                    'STOPPED at exactly -3% = auto-close triggered at the threshold; do not re-enter without fresh confluence signals',
+                    'Final ROI stamped in the final_roi column on close is the exact auto-close value - not an estimate or mark-to-market'
                 ]
             },
             {
-                name: 'Step 7 — Auto-Close & Stop Loss Automation', type: 'SYSTEM', icon: 'auto_fix_high',
-                description: 'Every 30-minute harvest cycle ends with the auto_close_signals function. It queries all alerts_history rows where status is NULL or "active". For each active signal, it looks up the current price from market_ticks (written this cycle) or falls back to yfinance if missing. It calculates direction-aware ROI against the stored entry_price. If ROI >= +10% or <= −3%, the row is updated atomically: status = "closed", closed_at = UTC timestamp, exit_price = current price, final_roi = computed value. A background daemon thread simultaneously fires a rich webhook notification: ticker, signal type, result label (TARGET HIT 🎯 or STOP LOSS 🛑), entry price, exit price, and final ROI — sent to Discord and/or Telegram if configured. After the database commit, the Signal Archive cache is cleared so the next page load immediately reflects the updated state.',
-                howToRead: 'Auto-close is a monitoring and record-keeping system — it does not place orders on any exchange. The check runs every 30 minutes; a flash price that recovers within one cycle may not trigger a stop. Notification is best-effort in a background thread and never blocks the database update.',
+                name: 'Step 7 - Auto-Close & Stop Loss Automation', type: 'SYSTEM', icon: 'auto_fix_high',
+                description: 'Every 30-minute harvest cycle ends with the auto_close_signals function. It queries all alerts_history rows where status is NULL or "active". For each active signal, it looks up the current price from market_ticks (written this cycle) or falls back to yfinance if missing. It calculates direction-aware ROI against the stored entry_price. If ROI >= +10% or <= -3%, the row is updated atomically: status = "closed", closed_at = UTC timestamp, exit_price = current price, final_roi = computed value. A background daemon thread simultaneously fires a rich webhook notification: ticker, signal type, result label (TARGET HIT - or STOP LOSS -), entry price, exit price, and final ROI - sent to Discord and/or Telegram if configured. After the database commit, the Signal Archive cache is cleared so the next page load immediately reflects the updated state.',
+                howToRead: 'Auto-close is a monitoring and record-keeping system - it does not place orders on any exchange. The check runs every 30 minutes; a flash price that recovers within one cycle may not trigger a stop. Notification is best-effort in a background thread and never blocks the database update.',
                 signals: [
-                    'Auto-close is monitoring-only — it updates your archive record but never executes a real exchange trade',
+                    'Auto-close is monitoring-only - it updates your archive record but never executes a real exchange trade',
                     'Prices are checked every 30 minutes; a sharp intra-cycle crash that recovers quickly may not trigger auto-close',
                     'The cache clear after close means refreshing the Signal Archive always shows the latest state without stale data',
                     'If price data is unavailable for a ticker at check time, that signal is skipped until data returns next cycle'
                 ]
             },
             {
-                name: 'Step 8 — Alert Delivery (Webhook, Telegram & In-Terminal)', type: 'WIDGET', icon: 'notifications_active',
-                description: 'When a new signal is created AND the user\'s configured z_threshold is met by the predicted alpha, three delivery channels fire in parallel. (1) Discord webhook — a rich embed coloured green (LONG) or red (SHORT), including entry price, severity, and top ML driver. (2) Telegram bot — an inline message via @alphasignalbot_bot with the same structured data. (3) WebSocket broadcast — all connected browser tabs receive a "new_alert" frame instantly, which live-prepends a card in the Alerts Hub feed and increments the left-nav badge counter. Premium users additionally see a rich signal toast at the bottom-right of the screen. Regime shift alerts bypass the z_threshold gate and fire to all users with alerts_enabled regardless of their threshold setting.',
-                howToRead: 'The z_threshold in your settings controls which signals reach your notification channels. The default is 2.0 (matching the extreme Z-score threshold). The in-terminal WebSocket card fires regardless of channel configuration — you will always see alerts in-app if the terminal is open. If Discord or Telegram are not configured, only the in-app channel fires.',
+                name: 'Step 8 - Alert Delivery (Webhook, Telegram & In-Terminal)', type: 'WIDGET', icon: 'notifications_active',
+                description: 'When a new signal is created AND the user\'s configured z_threshold is met by the predicted alpha, three delivery channels fire in parallel. (1) Discord webhook - a rich embed coloured green (LONG) or red (SHORT), including entry price, severity, and top ML driver. (2) Telegram bot - an inline message via @alphasignalbot_bot with the same structured data. (3) WebSocket broadcast - all connected browser tabs receive a "new_alert" frame instantly, which live-prepends a card in the Alerts Hub feed and increments the left-nav badge counter. Premium users additionally see a rich signal toast at the bottom-right of the screen. Regime shift alerts bypass the z_threshold gate and fire to all users with alerts_enabled regardless of their threshold setting.',
+                howToRead: 'The z_threshold in your settings controls which signals reach your notification channels. The default is 2.0 (matching the extreme Z-score threshold). The in-terminal WebSocket card fires regardless of channel configuration - you will always see alerts in-app if the terminal is open. If Discord or Telegram are not configured, only the in-app channel fires.',
                 signals: [
                     'Not receiving Discord alerts? Verify your webhook URL starts with https://discord.com/api/webhooks/ in Notification Settings',
                     'Not receiving Telegram alerts? Send /start to the bot to link your chat_id, then save in settings',
                     'Lowering z_threshold below 1.0 = significantly more notifications; risk of alert fatigue',
-                    'Regime shift alerts bypass the threshold gate — they always fire when alerts_enabled is true regardless of z_threshold'
+                    'Regime shift alerts bypass the threshold gate - they always fire when alerts_enabled is true regardless of z_threshold'
                 ]
             },
             {
                 name: 'Complete Signal Lifecycle at a Glance', type: 'SYSTEM', icon: 'account_tree',
-                description: 'The end-to-end lifecycle of every signal: (1) HarvestService runs every 30 minutes — batch OHLCV downloaded, sentiment injected, market_ticks written. (2) ML engine inference — if predicted_return >= 0.8%, ML_ALPHA_PREDICTION inserted per eligible user. (3) Rule engine evaluation — RSI/MACD/Volume rules checked, anti-spam applied, rule signal inserted if conditions met. (4) Signal row written: status = active, entry_price = current price at detection time. (5) Webhook, Telegram, and WebSocket notifications dispatched simultaneously from a background thread. (6) Signal appears in Signal Archive with ACTIVE state and live floating ROI. State labels (ACTIVE/HIT_TP1/HIT_TP2/STOPPED) computed on-the-fly every time the Archive loads. (7) Every 30 minutes, auto_close_signals checks all active rows — if ROI >= +10% or <= −3%, status set to "closed", final_roi stamped, exit notification sent. (8) Archive cache cleared — next page load shows final closed state with immutable ROI.',
-                howToRead: 'Every ACTIVE signal in your Archive is being monitored in real time. The ROI shown for active signals is live. Only closed signals have a fixed, auditable final_roi. The system acts as an institutional trade monitor: it detects, records, tracks, and auto-closes on your behalf — but execution on actual exchanges is always your responsibility.',
+                description: 'The end-to-end lifecycle of every signal: (1) HarvestService runs every 30 minutes - batch OHLCV downloaded, sentiment injected, market_ticks written. (2) ML engine inference - if predicted_return >= 0.8%, ML_ALPHA_PREDICTION inserted per eligible user. (3) Rule engine evaluation - RSI/MACD/Volume rules checked, anti-spam applied, rule signal inserted if conditions met. (4) Signal row written: status = active, entry_price = current price at detection time. (5) Webhook, Telegram, and WebSocket notifications dispatched simultaneously from a background thread. (6) Signal appears in Signal Archive with ACTIVE state and live floating ROI. State labels (ACTIVE/HIT_TP1/HIT_TP2/STOPPED) computed on-the-fly every time the Archive loads. (7) Every 30 minutes, auto_close_signals checks all active rows - if ROI >= +10% or <= -3%, status set to "closed", final_roi stamped, exit notification sent. (8) Archive cache cleared - next page load shows final closed state with immutable ROI.',
+                howToRead: 'Every ACTIVE signal in your Archive is being monitored in real time. The ROI shown for active signals is live. Only closed signals have a fixed, auditable final_roi. The system acts as an institutional trade monitor: it detects, records, tracks, and auto-closes on your behalf - but execution on actual exchanges is always your responsibility.',
                 signals: [
-                    'Active archive signals are live — their displayed ROI changes as price moves every time you reload the view',
-                    'If price data becomes unavailable, the auto-close cycle skips that ticker — the signal stays open until data returns',
-                    'A signal can remain ACTIVE indefinitely if it never hits the +10% target or the −3% stop',
-                    'SHORT signals profit when price falls — always check the direction label in the Archive to interpret ROI correctly'
+                    'Active archive signals are live - their displayed ROI changes as price moves every time you reload the view',
+                    'If price data becomes unavailable, the auto-close cycle skips that ticker - the signal stays open until data returns',
+                    'A signal can remain ACTIVE indefinitely if it never hits the +10% target or the -3% stop',
+                    'SHORT signals profit when price falls - always check the direction label in the Archive to interpret ROI correctly'
                 ]
             }
         ]

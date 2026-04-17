@@ -99,7 +99,7 @@ class MarketRoutesMixin:
             self.send_json({'fgIndex': 50, 'fgLabel': 'Neutral', 'leadLag': {'leader': 'SYNC', 'divergence': 0, 'signal': 'Engine Warmup'}})
 
     def handle_fear_greed(self):
-        # ── 1. Try real alternative.me Fear & Greed Index ────────────────────
+        # - 1. Try real alternative.me Fear & Greed Index -
         try:
             fg = fetch_fear_greed()
             if fg and fg.get('source') != 'fallback' and isinstance(fg.get('value'), int):
@@ -116,7 +116,7 @@ class MarketRoutesMixin:
         except Exception as e:
             print(f'[FearGreed/alternative.me] {e}')
 
-        # ── 2. Fallback: derive from BTC price deviation vs SMA-50 ───────────
+        # - 2. Fallback: derive from BTC price deviation vs SMA-50 -
         try:
             data = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close')
             if data is not None and (not data.empty):
@@ -143,7 +143,7 @@ class MarketRoutesMixin:
     _news_cache = {'data': None, 'ts': 0}
 
     def handle_news(self):
-        """Fetch live crypto news from CryptoPanic public RSS — no API key required."""
+        """Fetch live crypto news from CryptoPanic public RSS - no API key required."""
         now = time.time()
         # 10-minute cache
         if self._news_cache['data'] and (now - self._news_cache['ts']) < 600:
@@ -344,7 +344,7 @@ class MarketRoutesMixin:
 
     def handle_etf_flows(self):
         """Real ETF flow proxy using yfinance IBIT/FBTC/ARKB/BITB daily price data.
-        Flow intensity = daily net AUM change estimate (price × shares outstanding proxy).
+        Flow intensity = daily net AUM change estimate (price - shares outstanding proxy).
         Falls back to seeded realistic data if yfinance is unavailable."""
         import time as _time
         now = _time.time()
@@ -376,7 +376,7 @@ class MarketRoutesMixin:
                     if tk not in close.columns:
                         raise ValueError(f'{tk} not in data')
                     prices = close[tk].values.tolist()
-                    # Compute daily flow proxy: AUM × daily return (in $M)
+                    # Compute daily flow proxy: AUM - daily return (in $M)
                     flows = []
                     for i in range(len(prices)):
                         if i == 0:
@@ -409,7 +409,7 @@ class MarketRoutesMixin:
                 return
             except Exception as yf_err:
                 print(f'[ETF Flows] yfinance error: {yf_err}, using seeded fallback')
-            # Seeded fallback — realistic but deterministic per calendar week
+            # Seeded fallback - realistic but deterministic per calendar week
             import random as _rnd
             seed_val = int(now / 86400 / 7)  # changes weekly
             _rnd.seed(seed_val)
@@ -475,7 +475,7 @@ class MarketRoutesMixin:
                     (cutoff, user_email)
                 )
             else:
-                # Unauthenticated — return global system density
+                # Unauthenticated - return global system density
                 c.execute(
                     """SELECT DATE(timestamp) as day, COUNT(*) as cnt
                        FROM alerts_history

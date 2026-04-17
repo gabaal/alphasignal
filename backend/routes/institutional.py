@@ -36,7 +36,7 @@ class InstitutionalRoutesMixin:
         return None
 
     def handle_cme_gaps(self):
-        """GET /api/cme-gaps — real CME Bitcoin futures gap inventory.
+        """GET /api/cme-gaps - real CME Bitcoin futures gap inventory.
         Uses CME BTC futures (BTC=F) which actually closes Friday 4pm CT
         and reopens Sunday 5pm CT, creating detectable weekly gaps.
         Falls back to hourly spot-based weekend move detection.
@@ -61,11 +61,11 @@ class InstitutionalRoutesMixin:
                         _df = _df.reset_index()
                         _df['date']    = pd.to_datetime(_df['Date'])
                         _df['weekday'] = _df['date'].dt.dayofweek  # Mon=0, Fri=4
-                        # CME futures won't have Sat/Sun rows — if we see them it's spot data
+                        # CME futures won't have Sat/Sun rows - if we see them it's spot data
                         has_weekend = _df[_df['weekday'].isin([5, 6])].shape[0] > 0
                         if ticker == 'BTC=F' or not has_weekend:
                             df = _df
-                            print(f'[CME Gaps] Using {ticker} — weekend rows: {has_weekend}')
+                            print(f'[CME Gaps] Using {ticker} - weekend rows: {has_weekend}')
                             break
                         elif ticker == 'BTC-USD':
                             df = _df  # use spot as fallback regardless
@@ -96,7 +96,7 @@ class InstitutionalRoutesMixin:
                 next_date = next_row['date']
 
                 gap_pct = (next_open - fri_close) / fri_close * 100
-                # Use 0.3% threshold — catches real CME gaps which avg 1-4%
+                # Use 0.3% threshold - catches real CME gaps which avg 1-4%
                 if abs(gap_pct) < 0.3:
                     continue
 
@@ -156,7 +156,7 @@ class InstitutionalRoutesMixin:
 
     def handle_signal_permalink(self, signal_id):
 
-        """Public: GET /api/signal-permalink?id={id} — returns a historical snapshot from alerts_history.
+        """Public: GET /api/signal-permalink?id={id} - returns a historical snapshot from alerts_history.
         Returns the same shape as handle_live_signal_permalink so the frontend renders identically,
         but with the original entry price, direction, and timestamp frozen at signal-fire time.
         """
@@ -219,7 +219,7 @@ class InstitutionalRoutesMixin:
 
     def handle_live_signal_permalink(self):
         """Public: GET /api/signal-permalink?ticker=BTC-USD
-        Returns live signal data for the given ticker — powers the public permalink page.
+        Returns live signal data for the given ticker - powers the public permalink page.
         Uses the _signals_cache if warm, otherwise computes inline.
         """
         import urllib.parse as _up
@@ -235,7 +235,7 @@ class InstitutionalRoutesMixin:
                     self.send_json(match)
                     return
 
-            # Cache miss — compute inline for this single ticker
+            # Cache miss - compute inline for this single ticker
             btc_df = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close')
             btc_data = btc_df.iloc[:, 0] if hasattr(btc_df, 'iloc') and len(getattr(btc_df, 'columns', [])) > 0 else btc_df.squeeze() if hasattr(btc_df, 'squeeze') else btc_df
             if len(btc_data) < 2:
@@ -482,7 +482,7 @@ class InstitutionalRoutesMixin:
                     rates = [base_rate] * len(hours)
                 # Ensure the most recent slot always equals the live current rate
                 rates[-1] = base_rate
-                annual = round(base_rate * 3 * 365, 2)  # 8h rate × 3 × 365
+                annual = round(base_rate * 3 * 365, 2)  # 8h rate - 3 - 365
                 rows.append({'asset': asset, 'rates': rates, 'current': base_rate, 'annual': annual,
                              'live': asset in live_rates})
             source = 'binance_fapi' if live_rates else 'synthetic'
@@ -931,7 +931,7 @@ class InstitutionalRoutesMixin:
 
                 # -- CVD (price-momentum derived, deterministic) --------
                 vol_factor = 1000 if not is_equity else 5000
-                # Pure z-score accumulation — no random jitter
+                # Pure z-score accumulation - no random jitter
                 cvd = (res[-1]['cvd'] + z * vol_factor) if res else 0
 
                 # -- Exchange flow (net outflow = negative ? bullish) --
@@ -986,7 +986,7 @@ class InstitutionalRoutesMixin:
                     
                     # Synthetic Funding (Relative to Risk-Free Rate / Lending)
                     funding = 0.005 + vol * 0.1
-                    # Derive L/S ratio from 20d price momentum — no random
+                    # Derive L/S ratio from 20d price momentum - no random
                     try:
                         hist_close_20d = self._get_price_series(hist, ticker).squeeze()
                         if len(hist_close_20d) >= 20:
@@ -1054,7 +1054,7 @@ class InstitutionalRoutesMixin:
                 except Exception as _e:
                     print(f'[LiqMap/price] {_e}')
 
-                # 2. Open interest (raw contract units × mark price = notional)
+                # 2. Open interest (raw contract units - mark price = notional)
                 try:
                     roi = requests.get(f'https://fapi.binance.com/fapi/v1/openInterest?symbol={sym_usdt}',
                                        headers=hdr, timeout=6)
@@ -1093,7 +1093,7 @@ class InstitutionalRoutesMixin:
             short_bias = min(1.0, 1.0 / max(ls_ratio, 0.5))
 
             # 5. Build deterministic cluster events pinned to hourly candles
-            # Each candle gets a fixed set of cluster "bubbles" at ±1std, ±2std, ±3std offsets
+            # Each candle gets a fixed set of cluster "bubbles" at -1std, -2std, -3std offsets
             liquidations = []
             rolling_std = closes.rolling(12).std().fillna(closes.std())
 
@@ -1428,18 +1428,18 @@ class InstitutionalRoutesMixin:
             })
         self.send_json(results)
 
-    # signals: 90-ticker 60d download + correlation calc — cache 5 min
+    # signals: 90-ticker 60d download + correlation calc - cache 5 min
     _signals_cache     = {'data': None, 'ts': 0}
-    # macro: 5-ticker 35d correlation calc — cache 5 min
+    # macro: 5-ticker 35d correlation calc - cache 5 min
     _macro_cache       = {'data': None, 'ts': 0}
-    # regime: per-ticker 250d SMA calc — cache 5 min per ticker
+    # regime: per-ticker 250d SMA calc - cache 5 min per ticker
     _regime_cache      = {}
 
     def handle_regime(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
         try:
-            # ── Cache check: 5-min TTL per ticker ──────────────────────────────
+            # - Cache check: 5-min TTL per ticker -
             rc = InstitutionalRoutesMixin._regime_cache.get(ticker)
             if rc and (time.time() - rc['ts']) < 300:
                 self.send_json(rc['data'])
@@ -1649,7 +1649,7 @@ class InstitutionalRoutesMixin:
 
     def handle_macro(self):
         try:
-            # ── Cache check: 5-min TTL ─────────────────────────────────────────
+            # - Cache check: 5-min TTL -
             mc = InstitutionalRoutesMixin._macro_cache
             if mc['data'] is not None and (time.time() - mc['ts']) < 300:
                 self.send_json(mc['data'])
@@ -2172,7 +2172,7 @@ class InstitutionalRoutesMixin:
                 f'border-left:2px solid {"var(--risk-high)" if "LONG" in side else "var(--risk-low)"}" >'
                 f'<span style="font-size:0.6rem;font-weight:900;color:{"var(--risk-high)" if "LONG" in side else "var(--risk-low)"};letter-spacing:1px">{side}</span>'
                 f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:0.7rem;color:var(--text-main)">${lvl:,.2f}</span>'
-                f'<span style="font-size:0.6rem;color:var(--text-dim)">{pct} · {weight}</span>'
+                f'<span style="font-size:0.6rem;color:var(--text-dim)">{pct} - {weight}</span>'
                 f'</div>'
             )
             walls_html = ''.join([
@@ -2253,7 +2253,7 @@ class InstitutionalRoutesMixin:
 
     def handle_signals(self):
         try:
-            # ── Cache check: 5-min TTL ─────────────────────────────────────────
+            # - Cache check: 5-min TTL -
             sc = InstitutionalRoutesMixin._signals_cache
             if sc['data'] is not None and (time.time() - sc['ts']) < 300:
                 self.send_json(sc['data'])
@@ -2533,7 +2533,7 @@ class InstitutionalRoutesMixin:
             expired      = sum(1 for r in results if r['close_reason'] == 'EXPIRED')
 
             self.send_json({
-                'signals': results,           # full set — no [:50] cap
+                'signals': results,           # full set - no [:50] cap
                 'stats': {
                     'total':        n,
                     'wins':         wins,
@@ -4154,7 +4154,7 @@ class InstitutionalRoutesMixin:
                         current_price = round(float(prices.iloc[-1]), 4)
                     else:
                         current_price = 0.0
-                    # Deterministic confidence — linear function of score, no jitter
+                    # Deterministic confidence - linear function of score, no jitter
                     lstm_conf = min(98, max(45, int(score * 0.97 + 2)))
                     xgb_conf  = min(96, max(42, int(score * 0.93 + 4)))
                     consensus = 'HIGH' if score >= 75 else 'MEDIUM' if score >= 50 else 'LOW'
@@ -4390,7 +4390,7 @@ class InstitutionalRoutesMixin:
 
     def handle_signal_history(self):
         """Return alerts_history filtered to the authenticated user's signals."""
-        # Require valid session — archive is per-user
+        # Require valid session - archive is per-user
         auth_info = self.is_authenticated()
         user_email = auth_info.get('email') if auth_info else None
         try:
@@ -4427,7 +4427,7 @@ class InstitutionalRoutesMixin:
             order_expr = SORT_MAP.get(sort_col, 'ah.timestamp')
             order_clause = f'ORDER BY {order_expr} {sort_dir.upper()}'
 
-            # ── Cache check: 2-min TTL, keyed by all query params + user ──
+            # - Cache check: 2-min TTL, keyed by all query params + user -
             cache_key = f'{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_state}:{f_days}:{f_from}:{f_to}:{page}:{limit}:{sort_col}:{sort_dir}'
             shc = InstitutionalRoutesMixin._sig_history_cache
             entry = shc.get(cache_key)
@@ -4527,7 +4527,7 @@ class InstitutionalRoutesMixin:
                     {base_where}
                     ORDER BY ah.timestamp DESC
                 """
-                # params has only WHERE-clause values — no limit/offset for full fetch
+                # params has only WHERE-clause values - no limit/offset for full fetch
                 c.execute(sql, params)
             else:
                 sql = f"""
@@ -4544,7 +4544,7 @@ class InstitutionalRoutesMixin:
                 c.execute(sql, params)
             rows = c.fetchall()
 
-            # Phase 2: unified price_map — cache-first, parallel yfinance fallback
+            # Phase 2: unified price_map - cache-first, parallel yfinance fallback
             unique_tickers = list({r[2] for r in rows if r[5]})
             price_map = {}
             now = time.time()
@@ -4640,7 +4640,7 @@ class InstitutionalRoutesMixin:
                     elif roi < -3:
                         state = 'STOPPED'
                 else:
-                    curr_p = entry_p  # no price data at all — show entry as placeholder
+                    curr_p = entry_p  # no price data at all - show entry as placeholder
 
                 from datetime import datetime as _dt2, timezone
                 try:
@@ -4671,7 +4671,7 @@ class InstitutionalRoutesMixin:
             page_wins   = sum(1 for r in results if r['state'] in ('HIT_TP1','HIT_TP2'))
             page_losses = sum(1 for r in results if r['state'] == 'STOPPED')
 
-            # ── Python sort + pagination for computed columns ────────────
+            # - Python sort + pagination for computed columns -
             if python_sort:
                 STATE_RANK = {'HIT_TP2': 0, 'HIT_TP1': 1, 'ACTIVE': 2, 'STOPPED': 3, 'CLOSED': 4}
 
@@ -4704,7 +4704,7 @@ class InstitutionalRoutesMixin:
                     'page_losses': page_losses,    # current-page ROI-based losses
                 }
             }
-            # ── Store in cache ───────────────────────────────────────────
+            # - Store in cache -
             InstitutionalRoutesMixin._sig_history_cache[cache_key] = {
                 'data': response, 'ts': time.time()
             }
@@ -5044,19 +5044,19 @@ class InstitutionalRoutesMixin:
             print(f'Internal signals error: {e}')
             return []
 
-    # ── Server-side response caches ─────────────────────────────────────────
-    # stress-test: 90-ticker 180d yfinance download — cache 10 min
+    # - Server-side response caches -
+    # stress-test: 90-ticker 180d yfinance download - cache 10 min
     _stress_cache     = {'data': None, 'ts': 0}
-    # signal-history: fast DB query but called on every archive tab switch — cache 2 min per param set
+    # signal-history: fast DB query but called on every archive tab switch - cache 2 min per param set
     _sig_history_cache = {}
-    # yfinance price cache {ticker: (price, timestamp)} — 90s TTL, shared across requests
+    # yfinance price cache {ticker: (price, timestamp)} - 90s TTL, shared across requests
     _price_cache: dict = {}
     _PRICE_CACHE_TTL = 90  # seconds
 
     def handle_stress_test(self):
         """Phase 7: Systematic Stress Test Engine - Enhanced for UI Compatibility."""
         try:
-            # ── Cache check: return cached result if < 10 minutes old ──────
+            # - Cache check: return cached result if < 10 minutes old -
             sc = InstitutionalRoutesMixin._stress_cache
             if sc['data'] is not None and (time.time() - sc['ts']) < 600:
                 self.send_json(sc['data'])
@@ -5101,7 +5101,7 @@ class InstitutionalRoutesMixin:
                     'vol': round(float(vol), 2),
                     'status': status
                 })
-            # ── Filter extreme vol outliers before caching / sending ────────────
+            # - Filter extreme vol outliers before caching / sending -
             # Assets with ann. vol > 300% skew the EF scatter axis badly
             VOL_CAP = 300.0
             before = len(asset_risk)
@@ -5125,7 +5125,7 @@ class InstitutionalRoutesMixin:
                  'impact': round(avg_beta * -15.0, 2), 'outcome': 'Cross-Asset Deleveraging'},
             ]
 
-            # ── Real Sector Hotspots ──────────────────────────────────────
+            # - Real Sector Hotspots -
             # Build per-sector avg pairwise correlation using actual return data
             SECTOR_MAP = {
                 'L1': ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'XRP-USD'],
@@ -5163,7 +5163,7 @@ class InstitutionalRoutesMixin:
                 'benchmark': 'BTC-USD',
                 'timestamp': datetime.now().strftime('%H:%M')
             }
-            # ── Store in cache ───────────────────────────────────────────
+            # - Store in cache -
             InstitutionalRoutesMixin._stress_cache = {'data': payload, 'ts': time.time()}
             self.send_json(payload)
         except Exception as e:
@@ -5264,7 +5264,7 @@ class InstitutionalRoutesMixin:
                 retail_trend = i * -100
                 whale_trend = i * 1500 + (10000 if i > 20 else 0)
 
-                # Variance scales with real volume — no random call
+                # Variance scales with real volume - no random call
                 retail_noise = (vol_ratio - 1.0) * 2000
                 fish_noise   = (vol_ratio - 1.0) * 3000
                 whale_noise  = (vol_ratio - 1.0) * 5000
@@ -5397,14 +5397,14 @@ class InstitutionalRoutesMixin:
                 self.send_json({'error': 'No signal history', 'trades': [], 'stats': {}})
                 return
 
-            # ── Ticker alias map: DB ticker -> yfinance ticker ─────────────────
+            # - Ticker alias map: DB ticker -> yfinance ticker -
             # Handles rebranded tokens (MATIC->POL), equities without -USD, etc.
             TICKER_ALIASES = {
                 # MATIC was renamed to POL but yfinance still serves it as MATIC-USD
                 'MATIC-USD':  'MATIC-USD',
                 'MATIC':      'MATIC-USD',
                 'POL-USD':    'MATIC-USD',
-                # Equities stored without -USD in DB — yfinance uses plain ticker
+                # Equities stored without -USD in DB - yfinance uses plain ticker
                 'COIN':       'COIN',
                 'MSTR':       'MSTR',
                 'NVDA':       'NVDA',
@@ -5505,7 +5505,7 @@ class InstitutionalRoutesMixin:
                 # Find nearest bar AT OR BEFORE the signal timestamp (daily EOD bars)
                 past_ts = [t for t in sorted_ts if t <= sig_ts]
                 if not past_ts:
-                    # Signal is older than our price history — skip
+                    # Signal is older than our price history - skip
                     continue
                 entry_bar_ts = past_ts[-1]   # most recent bar at/before signal
                 entry_bar_idx = sorted_ts.index(entry_bar_ts)
@@ -5576,7 +5576,7 @@ class InstitutionalRoutesMixin:
                         continue
 
                 pnl_pct   = direction * (exit_pr - entry_pr) / entry_pr * 100
-                pnl_pct   = max(-50.0, min(50.0, pnl_pct))  # cap at ±50% per trade
+                pnl_pct   = max(-50.0, min(50.0, pnl_pct))  # cap at -50% per trade
 
                 btc_entry = min(btc_prices, key=lambda t: abs(t - sig_ts), default=None)
                 btc_exit  = min(btc_prices, key=lambda t: abs(t - exit_ts),  default=None)
@@ -5667,7 +5667,7 @@ class InstitutionalRoutesMixin:
                 raw_sharpe = mn / sd * (trades_per_year ** 0.5)
                 rolling_sharpe.append({
                     'date':              trades[i]['entry_date'],
-                    'sharpe':            max(-5.0, min(5.0, round(raw_sharpe, 3))),  # cap at ±5
+                    'sharpe':            max(-5.0, min(5.0, round(raw_sharpe, 3))),  # cap at -5
                     'strat_cumulative':  round(equity_so_far, 2),
                     'btc_cumulative':    btc_cumulative
                 })
@@ -5840,7 +5840,7 @@ class InstitutionalRoutesMixin:
         except Exception as e:
             print(f'[OptionsSignal] Deribit read: {e}')
 
-        # Return immediately — don't wait for equity fetches
+        # Return immediately - don't wait for equity fetches
         cls._opt_signal_cache = result
         cls._opt_signal_ts = now
         self.send_json(result)
@@ -5864,7 +5864,7 @@ class InstitutionalRoutesMixin:
                     print(f'[OptionsSignal] {sym}: {e}')
         threading.Thread(target=_fetch_equities, daemon=True).start()
 
-    # ── Capital Rotation live cache ─────────────────────────────────────────
+    # - Capital Rotation live cache -
     _cap_rotation_cache    = {}
     _cap_rotation_cache_ts = 0
 
@@ -5878,7 +5878,7 @@ class InstitutionalRoutesMixin:
 
             import yfinance as yf
 
-            # ── Asset map: (display_name, yfinance_ticker) ─────────────────
+            # - Asset map: (display_name, yfinance_ticker) -
             SECTORS = {
                 'Crypto': [
                     ('BTC',  'BTC-USD'),
@@ -5926,7 +5926,7 @@ class InstitutionalRoutesMixin:
                     print(f'[CapRot] {ticker}: {ex}')
                     return 0.0
 
-            # ── Fetch all returns in a single batch download (thread-safe) ─────
+            # - Fetch all returns in a single batch download (thread-safe) -
             all_syms  = [sym  for _, assets in SECTORS.items() for _, sym  in assets]
             name_syms = [(name, sym, sect)
                          for sect, assets in SECTORS.items() for name, sym in assets]
@@ -5958,9 +5958,9 @@ class InstitutionalRoutesMixin:
                     print(f'[CapRot] {sym}: {ex}')
                     returns_map[(sect, name)] = 0.0
 
-            # ── Build hierarchy with offset-normalised sector weights ────────
+            # - Build hierarchy with offset-normalised sector weights -
             # Use actual mean return + large offset (50) so negatives still
-            # differentiate — avoids the floor-at-zero collapse in bear markets
+            # differentiate - avoids the floor-at-zero collapse in bear markets
             BASE = 50.0
             sector_scores = {}
             for sect, assets in SECTORS.items():
@@ -6011,7 +6011,7 @@ class InstitutionalRoutesMixin:
                 'children': children,
                 'summary':  summary,
                 'updated':  datetime.utcnow().strftime('%d %b %Y %H:%M UTC'),
-                'source':   'yfinance · 30D live returns',
+                'source':   'yfinance - 30D live returns',
             }
 
             InstitutionalRoutesMixin._cap_rotation_cache    = result
@@ -6021,7 +6021,7 @@ class InstitutionalRoutesMixin:
             print(f'[CapitalRotation] {e}')
             self.send_json({'error': str(e)})
 
-    # ── Equity Options cache ──────────────────────────────────────────────
+    # - Equity Options cache -
     _equity_opts_cache    = {}
     _equity_opts_cache_ts = {}
 
@@ -6138,7 +6138,7 @@ class InstitutionalRoutesMixin:
                 'skew': skew, 'exp_move': exp_move, 'zero_gamma': zero_gamma,
                 'top_strikes': top_strikes, 'term_structure': [],
                 'iv_smile': smile_data, 'spot': round(spot, 2),
-                'source': 'CBOE · yfinance',
+                'source': 'CBOE - yfinance',
                 'updated': datetime.utcnow().strftime('%H:%M UTC'),
             }
             InstitutionalRoutesMixin._equity_opts_cache[ticker]    = result
@@ -6150,7 +6150,7 @@ class InstitutionalRoutesMixin:
 
     def handle_options_flow(self):
         """BTC/ETH/SOL/XRP options from Deribit. BTC+ETH are native-settled;
-        SOL+XRP are USDC-settled — fetched from the USDC book and filtered by prefix."""
+        SOL+XRP are USDC-settled - fetched from the USDC book and filtered by prefix."""
         try:
             now = time.time()
             if now - self._options_cache_ts < 900 and self._options_cache:
@@ -6159,7 +6159,7 @@ class InstitutionalRoutesMixin:
             base   = 'https://www.deribit.com/api/v2/public'
             result = {}
 
-            # ── Fetch USDC book once (covers SOL, XRP instruments) ──────────
+            # - Fetch USDC book once (covers SOL, XRP instruments) -
             try:
                 usdc_r = requests.get(
                     f'{base}/get_book_summary_by_currency?currency=USDC&kind=option',
@@ -6168,7 +6168,7 @@ class InstitutionalRoutesMixin:
             except Exception:
                 usdc_instruments = []
 
-            # ── Spot price index map ─────────────────────────────────────────
+            # - Spot price index map -
             INDEX_MAP = {
                 'BTC': 'btc_usd', 'ETH': 'eth_usd',
                 'SOL': 'sol_usd', 'XRP': 'xrp_usd',
@@ -6255,7 +6255,7 @@ class InstitutionalRoutesMixin:
                           'moneyness': round((e['strike'] - spot) / spot * 100, 1)}
                          for e in smile_calls[:20]]
 
-                # ── Extract Term Structure (ATM IV by Expiry) ─────────────────
+                # - Extract Term Structure (ATM IV by Expiry) -
                 grouped_by_expiry = {}
                 for e in calls + puts:
                     if e['iv'] <= 0: continue
@@ -6473,7 +6473,7 @@ class InstitutionalRoutesMixin:
             num_time_steps = 30
             num_levels = 20
             
-            # Price grid (±10% from spot)
+            # Price grid (-10% from spot)
             prices = np.linspace(spot * 0.9, spot * 1.1, num_levels)
             
             # 2d density matrix
@@ -6932,7 +6932,7 @@ class InstitutionalRoutesMixin:
                     conn.commit()
                     NOTIFY.push_webhook(
                         user,
-                        f"TEST ALPHA SIGNAL: {ticker} — {direction}",
+                        f"TEST ALPHA SIGNAL: {ticker} - {direction}",
                         r"This is a mock institutional signal pushed via your IDE.",
                         embed_color=color,
                         fields=fields

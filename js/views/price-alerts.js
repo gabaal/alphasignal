@@ -1,4 +1,4 @@
-﻿async function renderPriceAlerts(tabs = null) {
+-async function renderPriceAlerts(tabs = null) {
     appEl.innerHTML = `<div class="skeleton-loader" style="height:300px"></div>`;
 
     let alerts = [];
@@ -38,8 +38,8 @@
                 <div>
                     <label for="pa-dir" style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;">DIRECTION</label>
                     <select id="pa-dir" aria-label="Alert direction: above or below target price" style="width:100%;padding:10px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.8rem;">
-                        <option value="ABOVE">ABOVE — Price rises to target</option>
-                        <option value="BELOW">BELOW — Price drops to target</option>
+                        <option value="ABOVE">ABOVE - Price rises to target</option>
+                        <option value="BELOW">BELOW - Price drops to target</option>
                     </select>
                 </div>
                 <button class="intel-action-btn" style="white-space:nowrap;height:40px;" onclick="submitPriceAlert()" aria-label="Set new price alert">
@@ -82,11 +82,11 @@
                         <td style="${tdStyle()}"><strong style="color:var(--accent);">${a.ticker.replace('-USD','')}</strong></td>
                         <td style="${tdStyle()}">
                             <span style="background:${a.direction==='ABOVE'?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.15)'};color:${a.direction==='ABOVE'?'var(--risk-low)':'var(--risk-high)'};padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;">
-                                ${a.direction === 'ABOVE' ? '▲' : '▼'} ${a.direction}
+                                ${a.direction === 'ABOVE' ? '-' : '-'} ${a.direction}
                             </span>
                         </td>
                         <td style="${tdStyle()}"><strong>$${parseFloat(a.target_price).toLocaleString(undefined,{minimumFractionDigits:2})}</strong></td>
-                        <td style="${tdStyle()};color:var(--text-dim);font-style:italic;">${a.note || '—'}</td>
+                        <td style="${tdStyle()};color:var(--text-dim);font-style:italic;">${a.note || '-'}</td>
                         <td style="${tdStyle()};color:var(--text-dim);font-size:0.7rem;">${new Date(a.created_at).toLocaleDateString()}</td>
                         <td style="${tdStyle()}">
                             <button onclick="deletePriceAlert(${a.id})" aria-label="Remove price alert for ${a.ticker.replace('-USD','')}" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--risk-high);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.65rem;font-family:var(--font);">
@@ -119,7 +119,7 @@ async function submitPriceAlert() {
 
     const res = await fetchAPI('/price-alerts', 'POST', { ticker, target_price: targetPrice, direction, note });
     if (res && res.success) {
-        status.textContent = `✓ Alert set: notify when ${ticker} goes ${direction} $${targetPrice.toLocaleString()}`;
+        status.textContent = `- Alert set: notify when ${ticker} goes ${direction} $${targetPrice.toLocaleString()}`;
         status.style.color = 'var(--risk-low)';
         status.style.display = 'block';
         setTimeout(() => renderPriceAlerts(), 1200);

@@ -5,16 +5,16 @@ from backend.keyvault import KeyVault
 import requests
 
 class PersonalRoutesMixin:
-    """Handles /api/watchlist and /api/positions — stored in Supabase, per user_id."""
+    """Handles /api/watchlist and /api/positions - stored in Supabase, per user_id."""
 
-    # ── WATCHLIST ──────────────────────────────────────────────
+    # - WATCHLIST -
     def handle_watchlist_get(self, auth_info):
         try:
             user_id = auth_info['user_id']
             rows = SupabaseClient.query('watchlist', filters=f'user_id=eq.{user_id}&order=added_at.desc')
             items = rows or []
 
-            # ── Pass 1: price cache lookup (fast, in-memory, always safe) ──────
+            # - Pass 1: price cache lookup (fast, in-memory, always safe) -
             missing = []   # items that still need a live price after cache lookup
             _IRM = None
             try:
@@ -36,9 +36,9 @@ class PersonalRoutesMixin:
                     if not found:
                         missing.append(item)
             except Exception:
-                missing = list(items)  # cache unavailable — enrich all via yfinance
+                missing = list(items)  # cache unavailable - enrich all via yfinance
 
-            # ── Pass 2: yfinance batch download for cache-miss tickers ──────────
+            # - Pass 2: yfinance batch download for cache-miss tickers -
             # Use yf.download() (one HTTP request for N tickers, ~2s) instead of
             # per-ticker fast_info calls which take ~6s each and would always
             # exceed the old 4-second timeout.
@@ -48,8 +48,8 @@ class PersonalRoutesMixin:
                     import time as _time2
 
                     # Build the set of yfinance symbols to fetch.
-                    # Equities (RIOT, SMCI, VIRT…) use plain ticker;
-                    # crypto (ETH, BTC…) need the -USD suffix.
+                    # Equities (RIOT, SMCI, VIRT-) use plain ticker;
+                    # crypto (ETH, BTC-) need the -USD suffix.
                     sym_map = {}  # yf_sym -> [item, ...]
                     for item in missing:
                         t = (item.get('ticker') or '').upper()
@@ -80,7 +80,7 @@ class PersonalRoutesMixin:
                                         if not last.empty and float(last.iloc[-1]) > 0:
                                             close_prices[sym] = round(float(last.iloc[-1]), 8)
                             elif 'Close' in df.columns:
-                                # Single ticker — flat columns
+                                # Single ticker - flat columns
                                 last = df['Close'].dropna()
                                 if not last.empty and len(unique_syms) == 1:
                                     close_prices[unique_syms[0]] = round(float(last.iloc[-1]), 8)
@@ -98,7 +98,7 @@ class PersonalRoutesMixin:
                             if _IRM is not None:
                                 _IRM._price_cache[sym] = {'price': px, 'ts': _now2}
                 except Exception:
-                    pass  # yfinance unavailable — items returned without live_price
+                    pass  # yfinance unavailable - items returned without live_price
 
             self.send_json(items)
         except Exception as e:
@@ -140,7 +140,7 @@ class PersonalRoutesMixin:
                 'price_at_add': price_at_add,
                 'added_at': datetime.utcnow().isoformat()
             }
-            # Upsert — update note/target if ticker already exists for this user
+            # Upsert - update note/target if ticker already exists for this user
             url = f"{SUPABASE_URL}/rest/v1/watchlist"
             headers = {**SUPABASE_HEADERS, 'Prefer': 'return=representation,resolution=merge-duplicates'}
             r = requests.post(url, headers=headers, json=payload, timeout=5)
@@ -179,7 +179,7 @@ class PersonalRoutesMixin:
         except Exception as e:
             self.send_json({'error': str(e)})
 
-    # ── POSITIONS ──────────────────────────────────────────────
+    # - POSITIONS -
     def handle_positions_get(self, auth_info):
         try:
             user_id = auth_info['user_id']
@@ -224,7 +224,7 @@ class PersonalRoutesMixin:
         except Exception as e:
             self.send_json({'error': str(e)})
 
-    # ── OMS DASHBOARD (LIVE EXCHANGE INTEGRATION) ─────────────
+    # - OMS DASHBOARD (LIVE EXCHANGE INTEGRATION) -
     def handle_oms_dashboard(self, auth_info):
         try:
             import time, hmac, hashlib
@@ -324,7 +324,7 @@ class PersonalRoutesMixin:
         except Exception as e:
             self.send_json({'error': str(e)})
 
-    # ── INTEGRATIONS ──────────────────────────────────────────
+    # - INTEGRATIONS -
     def handle_exchange_keys_get(self, auth_info):
         try:
             import sqlite3
@@ -391,7 +391,7 @@ class PersonalRoutesMixin:
             price = float(data.get('price', 0.0))
             is_institutional = data.get('is_institutional', False)
             
-            # ── 1. Fetch KeyVault Secrets ──
+            # - 1. Fetch KeyVault Secrets -
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute('SELECT exchange, api_secret, api_key FROM exchange_keys WHERE user_email = ? LIMIT 1', (user_email,))
@@ -410,7 +410,7 @@ class PersonalRoutesMixin:
                 conn.close()
                 return self.send_json({'error': 'Exchange API key decryption failed. KeyVault mismatch or corrupted secret.'})
 
-            # ── 2. Risk Matrix Position Sizer ──
+            # - 2. Risk Matrix Position Sizer -
             PORTFOLIO_NAV = 1250000.0  # Simulated institutional portfolio NAV ($1.25M)
             RISK_PCT = 0.02            # 2% Risk per trade
             capital_at_risk = PORTFOLIO_NAV * RISK_PCT
@@ -445,7 +445,7 @@ class PersonalRoutesMixin:
 
             formatted_size = f"${computed_size_usd:,.2f}"
 
-            # ── 3. Order Reconciliation & L2 Book Walking (VWAP) ──
+            # - 3. Order Reconciliation & L2 Book Walking (VWAP) -
             try:
                 from backend.routes.realdata import fetch_binance_depth
                 raw_ticker = ticker.replace('-', '')
@@ -487,13 +487,13 @@ class PersonalRoutesMixin:
                 print(f"[KeyVault Router] VWAP Book Walk Error: {e}")
                 estimated_slippage = 0.00015
 
-            # ── 4. Construct Exchange Payload & Mock Execution ──
+            # - 4. Construct Exchange Payload & Mock Execution -
             # (Demonstrating HMAC SHA256 signing for Binance/Bybit)
             timestamp = str(int(datetime.now().timestamp() * 1000))
             payload_str = f"symbol={ticker.replace('-','')}&side={action}&type=LIMIT&quantity={computed_size_usd/price:.4f}&price={price:.2f}&timestamp={timestamp}"
             signature = hmac.new(decrypted_secret.encode('utf-8'), payload_str.encode('utf-8'), hashlib.sha256).hexdigest()
 
-            # ── 5. Insert Live Trade into Trade Ledger ──
+            # - 5. Insert Live Trade into Trade Ledger -
             c.execute('''INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
                       (user_email, ticker, action, price, target, stop, rr, estimated_slippage))
@@ -508,8 +508,8 @@ class PersonalRoutesMixin:
         except Exception as e:
             self.send_json({'error': str(e)})
 
-    # ── TRADING BOTS ──────────────────────────────────────────
-    # ── AI PERSONA KNOWLEDGE BASE (RAG) ───────────────────────
+    # - TRADING BOTS -
+    # - AI PERSONA KNOWLEDGE BASE (RAG) -
     def handle_ai_knowledge_get(self, auth_info):
         try:
             import sqlite3
@@ -558,7 +558,7 @@ class PersonalRoutesMixin:
         except Exception as e:
             self.send_json({'error': str(e)})
 
-    # ── TRADING BOTS ──────────────────────────────────────────
+    # - TRADING BOTS -
     def handle_trading_bots_get(self, auth_info):
         try:
             import sqlite3

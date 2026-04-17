@@ -7,7 +7,7 @@ function switchView(view, pushState = true) {
         window.globalUIWipe();
     }
 
-    // 1. Check Access Rights — three-tier model
+    // 1. Check Access Rights - three-tier model
     // PUBLIC: no auth required
     const isPublicView = (
         view === 'signals' || view === 'home' || view === 'help' ||
@@ -234,7 +234,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         else if (viewMap[pathView]) initialView = pathView;
     }
     
-    // Replace state on initial load — preserve ticker param if view=signal
+    // Replace state on initial load - preserve ticker param if view=signal
     if (initialView === 'signal') {
         const existing = new URLSearchParams(window.location.search);
         existing.set('view', 'signal');
@@ -250,13 +250,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     startCountdown(); 
     
-    // ── Onboarding Tour (first-run only) ──────────────────────────────
+    // - Onboarding Tour (first-run only) -
     window.startTour = function() {
         const steps = [
-            { target: '#sidebar .nav-item[data-view="home"], .hero-section h1, .landing-page h1', title: '👋 Welcome to AlphaSignal', body: 'An institutional-grade intelligence terminal with 8 hubs, 60+ live views, and AI-powered signals. Let\'s take a 30-second tour.', action: null },
-            { target: '.nav-item[data-view="signals"], [data-view="signals"]', title: '📡 Alpha Signals', body: 'Your real-time signal feed. Z-score deviations, ML alpha predictions, and RSI/MACD alerts across 50 assets — live.', action: "switchView('signals')" },
-            { target: '.nav-item[data-view="alpha-hub"], [data-view="alpha-hub"]', title: '🧪 Strategy Lab', body: 'Test any strategy on any asset. Choose from 15 quant strategies, tune fast/slow parameters, and compare against Buy & Hold.', action: null },
-            { target: '.nav-item[data-view="alerts"], [data-view="alerts"]', title: '🔔 Live Alerts', body: 'Real-time signal alerts pushed via WebSocket. Filter by type, search tickers, and track P&L from entry price to now.', action: "switchView('alerts')" },
+            { target: '#sidebar .nav-item[data-view="home"], .hero-section h1, .landing-page h1', title: '- Welcome to AlphaSignal', body: 'An institutional-grade intelligence terminal with 8 hubs, 60+ live views, and AI-powered signals. Let\'s take a 30-second tour.', action: null },
+            { target: '.nav-item[data-view="signals"], [data-view="signals"]', title: '- Alpha Signals', body: 'Your real-time signal feed. Z-score deviations, ML alpha predictions, and RSI/MACD alerts across 50 assets - live.', action: "switchView('signals')" },
+            { target: '.nav-item[data-view="alpha-hub"], [data-view="alpha-hub"]', title: '- Strategy Lab', body: 'Test any strategy on any asset. Choose from 15 quant strategies, tune fast/slow parameters, and compare against Buy & Hold.', action: null },
+            { target: '.nav-item[data-view="alerts"], [data-view="alerts"]', title: '- Live Alerts', body: 'Real-time signal alerts pushed via WebSocket. Filter by type, search tickers, and track P&L from entry price to now.', action: "switchView('alerts')" },
         ];
 
         let step = 0;
@@ -279,14 +279,14 @@ window.addEventListener('DOMContentLoaded', async () => {
             card.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
                     <span style="font-size:0.6rem;color:var(--accent);font-weight:700;letter-spacing:2px">TOUR ${step+1} / ${total}</span>
-                    <button onclick="endTour()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem;line-height:1">✕</button>
+                    <button onclick="endTour()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem;line-height:1">-</button>
                 </div>
                 <h3 style="font-size:1rem;margin:0 0 0.5rem;font-weight:800">${s.title}</h3>
                 <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 1rem">${s.body}</p>
                 <div style="display:flex;gap:8px;justify-content:flex-end">
-                    ${step > 0 ? '<button onclick="prevTourStep()" style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.75rem">← BACK</button>' : ''}
+                    ${step > 0 ? '<button onclick="prevTourStep()" style="background:${alphaColor(0.05)};border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.75rem">- BACK</button>' : ''}
                     <button onclick="${step < total-1 ? 'nextTourStep()' : 'endTour()'}" style="background:linear-gradient(90deg,rgba(0,242,255,0.15),rgba(188,19,254,0.1));border:1px solid rgba(0,242,255,0.4);color:var(--text);padding:6px 18px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);font-size:0.75rem;font-weight:700">
-                        ${step < total-1 ? 'NEXT →' : '✓ DONE'}
+                        ${step < total-1 ? 'NEXT -' : '- DONE'}
                     </button>
                 </div>
                 <div style="display:flex;gap:4px;justify-content:center;margin-top:0.75rem">
@@ -320,7 +320,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (!localStorage.getItem('alphasignal_toured')) {
         setTimeout(window.startTour, 2000);
     }
-    // ── End Tour ─────────────────────────────────────────────────────
+    // - End Tour -
 
     // Sidebar Profile Dropdown
     const profileDropdown = document.getElementById('user-profile-dropdown');

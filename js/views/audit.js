@@ -131,7 +131,7 @@ async function renderTradeLedger(tabs = null) {
                                     <td style="font-family:var(--font-mono); color:var(--text-dim)">${t.qty}</td>
                                     <td style="font-family:var(--font-mono); color:#f59e0b">$${t.fee_paid.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
                                     <td style="font-family:var(--font-mono); font-weight:900; color:${t.realised_pnl > 0 ? 'var(--risk-low)' : (t.realised_pnl < 0 ? 'var(--risk-high)' : 'var(--text-dim)')}">
-                                        ${t.realised_pnl !== 0 ? (t.realised_pnl > 0 ? '+' : '') + '$' + t.realised_pnl.toLocaleString(undefined, {minimumFractionDigits:2}) : '—'}
+                                        ${t.realised_pnl !== 0 ? (t.realised_pnl > 0 ? '+' : '') + '$' + t.realised_pnl.toLocaleString(undefined, {minimumFractionDigits:2}) : '-'}
                                     </td>
                                     <td>
                                         <div style="font-size:0.65rem; color:var(--text-dim); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; display:inline-block">

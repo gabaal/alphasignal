@@ -32,7 +32,7 @@ function renderSystemGauge(canvasId, value, colorLow, colorHigh) {
 // ============= Legacy Doc Template (kept for compatibility) =============
 function renderExplainPage(title, subtitle, detailedDesc, sections, caseStudies = [], dataSources = "", targetView = null) {
     appEl.innerHTML = `
-        <div class="view-header"><h1>${title} — Terminal Documentation</h1></div>
+        <div class="view-header"><h1>${title} - Terminal Documentation</h1></div>
         <div class="doc-container" style="max-width:900px;margin:0 auto;padding-top:2rem;padding-bottom:5rem">
             <p style="font-size:1.25rem;color:var(--text-dim);margin-bottom:1.5rem;line-height:1.6;font-weight:500">${subtitle}</p>
             <div style="background:rgba(0,242,255,0.03);border-left:2px solid var(--accent);padding:1.5rem;margin-bottom:2.5rem;color:var(--text-main);line-height:1.7;font-size:1.25rem;border-radius:0 8px 8px 0">
@@ -70,9 +70,9 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
         <div class="view-header" style="padding-bottom:1rem">
             <div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);margin-bottom:1rem">
                 <span class="material-symbols-outlined" style="font-size:14px;cursor:pointer;color:var(--text-dim)" onclick="switchView('help')">home</span>
-                <span>›</span>
+                <span>-</span>
                 <span style="cursor:pointer;color:${hubColor}" onclick="switchView('help')">${hub}</span>
-                <span>›</span>
+                <span>-</span>
                 <span style="color:var(--text)">${title}</span>
             </div>
             <h2 style="display:flex;align-items:center;flex-wrap:wrap;gap:12px">

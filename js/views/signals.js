@@ -1,4 +1,4 @@
-// ── Signals localStorage cache (stale-while-revalidate, 3-min TTL) ──
+// - Signals localStorage cache (stale-while-revalidate, 3-min TTL) -
 const _SIG_CACHE_KEY = 'as_signals_v1';
 const _SIG_CACHE_TTL = 30 * 1000; // 30 seconds
 function _getSigCache() {
@@ -23,7 +23,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
     let signals;
     if (_cached) {
         signals = _cached;
-        // Silent background refresh — update cache without blocking render
+        // Silent background refresh - update cache without blocking render
         fetchAPI('/signals').then(fresh => { if (fresh) _setSigCache(fresh); }).catch(() => {});
     } else {
         appEl.innerHTML = skeleton(8);
@@ -92,7 +92,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
             <div class="category-filters">
                 ${cats.map(c => `<button class="filter-btn ${category === c ? 'active' : ''}" onclick="renderSignals('${c}')">${c}</button>`).join('')}
             </div>
-            <button class="export-btn" style="margin-left:auto" onclick="exportCSV(lastSignalsData,'alphasignal_signals.csv')">📥 Export CSV</button>
+            <button class="export-btn" style="margin-left:auto" onclick="exportCSV(lastSignalsData,'alphasignal_signals.csv')">- Export CSV</button>
         </div>
         <div class="signal-grid">
             ${filtered.map(s => {
@@ -108,7 +108,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         const bg  = fRate > 0.05 ? 'rgba(239,68,68,0.1)' : fRate > 0.01 ? 'rgba(251,146,60,0.1)' : fRate < -0.01 ? 'rgba(34,197,94,0.1)' : 'rgba(100,116,139,0.1)';
                         const sign = fRate >= 0 ? '+' : '';
                         return `<div title="Perpetual Funding Rate" style="font-size:0.48rem;font-weight:900;letter-spacing:1px;padding:2px 6px;border-radius:100px;
-                            background:${bg};border:1px solid ${col}33;color:${col};white-space:nowrap">⚡ ${sign}${fRate.toFixed(4)}%</div>`;
+                            background:${bg};border:1px solid ${col}33;color:${col};white-space:nowrap">- ${sign}${fRate.toFixed(4)}%</div>`;
                     })()
                     : '';
                 // Options flow badge (BTC-USD, ETH-USD from Deribit; MSTR/COIN/MARA from yfinance)
@@ -116,8 +116,8 @@ async function renderSignals(category = 'ALL', tabs = null) {
                 const optSig = optionsMap[s.ticker] || optionsMap[optKey];
                 const optionsBadge = optSig
                     ? (() => {
-                        const ivTag = optSig.high_iv ? ' ⚠ HIGH IV' : '';
-                        const arrow = optSig.label.includes('CALL') ? '▲' : '▼';
+                        const ivTag = optSig.high_iv ? ' - HIGH IV' : '';
+                        const arrow = optSig.label.includes('CALL') ? '-' : '-';
                         return `<div title="Options Flow: P/C Ratio ${optSig.pcr}" style="font-size:0.48rem;font-weight:900;letter-spacing:1px;padding:2px 6px;border-radius:100px;
                             background:${optSig.color}18;border:1px solid ${optSig.color}44;color:${optSig.color};white-space:nowrap">${arrow} ${optSig.label}${ivTag}</div>`;
                     })()
@@ -187,7 +187,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         </div>`;
 
 
-    // Render 30D Signal Density Histogram — live data from alerts_history
+    // Render 30D Signal Density Histogram - live data from alerts_history
     setTimeout(async () => {
         const sdCtx = document.getElementById('signalDensityChart');
         if (!sdCtx) return;
@@ -218,11 +218,11 @@ async function renderSignals(category = 'ALL', tabs = null) {
             const badge = document.createElement('span');
             badge.className = 'density-source-badge';
             badge.style.cssText = `font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:${source==='live'?'rgba(34,197,94,0.12)':'rgba(148,163,184,0.1)'};color:${source==='live'?'#22c55e':'#94a3b8'}`;
-            badge.textContent = source === 'live' ? '● LIVE DB' : '◌ SYNTHETIC';
+            badge.textContent = source === 'live' ? '- LIVE DB' : '- SYNTHETIC';
             headerEl.appendChild(badge);
         }
 
-        // Per-bar color scale: dim → cyan → amber → red
+        // Per-bar color scale: dim - cyan - amber - red
         const barColor = v => {
             if (v >= 18) return 'rgba(239,68,68,0.85)';
             if (v >= 12) return 'rgba(251,146,60,0.8)';
@@ -324,7 +324,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         });
     }, 50);
 
-    // Z-Score Bell Curve — 0.5-step buckets with proper σ scale
+    // Z-Score Bell Curve - 0.5-step buckets with proper - scale
     setTimeout(() => {
         const bellCtx = document.getElementById('zscoreBellChart');
         if (!bellCtx || !signals || !signals.length) return;
@@ -335,7 +335,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         const STEP = 0.25, MIN = -2, MAX = 2;
         const buckets = [];
         for (let z = MIN; z <= MAX + 1e-9; z += STEP) buckets.push(parseFloat(z.toFixed(2)));
-        const bucketLabels = buckets.map(b => b === 0 ? '0' : (b > 0 ? `+${b}σ` : `${b}σ`));
+        const bucketLabels = buckets.map(b => b === 0 ? '0' : (b > 0 ? `+${b}-` : `${b}-`));
         const counts = new Array(buckets.length).fill(0);
 
         signals.forEach(s => {
@@ -355,7 +355,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
             return (exp / (std * Math.sqrt(2 * Math.PI))) * signals.length * 0.22;
         });
 
-        // Color scale tuned to ±2 range
+        // Color scale tuned to -2 range
         const barBg = buckets.map(z => {
             const a = Math.abs(z);
             if (a >= 1.75) return 'rgba(239,68,68,0.85)';
@@ -411,13 +411,13 @@ async function renderSignals(category = 'ALL', tabs = null) {
                     x: {
                         grid: {
                             display: true,
-                            // index 8 = zero bucket (-2 + 8×0.25 = 0)
+                            // index 8 = zero bucket (-2 + 8-0.25 = 0)
                             color: ctx => ctx.index === 8 ? alphaColor(0.2) : alphaColor(0.04),
                             lineWidth: ctx => ctx.index === 8 ? 1.5 : 0.5
                         },
                         ticks: {
                             color: ctx => {
-                                const v = MIN + ctx.index * STEP; // σ value from bucket index
+                                const v = MIN + ctx.index * STEP; // - value from bucket index
                                 if (Math.abs(v) >= 1.75) return 'rgba(239,68,68,0.9)';
                                 if (Math.abs(v) >= 1.0)  return 'rgba(251,146,60,0.85)';
                                 if (Math.abs(v) >= 0.5)  return 'rgba(0,242,255,0.75)';
@@ -427,7 +427,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                             maxRotation: 0,
                             maxTicksLimit: 9  // show every other label to avoid crowding
                         },
-                        title: { display: true, text: 'Z-Score (σ)', color: alphaColor(0.2), font: { size: 8 } }
+                        title: { display: true, text: 'Z-Score (-)', color: alphaColor(0.2), font: { size: 8 } }
                     },
                     y: {
                         display: true,
@@ -445,7 +445,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
         });
     }, 50);
 
-    // Signal Confidence Radar — loads after signals are painted
+    // Signal Confidence Radar - loads after signals are painted
 
 
 
@@ -455,7 +455,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
 
 
 
-    // Signal Confidence Radar — loads after signals are painted
+    // Signal Confidence Radar - loads after signals are painted
     setTimeout(async () => {
         const radarSection = document.createElement('div');
         // Build radar options from all loaded signals (deduped by ticker)
@@ -552,7 +552,7 @@ async function renderAlphaScore(tabs = null) {
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
             <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bolt</span>Alpha Score <span class="premium-badge">ML</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-alpha-score')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-            <p>Composite 0–100 ranking across momentum, sentiment, signal engine alerts &amp; volatility.</p>
+            <p>Composite 0-100 ranking across momentum, sentiment, signal engine alerts &amp; volatility.</p>
         </div>
         <div class="card" style="padding:1rem">${skeleton(1)}</div>
     `;
@@ -641,7 +641,7 @@ async function renderAlphaScore(tabs = null) {
                                     </div>
                                 </td>
                                 <td style="padding:10px 12px; color:var(--text-dim); font-size:0.62rem; max-width:200px">
-                                    ${(s.reasons || []).map(r => r.includes('ML') ? `<strong style="color:var(--accent)">${r}</strong>` : r).join(' · ') || '—'}
+                                    ${(s.reasons || []).map(r => r.includes('ML') ? `<strong style="color:var(--accent)">${r}</strong>` : r).join(' - ') || '-'}
                                 </td>
                             </tr>
                         `).join('')}
@@ -664,7 +664,7 @@ async function renderAlphaScore(tabs = null) {
 // Feature 4: Performance Dashboard
 // ============================================================
 
-// ── Funding Rate Spike Alerts ────────────────────────────────────────────────
+// - Funding Rate Spike Alerts -
 // Fires toast notifications when funding rates breach institutional thresholds.
 // 5-min per-asset cooldown prevents spam on every 30s refresh cycle.
 window._fundingAlertTs = window._fundingAlertTs || {};
@@ -675,9 +675,9 @@ function _checkFundingSpikes(fundingMap) {
     const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes per asset
 
     // Threshold tiers
-    const EXTREME_LONG  =  0.10;  // >+0.10% → over-leveraged longs, de-risking risk
-    const HIGH_LONG     =  0.05;  // >+0.05% → elevated cost of carry
-    const NEG_FUNDING   = -0.03;  // <-0.03% → shorts paying longs, squeeze risk
+    const EXTREME_LONG  =  0.10;  // >+0.10% - over-leveraged longs, de-risking risk
+    const HIGH_LONG     =  0.05;  // >+0.05% - elevated cost of carry
+    const NEG_FUNDING   = -0.03;  // <-0.03% - shorts paying longs, squeeze risk
 
     Object.entries(fundingMap).forEach(([asset, rate]) => {
         if (typeof rate !== 'number' || !isFinite(rate)) return;
@@ -686,26 +686,26 @@ function _checkFundingSpikes(fundingMap) {
         let level = null, icon = '', color = '', bg = '', msg = '';
         if (rate >= EXTREME_LONG) {
             level = 'EXTREME';
-            icon  = '🔴';
+            icon  = '-';
             color = '#ef4444';
             bg    = 'rgba(239,68,68,0.12)';
-            msg   = `Over-leveraged longs — elevated liquidation cascade risk.`;
+            msg   = `Over-leveraged longs - elevated liquidation cascade risk.`;
         } else if (rate >= HIGH_LONG) {
             level = 'HIGH';
-            icon  = '🟠';
+            icon  = '-';
             color = '#fb923c';
             bg    = 'rgba(251,146,60,0.12)';
-            msg   = `Elevated carry cost — watch for mean-reversion.`;
+            msg   = `Elevated carry cost - watch for mean-reversion.`;
         } else if (rate <= NEG_FUNDING) {
             level = 'NEG';
-            icon  = '🟢';
+            icon  = '-';
             color = '#22c55e';
             bg    = 'rgba(34,197,94,0.12)';
-            msg   = `Shorts paying longs — short squeeze setup forming.`;
+            msg   = `Shorts paying longs - short squeeze setup forming.`;
         }
         if (!level) return;
 
-        // Cooldown check — don't repeat same asset+level within 5 min
+        // Cooldown check - don't repeat same asset+level within 5 min
         const key = `${asset}_${level}`;
         if (now - (window._fundingAlertTs[key] || 0) < COOLDOWN_MS) return;
         window._fundingAlertTs[key] = now;
@@ -741,13 +741,13 @@ function _showFundingToast(asset, rate, icon, color, bg, msg) {
         <div style="font-size:1.2rem;line-height:1;padding-top:2px">${icon}</div>
         <div style="flex:1;min-width:0">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:${color}">⚡ FUNDING SPIKE · ${asset}</span>
+                <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:${color}">- FUNDING SPIKE - ${asset}</span>
                 <span style="font-size:0.75rem;font-weight:900;font-family:var(--font-mono);color:${color}">${rateStr}</span>
             </div>
             <div style="font-size:0.72rem;color:var(--text);line-height:1.4">${msg}</div>
-            <div style="font-size:0.58rem;color:var(--text-dim);margin-top:5px">8h funding rate · Click to view signals</div>
+            <div style="font-size:0.58rem;color:var(--text-dim);margin-top:5px">8h funding rate - Click to view signals</div>
         </div>
-        <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:var(--text-dim);font-size:1rem;cursor:pointer;padding:0;line-height:1;flex-shrink:0">✕</button>
+        <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:var(--text-dim);font-size:1rem;cursor:pointer;padding:0;line-height:1;flex-shrink:0">-</button>
     `;
     toast.addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') return;

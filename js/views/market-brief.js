@@ -12,7 +12,7 @@ async function renderMarketBrief(tabs = null) {
             <div class="card" style="text-align:center;padding:48px;">
                 <span class="material-symbols-outlined" style="font-size:48px;color:var(--accent);display:block;margin-bottom:16px;">lock</span>
                 <h2 style="margin-bottom:8px;">Sign In to Access</h2>
-                <p style="color:var(--text-dim);margin-bottom:24px;">The AI Market Brief is available to all registered users — free and premium.</p>
+                <p style="color:var(--text-dim);margin-bottom:24px;">The AI Market Brief is available to all registered users - free and premium.</p>
                 <button class="intel-action-btn" onclick="showAuth(true)">SIGN IN / REGISTER</button>
             </div>`;
         return;
@@ -33,7 +33,7 @@ async function renderMarketBrief(tabs = null) {
         const headerMatch = p.match(/^\*\*(.+?)\*\*/);
         if (headerMatch) {
             const header = headerMatch[1];
-            const body = p.replace(/^\*\*.+?\*\*\s*[—\-]?\s*/, '');
+            const body = p.replace(/^\*\*.+?\*\*\s*[-\-]?\s*/, '');
             const icons = {
                 'Macro Context': 'language', 'BTC Outlook': 'currency_bitcoin',
                 'Top Signals': 'electric_bolt', 'Risk Factors': 'warning'
@@ -104,7 +104,7 @@ async function renderMarketBrief(tabs = null) {
                 </div>
                 <div>
                     <div style="font-size:0.95rem;font-weight:900;color:var(--text);">AlphaSignal Intelligence Desk</div>
-                    <div style="font-size:0.7rem;color:var(--text-dim);">Institutional Morning Brief · ${data.generated_at}</div>
+                    <div style="font-size:0.7rem;color:var(--text-dim);">Institutional Morning Brief - ${data.generated_at}</div>
                 </div>
             </div>
             ${renderedParagraphs}
@@ -119,7 +119,7 @@ async function renderMarketBrief(tabs = null) {
 
 async function refreshMarketBrief() {
     // Force-clear cache by including timestamp (future: dedicated /api/market-brief/refresh)
-    // For now re-fetch; backend TTL is 4h — inform user if stale
+    // For now re-fetch; backend TTL is 4h - inform user if stale
     const btn = document.querySelector('[onclick="refreshMarketBrief()"]');
     if (btn) { btn.disabled = true; btn.textContent = 'REFRESHING...'; }
     _briefData = null;

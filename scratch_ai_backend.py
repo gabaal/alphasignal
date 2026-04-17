@@ -23,7 +23,7 @@ for line in lines:
         
     if in_handle and 'f"Call OI' in line:
         new_lines.append('            f"Zero-Gamma Pivot: ${zero_gamma}\\n"\n')
-        new_lines.append('            f"Expected 7D Move: ±${exp_move}\\n"\n')
+        new_lines.append('            f"Expected 7D Move: -${exp_move}\\n"\n')
         new_lines.append('            f"25-Delta Skew: {skew}%\\n"\n')
         new_lines.append('            f"Unusual Flow Anomalies: {anomalies} strikes\\n"\n')
         continue

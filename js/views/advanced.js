@@ -196,7 +196,7 @@ async function renderAdvPulse(symbol) {
     ro.observe(chartContainer);
 }
 
-// ─── Canvas 2D Orderbook Fallback ────────────────────────────────────────────
+// - Canvas 2D Orderbook Fallback -
 // Renders when WebGL context limit is hit. Full-featured live 2D orderbook chart.
 function renderDepth2DFallback(container, symbol) {
     const H = 520;
@@ -207,15 +207,15 @@ function renderDepth2DFallback(container, symbol) {
         <div style="position:relative;width:100%;height:${H}px;background:${bgCss};border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
             <!-- Header -->
             <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid ${alphaColor(0.06)};flex-shrink:0;">
-                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">ORDERBOOK DEPTH — ${symbol.replace('USDT','/USDT')}</span>
-                <span id="depth2d-live" style="font-size:0.5rem;color:#22c55e;animation:pulse-live 1.5s infinite;">● LIVE</span>
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">ORDERBOOK DEPTH - ${symbol.replace('USDT','/USDT')}</span>
+                <span id="depth2d-live" style="font-size:0.5rem;color:#22c55e;animation:pulse-live 1.5s infinite;">- LIVE</span>
                 <span style="font-size:0.45rem;font-weight:900;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;letter-spacing:1px;margin-left:auto;">CANVAS 2D MODE</span>
                 <span id="depth2d-spread" style="font-size:0.55rem;color:${alphaColor(0.35)};font-family:'JetBrains Mono',monospace;"></span>
             </div>
             <!-- Legend -->
             <div style="display:flex;gap:20px;padding:6px 18px;flex-shrink:0;">
-                <span style="font-size:0.5rem;color:#26a69a;">■ BIDS (Cumulative)</span>
-                <span style="font-size:0.5rem;color:#ef5350;">■ ASKS (Cumulative)</span>
+                <span style="font-size:0.5rem;color:#26a69a;">- BIDS (Cumulative)</span>
+                <span style="font-size:0.5rem;color:#ef5350;">- ASKS (Cumulative)</span>
             </div>
             <!-- Canvas -->
             <div style="flex:1;position:relative;padding:8px 18px 12px;">
@@ -235,7 +235,7 @@ function renderDepth2DFallback(container, symbol) {
 
     const ctx2d = canvas2d.getContext('2d');
 
-    // Shared state — updated by WS
+    // Shared state - updated by WS
     let _rawBids = [], _rawAsks = [], _rafId = null;
 
     function draw(rawBids, rawAsks) {
@@ -277,7 +277,7 @@ function renderDepth2DFallback(container, symbol) {
             const t     = b.c / maxDepth;
             const alpha = 0.25 + t * 0.65;
 
-            // Bar — bids go LEFT from centre
+            // Bar - bids go LEFT from centre
             const grad = ctx2d.createLinearGradient(MID_X, 0, MID_X - barW, 0);
             grad.addColorStop(0,   `rgba(38,166,154,${alpha})`);
             grad.addColorStop(1,   `rgba(38,166,154,${alpha * 0.3})`);
@@ -299,7 +299,7 @@ function renderDepth2DFallback(container, symbol) {
             const t     = a.c / maxDepth;
             const alpha = 0.25 + t * 0.65;
 
-            // Bar — asks go RIGHT from centre
+            // Bar - asks go RIGHT from centre
             const grad = ctx2d.createLinearGradient(MID_X, 0, MID_X + barW, 0);
             grad.addColorStop(0,   `rgba(239,83,80,${alpha})`);
             grad.addColorStop(1,   `rgba(239,83,80,${alpha * 0.3})`);
@@ -326,7 +326,7 @@ function renderDepth2DFallback(container, symbol) {
         }
     }
 
-    // ── Data sources (mirror renderAdvDepth logic) ───────────────────────────
+    // - Data sources (mirror renderAdvDepth logic) -
     const isEquity = ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'].includes(symbol.toUpperCase());
 
     if (isEquity) {
@@ -398,7 +398,7 @@ async function renderAdvDepth(symbol) {
                 </span>
                 <span id="depth-spread-label" style="font-size:0.55rem;color:${alphaColor(0.35)};margin-left:8px;"></span>
             </div>
-            <div style="position:absolute;bottom:14px;right:18px;font-size:0.55rem;color:${alphaColor(0.25)};pointer-events:none;">DRAG TO ROTATE • SCROLL TO ZOOM</div>
+            <div style="position:absolute;bottom:14px;right:18px;font-size:0.55rem;color:${alphaColor(0.25)};pointer-events:none;">DRAG TO ROTATE - SCROLL TO ZOOM</div>
         </div>`;
 
     const canvas = document.getElementById('depth3d-canvas');
@@ -410,13 +410,13 @@ async function renderAdvDepth(symbol) {
     // Check WebGL availability before touching THREE.WebGLRenderer
     const testCtx = canvas.getContext('webgl') || canvas.getContext('webgl2');
     if (!testCtx) {
-        // ── Canvas 2D Fallback Orderbook ─────────────────────────────────────
-        // WebGL context exhausted — render a live 2D horizontal depth chart instead
+        // - Canvas 2D Fallback Orderbook -
+        // WebGL context exhausted - render a live 2D horizontal depth chart instead
         renderDepth2DFallback(container, symbol);
         return;
     }
 
-    // ── Three.js Scene ──────────────────────────────────────────────────────
+    // - Three.js Scene -
     const W = container.clientWidth, H = 520;
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.setSize(W, H);
@@ -429,7 +429,7 @@ async function renderAdvDepth(symbol) {
 
     const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 500);
 
-    // ── Lighting ─────────────────────────────────────────────────────────
+    // - Lighting -
     scene.add(new THREE.AmbientLight(isLight ? 0xffffff : 0x112244, isLight ? 0.6 : 0.8));
     const hemi = new THREE.HemisphereLight(isLight ? 0xffffff : 0x223366, bgHex, 0.6);
     scene.add(hemi);
@@ -442,7 +442,7 @@ async function renderAdvDepth(symbol) {
     fillLight.position.set(-10, -5, -15);
     scene.add(fillLight);
 
-    // ── Floor plane ───────────────────────────────────────────────────────
+    // - Floor plane -
     const floorGeo = new THREE.PlaneGeometry(80, 80);
     const floorMat = new THREE.MeshStandardMaterial({
         color: isLight ? 0xe2e8f0 : 0x080c14, metalness: 0.3, roughness: 0.9
@@ -458,7 +458,7 @@ async function renderAdvDepth(symbol) {
     grid.position.y = 0.02;
     scene.add(grid);
 
-    // ── Spread divider plane ──────────────────────────────────────────────
+    // - Spread divider plane -
     const divGeo = new THREE.PlaneGeometry(0.15, 22);
     const divMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff, transparent: true, opacity: 0.25 });
     const divider = new THREE.Mesh(divGeo, divMat);
@@ -466,7 +466,7 @@ async function renderAdvDepth(symbol) {
     divider.position.y = 11;
     scene.add(divider);
 
-    // ── Inline orbit controls ─────────────────────────────────────────────
+    // - Inline orbit controls -
     let isDragging = false, lastMouse = { x: 0, y: 0 }, lastActivity = Date.now();
     let theta = -0.45, phi = 0.62, radius = 42;
     function updateCamera() {
@@ -494,7 +494,7 @@ async function renderAdvDepth(symbol) {
         updateCamera();
     }, { passive: true });
 
-    // ── Bar chart builder ─────────────────────────────────────────────────
+    // - Bar chart builder -
     // Returns a THREE.Group of BoxGeometry bars for one side of the book
     const BAR_COUNT  = 30;   // levels to show
     const BAR_WIDTH  = 0.62; // x width of each bar
@@ -511,8 +511,8 @@ async function renderAdvDepth(symbol) {
 
         for (let i = 0; i < n; i++) {
             const cumDepth = levels[i];
-            const heightNorm = cumDepth / maxLevel;             // 0‒1
-            const barH = Math.max(0.15, heightNorm * 20);       // 0.15–20 units
+            const heightNorm = cumDepth / maxLevel;             // 0-1
+            const barH = Math.max(0.15, heightNorm * 20);       // 0.15-20 units
 
             // X position: bid bars go left (negative x), ask bars go right (positive x)
             const slot    = i * (BAR_WIDTH + BAR_GAP);
@@ -522,17 +522,17 @@ async function renderAdvDepth(symbol) {
             const yPos    = barH / 2;  // sit on floor
 
             // Colour intensity scales with normalised height
-            // Bids: dark teal → bright cyan-green
-            // Asks: dark red  → bright red-orange
+            // Bids: dark teal - bright cyan-green
+            // Asks: dark red  - bright red-orange
             const t = Math.pow(heightNorm, 0.5);  // sqrt for better gradient spread
             let barColor, emissiveColor, emissiveInt;
             if (side === 'bid') {
-                // mix #0d3330 → #26a69a
+                // mix #0d3330 - #26a69a
                 barColor      = new THREE.Color().setHSL(0.49, 0.75, 0.08 + t * 0.28);
                 emissiveColor = new THREE.Color(0x26a69a);
                 emissiveInt   = 0.05 + t * 0.45;
             } else {
-                // mix #3a0d0d → #ef5350
+                // mix #3a0d0d - #ef5350
                 barColor      = new THREE.Color().setHSL(0.01, 0.85, 0.08 + t * 0.28);
                 emissiveColor = new THREE.Color(0xef5350);
                 emissiveInt   = 0.05 + t * 0.45;
@@ -599,7 +599,7 @@ async function renderAdvDepth(symbol) {
         }
     }
 
-    // ── Animation loop ────────────────────────────────────────────────────
+    // - Animation loop -
     const animRef = { id: null };
     function animate() {
         animRef.id = requestAnimationFrame(animate);
@@ -614,7 +614,7 @@ async function renderAdvDepth(symbol) {
 
     window.activeDepth3D = { animId: animRef.id, renderer, _ref: animRef };
 
-    // ── Data source ───────────────────────────────────────────────────────
+    // - Data source -
     const isEquity = ['MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK'].includes(symbol.toUpperCase());
 
     if (isEquity) {
@@ -629,7 +629,7 @@ async function renderAdvDepth(symbol) {
             }
         } catch (e) { console.error('3D Depth fallback error:', e); }
     } else {
-        // Throttle rebuilds — order book fires at 100ms, rebuilding every frame wastes GPU
+        // Throttle rebuilds - order book fires at 100ms, rebuilding every frame wastes GPU
         let lastRebuild = 0;
         window.BinanceSocketManager.subscribe(symbol, 'depth20@100ms', (data) => {
             if (!data.bids || !data.asks) return;
@@ -643,7 +643,7 @@ async function renderAdvDepth(symbol) {
         });
     }
 
-    // ── Resize handler ────────────────────────────────────────────────────
+    // - Resize handler -
     const ro = new ResizeObserver(() => {
         const w = container.clientWidth;
         renderer.setSize(w, H);
@@ -714,7 +714,7 @@ async function renderAdvDerivatives(symbol, interval) {
     chart.priceScale('left').applyOptions({ visible: true, borderColor: alphaColor(0.1) });
     chart.priceScale('left_liq').applyOptions({ visible: false });
     
-    // Binance aggTrade stream — crypto only; equity proxies have no Binance feed
+    // Binance aggTrade stream - crypto only; equity proxies have no Binance feed
     const isCryptoSym = symbol.toUpperCase().includes('USDT');
     if (isCryptoSym) {
         // LIVE WEBSOCKET AGGREGATOR
@@ -887,18 +887,18 @@ const dispatchAdvTab = () => {
     else if(currentAdvTab === 'options-surface') renderAdvOptionsSurface(sym);
 };
 
-// ─── Funding Rate Heatmap ────────────────────────────────────────────────────
+// - Funding Rate Heatmap -
 async function renderAdvFundingHeatmap() {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
     if (!container) return;
     container.innerHTML = `<div style="padding:1.5rem; width:100%; box-sizing:border-box;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-            <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bolt</span>PERPETUAL FUNDING RATE HEATMAP — 24H ROLLING</span>
+            <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bolt</span>PERPETUAL FUNDING RATE HEATMAP - 24H ROLLING</span>
             <div style="display:flex;gap:16px;font-size:0.55rem;color:var(--text-dim);">
-                <span style="color:#ef5350;">■ NEGATIVE (Shorts Pay)</span>
-                <span style="color:${alphaColor(0.2)};">■ NEUTRAL</span>
-                <span style="color:#26a69a;">■ POSITIVE (Longs Pay)</span>
+                <span style="color:#ef5350;">- NEGATIVE (Shorts Pay)</span>
+                <span style="color:${alphaColor(0.2)};">- NEUTRAL</span>
+                <span style="color:#26a69a;">- POSITIVE (Longs Pay)</span>
             </div>
         </div>
         <div id="funding-grid" style="display:grid;gap:3px;"></div>
@@ -932,14 +932,14 @@ async function renderAdvFundingHeatmap() {
     } catch(e) { console.error('Funding heatmap error:', e); }
 }
 
-// ─── Tape Imbalance Histogram ────────────────────────────────────────────────
+// - Tape Imbalance Histogram -
 function renderAdvTapeImbalance(symbol) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
     if (!container) return;
 
     const BUCKET_COUNT = 30;
-    const BUCKET_MS    = 5000;   // 5-second buckets — shows data within 5s of opening
+    const BUCKET_MS    = 5000;   // 5-second buckets - shows data within 5s of opening
 
     // Pre-seed with tiny noise so the chart is never flat/invisible on first render
     const seed = (i) => (Math.sin(i * 2.3) * 0.4 + Math.cos(i * 1.7) * 0.2).toFixed(3) * 1;
@@ -951,20 +951,20 @@ function renderAdvTapeImbalance(symbol) {
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-shrink:0;">
                 <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">
                     <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">bar_chart</span>
-                    LIVE TAPE IMBALANCE — ${symbol.replace('USDT','/USDT')} · 5S BUCKETS
+                    LIVE TAPE IMBALANCE - ${symbol.replace('USDT','/USDT')} - 5S BUCKETS
                 </span>
                 <div style="display:flex;align-items:center;gap:14px;">
                     <span id="tape-running-label" style="font-size:0.6rem;color:var(--text-dim);font-family:'JetBrains Mono'">Accumulating...</span>
-                    <span id="tape-live-badge" style="font-size:0.55rem;color:#26a69a;animation:pulse 1.5s infinite;">● LIVE</span>
+                    <span id="tape-live-badge" style="font-size:0.55rem;color:#26a69a;animation:pulse 1.5s infinite;">- LIVE</span>
                 </div>
             </div>
             <div style="flex:1;min-height:360px;position:relative;">
                 <canvas id="tape-canvas" role="img" aria-label="Trade tape imbalance heatmap"></canvas>
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:10px;flex-shrink:0;">
-                <span style="font-size:0.55rem;color:rgba(38,166,154,0.8);">■ Buy Pressure</span>
+                <span style="font-size:0.55rem;color:rgba(38,166,154,0.8);">- Buy Pressure</span>
                 <span style="font-size:0.55rem;color:var(--text-dim);">Positive = more buys than sells in bucket</span>
-                <span style="font-size:0.55rem;color:rgba(239,83,80,0.8);">■ Sell Pressure</span>
+                <span style="font-size:0.55rem;color:rgba(239,83,80,0.8);">- Sell Pressure</span>
             </div>
             <!-- AI Translator Container -->
             <div style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.5rem; display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
@@ -992,7 +992,7 @@ function renderAdvTapeImbalance(symbol) {
                     symbol: symbol
                 });
                 if (resp && resp.explanation) {
-                    box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 AI TAPE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                    box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">- AI TAPE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
                 } else {
                     throw new Error('Empty response');
                 }
@@ -1057,7 +1057,7 @@ function renderAdvTapeImbalance(symbol) {
         }
     });
 
-    // Equity proxies have no Binance aggTrade feed — show a friendly notice
+    // Equity proxies have no Binance aggTrade feed - show a friendly notice
     const wsSymbol = symbol.toUpperCase().endsWith('USDT')
         ? symbol.toUpperCase()
         : null;
@@ -1066,7 +1066,7 @@ function renderAdvTapeImbalance(symbol) {
         const runningLabel = document.getElementById('tape-running-label');
         const liveBadge = document.getElementById('tape-live-badge');
         if (runningLabel) { runningLabel.textContent = 'Live tape requires a crypto pair'; runningLabel.style.color = 'var(--text-dim)'; }
-        if (liveBadge) { liveBadge.textContent = '○ N/A'; liveBadge.style.color = 'var(--text-dim)'; liveBadge.style.animation = 'none'; }
+        if (liveBadge) { liveBadge.textContent = '- N/A'; liveBadge.style.color = 'var(--text-dim)'; liveBadge.style.animation = 'none'; }
         return;
     }
 
@@ -1077,7 +1077,7 @@ function renderAdvTapeImbalance(symbol) {
     window.BinanceSocketManager.subscribe(wsSymbol, 'aggTrade', trade => {
         const vol = parseFloat(trade.q || 0);
         tradeCount++;
-        if (trade.m) sellVol += vol;   // isBuyerMaker → taker is seller
+        if (trade.m) sellVol += vol;   // isBuyerMaker - taker is seller
         else          buyVol  += vol;
 
         // Update live running label every trade
@@ -1104,7 +1104,7 @@ function renderAdvTapeImbalance(symbol) {
 }
 
 
-// ─── Options Volatility Surface ──────────────────────────────────────────────
+// - Options Volatility Surface -
 async function renderAdvOptionsSurface(symbol) {
     cleanupAdvChart();
     const container = document.getElementById('advanced-chart-container');
@@ -1124,9 +1124,9 @@ async function renderAdvOptionsSurface(symbol) {
             <div style="position:absolute;top:14px;left:18px;pointer-events:none;display:flex;align-items:center;gap:14px;">
                 <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#7dd3fc;">
                     <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">stacked_line_chart</span>
-                    IMPLIED VOLATILITY SURFACE — ${currency}
+                    IMPLIED VOLATILITY SURFACE - ${currency}
                 </span>
-                <span id="iv-source-badge" style="font-size:0.55rem;color:${alphaColor(0.3)};animation:pulse 2s infinite;">● LOADING...</span>
+                <span id="iv-source-badge" style="font-size:0.55rem;color:${alphaColor(0.3)};animation:pulse 2s infinite;">- LOADING...</span>
             </div>
 
             <!-- Top-right: spot price + timestamp -->
@@ -1134,11 +1134,11 @@ async function renderAdvOptionsSurface(symbol) {
 
             <!-- Bottom-left: axis labels + controls hint -->
             <div style="position:absolute;bottom:52px;left:18px;pointer-events:none;display:flex;flex-direction:column;gap:5px;">
-                <span style="font-size:0.72rem;color:${alphaColor(0.32)};letter-spacing:1.5px;">← MONEYNESS (% of spot) →</span>
-                <span style="font-size:0.72rem;color:${alphaColor(0.32)};letter-spacing:1.5px;">← DAYS TO EXPIRY →</span>
+                <span style="font-size:0.72rem;color:${alphaColor(0.32)};letter-spacing:1.5px;">- MONEYNESS (% of spot) -</span>
+                <span style="font-size:0.72rem;color:${alphaColor(0.32)};letter-spacing:1.5px;">- DAYS TO EXPIRY -</span>
             </div>
             <div style="position:absolute;bottom:14px;left:18px;pointer-events:none;">
-                <span style="font-size:0.5rem;color:${alphaColor(0.2)};">DRAG TO ROTATE &nbsp;•&nbsp; SCROLL TO ZOOM &nbsp;•&nbsp; HOVER FOR IV</span>
+                <span style="font-size:0.5rem;color:${alphaColor(0.2)};">DRAG TO ROTATE &nbsp;-&nbsp; SCROLL TO ZOOM &nbsp;-&nbsp; HOVER FOR IV</span>
             </div>
 
             <!-- Bottom-centre: per-expiry ATM IV strip (populated after data loads) -->
@@ -1164,7 +1164,7 @@ async function renderAdvOptionsSurface(symbol) {
         return;
     }
 
-    // ── Fetch live IV surface ──────────────────────────────────────────────────
+    // - Fetch live IV surface -
     let surfaceData = null;
     try {
         const ticker = symbol.includes('USDT') ? symbol.replace('USDT', '-USD') : symbol;
@@ -1175,13 +1175,13 @@ async function renderAdvOptionsSurface(symbol) {
     const statsBar = document.getElementById('iv-stats-bar');
 
     if (!surfaceData || surfaceData.error) {
-        if (sourceBadge) { sourceBadge.textContent = '⚠ UNAVAILABLE'; sourceBadge.style.color = '#ef4444'; sourceBadge.style.animation = 'none'; }
+        if (sourceBadge) { sourceBadge.textContent = '- UNAVAILABLE'; sourceBadge.style.color = '#ef4444'; sourceBadge.style.animation = 'none'; }
         return;
     }
 
     const isLive = surfaceData.source === 'deribit_live';
     if (sourceBadge) {
-        sourceBadge.textContent = isLive ? `● LIVE · DERIBIT · ${surfaceData.point_count} OPTIONS` : '● PARAMETRIC MODEL';
+        sourceBadge.textContent = isLive ? `- LIVE - DERIBIT - ${surfaceData.point_count} OPTIONS` : '- PARAMETRIC MODEL';
         sourceBadge.style.color = isLive ? '#22c55e' : '#facc15';
         sourceBadge.style.animation = isLive ? 'pulse 2s infinite' : 'none';
     }
@@ -1197,13 +1197,13 @@ async function renderAdvOptionsSurface(symbol) {
     const xS = moneyAxis.length;
     const zS = expiryLabels.length;
 
-    // ── Compute real IV range ─────────────────────────────────────────────────
+    // - Compute real IV range -
     const allIVs = ivGrid.flat().filter(v => v > 0);
     const minIV  = Math.min(...allIVs);
     const maxIV  = Math.max(...allIVs);
 
-    // ── Populate right-side colourbar ─────────────────────────────────────────
-    // Colour function matching the vertex shader below: blue→green→yellow→red
+    // - Populate right-side colourbar -
+    // Colour function matching the vertex shader below: blue-green-yellow-red
     function ivToHex(t) {
         const r = t < 0.5 ? t * 2 * 0.2              : 0.2 + (t - 0.5) * 2 * 0.8;
         const g = t < 0.5 ? 0.2 + t * 2 * 0.6        : 0.8 - (t - 0.5) * 2 * 0.6;
@@ -1245,7 +1245,7 @@ async function renderAdvOptionsSurface(symbol) {
         ].map(z => `<span style="font-size:0.6rem;color:${z.color};letter-spacing:0.5px;font-weight:900;margin-top:3px;">${z.label}</span>`).join('');
     }
 
-    // ── Populate per-expiry ATM IV strip (bottom centre) ─────────────────────
+    // - Populate per-expiry ATM IV strip (bottom centre) -
     const atmStrip = document.getElementById('iv-atm-strip');
     if (atmStrip && expiryLabels && ivGrid) {
         // ATM is the moneyness index closest to 1.0
@@ -1265,7 +1265,7 @@ async function renderAdvOptionsSurface(symbol) {
         atmStrip.innerHTML = `<span style="font-size:0.62rem;color:${alphaColor(0.35)};letter-spacing:1px;align-self:flex-end;margin-bottom:3px;margin-right:6px;font-weight:700;">ATM IV:</span>` + atmStrip.innerHTML;
     }
 
-    // ── Three.js setup ────────────────────────────────────────────────────────
+    // - Three.js setup -
     const W = container.clientWidth, H = 520;
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(W, H);
@@ -1282,10 +1282,10 @@ async function renderAdvOptionsSurface(symbol) {
     dl.position.set(10, 20, 10);
     scene.add(dl);
 
-    // ── IV range already computed above for colourbar ──────────────────────────
+    // - IV range already computed above for colourbar -
     const ivRange = maxIV - minIV || 1;
 
-    // ── Build geometry ────────────────────────────────────────────────────────
+    // - Build geometry -
     const positions = [], colors = [], indices = [];
 
     for (let z = 0; z < zS; z++) {
@@ -1296,7 +1296,7 @@ async function renderAdvOptionsSurface(symbol) {
             const pz = (z - zS / 2) * 2.5;
             positions.push(px, py, pz);
 
-            // Colour map: blue(low IV) → green → yellow → red(high IV)
+            // Colour map: blue(low IV) - green - yellow - red(high IV)
             const t = (iv - minIV) / ivRange;
             const r = t < 0.5 ? t * 2 * 0.2              : 0.2 + (t - 0.5) * 2 * 0.8;
             const g = t < 0.5 ? 0.2 + t * 2 * 0.6        : 0.8 - (t - 0.5) * 2 * 0.6;
@@ -1334,11 +1334,11 @@ async function renderAdvOptionsSurface(symbol) {
     const gridColor = isLight ? 0xd1d5db : 0x0a1020;
     scene.add(new THREE.GridHelper(22, 20, gridColor, gridColor));
 
-    // ── Text labels for expiry axis ───────────────────────────────────────────
-    // (Three.js doesn't have native text — use sprites via CSS2D would need extra lib;
+    // - Text labels for expiry axis -
+    // (Three.js doesn't have native text - use sprites via CSS2D would need extra lib;
     //  for now we annotate via canvas overlay drawn once after first render)
 
-    // ── Inline orbit controls ─────────────────────────────────────────────────
+    // - Inline orbit controls -
     let dragging = false, lastM = { x: 0, y: 0 }, theta = -0.3, phi = 0.45, radius = 30;
     const upCam = () => {
         camera.position.set(
@@ -1363,7 +1363,7 @@ async function renderAdvOptionsSurface(symbol) {
     }, { passive: true });
     upCam();
 
-    // ── Hover tooltip ─────────────────────────────────────────────────────────
+    // - Hover tooltip -
     const raycaster  = new THREE.Raycaster();
     const mousePt    = new THREE.Vector2();
     const mesh       = scene.children.find(c => c.isMesh);
@@ -1407,19 +1407,19 @@ async function renderAdvOptionsSurface(symbol) {
     });
     canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
 
-    // ── Animation loop — store ref BEFORE first RAF so cancelAnimationFrame works ─
+    // - Animation loop - store ref BEFORE first RAF so cancelAnimationFrame works -
     const _animRef = { id: null, alive: true, intentionalCleanup: false };
     const _animate = () => {
-        if (!_animRef.alive) return;          // context lost — stop looping
+        if (!_animRef.alive) return;          // context lost - stop looping
         _animRef.id = requestAnimationFrame(_animate);
         renderer.render(scene, camera);
     };
 
     // Store on window immediately so cleanupAdvChart can reach it
     window.activeDepth3D = { animId: null, renderer, _ref: _animRef, _ro: null };
-    _animate();  // kick off — _animRef.id now set correctly on first frame
+    _animate();  // kick off - _animRef.id now set correctly on first frame
 
-    // ── AI Translation Event Hook ───────────────────────────────────────────────
+    // - AI Translation Event Hook -
     setTimeout(() => {
         document.getElementById('ai-translate-adv-btn')?.addEventListener('click', async (e) => {
             const btn = e.currentTarget;
@@ -1439,7 +1439,7 @@ async function renderAdvOptionsSurface(symbol) {
                     atm_iv: atmRow, skew: skewData, expiries: expiryLabels
                 });
                 if (resp && resp.explanation) {
-                    box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 AI SURFACE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                    box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">- AI SURFACE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
                 } else {
                     throw new Error('Empty response');
                 }
@@ -1452,34 +1452,34 @@ async function renderAdvOptionsSurface(symbol) {
         });
     }, 50);
 
-    // ── WebGL context loss guard ───────────────────────────────────────────────
+    // - WebGL context loss guard -
     canvas.addEventListener('webglcontextlost', (e) => {
         e.preventDefault();
         _animRef.alive = false;
         cancelAnimationFrame(_animRef.id);
-        // Intentional teardown from cleanupAdvChart — skip overlay
+        // Intentional teardown from cleanupAdvChart - skip overlay
         if (_animRef.intentionalCleanup) return;
-        // Real GPU crash — show recovery overlay
+        // Real GPU crash - show recovery overlay
         const overlay = document.createElement('div');
         overlay.id = 'webgl-lost-overlay';
         overlay.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,5,8,0.92);gap:10px;z-index:10;border-radius:12px;';
         overlay.innerHTML = `
             <span class="material-symbols-outlined" style="font-size:2rem;color:#f59e0b;">warning</span>
             <span style="font-size:0.7rem;color:#f59e0b;font-weight:900;letter-spacing:2px;">GPU CONTEXT LOST</span>
-            <span style="font-size:0.6rem;color:${alphaColor(0.4)};">Recovering automatically…</span>`;
+            <span style="font-size:0.6rem;color:${alphaColor(0.4)};">Recovering automatically-</span>`;
         container.firstElementChild?.appendChild(overlay);
-        console.warn('[IV Surface] WebGL context lost — awaiting restoration');
+        console.warn('[IV Surface] WebGL context lost - awaiting restoration');
     }, false);
 
     canvas.addEventListener('webglcontextrestored', () => {
-        console.info('[IV Surface] WebGL context restored — re-initialising surface');
+        console.info('[IV Surface] WebGL context restored - re-initialising surface');
         document.getElementById('webgl-lost-overlay')?.remove();
         _animRef.alive = false;  // ensure old loop is dead
         // Re-render after a brief delay to let the driver settle
         setTimeout(() => renderAdvVolSurface(symbol), 1000);
     }, false);
 
-    // ── ResizeObserver — stored so cleanupAdvChart can disconnect it ───────────
+    // - ResizeObserver - stored so cleanupAdvChart can disconnect it -
     const _ro = new ResizeObserver(() => {
         const w = container.clientWidth;
         renderer.setSize(w, H);
@@ -1490,7 +1490,7 @@ async function renderAdvOptionsSurface(symbol) {
     if (window.activeDepth3D) window.activeDepth3D._ro = _ro;
 }
 
-// ─── Universal AI Translator Injector ─────────────────────────────────────────
+// - Universal AI Translator Injector -
 function injectAIChartTranslator(containerElement, chartType, dataExtractorCallback) {
     if (!containerElement) return;
     const hookId = `ai-hook-${chartType}`;
@@ -1526,7 +1526,7 @@ function injectAIChartTranslator(containerElement, chartType, dataExtractorCallb
                     data: dataPayload
                 });
                 if (resp && resp.explanation) {
-                    box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;">🤖 AI TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                    box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;">- AI TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
                 } else {
                     throw new Error('Empty response');
                 }

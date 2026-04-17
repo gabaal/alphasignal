@@ -92,7 +92,7 @@ async function renderETFFlows(tabs = null) {
         </div>
     `).join('');
 
-    // Waterfall Chart — Cumulative net flow with floating bars
+    // Waterfall Chart - Cumulative net flow with floating bars
     const waterfallEl = document.createElement('div');
     waterfallEl.className = 'card';
     waterfallEl.style.cssText = 'margin-top:1.5rem;';
@@ -202,8 +202,8 @@ async function renderLiquidations(tabs = null) {
                 <h3 style="color:var(--risk-high)">TOTAL REKT 24H</h3>
                 <div style="font-size:2rem; font-weight:900; margin:1rem 0">$142.8M</div>
                 <div style="display:flex; gap:15px; font-size:0.7rem">
-                    <span style="color:var(--risk-high)">● LONGS: $112.5M (78%)</span>
-                    <span style="color:var(--risk-low)">● SHORTS: $30.3M (22%)</span>
+                    <span style="color:var(--risk-high)">- LONGS: $112.5M (78%)</span>
+                    <span style="color:var(--risk-low)">- SHORTS: $30.3M (22%)</span>
                 </div>
             </div>
             <div class="card">
@@ -507,7 +507,7 @@ async function renderOIRadar(tabs = null) {
         }, 100);
     });
 
-    // OI Bubble Scatter — price delta vs OI delta, sized by absolute OI
+    // OI Bubble Scatter - price delta vs OI delta, sized by absolute OI
     const oiBubbleEl = document.createElement('div');
     oiBubbleEl.className = 'card';
     oiBubbleEl.style.marginTop = '2rem';

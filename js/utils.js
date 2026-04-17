@@ -1,6 +1,6 @@
 const API_BASE = '/api';
 
-// ── Global Chrome Autofill Guard ─────────────────────────────────────────────
+// - Global Chrome Autofill Guard -
 // Chrome ignores autocomplete="off" on pages that have login forms.
 // Strategy: mark all non-auth text/search/number inputs as readonly; remove
 // readonly on focus (so typing works), restore on blur (so Chrome can't fill).
@@ -40,10 +40,10 @@ const API_BASE = '/api';
     });
     obs.observe(document.documentElement, { childList: true, subtree: true });
 })();
-// ─────────────────────────────────────────────────────────────────────────────
+// -
 
 // ================================================================
-// THEME MANAGER � Light / Dark mode
+// THEME MANAGER - Light / Dark mode
 // ================================================================
 (function initTheme() {
     const saved = localStorage.getItem('alpha-theme') || 'dark';
@@ -123,7 +123,7 @@ function showToast(title, message, type = 'alert') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    // B12: cap at 5 simultaneous toasts — evict oldest when full
+    // B12: cap at 5 simultaneous toasts - evict oldest when full
     const MAX_TOASTS = 5;
     const existing = container.querySelectorAll('.toast');
     if (existing.length >= MAX_TOASTS) {
@@ -151,15 +151,15 @@ function showToast(title, message, type = 'alert') {
     }, 6000);
 }
 
-// ════════════════════════════════════════════════════════════════
+// -
 // v1.56 Feature: Live Signal Alert Toast
 // Fires a rich branded notification when a new signal is detected.
-// ════════════════════════════════════════════════════════════════
+// -
 function showSignalToast(signal) {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    // B12: cap at 5 simultaneous toasts — evict oldest when full
+    // B12: cap at 5 simultaneous toasts - evict oldest when full
     const MAX_TOASTS = 5;
     const existing = container.querySelectorAll('.toast');
     if (existing.length >= MAX_TOASTS) {
@@ -170,10 +170,10 @@ function showSignalToast(signal) {
 
     const dir = (signal.direction || 'LONG').toUpperCase();
     const ticker = (signal.ticker || signal.asset || 'BTC').toUpperCase();
-    const zscore = signal.z_score != null ? parseFloat(signal.z_score).toFixed(2) : '—';
+    const zscore = signal.z_score != null ? parseFloat(signal.z_score).toFixed(2) : '-';
     const isLong = dir === 'LONG' || dir === 'BUY';
     const dirColor = isLong ? '#00d4aa' : '#ef4444';
-    const dirArrow = isLong ? '▲' : '▼';
+    const dirArrow = isLong ? '-' : '-';
     const dirBg   = isLong ? 'rgba(0,212,170,0.12)' : 'rgba(239,68,68,0.12)';
 
     const toast = document.createElement('div');
@@ -184,7 +184,7 @@ function showSignalToast(signal) {
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
             <div style="width:8px;height:8px;border-radius:50%;background:${dirColor};box-shadow:0 0 8px ${dirColor};flex-shrink:0;animation:pulse-live 1.2s infinite"></div>
             <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:${dirColor}">NEW SIGNAL DETECTED</span>
-            <span style="margin-left:auto;font-size:1rem;cursor:pointer;opacity:0.4;color:#fff" onclick="this.closest('.toast').remove()">✕</span>
+            <span style="margin-left:auto;font-size:1rem;cursor:pointer;opacity:0.4;color:#fff" onclick="this.closest('.toast').remove()">-</span>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
             <div style="background:${alphaColor(0.07)};border:1px solid ${alphaColor(0.12)};border-radius:8px;padding:6px 12px;font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0">${ticker}</div>
@@ -193,7 +193,7 @@ function showSignalToast(signal) {
         </div>
         <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
             <span style="font-size:0.65rem;color:${alphaColor(0.4)};flex:1">High-confidence alpha detected by ML engine</span>
-            <button onclick="switchView('alerts');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW ALERT →</button>
+            <button onclick="switchView('alerts');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW ALERT -</button>
         </div>
     `;
 
@@ -250,7 +250,7 @@ async function openNotificationPanel() {
         <div style="padding:10px 16px; text-align:center">
             <button onclick="switchView('signal-archive'); document.getElementById('notif-panel').classList.remove('open')" 
                     style="font-size:0.6rem; letter-spacing:1px; color:var(--accent); background:none; border:none; cursor:pointer">
-                VIEW ALL IN ARCHIVE →
+                VIEW ALL IN ARCHIVE -
             </button>
         </div>
     `;
@@ -348,7 +348,7 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
         const res = await fetch(`${API_BASE}${endpoint}`, options);
         
         if (res.status === 401) {
-            // Auth endpoints return 401 for bad credentials — don't redirect, let the caller handle it
+            // Auth endpoints return 401 for bad credentials - don't redirect, let the caller handle it
             const isAuthEndpoint = endpoint.startsWith('/auth/');
             if (isAuthEndpoint) {
                 // Return the error body so handleAuth() can display it
@@ -385,7 +385,7 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
     }
 }
 
-// ── 1-Click Fast Execute Trade Proxy ──
+// - 1-Click Fast Execute Trade Proxy -
 window.executeTrade = async function(ticker, action, price, param4, take_profit, stop_loss) {
     // param4 can be alpha_score (from signals) or rr_ratio (from trade lab)
     const isTradeLab = (take_profit !== undefined && stop_loss !== undefined);
@@ -473,7 +473,7 @@ function updatePremiumUI() {
         const canAccess = isPremiumUser || isFreeView || (isAuthenticatedUser && isFreeView);
         
         if (isPremiumUser || isPublicView) {
-            // Premium or public — fully unlock, remove all locks
+            // Premium or public - fully unlock, remove all locks
             const lock = item.querySelector('.premium-lock');
             if (lock) lock.remove();
             item.classList.remove('locked-nav');
@@ -483,7 +483,7 @@ function updatePremiumUI() {
             if (lock) lock.remove();
             item.classList.remove('locked-nav');
         } else if (!isAuthenticatedUser && isFreeView && !isPublicView) {
-            // Not logged in, free-tier view — show login lock
+            // Not logged in, free-tier view - show login lock
             item.classList.add('locked-nav');
             if (!item.querySelector('.premium-lock')) {
                 const lock = document.createElement('span');
@@ -674,14 +674,14 @@ function updateScroller(signals) {
     if (!scroller || !signals || !signals.length) return;
     const content = signals.slice(0, 10).map(s => `
         <span style="color:${s.alpha >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}; margin-right:3rem; font-weight:700">
-            ${s.ticker} ${s.alpha >= 0 ? '▲' : '▼'}${Math.abs(s.alpha).toFixed(2)}% ALPHA
+            ${s.ticker} ${s.alpha >= 0 ? '-' : '-'}${Math.abs(s.alpha).toFixed(2)}% ALPHA
         </span>
     `).join('');
     scroller.innerHTML = content + content; // Duplicate for smooth loop
 }
 
 function formatPrice(val) {
-    if (val == null || isNaN(val)) return '$—';
+    if (val == null || isNaN(val)) return '$-';
     const abs = Math.abs(val);
     let decimals;
     if      (abs === 0)      decimals = 2;

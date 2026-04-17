@@ -1,9 +1,9 @@
-// ─────────────────────────────────────────────────────────────────────────────
+// -
 // Signal Permalink View
 // Handles two modes:
-//   • ?view=signal&id=1234   → Historical snapshot (frozen at time of firing)
-//   • ?view=signal&ticker=X  → Live view (fresh data for that ticker)
-// ─────────────────────────────────────────────────────────────────────────────
+//   - ?view=signal&id=1234   - Historical snapshot (frozen at time of firing)
+//   - ?view=signal&ticker=X  - Live view (fresh data for that ticker)
+// -
 
 async function renderSignalPermalink(id) {
     const params  = new URLSearchParams(window.location.search);
@@ -28,7 +28,7 @@ async function renderSignalPermalink(id) {
                 border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;
                 margin-bottom:1.5rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">
                 <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
-                ${isSnapshotMode ? 'ALPHASIGNAL — SIGNAL SNAPSHOT' : 'ALPHASIGNAL — LIVE SIGNAL PERMALINK'}
+                ${isSnapshotMode ? 'ALPHASIGNAL - SIGNAL SNAPSHOT' : 'ALPHASIGNAL - LIVE SIGNAL PERMALINK'}
             </div>
 
             <!-- Loading card -->
@@ -45,7 +45,7 @@ async function renderSignalPermalink(id) {
         let t   = null;
 
         if (isSnapshotMode) {
-            // ── Snapshot mode: fetch frozen historical record ──────────────
+            // - Snapshot mode: fetch frozen historical record -
             const [snapData, thesisData] = await Promise.allSettled([
                 fetchAPI(`/signal-permalink?id=${encodeURIComponent(alertId)}`),
                 fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(ticker)}&signal=LONG&zscore=1.0`)
@@ -55,7 +55,7 @@ async function renderSignalPermalink(id) {
             t   = thesisData.status === 'fulfilled' && thesisData.value?.thesis
                 ? thesisData.value.thesis : null;
         } else {
-            // ── Live mode: compute fresh signal for ticker ─────────────────
+            // - Live mode: compute fresh signal for ticker -
             const [liveData, thesisData] = await Promise.allSettled([
                 fetchAPI(`/signal-permalink?ticker=${encodeURIComponent(ticker)}`),
                 fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(ticker)}&signal=${ticker}&zscore=1.0`)
@@ -86,7 +86,7 @@ async function renderSignalPermalink(id) {
         const localUrl  = isSnapshotMode
             ? `${window.location.origin}/?view=signal&id=${alertId}`
             : `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(activeTicker)}`;
-        const tweetText = `🚨 AlphaSignal: $${activeTicker} ${dir} signal\n\n📊 Alpha: ${(sig.alpha >= 0 ? '+' : '')}${(sig.alpha || 0).toFixed(2)}%\n⚡ Z-Score: ${(sig.zScore || 0).toFixed(2)}σ\n🧠 ${sentLabel}\n\nFull analysis:`;
+        const tweetText = `- AlphaSignal: $${activeTicker} ${dir} signal\n\n- Alpha: ${(sig.alpha >= 0 ? '+' : '')}${(sig.alpha || 0).toFixed(2)}%\n- Z-Score: ${(sig.zScore || 0).toFixed(2)}-\n- ${sentLabel}\n\nFull analysis:`;
 
         // Snapshot banner (only in snapshot mode)
         const snapshotBanner = isSnapshotMode && sig.fired_at ? `
@@ -98,7 +98,7 @@ async function renderSignalPermalink(id) {
                     <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#fb923c">HISTORICAL SNAPSHOT</div>
                     <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px">
                         Signal fired: <strong style="color:var(--text)">${new Date(sig.fired_at).toLocaleString('en-GB', {dateStyle:'medium',timeStyle:'short'})}</strong>
-                        · Entry price: <strong style="color:var(--accent)">${formatPrice(sig.price)}</strong>
+                        - Entry price: <strong style="color:var(--accent)">${formatPrice(sig.price)}</strong>
                     </div>
                 </div>
             </div>` : '';
@@ -129,7 +129,7 @@ async function renderSignalPermalink(id) {
             <!-- Key metrics grid -->
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem">
                 ${[
-                    ['Z-Score', `${(sig.zScore || 0) >= 0 ? '+' : ''}${(sig.zScore || 0).toFixed(2)}σ`, zColor],
+                    ['Z-Score', `${(sig.zScore || 0) >= 0 ? '+' : ''}${(sig.zScore || 0).toFixed(2)}-`, zColor],
                     ['Relative Alpha', `${(sig.alpha || 0) >= 0 ? '+' : ''}${(sig.alpha || 0).toFixed(2)}%`, (sig.alpha || 0) >= 0 ? '#22c55e' : '#ef4444'],
                     ['BTC Correlation', (sig.btcCorrelation || 0).toFixed(2), '#7dd3fc'],
                     ['Sentiment', sentLabel, sentColor],
@@ -155,7 +155,7 @@ async function renderSignalPermalink(id) {
                 border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.75rem">
                     <span class="material-symbols-outlined" style="font-size:16px;color:#8b5cf6">psychology</span>
-                    <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#8b5cf6">AI THESIS · ${activeTicker}</span>
+                    <span style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:#8b5cf6">AI THESIS - ${activeTicker}</span>
                     <span style="font-size:0.55rem;color:rgba(139,92,246,0.5);margin-left:auto">GPT-4o-mini</span>
                 </div>
                 <div id="permalink-thesis" style="font-size:0.82rem;line-height:1.7;color:var(--text-dim)">
@@ -207,7 +207,7 @@ async function renderSignalPermalink(id) {
                     font-weight:900;letter-spacing:1px;display:flex;align-items:center;gap:6px;
                     transition:all 0.2s" onmouseover="this.style.background=alphaColor(0.08)"
                     onmouseout="this.style.background=alphaColor(0.04)">
-                    <span style="font-size:14px;font-weight:900">𝕏</span>
+                    <span style="font-size:14px;font-weight:900">-</span>
                     SHARE
                 </button>
 
@@ -225,11 +225,11 @@ async function renderSignalPermalink(id) {
             <!-- Footer -->
             <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);
                 font-size:0.6rem;color:var(--text-dim);letter-spacing:0.5px;line-height:1.6">
-                AlphaSignal — Institutional Intelligence Terminal · alphasignal.digital<br>
+                AlphaSignal - Institutional Intelligence Terminal - alphasignal.digital<br>
                 ${isSnapshotMode
                     ? 'This is a historical snapshot frozen at the time the signal fired. Current market conditions may differ.'
                     : 'Signal data is computed from live market feeds. Not financial advice.'}
-                <a href="/?view=signals" style="color:var(--accent);margin-left:8px">View all live signals →</a>
+                <a href="/?view=signals" style="color:var(--accent);margin-left:8px">View all live signals -</a>
             </div>
         `;
 
@@ -241,7 +241,7 @@ async function renderSignalPermalink(id) {
                 const fresh = await fetchAPI(`/signal-thesis?ticker=${encodeURIComponent(activeTicker)}&signal=${dir2}&zscore=${z2}`);
                 const thesisEl = document.getElementById('permalink-thesis');
                 if (thesisEl && fresh?.thesis) thesisEl.textContent = fresh.thesis;
-                else if (thesisEl) thesisEl.textContent = 'Thesis generation unavailable — check AI engine configuration.';
+                else if (thesisEl) thesisEl.textContent = 'Thesis generation unavailable - check AI engine configuration.';
             } catch (_) {}
         }
         
@@ -288,14 +288,14 @@ async function renderSignalPermalink(id) {
     } catch (err) {
         console.error('[Permalink] Error:', err);
         const card = document.getElementById('permalink-card');
-        if (card) card.innerHTML = `<p style="color:#ef4444">Failed to load signal data. <a href="/?view=signals" style="color:var(--accent)">Return to signals →</a></p>`;
+        if (card) card.innerHTML = `<p style="color:#ef4444">Failed to load signal data. <a href="/?view=signals" style="color:var(--accent)">Return to signals -</a></p>`;
     }
 }
 
-// ── copySignalPermalink ───────────────────────────────────────────────────────
+// - copySignalPermalink -
 // Looks up the most recent alerts_history id for this ticker, then copies a
 // snapshot permalink (?view=signal&id=NNN) so the recipient sees the exact
-// same signal that fired — not today's live data.
+// same signal that fired - not today's live data.
 async function copySignalPermalink(ticker, event) {
     if (event) event.stopPropagation();
 

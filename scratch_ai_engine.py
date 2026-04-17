@@ -13,7 +13,7 @@ text = re.sub(
 # 2. Update context string
 text = re.sub(
     r"f\"Call OI: \{call_oi\}\\n\"\s+f\"Put OI: \{put_oi\}\\n\"",
-    "f\"Zero-Gamma Pivot: ${zero_gamma}\\n\"\n            f\"Expected 7D Move: ±${exp_move}\\n\"\n            f\"25-Delta Skew: {skew}%\\n\"\n            f\"Unusual Flow Anomalies: {anomalies} strikes\\n\"",
+    "f\"Zero-Gamma Pivot: ${zero_gamma}\\n\"\n            f\"Expected 7D Move: -${exp_move}\\n\"\n            f\"25-Delta Skew: {skew}%\\n\"\n            f\"Unusual Flow Anomalies: {anomalies} strikes\\n\"",
     text
 )
 

@@ -57,7 +57,7 @@ async function renderLiquidityView(tabs = null) {
                     </div>
                 </div>
                 <div class="glass-card" style="padding:1rem;border:1px solid rgba(0,242,255,0.2)">
-                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:0.75rem">⚡ WHALE WATCH</div>
+                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:0.75rem">- WHALE WATCH</div>
                     <div id="whale-watch-content" class="whale-watch-list">
                         <div style="font-size:0.6rem;color:var(--text-dim);text-align:center;padding:10px">Scanning entities...</div>
                     </div>
@@ -99,7 +99,7 @@ async function renderLiquidityView(tabs = null) {
 
     // Sub-view renderers
     function renderWallsMode() {
-        sectionTitle.textContent = 'Depth Walls — Institutional Order Clusters';
+        sectionTitle.textContent = 'Depth Walls - Institutional Order Clusters';
         if (!data || !data.walls || data.walls.length === 0) {
             display.innerHTML = `<div class="empty-state">Order book data unavailable</div>`;
             return;
@@ -141,13 +141,13 @@ async function renderLiquidityView(tabs = null) {
         const topBids = bids.slice(0, 20);
         const topAsks = asks.slice(0, 20);
 
-        // Cumulative depth: bids sorted high→low (closest to price first), asks low→high
+        // Cumulative depth: bids sorted high-low (closest to price first), asks low-high
         const bidLevels = [], askLevels = [];
         let cumB = 0, cumA = 0;
         topBids.forEach(b => { cumB += b.size; bidLevels.push({ price: b.price, cum: cumB }); });
         topAsks.forEach(a => { cumA += a.size; askLevels.push({ price: a.price, cum: cumA }); });
 
-        // X-axis: bids displayed low→high (left of mid), then asks low→high (right of mid)
+        // X-axis: bids displayed low-high (left of mid), then asks low-high (right of mid)
         // With linear axis, we just provide [{x, y}] coordinates directly.
         const bidData = [...bidLevels].reverse().map(b => ({ x: b.price, y: b.cum })); 
         // Ensure bids touch zero exactly at the current mid price (or closest Ask)
@@ -192,17 +192,17 @@ async function renderLiquidityView(tabs = null) {
                     animation: { duration: 400 },
                     plugins: {
                         legend: { labels: { color: '#aaa', font: { size: 11 }, boxWidth: 14 } },
-                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '—'} BTC` } }
+                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '-'} BTC` } }
                     },
                     scales: {
                         x:  { type: 'linear', grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 12, callback: v => '$'+v.toLocaleString() } },
-                        y:  { position: 'left',  grid: { color: 'rgba(34,197,94,0.08)' },  ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: '← Bid Depth (BTC)', color: 'rgba(34,197,94,0.7)' }, min: 0 },
-                        y1: { position: 'right', grid: { drawOnChartArea: false },           ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: 'Ask Depth (BTC) →', color: 'rgba(239,68,68,0.7)' }, min: 0 }
+                        y:  { position: 'left',  grid: { color: 'rgba(34,197,94,0.08)' },  ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: '- Bid Depth (BTC)', color: 'rgba(34,197,94,0.7)' }, min: 0 },
+                        y1: { position: 'right', grid: { drawOnChartArea: false },           ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: 'Ask Depth (BTC) -', color: 'rgba(239,68,68,0.7)' }, min: 0 }
                     }
                 }
             });
 
-            // ── Live update: poll every 5s, mutate chart data in-place ──
+            // - Live update: poll every 5s, mutate chart data in-place -
             if (window._gommLiveInterval) clearInterval(window._gommLiveInterval);
             window._gommLiveInterval = setInterval(async () => {
                 if (!document.getElementById('gommWallChart') || !window._gommWallChartInst) {
@@ -246,7 +246,7 @@ async function renderLiquidityView(tabs = null) {
                     const dEl = document.getElementById('gomm-depth');
                     if (iEl && fresh.imbalance) { iEl.textContent = fresh.imbalance; iEl.style.color = parseFloat(fresh.imbalance) > 0 ? 'var(--risk-low)' : 'var(--risk-high)'; }
                     if (dEl && fresh.total_depth) dEl.textContent = fresh.total_depth;
-                } catch(e) { /* silent — skip noisy poll failures */ }
+                } catch(e) { /* silent - skip noisy poll failures */ }
             }, 1000);
 
             if (typeof injectAIChartTranslator === 'function') {
@@ -264,7 +264,7 @@ async function renderLiquidityView(tabs = null) {
     }
 
     function renderHeatmapMode() {
-        sectionTitle.textContent = 'Price History — 5-Minute Candle Overview (48h)';
+        sectionTitle.textContent = 'Price History - 5-Minute Candle Overview (48h)';
         if (!data || !data.history || data.history.length === 0) {
             display.innerHTML = `<div class="empty-state">Price history unavailable</div>`;
             return;
@@ -280,12 +280,12 @@ async function renderLiquidityView(tabs = null) {
                 <div style="display:flex;gap:1.5rem;padding:0.75rem 0 0.5rem;font-size:0.6rem">
                     <span style="color:var(--text-dim)">CURRENT</span>
                     <span style="color:var(--accent);font-weight:900">$${(prices[prices.length-1]||0).toLocaleString(undefined,{maximumFractionDigits:0})}</span>
-                    <span style="color:var(--text-dim);margin-left:auto">${history.length} candles · 5m interval</span>
+                    <span style="color:var(--text-dim);margin-left:auto">${history.length} candles - 5m interval</span>
                 </div>
                 <div style="height:360px"><canvas id="gommHeatChart" role="img" aria-label="Order flow heatmap chart"></canvas></div>
                 <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.6rem">
-                    <span style="color:rgba(34,197,94,0.9)">■ Bullish candle</span>
-                    <span style="color:rgba(239,68,68,0.9)">■ Bearish candle</span>
+                    <span style="color:rgba(34,197,94,0.9)">- Bullish candle</span>
+                    <span style="color:rgba(239,68,68,0.9)">- Bearish candle</span>
                     <span style="color:var(--text-dim);margin-left:auto">Bar height = candle body</span>
                 </div>
             </div>`;
@@ -319,7 +319,7 @@ async function renderLiquidityView(tabs = null) {
     }
 
     function renderLiquidationMode() {
-        sectionTitle.textContent = 'Liquidation Flux — Derivatives Topography (Liq vs OI)';
+        sectionTitle.textContent = 'Liquidation Flux - Derivatives Topography (Liq vs OI)';
         if (!liqData || !liqData.clusters) {
             display.innerHTML = `<div class="empty-state">Liquidation data unavailable</div>`;
             return;
@@ -371,7 +371,7 @@ async function renderLiquidityView(tabs = null) {
                             data: sorted.map(c => ({ price: c.price, side: c.side, intensity: c.intensity }))
                         });
                         if (resp && resp.explanation) {
-                            box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 AI TACTICAL OVERVIEW</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                            box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">- AI TACTICAL OVERVIEW</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
                         } else {
                             throw new Error('Empty response');
                         }
@@ -387,10 +387,10 @@ async function renderLiquidityView(tabs = null) {
     }
 
     function renderVolatilityMode() {
-        sectionTitle.textContent = 'Volatility Surface — Options IV Smile & Skew';
+        sectionTitle.textContent = 'Volatility Surface - Options IV Smile & Skew';
         if (!volData) { display.innerHTML = `<div class="empty-state">Options volatility data unavailable</div>`; return; }
 
-        // Map backend fields → chart fields
+        // Map backend fields - chart fields
         // Backend sends: expiry_labels (string[]), moneyness_axis (float[]), iv_grid (float[][])
         const labels  = volData.expiries      || volData.expiry_labels || [];
         const grid    = volData.iv_grid       || [];
@@ -403,8 +403,8 @@ async function renderLiquidityView(tabs = null) {
             atmRow = grid[atmIdx] || [];
         }
 
-        // 25Δ skew: (OTM put IV - OTM call IV) per expiry
-        // Put side ≈ moneyness 0.75, Call side ≈ moneyness 1.25
+        // 25- skew: (OTM put IV - OTM call IV) per expiry
+        // Put side - moneyness 0.75, Call side - moneyness 1.25
         let skew = volData.skew || null;
         if (!skew && grid.length && money.length) {
             const putIdx  = money.reduce((b, m, i) => Math.abs(m - 0.75) < Math.abs(money[b] - 0.75) ? i : b, 0);
@@ -436,7 +436,7 @@ async function renderLiquidityView(tabs = null) {
                         data: { atm_iv: atmRow, skew: skew, expiries: labels }
                     });
                     if (resp && resp.explanation) {
-                        box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 AI SURFACE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                        box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">- AI SURFACE TRANSLATION</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
                     } else {
                         throw new Error('Empty response');
                     }
@@ -455,14 +455,14 @@ async function renderLiquidityView(tabs = null) {
                 data: { labels,
                     datasets: [
                         { label: 'ATM IV (%)', data: atmRow, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.1)', borderWidth: 3, tension: 0.3, fill: true },
-                        { label: '25Δ Skew',   data: skew,   borderColor: '#ff0055', borderDash: [5,5], borderWidth: 2, tension: 0.3, yAxisID: 'y1' }
+                        { label: '25- Skew',   data: skew,   borderColor: '#ff0055', borderDash: [5,5], borderWidth: 2, tension: 0.3, yAxisID: 'y1' }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                     scales: {
                         x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Expiry', color: '#666', font: { size: 9 } } },
                         y:  { type: 'linear', position: 'left',  grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Implied Volatility (%)', color: '#f7931a', font: { size: 9 } } },
-                        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: '25Δ Skew (%)', color: '#ff0055', font: { size: 9 } } }
+                        y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: '25- Skew (%)', color: '#ff0055', font: { size: 9 } } }
                     }
                 }
             });
@@ -486,8 +486,8 @@ async function renderLiquidityView(tabs = null) {
     // Render active sub-view
     window._gommSwitch(activeMode);
 
-    // ── Live Whale Watch Poller ────────────────────────────────────
-    const WHALE_POLL = 15000; // 15s — hourly backend seed, but last_tx + HFW addr change
+    // - Live Whale Watch Poller -
+    const WHALE_POLL = 15000; // 15s - hourly backend seed, but last_tx + HFW addr change
 
     function buildWhaleHTML(entities) {
         return entities.map(e => {
@@ -500,7 +500,7 @@ async function renderLiquidityView(tabs = null) {
                 ? '<span style="font-size:0.42rem;background:rgba(34,197,94,0.15);color:var(--risk-low);padding:1px 4px;border-radius:3px;margin-left:4px;letter-spacing:1px">LIVE</span>'
                 : '';
             const explorerLink = e.tx_hash
-                ? `<a href="https://blockstream.info/tx/${e.tx_hash}" target="_blank" rel="noopener" style="font-size:0.55rem;color:var(--accent);text-decoration:none;opacity:0.7;margin-left:4px" title="View on Blockstream">↗</a>`
+                ? `<a href="https://blockstream.info/tx/${e.tx_hash}" target="_blank" rel="noopener" style="font-size:0.55rem;color:var(--accent);text-decoration:none;opacity:0.7;margin-left:4px" title="View on Blockstream">-</a>`
                 : '';
             const valueLine = e.value_usd
                 ? `<div style="margin-top:3px;display:flex;gap:6px;align-items:center">
@@ -571,7 +571,7 @@ async function renderLiquidityView(tabs = null) {
     }, WHALE_POLL);
 
 
-    // ── Live Tape Poller ────────────────────────────────────────────
+    // - Live Tape Poller -
     const TAPE_MAX   = 40;       // max pills kept in strip
     const TAPE_POLL  = 3000;     // ms between refreshes
     const seenIds    = new Set((tapeData?.trades || []).map(t => t.id));
@@ -606,7 +606,7 @@ async function renderLiquidityView(tabs = null) {
         document.head.appendChild(s);
     }
 
-    // Live polling loop — stops when tape-content is removed from DOM
+    // Live polling loop - stops when tape-content is removed from DOM
     const tapeTimer = setInterval(async () => {
         const el = document.getElementById('tape-content');
         if (!el) { clearInterval(tapeTimer); return; }
@@ -624,7 +624,7 @@ async function renderLiquidityView(tabs = null) {
             while (el.children.length > TAPE_MAX) el.removeChild(el.lastChild);
             // Scroll new pills into view
             el.scrollLeft = 0;
-        } catch(e) { /* silent — keep polling */ }
+        } catch(e) { /* silent - keep polling */ }
     }, TAPE_POLL);
 }
 async function renderSignalArchive(tabs = null) {
@@ -642,7 +642,7 @@ async function renderSignalArchive(tabs = null) {
         <div id="archive-state-tabs" style="display:flex;gap:6px;margin-bottom:1rem;align-items:center">
             <span style="font-size:0.5rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-right:4px">VIEW:</span>
             <button id="atab-active" onclick="window._setArchiveState('active')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(74,222,128,0.5);background:rgba(74,222,128,0.12);color:#4ade80;cursor:pointer;letter-spacing:1px;transition:all 0.15s">
-                ● ACTIVE
+                - ACTIVE
             </button>
             <button id="atab-all" onclick="window._setArchiveState('all')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
                 ALL
@@ -656,7 +656,7 @@ async function renderSignalArchive(tabs = null) {
             <!-- Ticker search -->
             <div style="display:flex;flex-direction:column;gap:4px">
                 <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">TICKER</label>
-                <input type="text" id="filter-ticker" name="signal-ticker-search" placeholder="BTC-USD, ETH…" maxlength="20"
+                <input type="text" id="filter-ticker" name="signal-ticker-search" placeholder="BTC-USD, ETH-" maxlength="20"
                     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                     readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')"
                     style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.75rem;width:130px;font-family:var(--font-mono)"
@@ -689,9 +689,9 @@ async function renderSignalArchive(tabs = null) {
                 <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">SEVERITY</label>
                 <select id="filter-severity" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
                     <option value="">ALL</option>
-                    <option value="critical">CRITICAL 🔴</option>
-                    <option value="high">HIGH 🟠</option>
-                    <option value="medium">MEDIUM 🟡</option>
+                    <option value="critical">CRITICAL -</option>
+                    <option value="high">HIGH -</option>
+                    <option value="medium">MEDIUM -</option>
                 </select>
             </div>
             <!-- Direction -->
@@ -699,9 +699,9 @@ async function renderSignalArchive(tabs = null) {
                 <label style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">DIRECTION</label>
                 <select id="filter-direction" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:0.73rem">
                     <option value="">ALL</option>
-                    <option value="bullish">BULLISH ▲</option>
-                    <option value="bearish">BEARISH ▼</option>
-                    <option value="neutral">NEUTRAL ●</option>
+                    <option value="bullish">BULLISH -</option>
+                    <option value="bearish">BEARISH -</option>
+                    <option value="neutral">NEUTRAL -</option>
                 </select>
             </div>
             <!-- Date Range Picker -->
@@ -748,7 +748,7 @@ async function renderSignalArchive(tabs = null) {
 
     let currentPage = 1;
 
-    // ── State tab filter (active / all / closed) ─────────────────────────────
+    // - State tab filter (active / all / closed) -
     let stateFilter = 'active'; // default to showing active signals only
 
     window._setArchiveState = function(state) {
@@ -770,15 +770,15 @@ async function renderSignalArchive(tabs = null) {
         loadData(1);
     };
 
-    // ── Sort state lives OUTSIDE loadData so it persists across page navigation ──
+    // - Sort state lives OUTSIDE loadData so it persists across page navigation -
     let sortCol = null;
     let sortDir = 'desc';
     // Server-side columns trigger a re-fetch sorted across the full dataset.
-    // Computed columns (return/current/state) are derived from live prices — sort client-side only.
+    // Computed columns (return/current/state) are derived from live prices - sort client-side only.
     const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction']);
     const CLIENT_SORT_COLS = new Set(['return','current','state']);
 
-    // ── Date Range Picker state ──────────────────────────────────────────────
+    // - Date Range Picker state -
     let drpMode = '30d';   // active pill id
     let drpDays = 30;      // days value (-1 = all time, 0 = today)
 
@@ -799,7 +799,7 @@ async function renderSignalArchive(tabs = null) {
         const lbl = document.getElementById('active-range-label');
         const LABELS = { today:'TODAY', '7d':'7D', '30d':'30D', '90d':'90D', '365d':'1Y', all:'ALL', custom:'CUSTOM' };
         if (lbl) lbl.textContent = LABELS[id] || id.toUpperCase();
-        // Auto-load for all presets (not CUSTOM — user must pick dates then press APPLY)
+        // Auto-load for all presets (not CUSTOM - user must pick dates then press APPLY)
         if (id !== 'custom') loadData(1);
     };
 
@@ -860,7 +860,7 @@ async function renderSignalArchive(tabs = null) {
             'HIT_TP2': '#22c55e', 'HIT_TP1': '#86efac',
             'ACTIVE': '#60a5fa', 'STOPPED': '#ef4444', 'CLOSED': '#94a3b8'
         };
-        const stateIcons = { 'HIT_TP2': '🎯', 'HIT_TP1': '✅', 'ACTIVE': '⚡', 'STOPPED': '🛑', 'CLOSED': '🔒' };
+        const stateIcons = { 'HIT_TP2': '-', 'HIT_TP1': '-', 'ACTIVE': '-', 'STOPPED': '-', 'CLOSED': '-' };
         const BULLISH_TYPES = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
         const BEARISH_TYPES = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT']);
         const SEV_RANK = { critical: 3, high: 2, medium: 1, low: 0 };
@@ -893,7 +893,7 @@ async function renderSignalArchive(tabs = null) {
             });
         }
 
-        // ── Render just the <tbody> rows ───────────────────────────
+        // - Render just the <tbody> rows -
         // Signal store: populated each render so drawer can look up by id
         window._archiveSignals = window._archiveSignals || {};
 
@@ -904,12 +904,12 @@ async function renderSignalArchive(tabs = null) {
                 const isBull   = BULLISH_TYPES.has(sigType);
                 const isBear   = BEARISH_TYPES.has(sigType);
                 const dirLabel = isBull ? 'BULLISH' : isBear ? 'BEARISH' : 'NEUTRAL';
-                const dirArrow = isBull ? '▲' : isBear ? '▼' : '●';
+                const dirArrow = isBull ? '-' : isBear ? '-' : '-';
                 const dirColor = isBull ? '#22c55e' : isBear ? '#ef4444' : '#94a3b8';
                 const dirBg    = isBull ? 'rgba(34,197,94,0.1)' : isBear ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)';
                 const dirBorder= isBull ? 'rgba(34,197,94,0.3)' : isBear ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)';
                 const sev = (s.severity||'').toLowerCase();
-                const sevIcon  = sev==='critical'?'🔴':sev==='high'?'🟠':'🟡';
+                const sevIcon  = sev==='critical'?'-':sev==='high'?'-':'-';
                 return `
                 <tr class="archive-row" onclick="window._openSignalDrawer('${s.id}')" style="cursor:pointer;border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.2s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                     <td data-label="TICKER" style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
@@ -918,19 +918,19 @@ async function renderSignalArchive(tabs = null) {
                     <td data-label="ENTRY" style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? formatPrice(s.entry) : '-'}</td>
                     <td data-label="CURRENT" style="padding:10px 12px;text-align:right;font-family:monospace">${
                         s.state === 'CLOSED' && s.exit_price
-                            ? `<span title="Exit price locked at close" style="color:#94a3b8">🔒 ${formatPrice(s.exit_price)}</span>`
+                            ? `<span title="Exit price locked at close" style="color:#94a3b8">- ${formatPrice(s.exit_price)}</span>`
                             : (s.current ? formatPrice(s.current) : '-')
                     }</td>
                     <td data-label="RETURN" style="padding:10px 12px;text-align:right;font-weight:700;color:${
                         (s.state === 'CLOSED' ? (s.final_roi ?? s.return) : s.return) >= 0 ? '#22c55e' : '#ef4444'
                     }">${
                         s.state === 'CLOSED' && s.final_roi != null
-                            ? `🔒 ${s.final_roi >= 0 ? '+' : ''}${s.final_roi}%`
+                            ? `- ${s.final_roi >= 0 ? '+' : ''}${s.final_roi}%`
                             : `${s.return >= 0 ? '+' : ''}${s.return}%`
                     }</td>
                     <td data-label="STATE" style="padding:10px 12px;text-align:center">
                         <span style="background:${stateColors[s.state]||'#60a5fa'}22;color:${stateColors[s.state]||'#60a5fa'};padding:2px 10px;border-radius:20px;font-size:0.6rem;letter-spacing:1px">
-                            ${stateIcons[s.state]||'⚡'} ${s.state}
+                            ${stateIcons[s.state]||'-'} ${s.state}
                         </span>
                     </td>
                     <td data-label="DATE" class="col-date" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${
@@ -963,7 +963,7 @@ async function renderSignalArchive(tabs = null) {
             }).join('');
         }
 
-        // ── Performance Summary Strip ─────────────────────────────────────
+        // - Performance Summary Strip -
         const summ     = response?.summary || {};
         const fWins    = summ.wins    ?? 0;
         const fLosses  = summ.losses  ?? 0;
@@ -984,12 +984,12 @@ async function renderSignalArchive(tabs = null) {
 
         const summaryHTML = `
           <div style="margin-bottom:1.2rem">
-            <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">📊 PERFORMANCE SUMMARY <span style="color:var(--accent);font-size:0.5rem">(CLOSED SIGNALS)</span></div>
+            <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">- PERFORMANCE SUMMARY <span style="color:var(--accent);font-size:0.5rem">(CLOSED SIGNALS)</span></div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:0.6rem">${
               [
                 ['WIN RATE',     fHitRate !== '--' ? fHitRate + '%' : '--',  parseFloat(fHitRate) >= 50 ? '#22c55e' : '#ef4444', 'emoji_events'],
-                ['WINS ✓',       fWins,    '#22c55e', 'thumb_up'],
-                ['LOSSES ✗',     fLosses,  '#ef4444', 'thumb_down'],
+                ['WINS -',       fWins,    '#22c55e', 'thumb_up'],
+                ['LOSSES -',     fLosses,  '#ef4444', 'thumb_down'],
                 ['CLOSED',       fClosed,  '#94a3b8', 'lock'],
                 ['ACTIVE',       fActive,  '#60a5fa', 'bolt'],
                 ['AVG RETURN',   fAvgRoi != null ? (parseFloat(fAvgRoi) >= 0 ? '+' : '') + fAvgRoi + '%' : '--', parseFloat(fAvgRoi) >= 0 ? '#22c55e' : '#ef4444', 'trending_up'],
@@ -1002,14 +1002,14 @@ async function renderSignalArchive(tabs = null) {
                 </div>`
               ).join('')
             }</div>
-            <div style="font-size:0.52rem;color:var(--text-dim);letter-spacing:0.5px">🏆 Wins/Losses = manually CLOSED signals with locked ROI &nbsp;·&nbsp; Live page states: <span style="color:#22c55e">${pWins} hit target</span> / <span style="color:#ef4444">${pLosses} stopped</span> this page</div>
+            <div style="font-size:0.52rem;color:var(--text-dim);letter-spacing:0.5px">- Wins/Losses = manually CLOSED signals with locked ROI &nbsp;-&nbsp; Live page states: <span style="color:#22c55e">${pWins} hit target</span> / <span style="color:#ef4444">${pLosses} stopped</span> this page</div>
           </div>`;
 
         function buildThead() {
             function aTH(col, label, align='left') {
                 const isServer = SERVER_SORT_COLS.has(col);
                 const active = sortCol === col;
-                const ind = active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : (isServer ? ' <span style="opacity:0.3;font-size:0.7em">⇅</span>' : ' <span style="opacity:0.25;font-size:0.65em" title="Sorts current page only">⇅*</span>');
+                const ind = active ? (sortDir === 'asc' ? ' -' : ' -') : (isServer ? ' <span style="opacity:0.3;font-size:0.7em">-</span>' : ' <span style="opacity:0.25;font-size:0.65em" title="Sorts current page only">-*</span>');
                 const color = active ? 'var(--accent)' : 'var(--text-dim)';
                 return `<th style="text-align:${align};padding:8px 12px;cursor:pointer;user-select:none;color:${color};white-space:nowrap;transition:color 0.15s" onclick="window._archiveSort('${col}')">${label}${ind}</th>`;
             }
@@ -1028,7 +1028,7 @@ async function renderSignalArchive(tabs = null) {
         }
 
         container.innerHTML = `<style>
-          /* ── Archive Mobile Responsive ────────────────── */
+          /* - Archive Mobile Responsive - */
           @media (max-width:768px) {
             #archive-table thead { display:none; }
             #archive-table, #archive-table tbody, .archive-row, #archive-table td {
@@ -1108,7 +1108,7 @@ async function renderSignalArchive(tabs = null) {
                 </table>
             </div>`;
 
-        // ── Sort handler: always client-side ──────────────────────────────
+        // - Sort handler: always client-side -
         window._archiveSort = function(col) {
             if (sortCol === col) {
                 sortDir = sortDir === 'asc' ? 'desc' : 'asc';
@@ -1133,18 +1133,18 @@ async function renderSignalArchive(tabs = null) {
     window.loadArchiveData = loadData;
     window.loadData = loadData; // expose for RESET button
 
-    // ── Signal Close / Reopen handlers ────────────────────────────
+    // - Signal Close / Reopen handlers -
     // Guard set: prevents duplicate API calls if the button is somehow clicked twice
     const _closingInFlight = new Set();
     window._archiveCloseSignal = async function(id, btn) {
-        if (_closingInFlight.has(id)) return;   // already in progress — ignore duplicate
+        if (_closingInFlight.has(id)) return;   // already in progress - ignore duplicate
         _closingInFlight.add(id);
         btn.disabled = true; btn.textContent = '...';
         try {
             const res = await fetch(`/api/signal/${id}/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
             if (!res.ok) throw new Error(await res.text());
             const result = await res.json();
-            const roiStr = result.final_roi != null ? ` · ROI locked: ${result.final_roi >= 0 ? '+' : ''}${result.final_roi}%` : '';
+            const roiStr = result.final_roi != null ? ` - ROI locked: ${result.final_roi >= 0 ? '+' : ''}${result.final_roi}%` : '';
             showToast('SIGNAL CLOSED', `Signal #${id} closed.${roiStr}`, result.final_roi >= 0 ? 'success' : 'alert');
             loadData(currentPage);
         } catch(e) {
@@ -1178,7 +1178,7 @@ async function renderSignalArchive(tabs = null) {
     };
 
 
-    // ── Signal Detail Drawer ─────────────────────────────────────────────
+    // - Signal Detail Drawer -
     (function _initDrawer() {
         if (document.getElementById('sig-drawer')) return;
         const st = document.createElement('style');

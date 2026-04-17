@@ -110,7 +110,7 @@ const alertsHubTabs = [
     { id: 'overview',          label: 'HUB OVERVIEW',   view: 'docs-hub-alerts',   icon: 'menu_book' }
 ];
 
-// Hub-aware wrappers — each view shows the shared tab bar
+// Hub-aware wrappers - each view shows the shared tab bar
 async function renderAlertsHub()    { window._alertsHubTabs = alertsHubTabs; renderAlerts(alertsHubTabs); }
 async function renderPriceAlertsHub()     { renderPriceAlerts(alertsHubTabs); }
 async function renderLeaderboardHub()     { renderSignalLeaderboard(alertsHubTabs); }

@@ -1,12 +1,12 @@
 """
-realdata.py — AlphaSignal Real Data Fetcher Layer
+realdata.py - AlphaSignal Real Data Fetcher Layer
 Centralises all external API calls that replaced synthetic/random data.
 Every function has an in-process TTL cache so hot endpoints never hit rate limits.
 """
 import time, requests, threading
 import numpy as np
 
-# ─── Thread-safe TTL Cache ────────────────────────────────────────────────────
+# - Thread-safe TTL Cache -
 _cache: dict = {}
 _cache_lock = threading.Lock()
 
@@ -21,9 +21,9 @@ def _set(key, data, ttl=3600):
     with _cache_lock:
         _cache[key] = {'data': data, 'ts': time.time(), 'ttl': ttl}
 
-# ─── Fear & Greed Index ───────────────────────────────────────────────────────
+# - Fear & Greed Index -
 def fetch_fear_greed() -> dict:
-    """Alternative.me Fear & Greed Index — cached 6h."""
+    """Alternative.me Fear & Greed Index - cached 6h."""
     cached = _get('fear_greed')
     if cached is not None:
         return cached
@@ -49,10 +49,10 @@ def fetch_fear_greed() -> dict:
     return {'value': 50, 'label': 'Neutral', 'history': [], 'source': 'fallback'}
 
 
-# ─── Network Congestion (BTC mempool fee rate + tx count) ─────────────────────
+# - Network Congestion (BTC mempool fee rate + tx count) -
 def fetch_network_congestion() -> int:
     """
-    0-100 composite congestion score — cached 5 min.
+    0-100 composite congestion score - cached 5 min.
     Primary source: mempool.space (fee rates + mempool depth).
     Fallback:       blockchain.info unconfirmed tx count.
 
@@ -68,13 +68,13 @@ def fetch_network_congestion() -> int:
         return cached
 
     try:
-        # ── 1. Fee rates from mempool.space ──────────────────────────────────
+        # - 1. Fee rates from mempool.space -
         fee_r = requests.get(
             'https://mempool.space/api/v1/fees/recommended',
             timeout=5,
             headers={'Accept': 'application/json'}
         )
-        # ── 2. Mempool depth (tx count + vsize) from mempool.space ───────────
+        # - 2. Mempool depth (tx count + vsize) from mempool.space -
         mem_r = requests.get(
             'https://mempool.space/api/mempool',
             timeout=5,
@@ -90,7 +90,7 @@ def fetch_network_congestion() -> int:
             hour_fee = float(fees.get('hourFee', fees.get('halfHourFee', 5)))
 
             # Log-scale: 200 sat/vbyte = 100% congestion (Ordinals-era extreme)
-            # log1p(200) ≈ 5.298 — anchors the top of the scale
+            # log1p(200) - 5.298 - anchors the top of the scale
             fee_score = min(100, int(math.log1p(hour_fee) / math.log1p(200) * 100))
 
             # Linear tx-count score capped at 150k txs
@@ -109,7 +109,7 @@ def fetch_network_congestion() -> int:
     except Exception as e:
         print(f'[NetworkCongestion/mempool.space] {e}')
 
-    # ── Fallback: blockchain.info tx count only ───────────────────────────────
+    # - Fallback: blockchain.info tx count only -
     try:
         r = requests.get('https://blockchain.info/q/unconfirmedcount', timeout=4)
         if r.status_code == 200:
@@ -123,13 +123,13 @@ def fetch_network_congestion() -> int:
     return 35  # conservative static fallback
 
 
-# ─── Retail FOMO (Composite: CoinGecko Trending + Binance Volume + BTC Momentum)
+# - Retail FOMO (Composite: CoinGecko Trending + Binance Volume + BTC Momentum)
 def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
-    """Composite retail FOMO score 0-100 — cached 30min.
+    """Composite retail FOMO score 0-100 - cached 30min.
     Components (weighted):
-      40% — CoinGecko trending coins sentiment (price changes of trending coins)
-      35% — Binance BTC 24h volume vs 7-day average (volume spike ratio)
-      25% — Short-term BTC momentum (7-period RSI from hourly candles)
+      40% - CoinGecko trending coins sentiment (price changes of trending coins)
+      35% - Binance BTC 24h volume vs 7-day average (volume spike ratio)
+      25% - Short-term BTC momentum (7-period RSI from hourly candles)
     Returns {'value': int, 'source': 'composite' | 'fear_greed_fallback'}.
     """
     cache_key = f'fomo_{keyword}'
@@ -140,8 +140,8 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
     scores = []
     weights = []
 
-    # ── Component 1: CoinGecko Trending Coins (40%) ──────────────────────────
-    # Measures retail attention — when trending coins are pumping, retail is FOMOing
+    # - Component 1: CoinGecko Trending Coins (40%) -
+    # Measures retail attention - when trending coins are pumping, retail is FOMOing
     try:
         r = requests.get(
             'https://api.coingecko.com/api/v3/search/trending',
@@ -172,8 +172,8 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
     except Exception as e:
         print(f'[FOMO/CoinGecko] {e}')
 
-    # ── Component 2: Binance BTC Volume Spike (35%) ──────────────────────────
-    # 24h volume vs 7-day average — spikes indicate retail piling in
+    # - Component 2: Binance BTC Volume Spike (35%) -
+    # 24h volume vs 7-day average - spikes indicate retail piling in
     try:
         r = requests.get(
             'https://api.binance.com/api/v3/klines',
@@ -199,7 +199,7 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
     except Exception as e:
         print(f'[FOMO/Binance] {e}')
 
-    # ── Component 3: BTC Short-Term RSI (25%) ────────────────────────────────
+    # - Component 3: BTC Short-Term RSI (25%) -
     # High RSI on hourly candles = overheated retail buying
     try:
         r = requests.get(
@@ -230,7 +230,7 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
     except Exception as e:
         print(f'[FOMO/RSI] {e}')
 
-    # ── Combine components ───────────────────────────────────────────────────
+    # - Combine components -
     if scores:
         total_weight = sum(weights)
         composite = sum(s * w for s, w in zip(scores, weights)) / total_weight
@@ -247,9 +247,9 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
     return result
 
 
-# ─── DefiLlama — TVL by Chain ─────────────────────────────────────────────────
+# - DefiLlama - TVL by Chain -
 def fetch_defi_llama_chains() -> list:
-    """Returns list of {name, tvl} sorted by TVL — cached 1h."""
+    """Returns list of {name, tvl} sorted by TVL - cached 1h."""
     cached = _get('defi_llama_chains')
     if cached is not None:
         return cached
@@ -278,9 +278,9 @@ def fetch_defi_llama_chains() -> list:
     ]
 
 
-# ─── CoinGecko Categories (Sector Rotations) ──────────────────────────────────
+# - CoinGecko Categories (Sector Rotations) -
 def fetch_coingecko_categories() -> list:
-    """Returns top 6 crypto categories with real market cap change — cached 1h."""
+    """Returns top 6 crypto categories with real market cap change - cached 1h."""
     cached = _get('cg_categories')
     if cached is not None:
         return cached
@@ -334,9 +334,9 @@ def fetch_coingecko_categories() -> list:
     ]
 
 
-# ─── Binance REST — Live Trade Tape ──────────────────────────────────────────
+# - Binance REST - Live Trade Tape -
 def fetch_binance_trades(symbol: str = 'BTCUSDT', limit: int = 50) -> list:
-    """Returns real recent trades from Binance spot — cached 5s."""
+    """Returns real recent trades from Binance spot - cached 5s."""
     cache_key = f'trades_{symbol}_{limit}'
     cached = _get(cache_key)
     if cached is not None:
@@ -356,9 +356,9 @@ def fetch_binance_trades(symbol: str = 'BTCUSDT', limit: int = 50) -> list:
     return []
 
 
-# ─── Binance REST — Order Book Depth ─────────────────────────────────────────
+# - Binance REST - Order Book Depth -
 def fetch_binance_depth(symbol: str = 'BTCUSDT', limit: int = 100) -> dict:
-    """Real limit order book snapshots from Binance spot — cached 2s."""
+    """Real limit order book snapshots from Binance spot - cached 2s."""
     cache_key = f'depth_{symbol}_{limit}'
     cached = _get(cache_key)
     if cached is not None:
@@ -378,9 +378,9 @@ def fetch_binance_depth(symbol: str = 'BTCUSDT', limit: int = 100) -> dict:
     return {}
 
 
-# ─── Binance FAPI — Funding Rate History ──────────────────────────────────────
+# - Binance FAPI - Funding Rate History -
 def fetch_funding_rate_history(symbol: str = 'BTCUSDT', limit: int = 90) -> list:
-    """Real 8h funding rate snapshots from Binance FAPI — cached 1h."""
+    """Real 8h funding rate snapshots from Binance FAPI - cached 1h."""
     cache_key = f'funding_hist_{symbol}_{limit}'
     cached = _get(cache_key)
     if cached is not None:
@@ -407,9 +407,9 @@ def fetch_funding_rate_history(symbol: str = 'BTCUSDT', limit: int = 90) -> list
     return []
 
 
-# ─── Binance aggTrades — Volume by Hour ───────────────────────────────────────
+# - Binance aggTrades - Volume by Hour -
 def fetch_volume_by_hour(symbol: str = 'BTCUSDT') -> list:
-    """24 slots of real traded USD volume bucketed by hour (last 24h) — cached 30min."""
+    """24 slots of real traded USD volume bucketed by hour (last 24h) - cached 30min."""
     cache_key = f'vol_hour_{symbol}'
     cached = _get(cache_key)
     if cached is not None:
@@ -443,9 +443,9 @@ def fetch_volume_by_hour(symbol: str = 'BTCUSDT') -> list:
     return {'labels': [f'{i:02d}:00' for i in range(24)], 'volumes': [0.0] * 24, 'source': 'fallback'}
 
 
-# ─── Binance klines — OHLC Candle Fallback ────────────────────────────────────
+# - Binance klines - OHLC Candle Fallback -
 def fetch_binance_klines(symbol: str = 'BTCUSDT', interval: str = '5m', limit: int = 48) -> list:
-    """Real OHLCV candles via Binance REST — cached 60s."""
+    """Real OHLCV candles via Binance REST - cached 60s."""
     cache_key = f'klines_{symbol}_{interval}_{limit}'
     cached = _get(cache_key)
     if cached is not None:
@@ -480,9 +480,9 @@ def fetch_binance_klines(symbol: str = 'BTCUSDT', interval: str = '5m', limit: i
     return []
 
 
-# ─── Deribit Public — Options IV Surface ─────────────────────────────────────
+# - Deribit Public - Options IV Surface -
 def fetch_deribit_iv(currency: str = 'BTC') -> dict:
-    """Real implied volatility by expiry from Deribit public book — cached 10min."""
+    """Real implied volatility by expiry from Deribit public book - cached 10min."""
     cache_key = f'deribit_iv_{currency}'
     cached = _get(cache_key)
     if cached is not None:
@@ -546,10 +546,10 @@ def fetch_deribit_iv(currency: str = 'BTC') -> dict:
     return {'expiries': [], 'atm_iv': [], 'skew': [], 'source': 'unavailable'}
 
 
-# ─── Deribit Public — Full IV Surface Grid ───────────────────────────────────
+# - Deribit Public - Full IV Surface Grid -
 def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
     """
-    Returns a full implied-volatility surface as a (moneyness × expiry) grid.
+    Returns a full implied-volatility surface as a (moneyness - expiry) grid.
     Moneyness bins: 0.70 -> 1.30 in 20 steps (deep ITM put to deep OTM call).
     Expiry bins: the next 6 calendar expiries listed on Deribit.
     Cached 10 minutes.  Falls back to parametric smile on failure.
@@ -585,7 +585,7 @@ def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
         if not underlying or underlying <= 0:
             raise ValueError('No underlying price from Deribit')
 
-        # ── Parse options into (expiry_dt, moneyness, iv) tuples ──────────────
+        # - Parse options into (expiry_dt, moneyness, iv) tuples -
         points = []
         for opt in data:
             iv = opt.get('mark_iv')
@@ -609,19 +609,19 @@ def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
         if len(points) < 10:
             raise ValueError(f'Not enough option points: {len(points)}')
 
-        # ── Choose the next 6 distinct expiry dates ───────────────────────────
+        # - Choose the next 6 distinct expiry dates -
         seen_expiries = sorted(set(p['exp_dt'] for p in points))[:6]
         expiry_labels = []
         for ed in seen_expiries:
             d = (ed - now).days
             expiry_labels.append(f'{d}D')
 
-        # ── Define 20 moneyness buckets from 0.70 to 1.30 ───────────────────
+        # - Define 20 moneyness buckets from 0.70 to 1.30 -
         N_STRIKES = 20
         money_steps = [round(0.70 + i * (0.60 / (N_STRIKES - 1)), 4) for i in range(N_STRIKES)]
 
-        # ── Build grid: for each (expiry, moneyness_bin) find median IV ───────
-        TOLERANCE = 0.035  # ±3.5% moneyness bucket width
+        # - Build grid: for each (expiry, moneyness_bin) find median IV -
+        TOLERANCE = 0.035  # -3.5% moneyness bucket width
         grid = []          # list of N_STRIKES lists, each of len(expiries)
         for m in money_steps:
             row = []
@@ -634,10 +634,10 @@ def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
                 if candidates:
                     row.append(round(float(np.median(candidates)), 2))
                 else:
-                    row.append(None)  # gap — will interpolate below
+                    row.append(None)  # gap - will interpolate below
             grid.append(row)
 
-        # ── Interpolate gaps along the moneyness axis per expiry ─────────────
+        # - Interpolate gaps along the moneyness axis per expiry -
         for exp_idx in range(len(seen_expiries)):
             col = [grid[mi][exp_idx] for mi in range(N_STRIKES)]
             # Fill interior NaN with linear interpolation
@@ -667,7 +667,7 @@ def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
             'timestamp':      now.strftime('%Y-%m-%dT%H:%M:%SZ'),
         }
         _set(cache_key, result, ttl=600)
-        print(f'[IVSurface/{currency}] OK — {len(points)} options -> {N_STRIKES}×{len(seen_expiries)} grid, underlying=${underlying:,.0f}')
+        print(f'[IVSurface/{currency}] OK - {len(points)} options -> {N_STRIKES}-{len(seen_expiries)} grid, underlying=${underlying:,.0f}')
         return result
 
     except Exception as e:
@@ -677,7 +677,7 @@ def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
 
 
 
-# ─── GitHub — Dev Commit Activity ─────────────────────────────────────────────
+# - GitHub - Dev Commit Activity -
 _GITHUB_REPOS = {
     'BTC': ('bitcoin', 'bitcoin'),
     'ETH': ('ethereum', 'go-ethereum'),
@@ -689,7 +689,7 @@ _GITHUB_REPOS = {
 }
 
 def fetch_github_commits(ticker_sym: str) -> int:
-    """Weekly commit count from GitHub public API — cached 24h. Returns 0–100 score."""
+    """Weekly commit count from GitHub public API - cached 24h. Returns 0-100 score."""
     sym = ticker_sym.replace('-USD', '').upper()
     if sym not in _GITHUB_REPOS:
         return 50  # neutral default for unknown repos
@@ -714,7 +714,7 @@ def fetch_github_commits(ticker_sym: str) -> int:
                 _set(cache_key, score, ttl=86400)
                 return score
         elif r.status_code == 202:
-            # GitHub is computing stats — return cached or default
+            # GitHub is computing stats - return cached or default
             pass
     except Exception as e:
         print(f'[GitHub/{sym}] {e}')

@@ -34,15 +34,15 @@ async function renderMindshare() {
         </div>
         <div class="mindshare-guide">
             <div class="guide-box">
-                <h4><span class="icon">📊</span> NARRATIVE MOMENTUM (Y-AXIS)</h4>
+                <h4><span class="icon">-</span> NARRATIVE MOMENTUM (Y-AXIS)</h4>
                 <p>Quantifies institutional mindshare and news-driven sentiment. A high score suggests dominant public visibility and professional accumulation chatter.</p>
             </div>
             <div class="guide-box">
-                <h4><span class="icon">🛠️</span> ENGINEERING MINDSHARE (X-AXIS)</h4>
+                <h4><span class="icon">-</span> ENGINEERING MINDSHARE (X-AXIS)</h4>
                 <p>Proxies developer activity and technical infrastructure growth. High scores indicate robust protocol stability and long-term utility build-out.</p>
             </div>
             <div class="guide-box full">
-                <h4><span class="icon">🧭</span> STRATEGIC INTERPRETATION</h4>
+                <h4><span class="icon">-</span> STRATEGIC INTERPRETATION</h4>
                 <div class="interpretation-grid">
                     <div class="inter-item"><strong>ALPHA:</strong> Leading protocols with both social dominance and technical vigor. The "Gold Standard" for institutional portfolios.</div>
                     <div class="inter-item"><strong>HYPE:</strong> Potential "Retail Traps" where mindshare exceeds technical merit. High risk of mean reversion.</div>
@@ -79,16 +79,16 @@ async function renderMindshare() {
                 const midY = y.getPixelForValue(50);
 
                 ctx.save();
-                // Alpha Quadrant (Top Right) — cyan glass
+                // Alpha Quadrant (Top Right) - cyan glass
                 ctx.fillStyle = 'rgba(125,211,252,0.07)';
                 ctx.fillRect(midX, top, right - midX, midY - top);
-                // Hype Quadrant (Top Left) — purple glass
+                // Hype Quadrant (Top Left) - purple glass
                 ctx.fillStyle = 'rgba(139,92,246,0.06)';
                 ctx.fillRect(left, top, midX - left, midY - top);
-                // Underlying Quadrant (Bottom Right) — emerald glass
+                // Underlying Quadrant (Bottom Right) - emerald glass
                 ctx.fillStyle = 'rgba(52,211,153,0.05)';
                 ctx.fillRect(midX, midY, right - midX, bottom - midY);
-                // Developing Quadrant (Bottom Left) — neutral glass
+                // Developing Quadrant (Bottom Left) - neutral glass
                 ctx.fillStyle = 'rgba(148,163,184,0.04)';
                 ctx.fillRect(left, midY, midX - left, bottom - midY);
                 ctx.restore();
@@ -219,7 +219,7 @@ async function renderCatalysts() {
             `).join('')}
         </div>
 
-        ${activeCatalystDate ? `<div style="margin-bottom:1rem; font-size:0.8rem; color:var(--accent); cursor:pointer" onclick="activeCatalystDate=null; renderCatalysts()">← CLEAR FILTER</div>` : ''}
+        ${activeCatalystDate ? `<div style="margin-bottom:1rem; font-size:0.8rem; color:var(--accent); cursor:pointer" onclick="activeCatalystDate=null; renderCatalysts()">- CLEAR FILTER</div>` : ''}
 
         <div class="catalyst-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem">
             ${filteredData.length > 0 ? filteredData.map(c => `
@@ -310,7 +310,7 @@ async function renderMacroCalendar(tabs = null) {
                     <div class="card-header">
                         <h3>CME FedWatch Target Rate</h3>
                         <span class="label-tag">CENTRAL BANK PROXY</span>
-                        <span id="fedwatch-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING…</span>
+                        <span id="fedwatch-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
                     </div>
                     <div style="font-size:3rem;font-weight:900;color:var(--accent);margin:20px 0 10px;display:flex;align-items:flex-end;gap:10px">
                         <span id="live-fed-rate">--</span><span style="font-size:1.5rem;color:var(--text-dim);margin-bottom:8px">%</span>
@@ -324,7 +324,7 @@ async function renderMacroCalendar(tabs = null) {
                     <div class="card-header">
                         <h3>Bitcoin / DXY Correlation</h3>
                         <span class="label-tag">GLOBAL LIQUIDITY</span>
-                        <span id="dxy-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING…</span>
+                        <span id="dxy-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
                     </div>
                     <div style="font-size:2.5rem;font-weight:900;color:#ef4444;margin:20px 0 10px;display:flex;align-items:center;gap:15px">
                         <span id="live-dxy-corr">--</span>
@@ -341,11 +341,11 @@ async function renderMacroCalendar(tabs = null) {
                 <div class="card-header">
                     <h3>US Treasury Yield Curve (Inversion Monitor)</h3>
                     <span class="label-tag">BOND MARKET PROXY</span>
-                    <span id="yc-source-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING…</span>
+                    <span id="yc-source-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
                 </div>
                 <div style="height:300px; width:100%; position:relative;">
                     <div id="yc-loading-mcal" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text-dim);font-size:0.7rem">
-                        <div class="loader" style="width:24px;height:24px"></div>Loading live yields…
+                        <div class="loader" style="width:24px;height:24px"></div>Loading live yields-
                     </div>
                     <canvas id="yieldCurveChart" role="img" aria-label="US Treasury yield curve chart" style="display:none"></canvas>
                 </div>
@@ -363,10 +363,10 @@ async function renderMacroCalendar(tabs = null) {
             const mrData = await fetchAPI('/macro-regime');
             if (mrData && !mrData.error) {
                 const fedBadge = document.getElementById('fedwatch-badge');
-                if (fedBadge) { fedBadge.textContent = '● LIVE CME'; fedBadge.style.color = '#22c55e'; fedBadge.style.background = 'rgba(34,197,94,0.12)'; }
+                if (fedBadge) { fedBadge.textContent = '- LIVE CME'; fedBadge.style.color = '#22c55e'; fedBadge.style.background = 'rgba(34,197,94,0.12)'; }
                 
                 const dxyBadge = document.getElementById('dxy-badge');
-                if (dxyBadge) { dxyBadge.textContent = '● LIVE DXY'; dxyBadge.style.color = '#ef4444'; dxyBadge.style.background = 'rgba(239,68,68,0.12)'; }
+                if (dxyBadge) { dxyBadge.textContent = '- LIVE DXY'; dxyBadge.style.color = '#ef4444'; dxyBadge.style.background = 'rgba(239,68,68,0.12)'; }
 
                 const fedEl = document.getElementById('live-fed-rate');
                 if (fedEl) fedEl.textContent = mrData.implied_fed_rate.toFixed(3);
@@ -378,12 +378,12 @@ async function renderMacroCalendar(tabs = null) {
                 }
                 
                 const dxyDesc = document.getElementById('live-dxy-desc');
-                if (dxyDesc) dxyDesc.innerHTML = `<span style="font-weight:900;color:${mrData.btc_dxy_correlation_90d < -0 ? '#ef4444' : '#22c55e'}">${mrData.status.toUpperCase()}</span> · Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.`;
+                if (dxyDesc) dxyDesc.innerHTML = `<span style="font-weight:900;color:${mrData.btc_dxy_correlation_90d < -0 ? '#ef4444' : '#22c55e'}">${mrData.status.toUpperCase()}</span> - Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.`;
             }
         } catch(e) { console.error('Macro regime error', e); }
     }, 100);
 
-    // Live Yield Curve — fetch real anchor points and interpolate full 8-point curve
+    // Live Yield Curve - fetch real anchor points and interpolate full 8-point curve
     setTimeout(async () => {
         const ycCtx  = document.getElementById('yieldCurveChart');
         const loader = document.getElementById('yc-loading-mcal');
@@ -401,10 +401,10 @@ async function renderMacroCalendar(tabs = null) {
             if (ycData && ycData.latest && ycData.latest.y2 != null) {
                 const { y2: s, y5, y10, y30 } = ycData.latest; // y2 = ^IRX = short rate
                 source = ycData.source || 'yahoo_finance';
-                // Interpolate: short(0y) → 5Y → 10Y → 30Y
+                // Interpolate: short(0y) - 5Y - 10Y - 30Y
                 // Maturities in years: 1/12, 3/12, 6/12, 1, 2, 5, 10, 30
-                y1M  = lerp(s, y5, (1/12) / 5);   // ~0.017 of 0→5
-                y3M  = s;                           // ^IRX is 13-week ≈ 3M
+                y1M  = lerp(s, y5, (1/12) / 5);   // ~0.017 of 0-5
+                y3M  = s;                           // ^IRX is 13-week - 3M
                 y6M  = lerp(s, y5, 0.5 / 5);
                 y1Y  = lerp(s, y5, 1   / 5);
                 y2Y  = lerp(s, y5, 2   / 5);
@@ -428,7 +428,7 @@ async function renderMacroCalendar(tabs = null) {
 
         // Update badge
         if (badge) {
-            badge.textContent  = source === 'synthetic' ? '◌ SYNTHETIC' : '● LIVE Yahoo';
+            badge.textContent  = source === 'synthetic' ? '- SYNTHETIC' : '- LIVE Yahoo';
             badge.style.background = source === 'synthetic' ? 'rgba(148,163,184,0.1)' : 'rgba(34,197,94,0.12)';
             badge.style.color      = source === 'synthetic' ? '#94a3b8'               : '#22c55e';
         }
@@ -438,8 +438,8 @@ async function renderMacroCalendar(tabs = null) {
             const spread = +(y10Y - y2Y).toFixed(2);
             const spreadDir = spread >= 0 ? `+${spread}%` : `${spread}%`;
             footer.innerHTML = inverted
-                ? `<span style="color:#ef4444;font-weight:700">⚠ YIELD CURVE INVERTED — 2Y/10Y Spread: ${spreadDir}</span> · Short-term yields above long-term signals elevated recession risk.`
-                : `<span style="color:#22c55e;font-weight:700">✓ Normal Curve — 2Y/10Y Spread: +${spread}%</span> · 2Y: ${y2Y}% · 10Y: ${y10Y}% · 30Y: ${y30Y}%`;
+                ? `<span style="color:#ef4444;font-weight:700">- YIELD CURVE INVERTED - 2Y/10Y Spread: ${spreadDir}</span> - Short-term yields above long-term signals elevated recession risk.`
+                : `<span style="color:#22c55e;font-weight:700">- Normal Curve - 2Y/10Y Spread: +${spread}%</span> - 2Y: ${y2Y}% - 10Y: ${y10Y}% - 30Y: ${y30Y}%`;
         }
 
         // Hide loader, show canvas
@@ -482,7 +482,7 @@ async function renderMacroCalendar(tabs = null) {
                                 const prev = c.dataIndex > 0 ? yieldsData[c.dataIndex - 1] : null;
                                 if (prev === null) return '';
                                 const diff = (c.raw - prev).toFixed(2);
-                                return diff > 0 ? ` ▲ +${diff}% vs prior` : ` ▼ ${diff}% vs prior`;
+                                return diff > 0 ? ` - +${diff}% vs prior` : ` - ${diff}% vs prior`;
                             }
                         }
                     }

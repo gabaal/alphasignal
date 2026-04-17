@@ -5,7 +5,7 @@ async function renderPerformanceDashboard(tabs = null) {
             <div>
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">trending_up</span>Performance Dashboard <span class="premium-badge">LIVE</span></h1>
-                <p>Terminal signal track record — win rate, returns, and monthly breakdown.</p>
+                <p>Terminal signal track record - win rate, returns, and monthly breakdown.</p>
             </div>
             <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-performance')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
@@ -23,7 +23,7 @@ async function renderPerformanceDashboard(tabs = null) {
             <div>
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">trending_up</span>Performance Dashboard <span class="premium-badge">LIVE</span></h1>
-                <p>Track record as of ${d.updated} · Based on ${d.total_signals} signals</p>
+                <p>Track record as of ${d.updated} - Based on ${d.total_signals} signals</p>
             </div>
             <div style="display:flex; gap:0.5rem">
                 <button class="timeframe-btn" onclick="downloadPortfolioData('csv')" style="display:flex; align-items:center; gap:6px; background:rgba(0, 242, 255, 0.1); border-color:var(--accent)">
@@ -59,7 +59,7 @@ async function renderPerformanceDashboard(tabs = null) {
             <div class="card-header" style="margin-bottom:15px">
                 <h3>Cumulative Strategy Return <span style="font-size:0.8rem; color:var(--text-dim)">(Model Portfolio Equity Curve)</span></h3>
                 <span class="label-tag">P&L_TRAJECTORY</span>
-                <span id="perf-live-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e;margin-left:6px">● LIVE · alerts_history</span>
+                <span id="perf-live-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e;margin-left:6px">- LIVE - alerts_history</span>
             </div>
             <div style="height:350px; width:100%; position:relative;">
                 <canvas id="strategyEquityChart" role="img" aria-label="Strategy equity curve chart"></canvas>
@@ -72,14 +72,14 @@ async function renderPerformanceDashboard(tabs = null) {
                 <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; display:flex; align-items:center; gap:6px">
                     <span class="material-symbols-outlined" style="font-size:14px; color:#22c55e">workspace_premium</span> BEST PICK
                 </div>
-                <div style="font-size:1rem; font-weight:700; color:#22c55e">${d.best_pick?.ticker || '—'}</div>
+                <div style="font-size:1rem; font-weight:700; color:#22c55e">${d.best_pick?.ticker || '-'}</div>
                 <div style="font-size:0.8rem; color:#22c55e">${d.best_pick?.return > -999 ? '+' + d.best_pick.return + '%' : 'N/A'}</div>
             </div>
             <div class="card" style="padding:1rem; border-left:3px solid #ef4444">
                 <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; display:flex; align-items:center; gap:6px">
                     <span class="material-symbols-outlined" style="font-size:14px; color:#ef4444">trending_down</span> WORST PICK
                 </div>
-                <div style="font-size:1rem; font-weight:700; color:#ef4444">${d.worst_pick?.ticker || '—'}</div>
+                <div style="font-size:1rem; font-weight:700; color:#ef4444">${d.worst_pick?.ticker || '-'}</div>
                 <div style="font-size:0.8rem; color:#ef4444">${d.worst_pick?.return < 999 ? d.worst_pick.return + '%' : 'N/A'}</div>
             </div>
         </div>
@@ -90,7 +90,7 @@ async function renderPerformanceDashboard(tabs = null) {
                 <div>
                     <div style="font-size:0.55rem;letter-spacing:2px;color:var(--accent);margin-bottom:0.5rem">PERFORMANCE ENGINE PRIMED</div>
                     <h3 style="margin:0 0 0.8rem;font-size:1.1rem">Awaiting Signal Harvest Data</h3>
-                    <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 1.2rem">The equity curve and monthly breakdown will auto-populate as the system logs institutional signals. Below is a simulated benchmark — your live track record replaces this automatically.</p>
+                    <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 1.2rem">The equity curve and monthly breakdown will auto-populate as the system logs institutional signals. Below is a simulated benchmark - your live track record replaces this automatically.</p>
                     <div style="display:flex;gap:1.5rem;font-size:0.7rem">
                         <span style="color:#22c55e">&#9632; Simulated Equity Curve</span>
                         <span style="color:rgba(239,68,68,0.7)">&#9632; Drawdown Shading</span>
@@ -135,16 +135,16 @@ async function renderPerformanceDashboard(tabs = null) {
             </table>
         </div>` : ''}
 
-        <!-- ═══ P&L HEATMAP CALENDAR ═══ -->
+        <!-- P&L HEATMAP CALENDAR -->
         <div class="card" style="margin-top:1rem">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
                 <div>
                     <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">P&L HEATMAP CALENDAR</div>
-                    <div style="font-size:0.75rem;color:var(--text-dim)">Monthly signal returns — darker green = higher gain, red = loss</div>
+                    <div style="font-size:0.75rem;color:var(--text-dim)">Monthly signal returns - darker green = higher gain, red = loss</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;font-size:0.6rem;color:var(--text-dim)">
                     <div style="width:80px;height:8px;border-radius:4px;background:linear-gradient(to right,#ef4444,${alphaColor(0.1)},#22c55e)"></div>
-                    <span>Loss → Flat → Gain</span>
+                    <span>Loss - Flat - Gain</span>
                 </div>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:8px">
@@ -162,7 +162,7 @@ async function renderPerformanceDashboard(tabs = null) {
                         const border = roi === null ? alphaColor(0.06) : roi > 0 ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
                         return `<div style="flex:1;min-width:64px;max-width:80px;padding:10px 8px;border-radius:8px;background:${bg};border:1px solid ${border};text-align:center;cursor:default" title="${mon}: ${roi !== null ? (roi>=0?'+':'')+roi+'%' : 'No data'}">
                             <div style="font-size:0.6rem;font-weight:700;color:var(--text-dim);letter-spacing:1px">${mon}</div>
-                            <div style="font-size:0.9rem;font-weight:900;color:${roi === null ? alphaColor(0.2) : roi >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">${roi !== null ? (roi>=0?'+':'')+roi+'%' : '—'}</div>
+                            <div style="font-size:0.9rem;font-weight:900;color:${roi === null ? alphaColor(0.2) : roi >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">${roi !== null ? (roi>=0?'+':'')+roi+'%' : '-'}</div>
                             ${m ? `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${m.signals} sig</div>` : ''}
                         </div>`;
                     }).join('');
@@ -170,7 +170,7 @@ async function renderPerformanceDashboard(tabs = null) {
             </div>
         </div>
 
-        <!-- ═══ SIGNAL MIX + TOP TICKERS ═══ -->
+        <!-- SIGNAL MIX + TOP TICKERS -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
 
             <!-- Signal Type Donut -->
@@ -373,12 +373,12 @@ async function renderCorrelationMatrix(tabs = null) {
                     <option value="BTC-USD,ETH-USD,SOL-USD,AAVE-USD,UNI-USD,LINK-USD">DeFi Basket (6)</option>
                     <option value="BTC-USD,IVV,GC=F,DX-Y.NYB,^TNX">Macro Cross-Asset (5)</option>
                 </select>
-                <span style="font-size:0.6rem; color:var(--text-dim)">Period: 60 days · Returns: Daily</span>
+                <span style="font-size:0.6rem; color:var(--text-dim)">Period: 60 days - Returns: Daily</span>
             </div>
             <div id="corr-chart" style="width:100%; overflow-x:auto"></div>
             <div style="margin-top:1.5rem; display:flex; align-items:center; gap:8px; font-size:0.6rem; color:var(--text-dim)">
                 <span style="width:40px; height:8px; background:linear-gradient(to right, #ef4444, ${alphaColor(0.1)}, #22c55e); border-radius:4px; display:inline-block"></span>
-                -1.0 (Inverse) → 0 (None) → +1.0 (Perfect)
+                -1.0 (Inverse) - 0 (None) - +1.0 (Perfect)
             </div>
         </div>
     `;
@@ -425,14 +425,14 @@ async function renderFlows(tabs = null) {
                 `).join('')}
             </div>
         </div>`;
-    // Yield Curve Spread Monitor — injected async below the flow list
+    // Yield Curve Spread Monitor - injected async below the flow list
     setTimeout(async () => {
         const el = document.createElement('div');
         el.innerHTML = `
             <div class="card" style="padding:1.5rem; margin-top:2rem;  border:1px solid rgba(0,242,255,0.12);">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
                     <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">show_chart</span>US YIELD CURVE SPREAD MONITOR</h3>
-                    <span style="font-size:0.55rem;color:var(--text-dim);">2Y / 10Y / 30Y TREASURY YIELDS · 365-DAY ROLLING</span>
+                    <span style="font-size:0.55rem;color:var(--text-dim);">2Y / 10Y / 30Y TREASURY YIELDS - 365-DAY ROLLING</span>
                 </div>
                 <div style="height:340px; width:100%; position:relative;">
                     <div id="yc-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text-dim);font-size:0.7rem;">
@@ -621,7 +621,7 @@ function renderFlowAttribution(data) {
     `;
 }
 // ============================================================
-// Strategy Report — Backtester-Powered Performance Analytics
+// Strategy Report - Backtester-Powered Performance Analytics
 // ============================================================
 async function renderStrategyReport(tabs = null) {
     if (!tabs) tabs = auditHubTabs;
@@ -630,7 +630,7 @@ async function renderStrategyReport(tabs = null) {
             <div>
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">insert_chart</span>Strategy Report <span class="premium-badge">PRO</span></h1>
-                <p>Backtested signal track record — compounded equity, risk-adjusted returns, and per-ticker breakdown.</p>
+                <p>Backtested signal track record - compounded equity, risk-adjusted returns, and per-ticker breakdown.</p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD</label>
@@ -648,7 +648,7 @@ async function renderStrategyReport(tabs = null) {
         ${renderHubTabs('strategy-report', tabs)}
         <div class="card" style="padding:1.5rem;text-align:center;color:var(--text-dim)">
             <span class="material-symbols-outlined" style="font-size:2rem;animation:spin 1s linear infinite;color:var(--accent)">sync</span>
-            <div style="margin-top:8px;font-size:0.8rem">Loading backtest data…</div>
+            <div style="margin-top:8px;font-size:0.8rem">Loading backtest data-</div>
         </div>
     `;
     loadStrategyReport();
@@ -665,7 +665,7 @@ async function loadStrategyReport() {
         const s = data.stats || {};
         const trades = data.trades.slice().reverse(); // most recent first
 
-        // ── Per-ticker breakdown ──────────────────────────────────────
+        // - Per-ticker breakdown -
         const byTicker = {};
         (data.trades || []).forEach(t => {
             if (!byTicker[t.ticker]) byTicker[t.ticker] = { pnls: [], wins: 0 };
@@ -682,14 +682,14 @@ async function loadStrategyReport() {
             }))
             .sort((a,b) => b.avgPnl - a.avgPnl);
 
-        // ── Render ────────────────────────────────────────────────────
+        // - Render -
         const tabs = auditHubTabs;
         appEl.innerHTML = `
         <div class="view-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
             <div>
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">insert_chart</span>Strategy Report <span class="premium-badge">PRO</span></h1>
-                <p>Based on ${s.total_trades} backtest trades · ${hold}-day hold · Updated ${new Date().toLocaleString('en', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
+                <p>Based on ${s.total_trades} backtest trades - ${hold}-day hold - Updated ${new Date().toLocaleString('en', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <label style="font-size:0.7rem;color:var(--text-dim)">HOLD</label>
@@ -732,7 +732,7 @@ async function loadStrategyReport() {
                     <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">COMPOUNDED EQUITY CURVE</div>
                     <div style="font-size:0.85rem;font-weight:700;color:var(--text)">Strategy vs BTC Buy-and-Hold</div>
                 </div>
-                <span style="font-size:0.6rem;padding:3px 10px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e;font-weight:700">● LIVE · alerts_history</span>
+                <span style="font-size:0.6rem;padding:3px 10px;border-radius:100px;background:rgba(34,197,94,0.12);color:#22c55e;font-weight:700">- LIVE - alerts_history</span>
             </div>
             <div style="height:280px;position:relative"><canvas id="sr-equity-chart"></canvas></div>
         </div>
@@ -754,7 +754,7 @@ async function loadStrategyReport() {
         </div>
         `;
 
-        // ── Draw equity curve chart ───────────────────────────────────
+        // - Draw equity curve chart -
         if (data.rolling_sharpe && data.rolling_sharpe.length) {
             const ctx = document.getElementById('sr-equity-chart');
             if (ctx) {
@@ -781,7 +781,7 @@ async function loadStrategyReport() {
             }
         }
 
-        // ── Monthly heatmap ───────────────────────────────────────────
+        // - Monthly heatmap -
         if (data.monthly_returns) {
             const cal = document.getElementById('sr-calendar');
             if (cal) {
@@ -800,14 +800,14 @@ async function loadStrategyReport() {
             }
         }
 
-        // ── CSV export wiring ─────────────────────────────────────────
+        // - CSV export wiring -
         window._srExport = function() {
             if (!trades.length) { showToast('EXPORT', 'No data to export.', 'alert'); return; }
             exportCSV(trades, `strategy_report_${hold}d_${new Date().toISOString().split('T')[0]}.csv`);
             showToast('EXPORT', `Strategy Report exported (${trades.length} trades).`, 'success');
         };
 
-        // ── Ticker Table Rendering ────────────────────────────────────
+        // - Ticker Table Rendering -
         window._tickerData = tickerRows;
         window._tickerSortKey = 'avgPnl';
         window._tickerSortDir = -1;
@@ -881,7 +881,7 @@ async function loadStrategyReport() {
 
         window._drawTickerTable();
 
-        // ── Trade Log Rendering ───────────────────────────────────────
+        // - Trade Log Rendering -
         window._tradeData = trades;
         window._tradeSortKey = 'entry_date';
         window._tradeSortDir = -1;

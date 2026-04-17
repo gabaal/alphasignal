@@ -1,21 +1,21 @@
-// ════════════════════════════════════════════════════════════════
-// ONBOARDING MODAL — shown once per new user after first login
-// ════════════════════════════════════════════════════════════════
+// -
+// ONBOARDING MODAL - shown once per new user after first login
+// -
 
 const ONBOARD_KEY = 'alphasignal_onboarded';
 
 // Top 10 most popular assets for quick-pick
 const ONBOARD_ASSETS = [
-    { t: 'BTC-USD', label: 'Bitcoin', icon: '₿' },
-    { t: 'ETH-USD', label: 'Ethereum', icon: 'Ξ' },
-    { t: 'SOL-USD', label: 'Solana', icon: '◎' },
-    { t: 'BNB-USD', label: 'BNB', icon: '●' },
-    { t: 'XRP-USD', label: 'XRP', icon: '✦' },
-    { t: 'ADA-USD', label: 'Cardano', icon: '♦' },
-    { t: 'LINK-USD', label: 'Chainlink', icon: '⬡' },
-    { t: 'AVAX-USD', label: 'Avalanche', icon: '▲' },
-    { t: 'DOGE-USD', label: 'Dogecoin', icon: 'Ð' },
-    { t: 'DOT-USD', label: 'Polkadot', icon: '●' }
+    { t: 'BTC-USD', label: 'Bitcoin', icon: '-' },
+    { t: 'ETH-USD', label: 'Ethereum', icon: '-' },
+    { t: 'SOL-USD', label: 'Solana', icon: '-' },
+    { t: 'BNB-USD', label: 'BNB', icon: '-' },
+    { t: 'XRP-USD', label: 'XRP', icon: '-' },
+    { t: 'ADA-USD', label: 'Cardano', icon: '-' },
+    { t: 'LINK-USD', label: 'Chainlink', icon: '-' },
+    { t: 'AVAX-USD', label: 'Avalanche', icon: '-' },
+    { t: 'DOGE-USD', label: 'Dogecoin', icon: '-' },
+    { t: 'DOT-USD', label: 'Polkadot', icon: '-' }
 ];
 
 // Call this after a successful login if no onboard flag in localStorage
@@ -99,7 +99,7 @@ window.showOnboardingModal = function() {
                     `).join('')}
                 </div>
                 <div style="display:flex;gap:10px">
-                    <button class="intel-action-btn mini outline" style="flex:0" onclick="onboardNext(0)">← BACK</button>
+                    <button class="intel-action-btn mini outline" style="flex:0" onclick="onboardNext(0)">- BACK</button>
                     <button class="intel-action-btn" style="flex:1" onclick="onboardNext(2)">
                         NEXT <span class="material-symbols-outlined" style="vertical-align:middle;font-size:1rem;margin-left:4px">arrow_forward</span>
                     </button>
@@ -110,7 +110,7 @@ window.showOnboardingModal = function() {
                 <div style="text-align:center;margin-bottom:1.5rem">
                     <span class="material-symbols-outlined" style="font-size:2.5rem;color:#f59e0b;display:block;margin-bottom:0.75rem">notifications_active</span>
                     <h2 style="font-size:1.2rem;margin:0 0 0.5rem">Enable Smart Alerts</h2>
-                    <p style="color:var(--text-dim);font-size:0.8rem">Get notified when prices hit your targets — even when this tab is in the background</p>
+                    <p style="color:var(--text-dim);font-size:0.8rem">Get notified when prices hit your targets - even when this tab is in the background</p>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem">
                     <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:1rem;display:flex;align-items:center;gap:12px">
@@ -134,7 +134,7 @@ window.showOnboardingModal = function() {
                 </div>
                 <button class="intel-action-btn" style="width:100%;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(139,92,246,0.1))" onclick="finishOnboarding()">
                     <span class="material-symbols-outlined" style="vertical-align:middle;margin-right:6px">check_circle</span>
-                    FINISH SETUP → GO TO MY TERMINAL
+                    FINISH SETUP - GO TO MY TERMINAL
                 </button>
                 <button onclick="finishOnboarding(true)" style="display:block;width:100%;background:none;border:none;color:var(--text-dim);font-size:0.65rem;margin-top:10px;cursor:pointer">Skip for now</button>
             </div>
@@ -178,7 +178,7 @@ window.requestOnboardNotif = function() {
         return;
     }
     Notification.requestPermission().then(perm => {
-        if (btn) btn.textContent = perm === 'granted' ? '✓ ENABLED' : 'BLOCKED';
+        if (btn) btn.textContent = perm === 'granted' ? '- ENABLED' : 'BLOCKED';
         if (btn) btn.style.color = perm === 'granted' ? '#22c55e' : '#ef4444';
     });
 };

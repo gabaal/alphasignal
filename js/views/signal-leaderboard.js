@@ -74,15 +74,15 @@ async function renderSignalLeaderboard(tabs = null) {
         <div class="card" style="margin-bottom:20px;padding:18px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                 <span style="font-size:0.7rem;letter-spacing:2px;color:var(--text-dim);">SIGNAL WIN RATE GAUGE</span>
-                <span id="lb-wr-pct" style="font-size:0.8rem;font-weight:700;color:var(--risk-high);">—</span>
+                <span id="lb-wr-pct" style="font-size:0.8rem;font-weight:700;color:var(--risk-high);">-</span>
             </div>
             <div style="background:${alphaColor(0.06)};border-radius:6px;height:8px;overflow:hidden;">
                 <div id="lb-wr-bar" style="width:0%;height:100%;background:var(--risk-high);border-radius:6px;transition:width 0.8s ease,background 0.4s;"></div>
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:6px;">
-                <span style="font-size:0.6rem;color:var(--text-dim);">0% — Bearish</span>
-                <span style="font-size:0.6rem;color:var(--text-dim);">50% — Neutral</span>
-                <span style="font-size:0.6rem;color:var(--text-dim);">100% — Bullish</span>
+                <span style="font-size:0.6rem;color:var(--text-dim);">0% - Bearish</span>
+                <span style="font-size:0.6rem;color:var(--text-dim);">50% - Neutral</span>
+                <span style="font-size:0.6rem;color:var(--text-dim);">100% - Bullish</span>
             </div>
         </div>
 
@@ -98,7 +98,7 @@ async function renderSignalLeaderboard(tabs = null) {
         </div>
     `;
 
-    // ── State ──
+    // - State -
     window._lbRange  = 'ALL';
     window._lbPage   = 1;
     window._lbSortCol = 'timestamp';
@@ -235,7 +235,7 @@ async function renderSignalLeaderboard(tabs = null) {
 
         // Label
         const lbl = document.getElementById('lb-table-label');
-        if (lbl) lbl.textContent = `${total} SIGNALS · ${range} · ${typeVal}${statusVal !== 'ALL' ? ' · ' + statusVal : ''}`;
+        if (lbl) lbl.textContent = `${total} SIGNALS - ${range} - ${typeVal}${statusVal !== 'ALL' ? ' - ' + statusVal : ''}`;
 
         // 5. Render table
         const wrap = document.getElementById('lb-table-wrap');
@@ -247,10 +247,10 @@ async function renderSignalLeaderboard(tabs = null) {
                 <p>No signals match the current filters.</p></div>`;
         } else {
             const sortArrow = (key) => {
-                if (window._lbSortCol !== key) return `<span style="opacity:0.25;margin-left:3px">⇅</span>`;
+                if (window._lbSortCol !== key) return `<span style="opacity:0.25;margin-left:3px">-</span>`;
                 return window._lbSortDir === 'asc'
-                    ? `<span style="color:var(--accent);margin-left:3px">↑</span>`
-                    : `<span style="color:var(--accent);margin-left:3px">↓</span>`;
+                    ? `<span style="color:var(--accent);margin-left:3px">-</span>`
+                    : `<span style="color:var(--accent);margin-left:3px">-</span>`;
             };
 
             wrap.innerHTML = `
@@ -285,7 +285,7 @@ async function renderSignalLeaderboard(tabs = null) {
                             'OPEN':    ['rgba(125,211,252,0.12)','var(--accent)'],
                         };
                         const [rBg, rCol] = reasonColors[s.close_reason] || [alphaColor(0.06), 'var(--text-dim)'];
-                        const reasonBadge = `<span style="background:${rBg};color:${rCol};padding:3px 8px;border-radius:4px;font-size:0.6rem;font-weight:700;white-space:nowrap">${s.close_reason || '—'}</span>`;
+                        const reasonBadge = `<span style="background:${rBg};color:${rCol};padding:3px 8px;border-radius:4px;font-size:0.6rem;font-weight:700;white-space:nowrap">${s.close_reason || '-'}</span>`;
                         return `<tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.2s;"
                                     onmouseenter="this.style.background='rgba(0,242,255,0.02)'"
                                     onmouseleave="this.style.background=''">
@@ -299,7 +299,7 @@ async function renderSignalLeaderboard(tabs = null) {
                             <td style="padding:10px 12px;text-align:right;font-size:0.78rem;font-weight:700;color:${moveColor};">${s.move_pct>=0?'+':''}${s.move_pct}%</td>
                             <td style="padding:10px 12px;text-align:center;">${reasonBadge}</td>
                             <td style="padding:10px 12px;text-align:center;">${badge}</td>
-                            <td style="padding:10px 12px;font-size:0.7rem;color:var(--text-dim);">${s.timestamp ? new Date(s.timestamp).toLocaleDateString() : '—'}</td>
+                            <td style="padding:10px 12px;font-size:0.7rem;color:var(--text-dim);">${s.timestamp ? new Date(s.timestamp).toLocaleDateString() : '-'}</td>
                         </tr>`;
                     }).join('')}
                 </tbody>
@@ -325,22 +325,22 @@ async function renderSignalLeaderboard(tabs = null) {
         };
 
         pageBtns.push(makeBtn(1));
-        if (page > 3) pageBtns.push(`<span style="color:var(--text-dim);font-size:0.7rem;padding:0 4px">…</span>`);
+        if (page > 3) pageBtns.push(`<span style="color:var(--text-dim);font-size:0.7rem;padding:0 4px">-</span>`);
         for (let p = Math.max(2, page-1); p <= Math.min(totalPages-1, page+1); p++) pageBtns.push(makeBtn(p));
-        if (page < totalPages - 2) pageBtns.push(`<span style="color:var(--text-dim);font-size:0.7rem;padding:0 4px">…</span>`);
+        if (page < totalPages - 2) pageBtns.push(`<span style="color:var(--text-dim);font-size:0.7rem;padding:0 4px">-</span>`);
         if (totalPages > 1) pageBtns.push(makeBtn(totalPages));
 
         pgEl.innerHTML = `
-            <button onclick="lbSetPage(${page-1})" ${page===1?'disabled':''} style="font-size:0.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.04)};color:${page===1?alphaColor(0.2):'var(--text-dim)'}">← PREV</button>
+            <button onclick="lbSetPage(${page-1})" ${page===1?'disabled':''} style="font-size:0.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.04)};color:${page===1?alphaColor(0.2):'var(--text-dim)'}">- PREV</button>
             <div style="display:flex;align-items:center;gap:4px">
                 ${pageBtns.join('')}
             </div>
             <div style="display:flex;align-items:center;gap:12px">
                 <span style="font-size:0.65rem;color:var(--text-dim);font-family:'JetBrains Mono'">
                     PAGE <strong style="color:var(--text)">${page}</strong> OF <strong style="color:var(--text)">${totalPages}</strong>
-                    &nbsp;·&nbsp; ROWS ${start+1}–${Math.min(start+PAGE_SIZE, total)} OF ${total}
+                    &nbsp;-&nbsp; ROWS ${start+1}-${Math.min(start+PAGE_SIZE, total)} OF ${total}
                 </span>
-                <button onclick="lbSetPage(${page+1})" ${page===totalPages?'disabled':''} style="font-size:0.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.04)};color:${page===totalPages?alphaColor(0.2):'var(--text-dim)'}">NEXT →</button>
+                <button onclick="lbSetPage(${page+1})" ${page===totalPages?'disabled':''} style="font-size:0.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.04)};color:${page===totalPages?alphaColor(0.2):'var(--text-dim)'}">NEXT -</button>
             </div>`;
     };
 

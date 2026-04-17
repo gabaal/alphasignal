@@ -136,10 +136,10 @@ class NotificationService:
             if not tg_enabled:
                 telegram_chat_id = None
 
-            # ── Discord Dispatch ──────────────────────────────────────────────
+            # - Discord Dispatch -
             if discord:
                 embed = {
-                    "title": f"🚨 AlphaSignal: {title}",
+                    "title": f"- AlphaSignal: {title}",
                     "description": message,
                     "color": embed_color,
                     "timestamp": datetime.utcnow().isoformat() + 'Z',
@@ -157,13 +157,13 @@ class NotificationService:
                     }, timeout=5)
                     # B1: Log failed deliveries (e.g. 404 = deleted webhook)
                     if not resp.ok:
-                        print(f"[NOTIFY] Discord delivery failed: HTTP {resp.status_code} — {resp.text[:200]}")
+                        print(f"[NOTIFY] Discord delivery failed: HTTP {resp.status_code} - {resp.text[:200]}")
                 except Exception as de:
                     print(f"[NOTIFY] Discord error: {de}")
 
-            # ── Telegram Dispatch (HTML mode — B5 fix) ─────────────────────────
+            # - Telegram Dispatch (HTML mode - B5 fix) -
             # parse_mode: Markdown breaks silently on _, *, `, [ in messages.
-            # HTML mode only requires escaping &, <, > — far more robust.
+            # HTML mode only requires escaping &, <, > - far more robust.
             if telegram_chat_id and os.getenv("TELEGRAM_BOT_TOKEN"):
                 bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
                 esc = NotificationService._tg_escape
@@ -173,7 +173,7 @@ class NotificationService:
                         f"<b>{esc(f['name'])}:</b> {esc(f['value'])}" for f in fields
                     )
                 msg_text = (
-                    f"🚨 <b>{esc(title)}</b>\n\n"
+                    f"- <b>{esc(title)}</b>\n\n"
                     f"{esc(message)}"
                     f"{field_lines}\n\n"
                     f"<i>AlphaSignal Institutional Engine</i>"
@@ -183,11 +183,11 @@ class NotificationService:
                     resp = requests.post(tg_url, json={
                         "chat_id": telegram_chat_id,
                         "text": msg_text,
-                        "parse_mode": "HTML"          # B5: was "Markdown" — breaks on _, *, `
+                        "parse_mode": "HTML"          # B5: was "Markdown" - breaks on _, *, `
                     }, timeout=5)
                     # B4: Log failed deliveries (e.g. 400 = invalid chat_id)
                     if not resp.ok:
-                        print(f"[NOTIFY] Telegram delivery failed: HTTP {resp.status_code} — {resp.text[:200]}")
+                        print(f"[NOTIFY] Telegram delivery failed: HTTP {resp.status_code} - {resp.text[:200]}")
                 except Exception as te:
                     print(f"[NOTIFY] Telegram error: {te}")
 
@@ -197,7 +197,7 @@ class NotificationService:
 
 def notify_watchlist_users(ticker, sig_type, message, severity, curr_p):
     """Send a targeted alert to every user that has `ticker` in their watchlist.
-    This is called after every ML and rule-based signal fires — independent of
+    This is called after every ML and rule-based signal fires - independent of
     the existing 'alerts_enabled' broadcast, so watchers always get pinged."""
     try:
         with sqlite3.connect(DB_PATH) as conn:
@@ -218,13 +218,13 @@ def notify_watchlist_users(ticker, sig_type, message, severity, curr_p):
         direction = 'BULLISH' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS', 'ML_ALPHA_PREDICTION') else \
                     'BEARISH' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'ALERT'
         color = 0x22c55e if direction == 'BULLISH' else 0xef4444 if direction == 'BEARISH' else 0x00f2ff
-        sev_icon = {'critical':'🔴','high':'🟠','medium':'🟡'}.get(severity.lower(), '⚪')
+        sev_icon = {'critical':'-','high':'-','medium':'-'}.get(severity.lower(), '-')
 
         for email in watchers:
             NOTIFY.push_webhook(
                 email,
                 f"Watchlist Signal: {ticker.replace('-USD','')} {sev_icon}",
-                f"{sig_type.replace('_',' ')} detected on **{ticker}** — asset is in your watchlist.",
+                f"{sig_type.replace('_',' ')} detected on **{ticker}** - asset is in your watchlist.",
                 embed_color=color,
                 fields=[
                     {"name": "Ticker",    "value": ticker,                "inline": True},
@@ -674,7 +674,7 @@ class HarvestService:
                                     ep=entry_p, xp=exit_px, roi_v=final_roi, win=is_win):
                             try:
                                 sym       = tk.replace('-USD', '')
-                                emoji     = '🎯' if win else '🛑'
+                                emoji     = '-' if win else '-'
                                 result    = 'TARGET HIT' if win else 'STOP LOSS'
                                 color     = 0x22c55e if win else 0xef4444
 
@@ -895,7 +895,7 @@ class HarvestService:
                                     # The standard push_webhook logic below still gates on z_thresh
                                     if abs(z_score) < user_z_thresh:
                                         continue
-                                    # 3-hour push cooldown — suppress duplicate ML alerts per user
+                                    # 3-hour push cooldown - suppress duplicate ML alerts per user
                                     if NotificationService.is_on_cooldown(target_email, ticker, signal_type):
                                         continue
                                     NotificationService.mark_sent(target_email, ticker, signal_type)
@@ -904,16 +904,16 @@ class HarvestService:
                                     top_driver = max(importance, key=importance.get)
                                     NOTIFY.push_webhook(
                                         target_email,
-                                        f"ALPHA SIGNAL: {ticker} — {direction}",
+                                        f"ALPHA SIGNAL: {ticker} - {direction}",
                                         f"ML Engine detected a high-conviction alpha window for **{ticker}**.",
                                         embed_color=color,
                                         fields=[
                                             {"name": "Direction", "value": direction, "inline": True},
                                             {"name": "Current Price", "value": f"${curr_p:,.4f}", "inline": True},
-                                            {"name": "Z-Score", "value": f"{z_score:+.2f}σ", "inline": True},
+                                            {"name": "Z-Score", "value": f"{z_score:+.2f}-", "inline": True},
                                             {"name": "Predicted Alpha", "value": f"{_alpha:+.2f}%", "inline": True},
                                             {"name": "ML Confidence", "value": f"{confidence*100:.0f}%", "inline": True},
-                                            {"name": "Your Threshold", "value": f"±{user_z_thresh:.1f}σ", "inline": True},
+                                            {"name": "Your Threshold", "value": f"-{user_z_thresh:.1f}-", "inline": True},
                                         ]
                                     )
                         except Exception as ne:
@@ -926,7 +926,7 @@ class HarvestService:
                                     'type': 'new_alert',
                                     'data': {
                                         'type': signal_type, 'ticker': ticker,
-                                        'title': f"{ticker} — ML ALPHA SIGNAL",
+                                        'title': f"{ticker} - ML ALPHA SIGNAL",
                                         'content': message, 'severity': severity,
                                         'price': curr_p, 'timestamp': datetime.now().isoformat()
                                     }
@@ -949,7 +949,7 @@ class HarvestService:
         conn.close()
 
     def _generate_rule_based_signals(self, data, conn, c):
-        """RSI / MACD / volume-spike signals — complement to ML predictions."""
+        """RSI / MACD / volume-spike signals - complement to ML predictions."""
         if data is None or data.empty: return
         try:
             tickers = data.columns.get_level_values(1).unique() if isinstance(data.columns, pd.MultiIndex) else []
@@ -979,7 +979,7 @@ class HarvestService:
                     macd_cross = float(macd.iloc[-1]) > float(signal_line.iloc[-1]) and float(macd.iloc[-2]) <= float(signal_line.iloc[-2])
                     macd_bear  = float(macd.iloc[-1]) < float(signal_line.iloc[-1]) and float(macd.iloc[-2]) >= float(signal_line.iloc[-2])
 
-                    # Volume spike (>2σ above 20d mean)
+                    # Volume spike (>2- above 20d mean)
                     vol_spike = False
                     if 'Volume' in df.columns:
                         vols = df['Volume'].dropna()
@@ -990,11 +990,11 @@ class HarvestService:
                     sig_type, message, severity = None, '', 'medium'
                     if rsi < 30:
                         sig_type = 'RSI_OVERSOLD'
-                        message  = f'RSI-14 at {rsi:.1f} — deeply oversold. Potential institutional accumulation setup.'
+                        message  = f'RSI-14 at {rsi:.1f} - deeply oversold. Potential institutional accumulation setup.'
                         severity = 'high' if rsi < 25 else 'medium'
                     elif rsi > 70:
                         sig_type = 'RSI_OVERBOUGHT'
-                        message  = f'RSI-14 at {rsi:.1f} — overbought territory. Watch for distribution.'
+                        message  = f'RSI-14 at {rsi:.1f} - overbought territory. Watch for distribution.'
                         severity = 'medium'
                     elif macd_cross and vol_spike:
                         sig_type = 'MACD_BULLISH_CROSS'
@@ -1006,7 +1006,7 @@ class HarvestService:
                         severity = 'medium'
                     elif vol_spike:
                         sig_type = 'VOLUME_SPIKE'
-                        message  = f'Volume 2σ above 20-day mean on {ticker}. Institutional activity detected.'
+                        message  = f'Volume 2- above 20-day mean on {ticker}. Institutional activity detected.'
                         severity = 'medium'
                     if sig_type:
                         # Per-user insert: one row per enabled user
@@ -1037,7 +1037,7 @@ class HarvestService:
                             print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} -> {len(rule_users)} user row(s)')
 
 
-                            # Multi-channel dispatch — notify users with alerts_enabled
+                            # Multi-channel dispatch - notify users with alerts_enabled
                             try:
                                 with sqlite3.connect(DB_PATH) as notify_conn:
                                     notify_c = notify_conn.cursor()
@@ -1058,8 +1058,8 @@ class HarvestService:
                                             if severity == 'medium' and user_z > 1.5:
                                                 continue
                                         elif sig_type == 'VOLUME_SPIKE':
-                                            # vol_spike_threshold is σ multiplier (default 2x)
-                                            # signal already fired at 2σ; only suppress if user wants >user_vol σ
+                                            # vol_spike_threshold is - multiplier (default 2x)
+                                            # signal already fired at 2-; only suppress if user wants >user_vol -
                                             if user_vol > 2.0:
                                                 continue  # they want a stricter vol spike
                                         elif sig_type == 'WHALE_TXN':
@@ -1106,7 +1106,7 @@ class HarvestService:
                                             'id': c.lastrowid,
                                             'type': sig_type,
                                             'ticker': ticker,
-                                            'title': f"{ticker} — {sig_type.replace('_', ' ')}",
+                                            'title': f"{ticker} - {sig_type.replace('_', ' ')}",
                                             'content': message,
                                             'severity': severity,
                                             'price': curr_p,

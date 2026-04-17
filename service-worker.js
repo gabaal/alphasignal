@@ -18,7 +18,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // API calls — always network, no caching
+    // API calls - always network, no caching
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(
             fetch(event.request).catch(() =>
@@ -30,7 +30,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Static assets — cache-first, fallback to network
+    // Static assets - cache-first, fallback to network
     event.respondWith(
         caches.match(event.request).then((cached) => {
             if (cached) return cached;

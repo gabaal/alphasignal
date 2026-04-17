@@ -287,7 +287,7 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
             });
 
             if (resp && resp.explanation) {
-                box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">🤖 CIO REBALANCING DIRECTIVE</div><div style="color:var(--text); font-size:1.05rem; line-height: 1.6">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">- CIO REBALANCING DIRECTIVE</div><div style="color:var(--text); font-size:1.05rem; line-height: 1.6">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
             } else {
                 throw new Error('Empty optimization response');
             }
@@ -455,7 +455,7 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
         }
     }
 
-    // 4. Efficient Frontier — load async after initial render
+    // 4. Efficient Frontier - load async after initial render
     setTimeout(async () => {
         // Inject the frontier container into appEl
         const existingFrontier = document.getElementById('efficient-frontier-section');
@@ -523,7 +523,7 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
                             order: 2
                         },
                         ef.max_sharpe ? {
-                            label: '★ Max Sharpe',
+                            label: '- Max Sharpe',
                             data: [{ x: ef.max_sharpe.vol, y: ef.max_sharpe.ret }],
                             backgroundColor: '#7dd3fc',
                             pointBackgroundColor: '#7dd3fc',
@@ -536,7 +536,7 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
                             order: 0
                         } : null,
                         ef.min_vol ? {
-                            label: '★ Min Volatility',
+                            label: '- Min Volatility',
                             data: [{ x: ef.min_vol.vol, y: ef.min_vol.ret }],
                             backgroundColor: '#ffffff',
                             pointBackgroundColor: '#ffffff',
@@ -599,8 +599,8 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
                         </div>
                     </div>`;
                 cardsEl.innerHTML =
-                    renderWeights(ef.max_sharpe, '★ MAXIMUM SHARPE RATIO PORTFOLIO', '#7dd3fc') +
-                    renderWeights(ef.min_vol, '★ MINIMUM VOLATILITY PORTFOLIO', '#ffffff');
+                    renderWeights(ef.max_sharpe, '- MAXIMUM SHARPE RATIO PORTFOLIO', '#7dd3fc') +
+                    renderWeights(ef.min_vol, '- MINIMUM VOLATILITY PORTFOLIO', '#ffffff');
             }
         } catch (e) {
             console.error('Efficient Frontier render error:', e);

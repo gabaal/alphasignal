@@ -21,7 +21,7 @@ import socketserver, http.server
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
 
-# Allowed CORS origins — add staging/preview URLs as needed
+# Allowed CORS origins - add staging/preview URLs as needed
 _ALLOWED_ORIGINS = {
     'https://alphasignal.digital',
     'https://www.alphasignal.digital',
@@ -32,12 +32,12 @@ _ALLOWED_ORIGINS = {
 # Max request body: 1 MB
 _MAX_BODY_BYTES = 1 * 1024 * 1024
 
-# ── S2: Per-IP rate limiter ───────────────────────────────────────────────
+# - S2: Per-IP rate limiter -
 _RATE_BUCKETS: dict = {}
 _RATE_LOCK     = threading.Lock()
 
 _RATE_LIMITS = {
-    'auth':    10,   # login / signup — 10 req/min per IP
+    'auth':    10,   # login / signup - 10 req/min per IP
     'ai':       6,   # AI analyst / ask-terminal / signal-thesis
     'default': 120,  # everything else
 }
@@ -67,7 +67,7 @@ def _rate_check(ip: str, path: str) -> bool:
 
 class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin, DigestRoutesMixin, PriceAlertRoutesMixin):
     def end_headers(self):
-        # Strict CORS — reflect origin only if it's in the allowlist
+        # Strict CORS - reflect origin only if it's in the allowlist
         origin = self.headers.get('Origin', '')
         cors_origin = origin if origin in _ALLOWED_ORIGINS else 'https://alphasignal.digital'
         self.send_header('Access-Control-Allow-Origin', cors_origin)
@@ -445,7 +445,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 if auth_info: self.handle_execute_trade(auth_info, post_data)
                 else: self.send_response(401); self.end_headers()
             elif path.startswith('/api/signal/') and path.endswith('/close'):
-                # POST /api/signal/{id}/close  — manually deactivate a signal
+                # POST /api/signal/{id}/close  - manually deactivate a signal
                 auth_info = self.is_authenticated()
                 if not auth_info:
                     self.send_response(401); self.end_headers(); return
@@ -500,7 +500,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     self.send_error(500, 'Internal server error')
             elif path.startswith('/api/signal/') and path.endswith('/reopen'):
-                # POST /api/signal/{id}/reopen — re-activate a closed signal
+                # POST /api/signal/{id}/reopen - re-activate a closed signal
                 auth_info = self.is_authenticated()
                 if not auth_info:
                     self.send_response(401); self.end_headers(); return
@@ -563,7 +563,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             if path.startswith('/api/'):
                 public_routes = ['/api/dev/mock-signals', '/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard', '/api/funding-rates', '/api/options-signal', '/api/prices']
                 free_auth_routes = ['/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete', '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory']
-                # /api/signal/{id} is fully public â€” no auth gate for shared links
+                # /api/signal/{id} is fully public - no auth gate for shared links
                 if path.startswith('/api/signal/'):
                     pass  # skip gate, handle_signal_permalink does not require auth
                 elif path not in public_routes:
@@ -816,7 +816,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 if auth_info: self.handle_trading_bots_get(auth_info)
                 else: self.send_response(401); self.end_headers()
             elif path.startswith('/api/signal/'):
-                # Public: /api/signal/{id} â€” no auth required for sharing
+                # Public: /api/signal/{id} - no auth required for sharing
                 signal_id = path.split('/')[-1]
                 self.handle_signal_permalink(signal_id)
             elif path == '/api/telegram/link':
@@ -899,7 +899,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 conn.commit()
 
             action = 'SKIPPED' if skipped else 'COMPLETED'
-            print(f'[Onboarding] {email} {action} â€” watchlist_count={wcount}')
+            print(f'[Onboarding] {email} {action} - watchlist_count={wcount}')
             self.send_json({'success': True, 'action': action})
         except Exception as e:
             print(f'[Onboarding] Error: {e}')

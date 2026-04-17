@@ -965,7 +965,7 @@ select:focus {
     
     .content { padding: 1rem; padding-bottom: 80px; } /* Space for bottom nav */
     
-    /* Top bar completely hidden on mobile â€” bottom nav handles navigation */
+    /* Top bar completely hidden on mobile - bottom nav handles navigation */
     .top-bar { display: none !important; }
     
     .signal-grid, .heatmap-grid, .skeleton-grid,
@@ -1048,7 +1048,7 @@ select:focus {
     .news-article-panel { padding: 1.5rem; }
 }
 
-/* â€”â€”â€” Mobile: â‰¤600px â€” further tightening â€”â€”â€” */
+/* - Mobile: -600px - further tightening - */
 @media (max-width: 600px) {
     /* Hub sub-tabs: horizontal scroll instead of clip */
     .hub-tabs, .sub-tabs, [class*="tab-row"], [class*="-tabs"] {
@@ -1062,7 +1062,7 @@ select:focus {
     .sub-tabs::-webkit-scrollbar { display: none; }
 }
 
-/* â€”â€”â€” Mobile: â‰¤480px â€” hero & landing â€”â€”â€” */
+/* - Mobile: -480px - hero & landing - */
 @media (max-width: 480px) {
     .brand-title { font-size: 1.2rem; }
     .intel-action-btn.large { padding: 1rem; font-size: 0.9rem; }
@@ -3221,7 +3221,7 @@ input[type="range"]::-webkit-slider-thumb {
 .scroller:hover { animation-play-state: paused; }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-/* â”€â”€â”€ Phase 14: Chart Legend Clipping Fix â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* - Phase 14: Chart Legend Clipping Fix -
    Prevents Chart.js bottom legend rows being cut off by fixed-height containers.
    Applies a minimum bottom padding to all chart card wrappers.               */
 .card canvas,
@@ -3294,7 +3294,7 @@ button, .intel-action-btn, .nav-item, .signal-card, .glass-card, .hub-tabs butto
 }
 
 /* ===================================================
-   HEADING HIERARCHY â€” Consistent across all views
+   HEADING HIERARCHY - Consistent across all views
    H1 = View/page title (one per view)
    H2 = Major chart / section heading within a view
    H3 = Panel / card / metric label within a section
@@ -3350,7 +3350,7 @@ h4 {
     letter-spacing: 1px;
 }
 
-/* â”€â”€ Momentum Heatmap Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* - Momentum Heatmap Table - */
 #momentum-heatmap-grid table { min-width: 480px; }
 #momentum-heatmap-grid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -3370,7 +3370,7 @@ h4 {
     .alert-card .intel-action-btn { font-size: 0.55rem !important; padding: 3px 8px !important; }
 }
 
-/* â”€â”€ AI Deep-Dive button glow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* - AI Deep-Dive button glow - */
 .intel-action-btn.ai-glow {
     background: linear-gradient(135deg, rgba(0,242,255,0.15), rgba(139,92,246,0.1));
     border-color: rgba(0,242,255,0.3);
@@ -3382,10 +3382,10 @@ h4 {
 }
 
 /* ============================================================ */
-/* PHASE 17 â€” Alerts, Search Dropdown, Live Dot                 */
+/* PHASE 17 - Alerts, Search Dropdown, Live Dot                 */
 /* ============================================================ */
 
-/* Live dot â€” animated green pulse dot */
+/* Live dot - animated green pulse dot */
 .live-dot {
     display: inline-block;
     width: 7px;
@@ -3404,7 +3404,7 @@ h4 {
     100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);   transform: scale(1); }
 }
 
-/* Alert badge â€” high-severity pulse (red) */
+/* Alert badge - high-severity pulse (red) */
 .alert-badge {
     background: var(--risk-high);
     color: white;
@@ -3695,7 +3695,7 @@ h4 {
 }
 
 /* ============================================================
-   v1.56 — Signal Toast & Animation Additions
+   v1.56 - Signal Toast & Animation Additions
    ============================================================ */
 
 @keyframes toast-slide-in {
@@ -3711,7 +3711,7 @@ h4 {
     to   { opacity: 0; transform: translateX(110%) scale(0.9); }
 }
 
-/* Signal Alert Toast — premium wider variant */
+/* Signal Alert Toast - premium wider variant */
 .signal-toast {
     border-left: 4px solid #00d4aa !important;
     min-width: 340px;
@@ -3886,7 +3886,7 @@ body::before {
     z-index: 0;
 }
 /* ============================================================
-   GLASSMORPHISM OVERHAUL — AlphaSignal v1.7
+   GLASSMORPHISM OVERHAUL - AlphaSignal v1.7
    Deep frosted glass, luminous borders, layered depth
    ============================================================ */
 
@@ -4169,7 +4169,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ============================================================
-   SIDEBAR GLASSMORPHISM — Premium Frosted Glass Sidebar
+   SIDEBAR GLASSMORPHISM - Premium Frosted Glass Sidebar
    ============================================================ */
 
 /* Reset sidebar to true glass */
@@ -4201,7 +4201,7 @@ input:focus, select:focus, textarea:focus {
 /* Sidebar content above pseudo-elements */
 .sidebar > * { position: relative; z-index: 1; }
 
-/* Brand logo orb — glowing glass sphere */
+/* Brand logo orb - glowing glass sphere */
 .logo-orb {
     width: 34px !important;
     height: 34px !important;
@@ -4254,7 +4254,7 @@ input:focus, select:focus, textarea:focus {
     backdrop-filter: blur(12px) !important;
 }
 
-/* Active indicator — glowing left accent line */
+/* Active indicator - glowing left accent line */
 .nav-item.active::before {
     content: '';
     position: absolute;
@@ -4452,14 +4452,14 @@ input:focus, select:focus, textarea:focus {
 @keyframes slideInRight { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }
 
 /* ============================================================
-   MOBILE RESPONSIVE MASTER FIX — v2.03
+   MOBILE RESPONSIVE MASTER FIX - v2.03
    Critical: sidebar must be position:absolute on mobile so
    .content fills full viewport width (root cause of blank screen)
    ============================================================ */
 
 @media (max-width: 900px) {
 
-    /* ── ROOT FIX: sidebar out of flex flow ── */
+    /* - ROOT FIX: sidebar out of flex flow - */
     .layout {
         display: block !important;   /* kill flex so sidebar doesn't consume space */
         position: relative;
@@ -4480,7 +4480,7 @@ input:focus, select:focus, textarea:focus {
     }
     .sidebar.open { transform: translateX(0) !important; }
 
-    /* Content fills full width — no more margin-left */
+    /* Content fills full width - no more margin-left */
     .content {
         width: 100% !important;
         max-width: 100vw !important;
@@ -4489,7 +4489,7 @@ input:focus, select:focus, textarea:focus {
         box-sizing: border-box;
     }
 
-    /* Hub tab rows: MUST scroll not clip — needs own scroll context */
+    /* Hub tab rows: MUST scroll not clip - needs own scroll context */
     .hub-tabs {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -4513,7 +4513,7 @@ input:focus, select:focus, textarea:focus {
         padding: 5px 9px !important;
     }
 
-    /* ── View header: stack on mobile ── */
+    /* - View header: stack on mobile - */
     .view-header {
         flex-direction: column !important;
         align-items: flex-start !important;
@@ -4528,7 +4528,7 @@ input:focus, select:focus, textarea:focus {
         align-self: flex-start;
     }
 
-    /* ── Hub tab rows: horizontal scroll ── */
+    /* - Hub tab rows: horizontal scroll - */
     .hub-tabs,
     [class*="tab-bar"],
     [class*="hub-nav"] {
@@ -4547,7 +4547,7 @@ input:focus, select:focus, textarea:focus {
         padding: 5px 10px !important;
     }
 
-    /* ── Filter bars: wrap ── */
+    /* - Filter bars: wrap - */
     #archive-filters,
     [id$="-filters"],
     .view-actions,
@@ -4556,17 +4556,17 @@ input:focus, select:focus, textarea:focus {
         gap: 0.6rem !important;
     }
 
-    /* ── Strategy workspace: single column ── */
+    /* - Strategy workspace: single column - */
     .strategy-workspace {
         grid-template-columns: 1fr !important;
     }
 
-    /* ── Risk top grid: single column ── */
+    /* - Risk top grid: single column - */
     .risk-top-grid {
         grid-template-columns: 1fr !important;
     }
 
-    /* ── All inline grids with 2+ cols: collapse ── */
+    /* - All inline grids with 2+ cols: collapse - */
     [style*="grid-template-columns: 1fr 1.5fr"],
     [style*="grid-template-columns: 1.5fr 1fr"],
     [style*="grid-template-columns: 1fr 1fr"],
@@ -4578,7 +4578,7 @@ input:focus, select:focus, textarea:focus {
         grid-template-columns: 1fr !important;
     }
 
-    /* ── Tables: horizontal scroll wrapper ── */
+    /* - Tables: horizontal scroll wrapper - */
     .card table,
     .glass-card table,
     [style*="overflow-x:auto"] table,
@@ -4591,24 +4591,24 @@ input:focus, select:focus, textarea:focus {
         -webkit-overflow-scrolling: touch;
     }
 
-    /* ── Backtest V2 KPI grid: 2 cols on mobile ── */
+    /* - Backtest V2 KPI grid: 2 cols on mobile - */
     .btv2-kpi-grid {
         grid-template-columns: repeat(2, 1fr) !important;
     }
 
-    /* ── Charts: allow taller canvases for specific module interfaces ── */
+    /* - Charts: allow taller canvases for specific module interfaces - */
     canvas:not(#riskScatterChart, #ivSmileChart, #gexChart, .profile-chart) { max-height: 250px !important; }
     #riskScatterChart { max-height: 400px !important; }
     #ivSmileChart, #gexChart { max-height: 350px !important; }
 
-    /* ── Matrix container: scroll ── */
+    /* - Matrix container: scroll - */
     .rotation-matrix-container,
     .matrix-grid {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
     }
 
-    /* ── Sidebar backdrop overlay ── */
+    /* - Sidebar backdrop overlay - */
     .sidebar-backdrop {
         display: none;
         position: fixed;
@@ -4620,7 +4620,7 @@ input:focus, select:focus, textarea:focus {
     .sidebar-backdrop.active { display: block; }
 }
 
-/* ── 480px: tighten further ── */
+/* - 480px: tighten further - */
 @media (max-width: 480px) {
     .content { padding: 0.5rem 0.5rem 90px !important; }
 
@@ -4645,7 +4645,7 @@ input:focus, select:focus, textarea:focus {
     .col-hide-mobile { display: none !important; }
 }
 
-/* ── Global: view-header always wraps gracefully ── */
+/* - Global: view-header always wraps gracefully - */
 /* Prevents H1 + badge + button collision on any view at any width */
 .view-header {
     flex-wrap: wrap !important;

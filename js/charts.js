@@ -339,7 +339,7 @@ async function runStrategyCompare(ticker) {
         const data = await fetchAPI(`/strategy-compare?ticker=${ticker}`);
         if (!data || !data.strategies) { lb.textContent = 'Failed to load'; return; }
         const rows = data.strategies.map((s, i) => {
-            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+            const medal = i === 0 ? '-' : i === 1 ? '-' : i === 2 ? '-' : `${i+1}.`;
             return `<tr style="border-bottom:1px solid ${alphaColor(0.04)}">
                 <td style="padding:7px 4px;font-size:0.72rem;color:var(--text-dim)">${medal}</td>
                 <td style="padding:7px 4px;font-size:0.75rem">${s.label}</td>
@@ -422,7 +422,7 @@ function renderStrategyChart(curve) {
 }
 
 function cleanupAdvChart() {
-    // Close the kline socket — guard against CLOSING (2) / CLOSED (3) states
+    // Close the kline socket - guard against CLOSING (2) / CLOSED (3) states
     // to prevent the "Ping received after close" browser warning
     const bws = window.activeBinanceWS;
     if (bws && bws.readyState === WebSocket.OPEN) {
@@ -437,13 +437,13 @@ function cleanupAdvChart() {
     }
     if (window.activeDepth3D) {
         const ref = window.activeDepth3D;
-        // Kill animation loop — both via alive flag (immediate) and cancelAnimationFrame
+        // Kill animation loop - both via alive flag (immediate) and cancelAnimationFrame
         if (ref._ref) ref._ref.alive = false;
         cancelAnimationFrame(ref._ref ? ref._ref.id : ref.animId);
         // Disconnect ResizeObserver so it doesn't fire after navigation
         if (ref._ro) { try { ref._ro.disconnect(); } catch(e) {} }
         try {
-            // Flag on _animRef closure — still reachable when webglcontextlost fires async
+            // Flag on _animRef closure - still reachable when webglcontextlost fires async
             if (ref._ref) ref._ref.intentionalCleanup = true;
             ref.renderer.forceContextLoss();
             ref.renderer.dispose();
@@ -463,9 +463,9 @@ function cleanupAdvChart() {
 }
 
 
-// ════════════════════════════════════════════════════════
+// -
 // Multi-Ticker Backtester Comparison
-// ════════════════════════════════════════════════════════
+// -
 async function runMultiTickerCompare(strategy, fast, slow) {
     fast = fast || 20; slow = slow || 50;
     const btn = document.getElementById('multi-ticker-btn');
@@ -476,7 +476,7 @@ async function runMultiTickerCompare(strategy, fast, slow) {
         // Stagger fetches 200ms apart to avoid yfinance rate-limiting dropping ETH
         const results = [];
         const tickerLabels = { 'BTC-USD': 'BTC', 'ETH-USD': 'ETH', 'SOL-USD': 'SOL' };
-        const progress = ['⟳', '⟳', '⟳'];
+        const progress = ['-', '-', '-'];
         const updateBtn = () => {
             if (btn) btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">compare_arrows</span> ' +
                 tickers.map((t,i) => `<span style="margin-left:6px;font-size:0.65rem">${tickerLabels[t]} ${progress[i]}</span>`).join('');
@@ -490,7 +490,7 @@ async function runMultiTickerCompare(strategy, fast, slow) {
                 r = await fetchAPI('/backtest?ticker=' + t + '&strategy=' + strategy + '&fast=' + fast + '&slow=' + slow);
             }
             results.push(r);
-            progress[i] = r && r.summary ? '✓' : '✗';
+            progress[i] = r && r.summary ? '-' : '-';
             updateBtn();
             if (i < tickers.length - 1) await new Promise(res => setTimeout(res, 200));
         }
@@ -503,9 +503,9 @@ async function runMultiTickerCompare(strategy, fast, slow) {
             const r = results[i]; const ret = r && r.summary ? r.summary.totalReturn : null;
             const col = colors[t];
             if (ret === null) return '<div style="background:${alphaColor(0.03)};border-radius:10px;padding:1rem;text-align:center"><div style="color:var(--text-dim);font-size:0.7rem">' + t + '</div><div style="color:var(--text-dim)">No data</div></div>';
-            return '<div style="background:${alphaColor(0.03)};border:1px solid ' + col + '30;border-radius:10px;padding:1rem;text-align:center"><div style="font-size:0.65rem;color:' + col + ';font-weight:900;letter-spacing:1px">' + t.replace('-USD','') + '</div><div style="font-size:1.4rem;font-weight:900;color:' + (ret>=0?'var(--risk-low)':'var(--risk-high)') + ';font-family:var(--font-mono)">' + (ret>=0?'+':'') + ret + '%</div><div style="font-size:0.6rem;color:var(--text-dim);margin-top:4px">Sharpe: ' + (r.summary.sharpe||'—') + ' · WR: ' + (r.summary.winRate||'—') + '%</div></div>';
+            return '<div style="background:${alphaColor(0.03)};border:1px solid ' + col + '30;border-radius:10px;padding:1rem;text-align:center"><div style="font-size:0.65rem;color:' + col + ';font-weight:900;letter-spacing:1px">' + t.replace('-USD','') + '</div><div style="font-size:1.4rem;font-weight:900;color:' + (ret>=0?'var(--risk-low)':'var(--risk-high)') + ';font-family:var(--font-mono)">' + (ret>=0?'+':'') + ret + '%</div><div style="font-size:0.6rem;color:var(--text-dim);margin-top:4px">Sharpe: ' + (r.summary.sharpe||'-') + ' - WR: ' + (r.summary.winRate||'-') + '%</div></div>';
         }).join('');
-        panel.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:900px;width:100%;max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><div><h2 style="margin:0;font-size:1.1rem">Multi-Asset Strategy Comparison</h2><p style="margin:4px 0 0;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px">' + strategy.replace(/_/g,' ').toUpperCase() + ' · FAST:' + fast + ' SLOW:' + slow + '</p></div><button id="multi-close-btn" style="background:${alphaColor(0.06)};border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:var(--font-ui)">X CLOSE</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">' + statsHtml + '</div><div style="height:320px;position:relative"><canvas id="multi-ticker-canvas"></canvas></div></div>';
+        panel.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:900px;width:100%;max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><div><h2 style="margin:0;font-size:1.1rem">Multi-Asset Strategy Comparison</h2><p style="margin:4px 0 0;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px">' + strategy.replace(/_/g,' ').toUpperCase() + ' - FAST:' + fast + ' SLOW:' + slow + '</p></div><button id="multi-close-btn" style="background:${alphaColor(0.06)};border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:var(--font-ui)">X CLOSE</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">' + statsHtml + '</div><div style="height:320px;position:relative"><canvas id="multi-ticker-canvas"></canvas></div></div>';
         panel.querySelector('button').onclick = function() { document.getElementById('multi-chart-panel').remove(); };
         document.body.appendChild(panel);
         renderMultiTickerChart(tickers, results, colors);
@@ -603,7 +603,7 @@ function renderAdvancedChart() {
             <button class="filter-btn" id="tab-options-surface" onclick="setAdvTab('options-surface')">Vol Surface</button>
         </div>
 
-        <!-- Overlay toggle controls — only visible on Price & Overlays tab -->
+        <!-- Overlay toggle controls - only visible on Price & Overlays tab -->
         <div id="adv-overlay-controls" style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; flex-wrap:wrap;">
             <span style="font-size:0.6rem; font-weight:700; letter-spacing:1.5px; color:var(--text-dim); margin-right:4px;">OVERLAYS:</span>
             <button id="ovr-ema20" class="filter-btn active" onclick="toggleAdvOverlay('ema20')" title="Toggle EMA 20">

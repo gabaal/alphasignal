@@ -31,7 +31,7 @@ async function renderCommandCenter() {
             </div>
         </div>
 
-        <!-- Signal Analytics Charts — directly below gauges -->
+        <!-- Signal Analytics Charts - directly below gauges -->
         <div style="margin-bottom:1.5rem">
             <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">LIVE SIGNAL INTELLIGENCE <span style="color:rgba(0,242,255,0.4);font-size:0.5rem;margin-left:6px">CLICK TO EXPAND</span></div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px">
@@ -84,7 +84,7 @@ async function renderCommandCenter() {
                     </div>
                     <button onclick="closeCmdChartModal()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
                         color:#ef4444;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:0.7rem;font-weight:700
-                        ">✕ CLOSE</button>
+                        ">- CLOSE</button>
                 </div>
                 <div style="height:65vh;position:relative"><canvas id="cmdModalCanvas" role="img" aria-label="Signal detail chart"></canvas></div>
             </div>
@@ -154,7 +154,7 @@ async function renderCommandCenter() {
             initCommandGauges(macro, regime);
         }
 
-        // 2. Market Pulse — BTC macro correlations + lead-lag
+        // 2. Market Pulse - BTC macro correlations + lead-lag
         if (macro) {
             const corrItems = macro.slice(0, 4);
             const statusColor = s => s === 'RISK-ON' ? '#22c55e' : s === 'RISK-OFF' ? '#ef4444' : '#94a3b8';
@@ -219,7 +219,7 @@ async function renderCommandCenter() {
             }
         } catch(e) { console.error("Signals Error:", e); }
 
-        // 5b. Confidence Radar — init with BTC
+        // 5b. Confidence Radar - init with BTC
         const savedRadarTicker = localStorage.getItem('cmd_radar_ticker') || 'BTC-USD';
     setTimeout(() => {
         const sel = document.getElementById('cmd-radar-select');
@@ -227,7 +227,7 @@ async function renderCommandCenter() {
         loadCmdRadar(savedRadarTicker);
     }, 300);
 
-        // 6. CME Gaps — live from /api/cme-gaps
+        // 6. CME Gaps - live from /api/cme-gaps
         try {
             const cmeData = await fetch('/api/cme-gaps').then(r => r.ok ? r.json() : []).catch(() => []);
             const gapEl = document.getElementById('cmd-cme-gaps');
@@ -257,7 +257,7 @@ async function renderCommandCenter() {
             }
         } catch(e) { console.error('CME Gaps Widget Error:', e); }
 
-        // 7. Signal Analytics Charts — built from live signals data
+        // 7. Signal Analytics Charts - built from live signals data
         if (signals && signals.length) {
             const _sigs = signals;
             window._cmdSigs = _sigs; // cache for modal
@@ -289,9 +289,9 @@ async function renderCommandCenter() {
                         borderWidth:0 }]},
                     options:{ responsive:true, maintainAspectRatio:false,
                         plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(13,17,23,0.95)', titleColor:'#7dd3fc', bodyColor:'#e2e8f0',
-                            callbacks:{ title:items=>items[0].raw.label, label:c=>`Z: ${c.raw.x.toFixed(2)}σ  α: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
+                            callbacks:{ title:items=>items[0].raw.label, label:c=>`Z: ${c.raw.x.toFixed(2)}-  -: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
                         scales:{
-                            x:{ title:{display:true,text:'Z-Score (σ)',color:alphaColor(0.3),font:{size:8,family:'JetBrains Mono'}}, grid:{color:alphaColor(0.06)}, ticks:{color:alphaColor(0.4),font:{family:'JetBrains Mono',size:8}} },
+                            x:{ title:{display:true,text:'Z-Score (-)',color:alphaColor(0.3),font:{size:8,family:'JetBrains Mono'}}, grid:{color:alphaColor(0.06)}, ticks:{color:alphaColor(0.4),font:{family:'JetBrains Mono',size:8}} },
                             y:{ title:{display:true,text:'Alpha (%)',color:alphaColor(0.3),font:{size:8,family:'JetBrains Mono'}}, grid:{color:alphaColor(0.06)}, ticks:{color:alphaColor(0.4),font:{family:'JetBrains Mono',size:8},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
                         }
                     }
@@ -367,7 +367,7 @@ async function renderCommandCenter() {
     }
 }
 
-// ── Chart Zoom Modal ────────────────────────────────────────────────────────
+// - Chart Zoom Modal -
 function openCmdChartModal(key) {
     const modal = document.getElementById('cmdChartModal');
     const titleEl = document.getElementById('cmdModalTitle');
@@ -389,13 +389,13 @@ function openCmdChartModal(key) {
     if (key === 'radar' && !window._cmdRadarData) return;
 
     const meta = {
-        scatter:  { title: 'Alpha vs Z-Score',        subtitle: 'SIGNAL QUALITY — GREEN=QUALITY · CYAN=HIDDEN GEM · RED=OVEREXTENDED · GREY=WEAK' },
-        donut:    { title: 'Category Mix',             subtitle: 'SECTOR BREAKDOWN — % DISTRIBUTION OF LIVE SIGNALS' },
-        btccorr:  { title: 'BTC Correlation',          subtitle: 'CORRELATION SPREAD — SIGNAL UNIVERSE VS BITCOIN' },
-        alpha:    { title: 'Alpha Leaders',            subtitle: 'TOP 12 BY RELATIVE ALPHA — VS CRYPTO MARKET AVERAGE' },
-        corr:     { title: 'Macro Correlation Matrix', subtitle: 'PAIRWISE PEARSON CORRELATION — CYAN=POSITIVE · RED=NEGATIVE · OPACITY=STRENGTH' },
-        etf:      { title: '10D ETF Net Flows',        subtitle: 'IBIT · FBTC · ARKB · BITB — STACKED DAILY FLOWS ($M) + CUMULATIVE NET' },
-        radar:    { title: 'Signal Confidence Radar',  subtitle: '6-DIMENSION ML DECOMPOSITION — MOMENTUM · SENTIMENT · VOLATILITY · TREND · LIQUIDITY · NETWORK' },
+        scatter:  { title: 'Alpha vs Z-Score',        subtitle: 'SIGNAL QUALITY - GREEN=QUALITY - CYAN=HIDDEN GEM - RED=OVEREXTENDED - GREY=WEAK' },
+        donut:    { title: 'Category Mix',             subtitle: 'SECTOR BREAKDOWN - % DISTRIBUTION OF LIVE SIGNALS' },
+        btccorr:  { title: 'BTC Correlation',          subtitle: 'CORRELATION SPREAD - SIGNAL UNIVERSE VS BITCOIN' },
+        alpha:    { title: 'Alpha Leaders',            subtitle: 'TOP 12 BY RELATIVE ALPHA - VS CRYPTO MARKET AVERAGE' },
+        corr:     { title: 'Macro Correlation Matrix', subtitle: 'PAIRWISE PEARSON CORRELATION - CYAN=POSITIVE - RED=NEGATIVE - OPACITY=STRENGTH' },
+        etf:      { title: '10D ETF Net Flows',        subtitle: 'IBIT - FBTC - ARKB - BITB - STACKED DAILY FLOWS ($M) + CUMULATIVE NET' },
+        radar:    { title: 'Signal Confidence Radar',  subtitle: '6-DIMENSION ML DECOMPOSITION - MOMENTUM - SENTIMENT - VOLATILITY - TREND - LIQUIDITY - NETWORK' },
     };
     titleEl.textContent    = meta[key]?.title    || '';
     subtitleEl.textContent = meta[key]?.subtitle || '';
@@ -409,7 +409,7 @@ function openCmdChartModal(key) {
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCmdChartModal(); }, { once: true });
 
-    // Correlation matrix is div-based — handle separately
+    // Correlation matrix is div-based - handle separately
     if (key === 'corr') {
         el.style.display = 'none'; // hide canvas
         let corrDiv = document.getElementById('cmdModalCorrDiv');
@@ -420,7 +420,7 @@ function openCmdChartModal(key) {
         }
         corrDiv.style.cssText = 'height:65vh;overflow:auto;padding:8px';
         const data = window._cmdCorrData;
-        if (!data) { corrDiv.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:2rem">No correlation data cached yet — open Command Center first.</p>'; return; }
+        if (!data) { corrDiv.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:2rem">No correlation data cached yet - open Command Center first.</p>'; return; }
 
         const labels = data.tickers || data.assets || [];
         const matrix = data.matrix || [];
@@ -482,7 +482,7 @@ function openCmdChartModal(key) {
                 c.fillStyle='rgba(0,242,255,0.05)';   c.fillRect(left,top,mx-left,my-top);
                 c.fillStyle='rgba(148,163,184,0.02)'; c.fillRect(left,my,mx-left,bottom-my);
                 c.fillStyle='rgba(239,68,68,0.05)';   c.fillRect(mx,my,right-mx,bottom-my);
-                // Quadrant labels — positioned at centre of each quadrant, not at the origin
+                // Quadrant labels - positioned at centre of each quadrant, not at the origin
                 c.font='bold 10px JetBrains Mono'; c.globalAlpha = isLight ? 0.7 : 0.4;
                 c.fillStyle= isLight ? '#16a34a' : '#22c55e'; c.fillText('QUALITY SIGNALS', mx+(right-mx)/2-55, top+20);
                 c.fillStyle= isLight ? '#0284c7' : '#7dd3fc'; c.fillText('HIDDEN GEMS',     left+8,             top+20);
@@ -497,9 +497,9 @@ function openCmdChartModal(key) {
                     borderWidth:0 }]},
                 options:{ responsive:true, maintainAspectRatio:false, animation:{duration:400},
                     plugins:{ legend:{display:false}, tooltip:{ backgroundColor:ttBg, titleColor:ttTitle, bodyColor:ttBody, titleFont:{family:'JetBrains Mono',size:13,weight:'700'}, bodyFont:{family:'JetBrains Mono',size:11}, padding:12,
-                        callbacks:{ title:i=>i[0].raw.label, label:c=>`Z-Score: ${c.raw.x.toFixed(2)}σ   Alpha: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
+                        callbacks:{ title:i=>i[0].raw.label, label:c=>`Z-Score: ${c.raw.x.toFixed(2)}-   Alpha: ${c.raw.y>=0?'+':''}${c.raw.y.toFixed(2)}%` }}},
                     scales:{
-                        x:{ title:{display:true,text:'Z-Score (σ)',color:alphaColor(0.8),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:gridCol}, ticks:{color:alphaColor(0.8),font:{family:'JetBrains Mono',size:10}} },
+                        x:{ title:{display:true,text:'Z-Score (-)',color:alphaColor(0.8),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:gridCol}, ticks:{color:alphaColor(0.8),font:{family:'JetBrains Mono',size:10}} },
                         y:{ title:{display:true,text:'Relative Alpha (%)',color:alphaColor(0.8),font:{size:11,family:'JetBrains Mono',weight:'700'}}, grid:{color:gridCol}, ticks:{color:alphaColor(0.8),font:{family:'JetBrains Mono',size:10},callback:v=>`${v>0?'+':''}${v.toFixed(1)}%`} }
                     }
                 }
@@ -662,7 +662,7 @@ function closeCmdChartModal() {
 // ============= BTC Top-Bar Sparkline =============
 let _btcSparkChartInst = null;
 let _sparkPriceHistory = [];  // rolling 60-point price buffer fed from WebSocket
-let _btcOpen24h = null;       // yesterday's close price — set once from /api/btc for accurate 24h %
+let _btcOpen24h = null;       // yesterday's close price - set once from /api/btc for accurate 24h %
 
 // Called from the WS price handler to feed the sparkline in real-time
 function pushSparklinePrice(price) {
@@ -670,7 +670,7 @@ function pushSparklinePrice(price) {
     _sparkPriceHistory.push(price);
     if (_sparkPriceHistory.length > 60) _sparkPriceHistory.shift();
 
-    // ── Live-update price text on every tick ──────────────────────────────
+    // - Live-update price text on every tick -
     const priceEl  = document.getElementById('btc-spark-price');
     const changeEl = document.getElementById('btc-spark-change');
     if (priceEl) priceEl.textContent = '$' + Math.round(price).toLocaleString('en-US');
@@ -957,7 +957,7 @@ async function renderCommandETF() {
         // Update 7D header label to say data source
         const hdr = ctx.closest('.card')?.querySelector('h3');
         if (hdr && data.source) {
-            const tag = data.source === 'yfinance_live' ? '● LIVE' : '● MODELLED';
+            const tag = data.source === 'yfinance_live' ? '- LIVE' : '- MODELLED';
             const tagColor = data.source === 'yfinance_live' ? '#22c55e' : '#f59e0b';
             if (!hdr.querySelector('.src-tag')) {
                 const span = document.createElement('span');

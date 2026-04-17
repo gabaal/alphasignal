@@ -18,14 +18,14 @@ async function renderHome() {
                     </div>
                     <h1>Institutional Intelligence Terminal. <span>Live.</span></h1>
                     <p class="hero-subtitle">
-                        AlphaSignal is a multi-hub institutional intelligence terminal for Bitcoin, crypto, and macro markets. Real-time Z-score signals, KeyVault 1-Click execution, AI portfolio rebalancing, options flow, whale tracking, and 60+ analytical views — translated into Plain English by AI, verified by institutional order flow.
+                        AlphaSignal is a multi-hub institutional intelligence terminal for Bitcoin, crypto, and macro markets. Real-time Z-score signals, KeyVault 1-Click execution, AI portfolio rebalancing, options flow, whale tracking, and 60+ analytical views - translated into Plain English by AI, verified by institutional order flow.
                     </p>
                     <div class="hero-actions">
                         ${!isAuthenticatedUser ? `
                         <button class="intel-action-btn large" onclick="showAuth(true)" style="background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(0,242,255,0.1));border-color:rgba(34,197,94,0.5);color:#22c55e" title="Create a free account">
                             <span class="material-symbols-outlined" style="margin-right:8px">person_add</span> JOIN FREE
                         </button>` : `
-                        <button class="intel-action-btn large secondary" onclick="switchView('my-terminal')" title="My Terminal — Watchlist & Positions">
+                        <button class="intel-action-btn large secondary" onclick="switchView('my-terminal')" title="My Terminal - Watchlist & Positions">
                             <span class="material-symbols-outlined" style="margin-right:8px">account_circle</span> MY TERMINAL
                         </button>`}
                         <button class="intel-action-btn large secondary" onclick="switchView('command-center')" title="View Dashboard" aria-label="Dashboard">
@@ -68,7 +68,7 @@ async function renderHome() {
             <section class="features-showcase">
                 <div class="section-title-wrap">
                     <h2>8 Institutional Intelligence Hubs</h2>
-                    <p>Every hub provides a suite of live analytical views, AI synthesis, and institutional data — all unified under a single terminal.</p>
+                    <p>Every hub provides a suite of live analytical views, AI synthesis, and institutional data - all unified under a single terminal.</p>
                 </div>
                 <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;padding:0 2rem">
                     ${[
@@ -111,7 +111,7 @@ async function renderHome() {
                     <div class="glass-card" style="padding:2rem;text-align:center;border-radius:20px">
                         <h3 style="color:var(--accent);font-size:1rem;letter-spacing:1px;margin-bottom:1rem">NETWORK CONGESTION</h3>
                         <div style="position:relative;width:100%;height:200px;border-radius:16px;overflow:hidden"><canvas id="gauge-congestion" role="img" aria-label="Network congestion gauge"></canvas></div>
-                        <p style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem">Bitcoin mempool utilisation and fee rate velocity — a proxy for institutional urgency</p>
+                        <p style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem">Bitcoin mempool utilisation and fee rate velocity - a proxy for institutional urgency</p>
                     </div>
                     <div class="glass-card" style="padding:2rem;text-align:center;border-radius:20px">
                         <h3 style="color:var(--accent);font-size:1rem;letter-spacing:1px;margin-bottom:1rem">RETAIL FOMO</h3>
@@ -132,11 +132,11 @@ async function renderHome() {
                     <div style="text-align:center;margin-bottom:3rem">
                         <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#8b5cf6;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:100px;padding:4px 14px">RETENTION &amp; GROWTH SUITE</span>
                         <h2 style="margin-top:1.5rem">Built for Traders Who Stay</h2>
-                        <p style="color:var(--text-dim)">My Terminal, real-time price alerts, signal permalinks, and full PWA mobile support — all live and production-ready. Data quality hardened to institutional grade with server-side caching and live data feeds across 60+ views.</p>
+                        <p style="color:var(--text-dim)">My Terminal, real-time price alerts, signal permalinks, and full PWA mobile support - all live and production-ready. Data quality hardened to institutional grade with server-side caching and live data feeds across 60+ views.</p>
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
                         ${[
-                            { icon: 'account_circle', view: 'my-terminal', color: '#00f2ff', title: 'My Terminal — Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
+                            { icon: 'account_circle', view: 'my-terminal', color: '#00f2ff', title: 'My Terminal - Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
                             { icon: 'gavel', view: 'exchange-keys', color: '#22c55e', title: 'KeyVault 1-Click Execution', desc: 'Institutional-grade secure storage for your exchange API keys. Execute AI-generated signals instantly with 1-click trade routing directly from the terminal.' },
                             { icon: 'language', view: 'ask-terminal', color: '#8b5cf6', title: 'Plain English AI', desc: 'Demystify complex institutional data. Our integrated AI translators distill high-density market analytics into actionable, plain English insights across all terminal modules.' },
                             { icon: 'webhook', view: 'webhooks', color: '#f59e0b', title: 'Integrations Hub', desc: 'Connect AlphaSignal directly to your infrastructure with custom Webhooks and Telegram/Discord bots, enabling automated strategy execution and alerting pipelines.' }
@@ -147,7 +147,7 @@ async function renderHome() {
                                 <span class="material-symbols-outlined" style="font-size:2rem;color:${f.color};margin-bottom:1rem;display:block">${f.icon}</span>
                                 <h3 style="font-size:0.85rem;margin-bottom:0.5rem;color:#fff">${f.title}</h3>
                                 <p style="font-size:0.75rem;color:var(--text-dim);line-height:1.6">${f.desc}</p>
-                                <div style="margin-top:1rem;font-size:0.6rem;color:${f.color};letter-spacing:1px">OPEN VIEW →</div>
+                                <div style="margin-top:1rem;font-size:0.6rem;color:${f.color};letter-spacing:1px">OPEN VIEW -</div>
                             </div>
                         `).join('')}
                     </div>
@@ -210,8 +210,8 @@ async function renderHome() {
                     <h2 style="text-align:center;margin-bottom:3rem">Frequently Asked Questions</h2>
                     <div style="display:flex;flex-direction:column;gap:1.5rem">
                         ${[
-                            { q: 'How does AlphaSignal calculate Alpha?', a: 'Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude. A Z-score > +2.0 indicates a statistically significant positive deviation from the benchmark — the core of our signal generation logic.' },
-                            { q: 'What makes the Options Flow Scanner different?', a: 'AlphaSignal\'s Options Flow Scanner sources live data directly from the Deribit API — the world\'s largest crypto options exchange by volume. We compute Put/Call ratio, Max Pain strike, ATM Implied Volatility, and the full IV smile across all strikes, providing a complete options intelligence view unavailable in standard retail terminals.' },
+                            { q: 'How does AlphaSignal calculate Alpha?', a: 'Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude. A Z-score > +2.0 indicates a statistically significant positive deviation from the benchmark - the core of our signal generation logic.' },
+                            { q: 'What makes the Options Flow Scanner different?', a: 'AlphaSignal\'s Options Flow Scanner sources live data directly from the Deribit API - the world\'s largest crypto options exchange by volume. We compute Put/Call ratio, Max Pain strike, ATM Implied Volatility, and the full IV smile across all strikes, providing a complete options intelligence view unavailable in standard retail terminals.' },
                             { q: 'How does the AI Portfolio Rebalancer work?', a: 'The AI Rebalancer uses Monte Carlo simulation to model 10,000 portfolio scenarios across your current holdings. It then applies Markowitz Efficient Frontier optimisation constrained by your ML signal confidence scores, and generates a GPT-4 rebalancing memo explaining the rationale. All recommended trades are convertible to execution tickets in the Trade Ledger.' },
                             { q: 'What data sources power the Macro Event Calendar?', a: 'The calendar aggregates FOMC, CPI, NFP, and PCE schedules from the Federal Reserve, Bureau of Labor Statistics, and Bureau of Economic Analysis. Each event is scored for historical BTC impact using 2 years of real price data via yfinance, allowing you to see the median move and directional bias for each event type.' },
                             { q: 'Is this terminal suitable for automated strategies?', a: 'Yes. AlphaSignal is designed for strategy validation and systematised execution. The Signal Archive and Backtester V2 allow you to verify historical performance across different market regimes. The Trade Idea Lab and Trade Ledger support structured execution workflows, and the institutional API provides programmatic data access for quant desks intent on integrating AlphaSignal intelligence into automated systems.' },
@@ -234,7 +234,7 @@ async function renderHome() {
                 <div style="max-width:900px;margin:0 auto;text-align:center">
                     <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">SIMPLE PRICING</div>
                     <h2 style="font-size:2.2rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:0.75rem">Institutional Intelligence.<br><span style="color:var(--accent)">One Flat Fee.</span></h2>
-                    <p style="color:var(--text-dim);font-size:1rem;margin-bottom:3rem;max-width:500px;margin-left:auto;margin-right:auto">No seat fees. No data surcharges. Every hub, every signal, every AI feature — all included.</p>
+                    <p style="color:var(--text-dim);font-size:1rem;margin-bottom:3rem;max-width:500px;margin-left:auto;margin-right:auto">No seat fees. No data surcharges. Every hub, every signal, every AI feature - all included.</p>
 
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;text-align:left">
 
@@ -272,7 +272,7 @@ async function renderHome() {
                             <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:rgba(125,211,252,0.12);color:var(--accent);font-size:0.6rem;font-weight:900;letter-spacing:2px;padding:4px 16px;border-radius:100px;white-space:nowrap">MOST POPULAR</div>
                             <div style="font-size:0.65rem;letter-spacing:2px;color:var(--accent);font-weight:700;margin-bottom:0.5rem">PRO</div>
                             <div style="font-size:2.5rem;font-weight:900;margin-bottom:0.25rem;color:var(--accent)">$7.99<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
-                            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:2rem">Cancel anytime · Billed monthly</div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:2rem">Cancel anytime - Billed monthly</div>
                             <div style="flex:1;display:flex;flex-direction:column;gap:12px;margin-bottom:2rem">
                                 ${[
                                     'Everything in Free',
@@ -295,9 +295,9 @@ async function renderHome() {
                             </div>
                             <button class="intel-action-btn large" style="width:100%;background:linear-gradient(90deg,rgba(0,242,255,0.15),rgba(139,92,246,0.1));border-color:var(--accent);font-size:0.85rem" onclick="typeof handleSubscribe !== 'undefined' ? handleSubscribe() : switchView('signals')">
                                 <span class="material-symbols-outlined" style="margin-right:8px">bolt</span>
-                                UNLOCK PRO — $7.99/MO
+                                UNLOCK PRO - $7.99/MO
                             </button>
-                            <div style="text-align:center;margin-top:0.75rem;font-size:0.65rem;color:var(--text-dim)">Secure payment via Stripe · Instant access</div>
+                            <div style="text-align:center;margin-top:0.75rem;font-size:0.65rem;color:var(--text-dim)">Secure payment via Stripe - Instant access</div>
                         </div>
 
                     </div>
@@ -334,7 +334,7 @@ async function renderHome() {
         </div>
     `;
 
-    // Gauges need dials data — wire up placeholder canvases now, hydrate in background
+    // Gauges need dials data - wire up placeholder canvases now, hydrate in background
     // (gauge canvases are already in the DOM from the innerHTML above)
 
     // --- Phase 2: fetch live data in background, hydrate without re-rendering ---
@@ -378,7 +378,7 @@ async function renderHome() {
                 <div onclick="switchView('alerts-hub')" style="cursor:pointer;background:rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.08);border:1px solid rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.25);border-radius:8px;padding:8px 16px;font-size:0.7rem;transition:all 0.15s" onmouseover="this.style.background='rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.15)'" onmouseout="this.style.background='rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.08)'">
                     <span style="color:var(--text-dim);letter-spacing:1px">SIGNAL WIN RATE</span>
                     <span style="color:${liveColor};font-weight:900;font-size:0.85rem;margin-left:8px">${liveWR}%</span>
-                    <span style="color:var(--text-dim);font-size:0.6rem;margin-left:4px">${lbTotal} signals →</span>
+                    <span style="color:var(--text-dim);font-size:0.6rem;margin-left:4px">${lbTotal} signals -</span>
                 </div>` : ''}
             ` : '';
         }

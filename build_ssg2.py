@@ -4,7 +4,7 @@ import re
 
 def build():
     # load docs
-    with open('extracted_docs.json', 'r') as f:
+    with open('extracted_docs.json', 'r', encoding='utf-8') as f:
         docs = json.load(f)
         
     # load index template
@@ -22,7 +22,7 @@ def build():
         if not view_id:
             continue
             
-        seo_title = f"{doc.get('title', view_id)} — Check Live Execution Metrics | AlphaSignal System"
+        seo_title = f"{doc.get('title', view_id)} - Check Live Execution Metrics | AlphaSignal System"
         seo_desc = doc.get('summary', '')[:160]
         
         # Build document HTML

@@ -145,7 +145,7 @@ class WebSocketServer:
         while self.running:
             try:
                 import yfinance as yf
-                # ── Header prices (every 5s) ───────────────────────────────
+                # - Header prices (every 5s) -
                 for sym, tick in tickers.items():
                     try:
                         info = yf.Ticker(tick).fast_info
@@ -181,7 +181,7 @@ class WebSocketServer:
                 else:
                     self.broadcast(payload)
 
-                # ── Item 4+5: background prewarm + TP/SL alerts (every 60s) ──
+                # - Item 4+5: background prewarm + TP/SL alerts (every 60s) -
                 now = time.time()
                 if now - _last_prewarm >= 60:
                     _last_prewarm = now
@@ -215,7 +215,7 @@ class WebSocketServer:
                         pc  = InstitutionalRoutesMixin._price_cache
                         ttl = InstitutionalRoutesMixin._PRICE_CACHE_TTL
 
-                        # Parallel fetch — only for tickers whose cache has expired
+                        # Parallel fetch - only for tickers whose cache has expired
                         stale = [t for t in sig_tickers if t not in pc or (now - pc[t][1]) >= ttl]
                         if stale:
                             with ThreadPoolExecutor(max_workers=min(10, len(stale))) as pool2:
@@ -225,7 +225,7 @@ class WebSocketServer:
                                     if px2:
                                         pc[orig_t2] = (px2, time.time())
 
-                        # ── Item 5: TP/SL crossing notifications ──────────
+                        # - Item 5: TP/SL crossing notifications -
                         tg_token = None; tg_chat = None
                         try:
                             conn3 = sqlite3.connect(DB_PATH)
@@ -252,9 +252,9 @@ class WebSocketServer:
                             elif roi < -3: new_state = 'STOPPED'
                             if new_state and _notified.get(sig_id) != new_state:
                                 _notified[sig_id] = new_state
-                                emoji = {'HIT_TP2':'🎯','HIT_TP1':'✅','STOPPED':'🛑'}.get(new_state,'⚡')
+                                emoji = {'HIT_TP2':'-','HIT_TP1':'-','STOPPED':'-'}.get(new_state,'-')
                                 msg = (f"{emoji} AlphaSignal Alert\n"
-                                       f"*{ticker2}* — {(sig_type or '').replace('_',' ')}\n"
+                                       f"*{ticker2}* - {(sig_type or '').replace('_',' ')}\n"
                                        f"State: *{new_state}*  ROI: *{roi:+.2f}%*\n"
                                        f"Entry: ${entry_p}  Current: ${curr_p2}")
                                 # Broadcast to WS clients (shows in notification bell)

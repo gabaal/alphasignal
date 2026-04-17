@@ -4,7 +4,7 @@ async function exportChartPNG(canvasOrId, filename = 'alphasignal-chart') {
         return;
     }
     try {
-        showToast('EXPORTING', 'Capturing chart…', 'info');
+        showToast('EXPORTING', 'Capturing chart-', 'info');
         const el = typeof canvasOrId === 'string' ? document.getElementById(canvasOrId) : canvasOrId;
         if (!el) { showToast('ERROR', 'Chart element not found.', 'alert'); return; }
         const canvas = await html2canvas(el, {
@@ -26,7 +26,7 @@ async function exportChartPNG(canvasOrId, filename = 'alphasignal-chart') {
 }
 
 /**
- * Phase 17: Institutional Research Report — 5-section data-driven PDF
+ * Phase 17: Institutional Research Report - 5-section data-driven PDF
  * Sections: Performance | Backtester | Top Signals | Macro Events | Signal Archive Snapshot
  */
 async function exportResearchReport() {
@@ -87,9 +87,9 @@ async function exportResearchReport() {
             pdf.text(String(value), M + 80, y);
         };
 
-        // ─────────────────────────────────────────
+        // -
         // PAGE 1: Cover + Performance + Backtester
-        // ─────────────────────────────────────────
+        // -
         addHeader('Page 1');
         // Cover band
         pdf.setFillColor(5, 20, 30);
@@ -103,7 +103,7 @@ async function exportResearchReport() {
 
         // Section 1: Performance
         let y = 52;
-        sectionTitle('SECTION 1 — PORTFOLIO PERFORMANCE', y);
+        sectionTitle('SECTION 1 - PORTFOLIO PERFORMANCE', y);
         y += 12;
         if (perf && perf.stats) {
             const s = perf.stats;
@@ -122,7 +122,7 @@ async function exportResearchReport() {
 
         // Section 2: Backtester
         y += 4;
-        sectionTitle('SECTION 2 — BACKTESTER V2 SUMMARY (5-DAY HOLD)', y);
+        sectionTitle('SECTION 2 - BACKTESTER V2 SUMMARY (5-DAY HOLD)', y);
         y += 12;
         if (bt && bt.stats) {
             const s = bt.stats;
@@ -140,15 +140,15 @@ async function exportResearchReport() {
             pdf.text('Backtester data unavailable (requires premium access).', M, y); y += 9;
         }
 
-        // ─────────────────────────────────────
+        // -
         // PAGE 2: Top Signals + Macro Events
-        // ─────────────────────────────────────
+        // -
         pdf.addPage();
         addHeader('Page 2');
         y = 20;
 
         // Section 3: Live P&L Snapshot
-        sectionTitle('SECTION 3 — LIVE ALERT P&L TRACKER', y);
+        sectionTitle('SECTION 3 - LIVE ALERT P&L TRACKER', y);
         y += 12;
         const alertPnlData = (window._alertsCache || []).filter(a => a.price && parseFloat(a.price) > 0).slice(0, 10);
         if (alertPnlData.length) {
@@ -263,9 +263,9 @@ async function exportResearchReport() {
             pdf.text('Macro calendar data unavailable.', M, y); y += 9;
         }
 
-        // ─────────────────────────────────────
+        // -
         // PAGE 3 (or continued): Signal Archive
-        // ─────────────────────────────────────
+        // -
         if (y > PH - 60) { pdf.addPage(); addHeader('Page'); y = 20; }
         y += 6;
         sectionTitle('SECTION 6 - SIGNAL ARCHIVE SNAPSHOT (LAST 10)', y);
@@ -306,7 +306,7 @@ async function exportResearchReport() {
         for (let i = 1; i <= pageCount; i++) {
             pdf.setPage(i);
             pdf.setTextColor(80, 80, 80); pdf.setFontSize(6.5); pdf.setFont('helvetica', 'normal');
-            pdf.text(`CONFIDENTIAL — INSTITUTIONAL USE ONLY — alphasignal.digital — Page ${i}/${pageCount}`, PW / 2, PH - 5, { align: 'center' });
+            pdf.text(`CONFIDENTIAL - INSTITUTIONAL USE ONLY - alphasignal.digital - Page ${i}/${pageCount}`, PW / 2, PH - 5, { align: 'center' });
         }
 
         const ts = new Date().toISOString().slice(0, 10);
@@ -330,7 +330,7 @@ async function exportViewPDF(title = 'AlphaSignal Report', containerId = 'main-c
         return;
     }
     try {
-        showToast('EXPORTING', 'Building PDF report…', 'info');
+        showToast('EXPORTING', 'Building PDF report-', 'info');
         const el = document.getElementById(containerId) || document.querySelector('.content');
         if (!el) { showToast('ERROR', 'Content element not found.', 'alert'); return; }
 
@@ -438,7 +438,7 @@ function showExportMenu(event, chartId, viewTitle) {
         animation: fadeInDown 0.15s ease;
     `;
 
-    // ── PAYWALL GATE ──────────────────────────────────────
+    // - PAYWALL GATE -
     if (!window.isPremiumUser) {
         menu.innerHTML = `
             <div style="padding:14px 16px 10px;text-align:center">
@@ -464,7 +464,7 @@ function showExportMenu(event, chartId, viewTitle) {
         document.addEventListener('click', () => menu.remove(), { once: true });
         return;
     }
-    // ── PREMIUM: full export menu ─────────────────────────
+    // - PREMIUM: full export menu -
     menu.innerHTML = `
         <button onclick="exportChartPNG('${chartId}', '${viewTitle.toLowerCase().replace(/\s+/g,'-')}');document.getElementById('export-action-sheet')?.remove();"
             style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:0.15s"

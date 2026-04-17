@@ -10,7 +10,7 @@ replacement_html = """            <!-- Advanced Macro Regime Trackers -->
                     <div class="card-header">
                         <h3>CME FedWatch Target Rate</h3>
                         <span class="label-tag">CENTRAL BANK PROXY</span>
-                        <span id="fedwatch-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING…</span>
+                        <span id="fedwatch-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
                     </div>
                     <div style="font-size:3rem;font-weight:900;color:var(--accent);margin:20px 0 10px;display:flex;align-items:flex-end;gap:10px">
                         <span id="live-fed-rate">--</span><span style="font-size:1.5rem;color:var(--text-dim);margin-bottom:8px">%</span>
@@ -24,7 +24,7 @@ replacement_html = """            <!-- Advanced Macro Regime Trackers -->
                     <div class="card-header">
                         <h3>Bitcoin / DXY Correlation</h3>
                         <span class="label-tag">GLOBAL LIQUIDITY</span>
-                        <span id="dxy-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING…</span>
+                        <span id="dxy-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
                     </div>
                     <div style="font-size:2.5rem;font-weight:900;color:#ef4444;margin:20px 0 10px;display:flex;align-items:center;gap:15px">
                         <span id="live-dxy-corr">--</span>
@@ -41,17 +41,17 @@ replacement_html = """            <!-- Advanced Macro Regime Trackers -->
 if 'id="macro-regime-widgets"' not in text:
     text = text.replace(target_html, replacement_html)
 
-target_js = """    // Live Yield Curve — fetch real anchor points and interpolate full 8-point curve"""
+target_js = """    // Live Yield Curve - fetch real anchor points and interpolate full 8-point curve"""
 replacement_js = """    // Fire Macro Regime fetch
     setTimeout(async () => {
         try {
             const mrData = await fetchAPI('/macro-regime');
             if (mrData && !mrData.error) {
                 const fedBadge = document.getElementById('fedwatch-badge');
-                if (fedBadge) { fedBadge.textContent = '● LIVE CME'; fedBadge.style.color = '#22c55e'; fedBadge.style.background = 'rgba(34,197,94,0.12)'; }
+                if (fedBadge) { fedBadge.textContent = '- LIVE CME'; fedBadge.style.color = '#22c55e'; fedBadge.style.background = 'rgba(34,197,94,0.12)'; }
                 
                 const dxyBadge = document.getElementById('dxy-badge');
-                if (dxyBadge) { dxyBadge.textContent = '● LIVE DXY'; dxyBadge.style.color = '#ef4444'; dxyBadge.style.background = 'rgba(239,68,68,0.12)'; }
+                if (dxyBadge) { dxyBadge.textContent = '- LIVE DXY'; dxyBadge.style.color = '#ef4444'; dxyBadge.style.background = 'rgba(239,68,68,0.12)'; }
 
                 const fedEl = document.getElementById('live-fed-rate');
                 if (fedEl) fedEl.textContent = mrData.implied_fed_rate.toFixed(3);
@@ -63,12 +63,12 @@ replacement_js = """    // Fire Macro Regime fetch
                 }
                 
                 const dxyDesc = document.getElementById('live-dxy-desc');
-                if (dxyDesc) dxyDesc.innerHTML = `<span style="font-weight:900;color:${mrData.btc_dxy_correlation_90d < -0 ? '#ef4444' : '#22c55e'}">${mrData.status.toUpperCase()}</span> · Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.`;
+                if (dxyDesc) dxyDesc.innerHTML = `<span style="font-weight:900;color:${mrData.btc_dxy_correlation_90d < -0 ? '#ef4444' : '#22c55e'}">${mrData.status.toUpperCase()}</span> - Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.`;
             }
         } catch(e) { console.error('Macro regime error', e); }
     }, 100);
 
-    // Live Yield Curve — fetch real anchor points and interpolate full 8-point curve"""
+    // Live Yield Curve - fetch real anchor points and interpolate full 8-point curve"""
 
 if "fetchAPI('/macro-regime')" not in text:
     text = text.replace(target_js, replacement_js)
