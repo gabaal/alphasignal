@@ -58,8 +58,8 @@ def fetch_network_congestion() -> int:
 
     Scoring model:
       fee_score  = log-scaled 1h-confirmation fee rate (sat/vbyte), capped at 200
-                   1 sat/vb → ~13   20 sat/vb → ~57   100 sat/vb → ~87   200 sat/vb → 100
-      count_score = linear, capped at 150k unconfirmed txs   (150k → 100)
+                   1 sat/vb -> ~13   20 sat/vb -> ~57   100 sat/vb -> ~87   200 sat/vb -> 100
+      count_score = linear, capped at 150k unconfirmed txs   (150k -> 100)
       composite  = fee_score * 0.65 + count_score * 0.35
     """
     import math
@@ -102,7 +102,7 @@ def fetch_network_congestion() -> int:
             score = max(0, min(100, score))
 
             print(f'[NetworkCongestion/mempool.space] hourFee={hour_fee} sat/vb '
-                  f'txs={tx_count:,} → fee_score={fee_score} count_score={count_score} composite={score}')
+                  f'txs={tx_count:,} -> fee_score={fee_score} count_score={count_score} composite={score}')
             _set('btc_congestion', score, ttl=300)
             return score
 
@@ -163,12 +163,12 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
                 if price_changes:
                     # Average 24h change of trending coins
                     avg_change = sum(price_changes) / len(price_changes)
-                    # Map: -10% → 0, 0% → 40, +5% → 65, +15% → 90, +25%+ → 100
+                    # Map: -10% -> 0, 0% -> 40, +5% -> 65, +15% -> 90, +25%+ -> 100
                     trending_score = 40 + avg_change * 4
                     trending_score = max(0, min(100, int(trending_score)))
                     scores.append(trending_score)
                     weights.append(0.40)
-                    print(f'[FOMO/CoinGecko] trending avg_change={avg_change:+.1f}% → score={trending_score}')
+                    print(f'[FOMO/CoinGecko] trending avg_change={avg_change:+.1f}% -> score={trending_score}')
     except Exception as e:
         print(f'[FOMO/CoinGecko] {e}')
 
@@ -190,12 +190,12 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
 
                 if avg_vol_7d > 0:
                     ratio = current_vol / avg_vol_7d
-                    # Map: 0.5x → 15, 1.0x → 50, 1.5x → 72, 2.0x → 85, 3.0x+ → 100
+                    # Map: 0.5x -> 15, 1.0x -> 50, 1.5x -> 72, 2.0x -> 85, 3.0x+ -> 100
                     vol_score = int(50 + (ratio - 1.0) * 45)
                     vol_score = max(0, min(100, vol_score))
                     scores.append(vol_score)
                     weights.append(0.35)
-                    print(f'[FOMO/Binance] vol_ratio={ratio:.2f}x → score={vol_score}')
+                    print(f'[FOMO/Binance] vol_ratio={ratio:.2f}x -> score={vol_score}')
     except Exception as e:
         print(f'[FOMO/Binance] {e}')
 
@@ -226,7 +226,7 @@ def fetch_retail_fomo(keyword: str = 'Bitcoin') -> dict:
                 rsi_score = max(0, min(100, int(rsi)))
                 scores.append(rsi_score)
                 weights.append(0.25)
-                print(f'[FOMO/RSI] hourly_rsi={rsi:.1f} → score={rsi_score}')
+                print(f'[FOMO/RSI] hourly_rsi={rsi:.1f} -> score={rsi_score}')
     except Exception as e:
         print(f'[FOMO/RSI] {e}')
 
@@ -550,7 +550,7 @@ def fetch_deribit_iv(currency: str = 'BTC') -> dict:
 def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
     """
     Returns a full implied-volatility surface as a (moneyness × expiry) grid.
-    Moneyness bins: 0.70 → 1.30 in 20 steps (deep ITM put to deep OTM call).
+    Moneyness bins: 0.70 -> 1.30 in 20 steps (deep ITM put to deep OTM call).
     Expiry bins: the next 6 calendar expiries listed on Deribit.
     Cached 10 minutes.  Falls back to parametric smile on failure.
     """
@@ -667,7 +667,7 @@ def fetch_deribit_iv_surface(currency: str = 'BTC') -> dict:
             'timestamp':      now.strftime('%Y-%m-%dT%H:%M:%SZ'),
         }
         _set(cache_key, result, ttl=600)
-        print(f'[IVSurface/{currency}] OK — {len(points)} options → {N_STRIKES}×{len(seen_expiries)} grid, underlying=${underlying:,.0f}')
+        print(f'[IVSurface/{currency}] OK — {len(points)} options -> {N_STRIKES}×{len(seen_expiries)} grid, underlying=${underlying:,.0f}')
         return result
 
     except Exception as e:
