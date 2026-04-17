@@ -521,11 +521,11 @@ function renderDetailLiquidity(data) {
             const color = l.side === 'ASK' ? 'rgba(255, 68, 68, 0.4)' : 'rgba(0, 242, 255, 0.4)';
             return `
                 <div class="liq-level">
-                    <div class="liq-price">${l.price.toLocaleString()}</div>
+                    <div class="liq-price">${l.price < 1 ? l.price.toLocaleString(undefined, {minimumFractionDigits: 4, maximumFractionDigits: 8}) : l.price.toLocaleString(undefined, {maximumFractionDigits: 2})}</div>
                     <div class="liq-bar-bg">
                         <div class="liq-bar" style="width: ${width}%; background: ${color}"></div>
                     </div>
-                    <div class="liq-size">${l.size}</div>
+                    <div class="liq-size">${Math.round(l.size).toLocaleString()}</div>
                 </div>
             `;
         }).join('')}
