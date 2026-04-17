@@ -659,7 +659,8 @@ function renderBtv2Chart(rolling) {
             datasets: [
                 { label: 'Strategy (%)', data: rolling.map(function(r){return r.strat_cumulative;}), borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,0.08)', fill: true, tension: 0.4, pointRadius: 0, yAxisID: 'y1' },
                 { label: 'BTC (%)', data: rolling.map(function(r){return r.btc_cumulative;}), borderColor: '#f7931a', borderDash: [4,3], fill: false, tension: 0.4, pointRadius: 0, yAxisID: 'y1' },
-                { label: 'Rolling Sharpe', data: rolling.map(function(r){return r.sharpe;}), borderColor: '#8b5cf6', fill: false, tension: 0.4, pointRadius: 0, yAxisID: 'y2' }
+                { label: 'Raw Sharpe', data: rolling.map(function(r){return r.sharpe;}), borderColor: 'rgba(139,92,246,0.3)', fill: false, tension: 0.2, pointRadius: 0, yAxisID: 'y2', borderDash: [2,2] },
+                { label: 'Smoothed Sharpe (EMA10)', data: rolling.map(function(r){return r.smoothed_sharpe;}), borderColor: '#8b5cf6', fill: false, tension: 0.4, pointRadius: 0, yAxisID: 'y2', borderWidth: 2 }
             ]
         },
         options: {

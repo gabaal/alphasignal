@@ -5672,6 +5672,12 @@ class InstitutionalRoutesMixin:
                     'btc_cumulative':    btc_cumulative
                 })
 
+            if rolling_sharpe:
+                raw_sharpes = pd.Series([r['sharpe'] for r in rolling_sharpe])
+                smoothed_series = raw_sharpes.ewm(span=10, adjust=False).mean()
+                for idx, r in enumerate(rolling_sharpe):
+                    r['smoothed_sharpe'] = round(float(smoothed_series.iloc[idx]), 3)
+
             monthly = {}
             for t in trades:
                 ym = t['year_month']
