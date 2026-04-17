@@ -5667,7 +5667,7 @@ class InstitutionalRoutesMixin:
                 raw_sharpe = mn / sd * (trades_per_year ** 0.5)
                 rolling_sharpe.append({
                     'date':              trades[i]['entry_date'],
-                    'sharpe':            max(-5.0, min(5.0, round(raw_sharpe, 3))),  # cap at -5
+                    'sharpe':            max(-20.0, min(25.0, round(raw_sharpe, 3))),  # expanded cap to prevent UI flatlining
                     'strat_cumulative':  round(equity_so_far, 2),
                     'btc_cumulative':    btc_cumulative
                 })
