@@ -2357,29 +2357,36 @@ class InstitutionalRoutesMixin:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             filter_ticker = query.get('ticker', [None])[0]
 
+            # Scope to authenticated user (matching the archive view)
+            auth = self.is_authenticated()
+            user_email = auth.get('email') if auth else None
+
             conn = sqlite3.connect(DB_PATH)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
-            
+
+            params = []
+            where_clauses = ["price IS NOT NULL AND price > 0"]
+
             if filter_ticker:
-                c.execute("""
-                    SELECT id, type, ticker, message, severity, price, timestamp
-                    FROM alerts_history
-                    WHERE price IS NOT NULL AND price > 0
-                      AND ticker = ?
-                      AND timestamp < datetime('now', '-1 hours')
-                    ORDER BY timestamp DESC
-                    LIMIT 200
-                """, (filter_ticker,))
-            else:
-                c.execute("""
-                    SELECT id, type, ticker, message, severity, price, timestamp
-                    FROM alerts_history
-                    WHERE price IS NOT NULL AND price > 0
-                      AND timestamp < datetime('now', '-1 hours')
-                    ORDER BY timestamp DESC
-                    LIMIT 200
-                """)
+                where_clauses.append("ticker = ?")
+                params.append(filter_ticker)
+
+            if user_email:
+                where_clauses.append("LOWER(user_email) = LOWER(?)")
+                params.append(user_email)
+
+            where_sql = " AND ".join(where_clauses)
+            params.append(200)
+
+            c.execute(f"""
+                SELECT id, type, ticker, message, severity, price, timestamp, direction
+                FROM alerts_history
+                WHERE {where_sql}
+                ORDER BY timestamp DESC
+                LIMIT ?
+            """, params)
+
             signals = [dict(r) for r in c.fetchall()]
             conn.close()
 
@@ -2415,10 +2422,13 @@ class InstitutionalRoutesMixin:
                 sig_type      = s.get('type', '')
                 sig_ts_str    = s.get('timestamp', '')
 
-                # --- Direction ---
-                is_long  = any(x in sig_type for x in ['OVERSOLD', 'BULLISH', 'ALPHA', 'VOLUME', 'DIVERGENCE', 'SHIFT'])
-                is_short = any(x in sig_type for x in ['OVERBOUGHT', 'BEARISH'])
-                direction = 'SHORT' if is_short else 'LONG'
+                # --- Direction: use stored value first, fall back to type inference ---
+                stored_dir = (s.get('direction') or '').upper()
+                if stored_dir in ('LONG', 'SHORT', 'BULLISH', 'BEARISH'):
+                    direction = 'SHORT' if stored_dir in ('SHORT', 'BEARISH') else 'LONG'
+                else:
+                    is_short = any(x in sig_type for x in ['OVERBOUGHT', 'BEARISH'])
+                    direction = 'SHORT' if is_short else 'LONG'
 
                 # --- TP / SL absolute levels ---
                 if direction == 'LONG':
