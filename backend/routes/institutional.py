@@ -4436,6 +4436,7 @@ class InstitutionalRoutesMixin:
                 return
 
             conn = sqlite3.connect(DB_PATH)
+            conn.set_trace_callback(print)
             c    = conn.cursor()
 
             # User scoping: strictly own signals only
@@ -4497,15 +4498,17 @@ class InstitutionalRoutesMixin:
                     SUM(CASE WHEN COALESCE(ah.status,'active')='closed' THEN 1 ELSE 0 END) as closed_count,
                     SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) > 0 THEN 1 ELSE 0 END) as closed_wins,
                     SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) < 0 THEN 1 ELSE 0 END) as closed_losses,
-                    AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi
+                    AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi,
+                    SUM(CASE WHEN COALESCE(ah.status,'active')='active' THEN 1 ELSE 0 END) as active_count
                 FROM alerts_history ah {summary_where}
             """, summary_params)
-            summary_row = c.fetchone() or (0, 0, 0, None)
+            summary_row = c.fetchone() or (0, 0, 0, None, 0)
+
             full_closed     = int(summary_row[0] or 0)
             full_wins       = int(summary_row[1] or 0)
             full_losses     = int(summary_row[2] or 0)
             full_avg_roi    = round(float(summary_row[3]), 2) if summary_row[3] is not None else None
-            full_active     = total_count - full_closed
+            full_active     = int(summary_row[4] or 0)
 
             # Phase 1: fetch signal rows
             # Computed sort columns (return, current, state) cannot be expressed as SQL

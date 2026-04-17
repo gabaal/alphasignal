@@ -228,6 +228,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         res = {'access_token': 'test-token-basic', 'user': {'id': 'test-uid-basic', 'email': 'user@example.com'}}
                     elif email_attempt == 'premium@example.com':
                         res = {'access_token': 'test-token-premium', 'user': {'id': 'test-uid-premium', 'email': 'premium@example.com'}}
+                    elif email_attempt == 'gatest@outlook.com':
+                        res = {'access_token': 'test-token-premium', 'user': {'id': 'test-uid-premium', 'email': 'gatest@outlook.com'}}
                 if 'access_token' in res:
                     _clear_login_attempts(email_attempt)  # S4: reset on success
                     self.send_response(200)
