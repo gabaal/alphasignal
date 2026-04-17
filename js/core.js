@@ -895,6 +895,18 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             const klinesData = await fetchAPI(`/klines?ticker=${ticker}&period=${yfPeriod}`);
             if (klinesData && klinesData.length > 0) {
                 const sorted = klinesData.filter(d => d.time && d.close).sort((a,b) => a.time - b.time);
+                
+                const lastClose = sorted[sorted.length - 1].close;
+                if (lastClose < 1.0) {
+                    candleSeries.applyOptions({
+                        priceFormat: {
+                            type: 'price',
+                            precision: 8,
+                            minMove: 0.00000001
+                        }
+                    });
+                }
+                
                 candleSeries.setData(sorted);
                 lwChart.timeScale().fitContent();
                 window._detailKlines = sorted;
@@ -980,6 +992,20 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 const lineData = history.filter(h => h.date && h.price)
                     .map(h => ({ time: Math.floor(new Date(h.date).getTime()/1000), value: h.price }))
                     .sort((a,b) => a.time - b.time);
+                    
+                if (lineData.length > 0) {
+                    const lastVal = lineData[lineData.length - 1].value;
+                    if (lastVal < 1.0) {
+                        lineSeries.applyOptions({
+                            priceFormat: {
+                                type: 'price',
+                                precision: 8,
+                                minMove: 0.00000001
+                            }
+                        });
+                    }
+                }
+                
                 lineSeries.setData(lineData);
                 lwChart.timeScale().fitContent();
             }
