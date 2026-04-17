@@ -940,8 +940,10 @@ async function renderAlerts(tabs = null) {
 
                 if (entryPrice && livePrice && sym) {
 
-                    const pnlPct = ((livePrice - entryPrice) / entryPrice * 100);
-
+                    let pnlPct = ((livePrice - entryPrice) / entryPrice * 100);
+                    if (a.type && (a.type.toUpperCase().includes('OVERBOUGHT') || a.type.toUpperCase().includes('BEARISH'))) {
+                        pnlPct = -pnlPct;
+                    }
                     const pnlColor = pnlPct > 0 ? 'var(--risk-low)' : pnlPct < 0 ? 'var(--risk-high)' : 'var(--text-dim)';
 
                     const pnlSign = pnlPct > 0 ? '+' : '';
@@ -1164,7 +1166,7 @@ async function renderAlerts(tabs = null) {
 
             const lp = window.livePrices ? (window.livePrices[a.ticker] || window.livePrices[(a.ticker||'').replace('-USD','')]) : null;
 
-            const pnlHtml = ep && lp ? (() => { const pct = ((lp-ep)/ep*100); const col = pct>=0?'var(--risk-low)':'var(--risk-high)'; return `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:${alphaColor(0.03)};border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString()}</span><span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700;color:${col}">${pct>=0?'+':''}${pct.toFixed(2)}%</span></div>`; })() : ep ? `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:${alphaColor(0.03)};border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>` : '';
+            const pnlHtml = ep && lp ? (() => { let pct = ((lp-ep)/ep*100); if (a.type && (a.type.toUpperCase().includes('OVERBOUGHT') || a.type.toUpperCase().includes('BEARISH'))) { pct = -pct; } const col = pct>=0?'var(--risk-low)':'var(--risk-high)'; return `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:${alphaColor(0.03)};border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString()}</span><span style="font-family:var(--font-mono);font-size:0.8rem;font-weight:700;color:${col}">${pct>=0?'+':''}${pct.toFixed(2)}%</span></div>`; })() : ep ? `<div style="display:inline-flex;gap:8px;padding:4px 10px;background:${alphaColor(0.03)};border-radius:6px;margin-bottom:10px"><span style="font-size:0.6rem;color:var(--text-dim)">ENTRY $${ep.toLocaleString('en-US',{maximumFractionDigits:4})}</span></div>` : '';
 
             return `<div class="alert-card ${sev}" style="background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ${sevColor};border-radius:12px;padding:1.5rem">
 
