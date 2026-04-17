@@ -1,4 +1,4 @@
--async function renderPriceAlerts(tabs = null) {
+async function renderPriceAlerts(tabs = null) {
     appEl.innerHTML = `<div class="skeleton-loader" style="height:300px"></div>`;
 
     let alerts = [];
