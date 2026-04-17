@@ -114,6 +114,14 @@ function renderHelp() {
             { name: 'Token Unlocks', desc: 'Trading Token Unlocks and Supply Dilution', href: '/academy/token-unlocks-supply-dilution', icon: 'lock_open' },
             { name: 'Algo AI Signals', desc: 'Exploiting Algorithmic AI Trade Signals', href: '/academy/algorithmic-ai-trade-signals', icon: 'smart_toy' },
             { name: 'On-Chain Whales', desc: 'On-Chain Whale Tracking and Exchange Flows', href: '/academy/on-chain-whale-tracking', icon: 'waves' },
+            { name: 'CME Futures Gaps', desc: 'Exploiting institutional weekend arbitrage', href: '/academy/cme-futures-gaps-bitcoin', icon: 'candlestick_chart' },
+            { name: 'MVRV Z-Score', desc: 'Mastering on-chain valuation matrices', href: '/academy/fundamental-mvrv-z-score', icon: 'monitoring' },
+            { name: 'Mean Reversion', desc: 'Trading with Statistical Z-Scores', href: '/academy/statistical-mean-reversion-z-scores', icon: 'compare_arrows' },
+            { name: 'Institutional VWAP', desc: 'Algorithmic execution footprints', href: '/academy/vwap-institutional-execution', icon: 'timeline' },
+            { name: 'Macro Liquidity', desc: 'Tracking Stablecoin Supply Flows', href: '/academy/stablecoin-macro-liquidity-flows', icon: 'water_drop' },
+            { name: 'Narrative Velocity', desc: 'Semantic Sentiment Analysis', href: '/academy/ai-narrative-velocity-sentiment', icon: 'hub' },
+            { name: 'Market Regimes', desc: 'Hidden Markov Models in trading', href: '/academy/hidden-markov-market-regimes', icon: 'category' },
+            { name: 'Options Volatility', desc: 'The IV Smile and Term Structure', href: '/academy/options-implied-volatility-smile', icon: 'show_chart' },
           ]
         },
     ];

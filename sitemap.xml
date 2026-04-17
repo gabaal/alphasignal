@@ -763,4 +763,13 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <url>\n    <loc>https://alphasignal.digital/academy/cme-futures-gaps-bitcoin</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>
+  <url>\n    <loc>https://alphasignal.digital/academy/fundamental-mvrv-z-score</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>
+  <url>\n    <loc>https://alphasignal.digital/academy/statistical-mean-reversion-z-scores</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>
+  <url>\n    <loc>https://alphasignal.digital/academy/vwap-institutional-execution</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>
+  <url>\n    <loc>https://alphasignal.digital/academy/stablecoin-macro-liquidity-flows</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>
+  <url>\n    <loc>https://alphasignal.digital/academy/ai-narrative-velocity-sentiment</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>
+  <url>\n    <loc>https://alphasignal.digital/academy/hidden-markov-market-regimes</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>
+  <url>\n    <loc>https://alphasignal.digital/academy/options-implied-volatility-smile</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>
 </urlset>
