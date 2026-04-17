@@ -85,6 +85,12 @@ window.addEventListener('popstate', (e) => {
         const pathView = window.location.pathname.substring(1);
         
         let targetView = 'home';
+        
+        // Static SEO Academy Bypass - Do not hijack hydration
+        if (pathView.startsWith('academy/')) {
+            console.log('[Router] Bypassing SPA logic for Academy static view.');
+            return;
+        }
         if (urlParams.get('view')) targetView = urlParams.get('view');
         else if (pathView && pathView !== 'index.html') {
             let processed = pathView.replace('docs/', 'docs-');
@@ -224,6 +230,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Support deep-linking via clean URL paths or legacy parameters
     const urlParams = new URLSearchParams(window.location.search);
     const pathView = window.location.pathname.substring(1);
+    
+    // Static SEO Academy Bypass
+    if (pathView.startsWith('academy/')) {
+        console.log('[Router] Bypassing SPA logic for initial Academy page load.');
+        return;
+    }
     
     let initialView = 'home';
     if (urlParams.get('view')) {
