@@ -142,7 +142,7 @@ class SupabaseClient:
 UNIVERSE = {
     'EXCHANGE': ['COIN', 'HOOD', 'VIRT', 'MARA'],
     'MINERS':   ['RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT'],
-    'PROXY':    ['MSTR', 'GLXY.TO'],
+    'PROXY':    ['MSTR'],
     'ETF':      ['IBIT', 'FBTC', 'ARKB', 'BITO'],
     'EQUITIES': ['NVDA', 'TSLA', 'PLTR', 'SMCI', 'AMD'],   # crypto-correlated tech
     'DEFI':     ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 'EIGEN-USD'],
@@ -150,9 +150,9 @@ UNIVERSE = {
                  'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD',
                  'SEI-USD'],
     'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD'],
-    'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD', 'GRT-USD', 'IO-USD'],
+    'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD'],
     'STABLES':  ['USDC-USD', 'USDT-USD'],
-    'MEMES':    ['DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD', 'PEPE-USD', 'MOG-USD'],
+    'MEMES':    ['DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD'],
     'PYTH':     ['PYTH-USD'],
 }
 

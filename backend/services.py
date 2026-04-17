@@ -567,8 +567,9 @@ class HarvestService:
 
             time.sleep(self.interval)
     def auto_close_signals(self):
-        """Auto-close active signals that have hit TP2 (+10%) or Stop Loss (-3%).
-        TP1 (+5%) signals remain open — still in play but not at full target.
+        """Auto-close active signals that have hit TP2 (+10%) or Stop Loss (-3%),
+        or that have expired after 7 days without hitting either threshold.
+        TP1 (+5%) signals remain open -- still in play but not at full target.
         Thresholds match the state labels computed in handle_signal_history."""
         BULLISH = {
             'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
@@ -578,13 +579,14 @@ class HarvestService:
         }
         TP2_THRESHOLD = 10.0   # % gain -> auto-close win
         SL_THRESHOLD  = -3.0   # % loss -> auto-close loss
+        EXPIRY_DAYS   = 7      # close stale signals after 7 days
 
         conn = sqlite3.connect(DB_PATH)
         c    = conn.cursor()
         try:
             # Fetch all active signals (status IS NULL or 'active')
             c.execute("""
-                SELECT id, type, ticker, price, user_email
+                SELECT id, type, ticker, price, user_email, timestamp
                 FROM alerts_history
                 WHERE COALESCE(status,'active') = 'active'
                   AND price IS NOT NULL AND price > 0
@@ -622,8 +624,32 @@ class HarvestService:
                     print(f"[AutoClose] yfinance fallback error: {e}")
 
             now_ts  = datetime.utcnow().isoformat()
+            now_dt  = datetime.utcnow()
             closed  = 0
-            for sig_id, sig_type, ticker, entry_p, user_email in active_rows:
+            expired = 0
+            for sig_id, sig_type, ticker, entry_p, user_email, sig_ts in active_rows:
+                # --- Time-based expiry check FIRST (7 days) ---
+                # This runs even if we have no current price for the ticker
+                try:
+                    sig_dt = datetime.fromisoformat(sig_ts) if sig_ts else None
+                    if sig_dt and (now_dt - sig_dt).days >= EXPIRY_DAYS:
+                        curr_p = price_map.get(ticker)
+                        final_roi = 0.0
+                        exit_px = 0.0
+                        if curr_p and entry_p and entry_p > 0:
+                            direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                            final_roi = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
+                            exit_px = round(curr_p, 10)
+                        c.execute(
+                            "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                            (now_ts, exit_px, final_roi, sig_id)
+                        )
+                        expired += 1
+                        continue
+                except Exception:
+                    pass
+
+                # --- TP2 / Stop Loss check (requires current price) ---
                 curr_p = price_map.get(ticker)
                 if not curr_p or not entry_p or entry_p <= 0:
                     continue
@@ -663,23 +689,24 @@ class HarvestService:
 
                                 NOTIFY.push_webhook(
                                     ue,
-                                    f"{emoji} {sym} — {result}",
+                                    f"{emoji} {sym} -- {result}",
                                     f"Your **{sym}** signal has been automatically closed after reaching the **{result}** threshold.",
                                     embed_color=color,
                                     fields=[
-                                        {'name': '📌 Ticker',     'value': tk,                           'inline': True},
-                                        {'name': '📊 Signal Type','value': st.replace('_', ' '),         'inline': True},
-                                        {'name': '📈 Result',     'value': result,                       'inline': True},
-                                        {'name': '🔵 Entry',      'value': _fmt(ep),                     'inline': True},
-                                        {'name': '🔴 Exit',       'value': _fmt(xp),                     'inline': True},
-                                        {'name': '💰 ROI',        'value': f'{roi_v:+.2f}%',             'inline': True},
+                                        {'name': 'Ticker',      'value': tk,                           'inline': True},
+                                        {'name': 'Signal Type', 'value': st.replace('_', ' '),         'inline': True},
+                                        {'name': 'Result',      'value': result,                       'inline': True},
+                                        {'name': 'Entry',       'value': _fmt(ep),                     'inline': True},
+                                        {'name': 'Exit',        'value': _fmt(xp),                     'inline': True},
+                                        {'name': 'ROI',         'value': f'{roi_v:+.2f}%',             'inline': True},
                                     ]
                                 )
                             except Exception as ne:
                                 print(f"[AutoClose] Notify error for signal #{sig_id}: {ne}")
                         threading.Thread(target=_notify, daemon=True).start()
 
-            if closed:
+            total_closed = closed + expired
+            if total_closed:
                 conn.commit()
                 # Bust signal history cache so the archive reflects new state immediately
                 try:
@@ -687,7 +714,10 @@ class HarvestService:
                     InstitutionalRoutesMixin._sig_history_cache.clear()
                 except Exception:
                     pass
-                print(f"[AutoClose] {closed} signal(s) auto-closed this cycle.")
+                parts = []
+                if closed:  parts.append(f"{closed} TP2/SL")
+                if expired: parts.append(f"{expired} expired (>{EXPIRY_DAYS}d)")
+                print(f"[AutoClose] {' + '.join(parts)} = {total_closed} signal(s) auto-closed this cycle.")
             else:
                 print(f"[AutoClose] No signals hit TP2 or SL this cycle ({len(active_rows)} active).")
         except Exception as e:
