@@ -303,7 +303,7 @@ function openOnchainModal(type) {
     if (container._lwChart) { try { container._lwChart.remove(); } catch(e){} container._lwChart = null; }
 
     // HTML-only modal (funding rates bar chart)
--    if (cfg.htmlOnly) {
+    if (cfg.htmlOnly) {
         // Funding rates: use cached data from /api/funding-rates
         if (type === 'funding') {
             const fr = window._fundingData;
