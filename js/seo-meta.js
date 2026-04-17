@@ -456,6 +456,32 @@ function updateSEOMeta(view) {
                 ]
             });
         }
+        
+        // Add TechArticle schema for docs
+        if (view.startsWith('docs-')) {
+            schemas.push({
+                "@context": "https://schema.org",
+                "@type": "TechArticle",
+                "headline": meta.title,
+                "description": meta.desc,
+                "author": {
+                    "@type": "Organization",
+                    "name": "AlphaSignal Quantitative Research"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "AlphaSignal",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://alphasignal.digital/assets/pwa-icon-512.png"
+                    }
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": viewUrl
+                }
+            });
+        }
 
         ldJsonEl.textContent = JSON.stringify(schemas);
     }

@@ -42,13 +42,17 @@ function switchView(view, pushState = true) {
     updateSEOMeta(view);
 
     if (pushState && view) {
-        // For signal permalink, preserve all query params (e.g. ?view=signal&ticker=BTC-USD)
-        if (view === 'signal') {
+        // Semantic URL rewrite (Clean URLs)
+        if (view === 'home') {
+            window.history.pushState({ view }, '', '/');
+        } else if (view === 'signal') {
             const existing = new URLSearchParams(window.location.search);
             existing.set('view', 'signal');
             window.history.pushState({ view }, '', '?' + existing.toString());
+        } else if (view.startsWith('docs-')) {
+            window.history.pushState({ view }, '', `/docs/${view.replace('docs-', '')}`);
         } else {
-            window.history.pushState({ view }, '', `?view=${view}`);
+            window.history.pushState({ view }, '', `/${view}`);
         }
     }
 
@@ -78,7 +82,16 @@ window.addEventListener('popstate', (e) => {
         switchView(e.state.view, false);
     } else {
         const urlParams = new URLSearchParams(window.location.search);
-        switchView(urlParams.get('view') || 'home', false);
+        const pathView = window.location.pathname.substring(1);
+        
+        let targetView = 'home';
+        if (urlParams.get('view')) targetView = urlParams.get('view');
+        else if (pathView && pathView !== 'index.html') {
+            let processed = pathView.replace('docs/', 'docs-');
+            if (viewMap[processed]) targetView = processed;
+            else if (viewMap[pathView]) targetView = pathView;
+        }
+        switchView(targetView, false);
     }
 });
 
@@ -208,17 +221,30 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Always start these for basic access (Signals and BTC are free)
     updateBTC();
     
-    // Support deep-linking via URL parameters
+    // Support deep-linking via clean URL paths or legacy parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const initialView = viewMap[urlParams.get('view')] ? urlParams.get('view') : 'home';
+    const pathView = window.location.pathname.substring(1);
+    
+    let initialView = 'home';
+    if (urlParams.get('view')) {
+        initialView = viewMap[urlParams.get('view')] ? urlParams.get('view') : 'home';
+    } else if (pathView && pathView !== 'index.html' && pathView !== '') {
+        const processed = pathView.replace('docs/', 'docs-');
+        if (viewMap[processed]) initialView = processed;
+        else if (viewMap[pathView]) initialView = pathView;
+    }
     
     // Replace state on initial load — preserve ticker param if view=signal
     if (initialView === 'signal') {
         const existing = new URLSearchParams(window.location.search);
         existing.set('view', 'signal');
         window.history.replaceState({ view: initialView }, '', '?' + existing.toString());
+    } else if (initialView === 'home') {
+        window.history.replaceState({ view: initialView }, '', '/');
+    } else if (initialView.startsWith('docs-')) {
+        window.history.replaceState({ view: initialView }, '', `/docs/${initialView.replace('docs-', '')}`);
     } else {
-        window.history.replaceState({ view: initialView }, '', `?view=${initialView}`);
+        window.history.replaceState({ view: initialView }, '', `/${initialView}`);
     }
     switchView(initialView, false);
     
