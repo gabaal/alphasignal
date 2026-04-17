@@ -4477,6 +4477,10 @@ class InstitutionalRoutesMixin:
                     base_where  += " AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
                 elif f_direction == 'bearish':
                     base_where  += " AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
+            # Save the base query sans state filter for the overall stats
+            summary_where = base_where
+            summary_params = list(params)
+
             if f_state == 'active':
                 base_where  += " AND COALESCE(ah.status,'active') = 'active'"
                 count_params = list(params)
@@ -4487,15 +4491,15 @@ class InstitutionalRoutesMixin:
             c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
             total_count = c.fetchone()[0]
 
-            # Summary counts across FULL filtered dataset (not just current page)
+            # Summary counts across FULL filtered dataset (ignoring the active/closed tab selection so stats remain visible)
             c.execute(f"""
                 SELECT
                     SUM(CASE WHEN COALESCE(ah.status,'active')='closed' THEN 1 ELSE 0 END) as closed_count,
                     SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) > 0 THEN 1 ELSE 0 END) as closed_wins,
                     SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) < 0 THEN 1 ELSE 0 END) as closed_losses,
                     AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi
-                FROM alerts_history ah {base_where}
-            """, count_params)
+                FROM alerts_history ah {summary_where}
+            """, summary_params)
             summary_row = c.fetchone() or (0, 0, 0, None)
             full_closed     = int(summary_row[0] or 0)
             full_wins       = int(summary_row[1] or 0)
