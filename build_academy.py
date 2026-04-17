@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime, timezone
 
 articles = {
     'order-book-liquidity-heatmaps': {
@@ -167,9 +168,9 @@ def build_academy():
     except Exception as e:
         print(f"Error reading index.html: {e}")
         return
-        
+
     os.makedirs('academy', exist_ok=True)
-    
+
     # Strip <base> if exists, add it if not so relative paths work from /academy/
     h_idx = html_template.find('<head>')
     if h_idx != -1:
@@ -177,26 +178,68 @@ def build_academy():
     else:
         template_with_base = html_template
 
+    pub_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    pub_date_rfc = datetime.now(timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000')
+
+    # === RSS feed accumulator ===
+    rss_items = []
+
     for slug, doc in articles.items():
         seo_title = f"{doc['title']} - AlphaSignal Quant Academy"
-        seo_desc = doc['summary'][:160]
-        
-        # Build document HTML using exact styles from the template UI
+        seo_desc  = doc['summary'][:160]
+        canon_url = f"https://alphasignal.digital/academy/{slug}"
+        og_img    = "https://alphasignal.digital/assets/social-preview.png"
+
+        # ── 1. JSON-LD Article Schema ──────────────────────────────────────────
+        json_ld = f"""
+    <script type="application/ld+json">
+    {{
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "{doc['title']}",
+      "description": "{seo_desc}",
+      "url": "{canon_url}",
+      "datePublished": "{pub_date}",
+      "dateModified": "{pub_date}",
+      "author": {{"@type": "Organization", "name": "AlphaSignal", "url": "https://alphasignal.digital/"}},
+      "publisher": {{
+        "@type": "Organization",
+        "name": "AlphaSignal",
+        "logo": {{"@type": "ImageObject", "url": "https://alphasignal.digital/assets/pwa-icon-512.png"}}
+      }},
+      "image": "{og_img}",
+      "mainEntityOfPage": {{"@type": "WebPage", "@id": "{canon_url}"}},
+      "keywords": "crypto trading, bitcoin, quantitative trading, AlphaSignal, {doc['title']}",
+      "articleSection": "Quant Academy"
+    }}
+    </script>"""
+
+        # ── 2. Per-article OG + Twitter meta tags ──────────────────────────────
+        og_tags = f"""
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AlphaSignal Quant Academy">
+    <meta property="og:url" content="{canon_url}">
+    <meta property="og:title" content="{seo_title}">
+    <meta property="og:description" content="{seo_desc}">
+    <meta property="og:image" content="{og_img}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@alphasignalai">
+    <meta property="twitter:url" content="{canon_url}">
+    <meta property="twitter:title" content="{seo_title}">
+    <meta property="twitter:description" content="{seo_desc}">
+    <meta property="twitter:image" content="{og_img}">
+    <link rel="canonical" href="{canon_url}">"""
+
+        # ── Build article HTML ────────────────────────────────────────────────
         html_content = [f"<div class='academy-container seo-pre-render' style='padding:5rem 2rem 10rem; max-width:900px; margin:0 auto; font-family:\"Inter\", sans-serif;'>"]
-        
-        # Academy Header Badge
         html_content.append(f"<div style='display:inline-block; padding:4px 12px; background:rgba(125,211,252,0.15); border:1px solid var(--accent); color:var(--accent); border-radius:6px; font-size:0.75rem; letter-spacing:2px; font-weight:700; margin-bottom:1.5rem;'>QUANT ACADEMY</div>")
-        
-        # Title & Summary
         html_content.append(f"<h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>{doc['title']}</h1>")
         html_content.append(f"<p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>{doc['summary']}</p>")
-        
-        # The Content Core
         html_content.append(f"<div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>")
         html_content.append(doc['content'])
         html_content.append("</div>")
-        
-        # Call to Action block
         html_content.append(f"""
         <div style='margin-top:5rem; padding:3rem; background:rgba(0,0,0,0.3); border:1px solid rgba(125,211,252,0.15); border-radius:16px; text-align:center;'>
             <h3 style='margin:0 0 1rem; color:#fff; font-size:1.5rem;'>Ready to apply this strategy?</h3>
@@ -204,38 +247,74 @@ def build_academy():
             <a href="/" style='display:inline-block; background:var(--accent); color:#000; font-weight:800; text-decoration:none; padding:1rem 2.5rem; border-radius:8px; font-size:1.1rem; box-shadow:0 0 20px rgba(125,211,252,0.3);'>LAUNCH TERMINAL</a>
         </div>
         """)
-
         html_content.append("</div>")
-        
         inner_html = "\n".join(html_content)
-        
-        # Replace title
+
+        # ── Assemble full page ────────────────────────────────────────────────
         out_html = re.sub(r'<title>.*?</title>', f'<title>{seo_title}</title>', template_with_base)
-        # Replace description
         out_html = re.sub(r'<meta name="description" content=".*?">', f'<meta name="description" content="{seo_desc}">', out_html)
-        
-        # Inject Custom CSS for Article Tags natively
+
+        # Strip existing OG/Twitter/canonical tags so ours are the only ones
+        out_html = re.sub(r'<meta property="og:[^"]+"[^>]*>', '', out_html)
+        out_html = re.sub(r'<meta property="twitter:[^"]+"[^>]*>', '', out_html)
+        out_html = re.sub(r'<link rel="canonical"[^>]*>', '', out_html)
+
         custom_css = """
         <style>
             .academy-article-dynamic h2 { font-size: 2rem; color: #fff; margin: 3rem 0 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem; font-weight:800; letter-spacing:-0.5px;}
             .academy-article-dynamic h3 { font-size: 1.4rem; color: #fff; margin: 2.5rem 0 1rem; font-weight:700;}
             .academy-article-dynamic p { margin-bottom: 1.5rem; }
             .academy-article-dynamic strong { color: var(--accent); }
+            .academy-article-dynamic ul, .academy-article-dynamic ol { padding-left: 1.8rem; margin-bottom: 1.5rem; }
+            .academy-article-dynamic li { margin-bottom: 0.5rem; }
         </style>
         """
-        out_html = out_html.replace('</head>', custom_css + '\n</head>')
-        
-        # Inject Content
+        out_html = out_html.replace('</head>', og_tags + json_ld + custom_css + '\n</head>')
+
         out_html = re.sub(
             r'<div id="home-prerender"[^>]*>.*?</div>\s*</div>',
-            f'{inner_html}</div>', 
+            f'{inner_html}</div>',
             out_html, flags=re.DOTALL
         )
 
         with open(f"academy/{slug}.html", 'w', encoding='utf-8') as f:
             f.write(out_html)
 
-    print(f"Generated {len(articles)} High-Density SEO Academy files successfully.")
+        # Accumulate RSS item
+        rss_items.append(f"""  <item>
+    <title><![CDATA[{doc['title']}]]></title>
+    <link>{canon_url}</link>
+    <guid isPermaLink="true">{canon_url}</guid>
+    <description><![CDATA[{seo_desc}]]></description>
+    <pubDate>{pub_date_rfc}</pubDate>
+    <category>Quant Academy</category>
+  </item>""")
+
+    # ── 4. Write RSS feed ────────────────────────────────────────────────────
+    rss_feed = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AlphaSignal Quant Academy</title>
+    <link>https://alphasignal.digital/</link>
+    <atom:link href="https://alphasignal.digital/academy/feed.xml" rel="self" type="application/rss+xml"/>
+    <description>Institutional-grade quantitative trading education: on-chain analytics, options flow, algo signals, macro intelligence, and crypto market strategy articles from AlphaSignal.</description>
+    <language>en-us</language>
+    <lastBuildDate>{pub_date_rfc}</lastBuildDate>
+    <managingEditor>hello@alphasignal.digital (AlphaSignal)</managingEditor>
+    <webMaster>hello@alphasignal.digital (AlphaSignal)</webMaster>
+    <image>
+      <url>https://alphasignal.digital/assets/pwa-icon-512.png</url>
+      <title>AlphaSignal Quant Academy</title>
+      <link>https://alphasignal.digital/</link>
+    </image>
+\n"""
+    rss_feed += "\n".join(rss_items)
+    rss_feed += "\n  </channel>\n</rss>\n"
+
+    with open('academy/feed.xml', 'w', encoding='utf-8') as f:
+        f.write(rss_feed)
+
+    print(f"Generated {len(articles)} High-Density SEO Academy files + RSS feed successfully.")
 
 if __name__ == '__main__':
     build_academy()
