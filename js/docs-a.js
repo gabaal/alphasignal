@@ -102,6 +102,20 @@ function renderHelp() {
             { name: 'Conceptual Framework', desc: 'How to mentally perceive each Analytical Hub. A high-level guide to Macro Intel vs Order Flow vs ML Strategy.', route: 'docs-conceptual-framework', icon: 'psychology' }
           ]
         },
+        { id: 'quant-academy', name: 'Quant Academy (SEO)', icon: 'school', color: '#f472b6', view: 'help',
+          docs: [
+            { name: 'Order Book Liquidity', desc: 'How to Read Order Book Liquidity Heatmaps', href: '/academy/order-book-liquidity-heatmaps', icon: 'blur_on' },
+            { name: 'Gamma Exposure', desc: 'Understanding Gamma Exposure (GEX) in Crypto Markets', href: '/academy/understanding-gamma-exposure-gex', icon: 'analytics' },
+            { name: 'Crypto Liquidations', desc: 'Exploiting High-Leverage Crypto Liquidations', href: '/academy/crypto-liquidations-tracker', icon: 'local_fire_department' },
+            { name: 'Options Flow', desc: 'Decoding Institutional Options Flow & Dark Pools', href: '/academy/options-flow-dark-pools', icon: 'waterfall_chart' },
+            { name: 'Sector Rotation', desc: 'Mastering Capital Sector Rotation Strategies', href: '/academy/capital-sector-rotation', icon: 'swap_horiz' },
+            { name: 'Volume Profile', desc: 'Trade Like a Pro: Volume Profile & Market Profile', href: '/academy/volume-profile-market-profile', icon: 'bar_chart' },
+            { name: 'Yield Farming', desc: 'Navigating Institutional DeFi Yield Farming', href: '/academy/institutional-yield-farming', icon: 'savings' },
+            { name: 'Token Unlocks', desc: 'Trading Token Unlocks and Supply Dilution', href: '/academy/token-unlocks-supply-dilution', icon: 'lock_open' },
+            { name: 'Algo AI Signals', desc: 'Exploiting Algorithmic AI Trade Signals', href: '/academy/algorithmic-ai-trade-signals', icon: 'smart_toy' },
+            { name: 'On-Chain Whales', desc: 'On-Chain Whale Tracking and Exchange Flows', href: '/academy/on-chain-whale-tracking', icon: 'waves' },
+          ]
+        },
     ];
 
     appEl.innerHTML = `
@@ -124,7 +138,7 @@ function renderHelp() {
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0">
                     ${hub.docs.map((doc, idx) => `
-                    <div onclick="switchView('${doc.route}')" style="padding:1.1rem 1.4rem;cursor:pointer;border-right:1px solid ${alphaColor(0.05)};border-bottom:1px solid ${alphaColor(0.05)};transition:background 0.18s;position:relative" onmouseover="this.style.background=alphaColor(0.04)" onmouseout="this.style.background='transparent'">
+                    <div onclick="${doc.href ? `window.location.href='${doc.href}'` : `switchView('${doc.route}')`}" style="padding:1.1rem 1.4rem;cursor:pointer;border-right:1px solid ${alphaColor(0.05)};border-bottom:1px solid ${alphaColor(0.05)};transition:background 0.18s;position:relative" onmouseover="this.style.background=alphaColor(0.04)" onmouseout="this.style.background='transparent'">
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                             <span class="material-symbols-outlined" style="font-size:18px;color:${hub.color}">${doc.icon}</span>
                             <span style="font-size:0.95rem;font-weight:700;color:var(--text)">${doc.name}</span>
