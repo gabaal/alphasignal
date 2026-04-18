@@ -4235,10 +4235,33 @@ class InstitutionalRoutesMixin:
                     lstm_conf = min(98, max(45, int(score * 0.97 + 2)))
                     xgb_conf  = min(96, max(42, int(score * 0.93 + 4)))
                     consensus = 'HIGH' if score >= 75 else 'MEDIUM' if score >= 50 else 'LOW'
-                    scored.append({'ticker': t, 'sector': asset['sector'], 'score': score, 'price': current_price, 'grade': 'A' if score >= 80 else 'B' if score >= 60 else 'C' if score >= 40 else 'D', 'signal': 'STRONG BUY' if score >= 80 else 'BUY' if score >= 65 else 'NEUTRAL' if score >= 45 else 'CAUTION', 'reasons': reasons[:3], 'lstm_conf': lstm_conf, 'xgb_conf': xgb_conf, 'consensus': consensus})
+                    scored.append({'ticker': t, 'sector': asset['sector'], 'score': score, '_raw': score, 'price': current_price, 'grade': 'A' if score >= 80 else 'B' if score >= 60 else 'C' if score >= 40 else 'D', 'signal': 'STRONG BUY' if score >= 80 else 'BUY' if score >= 65 else 'NEUTRAL' if score >= 45 else 'CAUTION', 'reasons': reasons[:3], 'lstm_conf': lstm_conf, 'xgb_conf': xgb_conf, 'consensus': consensus})
                 except Exception as asset_e:
                     continue
+            # ── Rank-normalise raw scores so they span the full 0-100 range ──
+            # Without this, uniform ML/sentiment signals push everything to 100.
+            if scored:
+                raw_scores = [a['_raw'] for a in scored]
+                raw_min = min(raw_scores)
+                raw_max = max(raw_scores)
+                raw_range = raw_max - raw_min if raw_max > raw_min else 1
+
+                for a in scored:
+                    # Map raw score into 30-100 (worst → 30, best → 100)
+                    normalised = 30 + int((a['_raw'] - raw_min) / raw_range * 70)
+                    normalised  = max(0, min(100, normalised))
+                    a['score']     = normalised
+                    a['grade']     = 'A' if normalised >= 80 else 'B' if normalised >= 60 else 'C' if normalised >= 40 else 'D'
+                    a['signal']    = 'STRONG BUY' if normalised >= 80 else 'BUY' if normalised >= 65 else 'NEUTRAL' if normalised >= 45 else 'CAUTION'
+                    a['consensus'] = 'HIGH' if normalised >= 75 else 'MEDIUM' if normalised >= 50 else 'LOW'
+                    lstm_conf      = min(98, max(45, int(normalised * 0.97 + 2)))
+                    xgb_conf       = min(96, max(42, int(normalised * 0.93 + 4)))
+                    a['lstm_conf'] = lstm_conf
+                    a['xgb_conf']  = xgb_conf
+                    del a['_raw']  # strip internal field before sending
+
             scored.sort(key=lambda x: x['score'], reverse=True)
+
             self.send_json({'scores': scored, 'updated': datetime.now().strftime('%H:%M UTC')})
         except Exception as e:
             print(f'Alpha Score Error: {e}')
