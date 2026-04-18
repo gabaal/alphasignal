@@ -84,7 +84,7 @@ const analyticsHubTabs = [
 ];
 
 async function renderAnalyticsHub() {
-    renderWhales(analyticsHubTabs);
+    renderOptionsFlow(analyticsHubTabs);
 }
 
 // ============= Audit & Performance Hub =============
