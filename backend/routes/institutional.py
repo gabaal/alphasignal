@@ -928,7 +928,12 @@ class InstitutionalRoutesMixin:
                 puell = float(daily_issuance_usd / (mean_365 * block_reward * 144)) if mean_365 > 0 else 1.0
 
                 # -- NVT: market cap / daily tx volume (log-scaled) ---
-                vol = float(df['Volume'].iloc[i]) if 'Volume' in df.columns and float(df['Volume'].iloc[i]) > 0 else 1e8
+                try:
+                    vf = df['Volume'].iloc[i]
+                    if hasattr(vf, 'iloc'): vf = vf.iloc[0]
+                    vol = float(vf) if float(vf) > 0 else 1e8
+                except:
+                    vol = 1e8
                 mkt_cap = pr * supply
                 nvt_raw = mkt_cap / max(vol, 1e6)   # NVT = market cap / USD vol
                 nvt = float(np.log1p(nvt_raw) * 8 + z * 6)  # log-scale + z variation
