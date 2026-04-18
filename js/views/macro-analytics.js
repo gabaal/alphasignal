@@ -200,7 +200,7 @@ function renderCorrelationTable(data) {
     const container = document.getElementById('corr-matrix-container');
     if (!container) return;
     
-    let html = `<table class="corr-table" style="width:100%; border-collapse:collapse; text-align:center; font-family:'JetBrains Mono'">`;
+    let html = `<table class="corr-table" style="border-collapse:collapse; text-align:center; font-family:'JetBrains Mono'">`;
     
     html += '<tr><th style="padding:8px; border-bottom:1px solid ${alphaColor(0.1)}"></th>';
     data.assets.forEach(a => {
