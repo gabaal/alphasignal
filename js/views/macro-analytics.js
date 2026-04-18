@@ -200,20 +200,20 @@ function renderCorrelationTable(data) {
     const container = document.getElementById('corr-matrix-container');
     if (!container) return;
     
-    let html = `<table class="corr-table" style="border-collapse:collapse; text-align:center; font-family:'JetBrains Mono'">`;
+    let html = `<table class="corr-table" style="margin:0 auto; width:max-content; border-collapse:collapse; text-align:center; font-family:'JetBrains Mono'">`;
     
-    html += '<tr><th style="padding:8px; border-bottom:1px solid ${alphaColor(0.1)}"></th>';
+    html += `<tr><th style="padding:8px; border-bottom:1px solid ${alphaColor(0.1)}"></th>`;
     data.assets.forEach(a => {
-        html += `<th style="padding:8px; font-size:0.75rem; color:var(--text-dim); border-bottom:1px solid ${alphaColor(0.1)}">${a}</th>`;
+        html += `<th style="width:45px; height:45px; padding:0; font-size:0.65rem; color:var(--text-dim); border-bottom:1px solid ${alphaColor(0.1)}">${a}</th>`;
     });
     html += '</tr>';
 
     data.assets.forEach(rowAsset => {
-        html += `<tr><td style="padding:8px; font-size:0.75rem; color:var(--text-dim); font-weight:700; text-align:left; border-right:1px solid ${alphaColor(0.1)}">${rowAsset}</td>`;
+        html += `<tr><td style="padding:0 12px; height:45px; font-size:0.65rem; color:var(--text-dim); font-weight:700; text-align:right; border-right:1px solid ${alphaColor(0.1)}">${rowAsset}</td>`;
         data.assets.forEach(colAsset => {
             const pair = data.matrix.find(m => m.assetA === rowAsset && m.assetB === colAsset);
             if (!pair) {
-                html += '<td></td>';
+                html += `<td style="width:45px; height:45px; padding:0; border:1px solid rgba(0,0,0,0.5)"></td>`;
                 return;
             }
             const val = pair.correlation;
@@ -223,7 +223,7 @@ function renderCorrelationTable(data) {
             else bg = `rgba(239, 68, 68, ${Math.min(Math.abs(val), 0.9)})`;
             
             const color = val === 1 ? alphaColor(0.2) : (Math.abs(val) > 0.5 ? 'white' : 'var(--text-dim)');
-            html += `<td style="padding:10px 5px; font-size:0.75rem; background:${bg}; color:${color}; border:1px solid rgba(0,0,0,0.5)">${val.toFixed(2)}</td>`;
+            html += `<td style="width:45px; height:45px; padding:0; font-size:0.65rem; background:${bg}; color:${color}; border:1px solid rgba(0,0,0,0.5)">${val.toFixed(2)}</td>`;
         });
         html += '</tr>';
     });
