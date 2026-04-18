@@ -149,15 +149,15 @@ async function renderLiquidityView(tabs = null) {
 
         // X-axis: bids displayed low-high (left of mid), then asks low-high (right of mid)
         // With linear axis, we just provide [{x, y}] coordinates directly.
-        const bidData = [...bidLevels].reverse().map(b => ({ x: b.price, y: b.cum })); 
-        // Ensure bids touch zero exactly at the current mid price (or closest Ask)
         const midPrice = asks.length > 0 ? asks[0].price : (currentPrice || bids[0]?.price * 1.001 || 84000);
+        const bidData = [...bidLevels].filter(b => b.price <= midPrice).reverse().map(b => ({ x: b.price, y: b.cum })); 
+        // Ensure bids touch zero exactly at the current mid price (or closest Ask)
         bidData.push({ x: midPrice, y: 0 });
         bidData.sort((a, b) => a.x - b.x);
 
         const askData = [];
         askData.push({ x: midPrice, y: 0 }); // Anchor asks to zero at mid price
-        askLevels.forEach(a => askData.push({ x: a.price, y: a.cum }));
+        askLevels.filter(a => a.price >= midPrice).forEach(a => askData.push({ x: a.price, y: a.cum }));
         askData.sort((a, b) => a.x - b.x);
 
         // Y-axis max = same for both sides so curves are visually balanced
@@ -233,11 +233,11 @@ async function renderLiquidityView(tabs = null) {
                     fb.slice(0,20).forEach(b => { cb += b.size; bLvl.push({ price: b.price, cum: cb }); });
                     fa.slice(0,20).forEach(a => { ca += a.size; aLvl.push({ price: a.price, cum: ca }); });
                     const midP = fa.length > 0 ? fa[0].price : (fresh.current_price || fb[0]?.price * 1.001 || 84000);
-                    const bData = [...bLvl].reverse().map(b => ({x: b.price, y: b.cum}));
+                    const bData = [...bLvl].filter(b => b.price <= midP).reverse().map(b => ({x: b.price, y: b.cum}));
                     bData.push({x: midP, y: 0});
                     bData.sort((a,b) => a.x - b.x);
                     
-                    const aData = [{x: midP, y: 0}, ...aLvl.map(a => ({x: a.price, y: a.cum}))];
+                    const aData = [{x: midP, y: 0}, ...aLvl.filter(a => a.price >= midP).map(a => ({x: a.price, y: a.cum}))];
                     aData.sort((a,b) => a.x - b.x);
 
                     const chart = window._gommWallChartInst;
