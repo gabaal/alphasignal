@@ -122,21 +122,23 @@ async function renderMacroSync(tabs = null) {
             }
             
             const fundingData = await fetchAPI('/funding-rates');
-            if (fundingData && fundingData.labels) {
+            if (fundingData && fundingData.rows) {
                 const fundEl = document.getElementById('fundingOscillatorChart');
                 if (fundEl) {
                     const ctx2 = fundEl.getContext('2d');
                 
-                const colors = fundingData.funding_rates.map(r => r > 0.015 ? 'rgba(34, 197, 94, 0.7)' : (r < 0 ? 'rgba(239, 68, 68, 0.7)' : alphaColor(0.2)));
+                const labels = fundingData.rows.map(r => r.asset);
+                const rates = fundingData.rows.map(r => r.current);
+                const colors = rates.map(r => r > 0.015 ? 'rgba(34, 197, 94, 0.7)' : (r < 0 ? 'rgba(239, 68, 68, 0.7)' : alphaColor(0.2)));
                 
                 new Chart(ctx2, {
                     type: 'bar',
                     data: {
-                        labels: fundingData.labels,
+                        labels: labels,
                         datasets: [
                             {
                                 label: 'Est. 8H Funding Bracket (%)',
-                                data: fundingData.funding_rates,
+                                data: rates,
                                 backgroundColor: colors,
                                 borderRadius: 4
                             }
