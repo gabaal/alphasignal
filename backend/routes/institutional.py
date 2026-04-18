@@ -4295,16 +4295,27 @@ class InstitutionalRoutesMixin:
             activity_ranks  = _pct_rank([r['alert_count'] for r in raw])
             ml_ranks        = _pct_rank([r['ml_pred']     for r in raw])
 
-            scored = []
-            for i, r in enumerate(raw):
-                composite = (
+            raw_composites = []
+            for i in range(len(raw)):
+                comp = (
                     WEIGHTS['momentum']  * mom_ranks[i]       +
                     WEIGHTS['ml_pred']   * ml_ranks[i]        +
                     WEIGHTS['sentiment'] * sentiment_ranks[i] +
                     WEIGHTS['activity']  * activity_ranks[i]  +
                     WEIGHTS['stability'] * stability_ranks[i]
                 )
-                score = max(0, min(100, int(round(composite))))
+                raw_composites.append(comp)
+
+            # ── PASS 3: Scale max composite to 100, min to 30 ─────────────────
+            c_min = min(raw_composites)
+            c_max = max(raw_composites)
+            c_span = c_max - c_min if c_max > c_min else 1.0
+
+            scored = []
+            for i, r in enumerate(raw):
+                # Scale composite into 30 - 100 range
+                scaled = 30 + ((raw_composites[i] - c_min) / c_span) * 70
+                score = max(0, min(100, int(round(scaled))))
 
                 lstm_conf = min(98, max(45, int(score * 0.97 + 2)))
                 xgb_conf  = min(96, max(42, int(score * 0.93 + 4)))
