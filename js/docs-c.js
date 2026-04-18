@@ -4,7 +4,7 @@
 // defines key terminology, and describes every view within it.
 
 // ============= SHARED RENDERER =============
-function renderHubOverviewPage({ hubId, icon, color, title, tagline, purpose, whoIsItFor, keyTerms, views, workflowTip, relatedHubs }) {
+function renderHubOverviewPage({ hubId, icon, color, title, tagline, purpose, whoIsItFor, keyTerms, views, workflowTip, relatedHubs, hubTabs, activeTabId }) {
     const termRows = (keyTerms || []).map(t => `
         <div style="padding:1rem 1.25rem;border-bottom:1px solid ${alphaColor(0.05)}">
             <div style="display:flex;align-items:flex-start;gap:12px">
@@ -36,22 +36,26 @@ function renderHubOverviewPage({ hubId, icon, color, title, tagline, purpose, wh
         </button>`).join('');
 
     appEl.innerHTML = `
-        <div style="max-width:860px;padding-bottom:5rem">
-            <!-- Header -->
-            <div class="view-header" style="margin-bottom:2rem">
-                <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:${color};text-transform:uppercase;margin:0 0 6px">Hub Overview</h2>
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:0.75rem">
-                    <span class="material-symbols-outlined" style="font-size:2.2rem;color:${color}">${icon}</span>
-                    <h1 style="margin:0;font-size:1.8rem;font-weight:900">${title}</h1>
-                    <button onclick="switchView('help')" style="margin-left:auto;background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.1)};color:var(--text-dim);padding:5px 12px;border-radius:100px;font-size:0.7rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:5px"
-                        onmouseover="this.style.borderColor='${color}';this.style.color='${color}'" onmouseout="this.style.borderColor=alphaColor(0.1);this.style.color='var(--text-dim)'">
-                        <span class="material-symbols-outlined" style="font-size:14px">arrow_back</span> ALL DOCS
-                    </button>
-                </div>
-                <p style="font-size:1.1rem;color:${color};font-weight:700;margin:0 0 8px;line-height:1.5">${tagline}</p>
-                <p style="font-size:0.95rem;color:var(--text-dim);line-height:1.7;margin:0">${purpose}</p>
+        ${hubTabs ? window.renderHubTabs(activeTabId || 'overview', hubTabs) : ''}
+        <!-- Header (Full Width) -->
+        <div class="view-header" style="margin-bottom:2rem; max-width:860px">
+            <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:${color};text-transform:uppercase;margin:0 0 6px">Hub Overview</h2>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:0.75rem">
+                <span class="material-symbols-outlined" style="font-size:2.2rem;color:${color}">${icon}</span>
+                <h1 style="margin:0;font-size:1.8rem;font-weight:900">${title}</h1>
+                <button onclick="switchView('help')" style="margin-left:auto;background:${alphaColor(0.04)};border:1px solid ${alphaColor(0.1)};color:var(--text-dim);padding:5px 12px;border-radius:100px;font-size:0.7rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:5px"
+                    onmouseover="this.style.borderColor='${color}';this.style.color='${color}'" onmouseout="this.style.borderColor=alphaColor(0.1);this.style.color='var(--text-dim)'">
+                    <span class="material-symbols-outlined" style="font-size:14px">arrow_back</span> ALL DOCS
+                </button>
             </div>
+            <div>
+                <p style="font-size:1.1rem;color:${color};font-weight:700;margin:0 0 8px;line-height:1.5">${tagline}</p>
+                <p style="font-size:0.95rem;color:var(--text-dim);line-height:1.7;margin:0;margin-bottom:1.5rem">${purpose}</p>
+            </div>
+        </div>
 
+        <!-- Documentation Content (Max-Width Constrained) -->
+        <div style="max-width:860px;padding-bottom:5rem">
             <!-- Who is it for -->
             <div style="background:${alphaColor(0.03)};border:1px solid ${alphaColor(0.07)};border-left:3px solid ${color};border-radius:10px;padding:1rem 1.25rem;margin-bottom:2rem">
                 <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:${color};margin-bottom:6px">WHO IS THIS FOR?</div>
@@ -99,6 +103,8 @@ function renderHubOverviewPage({ hubId, icon, color, title, tagline, purpose, wh
 // ============= 1. MACRO INTELLIGENCE HUB =============
 function renderHubOverviewMacro() {
     renderHubOverviewPage({
+        hubTabs: typeof macroHubTabs !== 'undefined' ? macroHubTabs : [],
+        activeTabId: 'overview',
         hubId: 'macro-intel',
         icon: 'monitoring',
         color: '#a78bfa',
@@ -145,6 +151,8 @@ function renderHubOverviewMacro() {
 // ============= 2. ALPHA STRATEGY HUB =============
 function renderHubOverviewAlpha() {
     renderHubOverviewPage({
+        hubTabs: typeof alphaHubTabs !== 'undefined' ? alphaHubTabs : [],
+        activeTabId: 'overview',
         hubId: 'alpha-strategy',
         icon: 'electric_bolt',
         color: '#facc15',
@@ -188,6 +196,8 @@ function renderHubOverviewAlpha() {
 // ============= 3. PORTFOLIO & RISK HUB =============
 function renderHubOverviewInstitutional() {
     renderHubOverviewPage({
+        hubTabs: typeof institutionalHubTabs !== 'undefined' ? institutionalHubTabs : [],
+        activeTabId: 'overview',
         hubId: 'portfolio-risk',
         icon: 'key',
         color: '#fb923c',
@@ -230,6 +240,8 @@ function renderHubOverviewInstitutional() {
 // ============= 4. MARKET ANALYTICS HUB =============
 function renderHubOverviewAnalytics() {
     renderHubOverviewPage({
+        hubTabs: typeof analyticsHubTabs !== 'undefined' ? analyticsHubTabs : [],
+        activeTabId: 'overview',
         hubId: 'market-analytics',
         icon: 'analytics',
         color: '#22c55e',
@@ -274,6 +286,8 @@ function renderHubOverviewAnalytics() {
 // ============= 5. TRADE LEDGER AUDIT HUB =============
 function renderHubOverviewAudit() {
     renderHubOverviewPage({
+        hubTabs: typeof auditHubTabs !== 'undefined' ? auditHubTabs : [],
+        activeTabId: 'overview',
         hubId: 'audit-hub',
         icon: 'trending_up',
         color: '#60a5fa',
@@ -309,6 +323,8 @@ function renderHubOverviewAudit() {
 // ============= 6. ALERTS & WEBHOOKS HUB =============
 function renderHubOverviewAlerts() {
     renderHubOverviewPage({
+        hubTabs: typeof alertsHubTabs !== 'undefined' ? alertsHubTabs : [],
+        activeTabId: 'overview',
         hubId: 'alerts-hub',
         icon: 'notifications_active',
         color: '#f43f5e',

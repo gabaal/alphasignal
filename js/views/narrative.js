@@ -153,11 +153,10 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     const plotW = rect.width  - PAD_LEFT - PAD_RIGHT;
     const plotH = rect.height - PAD_TOP  - PAD_BOTTOM;
 
-    // - Map bubbles from sentiment + momentum onto padded plot area -
-    // sentiment: -1.0 - +1.0  maps to  left - right (X axis)
-    // momentum:  -25% - +25%  maps to  bottom - top (Y axis, canvas inverted)
-    const SENT_RANGE = 1.0;   // clamp sentiment to -1.0
-    const MOM_RANGE  = 7.5;   // clamp momentum  to -7.5 %
+    // sentiment: -0.5 - +0.5  maps to  left - right (X axis)
+    // momentum:  -5% - +5%  maps to  bottom - top (Y axis, canvas inverted)
+    const SENT_RANGE = 0.5;   // clamp sentiment to +-0.5
+    const MOM_RANGE  = 5.0;   // clamp momentum  to +-5.0 %
 
     const stars = clusters.map(c => {
         const sent = Math.max(-SENT_RANGE, Math.min(SENT_RANGE, c.sentiment || 0));
