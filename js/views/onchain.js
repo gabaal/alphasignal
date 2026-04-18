@@ -1660,15 +1660,19 @@ async function renderCustomAnalytics(tabs) {
             // Render as a styled HTML bar table - more informative than a LW chart for point-in-time rates
             const rows = fr.rows;
             const maxAbs = Math.max(...rows.map(r => Math.abs(r.current)));
+            containers.funding.parentElement.style.display = 'flex';
+            containers.funding.parentElement.style.flexDirection = 'column';
+            containers.funding.style.overflowY = 'auto';
+            containers.funding.style.paddingRight = '8px';
             containers.funding.innerHTML =
-                '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:8px;letter-spacing:1px">CURRENT 8H RATE - ' + (fr.source === 'binance_fapi' ? '<span style="color:#22c55e">LIVE BINANCE FAPI</span>' : 'SYNTHETIC') + '</div>' +
+                '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:8px;letter-spacing:1px;position:sticky;top:0;background:var(--bg-card);padding-bottom:5px;z-index:2">CURRENT 8H RATE - ' + (fr.source === 'binance_fapi' ? '<span style="color:#22c55e">LIVE BINANCE FAPI</span>' : 'SYNTHETIC') + '</div>' +
                 rows.map(r => {
                     const pct = maxAbs > 0 ? Math.abs(r.current) / maxAbs * 100 : 0;
                     const clr = r.current >= 0 ? '#00d4aa' : '#ef4444';
                     const sign = r.current >= 0 ? '+' : '';
                     return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
                         '<div style="width:36px;font-size:0.65rem;font-weight:800;font-family:monospace;color:var(--text)">' + r.asset + '</div>' +
-                        '<div style="flex:1;height:14px;background:${alphaColor(0.05)};border-radius:4px;overflow:hidden">' +
+                        '<div style="flex:1;height:14px;background:' + alphaColor(0.05) + ';border-radius:4px;overflow:hidden">' +
                             '<div style="height:100%;width:' + pct.toFixed(1) + '%;background:' + clr + ';border-radius:4px;transition:width 0.4s"></div>' +
                         '</div>' +
                         '<div style="width:70px;text-align:right;font-size:0.7rem;font-weight:700;color:' + clr + ';font-family:monospace">' + sign + r.current + '%</div>' +
@@ -1711,7 +1715,7 @@ async function renderCustomAnalytics(tabs) {
             containers.volatility.innerHTML = '';
             const c3 = LightweightCharts.createChart(containers.volatility, chartOpts(280));
             charts.volatility = { c: c3, id: 'custom-volatility', h: 280 };
-            c3.addAreaSeries({ topColor: 'rgba(139,92,246,0.3)', bottomColor: 'rgba(139,92,246,0.02)', lineColor: '#8b5cf6', lineWidth: 2, title: 'Vol %' }).setData(volData);
+            c3.addAreaSeries({ topColor: 'rgba(139,92,246,0.3)', bottomColor: 'rgba(139,92,246,0.02)', lineColor: '#8b5cf6', lineWidth: 2, title: 'Vol %' }).setData(volData.length ? volData : [{time: oc[0]?.time || Math.floor(Date.now()/1000), value: 0}]);
             c3.timeScale().fitContent();
             _lwAxisLabel(containers.volatility, 'VOL. (% ANN.)', 'DATE');
 
