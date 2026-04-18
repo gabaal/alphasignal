@@ -784,3 +784,32 @@ window.addToWatchlist_quick = window.addToWatchlist_quick || async function(tick
         showToast('ERROR', 'Watchlist add failed: ' + e.message, 'alert');
     }
 };
+
+
+// ============================================================
+// Global Funding Spike Background Monitor
+// ============================================================
+// Ensures institutional funding rate anomalies are surfaced globally via toasts
+// regardless of whether the user is on the Signals tab or not.
+if (!window._globalFundingMonitorStarted) {
+    window._globalFundingMonitorStarted = true;
+    // Delay first check slightly so it doesn\'t double-fire with renderSignals on load
+    setTimeout(() => {
+        setInterval(async () => {
+            // Pause polling if tab is hidden to conserve bandwidth
+            if (document.hidden) return;
+            try {
+                const fr = await fetchAPI('/funding-rates');
+                if (fr && fr.rows) {
+                    let fundingMap = {};
+                    fr.rows.forEach(r => { fundingMap[r.asset] = r.current; });
+                    if (typeof _checkFundingSpikes === 'function') {
+                        _checkFundingSpikes(fundingMap);
+                    }
+                }
+            } catch (e) {
+                // Background polling fail, degrade gracefully
+            }
+        }, 45000); // Check every 45s
+    }, 10000);
+}
