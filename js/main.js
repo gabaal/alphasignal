@@ -464,7 +464,9 @@ function renderCorrelationHeatmap(containerId, data) {
     const n = labels.length;
 
     container.style.display = 'grid';
-    container.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    container.style.gridTemplateColumns = `repeat(${n}, 45px)`;
+    container.style.justifyContent = 'center';
+    container.style.gap = '0';
 
     container.innerHTML = matrix.map(cell => {
         // v = correlation value
@@ -474,7 +476,7 @@ function renderCorrelationHeatmap(containerId, data) {
 
         const opacity = Math.abs(v);
         const color = v > 0 ? `rgba(0, 242, 255, ${opacity})` : `rgba(255, 62, 62, ${opacity})`;
-        return `<div style="aspect-ratio:1; background:${color}; display:flex; align-items:center; justify-content:center; font-size:0.4rem; font-weight:900; color:white; border:1px solid rgba(0,0,0,0.1)" title="${xLabel} vs ${yLabel}: ${v}">
+        return `<div style="width:45px; height:45px; background:${color}; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:900; color:white; border:1px solid rgba(0,0,0,0.1)" title="${xLabel} vs ${yLabel}: ${v}">
             ${xLabel === yLabel ? xLabel : ''}
         </div>`;
     }).join('');
