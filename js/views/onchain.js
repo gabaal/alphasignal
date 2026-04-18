@@ -1354,7 +1354,7 @@ async function renderMacroCalendar(tabs = null) {
             </div>
             <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
         </div>
-        ${renderHubTabs('macro-cal', tabs)}
+        ${renderHubTabs('calendar', tabs)}
             <!-- Advanced Macro Regime Trackers -->
             <div id="macro-regime-widgets" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-top:20px; margin-bottom:2rem;">
                 <div class="glass-card" style="padding:1.5rem">
