@@ -1,4 +1,5 @@
 async function renderMacroSync(tabs = null) {
+    if (!tabs) tabs = macroHubTabs;
     const tabHTML = tabs ? renderHubTabs('macro', tabs) : '';
     appEl.innerHTML = skeleton(2);
     const [data, sectors, corrData] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors'), fetchAPI('/correlation-matrix')]);
