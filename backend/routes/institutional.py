@@ -442,8 +442,15 @@ class InstitutionalRoutesMixin:
             self.send_json({'error': str(e), 'points': [], 'max_sharpe': None, 'min_vol': None})
 
     def handle_funding_rates(self):
-        """Return real Binance FAPI funding rates for 8 perp assets."""
-        assets = ['BTC', 'ETH', 'SOL', 'LINK', 'ADA', 'BNB', 'XRP', 'DOGE']
+        """Return real Binance FAPI funding rates for expanded universe."""
+        core_assets = ['BTC', 'ETH', 'SOL', 'LINK', 'ADA', 'BNB', 'XRP', 'DOGE']
+        galaxy = [
+            'AVAX', 'DOT', 'MATIC', 'NEAR', 'RNDR', 'INJ', 'APT', 'OP', 'ARB', 'SUI', 
+            'SEI', 'TIA', 'FET', 'STX', 'IMX', 'LDO', 'MNT', 'PEPE', 'SHIB', 'WIF', 
+            'TON', 'FIL', 'ICP', 'RUNE', 'GALA', 'FTM', 'AR', 'AAVE', 'MKR', 'TAO', 
+            'ONDO', 'WLD', 'JUP', 'PYTH', 'JTO', 'ORDI'
+        ]
+        assets = core_assets + galaxy
         symbols = [f'{a}USDT' for a in assets]
         hours = list(range(24, 0, -1))
         rows = []
@@ -461,7 +468,7 @@ class InstitutionalRoutesMixin:
 
             # Fetch real 8h funding rate snapshots from Binance FAPI (3 periods = 24h)
             hist_rates_cache = {}
-            for asset in assets:
+            for asset in core_assets: # Only fetch history for core to avoid rate-limits
                 sym_usdt = f'{asset}USDT'
                 try:
                     hr = BCACHE.fetch('fapi:funding_hist', sym_usdt,
@@ -488,10 +495,15 @@ class InstitutionalRoutesMixin:
                 # Ensure the most recent slot always equals the live current rate
                 rates[-1] = base_rate
                 annual = round(base_rate * 3 * 365, 2)  # 8h rate - 3 - 365
-                rows.append({'asset': asset, 'rates': rates, 'current': base_rate, 'annual': annual,
-                             'live': asset in live_rates})
+                
+                # Only include assets that actually returned live data (if the exchange is connected)
+                if asset in live_rates or not items:
+                    rows.append({'asset': asset, 'rates': rates, 'current': base_rate, 'annual': annual,
+                                 'live': asset in live_rates})
+                                 
+            rows.sort(key=lambda x: x['current'], reverse=True)
             source = 'binance_fapi' if live_rates else 'synthetic'
-            self.send_json({'assets': assets, 'hours': hours, 'rows': rows, 'source': source})
+            self.send_json({'assets': [r['asset'] for r in rows], 'hours': hours, 'rows': rows, 'source': source})
         except Exception as e:
             print(f'[FundingRates] {e}')
             self.send_json({'error': str(e)})
