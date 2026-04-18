@@ -304,10 +304,18 @@ window.globalUIWipe = function() {
 window.BinanceSocketManager = {
     sockets: {},
     callbacks: {},
+    reconnectIntervals: {},
+    reconnectAttempts: {},
     
     subscribe: function(symbol, streamName, callback) {
         const streamId = `${symbol.toLowerCase()}@${streamName}`;
-        if (this.sockets[streamId] && this.sockets[streamId].readyState === WebSocket.OPEN) {
+        
+        if (this.reconnectIntervals[streamId]) {
+            clearTimeout(this.reconnectIntervals[streamId]);
+            delete this.reconnectIntervals[streamId];
+        }
+
+        if (this.sockets[streamId] && (this.sockets[streamId].readyState === WebSocket.OPEN || this.sockets[streamId].readyState === WebSocket.CONNECTING)) {
             this.callbacks[streamId] = callback;
             return;
         }
@@ -321,19 +329,45 @@ window.BinanceSocketManager = {
                 if (this.callbacks[streamId]) this.callbacks[streamId](JSON.parse(e.data));
             };
             ws.onerror = (e) => console.error(`[WS Error] ${streamId}`, e);
-            ws.onclose = () => { delete this.sockets[streamId]; };
+            ws.onclose = () => {
+                delete this.sockets[streamId];
+                
+                // Exponential Backoff Auto-Reconnect
+                const attempts = this.reconnectAttempts[streamId] || 0;
+                if (attempts < 8) { // Max 8 attempts (~2 mins total backoff)
+                    const backoffMs = Math.min(1000 * Math.pow(1.5, attempts), 30000);
+                    this.reconnectAttempts[streamId] = attempts + 1;
+                    
+                    console.warn(`[WS Dropped] ${streamId}. Reconnecting in ${Math.round(backoffMs)}ms (Attempt ${this.reconnectAttempts[streamId]})`);
+                    
+                    this.reconnectIntervals[streamId] = setTimeout(() => {
+                        this.subscribe(symbol, streamName, this.callbacks[streamId]);
+                    }, backoffMs);
+                } else {
+                    console.error(`[WS Offline] ${streamId} reached max reconnect attempts.`);
+                }
+            };
+            ws.onopen = () => {
+                this.reconnectAttempts[streamId] = 0; // Reset on success
+            };
         } catch (err) {
             console.error(`[WS Connection Failed] ${streamId}`, err);
         }
     },
     
     closeAll: function() {
+        Object.keys(this.reconnectIntervals).forEach(id => clearTimeout(this.reconnectIntervals[id]));
         Object.keys(this.sockets).forEach(id => {
-            try { this.sockets[id].close(); } catch(e) {}
+            try { 
+                this.sockets[id].onclose = null; // Prevent reconnect storm on bulk close
+                this.sockets[id].close(); 
+            } catch(e) {}
         });
         this.sockets = {};
         this.callbacks = {};
-        console.log("[BinanceSocketManager] All Background OrderBook Streams Paused.");
+        this.reconnectIntervals = {};
+        this.reconnectAttempts = {};
+        console.log("[BinanceSocketManager] All Background Streams Terminated cleanly.");
     }
 };
 

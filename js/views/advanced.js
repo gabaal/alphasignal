@@ -70,16 +70,9 @@ async function renderAdvOverview(symbol, interval) {
 
     
     if (isCrypto) {
-        // Close any previous kline socket before opening a new one
-        if (window.activeBinanceWS) {
-            try { window.activeBinanceWS.close(); } catch(e) {}
-            window.activeBinanceWS = null;
-        }
-        const wsUrl = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`;
-        window.activeBinanceWS = new WebSocket(wsUrl);
-        window.activeBinanceWS.onerror = () => {};  // suppress noisy browser warning
-        window.activeBinanceWS.onmessage = (e) => {
-            const k = JSON.parse(e.data).k;
+        window.BinanceSocketManager.subscribe(symbol, `kline_${interval}`, (data) => {
+            if (!data || !data.k) return;
+            const k = data.k;
             const price = parseFloat(k.c);
             const tick = { time: Math.floor(k.t/1000), open: parseFloat(k.o), high: parseFloat(k.h), low: parseFloat(k.l), close: price };
             
@@ -91,7 +84,7 @@ async function renderAdvOverview(symbol, interval) {
             lastEma50 = (price - lastEma50) * (2/51) + lastEma50;
             ema20Series.update({ time: tick.time, value: lastEma20 });
             ema50Series.update({ time: tick.time, value: lastEma50 });
-        };
+        });
     }
     
     const heatmapData = await fetchAPI(`/liquidity-history?ticker=${symbol.replace('USDT', '-USD')}`);
