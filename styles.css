@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     /* == Core backgrounds ============================================== */
     --bg-deep:    #090c14;
     --bg-body:    #090c14;
@@ -1083,7 +1083,6 @@ select:focus {
 @media (max-width: 600px) {
     /* Hub sub-tabs: horizontal scroll instead of clip */
     .hub-tabs, .sub-tabs, [class*="tab-row"], [class*="-tabs"] {
-        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         flex-wrap: nowrap !important;
         scrollbar-width: none;
@@ -3301,7 +3300,7 @@ button, .intel-action-btn, .nav-item, .signal-card, .glass-card, .hub-tabs butto
     #ask-terminal-input { font-size: 16px !important; }
     #ask-terminal-send { min-width: 64px; min-height: 44px; }
     #ask-terminal-history { max-height: 45vh !important; }
-    .walk-forward-table, [id="walk-forward-panel"] table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+    .walk-forward-table, [id="walk-forward-panel"] table { display: block; -webkit-overflow-scrolling: touch; white-space: nowrap; }
     .glass-card, .intel-card { height: auto !important; min-height: 0 !important; }
     .view-header h1 { font-size: 1.3rem !important; }
     .view-header p { font-size: 0.8rem !important; }
@@ -3383,7 +3382,7 @@ h4 {
 
 /* - Momentum Heatmap Table - */
 #momentum-heatmap-grid table { min-width: 480px; }
-#momentum-heatmap-grid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+#momentum-heatmap-grid { -webkit-overflow-scrolling: touch; }
 
 /* Scrollable heatmap on mobile */
 @media (max-width: 900px) {
@@ -4618,7 +4617,6 @@ input:focus, select:focus, textarea:focus {
     }
     .card,
     .glass-card {
-        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
@@ -4695,8 +4693,18 @@ input:focus, select:focus, textarea:focus {
     padding: 3px 9px !important;
     border-radius: 6px !important;
 }
- 
- / *   P W A   T o u c h   &   N a v i g a t i o n   B e h a v i o r s   * /  
- b o d y   {   o v e r s c r o l l - b e h a v i o r - y :   n o n e ;   - w e b k i t - t a p - h i g h l i g h t - c o l o r :   t r a n s p a r e n t ;   t o u c h - a c t i o n :   p a n - x   p a n - y ;   }  
- . n a v - i t e m ,   . i n t e l - a c t i o n - b t n ,   . a c t i o n - b t n - s t y l e d ,   . t a b - b t n ,   b u t t o n ,   . s i g n a l - c a r d ,   . g l a s s - c a r d ,   . t a p e - i t e m   {   u s e r - s e l e c t :   n o n e ;   - w e b k i t - u s e r - s e l e c t :   n o n e ;   }  
+
  
+ / *   P W A   T o u c h   &   N a v i g a t i o n   B e h a v i o r s   * / 
+ 
+ b o d y   {   o v e r s c r o l l - b e h a v i o r - y :   n o n e ;   - w e b k i t - t a p - h i g h l i g h t - c o l o r :   t r a n s p a r e n t ;   t o u c h - a c t i o n :   p a n - x   p a n - y ;   } 
+ 
+ . n a v - i t e m ,   . i n t e l - a c t i o n - b t n ,   . a c t i o n - b t n - s t y l e d ,   . t a b - b t n ,   b u t t o n ,   . s i g n a l - c a r d ,   . g l a s s - c a r d ,   . t a p e - i t e m   {   u s e r - s e l e c t :   n o n e ;   - w e b k i t - u s e r - s e l e c t :   n o n e ;   } 
+ 
+ 
+
+
+/* Mobile Viewport Constraints Hardenning - Table Wrapper */
+.table-responsive-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.table-responsive-wrapper::-webkit-scrollbar { height: 4px; }
+.table-responsive-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }

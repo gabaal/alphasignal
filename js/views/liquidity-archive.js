@@ -1105,10 +1105,12 @@ async function renderSignalArchive(tabs = null) {
                         <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage+1})" ${(pageInfo&&currentPage>=pageInfo.pages)?'disabled style="opacity:0.5"':''}>NEXT</button>
                     </div>
                 </div>
-                <table id="archive-table" style="width:100%;border-collapse:collapse;font-size:0.75rem">
-                    <thead id="archive-thead"><tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr></thead>
-                    <tbody id="archive-tbody">${renderRows(data)}</tbody>
-                </table>
+                <div class="table-responsive-wrapper">
+                    <table id="archive-table" style="width:100%;border-collapse:collapse;font-size:0.75rem">
+                        <thead id="archive-thead"><tr style="border-bottom:1px solid var(--border)">${buildThead()}</tr></thead>
+                        <tbody id="archive-tbody">${renderRows(data)}</tbody>
+                    </table>
+                </div>
             </div>`;
 
         // - Sort handler: always client-side -

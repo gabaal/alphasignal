@@ -110,19 +110,20 @@ async function renderTradeLab(tabs = null) {
         if (lbGrid) {
             if (leaderboard && leaderboard.length) {
                 lbGrid.innerHTML = `
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>TICKER</th>
-                                <th>SIGNAL DATE</th>
-                                <th>ENTRY</th>
-                                <th>MAX EXCURSION</th>
-                                <th>STATE</th>
-                                <th>RETURN</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${leaderboard.map(lb => `
+                    <div class="table-responsive-wrapper">
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>TICKER</th>
+                                    <th>SIGNAL DATE</th>
+                                    <th>ENTRY</th>
+                                    <th>MAX EXCURSION</th>
+                                    <th>STATE</th>
+                                    <th>RETURN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${leaderboard.map(lb => `
                                 <tr>
                                     <td class="ticker">${lb.ticker}</td>
                                     <td>${lb.date}</td>
@@ -132,8 +133,9 @@ async function renderTradeLab(tabs = null) {
                                     <td class="return ${lb.return >= 0 ? 'pos' : 'neg'}">${lb.return >= 0 ? '+' : ''}${lb.return}%</td>
                                 </tr>
                             `).join('')}
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 `;
             } else {
                 lbGrid.innerHTML = '<p class="empty-state" style="padding:20px; text-align:center; color:var(--text-dim)">No historical performance records available for this cycle.</p>';

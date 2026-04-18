@@ -371,7 +371,7 @@ function openOnchainModal(type) {
                 };
                 const hdr = '<tr><th style="padding:6px 10px"></th>' + cm.assets.map(a => '<th style="font-size:0.65rem;font-weight:800;color:var(--text-dim);padding:6px 8px;letter-spacing:1px;white-space:nowrap">' + a + '</th>').join('') + '</tr>';
                 const rows = cm.assets.map(a => '<tr><td style="font-size:0.65rem;font-weight:800;color:var(--text);padding:6px 10px;white-space:nowrap;letter-spacing:1px">' + a + '</td>' + cm.assets.map(b => cell(lookup[a + '_' + b] || 0)).join('') + '</tr>').join('');
-                container.innerHTML = '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:12px;letter-spacing:2px">90-DAY ROLLING PEARSON CORRELATIONS</div><table style="border-collapse:collapse">' + hdr + rows + '</table>';
+                container.innerHTML = '<div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:12px;letter-spacing:2px">90-DAY ROLLING PEARSON CORRELATIONS</div><div class="table-responsive-wrapper"><table style="border-collapse:collapse">' + hdr + rows + '</table></div>';
             };
             const cached = window._correlationData;
             if (cached && cached.assets && cached.matrix) {
@@ -756,7 +756,7 @@ window._drawBtv2Log = function() {
                 <button class="filter-btn" ${window._btv2Page === totalPages || totalPages === 0 ? 'disabled style="opacity:0.3; cursor:not-allowed"' : `onclick="window._btv2Page++; window._drawBtv2Log()"`}>Next &rarr;</button>
             </div>
         </div>
-        <div style="overflow-x:auto">
+        <div class="table-responsive-wrapper">
             <table style="width:100%;border-collapse:separate;border-spacing:0 4px;font-size:0.75rem" role="table">
                 <thead><tr style="border-bottom:1px solid var(--border)">
                     <th style="${thStyle}" onclick="window._setBtv2Sort('ticker')">Ticker ${getSortIcon('ticker')}</th>
@@ -890,7 +890,7 @@ async function renderOptionsFlow(tabs = null) {
         </div>
         <div class="glass-card" style="padding:1.5rem">
             <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">TOP STRIKES BY OPEN INTEREST</div>
-            <div style="overflow-x:auto">
+            <div class="table-responsive-wrapper">
                 <table style="width:100%;border-collapse:separate;border-spacing:0 3px;font-size:0.75rem" role="table">
                     <thead><tr style="color:var(--text-dim)">
                         ${['Strike','Type','Expiry','IV %','Volume','Open Interest'].map(h => `<th style="text-align:left;padding:6px 10px;font-size:0.6rem;letter-spacing:1px">${h}</th>`).join('')}
