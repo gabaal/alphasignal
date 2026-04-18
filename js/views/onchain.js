@@ -858,17 +858,23 @@ async function renderOptionsFlow(tabs = null) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
             <div class="glass-card" style="padding:1.5rem">
                 <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV SMILE (&plusmn;30% STRIKES)</div>
-                <canvas id="opts-smile-chart" role="img" aria-label="Options implied volatility smile chart" height="220"></canvas>
+                <div style="position:relative; height:220px; width:100%">
+                    <canvas id="opts-smile-chart" role="img" aria-label="Options implied volatility smile chart"></canvas>
+                </div>
             </div>
             <div class="glass-card" style="padding:1.5rem">
                 <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">IV TERM STRUCTURE (ATM)</div>
-                <canvas id="opts-term-chart" role="img" aria-label="Options term structure chart" height="220"></canvas>
+                <div style="position:relative; height:220px; width:100%">
+                    <canvas id="opts-term-chart" role="img" aria-label="Options term structure chart"></canvas>
+                </div>
             </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;margin-bottom:1.5rem" class="gex-grid-mobile">
             <div class="glass-card" style="padding:1.5rem">
                 <div style="font-size:0.7rem;font-weight:800;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:1rem">PUT / CALL VOL SPLIT</div>
-                <canvas id="opts-pcr-chart" role="img" aria-label="Put/call ratio chart" height="220" style="max-width:220px;margin:0 auto;display:block"></canvas>
+                <div style="position:relative; height:220px; width:100%; display:flex; justify-content:center">
+                    <canvas id="opts-pcr-chart" role="img" aria-label="Put/call ratio chart" style="max-width:220px;margin:0 auto;display:block"></canvas>
+                </div>
             </div>
             <div class="glass-card" style="padding:1.5rem">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:8px;">
