@@ -1,4 +1,5 @@
-async function renderMindshare() {
+async function renderMindshare(tabs = null) {
+    if (!tabs) tabs = window.analyticsHubTabs;
     appEl.innerHTML = skeleton(1);
     const [data, tvlData] = await Promise.all([
         fetchAPI(`/mindshare?v=${Date.now()}`),
@@ -7,6 +8,7 @@ async function renderMindshare() {
     if (!data) return;
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><h1><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">share</span> Narrative Radar & Capital Flows</h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-narrative')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button><p>Mapping Narrative Momentum vs Developer Engineering Activity alongside Cross-Chain TVL migration.</p></div>
+        ${tabs ? renderHubTabs('mindshare', tabs) : ''}
         
         <div style="display:grid; grid-template-columns: 1fr 350px; gap:20px; margin-bottom:20px;">
             <div class="mindshare-container" style="margin-bottom:0px; height: 100%;">

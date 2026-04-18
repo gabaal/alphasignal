@@ -82,6 +82,7 @@ const analyticsHubTabs = [
     { id: 'advanced-charting', label: 'ADVANCED CHARTING', view: 'advanced-charting', icon: 'candlestick_chart' },
     { id: 'overview',      label: 'HUB OVERVIEW',   view: 'docs-hub-analytics', icon: 'menu_book' }
 ];
+window.analyticsHubTabs = analyticsHubTabs;
 
 async function renderAnalyticsHub() {
     renderOptionsFlow(analyticsHubTabs);

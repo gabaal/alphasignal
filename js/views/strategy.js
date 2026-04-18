@@ -105,7 +105,7 @@ window.downloadBacktestCSV = function(ticker, strategy) {
 };
 
 async function renderNewsroom(tabs = null) {
-    if (!tabs) tabs = analyticsHubTabs;
+    if (!tabs) tabs = window.analyticsHubTabs;
     appEl.innerHTML = skeleton(4);
     const data = await fetchAPI('/news');
     if (!data) return;
@@ -363,7 +363,7 @@ async function renderStressHub(tabs = null) {
 }
 
 async function renderChainVelocity(tabs = null) {
-    if (!tabs) tabs = analyticsHubTabs;
+    if (!tabs) tabs = window.analyticsHubTabs;
     appEl.innerHTML = skeleton(1);
     const data = await fetchAPI('/chain-velocity');
     if (!data || !data.velocity_data) return;

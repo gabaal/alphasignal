@@ -1758,6 +1758,7 @@ async function renderCustomAnalytics(tabs) {
 // GEX and Volume Profiles
 
 window.renderGexProfile = async function(tabs = null) {
+    if (!tabs) tabs = window.analyticsHubTabs;
     const headerHtml = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
