@@ -386,7 +386,7 @@ function renderHubOverviewMyTerminal() {
         workflowTip: 'Start your morning on the Command Center Dashboard. In 30 seconds you will know: the Fear & Greed reading (market sentiment), ETF flows (institutional conviction), CME gaps (target price levels), and current Volatility Regime. Then open the Watchlist to check overnight P&L on positions. Finally, ask the Ask Terminal for today\'s highest-conviction signals. Total morning routine: under 3 minutes.',
 
         relatedHubs: [
-            { name: 'Alerts & Webhooks', view: 'alerts-hub', icon: 'notifications_active' },
+            { name: 'Alerts & Webhooks', view: 'market-brief-hub', icon: 'notifications_active' },
             { name: 'Strategy & Backtester', view: 'alpha-hub', icon: 'electric_bolt' },
             { name: 'Trade Ledger Audit', view: 'audit-hub', icon: 'trending_up' },
         ]
@@ -421,7 +421,7 @@ function renderHubOverviewExchangeKeys() {
 
         relatedHubs: [
             { name: 'Strategy & Backtester', view: 'alpha-hub', icon: 'electric_bolt' },
-            { name: 'Alerts & Webhooks', view: 'alerts-hub', icon: 'notifications_active' },
+            { name: 'Alerts & Webhooks', view: 'market-brief-hub', icon: 'notifications_active' },
             { name: 'Portfolio & Risk', view: 'institutional-hub', icon: 'key' },
         ]
     });

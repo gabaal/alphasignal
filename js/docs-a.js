@@ -72,7 +72,7 @@ function renderHelp() {
             { name: 'Liquidity Dashboard', desc: '3 components: Orderbook depth chart, Execution tape feed, Institutional liquidity heatmap', route: 'docs-order-flow', icon: 'bar_chart' },
           ]
         },
-        { id: 'alerts-hub', name: 'Alerts & Webhooks', icon: 'notifications_active', color: '#f43f5e', view: 'alerts-hub',
+        { id: 'alerts-hub', name: 'Alerts & Webhooks', icon: 'notifications_active', color: '#f43f5e', view: 'market-brief-hub',
           docs: [
             { name: 'Hub Overview', desc: 'Comprehensive guide to the Alerts & Webhooks Hub, defining key terms and its institutional purpose.', route: 'docs-hub-alerts', icon: 'visibility' },
             { name: 'Live Signal Alerts', desc: '2 components: Alert feed cards, Severity filter controls', route: 'docs-alerts', icon: 'notifications' },
