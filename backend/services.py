@@ -965,6 +965,8 @@ class HarvestService:
         if data is None or data.empty: return
         try:
             tickers = data.columns.get_level_values(1).unique() if isinstance(data.columns, pd.MultiIndex) else []
+            generated_signals = []
+            
             for ticker in tickers:
                 try:
                     if isinstance(data.columns, pd.MultiIndex):
@@ -976,12 +978,15 @@ class HarvestService:
                     close = df['Close']
                     curr_p = float(close.iloc[-1])
 
-                    # RSI-14
+                    # RSI-14 Series
                     delta = close.diff()
                     gain = delta.where(delta > 0, 0).rolling(14).mean()
                     loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
                     rs   = gain / loss.replace(0, 1e-9)
-                    rsi  = float((100 - 100 / (1 + rs)).iloc[-1])
+                    rsi_series = 100 - 100 / (1 + rs)
+                    
+                    curr_rsi = float(rsi_series.iloc[-1])
+                    prev_rsi = float(rsi_series.iloc[-2]) if len(rsi_series) > 1 else curr_rsi
 
                     # MACD crossover
                     ema12 = close.ewm(span=12).mean()
@@ -991,23 +996,24 @@ class HarvestService:
                     macd_cross = float(macd.iloc[-1]) > float(signal_line.iloc[-1]) and float(macd.iloc[-2]) <= float(signal_line.iloc[-2])
                     macd_bear  = float(macd.iloc[-1]) < float(signal_line.iloc[-1]) and float(macd.iloc[-2]) >= float(signal_line.iloc[-2])
 
-                    # Volume spike (>2- above 20d mean)
+                    # Volume spike (>2.5- above 20d mean)
                     vol_spike = False
                     if 'Volume' in df.columns:
                         vols = df['Volume'].dropna()
                         if len(vols) > 20:
                             vol_mean, vol_std = float(vols.rolling(20).mean().iloc[-1]), float(vols.rolling(20).std().iloc[-1])
-                            vol_spike = vol_std > 0 and float(vols.iloc[-1]) > vol_mean + 2 * vol_std
+                            vol_spike = vol_std > 0 and float(vols.iloc[-1]) > vol_mean + 2.5 * vol_std
 
                     sig_type, message, severity = None, '', 'medium'
-                    if rsi < 30:
+                    # Strict Crossover Logic
+                    if curr_rsi < 25 and prev_rsi >= 25:
                         sig_type = 'RSI_OVERSOLD'
-                        message  = f'RSI-14 at {rsi:.1f} - deeply oversold. Potential institutional accumulation setup.'
-                        severity = 'high' if rsi < 25 else 'medium'
-                    elif rsi > 70:
+                        message  = f'RSI-14 crossed under 25 (at {curr_rsi:.1f}) - deeply oversold breakdown.'
+                        severity = 'high'
+                    elif curr_rsi > 75 and prev_rsi <= 75:
                         sig_type = 'RSI_OVERBOUGHT'
-                        message  = f'RSI-14 at {rsi:.1f} - overbought territory. Watch for distribution.'
-                        severity = 'medium'
+                        message  = f'RSI-14 crossed over 75 (at {curr_rsi:.1f}) - severe overbought territory entered.'
+                        severity = 'high'
                     elif macd_cross and vol_spike:
                         sig_type = 'MACD_BULLISH_CROSS'
                         message  = f'MACD bullish crossover confirmed with volume spike on {ticker}. Momentum inflection.'
@@ -1018,119 +1024,157 @@ class HarvestService:
                         severity = 'medium'
                     elif vol_spike:
                         sig_type = 'VOLUME_SPIKE'
-                        message  = f'Volume 2- above 20-day mean on {ticker}. Institutional activity detected.'
+                        message  = f'Volume >2.5x standard deviation above 20-day mean on {ticker}. Institutional footprint.'
                         severity = 'medium'
+                        
                     if sig_type:
-                        # Per-user insert: one row per enabled user
-                        try:
-                            with sqlite3.connect(DB_PATH) as ue_conn2:
-                                ue_c2 = ue_conn2.cursor()
-                                ue_c2.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
-                                rule_users = [r[0] for r in ue_c2.fetchall()]
-                        except:
-                            rule_users = []
-
-                        for ru_email in rule_users:
-                            # 3-hour DB dedup: skip if we already recorded this alert within 3h
-                            c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-3 hours')",
-                                      (ticker, sig_type, ru_email))
-                            if c.fetchone(): continue
-                            _dir = 'LONG' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'SHORT' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
-                            _cat = next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
-                            c.execute(
-                                "INSERT INTO alerts_history "
-                                "(type, ticker, message, severity, price, timestamp, direction, category, user_email) "
-                                "VALUES (?,?,?,?,?,?,?,?,?)",
-                                (sig_type, ticker, message, severity, curr_p,
-                                 datetime.now().isoformat(), _dir, _cat, ru_email)
-                            )
-
-                        if rule_users:
-                            print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} -> {len(rule_users)} user row(s)')
-
-
-                            # Multi-channel dispatch - notify users with alerts_enabled
-                            try:
-                                with sqlite3.connect(DB_PATH) as notify_conn:
-                                    notify_c = notify_conn.cursor()
-                                    notify_c.execute("""SELECT user_email, z_threshold,
-                                                               whale_threshold, depeg_threshold,
-                                                               vol_spike_threshold, cme_gap_threshold
-                                                        FROM user_settings WHERE alerts_enabled = 1""")
-                                    for row in notify_c.fetchall():
-                                        (n_email, n_z, n_whale, n_depeg, n_vol, n_cme) = row
-                                        user_z    = float(n_z)     if n_z     else 2.0
-                                        user_whale= float(n_whale) if n_whale else 5.0
-                                        user_depeg= float(n_depeg) if n_depeg else 1.0
-                                        user_vol  = float(n_vol)   if n_vol   else 2.0
-                                        user_cme  = float(n_cme)   if n_cme   else 1.0
-
-                                        # Per-signal-type threshold gates
-                                        if sig_type in ('RSI_OVERSOLD', 'RSI_OVERBOUGHT', 'MACD_BULLISH_CROSS', 'MACD_BEARISH_CROSS', 'ML_ALPHA_PREDICTION'):
-                                            if severity == 'medium' and user_z > 1.5:
-                                                continue
-                                        elif sig_type == 'VOLUME_SPIKE':
-                                            # vol_spike_threshold is - multiplier (default 2x)
-                                            # signal already fired at 2-; only suppress if user wants >user_vol -
-                                            if user_vol > 2.0:
-                                                continue  # they want a stricter vol spike
-                                        elif sig_type == 'WHALE_TXN':
-                                            txn_usd = curr_p  # curr_p carries txn size in $M for whale signals
-                                            if txn_usd < user_whale:
-                                                continue
-                                        elif sig_type == 'DEPEG':
-                                            if curr_p < user_depeg:  # curr_p carries depeg % for depeg signals
-                                                continue
-                                        elif sig_type == 'CME_GAP':
-                                            if curr_p < user_cme:  # curr_p carries gap % for CME signals
-                                                continue
-                                        direction = 'BULLISH' if sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS') else 'BEARISH' if sig_type in ('RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS') else 'NEUTRAL'
-                                        embed_color = 0x22c55e if direction == 'BULLISH' else 0xef4444 if direction == 'BEARISH' else 0x00f2ff
-                                        # 3-hour push cooldown: suppress duplicate Telegram/Discord
-                                        # pushes even if DB anti-spam somehow passes (e.g. first fire
-                                        # in this cycle before the INSERT is committed).
-                                        if NotificationService.is_on_cooldown(n_email, ticker, sig_type):
-                                            continue
-                                        NotificationService.mark_sent(n_email, ticker, sig_type)
-                                        NOTIFY.push_webhook(
-                                            n_email,
-                                            f"{sig_type.replace('_', ' ')}: {ticker}",
-                                            message,
-                                            embed_color=embed_color,
-                                            fields=[
-                                                {"name": "Ticker",    "value": ticker,                "inline": True},
-                                                {"name": "Price",     "value": f"${curr_p:,.4f}",    "inline": True},
-                                                {"name": "Signal",    "value": sig_type,             "inline": True},
-                                                {"name": "Severity",  "value": severity.upper(),     "inline": True},
-                                                {"name": "RSI-14",    "value": f"{rsi:.1f}",         "inline": True},
-                                                {"name": "Direction", "value": direction,            "inline": True},
-                                            ]
-                                        )
-                            except Exception as ne:
-                                print(f'[RuleSig Notify] Error: {ne}')
-
-                            # Real-time WS push to frontend alert list
-                            if self.ws_server:
-                                try:
-                                    self.ws_server.broadcast(json.dumps({
-                                        'type': 'new_alert',
-                                        'data': {
-                                            'id': c.lastrowid,
-                                            'type': sig_type,
-                                            'ticker': ticker,
-                                            'title': f"{ticker} - {sig_type.replace('_', ' ')}",
-                                            'content': message,
-                                            'severity': severity,
-                                            'price': curr_p,
-                                            'timestamp': datetime.now().isoformat()
-                                        }
-                                    }))
-                                except: pass
+                        generated_signals.append({
+                            'ticker': ticker, 'sig_type': sig_type, 'message': message, 
+                            'severity': severity, 'curr_p': curr_p, 'curr_rsi': curr_rsi
+                        })
                 except Exception as te:
                     continue
+            
+            # --- Macro Clustering & Grouping ---
+            from collections import Counter
+            sig_counts = Counter(s['sig_type'] for s in generated_signals)
+            
+            # Identify types that hit > 5 tickers in the same cycle (Macro Shift)
+            squelched_types = set([stype for stype, count in sig_counts.items() if count > 5])
+            
+            # If squelched, fire exactly ONE aggregate signal per squelched type
+            for stype in squelched_types:
+                affected = [s for s in generated_signals if s['sig_type'] == stype]
+                tickers_list = [s['ticker'] for s in affected]
+                count = len(tickers_list)
+                
+                # Create a generic representation of this macro wave
+                agg_ticker = "BROAD MARKET"
+                agg_sig_type = f"URL_MACRO_SHIFT_{stype}"
+                agg_message = f"Systemic {stype} detected across {count} assets sequentially. Market structural displacement."
+                if count <= 15:
+                    agg_message += f" Affecting: {', '.join(tickers_list[:5])}..."
+                agg_curr_p = 0.0
+                
+                # Emit the aggregate signal directly
+                self._dispatch_rule_signal(agg_sig_type, agg_ticker, agg_message, 'critical', agg_curr_p, 0.0, conn, c, is_macro=True)
+            
+            # Now dispatch individual signals that were NOT squelched
+            for sig in generated_signals:
+                if sig['sig_type'] not in squelched_types:
+                    self._dispatch_rule_signal(sig['sig_type'], sig['ticker'], sig['message'], sig['severity'], sig['curr_p'], sig['curr_rsi'], conn, c)
+                    
         except Exception as e:
-            print(f'[RuleSig] Error: {e}')
+            print(f'[RuleSig] Error in _generate_rule_based_signals: {e}')
 
+    def _dispatch_rule_signal(self, sig_type, ticker, message, severity, curr_p, rsi, conn, c, is_macro=False):
+        try:
+            try:
+                with sqlite3.connect(DB_PATH) as ue_conn2:
+                    ue_c2 = ue_conn2.cursor()
+                    ue_c2.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
+                    rule_users = [r[0] for r in ue_c2.fetchall()]
+            except:
+                rule_users = []
+
+            users_inserted = 0
+            for ru_email in rule_users:
+                # 3-hour DB dedup: skip if we already recorded this alert within 3h
+                c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-3 hours')",
+                          (ticker, sig_type, ru_email))
+                if c.fetchone(): continue
+                
+                # We default broadly
+                _dir = 'LONG' if 'OVERSOLD' in sig_type or 'BULLISH' in sig_type else 'SHORT' if 'OVERBOUGHT' in sig_type or 'BEARISH' in sig_type else 'NEUTRAL'
+                _cat = 'MACRO' if is_macro else next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
+                
+                c.execute(
+                    "INSERT INTO alerts_history "
+                    "(type, ticker, message, severity, price, timestamp, direction, category, user_email) "
+                    "VALUES (?,?,?,?,?,?,?,?,?)",
+                    (sig_type, ticker, message, severity, curr_p,
+                     datetime.now().isoformat(), _dir, _cat, ru_email)
+                )
+                users_inserted += 1
+
+            if users_inserted > 0:
+                print(f'[RuleSig] {sig_type} on {ticker} @ {curr_p:.4f} -> {users_inserted} user row(s)')
+
+                # Multi-channel dispatch
+                try:
+                    with sqlite3.connect(DB_PATH) as notify_conn:
+                        notify_c = notify_conn.cursor()
+                        notify_c.execute("""SELECT user_email, z_threshold,
+                                                   whale_threshold, depeg_threshold,
+                                                   vol_spike_threshold, cme_gap_threshold
+                                            FROM user_settings WHERE alerts_enabled = 1""")
+                        for row in notify_c.fetchall():
+                            (n_email, n_z, n_whale, n_depeg, n_vol, n_cme) = row
+                            user_z    = float(n_z)     if n_z     else 2.0
+                            user_whale= float(n_whale) if n_whale else 5.0
+                            user_depeg= float(n_depeg) if n_depeg else 1.0
+                            user_vol  = float(n_vol)   if n_vol   else 2.0
+                            user_cme  = float(n_cme)   if n_cme   else 1.0
+
+                            # Per-signal-type threshold gates
+                            if sig_type in ('RSI_OVERSOLD', 'RSI_OVERBOUGHT', 'MACD_BULLISH_CROSS', 'MACD_BEARISH_CROSS'):
+                                if severity == 'medium' and user_z > 1.5:
+                                    continue
+                            elif sig_type == 'VOLUME_SPIKE':
+                                if user_vol > 2.5: # was checking generic > 2.0
+                                    continue  
+                            elif sig_type == 'WHALE_TXN':
+                                txn_usd = curr_p  
+                                if txn_usd < user_whale:
+                                    continue
+                            elif sig_type == 'DEPEG':
+                                if curr_p < user_depeg:  
+                                    continue
+                            elif sig_type == 'CME_GAP':
+                                if curr_p < user_cme:  
+                                    continue
+                                    
+                            direction = 'BULLISH' if 'OVERSOLD' in sig_type or 'BULLISH' in sig_type else 'BEARISH' if 'OVERBOUGHT' in sig_type or 'BEARISH' in sig_type else 'NEUTRAL'
+                            embed_color = 0x22c55e if direction == 'BULLISH' else 0xef4444 if direction == 'BEARISH' else 0x00f2ff
+                            
+                            if NotificationService.is_on_cooldown(n_email, ticker, sig_type):
+                                continue
+                            NotificationService.mark_sent(n_email, ticker, sig_type)
+                            NOTIFY.push_webhook(
+                                n_email,
+                                f"{sig_type.replace('_', ' ')}: {ticker}",
+                                message,
+                                embed_color=embed_color,
+                                fields=[
+                                    {"name": "Ticker",    "value": ticker,                "inline": True},
+                                    {"name": "Price",     "value": f"${curr_p:,.4f}" if curr_p > 0 else 'N/A', "inline": True},
+                                    {"name": "Signal",    "value": sig_type.split('URL_MACRO_SHIFT_')[-1] if is_macro else sig_type, "inline": True},
+                                    {"name": "Severity",  "value": severity.upper(),     "inline": True},
+                                    {"name": "RSI-14",    "value": f"{rsi:.1f}" if not is_macro else "MACRO", "inline": True},
+                                    {"name": "Direction", "value": direction,            "inline": True},
+                                ]
+                            )
+                except Exception as ne:
+                    print(f'[RuleSig Notify] Error: {ne}')
+
+                if self.ws_server:
+                    try:
+                        self.ws_server.broadcast(json.dumps({
+                            'type': 'new_alert',
+                            'data': {
+                                'id': c.lastrowid,
+                                'type': sig_type,
+                                'ticker': ticker,
+                                'title': f"{ticker} - {sig_type.replace('_', ' ')}",
+                                'content': message,
+                                'severity': severity,
+                                'price': curr_p,
+                                'timestamp': datetime.now().isoformat()
+                            }
+                        }))
+                    except: pass
+        except Exception as e:
+            print(f'[RuleSig Dispatch] Error: {e}')
 
     def record_orderbook_snapshots(self):
         """Phase 8: Resilient Snapshots.
