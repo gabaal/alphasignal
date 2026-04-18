@@ -731,8 +731,8 @@ window.renderLobHeatmap = async function(tabs = null, selectedTicker = 'BTC') {
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
                 <div style="display:flex;align-items:center;gap:15px">
                     <h3 style="margin:0">Limit Order Book (LOB) Density</h3>
-                    <select onchange="renderLobHeatmap(null, this.value)" style="background:rgba(0,0,0,0.2); color:var(--accent); border:1px solid rgba(0,242,255,0.3); padding:4px 12px; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:0.75rem; font-weight:800; outline:none; cursor:pointer">
-                        ${galaxy.map(t => `<option value="${t}" ${t === selectedTicker ? 'selected' : ''} style="background:var(--bg-card);color:var(--text)">${t}-USD</option>`).join('')}
+                    <select onchange="renderLobHeatmap(null, this.value)" style="background:#09090b; color:var(--accent); border:1px solid rgba(0,242,255,0.3); padding:4px 12px; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:0.75rem; font-weight:800; outline:none; cursor:pointer">
+                        ${galaxy.map(t => `<option value="${t}" ${t === selectedTicker ? 'selected' : ''} style="background:#09090b;color:#e2e8f0">${t}-USD</option>`).join('')}
                     </select>
                 </div>
                 <span class="badge outline" style="margin:0">${data.ticker} / Spot: ${data.prices[Math.floor(data.prices.length/2)].toLocaleString()}</span>
