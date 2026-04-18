@@ -43,7 +43,7 @@ async function renderMacroSync(tabs = null) {
                 <div class="card-header" style="margin-bottom:15px">
                     <h3>Sector Hierarchy Treemap <span style="font-size:0.8rem; color:var(--text-dim)">(Rotational Dominance Matrix)</span></h3>
                 </div>
-                <div id="sector-treemap" style="height:350px; width:100%; border-radius:8px; overflow:hidden; position:relative;  border:1px solid ${alphaColor(0.05)};"></div>
+                <div id="sector-treemap" style="height:220px; width:100%; border-radius:8px; overflow:hidden; position:relative;  border:1px solid ${alphaColor(0.05)};"></div>
                 <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
                     Box size represents aggregate Sector Market Capitalization. Color intensity maps 24H directional momentum.
                 </div>
