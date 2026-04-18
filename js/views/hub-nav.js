@@ -34,7 +34,7 @@ const macroHubTabs = [
 ];
 
 async function renderMacroHub() {
-    renderMacroSync(macroHubTabs); 
+    renderBriefing(macroHubTabs); 
 }
 
 // ============= Alpha Strategy Hub =============
