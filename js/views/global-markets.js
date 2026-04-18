@@ -698,8 +698,11 @@ async function renderYieldLab(tabs = null) {
     `;
 };
 // ============= LOB Heatmap View =============
-window.renderLobHeatmap = async function(tabs = null) {
+window.renderLobHeatmap = async function(tabs = null, selectedTicker = 'BTC') {
     if (!tabs) tabs = macroHubTabs;
+
+    const galaxy = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'AVAX', 'DOGE', 'DOT', 'LINK', 'MATIC', 'SHIB', 'LTC', 'BCH', 'ATOM', 'UNI', 'ICP', 'ETC', 'XLM', 'NEAR', 'FIL', 'INJ', 'OP', 'ARB', 'APT', 'TIA', 'SUI', 'SEI', 'RNDR', 'MKR', 'AAVE', 'SNX', 'LDO', 'GMX', 'CRV', 'DYDX', 'BLUR', 'PEPE', 'WIF', 'BONK', 'ORDI', 'SATS', 'STX', 'TAO'];
+
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;">
             <div>
@@ -709,10 +712,10 @@ window.renderLobHeatmap = async function(tabs = null) {
             <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-lob-heatmap')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
         ${renderHubTabs('lob', tabs)}
-        <div style="color:var(--text-dim)">Loading High-Density LOB...</div>
+        <div style="color:var(--text-dim)">Loading High-Density LOB for ${selectedTicker}...</div>
     `;
     
-    const data = await fetchAPI('/lob-heatmap?ticker=BTC');
+    const data = await fetchAPI('/lob-heatmap?ticker=' + selectedTicker);
     if (data.error) { appEl.innerHTML += `<div style="color:red">${data.error}</div>`; return; }
     
     appEl.innerHTML = `
@@ -725,9 +728,14 @@ window.renderLobHeatmap = async function(tabs = null) {
         </div>
         ${renderHubTabs('lob', tabs)}
         <div class="glass-card" style="padding:1.5rem">
-            <div style="display:flex;justify-content:space-between">
-                <h3>Limit Order Book (LOB) Density</h3>
-                <span class="badge outline">${data.ticker} / Spot: ${data.prices[Math.floor(data.prices.length/2)]}</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
+                <div style="display:flex;align-items:center;gap:15px">
+                    <h3 style="margin:0">Limit Order Book (LOB) Density</h3>
+                    <select onchange="renderLobHeatmap(null, this.value)" style="background:rgba(0,0,0,0.2); color:var(--accent); border:1px solid rgba(0,242,255,0.3); padding:4px 12px; border-radius:6px; font-family:'JetBrains Mono', monospace; font-size:0.75rem; font-weight:800; outline:none; cursor:pointer">
+                        ${galaxy.map(t => `<option value="${t}" ${t === selectedTicker ? 'selected' : ''} style="background:var(--bg-card);color:var(--text)">${t}-USD</option>`).join('')}
+                    </select>
+                </div>
+                <span class="badge outline" style="margin:0">${data.ticker} / Spot: ${data.prices[Math.floor(data.prices.length/2)].toLocaleString()}</span>
             </div>
             <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1rem">Visualizing resting limit orders. Brighter colors indicate heavier liquidity walls.</p>
             <div style="height:500px;width:100%;position:relative;"><canvas id="lobChart"></canvas></div>
