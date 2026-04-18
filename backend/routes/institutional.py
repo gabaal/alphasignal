@@ -4159,7 +4159,21 @@ class InstitutionalRoutesMixin:
             self.send_json({'results': []})
 
     def handle_alpha_score(self):
-        """Feature 2: Composite Alpha Score (0-100) for each asset in the universe."""
+        """Composite Alpha Score (0-100) using two-pass percentile ranking.
+
+        Pass 1: collect raw component values for every asset.
+        Pass 2: rank each component within the universe (percentile 0-100),
+                then combine with weights.  This guarantees a genuine spread of
+                scores rather than everyone hitting the ceiling.
+        """
+        WEIGHTS = {
+            'momentum':  0.35,   # 5d + 20d price return
+            'ml_pred':   0.30,   # ML engine predicted return
+            'sentiment': 0.15,   # news/social sentiment
+            'activity':  0.10,   # alert signal density (relative)
+            'stability': 0.10,   # low volatility = higher score
+        }
+
         try:
             assets = []
             for sector, tickers in UNIVERSE.items():
@@ -4167,99 +4181,147 @@ class InstitutionalRoutesMixin:
                     continue
                 for t in tickers:
                     assets.append({'ticker': t, 'sector': sector})
+
             all_tickers = [a['ticker'] for a in assets]
             data = CACHE.download(all_tickers, period='60d', interval='1d')
-            scored = []
+
+            # ── PASS 1: collect raw component values ──────────────────────────
+            raw = []   # list of dicts, one per asset
             for asset in assets:
                 t = asset['ticker']
-                score = 50
-                reasons = []
                 try:
                     prices = None
-                    if data is not None and (not data.empty):
+                    if data is not None and not data.empty:
                         if t in data.columns:
                             prices = data[t].dropna()
                         elif hasattr(data.columns, 'levels'):
                             try:
                                 prices = data['Close'][t].dropna()
-                            except:
+                            except Exception:
                                 pass
-                    mom_score = 0
+
+                    # Momentum: combined 5d and 20d return
+                    mom = 0.0
+                    ret_5d = ret_20d = 0.0
                     if prices is not None and len(prices) >= 6:
-                        ret_5d = float((prices.iloc[-1] - prices.iloc[-5]) / prices.iloc[-5] * 100)
-                        ret_20d = float((prices.iloc[-1] - prices.iloc[-20]) / prices.iloc[-20] * 100) if len(prices) >= 21 else 0
-                        mom_score = max(-20, min(20, ret_5d * 2)) + max(-20, min(20, ret_20d))
-                        score += mom_score
-                        if ret_5d > 3:
-                            reasons.append(f'+{ret_5d:.1f}% 5d momentum')
-                        elif ret_5d < -3:
-                            reasons.append(f'{ret_5d:.1f}% 5d decline')
-                    sentiment = get_sentiment(t)
-                    sent_score = int(sentiment * 30)
-                    score += sent_score
-                    if sentiment > 0.3:
-                        reasons.append('Positive news sentiment')
-                    elif sentiment < -0.3:
-                        reasons.append('Negative news flow')
-                    conn = sqlite3.connect(DB_PATH)
-                    c = conn.cursor()
-                    c.execute("SELECT COUNT(*) FROM alerts_history WHERE ticker=? AND timestamp > datetime('now', '-72 hours')", (t,))
-                    alert_count = c.fetchone()[0]
-                    conn.close()
-                    if alert_count > 0:
-                        score += 15
-                        reasons.append(f'Engine signal ({alert_count} in 72h)')
+                        ret_5d  = float((prices.iloc[-1] - prices.iloc[-5])  / prices.iloc[-5]  * 100)
+                        ret_20d = float((prices.iloc[-1] - prices.iloc[-20]) / prices.iloc[-20] * 100) if len(prices) >= 21 else 0.0
+                        mom = ret_5d * 0.6 + ret_20d * 0.4
+
+                    # Volatility (lower = better; store raw vol so we invert later)
+                    vol = 0.0
                     if prices is not None and len(prices) >= 20:
                         vol = float(prices.pct_change().std() * 100)
-                        if vol > 8:
-                            score -= 10
-                            reasons.append(f'High volatility ({vol:.1f}%/d)')
-                    pred = ML_ENGINE.predict(t, data[t].dropna() if t in data.columns else None)
-                    if pred:
-                        p_ret = pred['predicted_return']
-                        if p_ret > 0.03:
-                            score += 25
-                            reasons.append(f'ML Alpha High (+{p_ret * 100:.1f}%)')
-                        elif p_ret > 0.01:
-                            score += 15
-                            reasons.append(f'ML Alpha Med (+{p_ret * 100:.1f}%)')
-                        elif p_ret < -0.02:
-                            score -= 15
-                            reasons.append(f'ML Bearish Pred ({p_ret * 100:.1f}%)')
-                    raw_score = int(score)   # capture BEFORE clamp for normalisation
-                    score = max(0, min(100, raw_score))
-                    if prices is not None and len(prices) > 0:
-                        current_price = round(float(prices.iloc[-1]), 4)
-                    else:
-                        current_price = 0.0
-                    # Deterministic confidence - linear function of score, no jitter
-                    lstm_conf = min(98, max(45, int(score * 0.97 + 2)))
-                    xgb_conf  = min(96, max(42, int(score * 0.93 + 4)))
-                    consensus = 'HIGH' if score >= 75 else 'MEDIUM' if score >= 50 else 'LOW'
-                    scored.append({'ticker': t, 'sector': asset['sector'], 'score': score, '_raw': raw_score, 'price': current_price, 'grade': 'A' if score >= 80 else 'B' if score >= 60 else 'C' if score >= 40 else 'D', 'signal': 'STRONG BUY' if score >= 80 else 'BUY' if score >= 65 else 'NEUTRAL' if score >= 45 else 'CAUTION', 'reasons': reasons[:3], 'lstm_conf': lstm_conf, 'xgb_conf': xgb_conf, 'consensus': consensus})
-                except Exception as asset_e:
-                    continue
-            # ── Rank-normalise raw scores so they span the full 0-100 range ──
-            # Without this, uniform ML/sentiment signals push everything to 100.
-            if scored:
-                raw_scores = [a['_raw'] for a in scored]
-                raw_min = min(raw_scores)
-                raw_max = max(raw_scores)
-                raw_range = raw_max - raw_min if raw_max > raw_min else 1
 
-                for a in scored:
-                    # Map raw score into 30-100 (worst → 30, best → 100)
-                    normalised = 30 + int((a['_raw'] - raw_min) / raw_range * 70)
-                    normalised  = max(0, min(100, normalised))
-                    a['score']     = normalised
-                    a['grade']     = 'A' if normalised >= 80 else 'B' if normalised >= 60 else 'C' if normalised >= 40 else 'D'
-                    a['signal']    = 'STRONG BUY' if normalised >= 80 else 'BUY' if normalised >= 65 else 'NEUTRAL' if normalised >= 45 else 'CAUTION'
-                    a['consensus'] = 'HIGH' if normalised >= 75 else 'MEDIUM' if normalised >= 50 else 'LOW'
-                    lstm_conf      = min(98, max(45, int(normalised * 0.97 + 2)))
-                    xgb_conf       = min(96, max(42, int(normalised * 0.93 + 4)))
-                    a['lstm_conf'] = lstm_conf
-                    a['xgb_conf']  = xgb_conf
-                    del a['_raw']  # strip internal field before sending
+                    # Sentiment
+                    sentiment = float(get_sentiment(t))
+
+                    # Alert activity (raw count in 72h)
+                    try:
+                        conn = sqlite3.connect(DB_PATH)
+                        c_db = conn.cursor()
+                        c_db.execute(
+                            "SELECT COUNT(*) FROM alerts_history WHERE ticker=? AND timestamp > datetime('now', '-72 hours')",
+                            (t,)
+                        )
+                        alert_count = c_db.fetchone()[0]
+                        conn.close()
+                    except Exception:
+                        alert_count = 0
+
+                    # ML predicted return
+                    ml_pred = 0.0
+                    try:
+                        pred = ML_ENGINE.predict(t, data[t].dropna() if (data is not None and t in data.columns) else None)
+                        if pred:
+                            ml_pred = float(pred.get('predicted_return', 0.0))
+                    except Exception:
+                        ml_pred = 0.0
+
+                    current_price = round(float(prices.iloc[-1]), 4) if (prices is not None and len(prices) > 0) else 0.0
+
+                    # Build reason labels from raw values
+                    reasons = []
+                    if ret_5d > 3:
+                        reasons.append(f'+{ret_5d:.1f}% 5d momentum')
+                    elif ret_5d < -3:
+                        reasons.append(f'{ret_5d:.1f}% 5d decline')
+                    if ml_pred > 0.01:
+                        reasons.append(f'ML Alpha +{ml_pred*100:.1f}%')
+                    elif ml_pred < -0.01:
+                        reasons.append(f'ML Bearish {ml_pred*100:.1f}%')
+                    if alert_count > 0:
+                        reasons.append(f'Engine signal ({alert_count} in 72h)')
+                    if vol > 8:
+                        reasons.append(f'High vol ({vol:.1f}%/d)')
+                    elif sentiment > 0.3:
+                        reasons.append('Positive news sentiment')
+
+                    raw.append({
+                        'ticker':        t,
+                        'sector':        asset['sector'],
+                        'price':         current_price,
+                        'mom':           mom,
+                        'vol':           vol,
+                        'sentiment':     sentiment,
+                        'alert_count':   alert_count,
+                        'ml_pred':       ml_pred,
+                        'reasons':       reasons[:3],
+                    })
+                except Exception:
+                    continue
+
+            if not raw:
+                self.send_json({'scores': [], 'error': 'No data'})
+                return
+
+            # ── PASS 2: percentile-rank each component ─────────────────────────
+            def _pct_rank(values):
+                """Return 0-100 percentile rank for each value in the list."""
+                n = len(values)
+                if n == 1:
+                    return [50.0]
+                sorted_vals = sorted(values)
+                v_min, v_max = sorted_vals[0], sorted_vals[-1]
+                span = v_max - v_min
+                if span == 0:
+                    return [50.0] * n
+                return [round((v - v_min) / span * 100, 1) for v in values]
+
+            mom_ranks       = _pct_rank([r['mom']         for r in raw])
+            # Stability = INVERTED volatility (low vol ranks high)
+            stability_ranks = _pct_rank([-r['vol']        for r in raw])
+            sentiment_ranks = _pct_rank([r['sentiment']   for r in raw])
+            activity_ranks  = _pct_rank([r['alert_count'] for r in raw])
+            ml_ranks        = _pct_rank([r['ml_pred']     for r in raw])
+
+            scored = []
+            for i, r in enumerate(raw):
+                composite = (
+                    WEIGHTS['momentum']  * mom_ranks[i]       +
+                    WEIGHTS['ml_pred']   * ml_ranks[i]        +
+                    WEIGHTS['sentiment'] * sentiment_ranks[i] +
+                    WEIGHTS['activity']  * activity_ranks[i]  +
+                    WEIGHTS['stability'] * stability_ranks[i]
+                )
+                score = max(0, min(100, int(round(composite))))
+
+                lstm_conf = min(98, max(45, int(score * 0.97 + 2)))
+                xgb_conf  = min(96, max(42, int(score * 0.93 + 4)))
+                consensus = 'HIGH' if score >= 75 else 'MEDIUM' if score >= 50 else 'LOW'
+
+                scored.append({
+                    'ticker':       r['ticker'].replace('-USD', '') if len(r['ticker']) > 8 else r['ticker'],
+                    'sector':       r['sector'],
+                    'score':        score,
+                    'price':        r['price'],
+                    'grade':        'A' if score >= 80 else 'B' if score >= 60 else 'C' if score >= 40 else 'D',
+                    'signal':       'STRONG BUY' if score >= 80 else 'BUY' if score >= 65 else 'NEUTRAL' if score >= 45 else 'CAUTION',
+                    'reasons':      r['reasons'],
+                    'lstm_conf':    lstm_conf,
+                    'xgb_conf':     xgb_conf,
+                    'consensus':    consensus,
+                })
 
             scored.sort(key=lambda x: x['score'], reverse=True)
 
