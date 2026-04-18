@@ -18,7 +18,7 @@ function renderHubTabs(activeTab, tabs) {
 // ============= Macro Intelligence Hub =============
 const macroHubTabs = [
     { id: 'briefing', label: 'MARKET BRIEFING', view: 'briefing', icon: 'description' },
-    { id: 'macro', label: 'MACRO COMPASS', view: 'macro-hub', icon: 'public' },
+    { id: 'macro', label: 'MACRO COMPASS', view: 'macro', icon: 'public' },
     { id: 'flow', label: 'CAPITAL FLOWS', view: 'flow', icon: 'swap_horiz' },
     { id: 'rotation', label: 'SECTOR ROTATION', view: 'rotation', icon: 'rotate_right' },
     { id: 'capital-rotation', label: 'CAPITAL ROTATION', view: 'capital-rotation', icon: 'donut_large' },
