@@ -561,7 +561,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/api/dev/mock-signals', '/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard', '/api/funding-rates', '/api/options-signal', '/api/prices']
+                public_routes = ['/api/dev/mock-signals', '/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard', '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe']
                 free_auth_routes = ['/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete', '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory']
                 # /api/signal/{id} is fully public - no auth gate for shared links
                 if path.startswith('/api/signal/'):
@@ -792,6 +792,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_cohort_waves()
             elif path == '/api/yield-lab':
                 self.handle_yield_lab()
+            elif path == '/api/universe':
+                self.handle_universe()
             elif path == '/api/watchlist':
                 self.handle_watchlist_get(auth_info)
             elif path == '/api/oms-dashboard':

@@ -1288,6 +1288,39 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
 async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs = null) {
     if (!tabs && typeof alphaHubTabs !== 'undefined') tabs = alphaHubTabs;
 
+    // Fetch the universe dynamically so the dropdown is always up-to-date
+    if (!window.alphaUniverse) {
+        try {
+            window.alphaUniverse = await fetchAPI('/universe');
+        } catch (e) {
+            console.error("Failed to load universe", e);
+        }
+    }
+
+    let assetOptionsHTML = '';
+    let isTracked = false;
+
+    if (window.alphaUniverse) {
+        for (const [sector, tickers] of Object.entries(window.alphaUniverse)) {
+            if (tickers.length === 0) continue;
+            assetOptionsHTML += `<optgroup label="- ${sector} -">`;
+            for (const t of tickers) {
+                if (t === ticker) isTracked = true;
+                assetOptionsHTML += `<option value="${t}" ${ticker === t ? 'selected' : ''}>${t}</option>`;
+            }
+            assetOptionsHTML += `</optgroup>`;
+        }
+    } else {
+        // Fallback
+        const fallback = ['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'];
+        for (const t of fallback) {
+            if (t === ticker) isTracked = true;
+            assetOptionsHTML += `<option value="${t}" ${ticker === t ? 'selected' : ''}>${t}</option>`;
+        }
+    }
+
+    assetOptionsHTML += `<option value="_custom" ${!isTracked ? 'selected' : ''}>- Custom Symbol...</option>`;
+
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
@@ -1335,18 +1368,9 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                 <div class="control-box">
                     <label>ASSET SELECTION</label>
                     <select id="strat-ticker" class="strat-select" onchange="if(this.value === '_custom'){ window._slPersist('_custom', null); } else { window._slPersist(this.value, null); runStrategyBacktest(this.value, document.getElementById('strat-type').value, document.getElementById('strat-fast')?.value || 20, document.getElementById('strat-slow')?.value || 50); }">
-                        <option value="BTC-USD" ${ticker === 'BTC-USD' ? 'selected' : ''}>BTC-USD (Bitcoin)</option>
-                        <option value="ETH-USD" ${ticker === 'ETH-USD' ? 'selected' : ''}>ETH-USD (Ethereum)</option>
-                        <option value="SOL-USD" ${ticker === 'SOL-USD' ? 'selected' : ''}>SOL-USD (Solana)</option>
-                        <option value="MSTR" ${ticker === 'MSTR' ? 'selected' : ''}>MSTR (MicroStrategy)</option>
-                        <option value="COIN" ${ticker === 'COIN' ? 'selected' : ''}>COIN (Coinbase)</option>
-                        <option value="MARA" ${ticker === 'MARA' ? 'selected' : ''}>MARA (Marathon)</option>
-                        <option value="ADA-USD" ${ticker === 'ADA-USD' ? 'selected' : ''}>ADA-USD (Cardano)</option>
-                        <option value="AVAX-USD" ${ticker === 'AVAX-USD' ? 'selected' : ''}>AVAX-USD (Avalanche)</option>
-                        <option value="XRP-USD" ${ticker === 'XRP-USD' ? 'selected' : ''}>XRP-USD (Ripple)</option>
-                        <option value="_custom" ${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'selected' : ''}>- Custom Symbol...</option>
+                        ${assetOptionsHTML}
                     </select>
-                    <input id="strat-custom-ticker" type="text" placeholder="e.g. AAPL, DOGE-USD..." value="${!(['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker)) ? ticker : ''}" style="display:${!['BTC-USD','ETH-USD','SOL-USD','MSTR','COIN','MARA','ADA-USD','AVAX-USD','XRP-USD'].includes(ticker) ? 'block' : 'none'};width:100%;border-radius:8px;padding:10px;border:1px solid rgba(0,212,170,0.4);color:var(--text);font-family:'Outfit';margin-top:8px" onkeydown="if(event.key==='Enter'&&this.value.trim()){window._slPersist(this.value.trim(),null);runStrategyBacktest(this.value.trim(),document.getElementById('strat-type').value,20,50);}">
+                    <input id="strat-custom-ticker" type="text" placeholder="e.g. AAPL, DOGE-USD..." value="${!isTracked ? ticker : ''}" style="display:${!isTracked ? 'block' : 'none'};width:100%;border-radius:8px;padding:10px;border:1px solid rgba(0,212,170,0.4);color:var(--text);font-family:'Outfit';margin-top:8px" onkeydown="if(event.key==='Enter'&&this.value.trim()){window._slPersist(this.value.trim(),null);runStrategyBacktest(this.value.trim(),document.getElementById('strat-type').value,20,50);}">
                     <script>document.getElementById('strat-ticker')?.addEventListener('change',function(){document.getElementById('strat-custom-ticker').style.display=this.value==='_custom'?'block':'none';});<\/script>
                 </div>
                 </div>

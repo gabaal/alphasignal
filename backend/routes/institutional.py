@@ -35,6 +35,11 @@ class InstitutionalRoutesMixin:
         except: pass
         return None
 
+    def handle_universe(self):
+        """GET /api/universe - Returns the full tracked universe grouped by sector"""
+        from backend.database import UNIVERSE
+        self.send_json(UNIVERSE)
+
     def handle_cme_gaps(self):
         """GET /api/cme-gaps - real CME Bitcoin futures gap inventory.
         Uses CME BTC futures (BTC=F) which actually closes Friday 4pm CT
