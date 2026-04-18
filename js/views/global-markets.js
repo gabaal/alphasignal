@@ -439,7 +439,7 @@ async function renderOIRadar(tabs = null) {
             datasets: [
                 {
                     label: 'BINANCE_PERP',
-                    data: [14.5, 12, 1.2, 85],
+                    data: [14.5, 12, 8.5, 19.5],
                     backgroundColor: 'rgba(247, 211, 0, 0.2)',
                     borderColor: '#f7d300',
                     borderWidth: 2,
@@ -447,7 +447,7 @@ async function renderOIRadar(tabs = null) {
                 },
                 {
                     label: 'CME_FUTURES',
-                    data: [12.1, 18, 0, 45],
+                    data: [12.1, 18, 0, 10.5],
                     backgroundColor: 'rgba(0, 242, 255, 0.2)',
                     borderColor: '#7dd3fc',
                     borderWidth: 2,
