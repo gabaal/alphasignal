@@ -188,6 +188,35 @@ async function renderETFFlows(tabs = null) {
 // ============= Liquidations View =============
 async function renderLiquidations(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
+    const galaxy = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'AVAX', 'DOGE', 'DOT', 'LINK', 'MATIC', 'SHIB', 'LTC', 'BCH', 'ATOM', 'UNI', 'ICP', 'ETC', 'XLM', 'NEAR', 'FIL', 'INJ', 'OP', 'ARB', 'APT', 'TIA', 'SUI', 'SEI', 'RNDR', 'MKR', 'AAVE', 'SNX', 'LDO', 'GMX', 'CRV', 'DYDX', 'BLUR', 'PEPE', 'WIF', 'BONK', 'ORDI', 'SATS', 'STX', 'TAO'];
+
+    const data = galaxy.map((ticker, i) => {
+        const magnitude = 45 / Math.max(1, Math.pow(i + 1, 0.7)); 
+        const isLongHeavy = Math.sin(i) > -0.2; 
+        
+        let longs, shorts;
+        if (isLongHeavy) {
+            longs = magnitude * (0.6 + 0.4 * Math.abs(Math.sin(i*10)));
+            shorts = magnitude * (0.1 + 0.3 * Math.abs(Math.cos(i*5)));
+        } else {
+            shorts = magnitude * (0.5 + 0.5 * Math.abs(Math.cos(i*5)));
+            longs = magnitude * (0.1 + 0.3 * Math.abs(Math.sin(i*10)));
+        }
+        return {
+            ticker: ticker,
+            longs: parseFloat((longs + 0.1).toFixed(1)),
+            shorts: parseFloat((shorts + 0.1).toFixed(1))
+        };
+    });
+
+    const totalLongs = data.reduce((sum, d) => sum + d.longs, 0);
+    const totalShorts = data.reduce((sum, d) => sum + d.shorts, 0);
+    const totalRekt = totalLongs + totalShorts;
+    const longPct = Math.round((totalLongs / totalRekt) * 100);
+    const shortPct = 100 - longPct;
+    
+    const chartHeight = Math.max(450, data.length * 20);
+
     appEl.innerHTML = `
         <div class="view-header">
             <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
@@ -195,15 +224,15 @@ async function renderLiquidations(tabs = null) {
         </div>
         ${renderHubTabs('liquidations', tabs)}
         <div class="card" style="margin-bottom:1.5rem">
-            <div style="height:450px; width:100%"><canvas id="liquidationsChart" role="img" aria-label="Liquidation heatmap chart"></canvas></div>
+            <div style="height:${chartHeight}px; width:100%"><canvas id="liquidationsChart" role="img" aria-label="Liquidation heatmap chart"></canvas></div>
         </div>
         <div class="signal-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))">
             <div class="card">
                 <h3 style="color:var(--risk-high)">TOTAL REKT 24H</h3>
-                <div style="font-size:2rem; font-weight:900; margin:1rem 0">$142.8M</div>
+                <div style="font-size:2rem; font-weight:900; margin:1rem 0">$${totalRekt.toFixed(1)}M</div>
                 <div style="display:flex; gap:15px; font-size:0.7rem">
-                    <span style="color:var(--risk-high)">- LONGS: $112.5M (78%)</span>
-                    <span style="color:var(--risk-low)">- SHORTS: $30.3M (22%)</span>
+                    <span style="color:var(--risk-high)">- LONGS: $${totalLongs.toFixed(1)}M (${longPct}%)</span>
+                    <span style="color:var(--risk-low)">- SHORTS: $${totalShorts.toFixed(1)}M (${shortPct}%)</span>
                 </div>
             </div>
             <div class="card">
@@ -213,17 +242,6 @@ async function renderLiquidations(tabs = null) {
             </div>
         </div>
     `;
-
-    const data = [
-        { ticker: 'BTC', longs: 45.2, shorts: 12.1 },
-        { ticker: 'ETH', longs: 28.5, shorts: 8.4 },
-        { ticker: 'SOL', longs: 15.1, shorts: 4.2 },
-        { ticker: 'XRP', longs: 8.2, shorts: 1.5 },
-        { ticker: 'DOGE', longs: 5.4, shorts: 2.1 },
-        { ticker: 'PEPE', longs: 4.1, shorts: 1.0 },
-        { ticker: 'SUI', longs: 3.5, shorts: 0.8 },
-        { ticker: 'AVAX', longs: 2.5, shorts: 0.2 }
-    ];
 
     const ctx = document.getElementById('liquidationsChart').getContext('2d');
     new Chart(ctx, {
