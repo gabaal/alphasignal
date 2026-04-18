@@ -153,10 +153,12 @@ async function renderLiquidityView(tabs = null) {
         // Ensure bids touch zero exactly at the current mid price (or closest Ask)
         const midPrice = asks.length > 0 ? asks[0].price : (currentPrice || bids[0]?.price * 1.001 || 84000);
         bidData.push({ x: midPrice, y: 0 });
+        bidData.sort((a, b) => a.x - b.x);
 
         const askData = [];
         askData.push({ x: midPrice, y: 0 }); // Anchor asks to zero at mid price
         askLevels.forEach(a => askData.push({ x: a.price, y: a.cum }));
+        askData.sort((a, b) => a.x - b.x);
 
         // Y-axis max = same for both sides so curves are visually balanced
         const maxDepth = Math.max(cumB, cumA);
@@ -233,8 +235,10 @@ async function renderLiquidityView(tabs = null) {
                     const midP = fa.length > 0 ? fa[0].price : (fresh.current_price || fb[0]?.price * 1.001 || 84000);
                     const bData = [...bLvl].reverse().map(b => ({x: b.price, y: b.cum}));
                     bData.push({x: midP, y: 0});
+                    bData.sort((a,b) => a.x - b.x);
                     
                     const aData = [{x: midP, y: 0}, ...aLvl.map(a => ({x: a.price, y: a.cum}))];
+                    aData.sort((a,b) => a.x - b.x);
 
                     const chart = window._gommWallChartInst;
                     chart.data.datasets[0].data = bData;
