@@ -6665,7 +6665,8 @@ class InstitutionalRoutesMixin:
             except:
                 spot = 90000.0
                 
-            np.random.seed(int(time.time() // 600))  # Update every 10 min
+            ticker_hash = sum(ord(c) for c in ticker)
+            np.random.seed(int(time.time() // 600) + ticker_hash)  # Unique per ticker, updates every 10 min
             
             num_time_steps = 30
             num_levels = 20
@@ -6675,8 +6676,8 @@ class InstitutionalRoutesMixin:
             
             # 2d density matrix
             heatmap = []
-            base_wall_1 = spot * 1.05
-            base_wall_2 = spot * 0.93
+            base_wall_1 = spot * (1.0 + np.random.uniform(0.02, 0.08))
+            base_wall_2 = spot * (1.0 - np.random.uniform(0.02, 0.08))
             
             for t_step in range(num_time_steps):
                 time_slice = []
