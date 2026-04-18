@@ -520,3 +520,158 @@ async function renderMacroCalendar(tabs = null) {
     }, 50);
 }
 
+
+
+async function renderRegime(tabs = null) {
+
+    if (!tabs) tabs = macroHubTabs;
+
+    appEl.innerHTML = `<h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">layers</span>Market Regime <span class="premium-badge">ML</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-regime')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>${skeleton(1)}`;
+
+    const data = await fetchAPI('/regime?ticker=BTC-USD');
+
+    if (!data) return;
+
+
+
+    const regimeClass = data.current_regime.toLowerCase().replace(/ /g, '-').replace(/\//g, '');
+
+    
+
+    appEl.innerHTML = `
+
+        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+
+            <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">layers</span> Market Regime Framework</h2>
+
+            <p>Statistical classification of market cycles using Markov-Switching approximation.</p>
+
+        </div>
+
+        ${tabs ? renderHubTabs('regime', tabs) : ''}
+
+        
+
+
+
+            <div class="regime-hero-card ${regimeClass}">
+
+                <div class="regime-badge">${data.current_regime}</div>
+
+                <div class="regime-main-stat">
+
+                    <div class="regime-label">CURRENT STATE: ${data.ticker}</div>
+
+                    <div class="regime-confidence">Confidence Index: ${(data.confidence * 100).toFixed(0)}%</div>
+
+                </div>
+
+                <div class="regime-metrics-row">
+
+                    <div class="r-metric">
+
+                        <label>TREND BIAS</label>
+
+                        <span class="${data.trend === 'BULLISH' ? 'pos' : (data.trend === 'BEARISH' ? 'neg' : 'dim')}">${data.trend}</span>
+
+                    </div>
+
+                    <div class="r-metric">
+
+                        <label>VOLATILITY</label>
+
+                        <span>${data.volatility}</span>
+
+                    </div>
+
+                    <div class="r-metric">
+
+                        <label>SMA 20 DIST</label>
+
+                        <span class="${data.metrics.sma_20_dist >= 0 ? 'pos' : 'neg'}">${data.metrics.sma_20_dist}%</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="regime-history-panel" style="margin-top:2rem">
+
+                <h3>STRUCTURAL ALPHA HEATMAP (D3.JS)</h3>
+
+                <div id="regime-heatmap-container" style="height:200px; background:${alphaColor(0.02)}; border-radius:12px; margin-top:1rem"></div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px">
+
+                    <div style="display:flex; gap:16px; font-size:0.65rem; color:var(--text-dim); font-weight:700">
+
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ef5350; border-radius:2px"></span> HIGH-VOL EXPANSION</div>
+
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ffa726; border-radius:2px"></span> NEUTRAL / ACCUMULATION</div>
+
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#26a69a; border-radius:2px"></span> LOW-VOL COMPRESSION</div>
+
+                    </div>
+
+                    <div style="font-size:0.7rem; color:var(--text-dim); text-align:right">PROBABILITY DENSITY OVER 180D LOOKBACK</div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="regime-guide-grid" style="margin-top:3rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px">
+
+                <div class="guide-card">
+
+                    <h4>ACCUMULATION</h4>
+
+                    <p>Smart money building positions. Historically low volatility with stabilizing sentiment.</p>
+
+                </div>
+
+                <div class="guide-card">
+
+                    <h4>TRENDING</h4>
+
+                    <p>High-conviction directional movement. Sustained alpha and institutional momentum.</p>
+
+                </div>
+
+                <div class="guide-card">
+
+                    <h4>DISTRIBUTION</h4>
+
+                    <p>Price high, momentum slowing. Volume spikes on negative days as smart money exits.</p>
+
+                </div>
+
+                <div class="guide-card">
+
+                    <h4>VOLATILE</h4>
+
+                    <p>Erratic, high-range price swings. Elevated risk environment with no clear directional edge.</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+    renderRegimeHeatmap('regime-heatmap-container', data.history);
+
+    setTimeout(() => {
+        if (window.injectAIChartTranslator) {
+            injectAIChartTranslator(appEl.querySelector('.view-header'), 'regime', () => data);
+        }
+    }, 50);
+}
+
+
+

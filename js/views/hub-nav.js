@@ -101,10 +101,10 @@ async function renderAuditHub() {
 
 // ============= Alerts & Webhooks Hub =============
 const alertsHubTabs = [
+    { id: 'market-brief',      label: 'MARKET BRIEF',   view: 'market-brief-hub',  icon: 'article' },
     { id: 'alerts',            label: 'LIVE ALERTS',    view: 'alerts-hub',        icon: 'notifications' },
     { id: 'price-alerts',      label: 'PRICE ALERTS',   view: 'price-alerts-hub',  icon: 'add_alert' },
     { id: 'signal-leaderboard',label: 'LEADERBOARD',    view: 'leaderboard-hub',   icon: 'leaderboard' },
-    { id: 'market-brief',      label: 'MARKET BRIEF',   view: 'market-brief-hub',  icon: 'article' },
     { id: 'signal-archive',    label: 'SIGNAL ARCHIVE', view: 'signal-archive',    icon: 'archive' },
     { id: 'webhooks',          label: 'WEBHOOKS',       view: 'webhooks',          icon: 'webhook' },
     { id: 'overview',          label: 'HUB OVERVIEW',   view: 'docs-hub-alerts',   icon: 'menu_book' }

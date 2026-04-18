@@ -1,319 +1,3 @@
-async function renderMacroView(tabs = null) {
-
-    if (!tabs) tabs = macroHubTabs;
-
-    const tabHTML = tabs ? renderHubTabs('compass', tabs) : '';
-
-    appEl.innerHTML = `<h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">notifications</span>Live Alerts <span class="premium-badge">LIVE</span></h1>${skeleton(2)}`;
-
-    try {
-
-        const data = await fetchAPI('/macro-calendar');
-
-        if (!data) return;
-
-
-
-        appEl.innerHTML = `
-
-            <h2 class="view-title"> Macro Catalyst Compass</h2>
-
-            ${tabHTML}
-
-        <h2 class="section-heading" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem;padding-top:0.5rem">Macro Catalyst Compass</h2>
-
-            <p class="view-desc" style="margin-top:0.5rem">Tracking high-impact economic drivers and global liquidity shifts.</p>
-
-            <div class="macro-grid" style="display:grid; grid-template-columns: 1fr 350px; gap:20px">
-
-                <div>
-
-                    <div class="card">
-
-                        <h3 class="card-title">Upcoming Volatility Triggers</h3>
-
-                        <div style="display:flex; flex-direction:column; gap:12px">
-
-                            ${data.events.map(e => `
-
-                                <div style="display:flex; gap:15px; padding:15px; background:${alphaColor(0.02)}; border-radius:12px; border-left: 4px solid var(--${e.impact === 'CRITICAL' ? 'risk-high' : (e.impact === 'HIGH' ? 'accent' : 'text-dim')})">
-
-                                    <div style="width:60px; text-align:center">
-
-                                        <div style="font-size:0.65rem; color:var(--text-dim)">${e.date.split('-').slice(1).join('/')}</div>
-
-                                        <div style="font-size:0.85rem; font-weight:900">${e.time}</div>
-
-                                    </div>
-
-                                    <div style="flex:1">
-
-                                        <div style="font-size:0.95rem; font-weight:800; margin-bottom:4px">${e.event}</div>
-
-                                        <div style="font-size:0.7rem; color:var(--text-dim)">FCST: <span style="color:var(--text)">${e.forecast}</span> | PREV: ${e.previous}</div>
-
-                                    </div>
-
-                                    <div style="text-align:right">
-
-                                        <div class=" impacto-badge impact-${e.impact.toLowerCase()}" style="font-size:0.6rem">${e.impact}</div>
-
-                                    </div>
-
-                                </div>
-
-                            `).join('')}
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <aside style="display:flex; flex-direction:column; gap:20px">
-
-                    <div class="card">
-
-                        <h3 class="card-title">Treasury Yields</h3>
-
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-
-                            ${Object.entries(data.yields).map(([lbl, val]) => `
-
-                                <div style="background:${alphaColor(0.03)}; padding:12px; border-radius:8px; text-align:center">
-
-                                    <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">${lbl}</div>
-
-                                    <div style="font-size:1.1rem; font-weight:900; color:var(--accent)">${val}</div>
-
-                                </div>
-
-                            `).join('')}
-
-                        </div>
-
-                    </div>
-
-                    <div class="card" style="border-top: 4px solid var(--accent)">
-
-                        <h3 class="card-title">Institutional Briefing</h3>
-
-                        <p style="font-size:0.8rem; line-height:1.5; color:var(--text-dim)">Monitor Core PCE and GDP Final estimates for risk-on confirmation. Yield compression typically precedes volatility regime shifts.</p>
-
-                        <div style="margin-top:15px; font-size:0.6rem; color:var(--accent); font-weight:900">STATUS: ${data.status}</div>
-
-                    </div>
-
-                </aside>
-
-            </div>`;
-
-
-
-        // -- Cross-Asset Momentum Heatmap (appended after grid) ---------
-
-        const heatEl = document.createElement('div');
-
-        heatEl.className = 'card';
-
-        heatEl.style.cssText = 'padding:1.5rem;margin-top:2rem;';
-
-        heatEl.innerHTML = `
-
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
-
-                <h3 style="margin:0;font-size:0.85rem;color:var(--accent);letter-spacing:1px;">
-
-                    <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:6px;">grid_on</span>
-
-                    CROSS-ASSET MOMENTUM HEATMAP
-
-                </h3>
-
-                <span style="font-size:0.55rem;color:var(--text-dim);">ROLLING RETURNS - GREEN = OUTPERFORMANCE - RED = UNDERPERFORMANCE</span>
-
-            </div>
-
-            <div id="momentum-heatmap-grid" style="overflow-x:auto;"></div>
-
-            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:12px;font-size:0.6rem;color:var(--text-dim);">
-
-                <span><span style="color:#22c55e">&#9632;</span> &gt;+5%</span>
-
-                <span><span style="color:#86efac">&#9632;</span> +1% to +5%</span>
-
-                <span><span style="color:#374151">&#9632;</span> +/-1% flat</span>
-
-                <span><span style="color:#fca5a5">&#9632;</span> -1% to -5%</span>
-
-                <span><span style="color:#ef4444">&#9632;</span> &lt;-5%</span>
-
-                <span style="margin-left:auto">Source: Live 30D market data - Z-score vs 50D mean</span>
-
-            </div>`;
-
-        appEl.appendChild(heatEl);
-
-
-
-        (async () => {
-
-            const grid = document.getElementById('momentum-heatmap-grid');
-
-            if (!grid) return;
-
-            const periods = ['1D', '7D', '30D', '90D'];
-
-            let rows = [];
-
-            try {
-
-                const hd = await fetch('/api/heatmap');
-
-                if (hd.ok) {
-
-                    const sectors = await hd.json();
-
-                    sectors.forEach(sec => (sec.assets || []).forEach(a => {
-
-                        if (rows.length < 18) rows.push({ ticker: (a.ticker||'').replace('-USD',''), change: a.change||0, z: a.zScore||0 });
-
-                    }));
-
-                }
-
-            } catch(e) {}
-
-            if (!rows.length) {
-
-                ['BTC','ETH','SOL','BNB','XRP','LINK','ADA','AVAX','DOGE','DOT','MATIC','NEAR','ARB','OP','INJ'].forEach((t,i) => {
-
-                    rows.push({ ticker: t, change: parseFloat((Math.sin(i*2.3)*15).toFixed(2)), z: parseFloat((Math.cos(i*1.7)*2).toFixed(2)) });
-
-                });
-
-            }
-
-            const cellBg = v => v > 5 ? 'rgba(34,197,94,0.75)' : v > 1 ? 'rgba(134,239,172,0.5)' : v > -1 ? 'rgba(55,65,81,0.55)' : v > -5 ? 'rgba(252,165,165,0.45)' : 'rgba(239,68,68,0.7)';
-
-            const fmt = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
-
-            const nz = (s) => { const x = Math.sin(s)*10000; return x - Math.floor(x); };
-
-            let html = `<table style="width:100%;border-collapse:collapse;font-size:0.72rem;font-family:'JetBrains Mono',monospace;min-width:500px;">
-
-                <thead><tr style="color:var(--text-dim);">
-
-                    <th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);">ASSET</th>
-
-                    ${periods.map(p=>`<th style="text-align:center;padding:6px 10px;border-bottom:1px solid var(--border);">${p}</th>`).join('')}
-
-                    <th style="text-align:center;padding:6px 10px;border-bottom:1px solid var(--border);">Z-SCORE</th>
-
-                </tr></thead><tbody>`;
-
-            rows.forEach((r, ri) => {
-
-                const c = parseFloat(r.change), z = parseFloat(r.z);
-
-                const rets = [c/30*(1+(nz(ri)-0.5)*0.4), c/4*(1+(nz(ri+1)-0.5)*0.3), c, c*2.5*(1+(nz(ri+2)-0.5)*0.2)];
-
-                const zClr = Math.abs(z)>2 ? (z>0?'#22c55e':'#ef4444') : 'var(--text-dim)';
-
-                html += `<tr style="border-bottom:1px solid ${alphaColor(0.04)};">
-
-                    <td style="padding:7px 10px;font-weight:700;color:var(--text)">${r.ticker}</td>
-
-                    ${rets.map(v=>`<td style="padding:6px 10px;text-align:center;background:${cellBg(v)};color:#fff;font-weight:800;">${fmt(v)}</td>`).join('')}
-
-                    <td style="padding:7px 10px;text-align:center;color:${zClr};font-weight:700;">${z>=0?'+':''}${z.toFixed(2)}-</td>
-
-                </tr>`;
-
-            });
-
-            html += '</tbody></table>';
-
-            grid.innerHTML = html;
-
-        })();
-
-
-
-    } catch (e) {
-
-        appEl.innerHTML = `<div class="empty-state">Macro Engine offline: ${e.message}</div>`;
-
-    }
-
-}
-
-
-
-async function renderDocsVelocity() {
-
-    appEl.innerHTML = `
-
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-
-            <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">description</span> Narrative Velocity Methodology</h2>
-
-            <p>Documentation on how AlphaSignal calculates institutional capital rotation and social attention.</p>
-
-        </div>
-
-        <div class="docs-container" style="max-width:800px; margin:0 auto; line-height:1.7; color:var(--text-dim); padding: 2rem 0">
-
-            <section style="margin-bottom:2.5rem; background:${alphaColor(0.02)}; padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
-
-                <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">1. CORE VELOCITY METRIC</h3>
-
-                <p>Velocity represents <strong>Volume Acceleration</strong>. It is calculated by taking the current interval volume and dividing it by the 5-period moving average of previous volumes. A score > 1.0 indicates volume is expanding relative to its recent local benchmark, suggesting institutional entry or exit.</p>
-
-            </section>
-
-            <section style="margin-bottom:2.5rem; background:${alphaColor(0.02)}; padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
-
-                <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">2. SOCIAL HEAT (MINDSHARE)</h3>
-
-                <p>We monitor thousands of news sources and institutional social channels. Social Heat is a normalized score (0-10) based on the volume of bullish mentions relative to the total mention volume for that specific L1 ecosystem.</p>
-
-            </section>
-
-            <section style="margin-bottom:2.5rem; background:${alphaColor(0.02)}; padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
-
-                <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">3. INSTITUTIONAL VIGOR</h3>
-
-                <p>Vigor is a Z-Score approximation of price momentum adjusted for volume confirmation. A high Vigor score suggests that price movement is backed by significant capital flow, reducing the probability of a "fake-out."</p>
-
-            </section>
-
-            <section style="margin-bottom:2.5rem; background:${alphaColor(0.02)}; padding:1.5rem; border-radius:12px; border:1px solid var(--border)">
-
-                <h3 style="color:var(--accent); margin-bottom:1rem; letter-spacing:1px">4. THE RADAR CHART</h3>
-
-                <p>The Radar Chart plots these four dimensions (Momentum, Liquidity, Social Heat, Vigor) to provide a "Network Signature." Institutional traders use this to identify which chains are receiving the most "High-Conviction" capital rotation.</p>
-
-            </section>
-
-            <div style="text-align:center; margin-top:2rem">
-
-                <button class="intel-action-btn" onclick="switchView('velocity')" style="width:auto">RETURN TO VELOCITY TERMINAL</button>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-
-
-
-// -- P&L pending helpers ---------------------------------------------------
-
 function _pnlHtml(entryPrice, liveP) {
 
     const pct = ((liveP - entryPrice) / entryPrice * 100);
@@ -521,10 +205,25 @@ async function renderAlerts(tabs = null) {
 
 
     // Default settings -- panel always renders with these, then updates when real data arrives
-
     let hasDiscord  = false, hasTelegram = false, zThreshold = 2.0, alertsOn = true;
-
     let discMasked  = '', tgMasked = '';
+    let whaleSize = 5, depeg = 1.0, volSpike = 2.0, cmeGap = 1.0, rebalance = 2.5;
+
+    try {
+        const stored = localStorage.getItem('alert_settings');
+        if (stored) {
+            const s = JSON.parse(stored);
+            if (s.zThreshold !== undefined) zThreshold = parseFloat(s.zThreshold);
+            if (s.alertsOn !== undefined) alertsOn = !!s.alertsOn;
+            if (s.whaleSize !== undefined) whaleSize = parseFloat(s.whaleSize);
+            if (s.depeg !== undefined) depeg = parseFloat(s.depeg);
+            if (s.volSpike !== undefined) volSpike = parseFloat(s.volSpike);
+            if (s.cmeGap !== undefined) cmeGap = parseFloat(s.cmeGap);
+            if (s.rebalance !== undefined) rebalance = parseFloat(s.rebalance);
+            if (s.discord) { hasDiscord = true; discMasked = s.discord.substring(0, 20) + '...'; }
+            if (s.telegram) { hasTelegram = true; tgMasked = '...' + s.telegram.substring(s.telegram.length - 4); }
+        }
+    } catch(e) {}
 
 
 
@@ -668,11 +367,11 @@ async function renderAlerts(tabs = null) {
 
                             <span> WHALE TXN MIN SIZE</span>
 
-                            <span id="whale-val-display" style="color:#7dd3fc;font-weight:900">5M</span>
+                            <span id="whale-val-display" style="color:#7dd3fc;font-weight:900">${whaleSize}M</span>
 
                         </label>
 
-                        <input type="range" id="whale-threshold-slider" min="1" max="50" step="1" value="5" aria-label="Whale transaction size threshold in million USD" aria-valuemin="1" aria-valuemax="50" aria-valuenow="5"
+                        <input type="range" id="whale-threshold-slider" min="1" max="50" step="1" value="${whaleSize}" aria-label="Whale transaction size threshold in million USD" aria-valuemin="1" aria-valuemax="50" aria-valuenow="${whaleSize}"
 
                             oninput="document.getElementById('whale-val-display').textContent=parseFloat(this.value).toFixed(0)+'M'"
 
@@ -696,11 +395,11 @@ async function renderAlerts(tabs = null) {
 
                             <span> DE-PEG THRESHOLD</span>
 
-                            <span id="depeg-val-display" style="color:#ef4444;font-weight:900">1.0%</span>
+                            <span id="depeg-val-display" style="color:#ef4444;font-weight:900">${depeg.toFixed(1)}%</span>
 
                         </label>
 
-                        <input type="range" id="depeg-threshold-slider" min="0.1" max="5" step="0.1" value="1.0" aria-label="Stablecoin depeg deviation threshold" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="1.0"
+                        <input type="range" id="depeg-threshold-slider" min="0.1" max="5" step="0.1" value="${depeg}" aria-label="Stablecoin depeg deviation threshold" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="${depeg}"
 
                             oninput="document.getElementById('depeg-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
 
@@ -724,11 +423,11 @@ async function renderAlerts(tabs = null) {
 
                             <span> VOL SPIKE MIN -</span>
 
-                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">2.0-</span>
+                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">${volSpike.toFixed(1)}-</span>
 
                         </label>
 
-                        <input type="range" id="vol-spike-threshold-slider" min="1" max="5" step="0.1" value="2.0" aria-label="Volume spike multiplier threshold" aria-valuemin="1" aria-valuemax="5" aria-valuenow="2.0"
+                        <input type="range" id="vol-spike-threshold-slider" min="1" max="5" step="0.1" value="${volSpike}" aria-label="Volume spike multiplier threshold" aria-valuemin="1" aria-valuemax="5" aria-valuenow="${volSpike}"
 
                             oninput="document.getElementById('vol-val-display').textContent=parseFloat(this.value).toFixed(1)+'-'"
 
@@ -752,11 +451,11 @@ async function renderAlerts(tabs = null) {
 
                             <span> CME GAP MIN SIZE</span>
 
-                            <span id="cme-val-display" style="color:#8b5cf6;font-weight:900">1.0%</span>
+                            <span id="cme-val-display" style="color:#8b5cf6;font-weight:900">${depeg.toFixed(1)}%</span>
 
                         </label>
 
-                        <input type="range" id="cme-gap-threshold-slider" min="0.1" max="5" step="0.1" value="1.0" aria-label="CME gap size threshold in percent" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="1.0"
+                        <input type="range" id="cme-gap-threshold-slider" min="0.1" max="5" step="0.1" value="${cmeGap}" aria-label="CME gap size threshold in percent" aria-valuemin="0.1" aria-valuemax="5" aria-valuenow="${depeg}"
 
                             oninput="document.getElementById('cme-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
 
@@ -777,9 +476,9 @@ async function renderAlerts(tabs = null) {
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
                             <span> PORTFOLIO REBALANCE</span>
-                            <span id="rebalance-val-display" style="color:#ec4899;font-weight:900">2.5%</span>
+                            <span id="rebalance-val-display" style="color:#ec4899;font-weight:900">${rebalance.toFixed(1)}%</span>
                         </label>
-                        <input type="range" id="rebalance-threshold-slider" min="0.5" max="10" step="0.1" value="2.5" aria-label="Portfolio rebalance predicted return threshold" aria-valuemin="0.5" aria-valuemax="10" aria-valuenow="2.5"
+                        <input type="range" id="rebalance-threshold-slider" min="0.5" max="10" step="0.1" value="${rebalance}" aria-label="Portfolio rebalance predicted return threshold" aria-valuemin="0.5" aria-valuemax="10" aria-valuenow="${rebalance}"
                             oninput="document.getElementById('rebalance-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
                             style="width:100%;accent-color:#ec4899;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
@@ -1302,6 +1001,12 @@ window.saveAlertSettings = async function() {
     const rebalance = parseFloat(document.getElementById('rebalance-threshold-slider')?.value || 2.5);
     const enabled  = document.getElementById('alerts-enabled-toggle')?.checked !== false;
 
+    
+    localStorage.setItem('alert_settings', JSON.stringify({
+        discord: discord, telegram: telegram, zThreshold: z, alertsOn: enabled,
+        whaleSize: whale, depeg: depeg, volSpike: vol, cmeGap: cme, rebalance: rebalance
+    }));
+
     const result = await fetchAPI('/alert-settings', 'POST', {
         discord_webhook: discord, telegram_chat_id: telegram,
         z_threshold: z, alerts_enabled: enabled,
@@ -1428,159 +1133,6 @@ async function showSignalDetail(alertId, ticker) {
 
     }
 
-}
-
-
-
-async function renderRegime(tabs = null) {
-
-    if (!tabs) tabs = macroHubTabs;
-
-    appEl.innerHTML = `<h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2><h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">layers</span>Market Regime <span class="premium-badge">ML</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-regime')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>${skeleton(1)}`;
-
-    const data = await fetchAPI('/regime?ticker=BTC-USD');
-
-    if (!data) return;
-
-
-
-    const regimeClass = data.current_regime.toLowerCase().replace(/ /g, '-').replace(/\//g, '');
-
-    
-
-    appEl.innerHTML = `
-
-        <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-
-            <h2><span class="material-symbols-outlined" style="vertical-align:middle; margin-right:8px; color:var(--accent)">layers</span> Market Regime Framework</h2>
-
-            <p>Statistical classification of market cycles using Markov-Switching approximation.</p>
-
-        </div>
-
-        ${tabs ? renderHubTabs('regime', tabs) : ''}
-
-        
-
-
-
-            <div class="regime-hero-card ${regimeClass}">
-
-                <div class="regime-badge">${data.current_regime}</div>
-
-                <div class="regime-main-stat">
-
-                    <div class="regime-label">CURRENT STATE: ${data.ticker}</div>
-
-                    <div class="regime-confidence">Confidence Index: ${(data.confidence * 100).toFixed(0)}%</div>
-
-                </div>
-
-                <div class="regime-metrics-row">
-
-                    <div class="r-metric">
-
-                        <label>TREND BIAS</label>
-
-                        <span class="${data.trend === 'BULLISH' ? 'pos' : (data.trend === 'BEARISH' ? 'neg' : 'dim')}">${data.trend}</span>
-
-                    </div>
-
-                    <div class="r-metric">
-
-                        <label>VOLATILITY</label>
-
-                        <span>${data.volatility}</span>
-
-                    </div>
-
-                    <div class="r-metric">
-
-                        <label>SMA 20 DIST</label>
-
-                        <span class="${data.metrics.sma_20_dist >= 0 ? 'pos' : 'neg'}">${data.metrics.sma_20_dist}%</span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="regime-history-panel" style="margin-top:2rem">
-
-                <h3>STRUCTURAL ALPHA HEATMAP (D3.JS)</h3>
-
-                <div id="regime-heatmap-container" style="height:200px; background:${alphaColor(0.02)}; border-radius:12px; margin-top:1rem"></div>
-
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px">
-
-                    <div style="display:flex; gap:16px; font-size:0.65rem; color:var(--text-dim); font-weight:700">
-
-                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ef5350; border-radius:2px"></span> HIGH-VOL EXPANSION</div>
-
-                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ffa726; border-radius:2px"></span> NEUTRAL / ACCUMULATION</div>
-
-                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#26a69a; border-radius:2px"></span> LOW-VOL COMPRESSION</div>
-
-                    </div>
-
-                    <div style="font-size:0.7rem; color:var(--text-dim); text-align:right">PROBABILITY DENSITY OVER 180D LOOKBACK</div>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="regime-guide-grid" style="margin-top:3rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px">
-
-                <div class="guide-card">
-
-                    <h4>ACCUMULATION</h4>
-
-                    <p>Smart money building positions. Historically low volatility with stabilizing sentiment.</p>
-
-                </div>
-
-                <div class="guide-card">
-
-                    <h4>TRENDING</h4>
-
-                    <p>High-conviction directional movement. Sustained alpha and institutional momentum.</p>
-
-                </div>
-
-                <div class="guide-card">
-
-                    <h4>DISTRIBUTION</h4>
-
-                    <p>Price high, momentum slowing. Volume spikes on negative days as smart money exits.</p>
-
-                </div>
-
-                <div class="guide-card">
-
-                    <h4>VOLATILE</h4>
-
-                    <p>Erratic, high-range price swings. Elevated risk environment with no clear directional edge.</p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-    renderRegimeHeatmap('regime-heatmap-container', data.history);
-
-    setTimeout(() => {
-        if (window.injectAIChartTranslator) {
-            injectAIChartTranslator(appEl.querySelector('.view-header'), 'regime', () => data);
-        }
-    }, 50);
 }
 
 
