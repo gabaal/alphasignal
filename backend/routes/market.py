@@ -19,7 +19,7 @@ class MarketRoutesMixin:
             total = sum(c['value'] for c in cats) or 1
             payload = [
                 {'name': c['name'],
-                 'value': round(c['value'] / total * 100, 2),
+                 'value': round(math.sqrt(c['value'] / total * 100) * 10, 2),
                  'perf':  round(c['perf'], 2)}
                 for c in cats
             ]
