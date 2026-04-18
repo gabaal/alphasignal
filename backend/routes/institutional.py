@@ -4226,7 +4226,8 @@ class InstitutionalRoutesMixin:
                         elif p_ret < -0.02:
                             score -= 15
                             reasons.append(f'ML Bearish Pred ({p_ret * 100:.1f}%)')
-                    score = max(0, min(100, int(score)))
+                    raw_score = int(score)   # capture BEFORE clamp for normalisation
+                    score = max(0, min(100, raw_score))
                     if prices is not None and len(prices) > 0:
                         current_price = round(float(prices.iloc[-1]), 4)
                     else:
@@ -4235,7 +4236,7 @@ class InstitutionalRoutesMixin:
                     lstm_conf = min(98, max(45, int(score * 0.97 + 2)))
                     xgb_conf  = min(96, max(42, int(score * 0.93 + 4)))
                     consensus = 'HIGH' if score >= 75 else 'MEDIUM' if score >= 50 else 'LOW'
-                    scored.append({'ticker': t, 'sector': asset['sector'], 'score': score, '_raw': score, 'price': current_price, 'grade': 'A' if score >= 80 else 'B' if score >= 60 else 'C' if score >= 40 else 'D', 'signal': 'STRONG BUY' if score >= 80 else 'BUY' if score >= 65 else 'NEUTRAL' if score >= 45 else 'CAUTION', 'reasons': reasons[:3], 'lstm_conf': lstm_conf, 'xgb_conf': xgb_conf, 'consensus': consensus})
+                    scored.append({'ticker': t, 'sector': asset['sector'], 'score': score, '_raw': raw_score, 'price': current_price, 'grade': 'A' if score >= 80 else 'B' if score >= 60 else 'C' if score >= 40 else 'D', 'signal': 'STRONG BUY' if score >= 80 else 'BUY' if score >= 65 else 'NEUTRAL' if score >= 45 else 'CAUTION', 'reasons': reasons[:3], 'lstm_conf': lstm_conf, 'xgb_conf': xgb_conf, 'consensus': consensus})
                 except Exception as asset_e:
                     continue
             # ── Rank-normalise raw scores so they span the full 0-100 range ──
