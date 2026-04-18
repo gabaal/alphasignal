@@ -750,7 +750,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <!-- Advanced Charting Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
             <!-- RSI (14) + Volume -->
-            <div class="zoomable-panel" onclick="expandChart('detail-rsi-vol', 'RSI & Volume Profile')">
+            <div class="zoomable-panel" onclick="expandChart('detail-rsi-chart', 'RSI (14) & Volume Profile')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">RSI (14) - VOLUME</span>
                 <span id="detail-rsi-label" style="font-size:0.55rem;color:var(--text-dim);margin-left:auto"></span>
@@ -761,7 +761,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         </div>
 
             <!-- Z-Score Anomaly Index -->
-            <div class="zoomable-panel" onclick="expandChart('detail-zscore', 'Z-Score Oscillator')">
+            <div class="zoomable-panel" onclick="expandChart('detail-zscore-chart', 'Z-Score Anomaly Index')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">Z-SCORE ANOMALY INDEX</span>
                 <span id="detail-zscore-label" style="font-size:0.55rem;margin-left:auto"></span>
@@ -1213,7 +1213,13 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                             callbacks: {
                                 label: c => {
                                     const d = c.raw;
-                                    return `${d.dir || '?'} - ${d.y > 0 ? '+' : ''}${d.y}% - ${d.closed ? (d.outcome || 'Closed') : 'Open'}`;
+                                    const pnlStr = `${d.y > 0 ? '+' : ''}${d.y}%`;
+                                    const state = d.closed ? (d.outcome || 'Closed') : 'Open';
+                                    // For SHORTs: positive P&L = price fell (good), negative P&L = price rose (bad)
+                                    const priceNote = d.dir === 'SHORT'
+                                        ? (d.y > 0 ? ' (price ↓ = WIN)' : ' (price ↑ = SL hit)')
+                                        : '';
+                                    return `${d.dir || '?'} P&L: ${pnlStr} — ${state}${priceNote}`;
                                 }
                             }
                         }
