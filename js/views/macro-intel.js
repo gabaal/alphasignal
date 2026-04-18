@@ -1,5 +1,5 @@
 async function renderMindshare(tabs = null) {
-    if (!tabs) tabs = window.analyticsHubTabs;
+    if (!tabs || !Array.isArray(tabs)) tabs = typeof analyticsHubTabs !== 'undefined' ? analyticsHubTabs : window.analyticsHubTabs;
     appEl.innerHTML = skeleton(1);
     const [data, tvlData] = await Promise.all([
         fetchAPI(`/mindshare?v=${Date.now()}`),
