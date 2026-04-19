@@ -1116,6 +1116,9 @@ async function renderSignalArchive(tabs = null) {
         if (window._initEquityCurve && response?.summary?.pnl_curve) {
             setTimeout(() => window._initEquityCurve(response.summary.pnl_curve), 50);
         }
+        if (window._initPhase2Charts && response?.summary) {
+            setTimeout(() => window._initPhase2Charts(response.summary), 80);
+        }
 
         // - Per-type strategy breakdown table -
         function renderTypeBreakdown(pageData, resp) {
@@ -1258,6 +1261,34 @@ async function renderSignalArchive(tabs = null) {
                     <!-- Updated via Chart initialization -->
                     <span style="font-size:1.8rem;font-weight:900;color:var(--text-dim);letter-spacing:-0.5px;font-family:monospace">--%</span>
                     <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">-- TRADES</div>
+                </div>
+            </div>
+            <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(350px, 1fr));gap:1.5rem">
+                <!-- Asset Distribution Chart -->
+                <div class="card" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column">
+                    <div style="margin-bottom:1rem">
+                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">P&L BY ASSET CLASS</div>
+                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">Top performances &middot; <span style="color:var(--accent)">closed signals only</span></div>
+                    </div>
+                    <div style="flex:1;position:relative;width:100%;min-height:200px" id="asset-dist-wrapper">
+                        <canvas id="asset-dist-canvas"></canvas>
+                    </div>
+                </div>
+                <!-- Execution Heatmap -->
+                <div class="card" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column">
+                    <div style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-end">
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">EXECUTION HEATMAP</div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">Avg P&L by Global Hour & Day</div>
+                        </div>
+                        <div style="display:flex;gap:4px;align-items:center;font-size:0.5rem;color:var(--text-dim);padding-bottom:2px">
+                            <span style="background:rgba(239, 68, 68, 0.4);width:8px;height:8px;border-radius:2px"></span> NEG
+                            <span style="background:rgba(0, 242, 255, 0.4);width:8px;height:8px;border-radius:2px;margin-left:4px"></span> POS
+                        </div>
+                    </div>
+                    <div id="heatmap-container" style="flex:1;display:flex;flex-direction:column;width:100%;overflow:hidden">
+                        <!-- Rendered via JS -->
+                    </div>
                 </div>
             </div>`;
         }
@@ -1595,6 +1626,144 @@ if (typeof window._initEquityCurve === 'undefined') {
         if (summaryDiv) {
             summaryDiv.innerHTML = `<span style="font-size:1.4rem;font-weight:900;color:${lineColor};letter-spacing:-0.5px;font-family:monospace">${isUp?'+':''}${cumulative.toFixed(2)}%</span>
             <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">${pnlSeries.length} TRADES</div>`;
+        }
+    };
+}
+
+if (typeof window._initPhase2Charts === 'undefined') {
+    window._initPhase2Charts = function(summary) {
+        if (!summary) return;
+        
+        // 1. Asset Distribution Bar Chart
+        if (summary.by_ticker && summary.by_ticker.length) {
+            const ctxAsset = document.getElementById('asset-dist-canvas');
+            if (ctxAsset) {
+                // Top 10 and Bottom 5 mapping
+                const sorted = [...summary.by_ticker].sort((a,b) => b.total_roi - a.total_roi);
+                let displayTickers = sorted;
+                if (sorted.length > 15) {
+                    displayTickers = [...sorted.slice(0, 10), ...sorted.slice(-5)];
+                }
+                
+                const labels = displayTickers.map(t => t.symbol);
+                const data = displayTickers.map(t => t.total_roi);
+                const bgColors = data.map(v => v >= 0 ? 'rgba(0, 242, 255, 0.4)' : 'rgba(239, 68, 68, 0.4)');
+                const borderColors = data.map(v => v >= 0 ? '#00f2ff' : '#ef4444');
+                
+                if (window._assetChartInstance) window._assetChartInstance.destroy();
+                
+                window._assetChartInstance = new Chart(ctxAsset, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: bgColors,
+                            borderColor: borderColors,
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            barThickness: 'flex'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(10, 22, 40, 0.9)',
+                                titleColor: '#94a3b8',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255,255,255,0.1)',
+                                borderWidth: 1,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        const t = displayTickers[context.dataIndex];
+                                        return `Total P&L: ${t.total_roi}% | Trades: ${t.total}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                                ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace' }, callback: v => v+'%' }
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace', weight: 'bold' } }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 2. Heatmap DOM builder
+        if (summary.heatmap_data && summary.heatmap_data.length) {
+            const hCont = document.getElementById('heatmap-container');
+            if (hCont) {
+                const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+                
+                // Initialize matrix
+                const matrix = {};
+                for(let d=0; d<7; d++) {
+                    matrix[d] = {};
+                    for(let h=0; h<24; h+=2) { // 2-hour buckets
+                        matrix[d][h] = { roi:0, count:0 };
+                    }
+                }
+                
+                summary.heatmap_data.forEach(r => {
+                    let bucketH = Math.floor(r.hour / 2) * 2;
+                    if (matrix[r.dow] && matrix[r.dow][bucketH]) {
+                        matrix[r.dow][bucketH].roi += r.total_roi;
+                        matrix[r.dow][bucketH].count += r.total;
+                    }
+                });
+                
+                let maxAbsRoi = 0.001; 
+                for(let d=0; d<7; d++){
+                    for(let h=0; h<24; h+=2){
+                        if(matrix[d][h].count > 0 && Math.abs(matrix[d][h].roi) > maxAbsRoi) {
+                            maxAbsRoi = Math.abs(matrix[d][h].roi);
+                        }
+                    }
+                }
+
+                let html = `<div style="display:flex;flex-direction:column;gap:4px;height:100%;justify-content:center">`;
+                // Header (Hours)
+                html += `<div style="display:flex;gap:4px;margin-left:30px">`;
+                for(let h=0; h<24; h+=2) {
+                    html += `<div style="flex:1;text-align:center;font-size:0.45rem;color:var(--text-dim);font-family:monospace">${h.toString().padStart(2,'0')}h</div>`;
+                }
+                html += `</div>`;
+                
+                for(let d=0; d<7; d++) {
+                    html += `<div style="display:flex;gap:4px;flex:1;min-height:0">`;
+                    html += `<div style="width:25px;display:flex;align-items:center;justify-content:flex-end;font-size:0.55rem;font-weight:900;color:var(--text-dim);padding-right:5px">${DAYS[d]}</div>`;
+                    for(let h=0; h<24; h+=2) {
+                        const cell = matrix[d][h];
+                        let bg = 'rgba(255,255,255,0.02)';
+                        let title = `No Trades`;
+                        if (cell.count > 0) {
+                            const intensity = Math.max(0.15, Math.min(0.9, Math.abs(cell.roi) / maxAbsRoi));
+                            if (cell.roi >= 0) {
+                                bg = `rgba(0, 242, 255, ${intensity})`;
+                            } else {
+                                bg = `rgba(239, 68, 68, ${intensity})`;
+                            }
+                            title = `${cell.roi >= 0 ? '+':''}${cell.roi.toFixed(2)}% ROI (${cell.count} trades)`;
+                        }
+                        html += `<div title="${title}" style="flex:1;background:${bg};border-radius:2px;transition:all 0.2s;cursor:crosshair" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1"></div>`;
+                    }
+                    html += `</div>`;
+                }
+                html += `</div>`;
+                hCont.innerHTML = html;
+            }
         }
     };
 }
