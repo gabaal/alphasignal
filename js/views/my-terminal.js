@@ -467,7 +467,18 @@ async function renderPositionsTab(el) {
 
 // Dedup set: tracks fired alerts so they don't repeat every tick
 // Key format: "TICKER:TARGET:direction" e.g. "BTC-USD:120000:above"
-window._alertsFired    = window._alertsFired    || new Set();
+// Persisted to sessionStorage so login/re-render doesn't re-fire already-crossed alerts
+const _ALERTS_SS_KEY = 'as_alerts_fired_v1';
+function _loadAlertsFired() {
+    try {
+        const raw = sessionStorage.getItem(_ALERTS_SS_KEY);
+        return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch { return new Set(); }
+}
+function _saveAlertsFired() {
+    try { sessionStorage.setItem(_ALERTS_SS_KEY, JSON.stringify([...window._alertsFired])); } catch {}
+}
+window._alertsFired    = window._alertsFired    || _loadAlertsFired();
 window._watchlistCache = window._watchlistCache || null;
 window._positionsCache = window._positionsCache || null;
 window._alertCacheTs   = window._alertCacheTs   || 0;
@@ -528,6 +539,7 @@ window.checkWatchlistAlerts = async function(prices) {
 
         if (crossed && !window._alertsFired.has(key)) {
             window._alertsFired.add(key);
+            _saveAlertsFired();
             const pct = (((live - target) / target) * 100).toFixed(2);
             _sendPriceAlert(
                 `?? ${sym} HIT TARGET`,
@@ -539,6 +551,7 @@ window.checkWatchlistAlerts = async function(prices) {
         // Reset dedup key if price retreats 2% below target (so future crosses re-alert)
         if (live < target * 0.98 && window._alertsFired.has(key)) {
             window._alertsFired.delete(key);
+            _saveAlertsFired();
         }
     });
 
@@ -558,6 +571,7 @@ window.checkWatchlistAlerts = async function(prices) {
 
             if (targetHit && !window._alertsFired.has(targetKey)) {
                 window._alertsFired.add(targetKey);
+                _saveAlertsFired();
                 const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
                 _sendPriceAlert(
                     `? ${sym} TARGET HIT`,
@@ -575,6 +589,7 @@ window.checkWatchlistAlerts = async function(prices) {
 
             if (stopHit && !window._alertsFired.has(stopKey)) {
                 window._alertsFired.add(stopKey);
+                _saveAlertsFired();
                 const pnlPct = (Math.abs(live - pos.entry_price) / pos.entry_price * 100).toFixed(2);
                 _sendPriceAlert(
                     `?? ${sym} STOP BREACHED`,
