@@ -1113,6 +1113,10 @@ async function renderSignalArchive(tabs = null) {
                 </div>
             </div>${renderTypeBreakdown(data, response)}`;
 
+        if (window._initEquityCurve && response?.summary?.pnl_curve) {
+            setTimeout(() => window._initEquityCurve(response.summary.pnl_curve), 50);
+        }
+
         // - Per-type strategy breakdown table -
         function renderTypeBreakdown(pageData, resp) {
             // Build per-type stats from the full-dataset breakdown returned by the API,
@@ -1241,6 +1245,20 @@ async function renderSignalArchive(tabs = null) {
                         </tr>
                     </tfoot>
                 </table>
+            </div>
+            <div class="card" style="margin-top:1.5rem;padding:1.5rem;display:flex;flex-direction:row;gap:20px;height:250px">
+                <div style="flex:1;position:relative;height:100%;width:100%;">
+                    <div style="position:absolute;top:0;left:0;z-index:10;pointer-events:none">
+                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">P&L EQUITY CURVE</div>
+                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">All-time cumulative return &middot; <span style="color:var(--accent)">closed signals only</span></div>
+                    </div>
+                    <canvas id="equity-curve-canvas"></canvas>
+                </div>
+                <div style="width:140px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right" id="equity-curve-summary">
+                    <!-- Updated via Chart initialization -->
+                    <span style="font-size:1.8rem;font-weight:900;color:var(--text-dim);letter-spacing:-0.5px;font-family:monospace">--%</span>
+                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">-- TRADES</div>
+                </div>
             </div>`;
         }
 
@@ -1473,5 +1491,103 @@ if (typeof window.sortBreakdownTable === 'undefined') {
             if (i === colIdx) html += (!isAsc ? ' ▲' : ' ▼');
             c.innerHTML = html;
         });
+    };
+}
+
+if (typeof window._initEquityCurve === 'undefined') {
+    window._initEquityCurve = function(pnlSeries) {
+        if (!pnlSeries || !pnlSeries.length) return;
+        const ctx = document.getElementById('equity-curve-canvas');
+        if (!ctx) return;
+        
+        let cumulative = 0;
+        const labels = [];
+        const dataPoints = [];
+        
+        pnlSeries.forEach(point => {
+            cumulative += point.roi;
+            const dt = new Date(point.date);
+            labels.push(dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+            dataPoints.push(cumulative.toFixed(2));
+        });
+        
+        if (window._equityChartInstance) {
+            window._equityChartInstance.destroy();
+        }
+        
+        const isUp = cumulative >= 0;
+        const lineColor = isUp ? '#00f2ff' : '#ef4444';
+        const gradColor = isUp ? 'rgba(0, 242, 255, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+        
+        window._equityChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Cumulative P&L (%)',
+                    data: dataPoints,
+                    borderColor: lineColor,
+                    backgroundColor: (context) => {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) return null;
+                        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        gradient.addColorStop(0, gradColor);
+                        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                        return gradient;
+                    },
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHitRadius: 10,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: '#fff',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(10, 22, 40, 0.9)',
+                        titleColor: '#94a3b8',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'ROI: ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: { size: 10, family: 'monospace' },
+                            callback: function(value) { return value + '%'; }
+                        }
+                    }
+                }
+            }
+        });
+        
+        const summaryDiv = document.getElementById('equity-curve-summary');
+        if (summaryDiv) {
+            summaryDiv.innerHTML = `<span style="font-size:1.4rem;font-weight:900;color:${lineColor};letter-spacing:-0.5px;font-family:monospace">${isUp?'+':''}${cumulative.toFixed(2)}%</span>
+            <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">${pnlSeries.length} TRADES</div>`;
+        }
     };
 }

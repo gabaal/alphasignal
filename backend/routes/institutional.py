@@ -4931,10 +4931,23 @@ class InstitutionalRoutesMixin:
                         'avg_roi': round(float(bt_avg_roi), 2) if bt_avg_roi is not None else None,
                         'total':   int(bt_total   or 0),
                     }
+                
+                # Fetch Chronological P&L curve (closed signals with ROI)
+                c2_cur.execute(f"""
+                    SELECT ah.timestamp, ah.final_roi 
+                    FROM alerts_history ah 
+                    {by_type_where} AND COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL 
+                    ORDER BY ah.timestamp ASC
+                """, by_type_params)
+                pnl_curve = []
+                for ts_pnl, val_pnl in c2_cur.fetchall():
+                    pnl_curve.append({'date': ts_pnl, 'roi': round(float(val_pnl), 2)})
+                    
                 conn2.close()
             except Exception as bte:
                 by_type = {}
-                print(f'[SignalHistory] by_type error: {bte}')
+                pnl_curve = []
+                print(f'[SignalHistory] by_type/pnl_curve error: {bte}')
 
             response = {
                 'data': results,
@@ -4954,6 +4967,7 @@ class InstitutionalRoutesMixin:
                     'page_wins':  page_wins,       # current-page ROI-based wins
                     'page_losses': page_losses,    # current-page ROI-based losses
                     'by_type':    by_type,         # per-signal-type breakdown for perf table
+                    'pnl_curve':  pnl_curve,       # chronological PNL curve markers
                 }
             }
             # - Store in cache -
