@@ -1249,7 +1249,7 @@ async function renderSignalArchive(tabs = null) {
             <div class="card" style="margin-top:1.5rem;padding:1.5rem;display:flex;flex-direction:row;gap:20px;height:250px">
                 <div style="flex:1;position:relative;height:100%;width:100%;">
                     <div style="position:absolute;top:0;left:0;z-index:10;pointer-events:none">
-                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">P&L EQUITY CURVE</div>
+                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">CUMULATIVE PNL CURVE</div>
                         <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">All-time cumulative return &middot; <span style="color:var(--accent)">closed signals only</span></div>
                     </div>
                     <canvas id="equity-curve-canvas"></canvas>
