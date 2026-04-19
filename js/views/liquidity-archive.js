@@ -1532,14 +1532,27 @@ if (typeof window._initEquityCurve === 'undefined') {
         if (!ctx) return;
         
         let cumulative = 0;
+        let peak = -Infinity;
         const labels = [];
         const dataPoints = [];
+        const drawdownPoints = [];
+        const winRatePoints = [];
+        const recentOutcomes = [];
         
         pnlSeries.forEach(point => {
             cumulative += point.roi;
+            if (cumulative > peak) peak = cumulative;
+            const dd = Math.min(0, cumulative - peak);
+            
+            recentOutcomes.push(point.roi > 0 ? 1 : 0);
+            if (recentOutcomes.length > 30) recentOutcomes.shift();
+            const wr = recentOutcomes.length > 0 ? (recentOutcomes.reduce((a,b)=>a+b, 0) / recentOutcomes.length) * 100 : 0;
+            
             const dt = new Date(point.date);
             labels.push(dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
             dataPoints.push(cumulative.toFixed(2));
+            drawdownPoints.push(dd.toFixed(2));
+            winRatePoints.push(wr.toFixed(2));
         });
         
         if (window._equityChartInstance) {
@@ -1554,27 +1567,55 @@ if (typeof window._initEquityCurve === 'undefined') {
             type: 'line',
             data: {
                 labels: labels,
-                datasets: [{
-                    label: 'Cumulative P&L (%)',
-                    data: dataPoints,
-                    borderColor: lineColor,
-                    backgroundColor: (context) => {
-                        const chart = context.chart;
-                        const {ctx, chartArea} = chart;
-                        if (!chartArea) return null;
-                        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                        gradient.addColorStop(0, gradColor);
-                        gradient.addColorStop(1, 'rgba(0,0,0,0)');
-                        return gradient;
+                datasets: [
+                    {
+                        label: 'Cumulative P&L (%)',
+                        data: dataPoints,
+                        borderColor: lineColor,
+                        backgroundColor: (context) => {
+                            const chart = context.chart;
+                            const {ctx, chartArea} = chart;
+                            if (!chartArea) return null;
+                            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                            gradient.addColorStop(0, gradColor);
+                            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                            return gradient;
+                        },
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHitRadius: 10,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#fff',
+                        fill: true,
+                        tension: 0.1,
+                        yAxisID: 'y'
                     },
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    pointHitRadius: 10,
-                    pointHoverRadius: 5,
-                    pointHoverBackgroundColor: '#fff',
-                    fill: true,
-                    tension: 0.1
-                }]
+                    {
+                        label: 'Max Drawdown (%)',
+                        data: drawdownPoints,
+                        borderColor: 'rgba(239, 68, 68, 0.8)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        pointHitRadius: 5,
+                        fill: true,
+                        tension: 0.1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: '30-Day Win Rate (%)',
+                        data: winRatePoints,
+                        borderColor: 'rgba(234, 179, 8, 0.6)',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        pointHitRadius: 5,
+                        fill: false,
+                        tension: 0.2,
+                        yAxisID: 'yWinRate'
+                    }
+                ]
             },
             options: {
                 responsive: true,
@@ -1586,15 +1627,21 @@ if (typeof window._initEquityCurve === 'undefined') {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: 'rgba(10, 22, 40, 0.9)',
+                        backgroundColor: 'rgba(10, 22, 40, 0.95)',
                         titleColor: '#94a3b8',
                         bodyColor: '#fff',
                         borderColor: 'rgba(255,255,255,0.1)',
                         borderWidth: 1,
-                        displayColors: false,
+                        displayColors: true,
+                        boxPadding: 4,
                         callbacks: {
                             label: function(context) {
-                                return 'ROI: ' + context.parsed.y + '%';
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y.toFixed(2) + '%';
+                                }
+                                return label;
                             }
                         }
                     }
@@ -1611,12 +1658,23 @@ if (typeof window._initEquityCurve === 'undefined') {
                         }
                     },
                     y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
                         grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
                         ticks: {
                             color: '#94a3b8',
                             font: { size: 10, family: 'monospace' },
                             callback: function(value) { return value + '%'; }
                         }
+                    },
+                    yWinRate: {
+                        type: 'linear',
+                        display: false,
+                        position: 'right',
+                        min: 0, 
+                        max: 100,
+                        grid: { display: false, drawBorder: false }
                     }
                 }
             }
@@ -1624,8 +1682,13 @@ if (typeof window._initEquityCurve === 'undefined') {
         
         const summaryDiv = document.getElementById('equity-curve-summary');
         if (summaryDiv) {
+            const finalWinRate = winRatePoints.length > 0 ? winRatePoints[winRatePoints.length-1] : 0;
+            const finalDrawdown = drawdownPoints.length > 0 ? drawdownPoints[drawdownPoints.length-1] : 0;
+            
             summaryDiv.innerHTML = `<span style="font-size:1.4rem;font-weight:900;color:${lineColor};letter-spacing:-0.5px;font-family:monospace">${isUp?'+':''}${cumulative.toFixed(2)}%</span>
-            <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">${pnlSeries.length} TRADES</div>`;
+            <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">${pnlSeries.length} TRADES</div>
+            <div style="font-size:0.55rem;color:rgba(234, 179, 8, 0.8);margin-top:8px;font-family:monospace;font-weight:bold">WR: ${finalWinRate}%</div>
+            <div style="font-size:0.55rem;color:rgba(239, 68, 68, 0.8);margin-top:2px;font-family:monospace;font-weight:bold">DD: ${finalDrawdown}%</div>`;
         }
     };
 }
