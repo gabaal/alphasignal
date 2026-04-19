@@ -1265,8 +1265,8 @@ async function renderSignalArchive(tabs = null) {
             </div>
             <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(350px, 1fr));gap:1.5rem">
                 <!-- Asset Distribution Chart -->
-                <div class="card" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column">
-                    <div style="margin-bottom:1rem">
+                <div class="card" onclick="window._openChartModal('asset')" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="margin-bottom:1rem;pointer-events:none">
                         <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">P&L BY ASSET CLASS</div>
                         <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">Top performances &middot; <span style="color:var(--accent)">closed signals only</span></div>
                     </div>
@@ -1275,8 +1275,8 @@ async function renderSignalArchive(tabs = null) {
                     </div>
                 </div>
                 <!-- Execution Heatmap -->
-                <div class="card" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column">
-                    <div style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-end">
+                <div class="card" onclick="window._openChartModal('heatmap')" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none">
                         <div>
                             <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">EXECUTION HEATMAP</div>
                             <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">Avg P&L by Global Hour & Day</div>
@@ -1633,6 +1633,7 @@ if (typeof window._initEquityCurve === 'undefined') {
 if (typeof window._initPhase2Charts === 'undefined') {
     window._initPhase2Charts = function(summary) {
         if (!summary) return;
+        window._lastSummaryData = summary;
         
         // 1. Asset Distribution Bar Chart
         if (summary.by_ticker && summary.by_ticker.length) {
@@ -1764,6 +1765,177 @@ if (typeof window._initPhase2Charts === 'undefined') {
                 html += `</div>`;
                 hCont.innerHTML = html;
             }
+        }
+    };
+
+    window._openChartModal = function(type) {
+        const summary = window._lastSummaryData;
+        if (!summary) return;
+
+        let modal = document.getElementById('chart-zoom-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'chart-zoom-modal';
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(6,11,20,0.95);z-index:9999;display:flex;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;backdrop-filter:blur(10px);opacity:0;transition:opacity 0.2s ease-in-out';
+            modal.onclick = function(e) { if(e.target === modal) window._closeChartModal(); };
+            
+            const content = document.createElement('div');
+            content.id = 'chart-zoom-content';
+            content.className = 'card';
+            content.style.cssText = 'width:100%;max-width:1400px;height:100%;max-height:85vh;padding:2.5rem;position:relative;display:flex;flex-direction:column;background:var(--bg-mid);border:1px solid var(--border)';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.cssText = 'position:absolute;top:1rem;right:1.5rem;background:none;border:none;color:var(--text-dim);font-size:2.5rem;cursor:pointer;line-height:1';
+            closeBtn.onclick = window._closeChartModal;
+            closeBtn.onmouseover = () => closeBtn.style.color = '#fff';
+            closeBtn.onmouseout = () => closeBtn.style.color = 'var(--text-dim)';
+            
+            const header = document.createElement('div');
+            header.id = 'chart-zoom-header';
+            header.style.marginBottom = '2rem';
+            
+            const body = document.createElement('div');
+            body.id = 'chart-zoom-body';
+            body.style.flex = '1';
+            body.style.position = 'relative';
+            body.style.display = 'flex';
+            body.style.flexDirection = 'column';
+            body.style.overflow = 'hidden';
+            
+            content.appendChild(closeBtn);
+            content.appendChild(header);
+            content.appendChild(body);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+        }
+        
+        const header = document.getElementById('chart-zoom-header');
+        const body = document.getElementById('chart-zoom-body');
+        
+        if (type === 'asset') {
+            header.innerHTML = `<div style="font-size:1.2rem;font-weight:900;letter-spacing:2px;color:var(--text-bright)">P&L BY ASSET CLASS</div>
+                               <div style="color:var(--text-dim);margin-top:5px;font-size:0.85rem">Expanded View &middot; <span style="color:var(--accent)">closed signals only</span></div>`;
+            body.innerHTML = `<canvas id="asset-zoom-canvas"></canvas>`;
+            modal.style.display = 'flex';
+            setTimeout(() => modal.style.opacity = '1', 10);
+            
+            const ctx = document.getElementById('asset-zoom-canvas');
+            if (window._assetZoomChartInstance) window._assetZoomChartInstance.destroy();
+            
+            const sorted = [...summary.by_ticker].sort((a,b) => b.total_roi - a.total_roi);
+            const displayTickers = sorted.slice(0, 50); // Show up to top 50 in big modal
+            const labels = displayTickers.map(t => t.symbol);
+            const data = displayTickers.map(t => t.total_roi);
+            const bgColors = data.map(v => v >= 0 ? 'rgba(0, 242, 255, 0.4)' : 'rgba(239, 68, 68, 0.4)');
+            const borderColors = data.map(v => v >= 0 ? '#00f2ff' : '#ef4444');
+            
+            window._assetZoomChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderColor: borderColors,
+                        borderWidth: 1,
+                        borderRadius: 2,
+                        barThickness: 'flex'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 22, 40, 0.9)',
+                            titleColor: '#94a3b8',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const t = displayTickers[context.dataIndex];
+                                    return `Total P&L: ${t.total_roi}% | Trades: ${t.total} | Win Rate: ${t.total > 0 ? Math.round((t.wins/t.total)*100) : 0}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false }, ticks: { color: '#94a3b8', font: { size: 11, family: 'monospace' }, callback: v => v+'%' } },
+                        y: { grid: { display: false, drawBorder: false }, ticks: { color: '#94a3b8', font: { size: 11, family: 'monospace', weight: 'bold' } } }
+                    }
+                }
+            });
+            
+        } else if (type === 'heatmap') {
+            header.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-end">
+                                    <div>
+                                        <div style="font-size:1.2rem;font-weight:900;letter-spacing:2px;color:var(--text-bright)">EXECUTION HEATMAP</div>
+                                        <div style="color:var(--text-dim);margin-top:5px;font-size:0.85rem">Avg P&L by Global Hour & Day &middot; Expanded View</div>
+                                    </div>
+                                    <div style="display:flex;gap:6px;align-items:center;font-size:0.75rem;color:var(--text-dim)">
+                                        <span style="background:rgba(239, 68, 68, 0.5);width:12px;height:12px;border-radius:2px"></span> NEGATIVE RETURN
+                                        <span style="background:rgba(0, 242, 255, 0.5);width:12px;height:12px;border-radius:2px;margin-left:10px"></span> POSITIVE RETURN
+                                    </div>
+                                </div>`;
+            
+            // Rebuild matrix for zoomed view with larger styling
+            const DAYS = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+            const matrix = {};
+            for(let d=0; d<7; d++) {
+                matrix[d] = {};
+                for(let h=0; h<24; h+=2) { matrix[d][h] = { roi:0, count:0, win:0 }; }
+            }
+            summary.heatmap_data.forEach(r => {
+                let bucketH = Math.floor(r.hour / 2) * 2;
+                if (matrix[r.dow] && matrix[r.dow][bucketH]) {
+                    matrix[r.dow][bucketH].roi += r.total_roi;
+                    matrix[r.dow][bucketH].count += r.total;
+                }
+            });
+            let maxAbsRoi = 0.001; 
+            for(let d=0; d<7; d++){ for(let h=0; h<24; h+=2){ if(matrix[d][h].count > 0 && Math.abs(matrix[d][h].roi) > maxAbsRoi) maxAbsRoi = Math.abs(matrix[d][h].roi); } }
+
+            let html = `<div style="display:flex;flex-direction:column;gap:8px;height:100%;justify-content:center">`;
+            html += `<div style="display:flex;gap:8px;margin-left:80px">`;
+            for(let h=0; h<24; h+=2) {
+                html += `<div style="flex:1;text-align:center;font-size:0.85rem;font-weight:bold;color:var(--text-dim);font-family:monospace">${h.toString().padStart(2,'0')}h</div>`;
+            }
+            html += `</div>`;
+            for(let d=0; d<7; d++) {
+                html += `<div style="display:flex;gap:8px;flex:1;min-height:0">`;
+                html += `<div style="width:70px;display:flex;align-items:center;justify-content:flex-end;font-size:0.85rem;font-weight:900;color:var(--text-dim);padding-right:10px">${DAYS[d]}</div>`;
+                for(let h=0; h<24; h+=2) {
+                    const cell = matrix[d][h];
+                    let bg = 'rgba(255,255,255,0.02)';
+                    let title = `No Trades`;
+                    if (cell.count > 0) {
+                        const intensity = Math.max(0.15, Math.min(0.9, Math.abs(cell.roi) / maxAbsRoi));
+                        bg = cell.roi >= 0 ? `rgba(0, 242, 255, ${intensity})` : `rgba(239, 68, 68, ${intensity})`;
+                        title = `${cell.roi >= 0 ? '+':''}${cell.roi.toFixed(2)}% ROI (${cell.count} trades)`;
+                    }
+                    html += `<div title="${title}" style="flex:1;background:${bg};border-radius:4px;transition:all 0.15s;cursor:crosshair;display:flex;align-items:center;justify-content:center" onmouseover="this.style.transform='scale(1.05)';this.style.zIndex='10'" onmouseout="this.style.transform='none';this.style.zIndex='1'">
+                                ${cell.count > 0 ? `<span style="font-size:0.75rem;font-family:monospace;font-weight:bold;color:rgba(255,255,255,0.8);pointer-events:none">${cell.roi >= 0 ? '+':''}${Math.round(cell.roi)}%</span>` : ''}
+                             </div>`;
+                }
+                html += `</div>`;
+            }
+            html += `</div>`;
+            
+            body.innerHTML = html;
+            modal.style.display = 'flex';
+            setTimeout(() => modal.style.opacity = '1', 10);
+        }
+    };
+
+    window._closeChartModal = function() {
+        const m = document.getElementById('chart-zoom-modal');
+        if(m) {
+            m.style.opacity = '0';
+            setTimeout(() => m.style.display = 'none', 200);
         }
     };
 }
