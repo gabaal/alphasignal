@@ -1153,10 +1153,21 @@ async function renderSignalArchive(tabs = null) {
                 });
             }
 
+            let totalWins = 0, totalLosses = 0, totalActive = 0, totalClosed = 0, totalRoiSum = 0, totalRoiCount = 0;
+            
             const rows = Object.entries(byType)
                 .sort((a, b) => (b[1].wins + b[1].losses) - (a[1].wins + a[1].losses))
                 .map(([type, s]) => {
-                    const total    = s.wins + s.losses + s.active + s.closed;
+                    totalWins += s.wins;
+                    totalLosses += s.losses;
+                    totalActive += s.active;
+                    totalClosed += s.closed;
+                    const decidedForRoi = (s.wins + s.losses + s.closed);
+                    if (s.avg_roi != null && decidedForRoi > 0) {
+                        totalRoiSum += (parseFloat(s.avg_roi) * decidedForRoi);
+                        totalRoiCount += decidedForRoi;
+                    }
+
                     const decided  = s.wins + s.losses;
                     const winRate  = decided > 0 ? ((s.wins / decided) * 100).toFixed(0) + '%' : '--';
                     const winRateN = decided > 0 ? (s.wins / decided) * 100 : null;
@@ -1164,50 +1175,119 @@ async function renderSignalArchive(tabs = null) {
                     const avgColor = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
                     const wrColor  = winRateN != null ? (winRateN >= 55 ? '#22c55e' : winRateN >= 40 ? '#f59e0b' : '#ef4444') : 'var(--text-dim)';
                     const badge    = s.isBull
-                        ? '<span style="font-size:0.45rem;background:rgba(34,197,94,0.12);color:#22c55e;padding:1px 5px;border-radius:3px;margin-left:4px">LONG</span>'
-                        : '<span style="font-size:0.45rem;background:rgba(239,68,68,0.12);color:#ef4444;padding:1px 5px;border-radius:3px;margin-left:4px">SHORT</span>';
+                        ? '<span style="font-size:0.5rem;background:rgba(34,197,94,0.12);color:#22c55e;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">LONG</span>'
+                        : '<span style="font-size:0.5rem;background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">SHORT</span>';
                     return `<tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.15s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
-                        <td style="padding:9px 12px;font-weight:700;font-size:0.72rem;white-space:nowrap">
+                        <td style="padding:12px 14px;font-weight:700;font-size:0.85rem;white-space:nowrap">
                             <span style="color:var(--text)">${type.replace(/_/g,' ')}</span>${badge}
                         </td>
-                        <td style="padding:9px 12px;text-align:center;font-weight:900;color:#22c55e;font-family:monospace;font-size:0.85rem">${s.wins}</td>
-                        <td style="padding:9px 12px;text-align:center;font-weight:900;color:#ef4444;font-family:monospace;font-size:0.85rem">${s.losses}</td>
-                        <td style="padding:9px 12px;text-align:center;color:#94a3b8;font-family:monospace;font-size:0.82rem">${s.closed}</td>
-                        <td style="padding:9px 12px;text-align:center;color:#60a5fa;font-family:monospace;font-size:0.82rem">${s.active}</td>
-                        <td style="padding:9px 12px;text-align:center;font-weight:700;color:${avgColor};font-family:monospace;font-size:0.82rem">${avgRoi}</td>
-                        <td style="padding:9px 12px;text-align:center">
-                            <span style="font-weight:900;font-size:0.85rem;color:${wrColor};font-family:monospace">${winRate}</span>
-                            ${decided > 0 ? `<div style="font-size:0.48rem;color:var(--text-dim);margin-top:1px">${decided} decided</div>` : ''}
+                        <td style="padding:12px 14px;text-align:center;font-weight:900;color:#22c55e;font-family:monospace;font-size:1rem">${s.wins}</td>
+                        <td style="padding:12px 14px;text-align:center;font-weight:900;color:#ef4444;font-family:monospace;font-size:1rem">${s.losses}</td>
+                        <td style="padding:12px 14px;text-align:center;color:#94a3b8;font-family:monospace;font-size:0.95rem">${s.closed}</td>
+                        <td style="padding:12px 14px;text-align:center;color:#60a5fa;font-family:monospace;font-size:0.95rem">${s.active}</td>
+                        <td style="padding:12px 14px;text-align:center;font-weight:700;color:${avgColor};font-family:monospace;font-size:0.95rem">${avgRoi}</td>
+                        <td style="padding:12px 14px;text-align:center">
+                            <span style="font-weight:900;font-size:1rem;color:${wrColor};font-family:monospace">${winRate}</span>
+                            ${decided > 0 ? `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${decided} decided</div>` : ''}
                         </td>
                     </tr>`;
                 }).join('');
 
             if (!rows) return '';
 
+            const tDecided = totalWins + totalLosses;
+            const tWinRate = tDecided > 0 ? ((totalWins / tDecided) * 100).toFixed(0) + '%' : '--';
+            const tAvgRoiStr = totalRoiCount > 0 ? ((totalRoiSum / totalRoiCount) >= 0 ? '+' : '') + (totalRoiSum / totalRoiCount).toFixed(2) + '%' : '--';
+            const tAvgColor = totalRoiCount > 0 ? ((totalRoiSum / totalRoiCount) >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
+            const tWrColor = tDecided > 0 ? (((totalWins / tDecided) * 100) >= 55 ? '#22c55e' : ((totalWins / tDecided) * 100) >= 40 ? '#f59e0b' : '#ef4444') : 'var(--text-dim)';
+
             return `
             <div class="card" style="margin-top:1.5rem;overflow-x:auto">
+                <style>
+                    .sortable-th:hover { background: rgba(255,255,255,0.05); }
+                </style>
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;flex-wrap:wrap">
-                    <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.1rem">bar_chart</span>
+                    <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.3rem">bar_chart</span>
                     <div>
-                        <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">STRATEGY PERFORMANCE BREAKDOWN</div>
-                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:2px">All-time win rate and avg return by signal type &middot; closed signals with locked ROI &middot; <span style="color:var(--accent)">date filter does not apply</span></div>
+                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">STRATEGY PERFORMANCE BREAKDOWN</div>
+                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">All-time win rate and avg return by signal type &middot; <span style="color:var(--accent)">Click columns to sort</span></div>
                     </div>
                 </div>
-                <table style="width:100%;border-collapse:collapse;font-size:0.75rem;min-width:520px">
+                <table id="strategy-breakdown-table" style="width:100%;border-collapse:collapse;font-size:0.85rem;min-width:600px">
                     <thead>
-                        <tr style="border-bottom:2px solid ${alphaColor(0.08)}">
-                            <th style="text-align:left;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">SIGNAL TYPE</th>
-                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:#22c55e">WINS</th>
-                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:#ef4444">LOSSES</th>
-                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:#94a3b8">CLOSED</th>
-                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:#60a5fa">ACTIVE</th>
-                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">AVG RETURN</th>
-                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">WIN RATE</th>
+                        <tr style="border-bottom:2px solid ${alphaColor(0.12)}">
+                            <th class="sortable-th" onclick="if(window.sortBreakdownTable) window.sortBreakdownTable(this)" style="cursor:pointer;user-select:none;text-align:left;padding:10px 14px;font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">SIGNAL TYPE</th>
+                            <th class="sortable-th" onclick="if(window.sortBreakdownTable) window.sortBreakdownTable(this)" style="cursor:pointer;user-select:none;text-align:center;padding:10px 14px;font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:#22c55e">WINS</th>
+                            <th class="sortable-th" onclick="if(window.sortBreakdownTable) window.sortBreakdownTable(this)" style="cursor:pointer;user-select:none;text-align:center;padding:10px 14px;font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:#ef4444">LOSSES</th>
+                            <th class="sortable-th" onclick="if(window.sortBreakdownTable) window.sortBreakdownTable(this)" style="cursor:pointer;user-select:none;text-align:center;padding:10px 14px;font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:#94a3b8">CLOSED</th>
+                            <th class="sortable-th" onclick="if(window.sortBreakdownTable) window.sortBreakdownTable(this)" style="cursor:pointer;user-select:none;text-align:center;padding:10px 14px;font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:#60a5fa">ACTIVE</th>
+                            <th class="sortable-th" onclick="if(window.sortBreakdownTable) window.sortBreakdownTable(this)" style="cursor:pointer;user-select:none;text-align:center;padding:10px 14px;font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">AVG RETURN</th>
+                            <th class="sortable-th" onclick="if(window.sortBreakdownTable) window.sortBreakdownTable(this)" style="cursor:pointer;user-select:none;text-align:center;padding:10px 14px;font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">WIN RATE</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
+                    <tfoot>
+                        <tr style="border-top:2px solid ${alphaColor(0.2)};background:${alphaColor(0.02)}">
+                            <td style="padding:12px 14px;font-weight:900;font-size:0.85rem;color:var(--text);letter-spacing:1px">OVERALL TOTALS</td>
+                            <td style="padding:12px 14px;text-align:center;font-weight:900;color:#22c55e;font-family:monospace;font-size:1.1rem">${totalWins}</td>
+                            <td style="padding:12px 14px;text-align:center;font-weight:900;color:#ef4444;font-family:monospace;font-size:1.1rem">${totalLosses}</td>
+                            <td style="padding:12px 14px;text-align:center;font-weight:900;color:#94a3b8;font-family:monospace;font-size:1.05rem">${totalClosed}</td>
+                            <td style="padding:12px 14px;text-align:center;font-weight:900;color:#60a5fa;font-family:monospace;font-size:1.05rem">${totalActive}</td>
+                            <td style="padding:12px 14px;text-align:center;font-weight:900;color:${tAvgColor};font-family:monospace;font-size:1.05rem">${tAvgRoiStr}</td>
+                            <td style="padding:12px 14px;text-align:center">
+                                <span style="font-weight:900;font-size:1.1rem;color:${tWrColor};font-family:monospace">${tWinRate}</span>
+                                ${tDecided > 0 ? `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${tDecided} decided</div>` : ''}
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
-            </div>`;
+            </div>
+            <script>
+                if (typeof window.sortBreakdownTable === 'undefined') {
+                    window.sortBreakdownTable = function(th) {
+                        const table = th.closest('table');
+                        if (!table) return;
+                        const tbody = table.querySelector('tbody');
+                        const rowArr = Array.from(tbody.querySelectorAll('tr'));
+                        const headCells = Array.from(th.parentNode.children);
+                        const colIdx = headCells.indexOf(th);
+                        
+                        const isAsc = (table.dataset.sortCol == colIdx && table.dataset.sortAsc == 'true');
+                        
+                        rowArr.sort((a, b) => {
+                            let vA = a.cells[colIdx].textContent.trim();
+                            let vB = b.cells[colIdx].textContent.trim();
+                            
+                            // Check for numbers: remove non-numeric except . and -
+                            let nA = parseFloat(vA.replace(/[^0-9.-]/g, ''));
+                            let nB = parseFloat(vB.replace(/[^0-9.-]/g, ''));
+                            
+                            if (!isNaN(nA) && !isNaN(nB)) {
+                                vA = nA; 
+                                vB = nB;
+                            } else {
+                                vA = vA.toLowerCase();
+                                vB = vB.toLowerCase();
+                            }
+                            
+                            if (vA < vB) return isAsc ? -1 : 1;
+                            if (vA > vB) return isAsc ? 1 : -1;
+                            return 0;
+                        });
+                        
+                        table.dataset.sortCol = colIdx;
+                        table.dataset.sortAsc = (!isAsc).toString();
+                        
+                        rowArr.forEach(r => tbody.appendChild(r));
+                        
+                        headCells.forEach((c, i) => {
+                            let html = c.innerHTML.replace(' ▲', '').replace(' ▼', '');
+                            if (i === colIdx) html += (!isAsc ? ' ▲' : ' ▼');
+                            c.innerHTML = html;
+                        });
+                    };
+                }
+            </script>`;
         }
 
         // - Sort handler: always client-side -
