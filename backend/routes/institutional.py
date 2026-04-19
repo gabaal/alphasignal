@@ -5961,15 +5961,15 @@ class InstitutionalRoutesMixin:
             # BTC buy-and-hold baseline: anchor to price on first trade date
             sorted_btc_ts = sorted(btc_prices.keys())
             first_trade_ts = trades[0]['ts']
-            btc_anchor_ts  = min(sorted_btc_ts, key=lambda t: abs(t - first_trade_ts))
-            btc_anchor_px  = btc_prices.get(btc_anchor_ts, 0)
+            btc_anchor_ts  = min(sorted_btc_ts, key=lambda t: abs(t - first_trade_ts), default=None)
+            btc_anchor_px  = btc_prices.get(btc_anchor_ts, 0) if btc_anchor_ts else 0
 
             for i in range(len(pnls)):
                 equity_so_far += port_impacts[i]
                 # BTC cumulative: simple buy-and-hold from first trade date
                 trade_ts   = trades[i]['ts']
-                cur_btc_ts = min(sorted_btc_ts, key=lambda t: abs(t - trade_ts))
-                cur_btc_px = btc_prices.get(cur_btc_ts, 0)
+                cur_btc_ts = min(sorted_btc_ts, key=lambda t: abs(t - trade_ts), default=None)
+                cur_btc_px = btc_prices.get(cur_btc_ts, 0) if cur_btc_ts else 0
                 if btc_anchor_px and cur_btc_px:
                     btc_cumulative = round((cur_btc_px / btc_anchor_px - 1) * 100, 2)
                 else:
