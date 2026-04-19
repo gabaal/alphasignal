@@ -561,7 +561,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/api/dev/mock-signals', '/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard', '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe', '/api/admin/db-cleanup']
+                public_routes = ['/api/dev/mock-signals', '/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard', '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe']
                 free_auth_routes = ['/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete', '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory']
                 # /api/signal/{id} is fully public - no auth gate for shared links
                 if path.startswith('/api/signal/'):
@@ -734,38 +734,6 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_alpha_score()
             elif path == '/api/performance':
                 self.handle_performance()
-            elif path == '/api/admin/db-cleanup':
-                # ONE-TIME cleanup endpoint — remove after use
-                import os, sqlite3
-                token = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get('token', [None])[0]
-                ADMIN_TOKEN = os.environ.get('ADMIN_CLEANUP_TOKEN', 'alphasignal-cleanup-2024')
-                if token != ADMIN_TOKEN:
-                    self.send_response(403); self.send_header('Content-Type','application/json')
-                    self.send_header('Access-Control-Allow-Origin','*'); self.end_headers()
-                    self.wfile.write(b'{"error":"forbidden"}'); return
-                try:
-                    STABLES = ('USDC-USD','USDT-USD','DAI-USD','BUSD-USD','TUSD-USD','FRAX-USD','LUSD-USD','USDP-USD','GUSD-USD','PYUSD-USD','USDE-USD','FDUSD-USD','EURC-USD','USDS-USD')
-                    RTYPES  = ('RSI_OVERBOUGHT','MACD_BULLISH_CROSS','MACD_BEARISH_CROSS','VOLUME_SPIKE')
-                    from backend.database import DB_PATH
-                    conn = sqlite3.connect(DB_PATH)
-                    c = conn.cursor()
-                    c.execute('SELECT COUNT(*) FROM alerts_history'); before = c.fetchone()[0]
-                    sp = ','.join('?'*len(STABLES))
-                    c.execute(f'DELETE FROM alerts_history WHERE ticker IN ({sp})', STABLES); del_stable = c.rowcount
-                    tp = ','.join('?'*len(RTYPES))
-                    c.execute(f"DELETE FROM alerts_history WHERE type IN ({tp}) AND COALESCE(status,'active')='closed'", RTYPES); del_closed = c.rowcount
-                    conn.commit()
-                    c.execute('SELECT COUNT(*) FROM alerts_history'); after = c.fetchone()[0]
-                    # Per-type summary after cleanup
-                    c.execute("SELECT type,COUNT(*),SUM(CASE WHEN COALESCE(status,'active')='closed' AND COALESCE(final_roi,0)>0 THEN 1 ELSE 0 END),SUM(CASE WHEN COALESCE(status,'active')='closed' AND COALESCE(final_roi,0)<0 THEN 1 ELSE 0 END) FROM alerts_history GROUP BY type")
-                    summary = [{'type':r[0],'total':r[1],'wins':r[2],'losses':r[3]} for r in c.fetchall()]
-                    conn.close()
-                    # Clear signal history cache
-                    try: InstitutionalRoutesMixin._sig_history_cache.clear()
-                    except: pass
-                    self.send_json({'status':'done','before':before,'after':after,'deleted_stablecoins':del_stable,'deleted_regime_blind_closed':del_closed,'total_removed':del_stable+del_closed,'remaining_by_type':summary})
-                except Exception as e:
-                    self.send_json({'error':str(e)})
             elif path == '/api/export':
                 self.handle_export()
 
