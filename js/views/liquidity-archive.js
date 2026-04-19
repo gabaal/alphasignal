@@ -1190,7 +1190,7 @@ async function renderSignalArchive(tabs = null) {
                     <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.1rem">bar_chart</span>
                     <div>
                         <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">STRATEGY PERFORMANCE BREAKDOWN</div>
-                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:2px">Win rate and avg return by signal type &middot; closed signals with locked ROI</div>
+                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:2px">All-time win rate and avg return by signal type &middot; closed signals with locked ROI &middot; <span style="color:var(--accent)">date filter does not apply</span></div>
                     </div>
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:0.75rem;min-width:520px">

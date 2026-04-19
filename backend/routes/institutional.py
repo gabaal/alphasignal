@@ -4882,9 +4882,31 @@ class InstitutionalRoutesMixin:
                 results = results[(page - 1) * limit: page * limit]
 
             # --- Per-signal-type breakdown (for Strategy Performance Breakdown table) ---
+            # Intentionally ALL-TIME: ignores the current date filter so the table always
+            # reflects the true historical track record of each strategy, not just the
+            # current archive window. Scoped to the authenticated user only.
             try:
-                c2 = conn if not conn.in_transaction else sqlite3.connect(DB_PATH)
-                c2_cur = c2.cursor()
+                by_type_where  = "WHERE LOWER(ah.user_email) = LOWER(?)"
+                by_type_params = [user_email]
+                # Also inherit ticker/type/direction filters if set, so the table stays
+                # consistent when the user drills into a specific signal type or ticker.
+                if f_ticker:
+                    by_type_where += ' AND ah.ticker = ?'
+                    by_type_params.append(f_ticker)
+                if f_type:
+                    by_type_where += ' AND ah.type = ?'
+                    by_type_params.append(f_type)
+                if f_direction:
+                    if f_direction == 'bullish':
+                        by_type_where += (" AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',"
+                                          "'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT',"
+                                          "'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')")
+                    elif f_direction == 'bearish':
+                        by_type_where += (" AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
+                                          "'REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')")
+
+                conn2 = sqlite3.connect(DB_PATH)
+                c2_cur = conn2.cursor()
                 c2_cur.execute(f"""
                     SELECT
                         ah.type,
@@ -4894,9 +4916,9 @@ class InstitutionalRoutesMixin:
                         SUM(CASE WHEN COALESCE(ah.status,'active')='active' THEN 1 ELSE 0 END) as active,
                         AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi,
                         COUNT(*) as total
-                    FROM alerts_history ah {summary_where}
+                    FROM alerts_history ah {by_type_where}
                     GROUP BY ah.type
-                """, summary_params)
+                """, by_type_params)
                 by_type = {}
                 for bt_type, bt_wins, bt_losses, bt_closed, bt_active, bt_avg_roi, bt_total in c2_cur.fetchall():
                     if not bt_type:
@@ -4909,8 +4931,7 @@ class InstitutionalRoutesMixin:
                         'avg_roi': round(float(bt_avg_roi), 2) if bt_avg_roi is not None else None,
                         'total':   int(bt_total   or 0),
                     }
-                if c2 is not conn:
-                    c2.close()
+                conn2.close()
             except Exception as bte:
                 by_type = {}
                 print(f'[SignalHistory] by_type error: {bte}')
