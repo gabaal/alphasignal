@@ -1241,53 +1241,7 @@ async function renderSignalArchive(tabs = null) {
                         </tr>
                     </tfoot>
                 </table>
-            </div>
-            <script>
-                if (typeof window.sortBreakdownTable === 'undefined') {
-                    window.sortBreakdownTable = function(th) {
-                        const table = th.closest('table');
-                        if (!table) return;
-                        const tbody = table.querySelector('tbody');
-                        const rowArr = Array.from(tbody.querySelectorAll('tr'));
-                        const headCells = Array.from(th.parentNode.children);
-                        const colIdx = headCells.indexOf(th);
-                        
-                        const isAsc = (table.dataset.sortCol == colIdx && table.dataset.sortAsc == 'true');
-                        
-                        rowArr.sort((a, b) => {
-                            let vA = a.cells[colIdx].textContent.trim();
-                            let vB = b.cells[colIdx].textContent.trim();
-                            
-                            // Check for numbers: remove non-numeric except . and -
-                            let nA = parseFloat(vA.replace(/[^0-9.-]/g, ''));
-                            let nB = parseFloat(vB.replace(/[^0-9.-]/g, ''));
-                            
-                            if (!isNaN(nA) && !isNaN(nB)) {
-                                vA = nA; 
-                                vB = nB;
-                            } else {
-                                vA = vA.toLowerCase();
-                                vB = vB.toLowerCase();
-                            }
-                            
-                            if (vA < vB) return isAsc ? -1 : 1;
-                            if (vA > vB) return isAsc ? 1 : -1;
-                            return 0;
-                        });
-                        
-                        table.dataset.sortCol = colIdx;
-                        table.dataset.sortAsc = (!isAsc).toString();
-                        
-                        rowArr.forEach(r => tbody.appendChild(r));
-                        
-                        headCells.forEach((c, i) => {
-                            let html = c.innerHTML.replace(' ▲', '').replace(' ▼', '');
-                            if (i === colIdx) html += (!isAsc ? ' ▲' : ' ▼');
-                            c.innerHTML = html;
-                        });
-                    };
-                }
-            </script>`;
+            </div>`;
         }
 
         // - Sort handler: always client-side -
@@ -1469,3 +1423,48 @@ async function renderSignalArchive(tabs = null) {
     loadData(1);
 }
 
+
+if (typeof window.sortBreakdownTable === 'undefined') {
+    window.sortBreakdownTable = function(th) {
+        const table = th.closest('table');
+        if (!table) return;
+        const tbody = table.querySelector('tbody');
+        const rowArr = Array.from(tbody.querySelectorAll('tr'));
+        const headCells = Array.from(th.parentNode.children);
+        const colIdx = headCells.indexOf(th);
+        
+        const isAsc = (table.dataset.sortCol == colIdx && table.dataset.sortAsc == 'true');
+        
+        rowArr.sort((a, b) => {
+            let vA = a.cells[colIdx].textContent.trim();
+            let vB = b.cells[colIdx].textContent.trim();
+            
+            // Check for numbers: remove non-numeric except . and -
+            let nA = parseFloat(vA.replace(/[^0-9.-]/g, ''));
+            let nB = parseFloat(vB.replace(/[^0-9.-]/g, ''));
+            
+            if (!isNaN(nA) && !isNaN(nB)) {
+                vA = nA; 
+                vB = nB;
+            } else {
+                vA = vA.toLowerCase();
+                vB = vB.toLowerCase();
+            }
+            
+            if (vA < vB) return isAsc ? -1 : 1;
+            if (vA > vB) return isAsc ? 1 : -1;
+            return 0;
+        });
+        
+        table.dataset.sortCol = colIdx;
+        table.dataset.sortAsc = (!isAsc).toString();
+        
+        rowArr.forEach(r => tbody.appendChild(r));
+        
+        headCells.forEach((c, i) => {
+            let html = c.innerHTML.replace(' ▲', '').replace(' ▼', '');
+            if (i === colIdx) html += (!isAsc ? ' ▲' : ' ▼');
+            c.innerHTML = html;
+        });
+    };
+}
