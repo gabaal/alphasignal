@@ -1963,14 +1963,14 @@ if (typeof window._initPhase2Charts === 'undefined') {
             for(let d=0; d<7; d++){ for(let h=0; h<24; h+=2){ if(matrix[d][h].count > 0 && Math.abs(matrix[d][h].roi) > maxAbsRoi) maxAbsRoi = Math.abs(matrix[d][h].roi); } }
 
             let html = `<div style="display:flex;flex-direction:column;gap:8px;height:100%;justify-content:center">`;
-            html += `<div style="display:flex;gap:8px;margin-left:80px">`;
+            html += `<div style="display:flex;gap:8px;margin-left:110px">`;
             for(let h=0; h<24; h+=2) {
                 html += `<div style="flex:1;text-align:center;font-size:0.85rem;font-weight:bold;color:var(--text-dim);font-family:monospace">${h.toString().padStart(2,'0')}h</div>`;
             }
             html += `</div>`;
             for(let d=0; d<7; d++) {
                 html += `<div style="display:flex;gap:8px;flex:1;min-height:0">`;
-                html += `<div style="width:70px;display:flex;align-items:center;justify-content:flex-end;font-size:0.85rem;font-weight:900;color:var(--text-dim);padding-right:10px">${DAYS[d]}</div>`;
+                html += `<div style="width:100px;display:flex;align-items:center;justify-content:flex-end;font-size:0.85rem;font-weight:900;color:var(--text-dim);padding-right:10px">${DAYS[d]}</div>`;
                 for(let h=0; h<24; h+=2) {
                     const cell = matrix[d][h];
                     let bg = 'rgba(255,255,255,0.02)';
