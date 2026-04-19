@@ -1,10 +1,10 @@
 async function renderLiquidityView(tabs = null) {
     // Standard hub tab setup - 4 sub-views as tabs
     const gommTabs = [
-        { id: 'walls', label: 'DEPTH WALLS', view: 'liquidity', icon: 'bar_chart' },
-        { id: 'heatmap', label: 'HEATMAP', view: 'liquidity', icon: 'grid_on' },
-        { id: 'liquidations', label: 'LIQUIDATION FLUX', view: 'liquidity', icon: 'warning' },
-        { id: 'volatility', label: 'VOL SURFACE', view: 'liquidity', icon: 'ssid_chart' }
+        { id: 'walls',        label: 'DEPTH WALLS',       view: 'liquidity', icon: 'bar_chart' },
+        { id: 'heatmap',      label: 'HEATMAP',           view: 'liquidity', icon: 'grid_on' },
+        { id: 'liquidations', label: 'LIQUIDATION FLUX',  view: 'liquidity', icon: 'warning' },
+        { id: 'volatility',   label: 'VOL SURFACE',       view: 'liquidity', icon: 'ssid_chart' }
     ];
 
     // Track active sub-tab in sessionStorage
@@ -108,11 +108,11 @@ async function renderLiquidityView(tabs = null) {
         const walls = data.walls;
         function aggWalls(arr) {
             const m = new Map();
-            arr.forEach(w => { const p = Math.round(w.price); m.set(p, (m.get(p) || 0) + w.size); });
-            return Array.from(m, ([price, size]) => ({ price, size })).filter(w => w.size >= 0.01);
+            arr.forEach(w => { const p = Math.round(w.price); m.set(p, (m.get(p)||0) + w.size); });
+            return Array.from(m, ([price, size]) => ({price, size})).filter(w => w.size >= 0.01);
         }
-        let bids = aggWalls(walls.filter(w => String(w.side).toLowerCase() === 'bid')).sort((a, b) => b.price - a.price);
-        let asks = aggWalls(walls.filter(w => String(w.side).toLowerCase() === 'ask')).sort((a, b) => a.price - b.price);
+        let bids = aggWalls(walls.filter(w => String(w.side).toLowerCase() === 'bid')).sort((a,b) => b.price - a.price);
+        let asks = aggWalls(walls.filter(w => String(w.side).toLowerCase() === 'ask')).sort((a,b) => a.price - b.price);
 
         const currentPrice = data.current_price || (bids.length > 0 ? bids[0].price * 1.001 : 84000);
 
@@ -150,7 +150,7 @@ async function renderLiquidityView(tabs = null) {
         // X-axis: bids displayed low-high (left of mid), then asks low-high (right of mid)
         // With linear axis, we just provide [{x, y}] coordinates directly.
         const midPrice = asks.length > 0 ? asks[0].price : (currentPrice || bids[0]?.price * 1.001 || 84000);
-        const bidData = [...bidLevels].filter(b => b.price <= midPrice).reverse().map(b => ({ x: b.price, y: b.cum }));
+        const bidData = [...bidLevels].filter(b => b.price <= midPrice).reverse().map(b => ({ x: b.price, y: b.cum })); 
         // Ensure bids touch zero exactly at the current mid price (or closest Ask)
         bidData.push({ x: midPrice, y: 0 });
         bidData.sort((a, b) => a.x - b.x);
@@ -168,9 +168,9 @@ async function renderLiquidityView(tabs = null) {
                 <div style="height:380px"><canvas id="gommWallChart" role="img" aria-label="Order wall chart"></canvas></div>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.75rem 0;font-size:0.6rem">
                     <span style="color:var(--text-dim);letter-spacing:1px;margin-right:0.5rem">TOP BIDS:</span>
-                    ${topBids.slice(0, 4).map(w => `<span style="color:var(--risk-low);background:rgba(34,197,94,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> BTC</span>`).join('')}
+                    ${topBids.slice(0,4).map(w => `<span style="color:var(--risk-low);background:rgba(34,197,94,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> BTC</span>`).join('')}
                     <span style="color:var(--text-dim);letter-spacing:1px;margin:0 0.5rem">TOP ASKS:</span>
-                    ${topAsks.slice(0, 4).map(w => `<span style="color:var(--risk-high);background:rgba(239,68,68,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> BTC</span>`).join('')}
+                    ${topAsks.slice(0,4).map(w => `<span style="color:var(--risk-high);background:rgba(239,68,68,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> BTC</span>`).join('')}
                 </div>
             </div>`;
 
@@ -184,8 +184,8 @@ async function renderLiquidityView(tabs = null) {
                 type: 'line',
                 data: {
                     datasets: [
-                        { label: 'Bid Depth (BTC)', data: bidData, borderColor: 'rgba(34,197,94,1)', backgroundColor: 'rgba(34,197,94,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y' },
-                        { label: 'Ask Depth (BTC)', data: askData, borderColor: 'rgba(239,68,68,1)', backgroundColor: 'rgba(239,68,68,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y1' }
+                        { label: 'Bid Depth (BTC)',  data: bidData, borderColor: 'rgba(34,197,94,1)',  backgroundColor: 'rgba(34,197,94,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y'  },
+                        { label: 'Ask Depth (BTC)',  data: askData, borderColor: 'rgba(239,68,68,1)',  backgroundColor: 'rgba(239,68,68,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y1' }
                     ]
                 },
                 options: {
@@ -197,9 +197,9 @@ async function renderLiquidityView(tabs = null) {
                         tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '-'} BTC` } }
                     },
                     scales: {
-                        x: { type: 'linear', grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 12, callback: v => '$' + v.toLocaleString() } },
-                        y: { position: 'left', grid: { color: 'rgba(34,197,94,0.08)' }, ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: '- Bid Depth (BTC)', color: 'rgba(34,197,94,0.7)' }, min: 0 },
-                        y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: 'Ask Depth (BTC) -', color: 'rgba(239,68,68,0.7)' }, min: 0 }
+                        x:  { type: 'linear', grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 12, callback: v => '$'+v.toLocaleString() } },
+                        y:  { position: 'left',  grid: { color: 'rgba(34,197,94,0.08)' },  ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: '- Bid Depth (BTC)', color: 'rgba(34,197,94,0.7)' }, min: 0 },
+                        y1: { position: 'right', grid: { drawOnChartArea: false },           ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: 'Ask Depth (BTC) -', color: 'rgba(239,68,68,0.7)' }, min: 0 }
                     }
                 }
             });
@@ -214,10 +214,10 @@ async function renderLiquidityView(tabs = null) {
                     const fresh = await fetchAPI('/liquidity?ticker=BTC-USD');
                     if (!fresh || !fresh.walls) return;
 
-                    let fb = aggWalls(fresh.walls.filter(w => String(w.side).toLowerCase() === 'bid')).sort((a, b) => b.price - a.price);
-                    let fa = aggWalls(fresh.walls.filter(w => String(w.side).toLowerCase() === 'ask')).sort((a, b) => a.price - b.price);
-                    const bt = fb.reduce((s, b) => s + b.size, 0);
-                    const at = fa.reduce((s, a) => s + a.size, 0);
+                    let fb = aggWalls(fresh.walls.filter(w => String(w.side).toLowerCase() === 'bid')).sort((a,b) => b.price - a.price);
+                    let fa = aggWalls(fresh.walls.filter(w => String(w.side).toLowerCase() === 'ask')).sort((a,b) => a.price - b.price);
+                    const bt = fb.reduce((s,b) => s + b.size, 0);
+                    const at = fa.reduce((s,a) => s + a.size, 0);
 
                     if (fa.length === 0 || at < bt * 0.2) {
                         const cp = fresh.current_price || (fb[0]?.price * 1.001) || 84000;
@@ -226,19 +226,19 @@ async function renderLiquidityView(tabs = null) {
                             price: cp + cp * 0.0005 + i * cp * 0.0008,
                             size: (tgt / lvls) * ((lvls - i) / lvls) * (0.8 + Math.random() * 0.4),
                             side: 'ask'
-                        })).sort((a, b) => a.price - b.price);
+                        })).sort((a,b) => a.price - b.price);
                     }
 
                     const bLvl = [], aLvl = []; let cb = 0, ca = 0;
-                    fb.slice(0, 20).forEach(b => { cb += b.size; bLvl.push({ price: b.price, cum: cb }); });
-                    fa.slice(0, 20).forEach(a => { ca += a.size; aLvl.push({ price: a.price, cum: ca }); });
+                    fb.slice(0,20).forEach(b => { cb += b.size; bLvl.push({ price: b.price, cum: cb }); });
+                    fa.slice(0,20).forEach(a => { ca += a.size; aLvl.push({ price: a.price, cum: ca }); });
                     const midP = fa.length > 0 ? fa[0].price : (fresh.current_price || fb[0]?.price * 1.001 || 84000);
-                    const bData = [...bLvl].filter(b => b.price <= midP).reverse().map(b => ({ x: b.price, y: b.cum }));
-                    bData.push({ x: midP, y: 0 });
-                    bData.sort((a, b) => a.x - b.x);
-
-                    const aData = [{ x: midP, y: 0 }, ...aLvl.filter(a => a.price >= midP).map(a => ({ x: a.price, y: a.cum }))];
-                    aData.sort((a, b) => a.x - b.x);
+                    const bData = [...bLvl].filter(b => b.price <= midP).reverse().map(b => ({x: b.price, y: b.cum}));
+                    bData.push({x: midP, y: 0});
+                    bData.sort((a,b) => a.x - b.x);
+                    
+                    const aData = [{x: midP, y: 0}, ...aLvl.filter(a => a.price >= midP).map(a => ({x: a.price, y: a.cum}))];
+                    aData.sort((a,b) => a.x - b.x);
 
                     const chart = window._gommWallChartInst;
                     chart.data.datasets[0].data = bData;
@@ -250,7 +250,7 @@ async function renderLiquidityView(tabs = null) {
                     const dEl = document.getElementById('gomm-depth');
                     if (iEl && fresh.imbalance) { iEl.textContent = fresh.imbalance; iEl.style.color = parseFloat(fresh.imbalance) > 0 ? 'var(--risk-low)' : 'var(--risk-high)'; }
                     if (dEl && fresh.total_depth) dEl.textContent = fresh.total_depth;
-                } catch (e) { /* silent - skip noisy poll failures */ }
+                } catch(e) { /* silent - skip noisy poll failures */ }
             }, 1000);
 
             if (typeof injectAIChartTranslator === 'function') {
@@ -274,16 +274,16 @@ async function renderLiquidityView(tabs = null) {
             return;
         }
         const history = data.history.slice(-60);
-        const prices = history.map(h => h.close || h.price || 0);
-        const opens = history.map(h => h.open || h.price || 0);
-        const labels = history.map(h => h.time || h.date || '');
+        const prices  = history.map(h => h.close || h.price || 0);
+        const opens   = history.map(h => h.open  || h.price || 0);
+        const labels  = history.map(h => h.time  || h.date  || '');
         const changes = prices.map((c, i) => Math.abs(c - opens[i]));
-        const colors = prices.map((c, i) => c >= opens[i] ? 'rgba(34,197,94,0.75)' : 'rgba(239,68,68,0.75)');
+        const colors  = prices.map((c, i) => c >= opens[i] ? 'rgba(34,197,94,0.75)' : 'rgba(239,68,68,0.75)');
         display.innerHTML = `
             <div class="card">
                 <div style="display:flex;gap:1.5rem;padding:0.75rem 0 0.5rem;font-size:0.6rem">
                     <span style="color:var(--text-dim)">CURRENT</span>
-                    <span style="color:var(--accent);font-weight:900">$${(prices[prices.length - 1] || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                    <span style="color:var(--accent);font-weight:900">$${(prices[prices.length-1]||0).toLocaleString(undefined,{maximumFractionDigits:0})}</span>
                     <span style="color:var(--text-dim);margin-left:auto">${history.length} candles - 5m interval</span>
                 </div>
                 <div style="height:360px"><canvas id="gommHeatChart" role="img" aria-label="Order flow heatmap chart"></canvas></div>
@@ -310,11 +310,11 @@ async function renderLiquidityView(tabs = null) {
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: { labels: { color: '#aaa', font: { size: 10 }, boxWidth: 12 } },
-                        tooltip: { callbacks: { label: c => c.datasetIndex === 0 ? `Price: $${(c.parsed.y || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : `Body: $${(c.parsed.y || 0).toFixed(0)}` } }
+                        tooltip: { callbacks: { label: c => c.datasetIndex === 0 ? `Price: $${(c.parsed.y||0).toLocaleString(undefined,{maximumFractionDigits:0})}` : `Body: $${(c.parsed.y||0).toFixed(0)}` } }
                     },
                     scales: {
-                        x: { grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 12, font: { size: 9 } }, title: { display: true, text: 'Time (5-min candles)', color: '#555', font: { size: 9 } } },
-                        y: { position: 'left', grid: { color: 'rgba(0,242,255,0.05)' }, ticks: { color: 'rgba(0,242,255,0.7)', callback: v => '$' + (v / 1000).toFixed(0) + 'K' }, title: { display: true, text: 'Price (USD)', color: 'rgba(0,242,255,0.5)', font: { size: 9 } } },
+                        x:  { grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 12, font: { size: 9 } }, title: { display: true, text: 'Time (5-min candles)', color: '#555', font: { size: 9 } } },
+                        y:  { position: 'left',  grid: { color: 'rgba(0,242,255,0.05)' }, ticks: { color: 'rgba(0,242,255,0.7)', callback: v => '$'+(v/1000).toFixed(0)+'K' }, title: { display: true, text: 'Price (USD)', color: 'rgba(0,242,255,0.5)', font: { size: 9 } } },
                         y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#666', font: { size: 9 } }, title: { display: true, text: 'Candle Body ($)', color: '#555', font: { size: 9 } } }
                     }
                 }
@@ -343,19 +343,17 @@ async function renderLiquidityView(tabs = null) {
             if (ctx) {
                 new Chart(ctx, {
                     type: 'bar',
-                    data: {
-                        labels: sorted.map(c => parseFloat(c.price).toFixed(0)),
+                    data: { labels: sorted.map(c => parseFloat(c.price).toFixed(0)),
                         datasets: [
-                            { type: 'line', label: 'Est. OI', data: sorted.map((c, i) => 50 + Math.sin(i / 2) * 20 + c.intensity * 5), borderColor: '#7dd3fc', borderWidth: 2, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
+                            { type: 'line', label: 'Est. OI', data: sorted.map((c,i) => 50 + Math.sin(i/2)*20 + c.intensity*5), borderColor: '#7dd3fc', borderWidth: 2, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
                             { label: 'Short Liq', data: sorted.map(c => c.side === 'SHORT' ? c.intensity * 10 : 0), backgroundColor: 'rgba(34,197,94,0.7)', yAxisID: 'y' },
-                            { label: 'Long Liq', data: sorted.map(c => c.side === 'LONG' ? c.intensity * 10 : 0), backgroundColor: 'rgba(239,68,68,0.7)', yAxisID: 'y' }
+                            { label: 'Long Liq',  data: sorted.map(c => c.side === 'LONG'  ? c.intensity * 10 : 0), backgroundColor: 'rgba(239,68,68,0.7)',  yAxisID: 'y' }
                         ]
                     },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                         scales: {
                             x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Price Level ($)', color: '#666', font: { size: 9 } } },
-                            y: { type: 'linear', position: 'left', grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Liquidation Volume', color: '#888', font: { size: 9 } } },
+                            y:  { type: 'linear', position: 'left',  grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Liquidation Volume', color: '#888', font: { size: 9 } } },
                             y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: 'Est. OI', color: '#7dd3fc', font: { size: 9 } } }
                         }
                     }
@@ -398,9 +396,9 @@ async function renderLiquidityView(tabs = null) {
 
         // Map backend fields - chart fields
         // Backend sends: expiry_labels (string[]), moneyness_axis (float[]), iv_grid (float[][])
-        const labels = volData.expiries || volData.expiry_labels || [];
-        const grid = volData.iv_grid || [];
-        const money = volData.moneyness_axis || [];
+        const labels  = volData.expiries      || volData.expiry_labels || [];
+        const grid    = volData.iv_grid       || [];
+        const money   = volData.moneyness_axis|| [];
 
         // ATM IV: row whose moneyness is closest to 1.0
         let atmRow = volData.atm_iv || null;
@@ -413,7 +411,7 @@ async function renderLiquidityView(tabs = null) {
         // Put side - moneyness 0.75, Call side - moneyness 1.25
         let skew = volData.skew || null;
         if (!skew && grid.length && money.length) {
-            const putIdx = money.reduce((b, m, i) => Math.abs(m - 0.75) < Math.abs(money[b] - 0.75) ? i : b, 0);
+            const putIdx  = money.reduce((b, m, i) => Math.abs(m - 0.75) < Math.abs(money[b] - 0.75) ? i : b, 0);
             const callIdx = money.reduce((b, m, i) => Math.abs(m - 1.25) < Math.abs(money[b] - 1.25) ? i : b, 0);
             skew = (grid[putIdx] || []).map((iv, i) => parseFloat((iv - (grid[callIdx]?.[i] || iv)).toFixed(2)));
         }
@@ -458,18 +456,16 @@ async function renderLiquidityView(tabs = null) {
             if (!ctx) return;
             new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels,
+                data: { labels,
                     datasets: [
                         { label: 'ATM IV (%)', data: atmRow, borderColor: '#f7931a', backgroundColor: 'rgba(247,147,26,0.1)', borderWidth: 3, tension: 0.3, fill: true },
-                        { label: '25- Skew', data: skew, borderColor: '#ff0055', borderDash: [5, 5], borderWidth: 2, tension: 0.3, yAxisID: 'y1' }
+                        { label: '25- Skew',   data: skew,   borderColor: '#ff0055', borderDash: [5,5], borderWidth: 2, tension: 0.3, yAxisID: 'y1' }
                     ]
                 },
-                options: {
-                    responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                     scales: {
                         x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Expiry', color: '#666', font: { size: 9 } } },
-                        y: { type: 'linear', position: 'left', grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Implied Volatility (%)', color: '#f7931a', font: { size: 9 } } },
+                        y:  { type: 'linear', position: 'left',  grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Implied Volatility (%)', color: '#f7931a', font: { size: 9 } } },
                         y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: '25- Skew (%)', color: '#ff0055', font: { size: 9 } } }
                     }
                 }
@@ -478,7 +474,7 @@ async function renderLiquidityView(tabs = null) {
     }
 
     // Tab switching - update active button styles + render sub-view
-    window._gommSwitch = function (mode) {
+    window._gommSwitch = function(mode) {
         // Always clear live poll before switching tabs
         if (window._gommLiveInterval) { clearInterval(window._gommLiveInterval); window._gommLiveInterval = null; }
         sessionStorage.setItem('gomm-mode', mode);
@@ -500,11 +496,11 @@ async function renderLiquidityView(tabs = null) {
     function buildWhaleHTML(entities) {
         return entities.map(e => {
             const statusColor = e.status.includes('Accumul') ? 'var(--risk-low)'
-                : e.status.includes('Distrib') ? 'var(--risk-high)'
-                    : e.status.includes('Buying') ? 'var(--accent)'
-                        : 'var(--text-dim)';
-            const isLive = e.source === 'blockstream';
-            const liveBadge = isLive
+                              : e.status.includes('Distrib') ? 'var(--risk-high)'
+                              : e.status.includes('Buying')  ? 'var(--accent)'
+                              : 'var(--text-dim)';
+            const isLive     = e.source === 'blockstream';
+            const liveBadge  = isLive
                 ? '<span style="font-size:0.42rem;background:rgba(34,197,94,0.15);color:var(--risk-low);padding:1px 4px;border-radius:3px;margin-left:4px;letter-spacing:1px">LIVE</span>'
                 : '';
             const explorerLink = e.tx_hash
@@ -575,28 +571,28 @@ async function renderLiquidityView(tabs = null) {
             }
 
             prevWhaleEntities = fresh.entities;
-        } catch (e) { /* silent */ }
+        } catch(e) { /* silent */ }
     }, WHALE_POLL);
 
 
     // - Live Tape Poller -
-    const TAPE_MAX = 40;       // max pills kept in strip
-    const TAPE_POLL = 3000;     // ms between refreshes
-    const seenIds = new Set((tapeData?.trades || []).map(t => t.id));
+    const TAPE_MAX   = 40;       // max pills kept in strip
+    const TAPE_POLL  = 3000;     // ms between refreshes
+    const seenIds    = new Set((tapeData?.trades || []).map(t => t.id));
 
     function buildTapePill(t, flash) {
         const isBuy = t.side === 'BUY';
         const color = isBuy ? 'rgba(34,197,94,1)' : 'rgba(239,68,68,1)';
-        const bg = isBuy ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
-        const inst = t.institutional ? '<span style="font-size:0.45rem;background:rgba(0,242,255,0.15);color:var(--accent);padding:1px 4px;border-radius:3px;margin-left:3px">INST</span>' : '';
-        const anim = flash ? 'animation:tapePillIn 0.35s ease;' : '';
+        const bg    = isBuy ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
+        const inst  = t.institutional ? '<span style="font-size:0.45rem;background:rgba(0,242,255,0.15);color:var(--accent);padding:1px 4px;border-radius:3px;margin-left:3px">INST</span>' : '';
+        const anim  = flash ? 'animation:tapePillIn 0.35s ease;' : '';
         return '<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;background:' + bg
             + ';border:1px solid ' + color + '33;white-space:nowrap;flex-shrink:0;' + anim + '">'
-            + '<span style="font-size:0.55rem;color:var(--text-dim)">' + (t.time || '').slice(-5) + '</span>'
+            + '<span style="font-size:0.55rem;color:var(--text-dim)">' + (t.time||'').slice(-5) + '</span>'
             + '<span style="font-size:0.6rem;font-weight:900;color:' + color + '">' + t.side + '</span>'
             + '<span style="font-size:0.65rem;font-weight:700;color:var(--text)">' + t.size + '</span>'
             + '<span style="font-size:0.55rem;color:var(--text-dim)">@ ' + Math.round(t.price).toLocaleString() + '</span>'
-            + '<span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">' + (t.exchange || '').toUpperCase() + '</span>'
+            + '<span style="font-size:0.5rem;color:var(--text-dim);opacity:0.6">' + (t.exchange||'').toUpperCase() + '</span>'
             + inst + '</div>';
     }
 
@@ -632,7 +628,7 @@ async function renderLiquidityView(tabs = null) {
             while (el.children.length > TAPE_MAX) el.removeChild(el.lastChild);
             // Scroll new pills into view
             el.scrollLeft = 0;
-        } catch (e) { /* silent - keep polling */ }
+        } catch(e) { /* silent - keep polling */ }
     }, TAPE_POLL);
 }
 async function renderSignalArchive(tabs = null) {
@@ -759,21 +755,21 @@ async function renderSignalArchive(tabs = null) {
     // - State tab filter (active / all / closed) -
     let stateFilter = 'active'; // default to showing active signals only
 
-    window._setArchiveState = function (state) {
+    window._setArchiveState = function(state) {
         stateFilter = state;
         // Restyle tabs
         const styles = {
-            active: { border: 'rgba(74,222,128,0.5)', bg: 'rgba(74,222,128,0.12)', color: '#4ade80' },
-            all: { border: 'rgba(0,242,255,0.5)', bg: 'rgba(0,242,255,0.12)', color: 'var(--accent)' },
-            closed: { border: 'rgba(148,163,184,0.4)', bg: 'rgba(148,163,184,0.08)', color: '#94a3b8' },
+            active: { border:'rgba(74,222,128,0.5)',  bg:'rgba(74,222,128,0.12)',  color:'#4ade80' },
+            all:    { border:'rgba(0,242,255,0.5)',   bg:'rgba(0,242,255,0.12)',   color:'var(--accent)' },
+            closed: { border:'rgba(148,163,184,0.4)', bg:'rgba(148,163,184,0.08)', color:'#94a3b8' },
         };
-        ['active', 'all', 'closed'].forEach(s => {
+        ['active','all','closed'].forEach(s => {
             const btn = document.getElementById('atab-' + s);
             if (!btn) return;
             const isActive = s === state;
-            btn.style.border = '1px solid ' + (isActive ? styles[s].border : alphaColor(0.1));
+            btn.style.border    = '1px solid ' + (isActive ? styles[s].border : alphaColor(0.1));
             btn.style.background = isActive ? styles[s].bg : alphaColor(0.03);
-            btn.style.color = isActive ? styles[s].color : 'var(--text-dim)';
+            btn.style.color     = isActive ? styles[s].color : 'var(--text-dim)';
         });
         loadData(1);
     };
@@ -783,14 +779,14 @@ async function renderSignalArchive(tabs = null) {
     let sortDir = 'desc';
     // Server-side columns trigger a re-fetch sorted across the full dataset.
     // Computed columns (return/current/state) are derived from live prices - sort client-side only.
-    const SERVER_SORT_COLS = new Set(['ticker', 'type', 'severity', 'entry', 'date', 'direction']);
-    const CLIENT_SORT_COLS = new Set(['return', 'current', 'state']);
+    const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction']);
+    const CLIENT_SORT_COLS = new Set(['return','current','state']);
 
     // - Date Range Picker state -
     let drpMode = '30d';   // active pill id
     let drpDays = 30;      // days value (-1 = all time, 0 = today)
 
-    window._drpSelect = function (id, days) {
+    window._drpSelect = function(id, days) {
         drpMode = id;
         drpDays = days;
         // Restyle all pills
@@ -805,7 +801,7 @@ async function renderSignalArchive(tabs = null) {
         if (ci) ci.style.display = id === 'custom' ? 'flex' : 'none';
         // Update badge label
         const lbl = document.getElementById('active-range-label');
-        const LABELS = { today: 'TODAY', '7d': '7D', '30d': '30D', '90d': '90D', '365d': '1Y', all: 'ALL', custom: 'CUSTOM' };
+        const LABELS = { today:'TODAY', '7d':'7D', '30d':'30D', '90d':'90D', '365d':'1Y', all:'ALL', custom:'CUSTOM' };
         if (lbl) lbl.textContent = LABELS[id] || id.toUpperCase();
         // Auto-load for all presets (not CUSTOM - user must pick dates then press APPLY)
         if (id !== 'custom') loadData(1);
@@ -813,9 +809,9 @@ async function renderSignalArchive(tabs = null) {
 
     const loadData = async (page = 1) => {
         currentPage = page;
-        const ticker = document.getElementById('filter-ticker')?.value.trim() || '';
-        const type = document.getElementById('filter-type')?.value || '';
-        const severity = document.getElementById('filter-severity')?.value || '';
+        const ticker    = document.getElementById('filter-ticker')?.value.trim() || '';
+        const type      = document.getElementById('filter-type')?.value || '';
+        const severity  = document.getElementById('filter-severity')?.value || '';
         const direction = document.getElementById('filter-direction')?.value || '';
 
         const container = document.getElementById('archive-table-container');
@@ -825,10 +821,10 @@ async function renderSignalArchive(tabs = null) {
         let url;
         if (drpMode === 'custom') {
             const from = document.getElementById('drp-from')?.value || '';
-            const to = document.getElementById('drp-to')?.value || '';
+            const to   = document.getElementById('drp-to')?.value   || '';
             url = `/signal-history?page=${currentPage}&limit=25`;
             if (from) url += `&from=${from}`;
-            if (to) url += `&to=${to}`;
+            if (to)   url += `&to=${to}`;
         } else if (drpMode === 'today') {
             const d = new Date().toISOString().split('T')[0];
             url = `/signal-history?from=${d}&to=${d}&page=${currentPage}&limit=25`;
@@ -837,9 +833,9 @@ async function renderSignalArchive(tabs = null) {
         } else {
             url = `/signal-history?days=${drpDays}&page=${currentPage}&limit=25`;
         }
-        if (ticker) url += `&ticker=${ticker.toUpperCase()}`;
-        if (type) url += `&type=${type}`;
-        if (severity) url += `&severity=${severity}`;
+        if (ticker)    url += `&ticker=${ticker.toUpperCase()}`;
+        if (type)      url += `&type=${type}`;
+        if (severity)  url += `&severity=${severity}`;
         if (direction) url += `&direction=${direction}`;
         if (stateFilter && stateFilter !== 'all') url += `&state=${stateFilter}`;
         // Append server-side sort params so the DB returns the full dataset sorted
@@ -851,7 +847,7 @@ async function renderSignalArchive(tabs = null) {
         console.log(`[AlphaSignal API] Response from ${url}:`, response);
         const data = response?.data;
         const pageInfo = response?.pagination;
-
+        
         if (!data || !data.length) {
             container.innerHTML = `
                 <div class="card" style="text-align:center; padding:3rem">
@@ -869,22 +865,22 @@ async function renderSignalArchive(tabs = null) {
             'ACTIVE': '#60a5fa', 'STOPPED': '#ef4444', 'CLOSED': '#94a3b8'
         };
         const stateIcons = { 'HIT_TP2': '-', 'HIT_TP1': '-', 'ACTIVE': '-', 'STOPPED': '-', 'CLOSED': '-' };
-        const BULLISH_TYPES = new Set(['ML_LONG', 'RSI_OVERSOLD', 'MACD_BULLISH_CROSS', 'REGIME_BULL', 'WHALE_ACCUMULATION', 'VOLUME_SPIKE', 'MOMENTUM_BREAKOUT', 'ALPHA_DIVERGENCE_LONG', 'ML_ALPHA_PREDICTION']);
-        const BEARISH_TYPES = new Set(['ML_SHORT', 'RSI_OVERBOUGHT', 'MACD_BEARISH_CROSS', 'REGIME_BEAR', 'ALPHA_DIVERGENCE_SHORT']);
+        const BULLISH_TYPES = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
+        const BEARISH_TYPES = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT']);
         const SEV_RANK = { critical: 3, high: 2, medium: 1, low: 0 };
 
         function getColValue(s, col) {
-            switch (col) {
-                case 'ticker': return (s.ticker || '').toUpperCase();
-                case 'type': return (s.type || '').toUpperCase();
-                case 'severity': return SEV_RANK[(s.severity || '').toLowerCase()] ?? 0;
-                case 'entry': return parseFloat(s.entry) || 0;
-                case 'current': return parseFloat(s.current) || 0;
-                case 'return': return parseFloat(s.return) || 0;
-                case 'state': return (s.state || '').toUpperCase();
-                case 'date': return s.timestamp || '';
+            switch(col) {
+                case 'ticker':    return (s.ticker || '').toUpperCase();
+                case 'type':      return (s.type || '').toUpperCase();
+                case 'severity':  return SEV_RANK[(s.severity||'').toLowerCase()] ?? 0;
+                case 'entry':     return parseFloat(s.entry) || 0;
+                case 'current':   return parseFloat(s.current) || 0;
+                case 'return':    return parseFloat(s.return) || 0;
+                case 'state':     return (s.state || '').toUpperCase();
+                case 'date':      return s.timestamp || '';
                 case 'direction': {
-                    const t = (s.type || '').toUpperCase();
+                    const t = (s.type||'').toUpperCase();
                     return BULLISH_TYPES.has(t) ? 0 : BEARISH_TYPES.has(t) ? 1 : 2;
                 }
                 default: return '';
@@ -908,46 +904,50 @@ async function renderSignalArchive(tabs = null) {
         function renderRows(d) {
             sortedData(d).forEach(s => { window._archiveSignals[String(s.id)] = s; });
             return sortedData(d).map(s => {
-                const sigType = (s.type || '').toUpperCase();
-                const isBull = BULLISH_TYPES.has(sigType);
-                const isBear = BEARISH_TYPES.has(sigType);
+                const sigType  = (s.type || '').toUpperCase();
+                const isBull   = BULLISH_TYPES.has(sigType);
+                const isBear   = BEARISH_TYPES.has(sigType);
                 const dirLabel = isBull ? 'BULLISH' : isBear ? 'BEARISH' : 'NEUTRAL';
                 const dirArrow = isBull ? '-' : isBear ? '-' : '-';
                 const dirColor = isBull ? '#22c55e' : isBear ? '#ef4444' : '#94a3b8';
-                const dirBg = isBull ? 'rgba(34,197,94,0.1)' : isBear ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)';
-                const dirBorder = isBull ? 'rgba(34,197,94,0.3)' : isBear ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)';
-                const sev = (s.severity || '').toLowerCase();
+                const dirBg    = isBull ? 'rgba(34,197,94,0.1)' : isBear ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)';
+                const dirBorder= isBull ? 'rgba(34,197,94,0.3)' : isBear ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)';
+                const sev = (s.severity||'').toLowerCase();
                 return `
                 <tr class="archive-row" onclick="window._openSignalDrawer('${s.id}')" style="cursor:pointer;border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.2s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                     <td data-label="TICKER" style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
-                    <td data-label="TYPE" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type || '-').replace(/_/g, ' ')}</td>
-                    <td data-label="SEV" class="col-sev" style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${(sev || '--').toUpperCase()}</span></td>
+                    <td data-label="TYPE" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
+                    <td data-label="SEV" class="col-sev" style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${(sev||'--').toUpperCase()}</span></td>
                     <td data-label="ENTRY" style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? formatPrice(s.entry) : '-'}</td>
-                    <td data-label="CURRENT" style="padding:10px 12px;text-align:right;font-family:monospace">${s.state === 'CLOSED' && s.exit_price
-                        ? `<span title="Exit price locked at close" style="color:#94a3b8">- ${formatPrice(s.exit_price)}</span>`
-                        : (s.current ? formatPrice(s.current) : '-')
+                    <td data-label="CURRENT" style="padding:10px 12px;text-align:right;font-family:monospace">${
+                        s.state === 'CLOSED' && s.exit_price
+                            ? `<span title="Exit price locked at close" style="color:#94a3b8">- ${formatPrice(s.exit_price)}</span>`
+                            : (s.current ? formatPrice(s.current) : '-')
                     }</td>
-                    <td data-label="RETURN" style="padding:10px 12px;text-align:right;font-weight:700;color:${(s.state === 'CLOSED' ? (s.final_roi ?? s.return) : s.return) >= 0 ? '#22c55e' : '#ef4444'
-                    }">${s.state === 'CLOSED' && s.final_roi != null
-                        ? `- ${s.final_roi >= 0 ? '+' : ''}${s.final_roi}%`
-                        : `${s.return >= 0 ? '+' : ''}${s.return}%`
+                    <td data-label="RETURN" style="padding:10px 12px;text-align:right;font-weight:700;color:${
+                        (s.state === 'CLOSED' ? (s.final_roi ?? s.return) : s.return) >= 0 ? '#22c55e' : '#ef4444'
+                    }">${
+                        s.state === 'CLOSED' && s.final_roi != null
+                            ? `- ${s.final_roi >= 0 ? '+' : ''}${s.final_roi}%`
+                            : `${s.return >= 0 ? '+' : ''}${s.return}%`
                     }</td>
                     <td data-label="STATE" style="padding:10px 12px;text-align:center">
-                        <span style="background:${stateColors[s.state] || '#60a5fa'}22;color:${stateColors[s.state] || '#60a5fa'};padding:2px 10px;border-radius:20px;font-size:0.6rem;letter-spacing:1px">
-                            ${stateIcons[s.state] || '-'} ${s.state}
+                        <span style="background:${stateColors[s.state]||'#60a5fa'}22;color:${stateColors[s.state]||'#60a5fa'};padding:2px 10px;border-radius:20px;font-size:0.6rem;letter-spacing:1px">
+                            ${stateIcons[s.state]||'-'} ${s.state}
                         </span>
                     </td>
-                    <td data-label="DATE" class="col-date" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(() => {
-                        if (!s.timestamp) return '-';
-                        // Handle both ISO 'T' separator and space separator
-                        const sep = s.timestamp.includes('T') ? 'T' : ' ';
-                        const [datePart, timePart] = s.timestamp.split(sep);
-                        const hhmm = timePart ? timePart.substring(0, 5) : '';
-                        const age = s.age_days != null
-                            ? (s.age_days === 0 ? 'today' : s.age_days === 1 ? '1d ago' : s.age_days + 'd ago')
-                            : '';
-                        return `${datePart}${hhmm ? `<br><span style="font-size:0.65rem;color:#7dd3fc;font-family:var(--font-mono);font-weight:700">${hhmm} UTC</span>` : ''}<br><span style="font-size:0.55rem;color:var(--text-dim);opacity:0.6">${age}</span>`;
-                    })()
+                    <td data-label="DATE" class="col-date" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${
+                        (() => {
+                            if (!s.timestamp) return '-';
+                            // Handle both ISO 'T' separator and space separator
+                            const sep = s.timestamp.includes('T') ? 'T' : ' ';
+                            const [datePart, timePart] = s.timestamp.split(sep);
+                            const hhmm = timePart ? timePart.substring(0, 5) : '';
+                            const age = s.age_days != null
+                                ? (s.age_days === 0 ? 'today' : s.age_days === 1 ? '1d ago' : s.age_days + 'd ago')
+                                : '';
+                            return `${datePart}${hhmm ? `<br><span style="font-size:0.65rem;color:#7dd3fc;font-family:var(--font-mono);font-weight:700">${hhmm} UTC</span>` : ''}<br><span style="font-size:0.55rem;color:var(--text-dim);opacity:0.6">${age}</span>`;
+                        })()
                     }</td>
                     <td data-label="DIR" class="col-dir" style="padding:10px 12px;text-align:center">
                         <span style="background:${dirBg};border:1px solid ${dirBorder};color:${dirColor};padding:3px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;white-space:nowrap">
@@ -958,57 +958,58 @@ async function renderSignalArchive(tabs = null) {
                         <button onclick="openDetail('${s.ticker}','CRYPTO');event.stopPropagation()" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
                         <button onclick="showSignalDetail(null,'${s.ticker}');event.stopPropagation()" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="AI Analysis">AI</button>
                         ${s.state === 'CLOSED'
-                        ? `<button onclick="window._archiveReopenSignal(${s.id},this);event.stopPropagation()" style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.3);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">REOPEN</button>`
-                        : `<button onclick="window._archiveCloseSignal(${s.id},this);event.stopPropagation()" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">CLOSE</button>`
-                    }
+                            ? `<button onclick="window._archiveReopenSignal(${s.id},this);event.stopPropagation()" style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.3);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">REOPEN</button>`
+                            : `<button onclick="window._archiveCloseSignal(${s.id},this);event.stopPropagation()" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">CLOSE</button>`
+                        }
                     </td>
                 </tr>`;
             }).join('');
         }
 
         // - Performance Summary Strip -
-        const summ = response?.summary || {};
-        const fWins = summ.wins ?? 0;
-        const fLosses = summ.losses ?? 0;
-        const fClosed = summ.closed ?? 0;
-        const fActive = summ.active ?? data.length;
-        const fAvgRoi = summ.avg_roi != null ? parseFloat(summ.avg_roi).toFixed(2) : null;
-        const fTotal = summ.total ?? pageInfo?.total ?? 0;
+        const summ     = response?.summary || {};
+        const fWins    = summ.wins    ?? 0;
+        const fLosses  = summ.losses  ?? 0;
+        const fClosed  = summ.closed  ?? 0;
+        const fActive  = summ.active  ?? data.length;
+        const fAvgRoi  = summ.avg_roi != null ? parseFloat(summ.avg_roi).toFixed(2) : null;
+        const fTotal   = summ.total   ?? pageInfo?.total ?? 0;
         const fHitRate = fWins + fLosses > 0 ? ((fWins / (fWins + fLosses)) * 100).toFixed(0) : '--';
-        const pWins = summ.page_wins ?? data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
-        const pLosses = summ.page_losses ?? data.filter(s => s.state === 'STOPPED').length;
+        const pWins    = summ.page_wins   ?? data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
+        const pLosses  = summ.page_losses ?? data.filter(s => s.state === 'STOPPED').length;
 
         // Best signal this page (highest absolute return)
-        const bestSig = [...data].sort((a, b) => Math.abs(b.return) - Math.abs(a.return))[0];
-        const bestStr = bestSig
-            ? `${bestSig.ticker.replace('-USD', '')} ${bestSig.return >= 0 ? '+' : ''}${bestSig.return}%`
+        const bestSig  = [...data].sort((a, b) => Math.abs(b.return) - Math.abs(a.return))[0];
+        const bestStr  = bestSig
+            ? `${bestSig.ticker.replace('-USD','')} ${bestSig.return >= 0 ? '+' : ''}${bestSig.return}%`
             : '--';
-        const bestCol = bestSig ? (bestSig.return >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
+        const bestCol  = bestSig ? (bestSig.return >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
 
         const summaryHTML = `
           <div style="margin-bottom:1.2rem">
             <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">- PERFORMANCE SUMMARY <span style="color:var(--accent);font-size:0.5rem">(CLOSED SIGNALS)</span></div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:0.6rem">${[
-                ['WIN RATE', fHitRate !== '--' ? fHitRate + '%' : '--', parseFloat(fHitRate) >= 50 ? '#22c55e' : '#ef4444', 'emoji_events'],
-                ['WINS -', fWins, '#22c55e', 'thumb_up'],
-                ['LOSSES -', fLosses, '#ef4444', 'thumb_down'],
-                ['CLOSED', fClosed, '#94a3b8', 'lock'],
-                ['ACTIVE', fActive, '#60a5fa', 'bolt'],
-                ['AVG RETURN', fAvgRoi != null ? (parseFloat(fAvgRoi) >= 0 ? '+' : '') + fAvgRoi + '%' : '--', parseFloat(fAvgRoi) >= 0 ? '#22c55e' : '#ef4444', 'trending_up'],
-                ['BEST SIGNAL', bestStr, bestCol, 'military_tech'],
-            ].map(([label, val, color, icon]) =>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:0.6rem">${
+              [
+                ['WIN RATE',     fHitRate !== '--' ? fHitRate + '%' : '--',  parseFloat(fHitRate) >= 50 ? '#22c55e' : '#ef4444', 'emoji_events'],
+                ['WINS -',       fWins,    '#22c55e', 'thumb_up'],
+                ['LOSSES -',     fLosses,  '#ef4444', 'thumb_down'],
+                ['CLOSED',       fClosed,  '#94a3b8', 'lock'],
+                ['ACTIVE',       fActive,  '#60a5fa', 'bolt'],
+                ['AVG RETURN',   fAvgRoi != null ? (parseFloat(fAvgRoi) >= 0 ? '+' : '') + fAvgRoi + '%' : '--', parseFloat(fAvgRoi) >= 0 ? '#22c55e' : '#ef4444', 'trending_up'],
+                ['BEST SIGNAL',  bestStr,  bestCol,   'military_tech'],
+              ].map(([label, val, color, icon]) =>
                 `<div class="glass-card" style="padding:0.9rem 1rem;text-align:center;position:relative;overflow:hidden">
                   <span class="material-symbols-outlined" style="font-size:1.1rem;color:${color};opacity:0.25;position:absolute;top:8px;right:8px">${icon}</span>
                   <div style="font-size:0.48rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:5px">${label}</div>
                   <div style="font-size:1.15rem;font-weight:900;color:${color};font-family:var(--font-mono)">${val}</div>
                 </div>`
-            ).join('')
+              ).join('')
             }</div>
             <div style="font-size:0.52rem;color:var(--text-dim);letter-spacing:0.5px">- Wins/Losses = manually CLOSED signals with locked ROI &nbsp;-&nbsp; Live page states: <span style="color:#22c55e">${pWins} hit target</span> / <span style="color:#ef4444">${pLosses} stopped</span> this page</div>
           </div>`;
 
         function buildThead() {
-            function aTH(col, label, align = 'left') {
+            function aTH(col, label, align='left') {
                 const isServer = SERVER_SORT_COLS.has(col);
                 const active = sortCol === col;
                 const ind = active ? (sortDir === 'asc' ? ' -' : ' -') : (isServer ? ' <span style="opacity:0.3;font-size:0.7em">-</span>' : ' <span style="opacity:0.25;font-size:0.65em" title="Sorts current page only">-*</span>');
@@ -1016,15 +1017,15 @@ async function renderSignalArchive(tabs = null) {
                 return `<th style="text-align:${align};padding:8px 12px;cursor:pointer;user-select:none;color:${color};white-space:nowrap;transition:color 0.15s" onclick="window._archiveSort('${col}')">${label}${ind}</th>`;
             }
             return `
-                ${aTH('ticker', 'TICKER', 'left')}
-                ${aTH('type', 'TYPE', 'left')}
-                ${aTH('severity', 'SEV', 'center')}
-                ${aTH('entry', 'ENTRY', 'right')}
-                ${aTH('current', 'CURRENT', 'right')}
-                ${aTH('return', 'RETURN', 'right')}
-                ${aTH('state', 'STATE', 'center')}
-                ${aTH('date', 'DATE', 'left')}
-                ${aTH('direction', 'DIRECTION', 'center')}
+                ${aTH('ticker','TICKER','left')}
+                ${aTH('type','TYPE','left')}
+                ${aTH('severity','SEV','center')}
+                ${aTH('entry','ENTRY','right')}
+                ${aTH('current','CURRENT','right')}
+                ${aTH('return','RETURN','right')}
+                ${aTH('state','STATE','center')}
+                ${aTH('date','DATE','left')}
+                ${aTH('direction','DIRECTION','center')}
                 <th style="text-align:center;padding:8px 12px;color:var(--text-dim)">ACTIONS</th>
             `;
         }
@@ -1070,38 +1071,38 @@ async function renderSignalArchive(tabs = null) {
         </style>` + summaryHTML + `
             <div class="card" style="overflow-x:auto">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:15px">
-                    <span style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1} &bull; ${pageInfo?.total || 0} TOTAL)</span>
+                    <span style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px">SHOWING ${data.length} SIGNALS (PAGE ${pageInfo?.page||1} OF ${pageInfo?.pages||1} &bull; ${pageInfo?.total||0} TOTAL)</span>
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <button class="btv2-export-btn" onclick="_archiveExportPage()"><span class="material-symbols-outlined" style="font-size:13px">download</span> EXPORT PAGE CSV</button>
-                        <a href="${(() => {
-                const t = document.getElementById('filter-ticker')?.value.trim() || '';
-                const ty = document.getElementById('filter-type')?.value || '';
-                const sv = document.getElementById('filter-severity')?.value || '';
-                const dv = document.getElementById('filter-direction')?.value || '';
-                // Mirror loadData URL logic exactly, using DRP closure vars
-                let u = '/api/export?type=signals';
-                if (drpMode === 'custom') {
-                    const from = document.getElementById('drp-from')?.value || '';
-                    const to = document.getElementById('drp-to')?.value || '';
-                    if (from) u += '&from=' + from;
-                    if (to) u += '&to=' + to;
-                } else if (drpMode === 'today') {
-                    const d = new Date().toISOString().split('T')[0];
-                    u += '&from=' + d + '&to=' + d;
-                } else if (drpDays === -1) {
-                    u += '&days=3650';
-                } else {
-                    u += '&days=' + drpDays;
-                }
-                if (t) u += '&ticker=' + encodeURIComponent(t.toUpperCase());
-                if (ty) u += '&sigtype=' + encodeURIComponent(ty);
-                if (sv) u += '&severity=' + encodeURIComponent(sv);
-                if (dv) u += '&direction=' + encodeURIComponent(dv);
-                return u;
-            })()}" download class="btv2-export-btn"><span class="material-symbols-outlined" style="font-size:13px">file_download</span> EXPORT ALL (${fTotal})</a>
-                        <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage - 1 > 0 ? currentPage - 1 : 1})" ${currentPage === 1 ? 'disabled style="opacity:0.5"' : ''}>PREVIOUS</button>
-                        <div style="font-size:0.75rem;color:var(--text-dim)">PAGE ${pageInfo?.page || 1} OF ${pageInfo?.pages || 1}</div>
-                        <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage + 1})" ${(pageInfo && currentPage >= pageInfo.pages) ? 'disabled style="opacity:0.5"' : ''}>NEXT</button>
+                        <a href="${(()=>{
+                            const t=document.getElementById('filter-ticker')?.value.trim()||'';
+                            const ty=document.getElementById('filter-type')?.value||'';
+                            const sv=document.getElementById('filter-severity')?.value||'';
+                            const dv=document.getElementById('filter-direction')?.value||'';
+                            // Mirror loadData URL logic exactly, using DRP closure vars
+                            let u='/api/export?type=signals';
+                            if (drpMode === 'custom') {
+                                const from = document.getElementById('drp-from')?.value || '';
+                                const to   = document.getElementById('drp-to')?.value   || '';
+                                if (from) u += '&from=' + from;
+                                if (to)   u += '&to='   + to;
+                            } else if (drpMode === 'today') {
+                                const d = new Date().toISOString().split('T')[0];
+                                u += '&from=' + d + '&to=' + d;
+                            } else if (drpDays === -1) {
+                                u += '&days=3650';
+                            } else {
+                                u += '&days=' + drpDays;
+                            }
+                            if(t) u+='&ticker='+encodeURIComponent(t.toUpperCase());
+                            if(ty) u+='&sigtype='+encodeURIComponent(ty);
+                            if(sv) u+='&severity='+encodeURIComponent(sv);
+                            if(dv) u+='&direction='+encodeURIComponent(dv);
+                            return u;
+                        })()}" download class="btv2-export-btn"><span class="material-symbols-outlined" style="font-size:13px">file_download</span> EXPORT ALL (${fTotal})</a>
+                        <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage-1>0?currentPage-1:1})" ${currentPage===1?'disabled style="opacity:0.5"':''}>PREVIOUS</button>
+                        <div style="font-size:0.75rem;color:var(--text-dim)">PAGE ${pageInfo?.page||1} OF ${pageInfo?.pages||1}</div>
+                        <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage+1})" ${(pageInfo&&currentPage>=pageInfo.pages)?'disabled style="opacity:0.5"':''}>NEXT</button>
                     </div>
                 </div>
                 <div class="table-responsive-wrapper">
@@ -1115,34 +1116,37 @@ async function renderSignalArchive(tabs = null) {
         if (window._initEquityCurve && response?.summary?.pnl_curve) {
             setTimeout(() => window._initEquityCurve(response.summary.pnl_curve), 50);
         }
+        if (window._initPhase2Charts && response?.summary) {
+            setTimeout(() => window._initPhase2Charts(response.summary), 80);
+        }
 
         // - Per-type strategy breakdown table -
         function renderTypeBreakdown(pageData, resp) {
             // Build per-type stats from the full-dataset breakdown returned by the API,
             // falling back to computing from current page data if not available.
             const byType = {};
-            const BULLISH_T = new Set(['ML_LONG', 'RSI_OVERSOLD', 'MACD_BULLISH_CROSS', 'REGIME_BULL',
-                'WHALE_ACCUMULATION', 'VOLUME_SPIKE', 'MOMENTUM_BREAKOUT', 'ALPHA_DIVERGENCE_LONG', 'ML_ALPHA_PREDICTION']);
+            const BULLISH_T = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',
+                'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
 
             // Prefer server-provided per_type breakdown
             const serverBreakdown = resp?.summary?.by_type || null;
             if (serverBreakdown && Object.keys(serverBreakdown).length) {
                 Object.entries(serverBreakdown).forEach(([type, s]) => {
                     byType[type] = {
-                        wins: s.wins ?? 0,
-                        losses: s.losses ?? 0,
-                        active: s.active ?? 0,
-                        closed: s.closed ?? 0,
+                        wins:    s.wins    ?? 0,
+                        losses:  s.losses  ?? 0,
+                        active:  s.active  ?? 0,
+                        closed:  s.closed  ?? 0,
                         avg_roi: s.avg_roi != null ? parseFloat(s.avg_roi) : null,
-                        total: s.total ?? 0,
-                        isBull: BULLISH_T.has(type)
+                        total:   s.total   ?? 0,
+                        isBull:  BULLISH_T.has(type)
                     };
                 });
             } else {
                 // Fallback: compute from current page rows
                 (pageData || []).forEach(s => {
                     const t = (s.type || 'UNKNOWN').toUpperCase();
-                    if (!byType[t]) byType[t] = { wins: 0, losses: 0, active: 0, closed: 0, avg_roi: null, total: 0, roiSum: 0, roiCount: 0, isBull: BULLISH_T.has(t) };
+                    if (!byType[t]) byType[t] = { wins:0, losses:0, active:0, closed:0, avg_roi:null, total:0, roiSum:0, roiCount:0, isBull: BULLISH_T.has(t) };
                     byType[t].total++;
                     if (s.state === 'HIT_TP1' || s.state === 'HIT_TP2') byType[t].wins++;
                     else if (s.state === 'STOPPED') byType[t].losses++;
@@ -1157,7 +1161,7 @@ async function renderSignalArchive(tabs = null) {
             }
 
             let totalWins = 0, totalLosses = 0, totalActive = 0, totalClosed = 0, totalRoiSum = 0, totalRoiCount = 0;
-
+            
             const rows = Object.entries(byType)
                 .sort((a, b) => (b[1].wins + b[1].losses) - (a[1].wins + a[1].losses))
                 .map(([type, s]) => {
@@ -1171,18 +1175,18 @@ async function renderSignalArchive(tabs = null) {
                         totalRoiCount += decidedForRoi;
                     }
 
-                    const decided = s.wins + s.losses;
-                    const winRate = decided > 0 ? ((s.wins / decided) * 100).toFixed(0) + '%' : '--';
+                    const decided  = s.wins + s.losses;
+                    const winRate  = decided > 0 ? ((s.wins / decided) * 100).toFixed(0) + '%' : '--';
                     const winRateN = decided > 0 ? (s.wins / decided) * 100 : null;
-                    const avgRoi = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '+' : '') + parseFloat(s.avg_roi).toFixed(2) + '%' : '--';
+                    const avgRoi   = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '+' : '') + parseFloat(s.avg_roi).toFixed(2) + '%' : '--';
                     const avgColor = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
-                    const wrColor = winRateN != null ? (winRateN >= 55 ? '#22c55e' : winRateN >= 40 ? '#f59e0b' : '#ef4444') : 'var(--text-dim)';
-                    const badge = s.isBull
+                    const wrColor  = winRateN != null ? (winRateN >= 55 ? '#22c55e' : winRateN >= 40 ? '#f59e0b' : '#ef4444') : 'var(--text-dim)';
+                    const badge    = s.isBull
                         ? '<span style="font-size:0.5rem;background:rgba(34,197,94,0.12);color:#22c55e;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">LONG</span>'
                         : '<span style="font-size:0.5rem;background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">SHORT</span>';
                     return `<tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.15s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                         <td style="padding:12px 14px;font-weight:700;font-size:0.85rem;white-space:nowrap">
-                            <span style="color:var(--text)">${type.replace(/_/g, ' ')}</span>${badge}
+                            <span style="color:var(--text)">${type.replace(/_/g,' ')}</span>${badge}
                         </td>
                         <td style="padding:12px 14px;text-align:center;font-weight:900;color:#22c55e;font-family:monospace;font-size:1rem">${s.wins}</td>
                         <td style="padding:12px 14px;text-align:center;font-weight:900;color:#ef4444;font-family:monospace;font-size:1rem">${s.losses}</td>
@@ -1258,11 +1262,39 @@ async function renderSignalArchive(tabs = null) {
                     <span style="font-size:1.8rem;font-weight:900;color:var(--text-dim);letter-spacing:-0.5px;font-family:monospace">--%</span>
                     <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">-- TRADES</div>
                 </div>
+            </div>
+            <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(350px, 1fr));gap:1.5rem">
+                <!-- Asset Distribution Chart -->
+                <div class="card" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column">
+                    <div style="margin-bottom:1rem">
+                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">P&L BY ASSET CLASS</div>
+                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">Top performances &middot; <span style="color:var(--accent)">closed signals only</span></div>
+                    </div>
+                    <div style="flex:1;position:relative;width:100%;min-height:200px" id="asset-dist-wrapper">
+                        <canvas id="asset-dist-canvas"></canvas>
+                    </div>
+                </div>
+                <!-- Execution Heatmap -->
+                <div class="card" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column">
+                    <div style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-end">
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">EXECUTION HEATMAP</div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">Avg P&L by Global Hour & Day</div>
+                        </div>
+                        <div style="display:flex;gap:4px;align-items:center;font-size:0.5rem;color:var(--text-dim);padding-bottom:2px">
+                            <span style="background:rgba(239, 68, 68, 0.4);width:8px;height:8px;border-radius:2px"></span> NEG
+                            <span style="background:rgba(0, 242, 255, 0.4);width:8px;height:8px;border-radius:2px;margin-left:4px"></span> POS
+                        </div>
+                    </div>
+                    <div id="heatmap-container" style="flex:1;display:flex;flex-direction:column;width:100%;overflow:hidden">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
             </div>`;
         }
 
         // - Sort handler: always client-side -
-        window._archiveSort = function (col) {
+        window._archiveSort = function(col) {
             if (sortCol === col) {
                 sortDir = sortDir === 'asc' ? 'desc' : 'asc';
             } else {
@@ -1289,7 +1321,7 @@ async function renderSignalArchive(tabs = null) {
     // - Signal Close / Reopen handlers -
     // Guard set: prevents duplicate API calls if the button is somehow clicked twice
     const _closingInFlight = new Set();
-    window._archiveCloseSignal = async function (id, btn) {
+    window._archiveCloseSignal = async function(id, btn) {
         if (_closingInFlight.has(id)) return;   // already in progress - ignore duplicate
         _closingInFlight.add(id);
         btn.disabled = true; btn.textContent = '...';
@@ -1300,21 +1332,21 @@ async function renderSignalArchive(tabs = null) {
             const roiStr = result.final_roi != null ? ` - ROI locked: ${result.final_roi >= 0 ? '+' : ''}${result.final_roi}%` : '';
             showToast('SIGNAL CLOSED', `Signal #${id} closed.${roiStr}`, result.final_roi >= 0 ? 'success' : 'alert');
             loadData(currentPage);
-        } catch (e) {
+        } catch(e) {
             showToast('ERROR', `Could not close signal: ${e.message}`, 'alert');
             btn.disabled = false; btn.textContent = 'CLOSE';
         } finally {
             _closingInFlight.delete(id);
         }
     };
-    window._archiveReopenSignal = async function (id, btn) {
+    window._archiveReopenSignal = async function(id, btn) {
         btn.disabled = true; btn.textContent = '...';
         try {
             const res = await fetch(`/api/signal/${id}/reopen`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
             if (!res.ok) throw new Error(await res.text());
             showToast('SIGNAL REOPENED', `Signal #${id} is ACTIVE again.`, 'success');
             loadData(1);
-        } catch (e) {
+        } catch(e) {
             showToast('ERROR', `Could not reopen signal: ${e.message}`, 'alert');
             btn.disabled = false; btn.textContent = 'REOPEN';
         }
@@ -1322,7 +1354,7 @@ async function renderSignalArchive(tabs = null) {
 
     // Expose current page data for CSV export
     window._archiveCurrentData = null;
-    window._archiveExportPage = function () {
+    window._archiveExportPage = function() {
         if (!window._archiveCurrentData || !window._archiveCurrentData.length) {
             showToast('EXPORT', 'No data to export on this page.', 'alert'); return;
         }
@@ -1358,30 +1390,30 @@ async function renderSignalArchive(tabs = null) {
         document.body.appendChild(dr);
     })();
 
-    window._closeSignalDrawer = function () {
+    window._closeSignalDrawer = function() {
         document.getElementById('sig-drawer')?.classList.remove('open');
         document.getElementById('sig-drawer-overlay')?.classList.remove('open');
     };
 
-    window._openSignalDrawer = function (rawId) {
+    window._openSignalDrawer = function(rawId) {
         const id = String(rawId);
-        const s = (window._archiveSignals || {})[id];
-        if (!s) { console.warn('[Drawer] signal not found:', id, Object.keys(window._archiveSignals || {}).slice(0, 5)); return; }
+        const s  = (window._archiveSignals || {})[id];
+        if (!s) { console.warn('[Drawer] signal not found:', id, Object.keys(window._archiveSignals||{}).slice(0,5)); return; }
         const drawer = document.getElementById('sig-drawer');
-        const isClosed = s.state === 'CLOSED';
-        const roi = isClosed && s.final_roi != null ? s.final_roi : s.return;
-        const roiColor = roi >= 0 ? '#22c55e' : '#ef4444';
-        const exitPx = isClosed && s.exit_price ? s.exit_price : s.current;
-        const SC = { ACTIVE: '#60a5fa', HIT_TP1: '#22c55e', HIT_TP2: '#16a34a', STOPPED: '#ef4444', CLOSED: '#94a3b8' };
-        const SI = { ACTIVE: '\u26a1', HIT_TP1: '\uD83C\uDFAF', HIT_TP2: '\uD83C\uDFC6', STOPPED: '\uD83D\uDED1', CLOSED: '\uD83D\uDD12' };
-        const sc = SC[s.state] || '#60a5fa';
-        const entry = Number(s.entry || 0);
-        const tp2px = entry > 0 ? formatPrice(entry * 1.10) : '-';
-        const tp1px = entry > 0 ? formatPrice(entry * 1.05) : '-';
-        const slpx = entry > 0 ? formatPrice(entry * 0.97) : '-';
-        const sym = s.ticker.replace('-USD', '');
-        const tsStr = (s.timestamp || '').replace('T', ' ').slice(0, 16);
-        const closedStr = (s.closed_at || '').slice(0, 16);
+        const isClosed  = s.state === 'CLOSED';
+        const roi       = isClosed && s.final_roi != null ? s.final_roi : s.return;
+        const roiColor  = roi >= 0 ? '#22c55e' : '#ef4444';
+        const exitPx    = isClosed && s.exit_price ? s.exit_price : s.current;
+        const SC        = {ACTIVE:'#60a5fa',HIT_TP1:'#22c55e',HIT_TP2:'#16a34a',STOPPED:'#ef4444',CLOSED:'#94a3b8'};
+        const SI        = {ACTIVE:'\u26a1',HIT_TP1:'\uD83C\uDFAF',HIT_TP2:'\uD83C\uDFC6',STOPPED:'\uD83D\uDED1',CLOSED:'\uD83D\uDD12'};
+        const sc        = SC[s.state] || '#60a5fa';
+        const entry     = Number(s.entry || 0);
+        const tp2px     = entry > 0 ? formatPrice(entry * 1.10) : '-';
+        const tp1px     = entry > 0 ? formatPrice(entry * 1.05) : '-';
+        const slpx      = entry > 0 ? formatPrice(entry * 0.97) : '-';
+        const sym       = s.ticker.replace('-USD','');
+        const tsStr     = (s.timestamp||'').replace('T',' ').slice(0,16);
+        const closedStr = (s.closed_at||'').slice(0,16);
         const metaClosed = isClosed ? `<div><span style="opacity:.6">CLOSED AT</span><br><b style="color:#94a3b8">${closedStr}</b></div>` : '';
         const actionHtml = !isClosed
             ? `<button onclick="window._archiveCloseSignal(${s.id},this);window._closeSignalDrawer()"
@@ -1389,7 +1421,7 @@ async function renderSignalArchive(tabs = null) {
                 CLOSE SIGNAL &#x26; LOCK ROI
                </button>`
             : `<div style="text-align:center;padding:.75rem;background:rgba(148,163,184,.06);border:1px solid rgba(148,163,184,.1);border-radius:10px;font-size:.7rem;color:#94a3b8;letter-spacing:1px">
-                \uD83D\uDD12 SIGNAL CLOSED &nbsp;&middot;&nbsp; ROI LOCKED AT ${s.final_roi != null ? (s.final_roi >= 0 ? '+' : '') + s.final_roi + '%' : '-'}
+                \uD83D\uDD12 SIGNAL CLOSED &nbsp;&middot;&nbsp; ROI LOCKED AT ${s.final_roi!=null?(s.final_roi>=0?'+':'')+s.final_roi+'%':'-'}
                </div>`;
         const thesisHtml = s.message
             ? `<div style="margin-bottom:1.2rem">
@@ -1401,16 +1433,16 @@ async function renderSignalArchive(tabs = null) {
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem">
             <div>
               <div style="font-size:1.6rem;font-weight:900;color:#00f2ff;letter-spacing:-0.5px">${sym}</div>
-              <div style="font-size:.6rem;color:#6b7280;margin-top:2px">${s.ticker} &nbsp;&middot;&nbsp; ${(s.type || '').replace(/_/g, ' ')}</div>
+              <div style="font-size:.6rem;color:#6b7280;margin-top:2px">${s.ticker} &nbsp;&middot;&nbsp; ${(s.type||'').replace(/_/g,' ')}</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px">
-              <span style="background:${sc}22;color:${sc};padding:4px 12px;border-radius:20px;font-size:.6rem;font-weight:700;letter-spacing:1px">${SI[s.state] || ''} ${s.state}</span>
+              <span style="background:${sc}22;color:${sc};padding:4px 12px;border-radius:20px;font-size:.6rem;font-weight:700;letter-spacing:1px">${SI[s.state]||''} ${s.state}</span>
               <button onclick="window._closeSignalDrawer()" style="background:${alphaColor(.06)};border:1px solid ${alphaColor(.1)};color:#6b7280;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1">&#x2715;</button>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.2rem">
             <div class="sdw-card"><div class="sdw-label">ENTRY</div><div class="sdw-val" style="color:#e2e8f0">${s.entry ? formatPrice(s.entry) : '-'}</div></div>
-            <div class="sdw-card"><div class="sdw-label">${isClosed ? 'EXIT' : 'CURRENT'}</div><div class="sdw-val" style="color:${isClosed ? '#94a3b8' : '#e2e8f0'}">${exitPx ? formatPrice(exitPx) : '-'}</div></div>
+            <div class="sdw-card"><div class="sdw-label">${isClosed ? 'EXIT' : 'CURRENT'}</div><div class="sdw-val" style="color:${isClosed?'#94a3b8':'#e2e8f0'}">${exitPx ? formatPrice(exitPx) : '-'}</div></div>
             <div class="sdw-card"><div class="sdw-label">ROI</div><div class="sdw-val" style="color:${roiColor}">${isClosed ? '\uD83D\uDD12 ' : ''}${roi >= 0 ? '+' : ''}${roi}%</div></div>
           </div>
           <div style="margin-bottom:1.2rem">
@@ -1425,7 +1457,7 @@ async function renderSignalArchive(tabs = null) {
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.7rem;color:#94a3b8">
               <div><span style="opacity:.6">GENERATED</span><br><b style="color:#e2e8f0">${tsStr} UTC</b></div>
               <div><span style="opacity:.6">AGE</span><br><b style="color:#e2e8f0">${s.age_days != null ? s.age_days + ' days' : '-'}</b></div>
-              <div><span style="opacity:.6">SEVERITY</span><br><b style="color:#e2e8f0">${(s.severity || '').toUpperCase()}</b></div>
+              <div><span style="opacity:.6">SEVERITY</span><br><b style="color:#e2e8f0">${(s.severity||'').toUpperCase()}</b></div>
               ${metaClosed}
             </div>
           </div>
@@ -1442,29 +1474,29 @@ async function renderSignalArchive(tabs = null) {
 
 
 if (typeof window.sortBreakdownTable === 'undefined') {
-    window.sortBreakdownTable = function (th) {
+    window.sortBreakdownTable = function(th) {
         const table = th.closest('table');
         if (!table) return;
         const tbody = table.querySelector('tbody');
         const rowArr = Array.from(tbody.querySelectorAll('tr'));
         const headCells = Array.from(th.parentNode.children);
         const colIdx = headCells.indexOf(th);
-
+        
         const isAsc = (table.dataset.sortCol == colIdx && table.dataset.sortAsc == 'true');
-
+        
         rowArr.sort((a, b) => {
             let vA = a.cells[colIdx].textContent.trim();
             let vB = b.cells[colIdx].textContent.trim();
-
+            
             // Extract the first number from the cell (ignoring secondary text like "decided")
             let matchA = vA.match(/-?[0-9]*\.?[0-9]+/);
             let matchB = vB.match(/-?[0-9]*\.?[0-9]+/);
-
+            
             let nA = matchA ? parseFloat(matchA[0]) : NaN;
             let nB = matchB ? parseFloat(matchB[0]) : NaN;
-
+            
             if (!isNaN(nA) && !isNaN(nB)) {
-                vA = nA;
+                vA = nA; 
                 vB = nB;
             } else if (isNaN(nA) && !isNaN(nB)) {
                 return isAsc ? 1 : 1; // push NaN to bottom
@@ -1474,17 +1506,17 @@ if (typeof window.sortBreakdownTable === 'undefined') {
                 vA = vA.toLowerCase();
                 vB = vB.toLowerCase();
             }
-
+            
             if (vA < vB) return isAsc ? -1 : 1;
             if (vA > vB) return isAsc ? 1 : -1;
             return 0;
         });
-
+        
         table.dataset.sortCol = colIdx;
         table.dataset.sortAsc = (!isAsc).toString();
-
+        
         rowArr.forEach(r => tbody.appendChild(r));
-
+        
         headCells.forEach((c, i) => {
             let html = c.innerHTML.replace(' ▲', '').replace(' ▼', '');
             if (i === colIdx) html += (!isAsc ? ' ▲' : ' ▼');
@@ -1494,30 +1526,30 @@ if (typeof window.sortBreakdownTable === 'undefined') {
 }
 
 if (typeof window._initEquityCurve === 'undefined') {
-    window._initEquityCurve = function (pnlSeries) {
+    window._initEquityCurve = function(pnlSeries) {
         if (!pnlSeries || !pnlSeries.length) return;
         const ctx = document.getElementById('equity-curve-canvas');
         if (!ctx) return;
-
+        
         let cumulative = 0;
         const labels = [];
         const dataPoints = [];
-
+        
         pnlSeries.forEach(point => {
             cumulative += point.roi;
             const dt = new Date(point.date);
-            labels.push(dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            labels.push(dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
             dataPoints.push(cumulative.toFixed(2));
         });
-
+        
         if (window._equityChartInstance) {
             window._equityChartInstance.destroy();
         }
-
+        
         const isUp = cumulative >= 0;
         const lineColor = isUp ? '#00f2ff' : '#ef4444';
         const gradColor = isUp ? 'rgba(0, 242, 255, 0.2)' : 'rgba(239, 68, 68, 0.2)';
-
+        
         window._equityChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
@@ -1528,7 +1560,7 @@ if (typeof window._initEquityCurve === 'undefined') {
                     borderColor: lineColor,
                     backgroundColor: (context) => {
                         const chart = context.chart;
-                        const { ctx, chartArea } = chart;
+                        const {ctx, chartArea} = chart;
                         if (!chartArea) return null;
                         const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
                         gradient.addColorStop(0, gradColor);
@@ -1561,7 +1593,7 @@ if (typeof window._initEquityCurve === 'undefined') {
                         borderWidth: 1,
                         displayColors: false,
                         callbacks: {
-                            label: function (context) {
+                            label: function(context) {
                                 return 'ROI: ' + context.parsed.y + '%';
                             }
                         }
@@ -1583,17 +1615,155 @@ if (typeof window._initEquityCurve === 'undefined') {
                         ticks: {
                             color: '#94a3b8',
                             font: { size: 10, family: 'monospace' },
-                            callback: function (value) { return value + '%'; }
+                            callback: function(value) { return value + '%'; }
                         }
                     }
                 }
             }
         });
-
+        
         const summaryDiv = document.getElementById('equity-curve-summary');
         if (summaryDiv) {
-            summaryDiv.innerHTML = `<span style="font-size:1.4rem;font-weight:900;color:${lineColor};letter-spacing:-0.5px;font-family:monospace">${isUp ? '+' : ''}${cumulative.toFixed(2)}%</span>
+            summaryDiv.innerHTML = `<span style="font-size:1.4rem;font-weight:900;color:${lineColor};letter-spacing:-0.5px;font-family:monospace">${isUp?'+':''}${cumulative.toFixed(2)}%</span>
             <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">${pnlSeries.length} TRADES</div>`;
+        }
+    };
+}
+
+if (typeof window._initPhase2Charts === 'undefined') {
+    window._initPhase2Charts = function(summary) {
+        if (!summary) return;
+        
+        // 1. Asset Distribution Bar Chart
+        if (summary.by_ticker && summary.by_ticker.length) {
+            const ctxAsset = document.getElementById('asset-dist-canvas');
+            if (ctxAsset) {
+                // Top 10 and Bottom 5 mapping
+                const sorted = [...summary.by_ticker].sort((a,b) => b.total_roi - a.total_roi);
+                let displayTickers = sorted;
+                if (sorted.length > 15) {
+                    displayTickers = [...sorted.slice(0, 10), ...sorted.slice(-5)];
+                }
+                
+                const labels = displayTickers.map(t => t.symbol);
+                const data = displayTickers.map(t => t.total_roi);
+                const bgColors = data.map(v => v >= 0 ? 'rgba(0, 242, 255, 0.4)' : 'rgba(239, 68, 68, 0.4)');
+                const borderColors = data.map(v => v >= 0 ? '#00f2ff' : '#ef4444');
+                
+                if (window._assetChartInstance) window._assetChartInstance.destroy();
+                
+                window._assetChartInstance = new Chart(ctxAsset, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: bgColors,
+                            borderColor: borderColors,
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            barThickness: 'flex'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(10, 22, 40, 0.9)',
+                                titleColor: '#94a3b8',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255,255,255,0.1)',
+                                borderWidth: 1,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        const t = displayTickers[context.dataIndex];
+                                        return `Total P&L: ${t.total_roi}% | Trades: ${t.total}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                                ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace' }, callback: v => v+'%' }
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace', weight: 'bold' } }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 2. Heatmap DOM builder
+        if (summary.heatmap_data && summary.heatmap_data.length) {
+            const hCont = document.getElementById('heatmap-container');
+            if (hCont) {
+                const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+                
+                // Initialize matrix
+                const matrix = {};
+                for(let d=0; d<7; d++) {
+                    matrix[d] = {};
+                    for(let h=0; h<24; h+=2) { // 2-hour buckets
+                        matrix[d][h] = { roi:0, count:0 };
+                    }
+                }
+                
+                summary.heatmap_data.forEach(r => {
+                    let bucketH = Math.floor(r.hour / 2) * 2;
+                    if (matrix[r.dow] && matrix[r.dow][bucketH]) {
+                        matrix[r.dow][bucketH].roi += r.total_roi;
+                        matrix[r.dow][bucketH].count += r.total;
+                    }
+                });
+                
+                let maxAbsRoi = 0.001; 
+                for(let d=0; d<7; d++){
+                    for(let h=0; h<24; h+=2){
+                        if(matrix[d][h].count > 0 && Math.abs(matrix[d][h].roi) > maxAbsRoi) {
+                            maxAbsRoi = Math.abs(matrix[d][h].roi);
+                        }
+                    }
+                }
+
+                let html = `<div style="display:flex;flex-direction:column;gap:4px;height:100%;justify-content:center">`;
+                // Header (Hours)
+                html += `<div style="display:flex;gap:4px;margin-left:30px">`;
+                for(let h=0; h<24; h+=2) {
+                    html += `<div style="flex:1;text-align:center;font-size:0.45rem;color:var(--text-dim);font-family:monospace">${h.toString().padStart(2,'0')}h</div>`;
+                }
+                html += `</div>`;
+                
+                for(let d=0; d<7; d++) {
+                    html += `<div style="display:flex;gap:4px;flex:1;min-height:0">`;
+                    html += `<div style="width:25px;display:flex;align-items:center;justify-content:flex-end;font-size:0.55rem;font-weight:900;color:var(--text-dim);padding-right:5px">${DAYS[d]}</div>`;
+                    for(let h=0; h<24; h+=2) {
+                        const cell = matrix[d][h];
+                        let bg = 'rgba(255,255,255,0.02)';
+                        let title = `No Trades`;
+                        if (cell.count > 0) {
+                            const intensity = Math.max(0.15, Math.min(0.9, Math.abs(cell.roi) / maxAbsRoi));
+                            if (cell.roi >= 0) {
+                                bg = `rgba(0, 242, 255, ${intensity})`;
+                            } else {
+                                bg = `rgba(239, 68, 68, ${intensity})`;
+                            }
+                            title = `${cell.roi >= 0 ? '+':''}${cell.roi.toFixed(2)}% ROI (${cell.count} trades)`;
+                        }
+                        html += `<div title="${title}" style="flex:1;background:${bg};border-radius:2px;transition:all 0.2s;cursor:crosshair" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1"></div>`;
+                    }
+                    html += `</div>`;
+                }
+                html += `</div>`;
+                hCont.innerHTML = html;
+            }
         }
     };
 }
