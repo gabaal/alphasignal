@@ -4945,7 +4945,7 @@ class InstitutionalRoutesMixin:
                     
                 # Fetch P&L distribution by Ticker (Asset Class)
                 c2_cur.execute(f"""
-                    SELECT symbol,
+                    SELECT ticker AS symbol,
                            SUM(CASE WHEN final_roi > 0 THEN 1 ELSE 0 END) as wins,
                            SUM(CASE WHEN final_roi <= 0 THEN 1 ELSE 0 END) as losses,
                            COUNT(*) as total,
@@ -4953,7 +4953,7 @@ class InstitutionalRoutesMixin:
                            SUM(final_roi) as total_roi
                     FROM alerts_history ah
                     {by_type_where} AND COALESCE(status,'active')='closed' AND final_roi IS NOT NULL
-                    GROUP BY symbol
+                    GROUP BY ticker
                     ORDER BY total_roi DESC
                 """, by_type_params)
                 by_ticker = []
