@@ -4943,58 +4943,10 @@ class InstitutionalRoutesMixin:
                 for ts_pnl, val_pnl in c2_cur.fetchall():
                     pnl_curve.append({'date': ts_pnl, 'roi': round(float(val_pnl), 2)})
                     
-                # Fetch P&L distribution by Ticker (Asset Class)
-                c2_cur.execute(f"""
-                    SELECT symbol,
-                           SUM(CASE WHEN final_roi > 0 THEN 1 ELSE 0 END) as wins,
-                           SUM(CASE WHEN final_roi <= 0 THEN 1 ELSE 0 END) as losses,
-                           COUNT(*) as total,
-                           AVG(final_roi) as avg_roi,
-                           SUM(final_roi) as total_roi
-                    FROM alerts_history ah
-                    {by_type_where} AND COALESCE(status,'active')='closed' AND final_roi IS NOT NULL
-                    GROUP BY symbol
-                    ORDER BY total_roi DESC
-                """, by_type_params)
-                by_ticker = []
-                for t_sym, t_wins, t_losses, t_total, t_avg, t_roi in c2_cur.fetchall():
-                    by_ticker.append({
-                        'symbol': t_sym,
-                        'wins': int(t_wins or 0),
-                        'losses': int(t_losses or 0),
-                        'total': int(t_total or 0),
-                        'avg_roi': round(float(t_avg), 2) if t_avg is not None else 0,
-                        'total_roi': round(float(t_roi), 2) if t_roi is not None else 0
-                    })
-                    
-                # Fetch Time-of-Day / Day-of-Week Heatmap matrix
-                # strftime('%w') returns 0-6 (Sunday=0), strftime('%H') returns 00-23
-                c2_cur.execute(f"""
-                    SELECT strftime('%w', ah.timestamp) as dow,
-                           strftime('%H', ah.timestamp) as hour,
-                           COUNT(*) as total,
-                           AVG(final_roi) as avg_roi,
-                           SUM(final_roi) as total_roi
-                    FROM alerts_history ah
-                    {by_type_where} AND COALESCE(status,'active')='closed' AND final_roi IS NOT NULL
-                    GROUP BY dow, hour
-                """, by_type_params)
-                heatmap_data = []
-                for h_dow, h_hr, h_tot, h_avg, h_troi in c2_cur.fetchall():
-                    heatmap_data.append({
-                        'dow': int(h_dow) if h_dow is not None else 0,
-                        'hour': int(h_hr) if h_hr is not None else 0,
-                        'total': int(h_tot or 0),
-                        'avg_roi': round(float(h_avg), 2) if h_avg is not None else 0,
-                        'total_roi': round(float(h_troi), 2) if h_troi is not None else 0
-                    })
-                    
                 conn2.close()
             except Exception as bte:
                 by_type = {}
                 pnl_curve = []
-                by_ticker = []
-                heatmap_data = []
                 print(f'[SignalHistory] by_type/pnl_curve error: {bte}')
 
             response = {
@@ -5016,8 +4968,6 @@ class InstitutionalRoutesMixin:
                     'page_losses': page_losses,    # current-page ROI-based losses
                     'by_type':    by_type,         # per-signal-type breakdown for perf table
                     'pnl_curve':  pnl_curve,       # chronological PNL curve markers
-                    'by_ticker':  by_ticker,       # Asset Class performance breakdown
-                    'heatmap_data': heatmap_data,  # Temporal day/hour performance
                 }
             }
             # - Store in cache -
