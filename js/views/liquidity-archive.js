@@ -1570,7 +1570,14 @@ if (typeof window._initEquityCurve === 'undefined') {
                 },
                 scales: {
                     x: {
-                        display: false
+                        display: true,
+                        grid: { display: false, drawBorder: false },
+                        ticks: {
+                            color: 'rgba(148, 163, 184, 0.5)',
+                            font: { size: 9, family: 'monospace' },
+                            maxTicksLimit: 6,
+                            maxRotation: 0
+                        }
                     },
                     y: {
                         grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
