@@ -1439,13 +1439,20 @@ if (typeof window.sortBreakdownTable === 'undefined') {
             let vA = a.cells[colIdx].textContent.trim();
             let vB = b.cells[colIdx].textContent.trim();
             
-            // Check for numbers: remove non-numeric except . and -
-            let nA = parseFloat(vA.replace(/[^0-9.-]/g, ''));
-            let nB = parseFloat(vB.replace(/[^0-9.-]/g, ''));
+            // Extract the first number from the cell (ignoring secondary text like "decided")
+            let matchA = vA.match(/-?[0-9]*\.?[0-9]+/);
+            let matchB = vB.match(/-?[0-9]*\.?[0-9]+/);
+            
+            let nA = matchA ? parseFloat(matchA[0]) : NaN;
+            let nB = matchB ? parseFloat(matchB[0]) : NaN;
             
             if (!isNaN(nA) && !isNaN(nB)) {
                 vA = nA; 
                 vB = nB;
+            } else if (isNaN(nA) && !isNaN(nB)) {
+                return isAsc ? 1 : 1; // push NaN to bottom
+            } else if (!isNaN(nA) && isNaN(nB)) {
+                return isAsc ? -1 : -1; // push NaN to bottom
             } else {
                 vA = vA.toLowerCase();
                 vB = vB.toLowerCase();
