@@ -475,11 +475,12 @@ class MarketRoutesMixin:
                     (cutoff, user_email)
                 )
             else:
-                # Unauthenticated - return global system density
+                # Unauthenticated - return global system-wide density (all users)
+                # Show real platform-wide activity as social proof for anonymous visitors
                 c.execute(
                     """SELECT DATE(timestamp) as day, COUNT(*) as cnt
                        FROM alerts_history
-                       WHERE timestamp >= ? AND user_email IS NULL
+                       WHERE timestamp >= ?
                        GROUP BY day
                        ORDER BY day ASC""",
                     (cutoff,)
