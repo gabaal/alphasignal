@@ -754,6 +754,18 @@ class HarvestService:
             all_tickers = [data.name] if hasattr(data, 'name') else []
 
         for ticker in all_tickers:
+            # Global Exclusions: Ignore Stablecoins (no volatility) and Memecoins (precision/slippage risks)
+            STABLECOINS = {
+                'USDC-USD','USDT-USD','DAI-USD','BUSD-USD','TUSD-USD',
+                'FRAX-USD','LUSD-USD','USDP-USD','GUSD-USD','PYUSD-USD',
+                'USDE-USD','FDUSD-USD','EURC-USD','USDS-USD',
+            }
+            MEMECOINS = {
+                'SHIB-USD','PEPE-USD','FLOKI-USD','BONK-USD','DOGE-USD','WIF-USD'
+            }
+            if ticker in STABLECOINS or ticker in MEMECOINS:
+                continue
+
             try:
                 # 1. Extract ticker data from batch
                 if isinstance(data.columns, pd.MultiIndex):
@@ -967,18 +979,19 @@ class HarvestService:
             tickers = data.columns.get_level_values(1).unique() if isinstance(data.columns, pd.MultiIndex) else []
             generated_signals = []
             
-            # Stablecoins: pegged assets never produce meaningful directional signals.
-            # Including them poisons RSI/MACD/Volume win rates with near-zero returns
-            # that always close at -3% stop-loss due to tiny peg deviations + fees.
+            # Global Exclusions: Ignore Stablecoins (no volatility) and Memecoins (precision/slippage risks).
             STABLECOINS = {
                 'USDC-USD','USDT-USD','DAI-USD','BUSD-USD','TUSD-USD',
                 'FRAX-USD','LUSD-USD','USDP-USD','GUSD-USD','PYUSD-USD',
                 'USDE-USD','FDUSD-USD','EURC-USD','USDS-USD',
             }
+            MEMECOINS = {
+                'SHIB-USD','PEPE-USD','FLOKI-USD','BONK-USD','DOGE-USD','WIF-USD'
+            }
 
             for ticker in tickers:
-                if ticker in STABLECOINS:
-                    continue   # skip — no directional alpha in a pegged asset
+                if ticker in STABLECOINS or ticker in MEMECOINS:
+                    continue   # skip — excluded assets
 
                 try:
                     if isinstance(data.columns, pd.MultiIndex):
