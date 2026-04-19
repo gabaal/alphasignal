@@ -4881,6 +4881,40 @@ class InstitutionalRoutesMixin:
                 # Paginate
                 results = results[(page - 1) * limit: page * limit]
 
+            # --- Per-signal-type breakdown (for Strategy Performance Breakdown table) ---
+            try:
+                c2 = conn if not conn.in_transaction else sqlite3.connect(DB_PATH)
+                c2_cur = c2.cursor()
+                c2_cur.execute(f"""
+                    SELECT
+                        ah.type,
+                        SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) > 0 THEN 1 ELSE 0 END) as wins,
+                        SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) < 0 THEN 1 ELSE 0 END) as losses,
+                        SUM(CASE WHEN COALESCE(ah.status,'active')='closed' THEN 1 ELSE 0 END) as closed,
+                        SUM(CASE WHEN COALESCE(ah.status,'active')='active' THEN 1 ELSE 0 END) as active,
+                        AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi,
+                        COUNT(*) as total
+                    FROM alerts_history ah {summary_where}
+                    GROUP BY ah.type
+                """, summary_params)
+                by_type = {}
+                for bt_type, bt_wins, bt_losses, bt_closed, bt_active, bt_avg_roi, bt_total in c2_cur.fetchall():
+                    if not bt_type:
+                        continue
+                    by_type[bt_type] = {
+                        'wins':    int(bt_wins   or 0),
+                        'losses':  int(bt_losses  or 0),
+                        'closed':  int(bt_closed  or 0),
+                        'active':  int(bt_active  or 0),
+                        'avg_roi': round(float(bt_avg_roi), 2) if bt_avg_roi is not None else None,
+                        'total':   int(bt_total   or 0),
+                    }
+                if c2 is not conn:
+                    c2.close()
+            except Exception as bte:
+                by_type = {}
+                print(f'[SignalHistory] by_type error: {bte}')
+
             response = {
                 'data': results,
                 'pagination': {
@@ -4898,6 +4932,7 @@ class InstitutionalRoutesMixin:
                     'avg_roi':    full_avg_roi,    # avg final_roi across closed signals
                     'page_wins':  page_wins,       # current-page ROI-based wins
                     'page_losses': page_losses,    # current-page ROI-based losses
+                    'by_type':    by_type,         # per-signal-type breakdown for perf table
                 }
             }
             # - Store in cache -

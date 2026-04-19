@@ -63,7 +63,7 @@ async function renderLiquidityView(tabs = null) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>${renderTypeBreakdown(data, response)}
 
         <!-- Full-width Institutional Tape strip -->
         <div class="glass-card" style="margin-top:1rem;padding:0.6rem 1rem">
@@ -1111,7 +1111,104 @@ async function renderSignalArchive(tabs = null) {
                         <tbody id="archive-tbody">${renderRows(data)}</tbody>
                     </table>
                 </div>
+            </div>${renderTypeBreakdown(data, response)}`;
+
+        // - Per-type strategy breakdown table -
+        function renderTypeBreakdown(pageData, resp) {
+            // Build per-type stats from the full-dataset breakdown returned by the API,
+            // falling back to computing from current page data if not available.
+            const byType = {};
+            const BULLISH_T = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',
+                'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
+
+            // Prefer server-provided per_type breakdown
+            const serverBreakdown = resp?.summary?.by_type || null;
+            if (serverBreakdown && Object.keys(serverBreakdown).length) {
+                Object.entries(serverBreakdown).forEach(([type, s]) => {
+                    byType[type] = {
+                        wins:    s.wins    ?? 0,
+                        losses:  s.losses  ?? 0,
+                        active:  s.active  ?? 0,
+                        closed:  s.closed  ?? 0,
+                        avg_roi: s.avg_roi != null ? parseFloat(s.avg_roi) : null,
+                        total:   s.total   ?? 0,
+                        isBull:  BULLISH_T.has(type)
+                    };
+                });
+            } else {
+                // Fallback: compute from current page rows
+                (pageData || []).forEach(s => {
+                    const t = (s.type || 'UNKNOWN').toUpperCase();
+                    if (!byType[t]) byType[t] = { wins:0, losses:0, active:0, closed:0, avg_roi:null, total:0, roiSum:0, roiCount:0, isBull: BULLISH_T.has(t) };
+                    byType[t].total++;
+                    if (s.state === 'HIT_TP1' || s.state === 'HIT_TP2') byType[t].wins++;
+                    else if (s.state === 'STOPPED') byType[t].losses++;
+                    else if (s.state === 'CLOSED') byType[t].closed++;
+                    else byType[t].active++;
+                    const roi = s.final_roi != null ? parseFloat(s.final_roi) : (s.return != null ? parseFloat(s.return) : null);
+                    if (roi != null && !isNaN(roi)) { byType[t].roiSum += roi; byType[t].roiCount++; }
+                });
+                Object.values(byType).forEach(r => {
+                    r.avg_roi = r.roiCount > 0 ? r.roiSum / r.roiCount : null;
+                });
+            }
+
+            const rows = Object.entries(byType)
+                .sort((a, b) => (b[1].wins + b[1].losses) - (a[1].wins + a[1].losses))
+                .map(([type, s]) => {
+                    const total    = s.wins + s.losses + s.active + s.closed;
+                    const decided  = s.wins + s.losses;
+                    const winRate  = decided > 0 ? ((s.wins / decided) * 100).toFixed(0) + '%' : '--';
+                    const winRateN = decided > 0 ? (s.wins / decided) * 100 : null;
+                    const avgRoi   = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '+' : '') + parseFloat(s.avg_roi).toFixed(2) + '%' : '--';
+                    const avgColor = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
+                    const wrColor  = winRateN != null ? (winRateN >= 55 ? '#22c55e' : winRateN >= 40 ? '#f59e0b' : '#ef4444') : 'var(--text-dim)';
+                    const badge    = s.isBull
+                        ? '<span style="font-size:0.45rem;background:rgba(34,197,94,0.12);color:#22c55e;padding:1px 5px;border-radius:3px;margin-left:4px">LONG</span>'
+                        : '<span style="font-size:0.45rem;background:rgba(239,68,68,0.12);color:#ef4444;padding:1px 5px;border-radius:3px;margin-left:4px">SHORT</span>';
+                    return `<tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.15s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
+                        <td style="padding:9px 12px;font-weight:700;font-size:0.72rem;white-space:nowrap">
+                            <span style="color:var(--text)">${type.replace(/_/g,' ')}</span>${badge}
+                        </td>
+                        <td style="padding:9px 12px;text-align:center;font-weight:900;color:#22c55e;font-family:monospace;font-size:0.85rem">${s.wins}</td>
+                        <td style="padding:9px 12px;text-align:center;font-weight:900;color:#ef4444;font-family:monospace;font-size:0.85rem">${s.losses}</td>
+                        <td style="padding:9px 12px;text-align:center;color:#94a3b8;font-family:monospace;font-size:0.82rem">${s.closed}</td>
+                        <td style="padding:9px 12px;text-align:center;color:#60a5fa;font-family:monospace;font-size:0.82rem">${s.active}</td>
+                        <td style="padding:9px 12px;text-align:center;font-weight:700;color:${avgColor};font-family:monospace;font-size:0.82rem">${avgRoi}</td>
+                        <td style="padding:9px 12px;text-align:center">
+                            <span style="font-weight:900;font-size:0.85rem;color:${wrColor};font-family:monospace">${winRate}</span>
+                            ${decided > 0 ? `<div style="font-size:0.48rem;color:var(--text-dim);margin-top:1px">${decided} decided</div>` : ''}
+                        </td>
+                    </tr>`;
+                }).join('');
+
+            if (!rows) return '';
+
+            return `
+            <div class="card" style="margin-top:1.5rem;overflow-x:auto">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;flex-wrap:wrap">
+                    <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.1rem">bar_chart</span>
+                    <div>
+                        <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">STRATEGY PERFORMANCE BREAKDOWN</div>
+                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:2px">Win rate and avg return by signal type &middot; closed signals with locked ROI</div>
+                    </div>
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-size:0.75rem;min-width:520px">
+                    <thead>
+                        <tr style="border-bottom:2px solid ${alphaColor(0.08)}">
+                            <th style="text-align:left;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">SIGNAL TYPE</th>
+                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:#22c55e">WINS</th>
+                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:#ef4444">LOSSES</th>
+                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:#94a3b8">CLOSED</th>
+                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:#60a5fa">ACTIVE</th>
+                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">AVG RETURN</th>
+                            <th style="text-align:center;padding:7px 12px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">WIN RATE</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
             </div>`;
+        }
 
         // - Sort handler: always client-side -
         window._archiveSort = function(col) {
