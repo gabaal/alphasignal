@@ -967,7 +967,19 @@ class HarvestService:
             tickers = data.columns.get_level_values(1).unique() if isinstance(data.columns, pd.MultiIndex) else []
             generated_signals = []
             
+            # Stablecoins: pegged assets never produce meaningful directional signals.
+            # Including them poisons RSI/MACD/Volume win rates with near-zero returns
+            # that always close at -3% stop-loss due to tiny peg deviations + fees.
+            STABLECOINS = {
+                'USDC-USD','USDT-USD','DAI-USD','BUSD-USD','TUSD-USD',
+                'FRAX-USD','LUSD-USD','USDP-USD','GUSD-USD','PYUSD-USD',
+                'USDE-USD','FDUSD-USD','EURC-USD','USDS-USD',
+            }
+
             for ticker in tickers:
+                if ticker in STABLECOINS:
+                    continue   # skip — no directional alpha in a pegged asset
+
                 try:
                     if isinstance(data.columns, pd.MultiIndex):
                         df = data.xs(ticker, axis=1, level=1).dropna()
