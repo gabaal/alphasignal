@@ -1011,9 +1011,17 @@ class HarvestService:
                         message  = f'RSI-14 crossed under 25 (at {curr_rsi:.1f}) - deeply oversold breakdown.'
                         severity = 'high'
                     elif curr_rsi > 75 and prev_rsi <= 75:
-                        sig_type = 'RSI_OVERBOUGHT'
-                        message  = f'RSI-14 crossed over 75 (at {curr_rsi:.1f}) - severe overbought territory entered.'
-                        severity = 'high'
+                        # Trend filter: only fire when price is BELOW the 50-day SMA.
+                        # Above SMA-50 = bull trend; overbought RSI in a bull trend signals
+                        # momentum continuation, not reversal -> historically poor SHORT signal.
+                        # Below SMA-50 = bearish/neutral trend; overbought RSI is a genuine
+                        # exhaustion/reversal setup worth alerting on.
+                        sma50 = float(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else None
+                        if sma50 is not None and curr_p < sma50:
+                            sig_type = 'RSI_OVERBOUGHT'
+                            message  = (f'RSI-14 crossed over 75 (at {curr_rsi:.1f}) while price is '
+                                        f'below SMA-50 (${sma50:,.4f}) - overbought exhaustion in a '
+                                        f'bearish trend context. Reversal setup.')
                     elif macd_cross and vol_spike:
                         sig_type = 'MACD_BULLISH_CROSS'
                         message  = f'MACD bullish crossover confirmed with volume spike on {ticker}. Momentum inflection.'
