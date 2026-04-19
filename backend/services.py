@@ -1016,36 +1016,66 @@ class HarvestService:
                             vol_mean, vol_std = float(vols.rolling(20).mean().iloc[-1]), float(vols.rolling(20).std().iloc[-1])
                             vol_spike = vol_std > 0 and float(vols.iloc[-1]) > vol_mean + 2.5 * vol_std
 
+                    # --- Shared trend context ---
+                    # Compute SMA-50 once; used by all signal rules below.
+                    # A 60-day daily window gives us enough history for SMA-50.
+                    sma50 = float(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else None
+                    above_sma50 = sma50 is not None and curr_p > sma50   # uptrend confirmed
+                    below_sma50 = sma50 is not None and curr_p < sma50   # downtrend confirmed
+
                     sig_type, message, severity = None, '', 'medium'
-                    # Strict Crossover Logic
+
+                    # --- RSI_OVERSOLD (LONG) ---
+                    # Only buy oversold dips in confirmed uptrends (price above SMA-50).
+                    # Below SMA-50, oversold RSI usually means trend continuation down.
                     if curr_rsi < 25 and prev_rsi >= 25:
-                        sig_type = 'RSI_OVERSOLD'
-                        message  = f'RSI-14 crossed under 25 (at {curr_rsi:.1f}) - deeply oversold breakdown.'
-                        severity = 'high'
+                        if above_sma50:
+                            sig_type = 'RSI_OVERSOLD'
+                            message  = (f'RSI-14 crossed under 25 (at {curr_rsi:.1f}) while price is '
+                                        f'above SMA-50 (${sma50:,.4f}) — oversold pullback in an uptrend. '
+                                        f'Mean-reversion long setup.')
+                            severity = 'high'
+
+                    # --- RSI_OVERBOUGHT (SHORT) ---
+                    # Only short overbought exhaustion when price is below SMA-50 (downtrend).
+                    # Above SMA-50, overbought RSI = momentum continuation, not reversal.
                     elif curr_rsi > 75 and prev_rsi <= 75:
-                        # Trend filter: only fire when price is BELOW the 50-day SMA.
-                        # Above SMA-50 = bull trend; overbought RSI in a bull trend signals
-                        # momentum continuation, not reversal -> historically poor SHORT signal.
-                        # Below SMA-50 = bearish/neutral trend; overbought RSI is a genuine
-                        # exhaustion/reversal setup worth alerting on.
-                        sma50 = float(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else None
-                        if sma50 is not None and curr_p < sma50:
+                        if below_sma50:
                             sig_type = 'RSI_OVERBOUGHT'
                             message  = (f'RSI-14 crossed over 75 (at {curr_rsi:.1f}) while price is '
-                                        f'below SMA-50 (${sma50:,.4f}) - overbought exhaustion in a '
+                                        f'below SMA-50 (${sma50:,.4f}) — overbought exhaustion in a '
                                         f'bearish trend context. Reversal setup.')
+                            severity = 'high'
+
+                    # --- MACD_BULLISH_CROSS (LONG) ---
+                    # Require price above SMA-50 so the cross is a trend-with momentum entry,
+                    # not a dead-cat bounce inside a downtrend.
                     elif macd_cross and vol_spike:
-                        sig_type = 'MACD_BULLISH_CROSS'
-                        message  = f'MACD bullish crossover confirmed with volume spike on {ticker}. Momentum inflection.'
-                        severity = 'high'
+                        if above_sma50:
+                            sig_type = 'MACD_BULLISH_CROSS'
+                            message  = (f'MACD bullish crossover + volume spike on {ticker} '
+                                        f'(price above SMA-50 ${sma50:,.4f}). Momentum inflection in uptrend.')
+                            severity = 'high'
+
+                    # --- MACD_BEARISH_CROSS (SHORT) ---
+                    # Only flag bearish crosses in confirmed downtrends (below SMA-50).
                     elif macd_bear:
-                        sig_type = 'MACD_BEARISH_CROSS'
-                        message  = f'MACD bearish crossover on {ticker}. Momentum deteriorating.'
-                        severity = 'medium'
+                        if below_sma50:
+                            sig_type = 'MACD_BEARISH_CROSS'
+                            message  = (f'MACD bearish crossover on {ticker} '
+                                        f'(price below SMA-50 ${sma50:,.4f}). Momentum deteriorating in downtrend.')
+                            severity = 'medium'
+
+                    # --- VOLUME_SPIKE (LONG) ---
+                    # Only treat volume spikes as bullish when the trend supports it.
+                    # In a downtrend, high volume usually means distribution / selling pressure.
                     elif vol_spike:
-                        sig_type = 'VOLUME_SPIKE'
-                        message  = f'Volume >2.5x standard deviation above 20-day mean on {ticker}. Institutional footprint.'
-                        severity = 'medium'
+                        if above_sma50:
+                            sig_type = 'VOLUME_SPIKE'
+                            message  = (f'Volume >2.5x above 20-day mean on {ticker} '
+                                        f'(price above SMA-50 ${sma50:,.4f}). Institutional accumulation footprint.')
+                            severity = 'medium'
+
                         
                     if sig_type:
                         generated_signals.append({
