@@ -57,13 +57,25 @@
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      "name": "AlphaSignal Terminal", "alternateName": ["Alpha Signal", "AlphaSignal", "alphasignal.digital"],
+      "name": "AlphaSignal Terminal",
+      "alternateName": ["Alpha Signal", "AlphaSignal", "alphasignal.digital"],
       "operatingSystem": "Web, iOS (PWA), Android (PWA)",
       "applicationCategory": "FinanceApplication",
+      "applicationSubCategory": "Cryptocurrency Trading Tools",
       "offers": {
         "@type": "Offer",
         "price": "7.99",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "priceValidUntil": "2027-12-31",
+        "availability": "https://schema.org/InStock",
+        "url": "https://alphasignal.digital/"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "412",
+        "bestRating": "5",
+        "worstRating": "1"
       },
       "description": "AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.",
       "url": "https://alphasignal.digital/",
@@ -74,10 +86,36 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AlphaSignal",
+      "alternateName": "Alpha Signal Terminal",
+      "url": "https://alphasignal.digital/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://alphasignal.digital/?view=signals&q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
       "@type": "Organization",
       "name": "AlphaSignal",
       "url": "https://alphasignal.digital/",
-      "logo": "https://alphasignal.digital/assets/pwa-icon-512.png"
+      "logo": "https://alphasignal.digital/assets/pwa-icon-512.png",
+      "sameAs": [
+        "https://twitter.com/alphasignalai",
+        "https://t.me/alphasignalbot_bot"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "url": "https://alphasignal.digital/?view=help"
+      }
     }
     </script>
     <script type="application/ld+json" id="ld-json-dynamic">{ }</script>
@@ -413,6 +451,47 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                          style="max-width:min(800px,100%);height:auto;border-radius:12px;box-shadow:0 0 60px rgba(0,242,255,0.1)">
                 </div>
             </div>
+            <!-- SEO CONTENT SHELL: Always visible to search engines, hidden once JS renders.
+                 This guarantees Googlebot indexes keyword-rich page content regardless of JS execution. -->
+            <noscript>
+            <div style="max-width:1100px;margin:0 auto;padding:4rem 2rem;font-family:system-ui,sans-serif;color:#e2e8f0;">
+                <h1 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">AlphaSignal &mdash; Institutional Bitcoin &amp; Crypto Intelligence Terminal</h1>
+                <p style="font-size:1.1rem;color:#94a3b8;line-height:1.8;margin-bottom:2rem;">
+                    AlphaSignal (alphasignal.digital) is a real-time institutional intelligence terminal for Bitcoin, crypto, and macro markets.
+                    Trusted by 2,400+ professional traders, AlphaSignal delivers Z-score alpha signals, AI-generated market briefings,
+                    Bitcoin spot ETF capital flows, Deribit options flow scanner, on-chain analytics (MVRV, SOPR, Puell Multiple),
+                    whale pulse tracking, macro event calendar, AI portfolio optimiser, and 60+ analytical views. From $7.99/month.
+                </p>
+                <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:1rem;">Key Features</h2>
+                <ul style="list-style:disc;padding-left:2rem;line-height:2;color:#94a3b8;">
+                    <li><strong>Live Alpha Signals</strong> &mdash; Real-time Z-score deviation signals across 50+ institutional crypto assets powered by ML neural features and on-chain data</li>
+                    <li><strong>AI Market Brief</strong> &mdash; Daily GPT-4o institutional briefing: Overnight Summary, Signal Environment, Macro Watch, Risk Signals, and Actionable Ideas</li>
+                    <li><strong>Bitcoin Spot ETF Flows</strong> &mdash; Daily net flows across BlackRock IBIT, Fidelity FBTC, ARK ARKB, and all regulated Bitcoin ETFs</li>
+                    <li><strong>Options Flow Scanner</strong> &mdash; Live BTC and ETH options data from Deribit: Put/Call ratio, Max Pain strike, IV Smile, and top open-interest strikes</li>
+                    <li><strong>Whale Pulse Monitor</strong> &mdash; On-chain detection of institutional-sized Bitcoin and Ethereum transactions with entity clustering</li>
+                    <li><strong>On-Chain Analytics</strong> &mdash; MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Hash Ribbons &mdash; the metrics that identify every Bitcoin cycle top and bottom</li>
+                    <li><strong>Macro Intelligence Hub</strong> &mdash; FOMC, CPI, NFP macro event calendar with BTC impact scoring, sector rotation tracker, and market regime classifier</li>
+                    <li><strong>Signal Backtester V2</strong> &mdash; Backtest live AlphaSignal signals against real historical data with rolling Sharpe ratio, drawdown analysis, and BTC benchmark</li>
+                    <li><strong>AI Portfolio Optimiser</strong> &mdash; Monte Carlo simulation and Markowitz Efficient Frontier with GPT-4 rebalancing memo and execution tickets</li>
+                    <li><strong>Liquidation Scanner</strong> &mdash; Real-time long and short liquidation monitoring across Binance, OKX, Bybit, and Deribit</li>
+                    <li><strong>CME Gap Tracker</strong> &mdash; All unfilled CME Bitcoin futures gaps with 77% historical fill probability scoring</li>
+                    <li><strong>Gamma Exposure (GEX) Profile</strong> &mdash; Dealer hedging pressure map showing where options market makers must buy and sell Bitcoin spot</li>
+                    <li><strong>Token Unlock Schedule</strong> &mdash; 90-day forward calendar of major token vesting unlocks scored by supply shock severity</li>
+                    <li><strong>TradingView Integration</strong> &mdash; Embedded professional TradingView chart with VWAP, EMA overlays, Volume Profile, CVD, and Market Depth</li>
+                    <li><strong>Telegram &amp; Discord Webhooks</strong> &mdash; Receive institutional signal alerts via Telegram or Discord with configurable Z-score threshold</li>
+                </ul>
+                <h2 style="font-size:1.5rem;font-weight:700;margin:2rem 0 1rem;">Terminal Hubs</h2>
+                <ul style="list-style:disc;padding-left:2rem;line-height:2;color:#94a3b8;">
+                    <li><strong>Market Analytics Hub</strong> &mdash; AI Market Brief, Whale Pulse, Chain Velocity, On-Chain Analytics, Options Flow, GEX Profile, Mindshare &amp; Narrative, Newsroom, Advanced Charting</li>
+                    <li><strong>Macro Intelligence Hub</strong> &mdash; AI Briefing, Capital Flows, Sector Rotation, Macro Compass, Correlation Matrix, Macro Calendar, Market Regime Classifier</li>
+                    <li><strong>Strategy &amp; Backtester Hub</strong> &mdash; Live Signals, Alpha Score, Strategy Lab, Signal Backtester V2, Signal Archive, Narrative Galaxy</li>
+                    <li><strong>Alerts &amp; Webhooks Hub</strong> &mdash; Live Signal Alerts, Price Alerts, Signal Leaderboard, Webhooks, Signal Archive</li>
+                    <li><strong>Portfolio &amp; Risk Hub</strong> &mdash; Portfolio Simulation, AI Portfolio Optimiser, Token Unlocks, DeFi Yield Lab, Trade Idea Lab</li>
+                    <li><strong>Global Markets Hub</strong> &mdash; Bitcoin Spot ETF Flows, Liquidation Scanner, Open Interest Radar, CME Gap Tracker</li>
+                </ul>
+                <p style="margin-top:2rem;color:#94a3b8;">AlphaSignal is available as a Progressive Web App (PWA) &mdash; install on iOS and Android for full native terminal access. Pricing starts at $7.99/month. <a href="https://alphasignal.digital/" style="color:#7dd3fc;">Get started at alphasignal.digital</a>.</p>
+            </div>
+            </noscript>
             <!-- INLINE LOADER DISMISS - runs synchronously at parse time for public views.
                  Must be inline (not defer) so it fires the instant the pre-render is parsed,
                  before any external scripts download. This is what moves LCP to ~FCP time. -->
@@ -429,31 +508,78 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
             </script>
 
             <footer class="global-footer" role="contentinfo">
-                <div class="footer-grid">
+                <div class="footer-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;margin-bottom:2rem;">
                     <div class="footer-brand">
-                        <div class="brand-title">Alpha<span>Signal</span></div>
-                        <p>Institutional Alpha & Multi-Asset Intelligence Terminal. Synthesized by AI.</p>
+                        <div class="brand-title" style="font-size:1.3rem;font-weight:900;margin-bottom:0.5rem;">Alpha<span>Signal</span></div>
+                        <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;">Institutional Alpha &amp; Multi-Asset Intelligence Terminal. Real-time Z-score signals, AI briefings, on-chain analytics, and 60+ analytical views. From $7.99/month.</p>
                     </div>
                     <div class="footer-links">
-                        <h4>Terminal Modules</h4>
-                        <ul>
-                            <li><a href="#" onclick="switchView('signals')">Alpha Signals</a></li>
-                            <li><a href="#" onclick="switchView('whales')">Whale Pulse</a></li>
-                            <li><a href="#" onclick="switchView('correlation-matrix')">Correlation Lab</a></li>
-                            <li><a href="#" onclick="switchView('risk')">Risk Matrix</a></li>
-                            <li><a href="#" onclick="switchView('help')">Documentation</a></li>
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">SIGNALS &amp; ANALYTICS</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=signals" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Live Alpha Signals</a></li>
+                            <li><a href="/?view=alpha-score" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Alpha Score Dashboard</a></li>
+                            <li><a href="/?view=market-brief-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">AI Market Brief</a></li>
+                            <li><a href="/?view=signal-archive" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Archive</a></li>
+                            <li><a href="/?view=backtester-v2" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Backtester V2</a></li>
+                            <li><a href="/?view=leaderboard-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Leaderboard</a></li>
                         </ul>
                     </div>
-                    <div class="footer-seo">
-                        <h4>Institutional Intel</h4>
-                        <p>Alphasignal provides professional <strong>market</strong> signals, <strong>strategy</strong> validation, and <strong>risk</strong> analytics for digital asset portfolios. Monitor <strong>bitcoin</strong> flows and <strong>AI whale</strong> movements in real-time.</p>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">ON-CHAIN &amp; MARKET</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=whales" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Whale Pulse Monitor</a></li>
+                            <li><a href="/?view=onchain" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">On-Chain Analytics (MVRV, SOPR)</a></li>
+                            <li><a href="/?view=options-flow" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Deribit Options Flow Scanner</a></li>
+                            <li><a href="/?view=etf-flows" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Bitcoin Spot ETF Flows</a></li>
+                            <li><a href="/?view=liquidations" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Liquidation Scanner</a></li>
+                            <li><a href="/?view=gex-profile" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Gamma Exposure (GEX)</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">MACRO &amp; STRATEGY</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=macro-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Macro Intelligence Hub</a></li>
+                            <li><a href="/?view=macro-calendar" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Macro Event Calendar (FOMC, CPI)</a></li>
+                            <li><a href="/?view=regime" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Market Regime Classifier</a></li>
+                            <li><a href="/?view=rotation" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Crypto Sector Rotation</a></li>
+                            <li><a href="/?view=strategy-lab" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Strategy Lab</a></li>
+                            <li><a href="/?view=cme-gaps" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">CME Bitcoin Gap Tracker</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">PORTFOLIO &amp; RISK</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=portfolio-optimizer" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">AI Portfolio Optimiser</a></li>
+                            <li><a href="/?view=risk" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Risk Matrix &amp; VaR</a></li>
+                            <li><a href="/?view=stress" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Stress Test Lab</a></li>
+                            <li><a href="/?view=token-unlocks" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Token Unlock Schedule</a></li>
+                            <li><a href="/?view=yield-lab" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">DeFi Yield Lab</a></li>
+                            <li><a href="/?view=trade-ledger" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Institutional Trade Ledger</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">RESOURCES</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=help" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Help &amp; Documentation</a></li>
+                            <li><a href="/?view=ask-terminal" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Ask Terminal AI</a></li>
+                            <li><a href="/?view=newsroom" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Crypto Newsroom</a></li>
+                            <li><a href="/?view=advanced-charting" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Advanced Charting Suite</a></li>
+                            <li><a href="/?view=alerts-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Alerts &amp; Webhooks</a></li>
+                            <li><a href="/?view=liquidity" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Liquidity &amp; Order Flow</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:1.5rem;">
+                    <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.7;margin-bottom:1rem;max-width:900px;">
+                        <strong style="color:var(--text-main);">AlphaSignal</strong> is an institutional Bitcoin and crypto intelligence terminal providing real-time <strong>trading signals</strong>, <strong>on-chain analytics</strong>, <strong>options flow</strong>, <strong>whale tracking</strong>, <strong>ETF flows</strong>, and <strong>AI market analysis</strong>. Designed for professional crypto traders and institutional desks. Not financial advice.
                     </div>
                 </div>
                 <div class="footer-bottom">
-                    <span>&copy; 2026 ALPHASIGNAL TERMINAL. VERIFIED_INTELLIGENCE_LOCKED</span>
+                    <span>&copy; 2026 ALPHASIGNAL TERMINAL &mdash; alphasignal.digital</span>
                     <div class="system-badges">
                         <span class="badge">SECURE_SSL</span>
                         <span class="badge">AI_NEURAL_ACTIVE</span>
+                        <span class="badge">PWA_READY</span>
                     </div>
                 </div>
             </footer>

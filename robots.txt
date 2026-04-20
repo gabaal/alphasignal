@@ -1,4 +1,14 @@
 User-agent: *
 Allow: /
 
+# Block internal auth and API routes - not indexable content
+Disallow: /api/
+Disallow: /?auth=
+Disallow: /?reset=
+Disallow: /?token=
+
+# Block duplicate query param routes that waste crawl budget
+Disallow: /?debug=
+Disallow: /?test=
+
 Sitemap: https://alphasignal.digital/sitemap.xml
