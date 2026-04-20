@@ -3736,9 +3736,21 @@ class InstitutionalRoutesMixin:
                 last_seen = None
 
             if last_seen:
-                c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > ?", (last_seen,))
+                if auth:
+                    c.execute(
+                        "SELECT COUNT(*) FROM alerts_history WHERE timestamp > ? AND LOWER(user_email) = LOWER(?)",
+                        (last_seen, email)
+                    )
+                else:
+                    c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > ?", (last_seen,))
             else:
-                c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
+                if auth:
+                    c.execute(
+                        "SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day') AND LOWER(user_email) = LOWER(?)",
+                        (email,)
+                    )
+                else:
+                    c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
 
             unread = c.fetchone()[0]
             conn.close()
