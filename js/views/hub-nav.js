@@ -71,6 +71,7 @@ async function renderInstitutionalHub() {
 
 // ============= Analytics Hub =============
 const analyticsHubTabs = [
+    { id: 'market-brief',  label: 'MARKET BRIEF',  view: 'market-brief-hub',  icon: 'article' },
     { id: 'options',       label: 'OPTIONS FLOW',   view: 'options-flow',      icon: 'ssid_chart' },
     { id: 'gex',           label: 'GAMMA EXPOSURE', view: 'gex-profile',       icon: 'bar_chart' },
     { id: 'whales',        label: 'WHALE PULSE',    view: 'whales',            icon: 'waves' },
@@ -84,7 +85,7 @@ const analyticsHubTabs = [
 window.analyticsHubTabs = analyticsHubTabs;
 
 async function renderAnalyticsHub() {
-    renderOptionsFlow(analyticsHubTabs);
+    renderMarketBrief(analyticsHubTabs);
 }
 
 // ============= Audit & Performance Hub =============
@@ -101,7 +102,6 @@ async function renderAuditHub() {
 
 // ============= Alerts & Webhooks Hub =============
 const alertsHubTabs = [
-    { id: 'market-brief',      label: 'MARKET BRIEF',   view: 'market-brief-hub',  icon: 'article' },
     { id: 'alerts',            label: 'LIVE ALERTS',    view: 'alerts-hub',        icon: 'notifications' },
     { id: 'price-alerts',      label: 'PRICE ALERTS',   view: 'price-alerts-hub',  icon: 'add_alert' },
     { id: 'signal-leaderboard',label: 'LEADERBOARD',    view: 'leaderboard-hub',   icon: 'leaderboard' },
@@ -114,6 +114,6 @@ const alertsHubTabs = [
 async function renderAlertsHub()    { window._alertsHubTabs = alertsHubTabs; renderAlerts(alertsHubTabs); }
 async function renderPriceAlertsHub()     { renderPriceAlerts(alertsHubTabs); }
 async function renderLeaderboardHub()     { renderSignalLeaderboard(alertsHubTabs); }
-async function renderMarketBriefHub()     { renderMarketBrief(alertsHubTabs); }
+async function renderMarketBriefHub()     { renderMarketBrief(analyticsHubTabs); }
 
 // ============= Update existing renderers to support tabs =============

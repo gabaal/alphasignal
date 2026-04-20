@@ -44,6 +44,7 @@ function renderHelp() {
         { id: 'analytics-hub', name: 'Market Analytics', icon: 'analytics', color: '#22c55e', view: 'analytics-hub',
           docs: [
             { name: 'Hub Overview', desc: 'Comprehensive guide to the Market Analytics Hub, defining key terms and its institutional purpose.', route: 'docs-hub-analytics', icon: 'visibility' },
+            { name: 'Market Brief', desc: '1 component: AI-generated daily market brief with structured sections', route: 'docs-market-brief', icon: 'summarize' },
             { name: 'Whale Pulse', desc: '3 components: Whale transaction feed, Execution time polar chart, Volume bubble scatter', route: 'docs-whale-pulse', icon: 'waves' },
             { name: 'Whale Pulse & Chain Velocity', desc: '2 components: Velocity time-series chart, Cross-chain Sankey diagram', route: 'docs-whale-pulse', icon: 'speed' },
             { name: 'On-Chain Analytics', desc: '9 components: MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Realized Price, Hash Ribbons, Investor Sentiment Index, CVD, Exchange Net Flow', route: 'docs-onchain', icon: 'link' },
@@ -78,7 +79,6 @@ function renderHelp() {
             { name: 'Live Signal Alerts', desc: '2 components: Alert feed cards, Severity filter controls', route: 'docs-alerts', icon: 'notifications' },
             { name: 'Price Alerts', desc: '2 components: Alert manager table, Target price form', route: 'docs-price-alerts', icon: 'price_check' },
             { name: 'Signal Leaderboard', desc: '1 component: Ranked leaderboard table with win rate and ROI', route: 'docs-signal-leaderboard', icon: 'leaderboard' },
-            { name: 'Market Brief', desc: '1 component: AI-generated daily market brief with structured sections', route: 'docs-market-brief', icon: 'summarize' },
           ]
         },
         { id: 'personal', name: 'Active Positions', icon: 'person', color: '#34d399', view: 'my-terminal',

@@ -762,7 +762,7 @@ function renderDocsViewSignalLeaderboard() {
 
 function renderDocsViewMarketBrief() {
     renderViewDocPage({
-        hub: 'Alerts Hub', hubIcon: 'notifications_active', hubColor: '#f43f5e',
+        hub: 'Market Analytics', hubIcon: 'analytics', hubColor: '#22c55e',
         title: 'Market Brief', viewId: 'market-brief-hub',
         summary: 'An AI-generated daily structured market brief synthesising all terminal data into a concise morning read. Updated at 06:00 UTC every day.',
         components: [
