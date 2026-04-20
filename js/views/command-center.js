@@ -11,7 +11,67 @@ async function renderCommandCenter() {
             </div>
             <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0;align-self:flex-start" onclick="switchView('docs-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
-        
+
+        <!-- ██ AI TRADE NOW WIDGET ██ -->
+        <div id="ai-trade-now-card" class="card" style="
+            margin-bottom:1.5rem;
+            border-left:3px solid rgba(0,242,255,0.5);
+            background:linear-gradient(135deg, rgba(0,242,255,0.04) 0%, rgba(139,92,246,0.04) 100%);
+            position:relative; overflow:hidden;">
+            <!-- Subtle animated glow strip -->
+            <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,242,255,0.4),transparent);animation:shimmer 3s infinite linear;" id="atn-glow-strip"></div>
+            <div class="card-header" style="margin-bottom:0.75rem;align-items:flex-start;gap:0.5rem">
+                <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <span class="material-symbols-outlined" style="color:rgba(139,92,246,0.9);font-size:1.1rem;vertical-align:middle">psychology</span>
+                        <h3 style="margin:0;font-size:1rem;letter-spacing:1.5px;color:var(--accent)">IF I WERE TRADING RIGHT NOW</h3>
+                        <span style="font-size:0.6rem;padding:2px 7px;border-radius:3px;background:rgba(139,92,246,0.2);color:#a78bfa;letter-spacing:2px;font-weight:900">AI · GPT-4o</span>
+                    </div>
+                    <div id="atn-meta" style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">LOADING MARKET ANALYSIS...</div>
+                </div>
+                <button id="atn-refresh-btn" onclick="fetchAITradeNow(true)"
+                    title="Force refresh AI analysis"
+                    style="display:flex;align-items:center;gap:4px;background:rgba(0,242,255,0.07);border:1px solid rgba(0,242,255,0.2);
+                           color:rgba(0,242,255,0.7);border-radius:7px;padding:5px 10px;cursor:pointer;
+                           font-size:0.7rem;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:1px;
+                           transition:all 0.2s;flex-shrink:0"
+                    onmouseover="this.style.background='rgba(0,242,255,0.14)';this.style.borderColor='rgba(0,242,255,0.45)'"
+                    onmouseout="this.style.background='rgba(0,242,255,0.07)';this.style.borderColor='rgba(0,242,255,0.2)'">
+                    <span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH
+                </button>
+            </div>
+
+            <!-- Skeleton / content area -->
+            <div id="atn-body">
+                <!-- Skeleton loader -->
+                <div id="atn-skeleton" style="display:flex;flex-direction:column;gap:10px">
+                    ${[1,2,3].map(()=>`
+                        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.03)">
+                            <div style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);flex-shrink:0"></div>
+                            <div style="flex:1">
+                                <div style="height:10px;width:35%;background:rgba(255,255,255,0.06);border-radius:4px;margin-bottom:6px"></div>
+                                <div style="height:8px;width:80%;background:rgba(255,255,255,0.04);border-radius:4px"></div>
+                            </div>
+                            <div style="width:48px;height:20px;border-radius:4px;background:rgba(255,255,255,0.06)"></div>
+                        </div>`).join('')}
+                </div>
+
+                <!-- Populated content (hidden until loaded) -->
+                <div id="atn-content" style="display:none">
+                    <div id="atn-headline" style="font-size:1rem;font-weight:900;color:var(--text-primary);margin-bottom:0.9rem;line-height:1.4;letter-spacing:0.3px"></div>
+                    <div id="atn-trades" style="display:flex;flex-direction:column;gap:8px;margin-bottom:0.9rem"></div>
+                    <div id="atn-bottom-line" style="font-size:0.8rem;padding:8px 12px;border-radius:7px;background:rgba(0,242,255,0.06);border-left:2px solid rgba(0,242,255,0.35);color:rgba(0,242,255,0.85);line-height:1.5;letter-spacing:0.3px"></div>
+                </div>
+
+                <!-- Error state (hidden until error) -->
+                <div id="atn-error" style="display:none;padding:1rem;text-align:center;color:var(--text-dim);font-size:0.7rem">
+                    <span class="material-symbols-outlined" style="font-size:1.5rem;display:block;margin-bottom:4px;opacity:0.4">error_outline</span>
+                    AI analysis unavailable — check OpenAI key or try refreshing.
+                </div>
+            </div>
+        </div>
+        <!-- ██ END AI TRADE NOW ██ -->
+
         <div class="command-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:1.5rem">
             <div class="card" style="text-align:center">
                 <h3 style="font-size:0.7rem; color:var(--text-dim); letter-spacing:1px">SYSTEM CONVICTION</h3>
@@ -139,6 +199,9 @@ async function renderCommandCenter() {
 
 
     // Data Fetching & Rendering
+    // Kick off AI widget immediately (non-blocking, separate from main Promise.all)
+    fetchAITradeNow(false);
+
     try {
         const [macro, regime, etf, signals, pulse] = await Promise.all([
             fetchAPI('/macro'),
@@ -147,6 +210,7 @@ async function renderCommandCenter() {
             fetchAPI('/signals'),
             fetch('/api/market-pulse').then(r => r.ok ? r.json() : null).catch(() => null)
         ]);
+
 
         // 1. Fear & Greed Dial
         if (macro) {
@@ -1011,3 +1075,111 @@ async function loadCmdRadar(ticker) {
     } catch(e) { console.warn('Cmd Radar error:', e); }
 }
 
+// ============================================================
+// AI "If I Were Trading Right Now" — widget fetch & render
+// ============================================================
+async function fetchAITradeNow(force = false) {
+    const skeleton = document.getElementById('atn-skeleton');
+    const content  = document.getElementById('atn-content');
+    const errBox   = document.getElementById('atn-error');
+    const metaEl   = document.getElementById('atn-meta');
+    const btn      = document.getElementById('atn-refresh-btn');
+
+    if (!skeleton) return; // widget not in current view
+
+    // Show loading state
+    if (skeleton) skeleton.style.display = 'flex';
+    if (content)  content.style.display  = 'none';
+    if (errBox)   errBox.style.display   = 'none';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:13px;animation:spin 1s linear infinite">refresh</span> LOADING';
+    }
+    if (metaEl) metaEl.textContent = 'QUERYING GPT-4o MARKET ENGINE...';
+
+    try {
+        const url = `/api/ai-trade-now${force ? '?force=true' : ''}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+
+        // --- Direction chip config ---
+        const dirChip = dir => {
+            const map = {
+                LONG:  { bg: 'rgba(34,197,94,0.15)',  border: 'rgba(34,197,94,0.4)',  color: '#22c55e', icon: 'trending_up' },
+                SHORT: { bg: 'rgba(239,68,68,0.15)',  border: 'rgba(239,68,68,0.4)',  color: '#ef4444', icon: 'trending_down' },
+                HOLD:  { bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.3)', color: '#94a3b8', icon: 'horizontal_rule' },
+            };
+            const cfg = map[dir] || map['HOLD'];
+            return `<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:5px;
+                        background:${cfg.bg};border:1px solid ${cfg.border};color:${cfg.color};
+                        font-size:0.7rem;font-weight:900;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;flex-shrink:0">
+                        <span class="material-symbols-outlined" style="font-size:13px">${cfg.icon}</span>${dir}
+                    </span>`;
+        };
+
+        const rankColor = r => r === 1 ? '#f59e0b' : r === 2 ? '#94a3b8' : '#78716c';
+        const rankLabel = r => r === 1 ? '1ST' : r === 2 ? '2ND' : '3RD';
+
+        // --- Render trades ---
+        const tradesEl = document.getElementById('atn-trades');
+        if (tradesEl && data.trades) {
+            tradesEl.innerHTML = data.trades.map(t => `
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;
+                            background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);
+                            transition:border-color 0.15s"
+                     onmouseover="this.style.borderColor='rgba(0,242,255,0.12)'"
+                     onmouseout="this.style.borderColor='rgba(255,255,255,0.05)'">
+                    <!-- Rank badge -->
+                    <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.04);
+                                border:1px solid ${rankColor(t.rank)}44;display:flex;flex-direction:column;
+                                align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
+                        <span style="font-size:0.6rem;color:${rankColor(t.rank)};font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:1px">${rankLabel(t.rank)}</span>
+                    </div>
+                    <!-- Trade details -->
+                    <div style="flex:1;min-width:0">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
+                            <span style="font-size:1rem;font-weight:900;color:var(--text-primary);font-family:'JetBrains Mono',monospace">${t.asset || ''}</span>
+                            ${dirChip(t.direction || 'HOLD')}
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.5;margin-bottom:4px">${t.rationale || ''}</div>
+                        <div style="font-size:0.7rem;color:rgba(239,68,68,0.65);display:flex;align-items:center;gap:4px">
+                            <span class="material-symbols-outlined" style="font-size:10px">warning</span>
+                            <span>${t.risk || ''}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Headline & bottom line ---
+        const headlineEl   = document.getElementById('atn-headline');
+        const bottomLineEl = document.getElementById('atn-bottom-line');
+        if (headlineEl)   headlineEl.textContent   = data.headline   || '';
+        if (bottomLineEl) bottomLineEl.textContent = data.bottom_line || '';
+
+        // --- Meta line ---
+        const ttl     = data.cache_ttl_remaining || 0;
+        const ttlMin  = ttl > 0 ? `· refreshes in ${Math.ceil(ttl / 60)}min` : '· live analysis';
+        const cached  = data.cached ? ' · cached' : '';
+        const src     = data.source === 'gpt-4o-mini' ? 'GPT-4o-mini' : data.source === 'static_fallback' ? 'static fallback' : data.source || '';
+        if (metaEl) metaEl.textContent = `GENERATED ${data.generated_at || ''}${cached} · ${src}${ttlMin}`;
+
+        // Show content, hide skeleton
+        if (skeleton) skeleton.style.display = 'none';
+        if (content)  content.style.display  = 'block';
+
+    } catch (err) {
+        console.error('[AITradeNow]', err);
+        if (skeleton) skeleton.style.display = 'none';
+        if (errBox)   errBox.style.display   = 'block';
+        if (metaEl)   metaEl.textContent     = 'ANALYSIS UNAVAILABLE';
+    } finally {
+        // Restore refresh button
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH';
+        }
+    }
+}

@@ -47,7 +47,7 @@ def _rate_key(path: str) -> str:
         return 'default'
     if '/auth/login' in path or '/auth/signup' in path:
         return 'auth'
-    if any(x in path for x in ('ai-analyst', 'ask-terminal', 'signal-thesis', 'ai-memo', 'explain-surface', 'explain-tape', 'explain-chart', 'explain-rebalance')):
+    if any(x in path for x in ('ai-analyst', 'ask-terminal', 'signal-thesis', 'ai-memo', 'ai-trade-now', 'explain-surface', 'explain-tape', 'explain-chart', 'explain-rebalance')):
         return 'ai'
     return 'default'
 
@@ -767,6 +767,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_strategy_compare()
             elif path.startswith('/api/ai-memo'):
                 self.handle_ai_memo()
+            elif path.startswith('/api/ai-trade-now'):
+                self.handle_ai_trade_now()
             elif path.startswith('/api/signal-thesis'):
                 self.handle_signal_thesis()
             elif path.startswith('/api/onchain'):

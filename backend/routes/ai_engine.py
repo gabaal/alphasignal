@@ -1,9 +1,10 @@
 """
 Phase 15-B: AI Narrative Engine
 Provides GPT-4o-mini powered endpoints:
-  - /api/ai-memo       GET  - Daily institutional market memo (15min cache)
-  - /api/ask-terminal  POST - Natural language query with terminal context
-  - /api/signal-thesis GET  - 2-sentence trade thesis for a specific signal
+  - /api/ai-memo        GET  - Daily institutional market memo (15min cache)
+  - /api/ask-terminal   POST - Natural language query with terminal context
+  - /api/signal-thesis  GET  - 2-sentence trade thesis for a specific signal
+  - /api/ai-trade-now   GET  - Opinionated "If I Were Trading" card (10min cache)
 """
 import json, urllib.parse, os, time
 from datetime import datetime
@@ -22,7 +23,9 @@ except ImportError:
 
 _memo_cache = {'ts': 0, 'content': None}
 _brief_cache = {'ts': 0, 'content': None}
-_MEMO_TTL = 900  # 15 minutes
+_trade_now_cache = {'ts': 0, 'content': None}
+_MEMO_TTL = 900        # 15 minutes
+_TRADE_NOW_TTL = 600   # 10 minutes
 
 
 def _get_client():
@@ -752,3 +755,170 @@ class AIEngineRoutesMixin:
                     pass
             else:
                 self.send_json({'error': str(e)})
+
+    # ------------------------------------------------------------------
+    # /api/ai-trade-now  —  "If I Were Trading Right Now" dashboard card
+    # ------------------------------------------------------------------
+    def handle_ai_trade_now(self):
+        """Return an opinionated 3-trade AI take, cached for 10 minutes."""
+        global _trade_now_cache
+        import sqlite3 as _sq
+
+        query   = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        force   = query.get('force', [''])[0].lower() == 'true'
+        now_ts  = time.time()
+        ttl_rem = max(0, int(_TRADE_NOW_TTL - (now_ts - _trade_now_cache['ts'])))
+
+        # Serve cache unless forced
+        if not force and _trade_now_cache['content'] and ttl_rem > 0:
+            cached = dict(_trade_now_cache['content'])
+            cached['cache_ttl_remaining'] = ttl_rem
+            cached['cached'] = True
+            self.send_json(cached)
+            return
+
+        # --- Gather live context (best-effort) -----------------------
+        ctx = {}
+        try:
+            from backend.database import DB_PATH as _DB
+            db = _sq.connect(_DB)
+            cur = db.cursor()
+            # Live prices from market_ticks
+            for sym in ('BTC-USD', 'ETH-USD', 'SOL-USD'):
+                cur.execute(
+                    "SELECT price FROM market_ticks WHERE symbol=? AND price>0 "
+                    "ORDER BY timestamp DESC LIMIT 1", (sym,)
+                )
+                row = cur.fetchone()
+                if row:
+                    ctx[sym.replace('-USD', '')] = round(float(row[0]), 2)
+            # Recent signal activity (last 24h)
+            cur.execute("""
+                SELECT type, ticker, severity, message
+                FROM alerts_history
+                WHERE timestamp > datetime('now', '-24 hours')
+                ORDER BY CASE severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 ELSE 3 END
+                LIMIT 5
+            """)
+            ctx['top_signals'] = [
+                {'type': r[0], 'ticker': r[1], 'severity': r[2], 'msg': (r[3] or '')[:80]}
+                for r in cur.fetchall()
+            ]
+            # TP / stop counts
+            cur.execute("""
+                SELECT
+                    SUM(CASE WHEN status IN ('HIT_TP1','HIT_TP2') THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN status = 'STOPPED'              THEN 1 ELSE 0 END)
+                FROM alerts_history
+                WHERE timestamp > datetime('now', '-24 hours')
+            """)
+            tp_row = cur.fetchone()
+            ctx['tp_count']   = int(tp_row[0] or 0)
+            ctx['stop_count'] = int(tp_row[1] or 0)
+            db.close()
+        except Exception as ctx_err:
+            print(f'[AITradeNow] context error: {ctx_err}')
+
+        # Fallback prices via yfinance if DB had nothing
+        for sym, tick in (('BTC','BTC-USD'), ('ETH','ETH-USD'), ('SOL','SOL-USD')):
+            if sym not in ctx:
+                try:
+                    import yfinance as yf
+                    info = yf.Ticker(tick).fast_info
+                    px = info.get('last_price') or info.get('lastPrice')
+                    if px and float(px) > 0:
+                        ctx[sym] = round(float(px), 2)
+                except Exception:
+                    pass
+
+        # Build human-readable signal summary
+        sig_lines = '; '.join(
+            f"{s['ticker']} {s['type']} ({s['severity']})"
+            for s in ctx.get('top_signals', [])
+        ) or 'No major signals in last 24h'
+
+        btc_str  = f"${ctx['BTC']:,.0f}" if 'BTC' in ctx else 'N/A'
+        eth_str  = f"${ctx['ETH']:,.0f}" if 'ETH' in ctx else 'N/A'
+        sol_str  = f"${ctx['SOL']:,.2f}" if 'SOL' in ctx else 'N/A'
+        date_str = datetime.utcnow().strftime('%A, %d %B %Y')
+
+        # --- Static fallback (no OpenAI key) -------------------------
+        client = _get_client()
+        if not client:
+            result = {
+                'generated_at': datetime.utcnow().strftime('%d %b %Y %H:%M UTC'),
+                'headline': 'Cautious BTC long; ETH relative value; avoid extended alts',
+                'trades': [
+                    {'rank': 1, 'asset': 'BTC', 'direction': 'LONG',
+                     'rationale': 'Post-halving supply compression with macro tailwinds from DXY weakness.',
+                     'risk': 'Break below key support invalidates. Scale into weakness only.'},
+                    {'rank': 2, 'asset': 'ETH/BTC', 'direction': 'LONG',
+                     'rationale': 'ETH/BTC ratio at multi-year lows — structural mean-reversion setup.',
+                     'risk': 'Ratio can stay suppressed; use tight sizing.'},
+                    {'rank': 3, 'asset': 'CASH', 'direction': 'HOLD',
+                     'rationale': 'Altcoin TP1 signals already firing — avoid chasing extended moves.',
+                     'risk': 'Opportunity cost if momentum continues.'},
+                ],
+                'bottom_line': 'BTC leads; stay selective on alts until next accumulation window.',
+                'source': 'static_fallback',
+                'cache_ttl_remaining': _TRADE_NOW_TTL,
+                'cached': False
+            }
+            _trade_now_cache = {'ts': now_ts, 'content': result}
+            self.send_json(result)
+            return
+
+        # --- GPT-4o-mini call ----------------------------------------
+        system_prompt = (
+            'You are an elite institutional crypto trader with a quant background. '
+            'Given the live market snapshot below, output EXACTLY this JSON structure '
+            '(no prose, no markdown fences, only valid JSON): '
+            '{"headline": "<10-15 word summary>", '
+            '"trades": [{"rank": 1, "asset": "<TICKER>", "direction": "LONG|SHORT|HOLD", '
+            '"rationale": "<20-40 words>", "risk": "<15-25 words>"}, ...], '
+            '"bottom_line": "<One crisp sentence max 20 words>"}. '
+            'Provide exactly 3 trades ranked by conviction. '
+            'Be specific, data-driven, and unambiguous. No disclaimers.'
+        )
+        user_prompt = (
+            f'Date: {date_str}\n'
+            f'BTC: {btc_str}  ETH: {eth_str}  SOL: {sol_str}\n'
+            f'Recent signals: {sig_lines}\n'
+            f'TP hits last 24h: {ctx.get("tp_count", 0)}  Stops: {ctx.get("stop_count", 0)}\n'
+            'Output your top 3 trade ideas as strict JSON only.'
+        )
+
+        try:
+            resp = client.chat.completions.create(
+                model='gpt-4o-mini',
+                messages=[
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user',   'content': user_prompt}
+                ],
+                max_tokens=400,
+                temperature=0.65,
+                response_format={'type': 'json_object'}  # ensures valid JSON
+            )
+            raw = resp.choices[0].message.content.strip()
+            parsed = json.loads(raw)
+            result = {
+                'generated_at': datetime.utcnow().strftime('%d %b %Y %H:%M UTC'),
+                'headline':    parsed.get('headline', ''),
+                'trades':      parsed.get('trades', []),
+                'bottom_line': parsed.get('bottom_line', ''),
+                'source':      'gpt-4o-mini',
+                'cache_ttl_remaining': _TRADE_NOW_TTL,
+                'cached': False
+            }
+            _trade_now_cache = {'ts': now_ts, 'content': result}
+            self.send_json(result)
+        except Exception as e:
+            print(f'[AITradeNow] GPT error: {e}')
+            # Return stale cache if available, else static fallback
+            if _trade_now_cache['content']:
+                stale = dict(_trade_now_cache['content'])
+                stale['cache_ttl_remaining'] = 0
+                stale['cached'] = True
+                self.send_json(stale)
+            else:
+                self.send_json({'error': str(e), 'source': 'error'})
