@@ -63,7 +63,7 @@ async function renderLiquidityView(tabs = null) {
                     </div>
                 </div>
             </div>
-        </div>${renderTypeBreakdown(data, response)}
+        </div>
 
         <!-- Full-width Institutional Tape strip -->
         <div class="glass-card" style="margin-top:1rem;padding:0.6rem 1rem">
