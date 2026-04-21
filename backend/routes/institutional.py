@@ -2308,12 +2308,17 @@ class InstitutionalRoutesMixin:
         all_tickers = sorted(list(set(universe_tickers + tracked)))
         results = []
         try:
-            btc_df = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close')
-            btc_data = btc_df.iloc[:, 0] if hasattr(btc_df, 'iloc') and len(getattr(btc_df, 'columns', [])) > 0 else btc_df.squeeze() if hasattr(btc_df, 'squeeze') else btc_df
+            data = CACHE.download(all_tickers, period='60d', interval='1d', column='Close')
+            # Extract BTC from the SAME batch download so index formats match exactly
+            if 'BTC-USD' in data.columns:
+                btc_data = data['BTC-USD'].replace(0, np.nan).dropna()
+            else:
+                # Fallback: separate download (rare — BTC-USD should always be in universe)
+                btc_df = CACHE.download('BTC-USD', period='60d', interval='1d', column='Close')
+                btc_data = btc_df.iloc[:, 0] if hasattr(btc_df, 'iloc') and len(getattr(btc_df, 'columns', [])) > 0 else btc_df.squeeze() if hasattr(btc_df, 'squeeze') else btc_df
             if len(btc_data) < 2:
                 raise ValueError("Insufficient BTC market data.")
             btc_pct = btc_data.pct_change().dropna()
-            data = CACHE.download(all_tickers, period='60d', interval='1d', column='Close')
             btc_change_pct = (float(btc_data.iloc[-1]) - float(btc_data.iloc[-2])) / float(btc_data.iloc[-2]) * 100
             for ticker in all_tickers:
                 try:
