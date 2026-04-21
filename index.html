@@ -241,25 +241,22 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
           onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
-    <!-- Sentry: Frontend error monitoring (no-op if DSN not set) -->
+    <!-- Sentry: Frontend error monitoring -->
     <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous"></script>
     <script>
-        (function() {
-            var dsn = window.SENTRY_BROWSER_DSN || '';
-            if (dsn && window.Sentry) {
-                Sentry.init({
-                    dsn: dsn,
-                    tracesSampleRate: 0.05,
-                    environment: 'production',
-                    ignoreErrors: [
-                        'ResizeObserver loop limit exceeded',
-                        'Non-Error promise rejection captured',
-                        /^Network Error/,
-                        /^Load failed/
-                    ]
-                });
-            }
-        })();
+        if (window.Sentry) {
+            Sentry.init({
+                dsn: "https://8a3c900c106aefdd21196fb95b1dca62@o4508024362303488.ingest.de.sentry.io/4511258267680848",
+                tracesSampleRate: 0.05,
+                environment: 'production',
+                ignoreErrors: [
+                    'ResizeObserver loop limit exceeded',
+                    'Non-Error promise rejection captured',
+                    /^Network Error/,
+                    /^Load failed/
+                ]
+            });
+        }
     </script>
     <!-- Supabase JS client (for forgot-password / reset-password flows) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
