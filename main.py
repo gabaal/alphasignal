@@ -29,6 +29,25 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 import concurrent.futures
 
+# --- Sentry Error Monitoring ---
+try:
+    import sentry_sdk
+    _sentry_dsn = os.environ.get('SENTRY_DSN', '')
+    if _sentry_dsn:
+        sentry_sdk.init(
+            dsn=_sentry_dsn,
+            traces_sample_rate=0.05,   # 5% of requests traced (free tier safe)
+            environment=os.environ.get('ENVIRONMENT', 'production'),
+            release=os.environ.get('RAILWAY_GIT_COMMIT_SHA', 'unknown'),
+        )
+        print("[Sentry] Error monitoring active.", flush=True)
+    else:
+        print("[Sentry] SENTRY_DSN not set — monitoring disabled.", flush=True)
+except ImportError:
+    print("[Sentry] sentry-sdk not installed — skipping.", flush=True)
+    sentry_sdk = None
+
+
 # --- INJECTED BACKEND MODULES ---
 from backend.database import load_env, PORT, SUPABASE_URL, SUPABASE_KEY, SUPABASE_HEADERS, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, SupabaseClient, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, DB_PATH, init_db, redis_client
 from backend.caching import DataCache, CACHE
@@ -278,8 +297,12 @@ class WebSocketServer:
                         print(f"[PricePrewarm] {pw_err}", flush=True)
 
             except Exception as e:
-                pass
+                if sentry_sdk:
+                    sentry_sdk.capture_exception(e)
+                print(f"[PriceLoop] {e}", flush=True)
             time.sleep(5)
+
+
 
 
 

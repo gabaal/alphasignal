@@ -10,6 +10,6 @@ websockets
 openai
 python-dotenv
 python-telegram-bot==20.7
- cryptography
+cryptography
 pytrends
-
+sentry-sdk
