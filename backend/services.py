@@ -805,8 +805,12 @@ class HarvestService:
                     min_z_thresh = 2.0
 
                 # 3. Decision Logic: Alert if absolute Z-Score > min_z_thresh
+                # ML signals use a stricter floor (2.5) to reduce false positives.
+                # Rule-based signals (RSI etc.) are unaffected by this gate.
+                ML_ZSCORE_FLOOR = 2.5
+                ml_z_thresh = max(min_z_thresh, ML_ZSCORE_FLOOR)
                 signal_type = None
-                if abs(z_score) >= min_z_thresh:
+                if abs(z_score) >= ml_z_thresh:
                     signal_type = "ML_ALPHA_PREDICTION"
                     severity = 'critical' if abs(z_score) >= 3.0 else 'high' if abs(z_score) >= 2.5 else 'medium'
                     top_driver = max(importance, key=importance.get)

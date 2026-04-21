@@ -1176,11 +1176,24 @@ async function renderSignalArchive(tabs = null) {
                     }
 
                     const decided  = s.wins + s.losses;
-                    const winRate  = decided > 0 ? ((s.wins / decided) * 100).toFixed(0) + '%' : '--';
-                    const winRateN = decided > 0 ? (s.wins / decided) * 100 : null;
+                    const MIN_SAMPLE = 10;  // below this, win rate is statistically unreliable
+                    let winRate, winRateN, wrColor;
+                    if (decided === 0) {
+                        winRate  = '--';
+                        winRateN = null;
+                        wrColor  = 'var(--text-dim)';
+                    } else if (decided < MIN_SAMPLE) {
+                        // Low sample — show muted estimate with warning
+                        winRateN = (s.wins / decided) * 100;
+                        winRate  = `~${winRateN.toFixed(0)}%`;
+                        wrColor  = '#f59e0b';  // amber — caution, not red/green
+                    } else {
+                        winRateN = (s.wins / decided) * 100;
+                        winRate  = winRateN.toFixed(0) + '%';
+                        wrColor  = winRateN >= 55 ? '#22c55e' : winRateN >= 40 ? '#f59e0b' : '#ef4444';
+                    }
                     const avgRoi   = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '+' : '') + parseFloat(s.avg_roi).toFixed(2) + '%' : '--';
                     const avgColor = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
-                    const wrColor  = winRateN != null ? (winRateN >= 55 ? '#22c55e' : winRateN >= 40 ? '#f59e0b' : '#ef4444') : 'var(--text-dim)';
                     const badge    = s.isBull
                         ? '<span style="font-size:0.5rem;background:rgba(34,197,94,0.12);color:#22c55e;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">LONG</span>'
                         : '<span style="font-size:0.5rem;background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">SHORT</span>';
@@ -1195,7 +1208,12 @@ async function renderSignalArchive(tabs = null) {
                         <td style="padding:12px 14px;text-align:center;font-weight:700;color:${avgColor};font-family:monospace;font-size:0.95rem">${avgRoi}</td>
                         <td style="padding:12px 14px;text-align:center">
                             <span style="font-weight:900;font-size:1rem;color:${wrColor};font-family:monospace">${winRate}</span>
-                            ${decided > 0 ? `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${decided} decided</div>` : ''}
+                            ${decided > 0 && decided < MIN_SAMPLE
+                                ? `<div style="font-size:0.5rem;color:#f59e0b;margin-top:2px;opacity:0.8">${decided} decided · low n</div>`
+                                : decided > 0
+                                    ? `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${decided} decided</div>`
+                                    : ''
+                            }
                         </td>
                     </tr>`;
                 }).join('');
