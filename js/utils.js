@@ -170,10 +170,10 @@ function showSignalToast(signal) {
 
     const dir = (signal.direction || 'LONG').toUpperCase();
     const ticker = (signal.ticker || signal.asset || 'BTC').toUpperCase();
-    const zscore = signal.z_score != null ? parseFloat(signal.z_score).toFixed(2) : '-';
+    const zscore = signal.z_score != null ? parseFloat(signal.z_score).toFixed(2) : null;
     const isLong = dir === 'LONG' || dir === 'BUY';
     const dirColor = isLong ? '#00d4aa' : '#ef4444';
-    const dirArrow = isLong ? '-' : '-';
+    const dirArrow = isLong ? '🟢' : '🔴';
     const dirBg   = isLong ? 'rgba(0,212,170,0.12)' : 'rgba(239,68,68,0.12)';
 
     const toast = document.createElement('div');
@@ -188,12 +188,15 @@ function showSignalToast(signal) {
         </div>
         <div style="display:flex;align-items:center;gap:10px">
             <div style="background:${alphaColor(0.07)};border:1px solid ${alphaColor(0.12)};border-radius:8px;padding:6px 12px;font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0">${ticker}</div>
-            <div style="background:${dirBg};border:1px solid ${dirColor};border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:900;color:${dirColor}">${dirArrow} ${dir}</div>
-            <div style="background:rgba(188,19,254,0.12);border:1px solid rgba(188,19,254,0.35);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:#bc13fe;font-family:'JetBrains Mono',monospace">Z: ${zscore}</div>
+            <div style="background:${dirBg};border:1px solid ${dirColor};border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:900;color:${dirColor}">${dirArrow} ${isLong ? 'BUY' : 'SELL'}</div>
+            ${zscore != null
+                ? `<div style="background:rgba(188,19,254,0.12);border:1px solid rgba(188,19,254,0.35);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:#bc13fe;font-family:'JetBrains Mono',monospace">Z: ${zscore}σ</div>`
+                : `<div style="background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:6px;padding:4px 10px;font-size:0.7rem;font-weight:700;color:var(--accent)">${(signal.severity || 'MEDIUM').toUpperCase()}</div>`
+            }
         </div>
         <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
             <span style="font-size:0.65rem;color:${alphaColor(0.4)};flex:1">High-confidence alpha detected by ML engine</span>
-            <button onclick="switchView('alerts');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW ALERT -</button>
+            <button onclick="switchView('alerts');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW ALERT →</button>
         </div>
     `;
 

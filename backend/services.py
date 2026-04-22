@@ -995,6 +995,8 @@ class HarvestService:
                                         'type': signal_type, 'ticker': ticker,
                                         'title': f"{_ws_emoji} {_ws_action}: {ticker.replace('-USD','')}",
                                         'content': message, 'severity': severity,
+                                        'z_score': z_score,
+                                        'predicted_return': float(pred_return) if pred_return else 0.0,
                                         'price': curr_p,
                                         'action': _ws_action,
                                         'tp_price': round(_ws_tp, 6) if _ws_tp else None,
@@ -1281,6 +1283,7 @@ class HarvestService:
                                 'title': f"{_ws2_emoji} {_ws2_action}: {ticker.replace('-USD','')}",
                                 'content': message,
                                 'severity': severity,
+                                'z_score': None, # Rule-based signals don't have a z_score, so we explicitly set to null
                                 'price': curr_p,
                                 'action': _ws2_action,
                                 'tp_price': round(_ws2_tp, 6) if _ws2_tp else None,
