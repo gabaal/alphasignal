@@ -954,14 +954,14 @@ async function renderSignalArchive(tabs = null) {
                     <td data-label="ENTRY" style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? formatPrice(s.entry) : '-'}</td>
                     <td data-label="CURRENT" style="padding:10px 12px;text-align:right;font-family:monospace">${
                         s.state === 'CLOSED' && s.exit_price
-                            ? `<span title="Exit price locked at close" style="color:#94a3b8">- ${formatPrice(s.exit_price)}</span>`
+                            ? `<span title="Exit price locked at close" style="color:#94a3b8">🔒 ${formatPrice(s.exit_price)}</span>`
                             : (s.current ? formatPrice(s.current) : '-')
                     }</td>
                     <td data-label="RETURN" style="padding:10px 12px;text-align:right;font-weight:700;color:${
                         (s.state === 'CLOSED' ? (s.final_roi ?? s.return) : s.return) >= 0 ? '#22c55e' : '#ef4444'
                     }">${
                         s.state === 'CLOSED' && s.final_roi != null
-                            ? `- ${s.final_roi >= 0 ? '+' : ''}${s.final_roi}%`
+                            ? `${s.final_roi >= 0 ? '+' : ''}${s.final_roi}%`
                             : `${s.return >= 0 ? '+' : ''}${s.return}%`
                     }</td>
                     <td data-label="STATE" style="padding:10px 12px;text-align:center">
