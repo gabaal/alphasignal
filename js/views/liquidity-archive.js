@@ -9,9 +9,27 @@ async function renderLiquidityView(tabs = null) {
 
     // Track active sub-tab in sessionStorage
     let activeMode = sessionStorage.getItem('gomm-mode') || 'walls';
+    window.gommTicker = sessionStorage.getItem('gomm-ticker') || 'BTC-USD';
+
+    // Helper to change ticker and reload
+    window._gommSetTicker = function(newTicker) {
+        window.gommTicker = newTicker;
+        sessionStorage.setItem('gomm-ticker', newTicker);
+        renderLiquidityView(); // Re-render everything
+    };
+
+    const tickerDropdownHTML = `
+        <select id="gomm-ticker-select" onchange="window._gommSetTicker(this.value)" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.75rem;font-weight:900;margin-left:auto;cursor:pointer">
+            <option value="BTC-USD" ${window.gommTicker === 'BTC-USD' ? 'selected' : ''}>BTC-USD</option>
+            <option value="ETH-USD" ${window.gommTicker === 'ETH-USD' ? 'selected' : ''}>ETH-USD</option>
+            <option value="SOL-USD" ${window.gommTicker === 'SOL-USD' ? 'selected' : ''}>SOL-USD</option>
+            <option value="DOGE-USD" ${window.gommTicker === 'DOGE-USD' ? 'selected' : ''}>DOGE-USD</option>
+            <option value="XRP-USD" ${window.gommTicker === 'XRP-USD' ? 'selected' : ''}>XRP-USD</option>
+        </select>
+    `;
 
     const tabBarHTML = `
-        <div class="hub-tabs" style="display:flex;gap:10px;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:10px;overflow-x:auto">
+        <div class="hub-tabs" style="display:flex;gap:10px;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:10px;overflow-x:auto;align-items:center">
             ${gommTabs.map(t => `
                 <button id="gomm-tab-${t.id}"
                         class="intel-action-btn mini ${activeMode === t.id ? '' : 'outline'}"
@@ -20,6 +38,7 @@ async function renderLiquidityView(tabs = null) {
                     <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px">${t.icon}</span>${t.label}
                 </button>
             `).join('')}
+            ${tickerDropdownHTML}
         </div>`;
 
     appEl.innerHTML = `
@@ -78,11 +97,11 @@ async function renderLiquidityView(tabs = null) {
 
     // Fetch all data concurrently
     const [data, tapeData, whaleData, liqData, volData] = await Promise.all([
-        fetchAPI('/liquidity?ticker=BTC-USD'),
-        fetchAPI('/tape?ticker=BTC-USD'),
-        fetchAPI('/whales_entity?ticker=BTC-USD'),
-        fetchAPI('/liquidations?ticker=BTC-USD'),
-        fetch('/api/volatility-surface?ticker=BTC-USD').then(r => r.ok ? r.json() : null).catch(() => null)
+        fetchAPI(`/liquidity?ticker=${window.gommTicker}`),
+        fetchAPI(`/tape?ticker=${window.gommTicker}`),
+        fetchAPI(`/whales_entity?ticker=${window.gommTicker}`),
+        fetchAPI(`/liquidations?ticker=${window.gommTicker}`),
+        fetch(`/api/volatility-surface?ticker=${window.gommTicker}`).then(r => r.ok ? r.json() : null).catch(() => null)
     ]);
 
     // Update stats from API response (walls-based, not book-based)
@@ -211,7 +230,7 @@ async function renderLiquidityView(tabs = null) {
                     clearInterval(window._gommLiveInterval); return;
                 }
                 try {
-                    const fresh = await fetchAPI('/liquidity?ticker=BTC-USD');
+                    const fresh = await fetchAPI(`/liquidity?ticker=${window.gommTicker}`);
                     if (!fresh || !fresh.walls) return;
 
                     let fb = aggWalls(fresh.walls.filter(w => String(w.side).toLowerCase() === 'bid')).sort((a,b) => b.price - a.price);
@@ -546,7 +565,7 @@ async function renderLiquidityView(tabs = null) {
         const el = document.getElementById('whale-watch-content');
         if (!el) { clearInterval(whaleTimer); return; }
         try {
-            const fresh = await fetchAPI('/whales_entity?ticker=BTC-USD');
+            const fresh = await fetchAPI(`/whales_entity?ticker=${window.gommTicker}`);
             if (!fresh?.entities) return;
 
             // Detect status changes by comparing with previous snapshot
@@ -615,7 +634,7 @@ async function renderLiquidityView(tabs = null) {
         const el = document.getElementById('tape-content');
         if (!el) { clearInterval(tapeTimer); return; }
         try {
-            const fresh = await fetchAPI('/tape?ticker=BTC-USD');
+            const fresh = await fetchAPI(`/tape?ticker=${window.gommTicker}`);
             if (!fresh?.trades) return;
             // Find genuinely new trades
             const newTrades = fresh.trades.filter(t => !seenIds.has(t.id));
