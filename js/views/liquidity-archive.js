@@ -75,7 +75,7 @@ async function renderLiquidityView(tabs = null) {
                         </div>
                         <div>
                             <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px">TOTAL BOOK DEPTH</div>
-                            <div id="gomm-depth" style="font-size:1.1rem;font-weight:900;color:var(--text)">-- BTC</div>
+                            <div id="gomm-depth" style="font-size:1.1rem;font-weight:900;color:var(--text)">--</div>
                         </div>
                     </div>
                 </div>
@@ -185,15 +185,16 @@ async function renderLiquidityView(tabs = null) {
 
         // Y-axis max = same for both sides so curves are visually balanced
         const maxDepth = Math.max(cumB, cumA);
+        const baseCur = window.gommTicker.split('-')[0] || 'BTC';
 
         display.innerHTML = `
             <div class="card">
                 <div style="height:380px"><canvas id="gommWallChart" role="img" aria-label="Order wall chart"></canvas></div>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;padding:0.75rem 0;font-size:0.6rem">
                     <span style="color:var(--text-dim);letter-spacing:1px;margin-right:0.5rem">TOP BIDS:</span>
-                    ${topBids.slice(0,4).map(w => `<span style="color:var(--risk-low);background:rgba(34,197,94,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> BTC</span>`).join('')}
+                    ${topBids.slice(0,4).map(w => `<span style="color:var(--risk-low);background:rgba(34,197,94,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> ${baseCur}</span>`).join('')}
                     <span style="color:var(--text-dim);letter-spacing:1px;margin:0 0.5rem">TOP ASKS:</span>
-                    ${topAsks.slice(0,4).map(w => `<span style="color:var(--risk-high);background:rgba(239,68,68,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> BTC</span>`).join('')}
+                    ${topAsks.slice(0,4).map(w => `<span style="color:var(--risk-high);background:rgba(239,68,68,0.1);padding:2px 6px;border-radius:4px">$${w.price.toFixed(0)} <b>${w.size.toFixed(2)}</b> ${baseCur}</span>`).join('')}
                 </div>
             </div>`;
 
@@ -207,8 +208,8 @@ async function renderLiquidityView(tabs = null) {
                 type: 'line',
                 data: {
                     datasets: [
-                        { label: 'Bid Depth (BTC)',  data: bidData, borderColor: 'rgba(34,197,94,1)',  backgroundColor: 'rgba(34,197,94,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y'  },
-                        { label: 'Ask Depth (BTC)',  data: askData, borderColor: 'rgba(239,68,68,1)',  backgroundColor: 'rgba(239,68,68,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y1' }
+                        { label: `Bid Depth (${baseCur})`,  data: bidData, borderColor: 'rgba(34,197,94,1)',  backgroundColor: 'rgba(34,197,94,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y'  },
+                        { label: `Ask Depth (${baseCur})`,  data: askData, borderColor: 'rgba(239,68,68,1)',  backgroundColor: 'rgba(239,68,68,0.2)', fill: true, tension: 0.2, borderWidth: 2.5, pointRadius: 0, yAxisID: 'y1' }
                     ]
                 },
                 options: {
@@ -217,12 +218,12 @@ async function renderLiquidityView(tabs = null) {
                     animation: { duration: 400 },
                     plugins: {
                         legend: { labels: { color: '#aaa', font: { size: 11 }, boxWidth: 14 } },
-                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '-'} BTC` } }
+                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y != null ? c.parsed.y.toFixed(4) : '-'} ${baseCur}` } }
                     },
                     scales: {
                         x:  { type: 'linear', grid: { color: alphaColor(0.04) }, ticks: { color: '#888', maxTicksLimit: 12, callback: v => '$'+v.toLocaleString() } },
-                        y:  { position: 'left',  grid: { color: 'rgba(34,197,94,0.08)' },  ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: '- Bid Depth (BTC)', color: 'rgba(34,197,94,0.7)' }, min: 0 },
-                        y1: { position: 'right', grid: { drawOnChartArea: false },           ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: 'Ask Depth (BTC) -', color: 'rgba(239,68,68,0.7)' }, min: 0 }
+                        y:  { position: 'left',  grid: { color: 'rgba(34,197,94,0.08)' },  ticks: { color: 'rgba(34,197,94,0.8)' }, title: { display: true, text: `- Bid Depth (${baseCur})`, color: 'rgba(34,197,94,0.7)' }, min: 0 },
+                        y1: { position: 'right', grid: { drawOnChartArea: false },           ticks: { color: 'rgba(239,68,68,0.8)' }, title: { display: true, text: `Ask Depth (${baseCur}) -`, color: 'rgba(239,68,68,0.7)' }, min: 0 }
                     }
                 }
             });
@@ -282,7 +283,7 @@ async function renderLiquidityView(tabs = null) {
                         top_bids: topBids.slice(0, 3).map(b => ({ price: b.price, size: b.size })),
                         top_asks: topAsks.slice(0, 3).map(a => ({ price: a.price, size: a.size })),
                         imbalance: document.getElementById('gomm-imbalance')?.textContent || '0%',
-                        total_depth: document.getElementById('gomm-depth')?.textContent || '0 BTC'
+                        total_depth: document.getElementById('gomm-depth')?.textContent || '0'
                     };
                 });
             }
@@ -529,10 +530,11 @@ async function renderLiquidityView(tabs = null) {
             const explorerLink = e.tx_hash
                 ? `<a href="https://blockstream.info/tx/${e.tx_hash}" target="_blank" rel="noopener" style="font-size:0.55rem;color:var(--accent);text-decoration:none;opacity:0.7;margin-left:4px" title="View on Blockstream">-</a>`
                 : '';
+            const baseCur = window.gommTicker.split('-')[0] || 'BTC';
             const valueLine = e.value_usd
                 ? `<div style="margin-top:3px;display:flex;gap:6px;align-items:center">
                      <span style="font-size:0.65rem;font-weight:800;color:var(--text-main)">${e.value_usd}</span>
-                     <span style="font-size:0.5rem;color:var(--text-dim)">${e.value_btc} BTC</span>
+                     <span style="font-size:0.5rem;color:var(--text-dim)">${e.value_btc} ${baseCur}</span>
                    </div>`
                 : '';
             return `<div class="whale-item" data-addr="${e.address}">
