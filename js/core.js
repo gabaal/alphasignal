@@ -953,35 +953,43 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
 
                     // Draw AI Signal Markers on candles
                     if (window._detailAlerts && window._detailAlerts.length > 0) {
-                        const markers = [];
+                        // Group signals by closest candle time
+                        const markerMap = {}; // time -> [{direction, type}]
                         window._detailAlerts.forEach(a => {
                             if (!a.entry_date) return;
                             const ts = Math.floor(new Date(a.entry_date).getTime() / 1000);
-                            
-                            // Map down to closest valid candle time
-                            let closestTime = null;
-                            let minDiff = Infinity;
+                            let closestTime = null, minDiff = Infinity;
                             for (let i = 0; i < times.length; i++) {
                                 const diff = Math.abs(times[i] - ts);
-                                if (diff < minDiff && diff < 86400 * 2) { // Allow up to 2 days shift relative to daily candles
-                                    minDiff = diff;
-                                    closestTime = times[i];
-                                }
+                                if (diff < minDiff && diff < 86400 * 2) { minDiff = diff; closestTime = times[i]; }
                             }
-                            
                             if (closestTime) {
-                                const isLong = a.direction === 'LONG';
-                                markers.push({
-                                    time: closestTime,
-                                    position: isLong ? 'belowBar' : 'aboveBar',
-                                    color: isLong ? '#22c55e' : '#ef4444',
-                                    shape: isLong ? 'arrowUp' : 'arrowDown',
-                                    text: a.type || a.direction
-                                });
+                                if (!markerMap[closestTime]) markerMap[closestTime] = [];
+                                markerMap[closestTime].push(a);
                             }
                         });
-                        // Deduplicate markers by time
-                        const uniqueMarkers = Object.values(markers.reduce((acc, m) => { acc[m.time] = m; return acc; }, {})).sort((a,b) => a.time - b.time);
+
+                        // Emit one marker per candle — no text if multiple signals, short label if solo
+                        const uniqueMarkers = Object.entries(markerMap).map(([t, signals]) => {
+                            const time = parseInt(t);
+                            const longs  = signals.filter(s => s.direction === 'LONG').length;
+                            const shorts = signals.filter(s => s.direction === 'SHORT').length;
+                            // Pick dominant direction
+                            const isLong = longs >= shorts;
+                            const count  = signals.length;
+                            // Only show text label when there's exactly 1 signal and it has a readable type
+                            const label = count === 1
+                                ? (signals[0].type || '').replace(/_/g,' ').split(' ').slice(0,2).join(' ')
+                                : `×${count}`;
+                            return {
+                                time,
+                                position: isLong ? 'belowBar' : 'aboveBar',
+                                color:    isLong ? '#22c55e' : '#ef4444',
+                                shape:    isLong ? 'arrowUp' : 'arrowDown',
+                                text:     label
+                            };
+                        }).sort((a, b) => a.time - b.time);
+
                         candleSeries.setMarkers(uniqueMarkers);
                     }
                 };
