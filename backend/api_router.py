@@ -595,13 +595,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
-                public_routes = ['/api/dev/mock-signals', '/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard', '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe']
-                free_auth_routes = [
-                    # Account management
-                    '/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send',
-                    '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete',
-                    '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory',
-                    # Command Center — open to all logged-in users
+                public_routes = [
+                    # Fully public — no auth required
+                    '/api/dev/mock-signals', '/health', '/api/config', '/api/signals', '/api/btc',
+                    '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news',
+                    '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar',
+                    '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard',
+                    '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe',
+                    # Command Center — fully public
                     '/api/macro', '/api/ai-trade-now', '/api/regime', '/api/correlation-matrix',
                     '/api/etf-flows', '/api/cme-gaps', '/api/capital-rotation', '/api/mindshare',
                     '/api/risk', '/api/depeg', '/api/macro-calendar', '/api/options-flow',
@@ -609,10 +610,16 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/alerts', '/api/alerts/badge', '/api/klines', '/api/equity-klines',
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst',
                 ]
+                free_auth_routes = [
+                    # Account management — login required, no premium needed
+                    '/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send',
+                    '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete',
+                    '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory',
+                ]
                 # /api/signal/{id} is fully public - no auth gate for shared links
                 if path.startswith('/api/signal/'):
                     pass  # skip gate, handle_signal_permalink does not require auth
-                elif path not in public_routes:
+                elif not any(path.startswith(r) for r in public_routes):
                     auth_info = self.is_authenticated()
                     if not auth_info:
                         print(f'[{datetime.now()}] AUTH FAIL: {path}')
