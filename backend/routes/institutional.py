@@ -166,7 +166,7 @@ class InstitutionalRoutesMixin:
         but with the original entry price, direction, and timestamp frozen at signal-fire time.
         """
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             c.execute('SELECT * FROM alerts_history WHERE id = ?', (signal_id,))
@@ -771,7 +771,7 @@ class InstitutionalRoutesMixin:
             for k in targets: targets[k]['weight'] /= total_w
 
             # 2. Get Current Allocations from Portfolio History
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute("SELECT assets_json, equity FROM portfolio_history ORDER BY timestamp DESC LIMIT 1")
             row = c.fetchone()
@@ -1984,7 +1984,7 @@ class InstitutionalRoutesMixin:
                 ret_asset = p_common.iloc[-1] / p_common.iloc[-lookback] - 1
                 ret_btc = b_common.iloc[-1] / b_common.iloc[-lookback] - 1
                 alpha = (ret_asset - ret_btc) * 100
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT 1 FROM tracked_tickers WHERE ticker = ?', (ticker,))
             is_tracked = c.fetchone() is not None
@@ -2006,7 +2006,7 @@ class InstitutionalRoutesMixin:
         try:
             # Phase 9: Fetch Alert Context if available
             if alert_id:
-                conn = sqlite3.connect(DB_PATH)
+                conn = sqlite3.connect(DB_PATH, timeout=30)
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
                 c.execute('SELECT * FROM alerts_history WHERE id = ?', (alert_id,))
@@ -2299,7 +2299,7 @@ class InstitutionalRoutesMixin:
                 return
         except Exception:
             pass
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         c = conn.cursor()
         c.execute('SELECT ticker FROM tracked_tickers')
         tracked = [r[0] for r in c.fetchall()]
@@ -2388,7 +2388,7 @@ class InstitutionalRoutesMixin:
             auth = self.is_authenticated()
             user_email = auth.get('email') if auth else None
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
 
@@ -2425,7 +2425,7 @@ class InstitutionalRoutesMixin:
             tickers = list(set(s['ticker'] for s in signals))
             price_history = {}   # ticker -> list of (timestamp_str, price) tuples ASC
             try:
-                hc = sqlite3.connect(DB_PATH)
+                hc = sqlite3.connect(DB_PATH, timeout=30)
                 hc.row_factory = sqlite3.Row
                 hcur = hc.cursor()
                 for tkr in tickers:
@@ -2530,7 +2530,7 @@ class InstitutionalRoutesMixin:
                     else:
                         # Fallback: latest market_tick
                         try:
-                            fc = sqlite3.connect(DB_PATH)
+                            fc = sqlite3.connect(DB_PATH, timeout=30)
                             fc.row_factory = sqlite3.Row
                             fcur = fc.cursor()
                             fcur.execute(
@@ -3627,7 +3627,7 @@ class InstitutionalRoutesMixin:
 
     def handle_leaderboard(self):
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute("\n                SELECT ticker, price, timestamp, type \n                FROM alerts_history \n                WHERE timestamp > datetime('now', '-7 days')\n                GROUP BY ticker \n                ORDER BY timestamp DESC\n                LIMIT 10\n            ")
             alerts = c.fetchall()
@@ -3663,7 +3663,7 @@ class InstitutionalRoutesMixin:
             qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             filter_ticker = qs.get('ticker', [None])[0]
             limit = int(qs.get('limit', ['50'])[0])
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             user_email = auth.get('email') if auth else None
             if filter_ticker:
@@ -3729,7 +3729,7 @@ class InstitutionalRoutesMixin:
         """Lightweight: return unread alert count (newer than user last_seen)."""
         try:
             auth = self.is_authenticated()
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
 
             if auth:
@@ -3906,7 +3906,7 @@ class InstitutionalRoutesMixin:
             ticker = query.get('ticker', ['BTC-USD'])[0]
             
             import sqlite3
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             
             # Fetch last 24h of snapshots
@@ -4257,7 +4257,7 @@ class InstitutionalRoutesMixin:
 
                     # Alert activity (raw count in 72h)
                     try:
-                        conn = sqlite3.connect(DB_PATH)
+                        conn = sqlite3.connect(DB_PATH, timeout=30)
                         c_db = conn.cursor()
                         c_db.execute(
                             "SELECT COUNT(*) FROM alerts_history WHERE ticker=? AND timestamp > datetime('now', '-72 hours')",
@@ -4385,7 +4385,7 @@ class InstitutionalRoutesMixin:
     def handle_performance(self):
         """Feature 4: Performance Dashboard - track record from alerts_history."""
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT ticker, price, timestamp, direction, status, final_roi FROM alerts_history WHERE price IS NOT NULL AND price > 0 ORDER BY timestamp DESC LIMIT 100')
             signals = c.fetchall()
@@ -4458,7 +4458,7 @@ class InstitutionalRoutesMixin:
 
             # Signal type distribution (from type column in alerts_history)
             try:
-                conn2 = sqlite3.connect(DB_PATH)
+                conn2 = sqlite3.connect(DB_PATH, timeout=30)
                 c2 = conn2.cursor()
                 c2.execute("SELECT type, COUNT(*) as cnt FROM alerts_history GROUP BY type ORDER BY cnt DESC")
                 type_rows = c2.fetchall()
@@ -4533,7 +4533,7 @@ class InstitutionalRoutesMixin:
                     elif f_direction == 'bearish':
                         base_where += " AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
 
-                conn = sqlite3.connect(DB_PATH)
+                conn = sqlite3.connect(DB_PATH, timeout=30)
                 c = conn.cursor()
                 c.execute(f'''
                     SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
@@ -4567,7 +4567,7 @@ class InstitutionalRoutesMixin:
                 self.wfile.write(output.getvalue().encode('utf-8'))
                 return
             snapshot = {'exported_at': datetime.now().isoformat(), 'terminal': 'AlphaSignal Institutional Terminal', 'btc_price': LIVE_PRICES.get('BTC', 0), 'eth_price': LIVE_PRICES.get('ETH', 0), 'sol_price': LIVE_PRICES.get('SOL', 0)}
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT ticker, type, message, price, timestamp FROM alerts_history ORDER BY timestamp DESC LIMIT 10')
             snapshot['recent_signals'] = [{'ticker': r[0], 'type': r[1], 'message': r[2], 'entry_price': r[3], 'timestamp': r[4]} for r in c.fetchall()]
@@ -4585,7 +4585,7 @@ class InstitutionalRoutesMixin:
     def handle_notifications(self):
         """Feature 2: Return last 10 alerts for the notification bell."""
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('\n                SELECT id, type, ticker, message, severity, price, timestamp\n                FROM alerts_history\n                ORDER BY timestamp DESC\n                LIMIT 10\n            ')
             rows = c.fetchall()
@@ -4648,7 +4648,7 @@ class InstitutionalRoutesMixin:
                 self.send_json(entry['data'])
                 return
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             conn.set_trace_callback(print)
             c    = conn.cursor()
 
@@ -4922,7 +4922,7 @@ class InstitutionalRoutesMixin:
                         by_type_where += (" AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
                                           "'REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')")
 
-                conn2 = sqlite3.connect(DB_PATH)
+                conn2 = sqlite3.connect(DB_PATH, timeout=30)
                 c2_cur = conn2.cursor()
                 c2_cur.execute(f"""
                     SELECT
@@ -5131,7 +5131,7 @@ class InstitutionalRoutesMixin:
 
     def handle_portfolio_risk(self):
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             c.execute('SELECT assets_json FROM portfolio_history ORDER BY timestamp DESC LIMIT 1')
@@ -5177,7 +5177,7 @@ class InstitutionalRoutesMixin:
 
     def handle_signal_permalink(self, signal_id):
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute("SELECT id, type, ticker, message, severity, price, timestamp FROM alerts_history WHERE id = ?", (signal_id,))
             row = c.fetchone()
@@ -5203,7 +5203,7 @@ class InstitutionalRoutesMixin:
             if custom_basket:
                 self.handle_live_portfolio_sim(custom_basket, custom_weights)
                 return
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             c.execute('SELECT * FROM portfolio_history ORDER BY timestamp DESC LIMIT 30')
@@ -5231,7 +5231,7 @@ class InstitutionalRoutesMixin:
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             fmt = query.get('format', ['csv'])[0].lower()
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             c.execute('SELECT * FROM portfolio_history ORDER BY timestamp ASC')
@@ -5270,7 +5270,7 @@ class InstitutionalRoutesMixin:
             from backend.keyvault import KeyVault
 
             # 1. Fetch Binance keys from Vault to simulate OMS sync
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT api_key, api_secret FROM exchange_keys WHERE user_email = ? AND exchange = ? ORDER BY created_at DESC LIMIT 1', (email, 'BINANCE'))
             row = c.fetchone()
@@ -5704,7 +5704,7 @@ class InstitutionalRoutesMixin:
                 alpha_filter = None
 
             # 1. Pull signal history from DB
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c    = conn.cursor()
             
             sql_query = '''SELECT ticker, type, price, timestamp
@@ -6051,7 +6051,7 @@ class InstitutionalRoutesMixin:
             if not auth:
                 self.send_json({'error': 'Unauthorized'}); return
             email = auth.get('email', '')
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             if post_data:
                 c.execute('SELECT z_threshold, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold, discord_webhook, telegram_chat_id FROM user_settings WHERE user_email=?', (email,))
@@ -6903,7 +6903,7 @@ class InstitutionalRoutesMixin:
             if not auth:
                 self.send_json({'error': 'Unauthorized'}); return
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
 
             # 1. Pull top ML predictions from last 24h
@@ -7187,7 +7187,7 @@ class InstitutionalRoutesMixin:
         """GET /health - Railway health probe & monitoring endpoint."""
         import time as _time
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute("SELECT COUNT(*) FROM alerts_history")
             total_signals = c.fetchone()[0]
@@ -7216,7 +7216,7 @@ class InstitutionalRoutesMixin:
             from backend.services import NOTIFY
             from backend.database import DB_PATH
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
 
             # Get the target user email

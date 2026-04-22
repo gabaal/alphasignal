@@ -132,7 +132,7 @@ class NotificationService:
         fields: list of dicts with keys 'name', 'value', 'inline' for Discord embed fields
         """
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute(
                 "SELECT discord_webhook, telegram_chat_id, COALESCE(telegram_alerts_enabled, 1) "
@@ -212,7 +212,7 @@ def notify_watchlist_users(ticker, sig_type, message, severity, curr_p):
     This is called after every ML and rule-based signal fires - independent of
     the existing 'alerts_enabled' broadcast, so watchers always get pinged."""
     try:
-        with sqlite3.connect(DB_PATH) as conn:
+        with sqlite3.connect(DB_PATH, timeout=30) as conn:
             c = conn.cursor()
             # Find users watching this ticker
             c.execute("""
@@ -304,7 +304,7 @@ class MLAlphaEngine:
 
     def train_all(self):
         print(f"[{datetime.now()}] MLAlphaEngine: Starting background model training...")
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         c = conn.cursor()
         c.execute("SELECT ticker FROM tracked_tickers")
         tracked = [r[0] for r in c.fetchall()]
@@ -384,7 +384,7 @@ class PortfolioSimulator:
             try:
                 # Fetch globally configured Rebalance Threshold (minimum across active users)
                 try:
-                    with sqlite3.connect(DB_PATH) as _conn:
+                    with sqlite3.connect(DB_PATH, timeout=30) as _conn:
                         _c = _conn.cursor()
                         _c.execute('SELECT MIN(rebalance_threshold) FROM user_settings WHERE rebalance_threshold IS NOT NULL')
                         _min_reb = _c.fetchone()[0]
@@ -415,7 +415,7 @@ class PortfolioSimulator:
                 top_5 = predictions[:5]
                 
                 # 3. Calculate Equity from ACTUAL weighted basket return
-                conn = sqlite3.connect(DB_PATH)
+                conn = sqlite3.connect(DB_PATH, timeout=30)
                 c = conn.cursor()
                 c.execute("SELECT COUNT(*) FROM portfolio_history")
                 count = c.fetchone()[0]
@@ -485,7 +485,7 @@ class HarvestService:
         while self.running:
             try:
                 # Include dynamically tracked tickers
-                conn = sqlite3.connect(DB_PATH)
+                conn = sqlite3.connect(DB_PATH, timeout=30)
                 c = conn.cursor()
                 c.execute("SELECT ticker FROM tracked_tickers")
                 tracked = [r[0] for r in c.fetchall()]
@@ -499,7 +499,7 @@ class HarvestService:
                 
                 # Phase 4: Persist High-Frequency Time-Series for ML Models
                 try:
-                    ts_conn = sqlite3.connect(DB_PATH)
+                    ts_conn = sqlite3.connect(DB_PATH, timeout=30)
                     ts_c = ts_conn.cursor()
                     print(f"[{datetime.now()}] Persisting high-freq TS data for {len(all_tickers)} assets...")
                     
@@ -544,7 +544,7 @@ class HarvestService:
                             except: pass
                         
                         # Notify all users with alerts enabled
-                        conn = sqlite3.connect(DB_PATH)
+                        conn = sqlite3.connect(DB_PATH, timeout=30)
                         c = conn.cursor()
                         c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1")
                         all_users = c.fetchall()
@@ -593,7 +593,7 @@ class HarvestService:
         SL_THRESHOLD  = -3.0   # % loss -> auto-close loss
         EXPIRY_DAYS   = 7      # close stale signals after 7 days
 
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         c    = conn.cursor()
         try:
             # Fetch all active signals (status IS NULL or 'active')
@@ -743,7 +743,7 @@ class HarvestService:
         if data is None or data.empty: return
         
         print(f"[{datetime.now()}] MLAlphaEngine: Generating Predictive Alpha alerts...")
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         c = conn.cursor()
         
         # Identify all tickers in the batch data
@@ -819,7 +819,7 @@ class HarvestService:
                 if signal_type:
                     # Get all users to receive this signal
                     try:
-                        with sqlite3.connect(DB_PATH) as ue_conn:
+                        with sqlite3.connect(DB_PATH, timeout=30) as ue_conn:
                             ue_c = ue_conn.cursor()
                             ue_c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
                             enabled_users = [r[0] for r in ue_c.fetchall()]
@@ -855,7 +855,7 @@ class HarvestService:
                             daemon=True).start()
                         # Phase 17-A: Rich Multi-Channel Dispatch with user z_threshold gate
                         try:
-                            with sqlite3.connect(DB_PATH) as alert_conn:
+                            with sqlite3.connect(DB_PATH, timeout=30) as alert_conn:
                                 alert_c = alert_conn.cursor()
                                 # Include algo_webhook in the query
                                 alert_c.execute("SELECT user_email, z_threshold, algo_webhook FROM user_settings WHERE alerts_enabled = 1")
@@ -885,7 +885,7 @@ class HarvestService:
                                             
                                         # --- NEW: Internal Algo Bots ---
                                         try:
-                                            bot_conn = sqlite3.connect(DB_PATH)
+                                            bot_conn = sqlite3.connect(DB_PATH, timeout=30)
                                             bot_c = bot_conn.cursor()
                                             bot_c.execute("SELECT id, name, condition_zscore, condition_regime, action_side, action_amount, action_exchange, asset, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email = ? AND status = 'active'", (target_email,))
                                             bots = bot_c.fetchall()
@@ -1137,7 +1137,7 @@ class HarvestService:
     def _dispatch_rule_signal(self, sig_type, ticker, message, severity, curr_p, rsi, conn, c, is_macro=False):
         try:
             try:
-                with sqlite3.connect(DB_PATH) as ue_conn2:
+                with sqlite3.connect(DB_PATH, timeout=30) as ue_conn2:
                     ue_c2 = ue_conn2.cursor()
                     ue_c2.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
                     rule_users = [r[0] for r in ue_c2.fetchall()]
@@ -1169,7 +1169,7 @@ class HarvestService:
 
                 # Multi-channel dispatch
                 try:
-                    with sqlite3.connect(DB_PATH) as notify_conn:
+                    with sqlite3.connect(DB_PATH, timeout=30) as notify_conn:
                         notify_c = notify_conn.cursor()
                         notify_c.execute("""SELECT user_email, z_threshold,
                                                    whale_threshold, depeg_threshold,
@@ -1247,7 +1247,7 @@ class HarvestService:
         """Phase 8: Resilient Snapshots.
         Bypasses yfinance historical failures by using direct price discovery.
         """
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         c = conn.cursor()
         
         # Phase 7: Prioritized Universe for the Charting Legend

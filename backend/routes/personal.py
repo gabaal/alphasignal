@@ -235,7 +235,7 @@ class PersonalRoutesMixin:
             user_email = auth_info['email']
 
             # 1. Fetch Binance keys from Vault
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT api_key, api_secret FROM exchange_keys WHERE user_email = ? AND exchange = ? ORDER BY created_at DESC LIMIT 1', (user_email, 'BINANCE'))
             row = c.fetchone()
@@ -330,7 +330,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT id, exchange, api_key, created_at FROM exchange_keys WHERE user_email = ?', (user_email,))
             rows = c.fetchall()
@@ -354,7 +354,7 @@ class PersonalRoutesMixin:
             # Encrypt secret "at rest"
             encrypted_secret = KeyVault.encrypt_secret(api_secret)
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('''INSERT OR REPLACE INTO exchange_keys (user_email, exchange, api_key, api_secret) VALUES (?, ?, ?, ?)''',
                       (user_email, exchange, api_key, encrypted_secret))
@@ -369,7 +369,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('DELETE FROM exchange_keys WHERE id = ? AND user_email = ?', (item_id, user_email))
             conn.commit()
@@ -392,7 +392,7 @@ class PersonalRoutesMixin:
             is_institutional = data.get('is_institutional', False)
             
             # - 1. Fetch KeyVault Secrets -
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT exchange, api_secret, api_key FROM exchange_keys WHERE user_email = ? LIMIT 1', (user_email,))
             has_key = c.fetchone()
@@ -515,7 +515,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT id, title, content, created_at FROM ai_knowledge_base WHERE user_email = ? ORDER BY created_at DESC', (user_email,))
             rows = c.fetchall()
@@ -535,7 +535,7 @@ class PersonalRoutesMixin:
             if not title or not content:
                 return self.send_json({'error': 'Title and content are required.'})
             
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('INSERT INTO ai_knowledge_base (user_email, title, content) VALUES (?, ?, ?)', (user_email, title, content))
             conn.commit()
@@ -549,7 +549,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('DELETE FROM ai_knowledge_base WHERE id = ? AND user_email = ?', (item_id, user_email))
             conn.commit()
@@ -564,7 +564,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT id, name, asset, condition_zscore, condition_regime, action_side, action_amount, action_exchange, status, created_at, last_triggered, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email = ? ORDER BY created_at DESC', (user_email,))
             rows = c.fetchall()
@@ -592,7 +592,7 @@ class PersonalRoutesMixin:
             if not action_exchange:
                 return self.send_json({'error': 'Execution exchange is required.'})
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('''INSERT INTO trading_bots 
                          (user_email, name, asset, condition_zscore, condition_regime, action_side, action_amount, action_exchange, take_profit_pct, stop_loss_pct) 
@@ -609,7 +609,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('DELETE FROM trading_bots WHERE id = ? AND user_email = ?', (item_id, user_email))
             conn.commit()
@@ -623,7 +623,7 @@ class PersonalRoutesMixin:
             import sqlite3
             from backend.database import DB_PATH
             user_email = auth_info['email']
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute('SELECT status FROM trading_bots WHERE id = ? AND user_email = ?', (item_id, user_email))
             row = c.fetchone()
@@ -657,7 +657,7 @@ class PersonalRoutesMixin:
             stop_loss_pct = float(data.get('stop_loss_pct', 0.0))
             
             # Fetch 90 days of ML Signals from history for this asset
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute("SELECT ticker, type, timestamp FROM alerts_history WHERE type LIKE 'ML_%' AND timestamp >= datetime('now', '-90 days')")
             signal_rows = c.fetchall()

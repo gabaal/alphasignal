@@ -2,7 +2,7 @@ import sqlite3
 import yfinance as yf
 import pandas as pd
 
-conn = sqlite3.connect('backend/alphasignal.db')
+conn = sqlite3.connect('backend/alphasignal.db', timeout=30)
 c = conn.cursor()
 c.execute("""SELECT symbol, predicted_return, confidence
                          FROM ml_predictions

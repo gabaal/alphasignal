@@ -7,7 +7,7 @@
             from backend.services import NOTIFY
             from backend.database import DB_PATH
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
 
             # Get the target user email

@@ -451,7 +451,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_response(401); self.end_headers(); return
                 try:
                     sig_id = int(path.split('/')[3])
-                    conn = sqlite3.connect(DB_PATH)
+                    conn = sqlite3.connect(DB_PATH, timeout=30)
                     c = conn.cursor()
                     from datetime import datetime as _dt
                     # Fetch entry price + type to compute final ROI at close time
@@ -506,7 +506,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_response(401); self.end_headers(); return
                 try:
                     sig_id = int(path.split('/')[3])
-                    conn = sqlite3.connect(DB_PATH)
+                    conn = sqlite3.connect(DB_PATH, timeout=30)
                     c = conn.cursor()
                     # Security: verify the signal belongs to this user
                     c.execute("SELECT user_email FROM alerts_history WHERE id=?", (sig_id,))
@@ -531,7 +531,41 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f'[{datetime.now()}] POST Error: {e}')
             self.send_error(500, 'Internal server error')
 
+    def _proxy_websocket(self):
+        import socket
+        import select
+        try:
+            ws_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            ws_sock.connect(('127.0.0.1', 8007))
+            req_line = f"{self.command} {self.path} {self.request_version}\r\n"
+            ws_sock.sendall(req_line.encode('utf-8'))
+            for k, v in self.headers.items():
+                ws_sock.sendall(f"{k}: {v}\r\n".encode('utf-8'))
+            ws_sock.sendall(b"\r\n")
+            while True:
+                r, _, _ = select.select([self.connection, ws_sock], [], [], 300)
+                if not r: break
+                if self.connection in r:
+                    try: data = self.connection.recv(8192)
+                    except: break
+                    if not data: break
+                    ws_sock.sendall(data)
+                if ws_sock in r:
+                    try: data = ws_sock.recv(8192)
+                    except: break
+                    if not data: break
+                    self.connection.sendall(data)
+        except Exception as e:
+            print(f"[{datetime.now()}] WS Proxy Error: {e}")
+        finally:
+            try: ws_sock.close()
+            except: pass
+
     def do_GET(self):
+        if self.path == '/ws':
+            self._proxy_websocket()
+            return
+            
         print(f"[{datetime.now()}] DEBUG: do_GET hit for path: {self.path}", flush=True)
         # S2: rate limit GET requests (AI endpoints get stricter limit)
         ip = self.client_address[0]

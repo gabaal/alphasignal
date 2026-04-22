@@ -462,7 +462,7 @@ class MarketRoutesMixin:
             today  = dt.date.today()
             cutoff = (today - dt.timedelta(days=29)).isoformat()
 
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c    = conn.cursor()
 
             if user_email:

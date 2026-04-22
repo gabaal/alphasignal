@@ -25,7 +25,7 @@ class DataCache:
         
         # L2 (SQLite fallback)
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute("SELECT value, expires_at FROM cache_store WHERE key = ?", (key,))
             row = c.fetchone()
@@ -58,7 +58,7 @@ class DataCache:
         self._cache[key] = (data, time.time())
         # Set local L2
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             c.execute("INSERT OR REPLACE INTO cache_store (key, value, expires_at) VALUES (?, ?, ?)", 
                       (key, json.dumps(data, default=str), time.time() + self._ttl))
@@ -81,7 +81,7 @@ class DataCache:
         now = time.time()
         payloads = []
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             for key, data in key_data_pairs.items():
                 self._cache[key] = (data, now)

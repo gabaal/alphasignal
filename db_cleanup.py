@@ -22,7 +22,7 @@ def counts(c):
     for row in c.fetchall():
         print(f"{str(row[0]):<40} {row[1]:>6} {row[2]:>7} {row[3]:>5} {row[4]:>7}")
 
-conn = sqlite3.connect('alphasignal.db')
+conn = sqlite3.connect('alphasignal.db', timeout=30)
 c = conn.cursor()
 
 c.execute('SELECT COUNT(*) FROM alerts_history')

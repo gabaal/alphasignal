@@ -175,7 +175,7 @@ class WebSocketServer:
                         pass
 
                 try:
-                    conn = sqlite3.connect(DB_PATH)
+                    conn = sqlite3.connect(DB_PATH, timeout=30)
                     cur = conn.cursor()
                     cur.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
                     signal_count = cur.fetchone()[0]
@@ -206,7 +206,7 @@ class WebSocketServer:
                     _last_prewarm = now
                     try:
                         from concurrent.futures import ThreadPoolExecutor, as_completed
-                        conn2 = sqlite3.connect(DB_PATH)
+                        conn2 = sqlite3.connect(DB_PATH, timeout=30)
                         cur2  = conn2.cursor()
                         cur2.execute("""
                             SELECT DISTINCT ticker, id, type, price
@@ -247,7 +247,7 @@ class WebSocketServer:
                         # - Item 5: TP/SL crossing notifications -
                         tg_token = None; tg_chat = None
                         try:
-                            conn3 = sqlite3.connect(DB_PATH)
+                            conn3 = sqlite3.connect(DB_PATH, timeout=30)
                             cur3  = conn3.cursor()
                             cur3.execute("SELECT value FROM app_settings WHERE key='telegram_token' LIMIT 1")
                             r3 = cur3.fetchone()

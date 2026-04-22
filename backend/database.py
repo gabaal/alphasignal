@@ -191,7 +191,7 @@ else:
 
 def init_db():
     # Keep local SQLite for fast L1/L2 caching, but primary intelligence moves to Cloud
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS alerts_history (id INTEGER PRIMARY KEY, type TEXT, ticker TEXT, message TEXT, severity TEXT, price REAL, timestamp DATETIME)''')
     # Migration: Add price column if it doesn't exist

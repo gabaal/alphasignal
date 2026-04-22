@@ -172,7 +172,7 @@ class AIEngineRoutesMixin:
             try:
                 import sqlite3
                 from backend.database import DB_PATH
-                conn = sqlite3.connect(DB_PATH)
+                conn = sqlite3.connect(DB_PATH, timeout=30)
                 c = conn.cursor()
                 c.execute("SELECT title, content FROM ai_knowledge_base WHERE user_email=?", (auth_info['email'],))
                 rows = c.fetchall()
@@ -247,7 +247,7 @@ class AIEngineRoutesMixin:
         try:
             import sqlite3
             from backend.database import DB_PATH
-            db = sqlite3.connect(DB_PATH)
+            db = sqlite3.connect(DB_PATH, timeout=30)
             cur = db.cursor()
             cur.execute(
                 "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
@@ -296,7 +296,7 @@ class AIEngineRoutesMixin:
             try:
                 import sqlite3
                 from backend.database import DB_PATH
-                conn = sqlite3.connect(DB_PATH)
+                conn = sqlite3.connect(DB_PATH, timeout=30)
                 c = conn.cursor()
                 c.execute("SELECT title, content FROM ai_knowledge_base WHERE user_email=?", (auth_info['email'],))
                 rows = c.fetchall()
@@ -582,7 +582,7 @@ class AIEngineRoutesMixin:
         try:
             import sqlite3, os as _os
             from backend.database import DB_PATH as _DB_PATH
-            db = sqlite3.connect(_DB_PATH)
+            db = sqlite3.connect(_DB_PATH, timeout=30)
             cur = db.cursor()
             # BTC price
             cur.execute("SELECT price FROM market_ticks WHERE symbol='BTC-USD' AND price>0 ORDER BY timestamp DESC LIMIT 1")
