@@ -68,7 +68,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                         const anchor = data.anchors?.[cat] || {};
                         const color  = anchor.color || '#00d4aa';
                         const pct    = Math.round(count / max * 100);
-                        const medal  = i === 0 ? '??' : i === 1 ? '??' : i === 2 ? '??' : `#${i+1}`;
+                        const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
                         return `<div style="margin-bottom:12px">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                                 <span style="font-size:0.65rem;font-weight:800;color:${color}">${medal} ${cat}</span>
