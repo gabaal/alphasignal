@@ -2365,24 +2365,15 @@ class InstitutionalRoutesMixin:
             self.send_json([])
 
     def handle_signal_leaderboard(self):
-        """Signal performance leaderboard with institutional close logic.
+        """Signal performance leaderboard - reads from alerts_history status/final_roi.
 
-        Each signal is evaluated against:
-          - Take-profit: +5% for LONGs, -5% move for SHORTs  -> TP_HIT (WIN)
-          - Stop-loss:   -8% for LONGs, +8% move for SHORTs  -> SL_HIT (LOSS)
-          - Max hold:    7 days from signal timestamp         -> EXPIRED (WIN/LOSS at close)
-          - Open:        within hold window, no TP/SL yet     -> OPEN
-
-        Price checking uses intra-bar OHLC from market_ticks to detect if
-        TP or SL was breached at any point since the signal fired.
+        Uses the same source of truth as the Performance Summary panel so that
+        the Signal History chart win-rate always matches the archive table.
         """
-        TP_PCT   =  5.0   # take-profit %
-        SL_PCT   = -8.0   # stop-loss % (negative = adverse for LONG)
-        MAX_DAYS =  7     # max hold period in days
-
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             filter_ticker = query.get('ticker', [None])[0]
+            limit = min(int(query.get('limit', [200])[0]), 500)
 
             # Scope to authenticated user (matching the archive view)
             auth = self.is_authenticated()
@@ -2392,64 +2383,48 @@ class InstitutionalRoutesMixin:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
 
-            params = []
             where_clauses = ["price IS NOT NULL AND price > 0"]
-
-            if filter_ticker:
-                where_clauses.append("ticker = ?")
-                params.append(filter_ticker)
+            params = []
 
             if user_email:
                 where_clauses.append("LOWER(user_email) = LOWER(?)")
                 params.append(user_email)
 
+            if filter_ticker:
+                where_clauses.append("ticker = ?")
+                params.append(filter_ticker)
+
             where_sql = " AND ".join(where_clauses)
-            params.append(200)
+            params.append(limit)
 
             c.execute(f"""
-                SELECT id, type, ticker, message, severity, price, timestamp, direction
+                SELECT id, type, ticker, severity, price, timestamp,
+                       direction, COALESCE(status, 'active') AS status,
+                       final_roi, exit_price, closed_at
                 FROM alerts_history
                 WHERE {where_sql}
                 ORDER BY timestamp DESC
                 LIMIT ?
             """, params)
 
-            signals = [dict(r) for r in c.fetchall()]
+            rows = [dict(r) for r in c.fetchall()]
             conn.close()
 
-            if not signals:
+            if not rows:
                 self.send_json({'signals': [], 'stats': {'total': 0, 'win_rate': 0, 'avg_return': 0}})
                 return
-
-            # Batch-fetch price ticks per ticker (market_ticks has price only, no high/low)
-            tickers = list(set(s['ticker'] for s in signals))
-            price_history = {}   # ticker -> list of (timestamp_str, price) tuples ASC
-            try:
-                hc = sqlite3.connect(DB_PATH, timeout=30)
-                hc.row_factory = sqlite3.Row
-                hcur = hc.cursor()
-                for tkr in tickers:
-                    hcur.execute(
-                        'SELECT timestamp, price FROM market_ticks '
-                        'WHERE symbol=? AND price>0 ORDER BY timestamp ASC',
-                        (tkr,)
-                    )
-                    price_history[tkr] = [(row['timestamp'], float(row['price'])) for row in hcur.fetchall()]
-                hc.close()
-            except Exception:
-                pass
 
             results = []
             wins = 0
             total_return = 0.0
 
-            for s in signals:
-                ticker        = s['ticker']
-                signal_price  = float(s['price'])
-                sig_type      = s.get('type', '')
-                sig_ts_str    = s.get('timestamp', '')
+            for s in rows:
+                sig_type     = s.get('type', '')
+                signal_price = float(s['price'])
+                final_roi    = s.get('final_roi')
+                db_status    = s.get('status', 'active')  # 'active' | 'closed'
 
-                # --- Direction: use stored value first, fall back to type inference ---
+                # Derive direction
                 stored_dir = (s.get('direction') or '').upper()
                 if stored_dir in ('LONG', 'SHORT', 'BULLISH', 'BEARISH'):
                     direction = 'SHORT' if stored_dir in ('SHORT', 'BEARISH') else 'LONG'
@@ -2457,170 +2432,63 @@ class InstitutionalRoutesMixin:
                     is_short = any(x in sig_type for x in ['OVERBOUGHT', 'BEARISH'])
                     direction = 'SHORT' if is_short else 'LONG'
 
-                # --- TP / SL absolute levels ---
-                if direction == 'LONG':
-                    tp_price = signal_price * (1 + TP_PCT / 100)
-                    sl_price = signal_price * (1 + SL_PCT / 100)
-                else:
-                    tp_price = signal_price * (1 - TP_PCT / 100)
-                    sl_price = signal_price * (1 - SL_PCT / 100)   # SL_PCT negative -> price rises
+                closed      = (db_status == 'closed')
+                move_pct    = round(float(final_roi), 2) if final_roi is not None else 0.0
+                exit_p      = s.get('exit_price')
+                current_p   = float(exit_p) if exit_p else signal_price
 
-                # --- Parse signal timestamp (handles ISO 'T' and space separators) ---
-                try:
-                    sig_ts = datetime.strptime(sig_ts_str[:19].replace('T', ' '), '%Y-%m-%d %H:%M:%S')
-                except Exception:
-                    sig_ts = None
-
-                expiry_ts = (sig_ts + timedelta(days=MAX_DAYS)) if sig_ts else None
-
-                # --- Walk price ticks after signal to find first TP/SL breach ---
-                history      = price_history.get(ticker, [])
-                closed       = False
-                close_reason = 'OPEN'
-                close_price  = None
-                close_ts     = None
-
-                for (ts_str, tick_price) in history:
-                    try:
-                        bar_ts = datetime.strptime(str(ts_str)[:19].replace('T', ' '), '%Y-%m-%d %H:%M:%S')
-                    except Exception:
-                        continue
-                    if sig_ts and bar_ts <= sig_ts:
-                        continue   # skip ticks before or at signal time
-
-                    # Check expiry first
-                    if expiry_ts and bar_ts >= expiry_ts:
-                        closed       = True
-                        close_reason = 'EXPIRED'
-                        close_price  = tick_price
-                        close_ts     = bar_ts
-                        break
-
-                    if direction == 'LONG':
-                        if tick_price >= tp_price:
-                            closed       = True
-                            close_reason = 'TP_HIT'
-                            close_price  = tp_price
-                            close_ts     = bar_ts
-                            break
-                        if tick_price <= sl_price:
-                            closed       = True
-                            close_reason = 'SL_HIT'
-                            close_price  = sl_price
-                            close_ts     = bar_ts
-                            break
-                    else:  # SHORT
-                        if tick_price <= tp_price:
-                            closed       = True
-                            close_reason = 'TP_HIT'
-                            close_price  = tp_price
-                            close_ts     = bar_ts
-                            break
-                        if tick_price >= sl_price:
-                            closed       = True
-                            close_reason = 'SL_HIT'
-                            close_price  = sl_price
-                            close_ts     = bar_ts
-                            break
-
-                # --- If still open, use latest tick price ---
-                if not closed:
-                    if history:
-                        close_price = history[-1][1]
-                    else:
-                        # Fallback: latest market_tick
-                        try:
-                            fc = sqlite3.connect(DB_PATH, timeout=30)
-                            fc.row_factory = sqlite3.Row
-                            fcur = fc.cursor()
-                            fcur.execute(
-                                "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
-                                (ticker,)
-                            )
-                            row = fcur.fetchone()
-                            fc.close()
-                            close_price = float(row['price']) if row else None
-                        except Exception:
-                            close_price = None
-
-                if not close_price or close_price <= 0:
-                    continue
-
-                # --- P&L ---
-                if direction == 'LONG':
-                    move_pct = (close_price - signal_price) / signal_price * 100
-                else:
-                    move_pct = (signal_price - close_price) / signal_price * 100
-
-                # --- Outcome ---
-                if close_reason == 'TP_HIT':
-                    won = True
-                elif close_reason == 'SL_HIT':
-                    won = False
-                else:
-                    # EXPIRED or OPEN: profit = win
+                # Win/loss uses same logic as handle_signal_history: final_roi > 0 = win
+                if closed:
                     won = move_pct > 0
+                    close_reason = 'TP HIT' if won else 'SL HIT'
+                else:
+                    won = False   # open signals don't count as wins
+                    close_reason = 'OPEN'
 
-                if won:
-                    wins += 1
-                total_return += move_pct
+                if closed:
+                    if won:
+                        wins += 1
+                    total_return += move_pct
 
-                # Reason label for UI
-                reason_label = {
-                    'TP_HIT':  'TP HIT',
-                    'SL_HIT':  'SL HIT',
-                    'EXPIRED': 'EXPIRED',
-                    'OPEN':    'OPEN',
-                }.get(close_reason, close_reason)
+                # Emit outcome only for closed signals
+                outcome = ('WIN' if won else 'LOSS') if closed else None
 
                 results.append({
-                    'id':           s['id'],
-                    'ticker':       ticker.replace('-USD', ''),
-                    'type':         sig_type.replace('_', ' '),
-                    'severity':     s.get('severity', 'MEDIUM').upper(),
-                    'direction':    direction,
-                    'signal_price': round(signal_price, 4),
-                    'current_price':round(close_price, 4),
-                    'move_pct':     round(move_pct, 2),
-                    'outcome':      'WIN' if won else 'LOSS',
-                    'closed':       closed,
-                    'close_reason': reason_label,
-                    'tp_price':     round(tp_price, 2),
-                    'sl_price':     round(sl_price, 2),
-                    'timestamp':    sig_ts_str,
-                    'close_ts':     str(close_ts) if close_ts else None,
+                    'id':            s['id'],
+                    'ticker':        s['ticker'].replace('-USD', ''),
+                    'type':          sig_type.replace('_', ' '),
+                    'severity':      s.get('severity', 'MEDIUM').upper(),
+                    'direction':     direction,
+                    'signal_price':  round(signal_price, 4),
+                    'current_price': round(current_p, 4),
+                    'move_pct':      move_pct,
+                    'outcome':       outcome,
+                    'closed':        closed,
+                    'close_reason':  close_reason,
+                    'entry_date':    s.get('timestamp'),
+                    'timestamp':     s.get('timestamp'),
+                    'close_ts':      s.get('closed_at'),
                 })
 
-            n        = len(results)
-            win_rate = round((wins / n) * 100, 1) if n > 0 else 0
-            avg_ret  = round(total_return / n, 2)  if n > 0 else 0
-
-            open_count   = sum(1 for r in results if not r['closed'])
-            closed_count = n - open_count
-            tp_hits      = sum(1 for r in results if r['close_reason'] == 'TP HIT')
-            sl_hits      = sum(1 for r in results if r['close_reason'] == 'SL HIT')
-            expired      = sum(1 for r in results if r['close_reason'] == 'EXPIRED')
+            closed_results = [r for r in results if r['closed']]
+            n_closed = len(closed_results)
+            win_rate = round((wins / n_closed) * 100, 1) if n_closed > 0 else 0
+            avg_ret  = round(total_return / n_closed, 2)  if n_closed > 0 else 0
+            open_count = sum(1 for r in results if not r['closed'])
 
             self.send_json({
-                'signals': results,           # full set - no [:50] cap
+                'signals': results,
                 'stats': {
-                    'total':        n,
+                    'total':        len(results),
                     'wins':         wins,
-                    'losses':       n - wins,
+                    'losses':       n_closed - wins,
                     'win_rate':     win_rate,
                     'avg_return':   avg_ret,
                     'open_count':   open_count,
-                    'closed_count': closed_count,
-                    'tp_hits':      tp_hits,
-                    'sl_hits':      sl_hits,
-                    'expired':      expired,
-                    'tp_pct':       TP_PCT,
-                    'sl_pct':       abs(SL_PCT),
-                    'max_days':     MAX_DAYS,
+                    'closed_count': n_closed,
                 }
             })
         except Exception as e:
-
             print(f'[Leaderboard] Error: {e}')
             self.send_json({'signals': [], 'stats': {'total': 0, 'win_rate': 0, 'avg_return': 0}})
 

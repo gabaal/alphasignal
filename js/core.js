@@ -1173,6 +1173,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             const slHits  = alerts.filter(a => a.closed && a.outcome === 'LOSS').length;
             const opens   = alerts.filter(a => !a.closed).length;
             if (labelEl) {
+                // Win rate is over closed signals only — matches the Performance Summary
                 const wr = tpHits + slHits > 0 ? Math.round(tpHits / (tpHits + slHits) * 100) : 0;
                 labelEl.textContent = `WR ${wr}% - ${opens} open`;
                 labelEl.style.color = wr >= 55 ? '#22c55e' : wr >= 40 ? '#facc15' : '#ef4444';
