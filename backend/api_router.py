@@ -596,7 +596,19 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             auth_info = None
             if path.startswith('/api/'):
                 public_routes = ['/api/dev/mock-signals', '/health', '/api/config', '/api/signals', '/api/btc', '/api/market-pulse', '/api/auth/status', '/api/fear-greed', '/api/news', '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar', '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard', '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe']
-                free_auth_routes = ['/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send', '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete', '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory']
+                free_auth_routes = [
+                    # Account management
+                    '/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send',
+                    '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete',
+                    '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory',
+                    # Command Center — open to all logged-in users
+                    '/api/macro', '/api/ai-trade-now', '/api/regime', '/api/correlation-matrix',
+                    '/api/etf-flows', '/api/cme-gaps', '/api/capital-rotation', '/api/mindshare',
+                    '/api/risk', '/api/depeg', '/api/macro-calendar', '/api/options-flow',
+                    '/api/equity-options-flow', '/api/ai-rebalancer', '/api/signal-history',
+                    '/api/alerts', '/api/alerts/badge', '/api/klines', '/api/equity-klines',
+                    '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst',
+                ]
                 # /api/signal/{id} is fully public - no auth gate for shared links
                 if path.startswith('/api/signal/'):
                     pass  # skip gate, handle_signal_permalink does not require auth
@@ -609,7 +621,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         self.end_headers()
                         self.wfile.write(json.dumps({'error': 'Unauthorized'}).encode('utf-8'))
                         return
-                    if not auth_info.get('is_premium', False) and path not in free_auth_routes:
+                    if not auth_info.get('is_premium', False) and not any(path.startswith(r) for r in free_auth_routes):
                         print(f'[{datetime.now()}] PREMIUM REJECT: {path}')
                         self.send_response(402)
                         self.send_header('Content-Type', 'application/json')
