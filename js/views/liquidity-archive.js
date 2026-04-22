@@ -18,13 +18,17 @@ async function renderLiquidityView(tabs = null) {
         renderLiquidityView(); // Re-render everything
     };
 
+    const cryptoUniverse = [
+        'BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'TON-USD', 'ATOM-USD', 
+        'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD', 'SEI-USD', 'OP-USD', 'ALGO-USD', 'STRK-USD', 
+        'FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD', 'DOGE-USD', 'BONK-USD', 'WIF-USD', 
+        'FLOKI-USD', 'AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 
+        'EIGEN-USD', 'PYTH-USD'
+    ];
+
     const tickerDropdownHTML = `
-        <select id="gomm-ticker-select" onchange="window._gommSetTicker(this.value)" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.75rem;font-weight:900;margin-left:auto;cursor:pointer">
-            <option value="BTC-USD" ${window.gommTicker === 'BTC-USD' ? 'selected' : ''}>BTC-USD</option>
-            <option value="ETH-USD" ${window.gommTicker === 'ETH-USD' ? 'selected' : ''}>ETH-USD</option>
-            <option value="SOL-USD" ${window.gommTicker === 'SOL-USD' ? 'selected' : ''}>SOL-USD</option>
-            <option value="DOGE-USD" ${window.gommTicker === 'DOGE-USD' ? 'selected' : ''}>DOGE-USD</option>
-            <option value="XRP-USD" ${window.gommTicker === 'XRP-USD' ? 'selected' : ''}>XRP-USD</option>
+        <select id="gomm-ticker-select" onchange="window._gommSetTicker(this.value)" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.75rem;font-weight:900;margin-left:auto;cursor:pointer;max-width:140px;">
+            ${cryptoUniverse.map(t => `<option value="${t}" ${window.gommTicker === t ? 'selected' : ''}>${t}</option>`).join('')}
         </select>
     `;
 
