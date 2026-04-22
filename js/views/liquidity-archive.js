@@ -946,10 +946,40 @@ async function renderSignalArchive(tabs = null) {
                 const dirBg    = isBull ? 'rgba(34,197,94,0.1)' : isBear ? 'rgba(239,68,68,0.1)' : 'rgba(148,163,184,0.1)';
                 const dirBorder= isBull ? 'rgba(34,197,94,0.3)' : isBear ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)';
                 const sev = (s.severity||'').toLowerCase();
+
+                // --- ACTION: plain-language BUY / SELL ---
+                const actionLabel = isBear ? '🔴 SELL' : isBull ? '🟢 BUY' : '⚪ WATCH';
+                const actionColor = isBear ? '#ef4444' : isBull ? '#22c55e' : '#94a3b8';
+                const actionBg    = isBear ? 'rgba(239,68,68,0.12)' : isBull ? 'rgba(34,197,94,0.12)' : 'rgba(148,163,184,0.08)';
+
+                // --- TP / SL levels derived from entry price (10% TP, 3% SL) ---
+                const TP_PCT = 10, SL_PCT = 3;
+                const entryPx = parseFloat(s.entry) || 0;
+                let tpPrice = null, slPrice = null;
+                if (entryPx > 0) {
+                    if (isBear) {
+                        tpPrice = entryPx * (1 - TP_PCT / 100);
+                        slPrice = entryPx * (1 + SL_PCT / 100);
+                    } else {
+                        tpPrice = entryPx * (1 + TP_PCT / 100);
+                        slPrice = entryPx * (1 - SL_PCT / 100);
+                    }
+                }
+                const tpStr = tpPrice ? formatPrice(tpPrice) : '--';
+                const slStr = slPrice ? formatPrice(slPrice) : '--';
+
                 return `
                 <tr class="archive-row" onclick="window._openSignalDrawer('${s.id}')" style="cursor:pointer;border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.2s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                     <td data-label="TICKER" style="padding:10px 12px;font-weight:700;color:var(--accent)">${s.ticker}</td>
                     <td data-label="TYPE" style="padding:10px 12px;color:var(--text-dim);font-size:0.7rem">${(s.type||'-').replace(/_/g,' ')}</td>
+                    <td data-label="ACTION" style="padding:10px 12px;text-align:center">
+                        <span style="background:${actionBg};border:1px solid ${actionColor}40;color:${actionColor};padding:3px 8px;border-radius:5px;font-size:0.6rem;font-weight:800;letter-spacing:0.5px;white-space:nowrap">${actionLabel}</span>
+                        ${entryPx > 0 ? `<div style="margin-top:3px;font-size:0.55rem;font-family:monospace;white-space:nowrap">
+                            <span style="color:#22c55e" title="Take Profit">TP ${tpStr}</span>
+                            <span style="color:#64748b;margin:0 2px">·</span>
+                            <span style="color:#ef4444" title="Stop Loss">SL ${slStr}</span>
+                        </div>` : ''}
+                    </td>
                     <td data-label="SEV" class="col-sev" style="padding:10px 12px;text-align:center"><span style="font-size:0.65rem">${(sev||'--').toUpperCase()}</span></td>
                     <td data-label="ENTRY" style="padding:10px 12px;text-align:right;font-family:monospace">${s.entry ? formatPrice(s.entry) : '-'}</td>
                     <td data-label="CURRENT" style="padding:10px 12px;text-align:right;font-family:monospace">${

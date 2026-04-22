@@ -690,6 +690,18 @@ function initLivePriceStream() {
                     } else if (msg.type === 'new_alert' || msg.type === 'alert') {
                         const d = msg.data;
                         const alertsOn = typeof _pollerSettings !== 'undefined' ? _pollerSettings.alerts_enabled : true;
+
+                        // Resolve plain-language action from payload or type inference
+                        const _action   = d.action || (d.type && (d.type.includes('BULL') || d.type.includes('OVERSOLD') || d.type.includes('VOLUME')) ? 'BUY / LONG' :
+                                          d.type && (d.type.includes('BEAR') || d.type.includes('OVERBOUGHT')) ? 'SELL / SHORT' : 'WATCH');
+                        const _isBuy    = _action.startsWith('BUY');
+                        const _isSell   = _action.startsWith('SELL');
+                        const _actionColor = _isBuy ? '#22c55e' : _isSell ? '#ef4444' : '#94a3b8';
+                        const _actionEmoji = _isBuy ? '🟢' : _isSell ? '🔴' : '⚪';
+                        const _fmtP = v => { const n = parseFloat(v); if (!n || n <= 0) return null; return n >= 1 ? '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}) : '$' + n.toPrecision(5); };
+                        const _tpStr = _fmtP(d.tp_price);
+                        const _slStr = _fmtP(d.sl_price);
+
                         if (alertsOn && window.isPremiumUser) {
                             const predReturn = d.predicted_return != null
                                 ? Math.abs(parseFloat(d.predicted_return)) * 100
@@ -698,15 +710,14 @@ function initLivePriceStream() {
                             if (predReturn >= userThresh || d.severity === 'critical' || d.severity === 'high') {
                                 showSignalToast({
                                     ticker: d.ticker || d.signal_type || 'SIGNAL',
-                                    direction: d.type && d.type.includes('BULL') ? 'LONG' :
-                                        d.type && d.type.includes('BEAR') ? 'SHORT' : 'ALERT',
+                                    direction: _isBuy ? 'LONG' : _isSell ? 'SHORT' : 'ALERT',
                                     z_score: d.z_score ?? null,
                                     predicted_return: d.predicted_return ?? null
                                 });
                             }
                         } else if (!window.isPremiumUser) {
                             const ticker = d.ticker || d.signal_type || 'SIGNAL';
-                            showToast('\uD83D\uDD14 ' + ticker, d.content || d.message || '', 'alert');
+                            showToast(_actionEmoji + ' ' + _action + ': ' + ticker, d.content || d.message || '', 'alert');
                         }
 
                         const alertBadge = document.getElementById('alerts-badge-count');
@@ -725,9 +736,10 @@ function initLivePriceStream() {
                                 const entryPrice = d.price && parseFloat(d.price) > 0 ? parseFloat(d.price) : null;
                                 const card = document.createElement('div');
                                 card.className = 'alert-card ' + (d.severity || 'medium');
-                                card.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ' + sevColor + ';border-radius:12px;padding:1.5rem;margin-bottom:1rem;animation:dropdownFadeIn 0.3s ease';
-                                const priceHtml = entryPrice ? '<span style="font-family:var(--font-mono);font-weight:700">ENTRY $' + entryPrice.toLocaleString('en-US', { maximumFractionDigits: 4 }) + '</span>' : '';
-                                card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:8px"><span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:rgba(0,242,255,0.08);color:var(--accent);border:1px solid rgba(0,242,255,0.2)">' + (d.type || '').replace(/_/g, ' ') + '</span><span style="font-size:0.7rem;color:var(--accent);font-weight:900">' + (d.ticker || '') + '</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;color:var(--text-dim);font-family:var(--font-mono)">' + tsDisplay + '</span><span style="font-size:0.6rem;color:var(--accent);font-weight:700;padding:2px 8px;border:1px solid rgba(0,242,255,0.3);border-radius:100px;background:rgba(0,242,255,0.06)">LIVE</span></div></div><p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 10px">' + (d.content || '') + '</p>' + priceHtml;
+                                card.style.cssText = `background:var(--bg-card);border:1px solid var(--border);border-left:4px solid ${_actionColor};border-radius:12px;padding:1.5rem;margin-bottom:1rem;animation:dropdownFadeIn 0.3s ease`;
+                                const tpSlHtml = (_tpStr || _slStr) ? `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">${_tpStr ? `<span style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e;padding:2px 8px;border-radius:4px;font-size:0.6rem;font-family:var(--font-mono);font-weight:700">TP ${_tpStr} (+10%)</span>` : ''}${_slStr ? `<span style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:2px 8px;border-radius:4px;font-size:0.6rem;font-family:var(--font-mono);font-weight:700">SL ${_slStr} (-3%)</span>` : ''}</div>` : '';
+                                const priceHtml = entryPrice ? `<span style="font-family:var(--font-mono);font-weight:700">ENTRY $${entryPrice.toLocaleString('en-US', { maximumFractionDigits: 4 })}</span>` : '';
+                                card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:8px"><span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;padding:3px 10px;border-radius:100px;background:${_actionColor}18;color:${_actionColor};border:1px solid ${_actionColor}40">${_actionEmoji} ${_action}</span><span style="font-size:0.7rem;color:var(--accent);font-weight:900">${d.ticker || ''}</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;color:var(--text-dim);font-family:var(--font-mono)">${tsDisplay}</span><span style="font-size:0.6rem;color:var(--accent);font-weight:700;padding:2px 8px;border:1px solid rgba(0,242,255,0.3);border-radius:100px;background:rgba(0,242,255,0.06)">LIVE</span></div></div><p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;margin:0 0 10px">${d.content || ''}</p>${priceHtml}${tpSlHtml}`;
                                 alertList.prepend(card);
                             }
                         }

@@ -125,6 +125,40 @@ class NotificationService:
         """Record that we just sent this alert so future calls within the window are suppressed."""
         NotificationService._push_cooldown[(user_email, ticker, sig_type)] = time.time()
 
+    # TP/SL constants — must match auto_close_signals thresholds
+    TP_PCT: float = 10.0   # +10% = auto-close win
+    SL_PCT: float =  3.0   #  -3% = auto-close loss
+
+    @staticmethod
+    def _fmt_price(v):
+        """Compact price formatter: avoids $0.00 for micro-cap assets."""
+        if v is None: return 'N/A'
+        if v >= 1:    return f'${v:,.4f}'
+        import math
+        dps = max(4, -int(math.floor(math.log10(abs(v)))) + 3) if v > 0 else 8
+        return f'${v:.{dps}f}'
+
+    @staticmethod
+    def build_action_fields(sig_type: str, direction: str, curr_p: float) -> tuple:
+        """Return (action_label, tp_price, sl_price, embed_color, action_emoji)."""
+        is_long = direction in ('LONG', 'BULLISH') or \
+                  any(x in sig_type for x in ('OVERSOLD','BULLISH','ML_ALPHA','VOLUME_SPIKE','MOMENTUM'))
+        is_short = direction in ('SHORT', 'BEARISH') or \
+                   any(x in sig_type for x in ('OVERBOUGHT','BEARISH'))
+        if is_short:
+            action   = 'SELL / SHORT'
+            emoji    = '🔴'
+            color    = 0xef4444
+            tp_price = curr_p * (1 - NotificationService.TP_PCT / 100) if curr_p else None
+            sl_price = curr_p * (1 + NotificationService.SL_PCT / 100) if curr_p else None
+        else:
+            action   = 'BUY / LONG'
+            emoji    = '🟢'
+            color    = 0x22c55e
+            tp_price = curr_p * (1 + NotificationService.TP_PCT / 100) if curr_p else None
+            sl_price = curr_p * (1 - NotificationService.SL_PCT / 100) if curr_p else None
+        return action, tp_price, sl_price, color, emoji
+
     @staticmethod
     def push_webhook(user_email, title, message, data=None, embed_color=0x00f2ff, fields=None):
         """Send a rich notification to Discord and/or Telegram for the given user.
@@ -928,20 +962,23 @@ class HarvestService:
                                         continue
                                     NotificationService.mark_sent(target_email, ticker, signal_type)
                                     direction = 'LONG' if pred_return > 0 else 'SHORT'
-                                    color = 0x22c55e if pred_return > 0 else 0xef4444
                                     top_driver = max(importance, key=importance.get)
+                                    _action, _tp, _sl, _color, _emoji = NotificationService.build_action_fields(signal_type, direction, curr_p)
+                                    _fp = NotificationService._fmt_price
+                                    sym = ticker.replace('-USD', '')
                                     NOTIFY.push_webhook(
                                         target_email,
-                                        f"ALPHA SIGNAL: {ticker} - {direction}",
-                                        f"ML Engine detected a high-conviction alpha window for **{ticker}**.",
-                                        embed_color=color,
+                                        f"{_emoji} {_action}: {sym}",
+                                        f"ML Engine detected a high-conviction alpha window. Entry at {_fp(curr_p)}.",
+                                        embed_color=_color,
                                         fields=[
-                                            {"name": "Direction", "value": direction, "inline": True},
-                                            {"name": "Current Price", "value": f"${curr_p:,.4f}", "inline": True},
-                                            {"name": "Z-Score", "value": f"{z_score:+.2f}-", "inline": True},
-                                            {"name": "Predicted Alpha", "value": f"{_alpha:+.2f}%", "inline": True},
-                                            {"name": "ML Confidence", "value": f"{confidence*100:.0f}%", "inline": True},
-                                            {"name": "Your Threshold", "value": f"-{user_z_thresh:.1f}-", "inline": True},
+                                            {"name": "⚡ ACTION",       "value": _action,                 "inline": False},
+                                            {"name": "Entry Price",    "value": _fp(curr_p),              "inline": True},
+                                            {"name": "Take Profit",    "value": f"{_fp(_tp)} (+{NotificationService.TP_PCT:.0f}%)", "inline": True},
+                                            {"name": "Stop Loss",      "value": f"{_fp(_sl)} (-{NotificationService.SL_PCT:.0f}%)", "inline": True},
+                                            {"name": "Predicted Alpha","value": f"{_alpha:+.2f}%",         "inline": True},
+                                            {"name": "Z-Score",        "value": f"{z_score:+.2f}σ",        "inline": True},
+                                            {"name": "ML Confidence",  "value": f"{confidence*100:.0f}%",  "inline": True},
                                         ]
                                     )
                         except Exception as ne:
@@ -950,13 +987,19 @@ class HarvestService:
                         # Real-time WebSocket Broadcast to Frontend
                         if self.ws_server:
                             try:
+                                _ws_action, _ws_tp, _ws_sl, _, _ws_emoji = NotificationService.build_action_fields(
+                                    signal_type, 'LONG' if pred_return > 0 else 'SHORT', curr_p)
                                 self.ws_server.broadcast(json.dumps({
                                     'type': 'new_alert',
                                     'data': {
                                         'type': signal_type, 'ticker': ticker,
-                                        'title': f"{ticker} - ML ALPHA SIGNAL",
+                                        'title': f"{_ws_emoji} {_ws_action}: {ticker.replace('-USD','')}",
                                         'content': message, 'severity': severity,
-                                        'price': curr_p, 'timestamp': datetime.now().isoformat()
+                                        'price': curr_p,
+                                        'action': _ws_action,
+                                        'tp_price': round(_ws_tp, 6) if _ws_tp else None,
+                                        'sl_price': round(_ws_sl, 6) if _ws_sl else None,
+                                        'timestamp': datetime.now().isoformat()
                                     }
                                 }))
                             except Exception as wse:
@@ -1201,24 +1244,26 @@ class HarvestService:
                                 if curr_p < user_cme:  
                                     continue
                                     
-                            direction = 'BULLISH' if 'OVERSOLD' in sig_type or 'BULLISH' in sig_type else 'BEARISH' if 'OVERBOUGHT' in sig_type or 'BEARISH' in sig_type else 'NEUTRAL'
-                            embed_color = 0x22c55e if direction == 'BULLISH' else 0xef4444 if direction == 'BEARISH' else 0x00f2ff
-                            
+                            _r_action, _r_tp, _r_sl, _r_color, _r_emoji = NotificationService.build_action_fields(sig_type, '', curr_p)
+                            _fp = NotificationService._fmt_price
+                            sym = ticker.replace('-USD', '')
+
                             if NotificationService.is_on_cooldown(n_email, ticker, sig_type):
                                 continue
                             NotificationService.mark_sent(n_email, ticker, sig_type)
                             NOTIFY.push_webhook(
                                 n_email,
-                                f"{sig_type.replace('_', ' ')}: {ticker}",
-                                message,
-                                embed_color=embed_color,
+                                f"{_r_emoji} {_r_action}: {sym}",
+                                f"{sig_type.replace('_',' ')} detected on {ticker}. Entry at {_fp(curr_p)}.",
+                                embed_color=_r_color,
                                 fields=[
-                                    {"name": "Ticker",    "value": ticker,                "inline": True},
-                                    {"name": "Price",     "value": f"${curr_p:,.4f}" if curr_p > 0 else 'N/A', "inline": True},
-                                    {"name": "Signal",    "value": sig_type.split('URL_MACRO_SHIFT_')[-1] if is_macro else sig_type, "inline": True},
-                                    {"name": "Severity",  "value": severity.upper(),     "inline": True},
-                                    {"name": "RSI-14",    "value": f"{rsi:.1f}" if not is_macro else "MACRO", "inline": True},
-                                    {"name": "Direction", "value": direction,            "inline": True},
+                                    {"name": "⚡ ACTION",    "value": _r_action,          "inline": False},
+                                    {"name": "Entry Price", "value": _fp(curr_p) if curr_p > 0 else 'N/A', "inline": True},
+                                    {"name": "Take Profit", "value": f"{_fp(_r_tp)} (+{NotificationService.TP_PCT:.0f}%)" if _r_tp else 'N/A', "inline": True},
+                                    {"name": "Stop Loss",   "value": f"{_fp(_r_sl)} (-{NotificationService.SL_PCT:.0f}%)" if _r_sl else 'N/A', "inline": True},
+                                    {"name": "Signal",      "value": sig_type.split('URL_MACRO_SHIFT_')[-1] if is_macro else sig_type.replace('_',' '), "inline": True},
+                                    {"name": "Severity",    "value": severity.upper(),   "inline": True},
+                                    {"name": "RSI-14",      "value": f"{rsi:.1f}" if not is_macro else "MACRO", "inline": True},
                                 ]
                             )
                 except Exception as ne:
@@ -1226,16 +1271,20 @@ class HarvestService:
 
                 if self.ws_server:
                     try:
+                        _ws2_action, _ws2_tp, _ws2_sl, _, _ws2_emoji = NotificationService.build_action_fields(sig_type, '', curr_p)
                         self.ws_server.broadcast(json.dumps({
                             'type': 'new_alert',
                             'data': {
                                 'id': c.lastrowid,
                                 'type': sig_type,
                                 'ticker': ticker,
-                                'title': f"{ticker} - {sig_type.replace('_', ' ')}",
+                                'title': f"{_ws2_emoji} {_ws2_action}: {ticker.replace('-USD','')}",
                                 'content': message,
                                 'severity': severity,
                                 'price': curr_p,
+                                'action': _ws2_action,
+                                'tp_price': round(_ws2_tp, 6) if _ws2_tp else None,
+                                'sl_price': round(_ws2_sl, 6) if _ws2_sl else None,
                                 'timestamp': datetime.now().isoformat()
                             }
                         }))
