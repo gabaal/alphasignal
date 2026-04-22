@@ -3333,7 +3333,13 @@ class InstitutionalRoutesMixin:
         if '-USD' in ticker:
             try:
                 symbol = ticker.split('-')[0] + 'USDT'
-                limit = 60 if period == '60d' else 30 if period == '1m' else 90 if period == '3m' else 180 if period == '6m' else 7 if period == '1w' else 30
+                p = period.lower().replace('mo', 'm').replace('d', 'd')  # normalise '6mo'->'6m', '60d'->'60d'
+                limit = (180 if '6m' in p else
+                         90  if '3m' in p else
+                         60  if '60d' in p or '2m' in p else
+                         30  if '1m' in p else
+                         14  if '2w' in p or '5d' in p else
+                         7)
                 b_klines = fetch_binance_klines(symbol, '1d', limit)
                 if b_klines and len(b_klines) > 0:
                     prices = []

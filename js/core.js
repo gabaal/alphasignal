@@ -951,10 +951,10 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                         window._bbLowerSeries.setData(times.filter((_,i)=>bbs[i]).map((t,i)=>({ time: t, value: bbs.filter(Boolean)[i]?.lower })).filter(d=>d.value));
                     }
 
-                    // Draw AI Signal Markers on candles
+                    // Draw AI Signal Markers on candles — arrows only, no text labels
                     if (window._detailAlerts && window._detailAlerts.length > 0) {
                         // Group signals by closest candle time
-                        const markerMap = {}; // time -> [{direction, type}]
+                        const markerData = {}; // time -> [{direction, type, move_pct, outcome}]
                         window._detailAlerts.forEach(a => {
                             if (!a.entry_date) return;
                             const ts = Math.floor(new Date(a.entry_date).getTime() / 1000);
@@ -964,33 +964,73 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                                 if (diff < minDiff && diff < 86400 * 2) { minDiff = diff; closestTime = times[i]; }
                             }
                             if (closestTime) {
-                                if (!markerMap[closestTime]) markerMap[closestTime] = [];
-                                markerMap[closestTime].push(a);
+                                if (!markerData[closestTime]) markerData[closestTime] = [];
+                                markerData[closestTime].push(a);
                             }
                         });
 
-                        // Emit one marker per candle — no text if multiple signals, short label if solo
-                        const uniqueMarkers = Object.entries(markerMap).map(([t, signals]) => {
-                            const time = parseInt(t);
+                        // One arrow per candle, NO text property to keep chart clean
+                        const uniqueMarkers = Object.entries(markerData).map(([t, signals]) => {
+                            const time   = parseInt(t);
                             const longs  = signals.filter(s => s.direction === 'LONG').length;
                             const shorts = signals.filter(s => s.direction === 'SHORT').length;
-                            // Pick dominant direction
                             const isLong = longs >= shorts;
-                            const count  = signals.length;
-                            // Only show text label when there's exactly 1 signal and it has a readable type
-                            const label = count === 1
-                                ? (signals[0].type || '').replace(/_/g,' ').split(' ').slice(0,2).join(' ')
-                                : `×${count}`;
                             return {
                                 time,
                                 position: isLong ? 'belowBar' : 'aboveBar',
                                 color:    isLong ? '#22c55e' : '#ef4444',
                                 shape:    isLong ? 'arrowUp' : 'arrowDown',
-                                text:     label
+                                text:     ''   // no label — shown via hover tooltip below
                             };
                         }).sort((a, b) => a.time - b.time);
 
                         candleSeries.setMarkers(uniqueMarkers);
+
+                        // -- Hover tooltip: show signal info when crosshair is on a marker candle --
+                        let sigTip = document.getElementById('_lwSignalTip');
+                        if (!sigTip) {
+                            sigTip = document.createElement('div');
+                            sigTip.id = '_lwSignalTip';
+                            sigTip.style.cssText = [
+                                'position:fixed','z-index:9999','pointer-events:none',
+                                'background:rgba(10,12,18,0.95)','border:1px solid rgba(0,242,255,0.25)',
+                                'border-radius:7px','padding:8px 12px','font-size:0.65rem',
+                                'font-family:JetBrains Mono,monospace','color:#e2e8f0',
+                                'display:none','max-width:220px','line-height:1.6'
+                            ].join(';');
+                            document.body.appendChild(sigTip);
+                        }
+
+                        // Remove previous subscription if any
+                        if (window._lwSignalTipUnsub) { try { window._lwSignalTipUnsub(); } catch(e){} }
+                        window._lwSignalTipUnsub = lwChart.subscribeCrosshairMove(param => {
+                            if (!param || !param.time) { sigTip.style.display = 'none'; return; }
+                            const signals = markerData[param.time];
+                            if (!signals || signals.length === 0) { sigTip.style.display = 'none'; return; }
+
+                            const rows = signals.map(s => {
+                                const dir   = s.direction || 'LONG';
+                                const type  = (s.type || dir).replace(/_/g,' ');
+                                const roi   = s.move_pct != null ? (s.move_pct >= 0 ? '+' : '') + s.move_pct.toFixed(2) + '%' : '–';
+                                const out   = s.outcome  ? ` · <span style="color:${s.outcome==='WIN'?'#22c55e':'#ef4444'}">${s.outcome}</span>` : '';
+                                const col   = dir === 'SHORT' ? '#ef4444' : '#22c55e';
+                                return `<div style="border-left:2px solid ${col};padding-left:6px;margin-bottom:4px">
+                                    <span style="color:${col};font-weight:700">${dir}</span> ${type}<br>
+                                    <span style="color:#94a3b8">ROI: ${roi}</span>${out}
+                                </div>`;
+                            }).join('');
+
+                            const date = new Date(param.time * 1000).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+                            sigTip.innerHTML = `<div style="color:#00f2ff;font-weight:700;margin-bottom:6px;font-size:0.6rem;letter-spacing:1px">${date} · ${signals.length} SIGNAL${signals.length>1?'S':''}</div>${rows}`;
+                            sigTip.style.display = 'block';
+
+                            // Position near cursor
+                            const chartRect = chartEl.getBoundingClientRect();
+                            const x = (param.point?.x ?? 0) + chartRect.left + 12;
+                            const y = (param.point?.y ?? 0) + chartRect.top  - 10;
+                            sigTip.style.left = Math.min(x, window.innerWidth - 240) + 'px';
+                            sigTip.style.top  = Math.max(y - sigTip.offsetHeight, 4) + 'px';
+                        });
                     }
                 };
                 window.renderDetailOverlays();
