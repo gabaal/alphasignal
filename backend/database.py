@@ -141,15 +141,19 @@ class SupabaseClient:
 # ============================================================
 UNIVERSE = {
     'EXCHANGE': ['COIN', 'HOOD', 'VIRT', 'MARA'],
-    'MINERS':   ['RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT'],
+    'MINERS':   ['RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT',
+                 'BTBT', 'CIFR', 'BTDR'],                           # added: Bit Digital, Cipher, Bitdeer
     'PROXY':    ['MSTR'],
-    'ETF':      ['IBIT', 'FBTC', 'ARKB', 'BITO'],
-    'EQUITIES': ['NVDA', 'TSLA', 'PLTR', 'SMCI', 'AMD'],   # crypto-correlated tech
+    'TREASURY': ['SMLR', 'KULR', 'MIGI'],                          # BTC treasury companies
+    'ETF':      ['IBIT', 'FBTC', 'ARKB', 'BITO',
+                 'BITB', 'HODL', 'BTCO', 'EZBC'],                  # added: Bitwise, VanEck, Invesco, Franklin
+    'EQUITIES': ['NVDA', 'TSLA', 'PLTR', 'SMCI', 'AMD'],          # crypto-correlated tech
     'DEFI':     ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 'EIGEN-USD'],
     'L1':       ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD',
                  'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD',
                  'SEI-USD'],
-    'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD'],
+    'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD',
+                 'STX-USD', 'WBTC-USD'],                            # added: Stacks (BTC L2), Wrapped BTC
     'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD'],
     'STABLES':  ['USDC-USD', 'USDT-USD'],
     'MEMES':    ['DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD'],

@@ -19,11 +19,19 @@ async function renderLiquidityView(tabs = null) {
     };
 
     const cryptoUniverse = [
-        'BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'TON-USD', 'ATOM-USD', 
-        'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD', 'SEI-USD', 'OP-USD', 'ALGO-USD', 'STRK-USD', 
-        'FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD', 'DOGE-USD', 'BONK-USD', 'WIF-USD', 
-        'FLOKI-USD', 'AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 
-        'EIGEN-USD', 'PYTH-USD'
+        // L1
+        'BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'TON-USD', 'ATOM-USD',
+        'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD', 'SEI-USD',
+        // L2 & BTC layer
+        'OP-USD', 'ALGO-USD', 'STRK-USD', 'STX-USD', 'WBTC-USD',
+        // DeFi
+        'AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 'EIGEN-USD',
+        // AI
+        'FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD',
+        // Memes
+        'DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD',
+        // Other
+        'PYTH-USD'
     ];
 
     const tickerDropdownHTML = `
