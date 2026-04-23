@@ -153,9 +153,9 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     const plotW = rect.width  - PAD_LEFT - PAD_RIGHT;
     const plotH = rect.height - PAD_TOP  - PAD_BOTTOM;
 
-    // sentiment: -1.0 - +1.0  maps to  left - right (X axis)
+    // sentiment: -0.5 - +0.5  maps to  left - right (X axis)
     // momentum: expanded positive axis to prevent clustering
-    const SENT_RANGE = 1.0;   // clamp sentiment to +-1.0
+    const SENT_RANGE = 0.5;   // clamp sentiment to +-0.5
     const MOM_MAX = 10.0;     // expanded positive momentum axis
     const MOM_MIN = -5.0;     // baseline negative momentum
 
@@ -203,8 +203,8 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             ctx.moveTo(x, axisY);
             ctx.lineTo(x, axisY + TICK_LEN);
             ctx.stroke();
-            // label: sentiment -1.0 - +1.0
-            const val = ((i / TICK_COUNT_X) * 2 - 1).toFixed(1);
+            // label: sentiment -SENT_RANGE to +SENT_RANGE
+            const val = (((i / TICK_COUNT_X) * 2 - 1) * SENT_RANGE).toFixed(1);
             ctx.fillStyle = labelColor;
             ctx.textAlign = 'center';
             ctx.fillText((parseFloat(val) > 0 ? '+' : '') + val, x, axisY + TICK_LEN + 9);
