@@ -74,7 +74,7 @@ async function _renderAlgoParamsContent(tabs) {
                     <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.5; margin: 0;">
                         These parameters directly control the <strong>Alpha Signal Generation Engine</strong>. Signals that do not meet these thresholds will be completely discarded by the system and will not appear in your Signal Archive. 
                         <br/><br/>
-                        <em>Note: Notification thresholds (Discord/Telegram) are managed separately in your <a href="javascript:void(0)" onclick="showNotificationSettings(true)" style="color: var(--accent); text-decoration: underline;">Notification Settings</a>.</em>
+                        <em>Note: Notification thresholds (Discord/Telegram) are managed separately in your <a href="javascript:void(0)" onclick="switchView('alerts-hub')" style="color: var(--accent); text-decoration: underline;">Notification Settings</a>.</em>
                     </p>
                 </div>
 
