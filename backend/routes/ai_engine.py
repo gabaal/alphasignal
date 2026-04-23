@@ -115,7 +115,7 @@ class AIEngineRoutesMixin:
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/event-stream')
                 self.send_header('Cache-Control', 'no-cache')
-                self.send_header('Connection', 'keep-alive')
+                self.send_header('X-Accel-Buffering', 'no')
                 origin = self.headers.get('Origin', '')
                 cors_origin = origin if origin in {'https://alphasignal.digital', 'https://www.alphasignal.digital', 'http://localhost:8006', 'http://127.0.0.1:8006'} else 'https://alphasignal.digital'
                 self.send_header('Access-Control-Allow-Origin', cors_origin)
@@ -209,7 +209,7 @@ class AIEngineRoutesMixin:
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/event-stream')
                 self.send_header('Cache-Control', 'no-cache')
-                self.send_header('Connection', 'keep-alive')
+                self.send_header('X-Accel-Buffering', 'no')
                 origin = self.headers.get('Origin', '')
                 cors_origin = origin if origin in {'https://alphasignal.digital', 'https://www.alphasignal.digital', 'http://localhost:8006', 'http://127.0.0.1:8006'} else 'https://alphasignal.digital'
                 self.send_header('Access-Control-Allow-Origin', cors_origin)
@@ -338,7 +338,7 @@ class AIEngineRoutesMixin:
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/event-stream')
                 self.send_header('Cache-Control', 'no-cache')
-                self.send_header('Connection', 'keep-alive')
+                self.send_header('X-Accel-Buffering', 'no')
                 origin = self.headers.get('Origin', '')
                 cors_origin = origin if origin in {'https://alphasignal.digital', 'https://www.alphasignal.digital', 'http://localhost:8006', 'http://127.0.0.1:8006'} else 'https://alphasignal.digital'
                 self.send_header('Access-Control-Allow-Origin', cors_origin)
@@ -726,7 +726,7 @@ class AIEngineRoutesMixin:
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/event-stream')
                 self.send_header('Cache-Control', 'no-cache')
-                self.send_header('Connection', 'keep-alive')
+                self.send_header('X-Accel-Buffering', 'no')
                 # Access-Control matching from router
                 origin = self.headers.get('Origin', '')
                 cors_origin = origin if origin in {'https://alphasignal.digital', 'https://www.alphasignal.digital', 'http://localhost:8006', 'http://127.0.0.1:8006'} else 'https://alphasignal.digital'
