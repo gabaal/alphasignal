@@ -1072,18 +1072,18 @@ async function renderSignalArchive(tabs = null) {
           </div>`;
 
         function buildThead() {
-            function aTH(col, label, align='left') {
+            function aTH(col, label, align='left', extraStyle='') {
                 const isServer = SERVER_SORT_COLS.has(col);
                 const active = sortCol === col;
                 const ind = active ? (sortDir === 'asc' ? ' -' : ' -') : (isServer ? ' <span style="opacity:0.3;font-size:0.7em">-</span>' : ' <span style="opacity:0.25;font-size:0.65em" title="Sorts current page only">-*</span>');
                 const color = active ? 'var(--accent)' : 'var(--text-dim)';
-                return `<th style="text-align:${align};padding:8px 12px;cursor:pointer;user-select:none;color:${color};white-space:nowrap;transition:color 0.15s" onclick="window._archiveSort('${col}')">${label}${ind}</th>`;
+                return `<th style="text-align:${align};padding:8px 12px;cursor:pointer;user-select:none;color:${color};white-space:nowrap;transition:color 0.15s;${extraStyle}" onclick="window._archiveSort('${col}')">${label}${ind}</th>`;
             }
             return `
-                ${aTH('ticker','TICKER','left')}
-                ${aTH('type','TYPE','left')}
-                ${aTH('direction','ACTION','center')}
-                ${aTH('severity','SEV','center')}
+                ${aTH('ticker','TICKER','left', 'width:1%')}
+                ${aTH('type','TYPE','left', 'width:1%')}
+                ${aTH('direction','ACTION','center', 'width:1%')}
+                ${aTH('severity','SEV','center', 'width:1%')}
                 ${aTH('entry','ENTRY','right')}
                 ${aTH('current','CURRENT','right')}
                 ${aTH('return','RETURN','right')}
