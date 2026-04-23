@@ -155,7 +155,6 @@ UNIVERSE = {
     'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD',
                  'STX-USD', 'WBTC-USD'],                            # added: Stacks (BTC L2), Wrapped BTC
     'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD'],
-    'STABLES':  ['USDC-USD', 'USDT-USD'],
     'MEMES':    ['DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD'],
     'PYTH':     ['PYTH-USD'],
 }
