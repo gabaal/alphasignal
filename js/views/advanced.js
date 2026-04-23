@@ -1488,6 +1488,9 @@ function injectAIChartTranslator(containerElement, chartType, dataExtractorCallb
     if (!containerElement) return;
     const hookId = `ai-hook-${chartType}`;
     
+    // Always update the callback so dynamic data (like swapping coins) works
+    window[`_aiTranslator_${chartType}`] = dataExtractorCallback;
+    
     if (document.getElementById(`${hookId}-btn`)) return;
 
     const uiStr = `
@@ -1513,7 +1516,7 @@ function injectAIChartTranslator(containerElement, chartType, dataExtractorCallb
             box.style.display = 'block';
             box.innerHTML = `<div class="skeleton-card" style="height:60px"></div>`;
             try {
-                const dataPayload = await dataExtractorCallback();
+                const dataPayload = await window[`_aiTranslator_${chartType}`]();
                 const resp = await fetchAPI('/explain-chart', 'POST', {
                     chart_type: chartType,
                     data: dataPayload
