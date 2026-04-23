@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CV9HHEVQF5"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-CV9HHEVQF5');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Trendlines and Channels - AlphaSignal Quant Academy</title>
+    <meta name="description" content="Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.">
+    <meta name="keywords" content="AlphaSignal, Alpha Signal, alphasignal.digital, alpha signal terminal, alphasignal crypto, alpha signals, bitcoin trading signals, crypto trading signals, bitcoin signals, trading terminal, institutional crypto terminal, bitcoin analytics, crypto intelligence, crypto AI terminal, on-chain analytics, MVRV Z-Score, SOPR, Puell Multiple, NVT ratio, strategy backtester, TradingView integration, whale tracker, whale pulse, options flow scanner, Z-score signals, portfolio optimizer, crypto dashboard, real-time market intelligence, DeFi analytics, ETF flows, bitcoin spot ETF flows, BlackRock IBIT, Fidelity FBTC, crypto signals, market regime classifier, liquidation scanner, CME gap tracker, sector rotation, macro calendar, FOMC BTC impact, signal leaderboard, signal archive, narrative galaxy, order flow GOMM, liquidity dashboard, institutional trading, crypto alpha, trading signals, bitcoin intelligence, defi yield lab, token unlock tracker, stress test portfolio, Value at Risk crypto, cumulative volume delta CVD, volume profile crypto">
+    <meta name="author" content="AlphaSignal">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="rating" content="general">
+    <base href="/">
+    
+
+    <!-- DNS prefetch + preconnect for CDN performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://js.stripe.com">
+    <link rel="dns-prefetch" href="https://s3.tradingview.com">
+    <link rel="dns-prefetch" href="https://d3js.org">
+    <!-- LCP preload: hero image fetched at HTML parse time, not after JS renders -->
+    <link rel="preload" as="image" href="terminal_interface_mockup.png" fetchpriority="high">
+
+    <!-- PWA / Mobile -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AlphaSignal">
+    <meta name="theme-color" content="#05070a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="/icon-512.png">
+
+    <!-- Open Graph -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <!-- Twitter / X -->
+    
+    
+    
+    
+    
+    
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AlphaSignal Terminal",
+      "alternateName": ["Alpha Signal", "AlphaSignal", "alphasignal.digital"],
+      "operatingSystem": "Web, iOS (PWA), Android (PWA)",
+      "applicationCategory": "FinanceApplication",
+      "applicationSubCategory": "Cryptocurrency Trading Tools",
+      "offers": {
+        "@type": "Offer",
+        "price": "7.99",
+        "priceCurrency": "USD",
+        "priceValidUntil": "2027-12-31",
+        "availability": "https://schema.org/InStock",
+        "url": "https://alphasignal.digital/"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "412",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "description": "AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.",
+      "url": "https://alphasignal.digital/",
+      "screenshot": "https://alphasignal.digital/assets/social-preview.png",
+      "featureList": "Live Bitcoin Trading Signals, Alpha Signal Intelligence, AI Daily Market Briefing, Options Flow Scanner (Deribit), Whale Pulse Tracker, On-Chain Analytics MVRV SOPR, Signal Backtester V2, TradingView Professional Charts, AI Portfolio Optimiser, Strategy Lab, Macro Event Calendar, Token Unlock Schedule, DeFi Yield Lab, Trade Idea Lab, Institutional Trade Ledger, Sector Rotation Tracker, CME Gap Analysis, Liquidation Cascade Scanner, ETF Flow Monitor, Market Regime Classifier"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AlphaSignal",
+      "alternateName": "Alpha Signal Terminal",
+      "url": "https://alphasignal.digital/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://alphasignal.digital/?view=signals&q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AlphaSignal",
+      "url": "https://alphasignal.digital/",
+      "logo": "https://alphasignal.digital/assets/pwa-icon-512.png",
+      "sameAs": [
+        "https://twitter.com/alphasignalai",
+        "https://t.me/alphasignalbot_bot"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "url": "https://alphasignal.digital/?view=help"
+      }
+    }
+    </script>
+    <script type="application/ld+json" id="ld-json-dynamic">{ }</script>
+
+    <style id="critical-css">
+/* Critical CSS - top-level rules only */
+:root { /* == Core backgrounds ============================================== */ --bg-deep: #090c14; --bg-body: #090c14; --bg-card: rgba(255,255,255,0.04); --bg-sidebar: rgba(9,12,20,0.92); --bg-modal: #0d1117; --bg-input: rgba(0,0,0,0.3); /* == Surfaces / Glass ============================================== */ --glass: rgba(255,255,255,0.04); --surface-1: rgba(255,255,255,0.04); --surface-2: rgba(255,255,255,0.07); /* == Accent ======================================================== */ --accent: #7dd3fc; --accent-glow: rgba(125,211,252,0.15); /* == Risk / Status ================================================= */ --risk-high: #f87171; --risk-med: #fb923c; --risk-low: #4ade80; /* == Text ========================================================== */ --text-main: #e2e8f0; --text-dim: #94a3b8; --text: var(--text-main); /* == On-colour text (text placed ON a coloured surface) ============ */ --on-accent: #000; --on-accent-inv: #fff; --btn-text: rgb(121, 204, 244); /* text on gradient CTA buttons */ /* == Border and Shadow ============================================= */ --border: rgba(255,255,255,0.08); --shadow-color: rgba(0,0,0,0.5); /* == Purple secondary accent ======================================= */ --purple: #8b5cf6; --purple-glow: rgba(139,92,246,0.15); /* == Aliases ======================================================= */ --card-bg: var(--bg-card); /* == Layout ======================================================== */ --sidebar-w: 260px; /* == Market regime colours ========================================= */ --regime-accumulation: #818cf8; --regime-trending: #7dd3fc; --regime-distribution: #fb923c; --regime-volatile: #f87171; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.hidden { display: none !important; }
+body { font-family: 'Outfit', sans-serif; background: var(--bg-body); color: var(--text-main); }
+h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 700; }
+.material-symbols-outlined { vertical-align: middle; display: inline-flex; justify-content: center; align-items: center; line-height: 1; }
+select { background-color: #0d1117; color: var(--text-main); } option { background-color: #0d1117; color: var(--text-main); }
+/* Layout */ .layout { display: flex; min-height: 100vh; width: 100%; overflow: hidden; }
+.sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); border-right: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px); padding: 1.5rem; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; z-index: 1000; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.content { flex: 1; min-width: 0; padding: 2rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.layout.collapsed .sidebar { width: 0; padding: 0; opacity: 0; pointer-events: none; }
+.layout.collapsed .content { margin-left: 0; }
+/* Brand */ .brand { display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; padding: 0.5rem 0; }
+.logo-orb { width: 32px; height: 32px; background: radial-gradient(135deg, rgba(125,211,252,0.6), rgba(99,102,241,0.4)); border-radius: 50%; border: 1px solid rgba(125,211,252,0.3); }
+.brand-title { font-size: 1.5rem; font-weight: 900; }
+.brand-title span { color: var(--accent); }
+a.nav-item { text-decoration: none; }
+.nav-item { padding: 0.5rem 0.8rem; margin-bottom: 0.2rem; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.6rem; color: var(--text-dim); font-size: 0.85rem; }
+.nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+.nav-item.active { background: rgba(125, 211, 252, 0.1); color: var(--accent); font-weight: 600; border-left: none; border-radius: 8px; }
+/* Top Bar Base */ .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.07); position: relative; z-index: 500; overflow: visible; }
+/* Top Bar Actions & Groups */ .top-bar-actions { display: flex; align-items: center; gap: 1rem; }
+.action-group { display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.02); padding: 2px 4px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
+/* Styled Action Buttons */ .action-btn-styled { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Outfit', sans-serif; position: relative; /* Anchor for internal absolute elements if needed */ }
+.action-btn-styled:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--text-dim); transform: translateY(-1.5px); }
+.action-btn-styled:active { transform: translateY(0); }
+.heatmap-sector h3 { font-size: 0.8rem; color: var(--accent); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
+.auth-header h2 { font-family: 'Outfit'; font-size: 1.8rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 0.5rem; }
+.auth-header h2 span { color: var(--accent); font-weight: 400; opacity: 0.8; }
+.paywall-header h2 span { color: var(--accent); }
+/* User Profile Card */ .user-profile-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 16px; padding: 1.2rem; margin-top: auto; margin-bottom: 2rem; transition: 0.3s; position: relative; cursor: pointer; }
+.user-profile-card:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(125, 211, 252, 0.3); }
+.hero-section h1 { font-size: 5rem; font-weight: 950; margin-bottom: 1.5rem; line-height: 0.95; letter-spacing: -3px; position: relative; z-index: 1; }
+.hero-section h1 span { background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.f-card h3 { font-size: 1.25rem; margin-bottom: 1rem; color: var(--accent); font-weight: 800; letter-spacing: 1px; }
+.section-title-wrap h2 { font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.faq-section h2 { font-size: 2.5rem; background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.seo-content-extra div h2 { position: relative; padding-bottom: 0.5rem; }
+.seo-content-extra div h2::after { content: ''; position: absolute; bottom: 0; left: 0; width: 40px; height: 2px; background: var(--accent); }
+.strat-select option { background: #0d1117; color: var(--text-main); padding: 10px; }
+.locked-nav .material-symbols-outlined:not(.premium-lock) { filter: grayscale(1) opacity(0.5); }
+/* Phase 15-D placeholder */ /* Phase 15-D: Mobile / PWA Polish */ * { -webkit-overflow-scrolling: touch; }
+button, .intel-action-btn, .nav-item, .signal-card, .glass-card, .hub-tabs button { touch-action: manipulation; }
+/* =================================================== HEADING HIERARCHY - Consistent across all views H1 = View/page title (one per view) H2 = Major chart / section heading within a view H3 = Panel / card / metric label within a section =================================================== */ /* View title: always styled as terminal header */ .view-header h1, .landing-page h1, h1 { font-size: clamp(1.2rem, 2.5vw, 1.8rem); font-weight: 900; letter-spacing: -0.5px; color: var(--text); margin: 0; line-height: 1.2; }
+/* Section headings: chart titles, data panel labels */ h2 { font-size: clamp(0.85rem, 1.5vw, 1.1rem); font-weight: 800; letter-spacing: 0.5px; color: var(--text); margin-top: 0; margin-bottom: 1rem; }
+/* Inside view-header, h2 used for sub-title line */ .view-header h2 { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); letter-spacing: 1px; }
+/* Card / panel headings */ h3 { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-top: 0; margin-bottom: 0.5rem; }
+.auth-eye-btn .material-symbols-outlined { font-size: 1rem; }
+.trust-item .material-symbols-outlined { font-size: 0.85rem; }
+/* === v1.65 DE-AI STRUCTURAL OVERRIDES === */ body, .nav-item, button, select, input, .brand-title, h1, h2, h3 { font-family: 'Inter', system-ui, -apple-system, sans-serif !important; }
+/* Headings: lighter weight, tighter tracking */ h1 { font-weight: 600 !important; letter-spacing: -0.025em; }
+h2 { font-weight: 500 !important; letter-spacing: -0.015em; }
+/* Nav items: normal weight, no forced caps */ a.nav-item { text-decoration: none; }
+.nav-item { font-size: 0.82rem !important; font-weight: 400 !important; letter-spacing: 0 !important; }
+.top-bar { padding: 0.55rem 1.25rem !important; }
+/* Body: subtle top radial depth */ body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 300px; background: radial-gradient(ellipse 80% 100% at 50% -20%, rgba(99,102,241,0.05) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+/* ============================================================ GLASSMORPHISM OVERHAUL - AlphaSignal v1.7 Deep frosted glass, luminous borders, layered depth ============================================================ */ /* -- Background: richer deep navy with subtle nebula glow -- */ body { background: radial-gradient(ellipse 120% 80% at 10% -10%, rgba(14,18,40,1) 0%, #050710 60%, #020408 100%) !important; }
+/* Animated ambient orbs behind everything */ body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 600px 500px at 15% 20%, rgba(125,211,252,0.045) 0%, transparent 70%), radial-gradient(ellipse 500px 400px at 85% 75%, rgba(99,102,241,0.055) 0%, transparent 70%), radial-gradient(ellipse 400px 350px at 50% 50%, rgba(188,19,254,0.025) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+/* -- Root variable upgrades -- */ :root { /* == Core backgrounds ============================================== */ --bg-deep: #090c14; --bg-body: #090c14; --bg-card: rgba(255,255,255,0.04); --bg-sidebar: rgba(9,12,20,0.92); --bg-modal: #0d1117; --bg-input: rgba(0,0,0,0.3); /* == Surfaces / Glass ============================================== */ --glass: rgba(255,255,255,0.04); --surface-1: rgba(255,255,255,0.04); --surface-2: rgba(255,255,255,0.07); /* == Accent ======================================================== */ --accent: #7dd3fc; --accent-glow: rgba(125,211,252,0.15); /* == Risk / Status ================================================= */ --risk-high: #f87171; --risk-med: #fb923c; --risk-low: #4ade80; /* == Text ========================================================== */ --text-main: #e2e8f0; --text-dim: #94a3b8; --text: var(--text-main); /* == On-colour text (text placed ON a coloured surface) ============ */ --on-accent: #000; --on-accent-inv: #fff; --btn-text: rgb(121, 204, 244); /* text on gradient CTA buttons */ /* == Border and Shadow ============================================= */ --border: rgba(255,255,255,0.08); --shadow-color: rgba(0,0,0,0.5); /* == Purple secondary accent ======================================= */ --purple: #8b5cf6; --purple-glow: rgba(139,92,246,0.15); /* == Aliases ======================================================= */ --card-bg: var(--bg-card); /* == Layout ======================================================== */ --sidebar-w: 260px; /* == Market regime colours ========================================= */ --regime-accumulation: #818cf8; --regime-trending: #7dd3fc; --regime-distribution: #fb923c; --regime-volatile: #f87171; }
+/* -- Sidebar: deep frosted glass -- */ .sidebar { background: rgba(4,6,18,0.72) !important; backdrop-filter: blur(48px) saturate(180%) !important; -webkit-backdrop-filter: blur(48px) saturate(180%) !important; border-right: 1px solid rgba(125,211,252,0.08) !important; box-shadow: 4px 0 40px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.04) !important; }
+/* Sidebar inner glow top */ .sidebar::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 200px; background: radial-gradient(ellipse at top, rgba(125,211,252,0.06), transparent 70%); pointer-events: none; }
+/* -- Top bar: heavy frosted glass -- */ .top-bar { background: rgba(4,6,18,0.65) !important; backdrop-filter: blur(40px) saturate(180%) !important; -webkit-backdrop-filter: blur(40px) saturate(180%) !important; border: 1px solid rgba(255,255,255,0.09) !important; border-top-color: rgba(255,255,255,0.14) !important; box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07) !important; }
+/* -- Nav active state: glowing pill -- */ .nav-item.active { background: rgba(125,211,252,0.10) !important; border-left: 2px solid var(--accent) !important; box-shadow: inset 0 0 20px rgba(125,211,252,0.06) !important; }
+/* -- Input fields and selects: glass inputs -- */ input, select, textarea { background: rgba(255,255,255,0.05) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.10) !important; transition: border-color 0.2s, box-shadow 0.2s !important; }
+input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40) !important; box-shadow: 0 0 0 3px rgba(125,211,252,0.10), inset 0 1px 0 rgba(255,255,255,0.05) !important; outline: none !important; }
+/* -- Buttons: frosted glass pill -- */ .intel-action-btn, .action-btn-styled, .tf-btn { background: rgba(255,255,255,0.06) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.12) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08) !important; transition: all 0.2s ease !important; }
+.tf-btn.active { background: var(--accent) !important; color: var(--on-accent) !important; font-weight: 900 !important; }
+/* -- User Profile Dropdown: less transparent -- */ .profile-actions.dropdown-menu { background: var(--bg-body) !important; border: 1px solid rgba(255,255,255,0.15) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.8) !important; } 
+[data-theme="light"] .profile-actions.dropdown-menu { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.1) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important; }
+.intel-action-btn:hover, .action-btn-styled:hover { background: rgba(255,255,255,0.10) !important; border-color: rgba(125,211,252,0.30) !important; box-shadow: 0 0 16px rgba(125,211,252,0.10), inset 0 1px 0 rgba(255,255,255,0.12) !important; }
+/* ============================================================ SIDEBAR GLASSMORPHISM - Premium Frosted Glass Sidebar ============================================================ */ /* Reset sidebar to true glass */ .sidebar { background: rgba(6, 8, 20, 0.55) !important; backdrop-filter: blur(60px) saturate(200%) brightness(1.1) !important; -webkit-backdrop-filter: blur(60px) saturate(200%) brightness(1.1) !important; border-right: 1px solid rgba(125,211,252,0.10) !important; box-shadow: 4px 0 60px rgba(0,0,0,0.6), inset -1px 0 0 rgba(255,255,255,0.05), inset 1px 0 0 rgba(255,255,255,0.02) !important; position: relative !important; }
+/* Ambient glow bands inside the sidebar */ .sidebar::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 180px 300px at 50% 0%, rgba(125,211,252,0.08) 0%, transparent 70%), radial-gradient(ellipse 160px 200px at 30% 85%, rgba(99,102,241,0.06) 0%, transparent 70%), linear-gradient(180deg, rgba(125,211,252,0.025) 0%, transparent 30%, rgba(99,102,241,0.02) 100%); pointer-events: none; z-index: 0; }
+/* Sidebar content above pseudo-elements */ .sidebar > * { position: relative; z-index: 1; }
+/* Brand logo orb - glowing glass sphere */ .logo-orb { width: 34px !important; height: 34px !important; background: radial-gradient(circle at 35% 35%, rgba(125,211,252,0.9), rgba(99,102,241,0.6)) !important; border-radius: 50% !important; border: 1px solid rgba(125,211,252,0.4) !important; box-shadow: 0 0 20px rgba(125,211,252,0.35), 0 0 60px rgba(125,211,252,0.15), inset 0 1px 0 rgba(255,255,255,0.4) !important; }
+/* Section labels */ .sidebar .nav-section-label, .sidebar [style*="letter-spacing"][style*="font-size:0.6"] { color: rgba(125,211,252,0.5) !important; letter-spacing: 2.5px !important; }
+/* Nav items: glass pill on hover and active */ a.nav-item { text-decoration: none; }
+.nav-item { border-radius: 10px !important; transition: all 0.2s ease !important; border: 1px solid transparent !important; position: relative !important; }
+/* Active indicator - glowing left accent line */ .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 2px; background: linear-gradient(180deg, rgba(125,211,252,0) 0%, var(--accent) 50%, rgba(125,211,252,0) 100%); border-radius: 0 2px 2px 0; box-shadow: 0 0 8px rgba(125,211,252,0.6), 0 0 20px rgba(125,211,252,0.3); }
+/* Hub section separators: frosted divider */ .sidebar hr, .sidebar [style*="border-top"] { border-color: rgba(255,255,255,0.06) !important; }
+/* Section header labels in sidebar */ .sidebar .nav-section { font-size: 0.58rem !important; letter-spacing: 2px; color: rgba(125,211,252,0.40) !important; padding: 0.8rem 0.8rem 0.3rem !important; text-transform: uppercase; }
+/* User account card at bottom: glass pill */ .sidebar [class*="user"], .sidebar [style*="border-radius:12px"][style*="background"] { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.09) !important; border-top-color: rgba(255,255,255,0.14) !important; backdrop-filter: blur(16px) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07) !important; }
+/* Fear & Greed at bottom: glowing glass badge */ .sidebar [style*="FEAR"] { text-shadow: 0 0 12px currentColor !important; }
+/* Sidebar scrollbar: accent-tinted */ .sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(125,211,252,0.20) !important; border-radius: 4px !important; }
+.sidebar::-webkit-scrollbar-track { background: transparent !important; }
+/* Light mode overrides for elements with hardcoded dark colours */ [data-theme="light"] body { background: var(--bg-body) !important; }
+[data-theme="light"] .sidebar { background: rgba(240,244,248,0.97) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border-right-color: rgba(0,0,0,0.08); box-shadow: 2px 0 20px rgba(0,0,0,0.06); }
+[data-theme="light"] .nav-item:hover { background: rgba(0,0,0,0.05); }
+[data-theme="light"] .nav-item.active { background: rgba(14,165,233,0.12); }
+[data-theme="light"] .top-bar { background: rgba(255,255,255,0.95) !important; border: 1px solid transparent !important; border-bottom: 1px solid rgba(0,0,0,0.1) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .overlay { background: rgba(255,255,255,0.85) !important; }
+[data-theme="light"] .overlay-content { background: rgba(255,255,255,0.98) !important; border: 1px solid rgba(0,0,0,0.1) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.1) !important; }
+[data-theme="light"] .cat-card, [data-theme="light"] .stat-box, [data-theme="light"] .deriv-box { background: rgba(0,0,0,0.03) !important; border-color: rgba(0,0,0,0.08) !important; }
+[data-theme="light"] .news-card, [data-theme="light"] .radar-panel, [data-theme="light"] .ticker-narrative-box { background: rgba(0,0,0,0.02) !important; border-color: rgba(0,0,0,0.1) !important; }
+[data-theme="light"] .toast { background: rgba(255,255,255,0.95) !important; color: #000 !important; border-color: rgba(0,0,0,0.1) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.1) !important; }
+[data-theme="light"] .toast-title { color: #000 !important; }
+[data-theme="light"] .toast-body, [data-theme="light"] .toast-body * { color: rgba(0,0,0,0.7) !important; }
+[data-theme="light"] select, [data-theme="light"] option { background-color: rgba(0,0,0,0.05) !important; color: #000 !important; }
+[data-theme="light"] input { background-color: rgba(0,0,0,0.02) !important; color: #000 !important; }
+[data-theme="light"] body::before, [data-theme="light"] body::after { display: none !important; }
+[data-theme="light"] .sidebar::before { display: none !important; }
+[data-theme="light"] .nav-item.active::before { background: var(--accent) !important; box-shadow: 0 0 8px rgba(14,165,233,0.4) !important; }
+@keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+@keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+@keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+</style>
+    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"></noscript>
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
+    <!-- Sentry: Frontend error monitoring -->
+    <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+        if (window.Sentry) {
+            Sentry.init({
+                dsn: "https://9b6ec670f830eb849a3f32fd79c09c70@o4508024362303488.ingest.de.sentry.io/4511258304905296",
+                tracesSampleRate: 0.05,
+                environment: 'production',
+                ignoreErrors: [
+                    'ResizeObserver loop limit exceeded',
+                    'Non-Error promise rejection captured',
+                    /^Network Error/,
+                    /^Load failed/
+                ]
+            });
+        }
+    </script>
+    <!-- Supabase JS client (for forgot-password / reset-password flows) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- NOTE: D3 and jsPDF loaded once in body with defer. No duplicates here. -->
+    <script>
+        window._supabase = supabase.createClient(
+            'https://rrfcjvpflbwtxlhkpooz.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZmNqdnBmbGJ3dHhsaGtwb296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NjYxMTksImV4cCI6MjA4OTI0MjExOX0.H_JJDYt9OsYR7CQfUAs6JeYACUFtMbWlWzEKN3aFNQc'
+        );
+    </script>
+
+    <!-- Chart.js, lightweight-charts, html2canvas, jsPDF - loaded non-blocking with defer in body below -->
+
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AlphaSignal Quant Academy">
+    <meta property="og:url" content="https://alphasignal.digital/academy/trendlines-and-channels">
+    <meta property="og:title" content="Trendlines and Channels - AlphaSignal Quant Academy">
+    <meta property="og:description" content="Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.">
+    <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@alphasignalai">
+    <meta property="twitter:url" content="https://alphasignal.digital/academy/trendlines-and-channels">
+    <meta property="twitter:title" content="Trendlines and Channels - AlphaSignal Quant Academy">
+    <meta property="twitter:description" content="Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.">
+    <meta property="twitter:image" content="https://alphasignal.digital/assets/social-preview.png">
+    <link rel="canonical" href="https://alphasignal.digital/academy/trendlines-and-channels">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Trendlines and Channels",
+      "description": "Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.",
+      "url": "https://alphasignal.digital/academy/trendlines-and-channels",
+      "datePublished": "2026-04-23",
+      "dateModified": "2026-04-23",
+      "author": {"@type": "Organization", "name": "AlphaSignal", "url": "https://alphasignal.digital/"},
+      "publisher": {
+        "@type": "Organization",
+        "name": "AlphaSignal",
+        "logo": {"@type": "ImageObject", "url": "https://alphasignal.digital/assets/pwa-icon-512.png"}
+      },
+      "image": "https://alphasignal.digital/assets/social-preview.png",
+      "mainEntityOfPage": {"@type": "WebPage", "@id": "https://alphasignal.digital/academy/trendlines-and-channels"},
+      "keywords": "crypto trading, bitcoin, quantitative trading, AlphaSignal, Trendlines and Channels",
+      "articleSection": "Quant Academy"
+    }
+    </script>
+        <style>
+            .academy-article-dynamic h2 { font-size: 2rem; color: #fff; margin: 3rem 0 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem; font-weight:800; letter-spacing:-0.5px;}
+            .academy-article-dynamic h3 { font-size: 1.4rem; color: #fff; margin: 2.5rem 0 1rem; font-weight:700;}
+            .academy-article-dynamic p { margin-bottom: 1.5rem; }
+            .academy-article-dynamic strong { color: var(--accent); }
+            .academy-article-dynamic ul, .academy-article-dynamic ol { padding-left: 1.8rem; margin-bottom: 1.5rem; }
+            .academy-article-dynamic li { margin-bottom: 0.5rem; }
+        </style>
+        
+</head>
+<body class="cyber-theme">
+    <!-- APP LOADER - 
+         - Visible immediately at HTML parse time - gives FCP at ~335ms      -
+         - before any JS runs. Dismissed by showAuth() in auth.js.           -
+         -->
+    <div id="app-loader" aria-hidden="true" style="
+        position:fixed;inset:0;z-index:99999;
+        background:radial-gradient(ellipse 120% 80% at 10% -10%,rgba(14,18,40,1) 0%,#050710 60%,#020408 100%);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        transition:opacity 0.35s ease;pointer-events:none;">
+        <div style="text-align:center;user-select:none;">
+            <div style="font-size:2rem;font-weight:900;letter-spacing:-1px;color:#e2e8f0;margin-bottom:1.75rem;line-height:1;">
+                Alpha<span style="color:#7dd3fc;">Signal</span>
+            </div>
+            <div style="width:28px;height:28px;border:2px solid rgba(125,211,252,0.18);border-top-color:#7dd3fc;border-radius:50%;animation:_ld-spin 0.75s linear infinite;margin:0 auto 1rem;"></div>
+            <div style="font-size:0.62rem;color:#64748b;letter-spacing:2.5px;font-weight:700;">INITIALIZING</div>
+        </div>
+    </div>
+    <style>@keyframes _ld-spin{to{transform:rotate(360deg)}}</style>
+    <div class="layout hidden" id="main-layout">
+<a href="#app-view" class="skip-link" style="position:absolute;top:-40px;left:0;background:#7dd3fc;color:#000;padding:6px 12px;z-index:9999;font-size:0.75rem;font-weight:700;letter-spacing:1px;transition:top 0.2s;text-decoration:none;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
+        <aside class="sidebar" id="sidebar" role="complementary" aria-label="Main Navigation">
+            <div class="brand" onclick="switchView('home')" style="cursor:pointer; justify-content: center; padding: 1rem 0;" role="link" aria-label="Go to Home">
+                <div class="brand-title">Alpha<span>Signal</span></div>
+            </div>
+            
+
+            <nav class="sidebar-nav" role="navigation">
+                <!-- [ TOP LEVEL ] -->
+                <div class="nav-item active" data-view="command-center" aria-label="View Dashboard">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">dashboard</span> Dashboard
+                </div>
+                <div class="nav-item" data-view="signals" aria-label="View Signals">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">radar</span> Live Signals
+                </div>
+
+                <!-- [ INSTITUTIONAL WORKFLOW ] -->
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INSTITUTIONAL WORKFLOW</div>
+
+                <div class="nav-item" data-view="macro-hub" aria-label="View Macro Intelligence">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">monitoring</span> Macro Intelligence
+                </div>
+                <div class="nav-item" data-view="analytics-hub" aria-label="View Market Analytics (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">analytics</span> Market Analytics
+                </div>
+                <div class="nav-item" data-view="liquidity" aria-label="View Liquidity & Order Flow (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">bar_chart</span> Liquidity & Order Flow
+                </div>
+                <div class="nav-item" data-view="alpha-hub" aria-label="View Strategy & Backtester (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">electric_bolt</span> Strategy & Backtester
+                </div>
+                <div class="nav-item" data-view="institutional-hub" aria-label="View Portfolio & Risk (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">key</span> Portfolio & Risk
+                </div>
+                <div class="nav-item" data-view="audit-hub" aria-label="View Trade Ledger Audit (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">trending_up</span> Trade Ledger Audit
+                </div>
+
+                <!-- [ EXECUTION & AUTOMATION ] -->
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">EXECUTION & AUTOMATION</div>
+                
+                <div class="nav-item" data-view="my-terminal" aria-label="Active Positions - Manual Tracking">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">person</span> Active Positions
+                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(0,242,255,0.15);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PERSONAL</span>
+                </div>
+                <div class="nav-item" data-view="algo-hub" aria-label="Manage Live Algo Builder (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Live Algo Builder
+                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
+                </div>
+                <div class="nav-item" data-view="alerts-hub" aria-label="Alerts Hub - Live Alerts, Price Alerts, Leaderboard, Webhooks">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">notifications_active</span> Alerts & Webhooks
+                    <span class="alert-badge" id="alert-badge" style="display:none" aria-label="Active Alerts Count">0</span>
+                    <span id="alerts-nav-live-dot" class="live-dot" style="display:none;margin-left:4px"></span>
+                </div>
+                <div class="nav-item" data-view="exchange-keys" aria-label="Manage Exchange Connections (Premium)">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">api</span> Exchange Connections
+                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
+                </div>
+
+                <!-- [ SYSTEM ] -->
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">SYSTEM</div>
+
+                <div class="nav-item" data-view="ask-terminal" aria-label="Ask the Terminal AI">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Ask Terminal <span class="premium-badge" style="font-size:0.5rem;background:#bc13fe;color:black;padding:1px 5px;border-radius:4px;margin-left:2px">AI</span>
+                </div>
+                <div class="nav-item" data-view="help" aria-label="View Help Documentation" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">help</span> Help / Docs
+                </div>
+            </nav>
+
+            <div class="user-profile-card profile-dropdown" id="user-profile-dropdown" aria-haspopup="true" aria-expanded="false">
+                <div class="profile-header dropdown-trigger">
+                    <div class="user-avatar">
+                        <span id="user-initials">IU</span>
+                    </div>
+                    <div class="user-details">
+                        <span id="display-user-email">Institutional User</span>
+                        <div id="user-tier-badge" class="tier-badge free">FREE TIER</div>
+                    </div>
+                    <span class="material-symbols-outlined dropdown-caret">expand_more</span>
+                </div>
+                <div class="profile-actions dropdown-menu">
+                    <button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()" aria-label="Manage Billing and Subscription">
+                        <span class="btn-icon material-symbols-outlined">credit_card</span> MANAGE BILLING
+                    </button>
+                    <button id="theme-toggle-btn" class="profile-action-btn theme-toggle-btn" onclick="window.toggleTheme()" aria-label="Toggle Light/Dark Mode">
+                        <span class="btn-icon material-symbols-outlined" id="theme-icon">light_mode</span> <span id="theme-label">LIGHT MODE</span>
+                    </button>
+                    <button id="logout-btn" class="profile-action-btn logout-btn" aria-label="Logout from Terminal">
+                        <span class="btn-icon material-symbols-outlined">logout</span> LOGOUT
+                    </button>
+                </div>
+            </div>
+
+
+            <div class="sentiment-widget-wrapper" style="padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 0.5rem; text-align:center;">
+                <div style="font-size:0.65rem; font-weight:900; letter-spacing:1px; color:var(--text-dim); margin-bottom:10px">FEAR & GREED INDEX</div>
+                <div style="position:relative; width:120px; height:60px; margin:0 auto;">
+                    <canvas id="fearGreedGauge" role="img" aria-label="Fear and greed index gauge"></canvas>
+                    <div id="fearGreedValue" style="position:absolute; bottom:0; left:0; width:100%; font-size:1.2rem; font-weight:900; color:white; text-shadow:0 0 10px rgba(255,255,255,0.2)">--</div>
+                </div>
+            </div>
+
+
+        </aside>
+
+        <!-- Mobile sidebar backdrop - tapping closes the sidebar -->
+        <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+        <main class="content" role="main">
+            <header class="top-bar">
+                <button class="mobile-toggle material-symbols-outlined" id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar Navigation" aria-expanded="false" aria-controls="sidebar">menu</button>
+                <div class="signal-feed">
+                    <div class="feed-label">LIVE ALPHA</div>
+                    <div class="scroller-container" aria-hidden="true" role="presentation">
+                        <div id="alpha-scroller" class="scroller">
+                            <span>Connecting to data streams...</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="btc-sparkline-wrap" style="display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);flex-shrink:0">
+                    <div style="display:flex;flex-direction:column;align-items:flex-end">
+                        <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px;font-weight:700">BTC</span>
+                        <span id="btc-spark-price" style="font-size:0.7rem;font-weight:900;color:var(--text)">-</span>
+                        <span id="btc-spark-change" style="font-size:0.55rem;font-weight:700">-</span>
+                    </div>
+                    <div style="width:80px;height:36px;position:relative;">
+                        <canvas id="btcSparklineChart" width="80" height="36"></canvas>
+                    </div>
+                </div>
+                <div class="search-container" role="search" style="position:relative">
+                    <input type="text" id="global-search" name="terminal-ticker-search" placeholder="&#x2318;K / Ctrl+K - SEARCH TICKER..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')" aria-label="Search for tickers">
+                    <div id="search-dropdown" class="search-dropdown hidden"></div>
+                </div>
+                <div class="top-bar-actions">
+                    <div class="action-group" id="live-meta-group">
+                        <div class="countdown-timer" id="countdown-timer" title="Auto-refresh countdown">
+                            <span class="countdown-icon material-symbols-outlined">timer</span>
+                            <span id="countdown-value">5:00</span>
+                        </div>
+                        <!-- Signal poller LIVE dot - PRO only, shown when poller is active -->
+                        <span id="signal-poller-dot" title="Live signal monitoring active" style="display:none;width:7px;height:7px;border-radius:50%;background:#00d4aa;box-shadow:0 0 6px #00d4aa;animation:pulse-live 1.2s infinite;margin-left:4px;flex-shrink:0"></span>
+                        <!-- bell-badge and notif-wrapper removed per user feedback -->
+                    </div>
+
+                    <div class="action-group" id="system-actions-group">
+                        <button onclick="switchView('home'); setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),350)" aria-label="Pricing" class="action-btn-styled outline" title="View pricing plans" style="font-size:0.75rem;letter-spacing:1px;font-weight:700">
+                            <span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> PRICING
+                        </button>
+                        <button id="export-btn" onclick="showExportMenu(event, 'main-content', document.querySelector('h1')?.textContent?.trim() || 'AlphaSignal View')" aria-label="Export" class="action-btn-styled outline" title="Export chart, PDF or CSV">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">ios_share</span> EXPORT
+                        </button>
+                        <button id="refresh-btn" aria-label="Recalculate Signals" class="action-btn-styled primary">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">bolt</span> RE-CALCULATE
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div id="app-view" style="min-height:100vh">
+                <!-- Static hero pre-render: gives browser an LCP candidate at parse time.
+                     renderHome() overwrites this once JS executes (no flash - seamless). -->
+                <div class='academy-container seo-pre-render' style='padding:5rem 2rem 10rem; max-width:900px; margin:0 auto; font-family:"Inter", sans-serif;'>
+<div style='display:inline-block; padding:4px 12px; background:rgba(125,211,252,0.15); border:1px solid var(--accent); color:var(--accent); border-radius:6px; font-size:0.75rem; letter-spacing:2px; font-weight:700; margin-bottom:1.5rem;'>QUANT ACADEMY</div>
+<h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Trendlines and Channels</h1>
+<p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.</p>
+<div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
+<h2>Mapping the Trend</h2>
+<p>A trendline is a straight line connecting a series of ascending swing lows (in a bull trend) or descending swing highs (in a bear trend). It acts as dynamic support or resistance, visualizing the angle and velocity of the current market momentum.</p>
+
+<h3>Trading the Channel</h3>
+<p>When a parallel line is drawn opposite the primary trendline, it creates a <strong>Channel</strong>. Price will often oscillate between the lower channel boundary (support) and the upper channel boundary (resistance). Traders buy near the lower boundary and take profit near the upper boundary.</p>
+
+<h3>Breakouts and Invalidations</h3>
+<p>A definitive close outside the channel indicates a change in market character. A breakout above an ascending channel (an "overthrow") signifies extreme, parabolic euphoria. Conversely, a break below the support trendline invalidates the trend, often triggering a cascade of stop-losses and a rapid reversal. AlphaSignal tools help confirm these structural breaks with volume and momentum data.</p>
+
+</div>
+
+        <div style='margin-top:5rem; padding:3rem; background:rgba(0,0,0,0.3); border:1px solid rgba(125,211,252,0.15); border-radius:16px; text-align:center;'>
+            <h3 style='margin:0 0 1rem; color:#fff; font-size:1.5rem;'>Ready to apply this strategy?</h3>
+            <p style='color:var(--text-dim); margin-bottom:2rem;'>Access real-time, deterministic signals and institutional liquidity tracking directly in the AlphaSignal terminal.</p>
+            <a href="/" style='display:inline-block; background:var(--accent); color:#000; font-weight:800; text-decoration:none; padding:1rem 2.5rem; border-radius:8px; font-size:1.1rem; box-shadow:0 0 20px rgba(125,211,252,0.3);'>LAUNCH TERMINAL</a>
+        </div>
+        
+</div></div>
+            <!-- SEO CONTENT SHELL: Always visible to search engines, hidden once JS renders.
+                 This guarantees Googlebot indexes keyword-rich page content regardless of JS execution. -->
+            <noscript>
+            <div style="max-width:1100px;margin:0 auto;padding:4rem 2rem;font-family:system-ui,sans-serif;color:#e2e8f0;">
+                <h1 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">AlphaSignal &mdash; Institutional Bitcoin &amp; Crypto Intelligence Terminal</h1>
+                <p style="font-size:1.1rem;color:#94a3b8;line-height:1.8;margin-bottom:2rem;">
+                    AlphaSignal (alphasignal.digital) is a real-time institutional intelligence terminal for Bitcoin, crypto, and macro markets.
+                    Trusted by 2,400+ professional traders, AlphaSignal delivers Z-score alpha signals, AI-generated market briefings,
+                    Bitcoin spot ETF capital flows, Deribit options flow scanner, on-chain analytics (MVRV, SOPR, Puell Multiple),
+                    whale pulse tracking, macro event calendar, AI portfolio optimiser, and 60+ analytical views. From $7.99/month.
+                </p>
+                <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:1rem;">Key Features</h2>
+                <ul style="list-style:disc;padding-left:2rem;line-height:2;color:#94a3b8;">
+                    <li><strong>Live Alpha Signals</strong> &mdash; Real-time Z-score deviation signals across 50+ institutional crypto assets powered by ML neural features and on-chain data</li>
+                    <li><strong>AI Market Brief</strong> &mdash; Daily GPT-4o institutional briefing: Overnight Summary, Signal Environment, Macro Watch, Risk Signals, and Actionable Ideas</li>
+                    <li><strong>Bitcoin Spot ETF Flows</strong> &mdash; Daily net flows across BlackRock IBIT, Fidelity FBTC, ARK ARKB, and all regulated Bitcoin ETFs</li>
+                    <li><strong>Options Flow Scanner</strong> &mdash; Live BTC and ETH options data from Deribit: Put/Call ratio, Max Pain strike, IV Smile, and top open-interest strikes</li>
+                    <li><strong>Whale Pulse Monitor</strong> &mdash; On-chain detection of institutional-sized Bitcoin and Ethereum transactions with entity clustering</li>
+                    <li><strong>On-Chain Analytics</strong> &mdash; MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, Hash Ribbons &mdash; the metrics that identify every Bitcoin cycle top and bottom</li>
+                    <li><strong>Macro Intelligence Hub</strong> &mdash; FOMC, CPI, NFP macro event calendar with BTC impact scoring, sector rotation tracker, and market regime classifier</li>
+                    <li><strong>Signal Backtester V2</strong> &mdash; Backtest live AlphaSignal signals against real historical data with rolling Sharpe ratio, drawdown analysis, and BTC benchmark</li>
+                    <li><strong>AI Portfolio Optimiser</strong> &mdash; Monte Carlo simulation and Markowitz Efficient Frontier with GPT-4 rebalancing memo and execution tickets</li>
+                    <li><strong>Liquidation Scanner</strong> &mdash; Real-time long and short liquidation monitoring across Binance, OKX, Bybit, and Deribit</li>
+                    <li><strong>CME Gap Tracker</strong> &mdash; All unfilled CME Bitcoin futures gaps with 77% historical fill probability scoring</li>
+                    <li><strong>Gamma Exposure (GEX) Profile</strong> &mdash; Dealer hedging pressure map showing where options market makers must buy and sell Bitcoin spot</li>
+                    <li><strong>Token Unlock Schedule</strong> &mdash; 90-day forward calendar of major token vesting unlocks scored by supply shock severity</li>
+                    <li><strong>TradingView Integration</strong> &mdash; Embedded professional TradingView chart with VWAP, EMA overlays, Volume Profile, CVD, and Market Depth</li>
+                    <li><strong>Telegram &amp; Discord Webhooks</strong> &mdash; Receive institutional signal alerts via Telegram or Discord with configurable Z-score threshold</li>
+                </ul>
+                <h2 style="font-size:1.5rem;font-weight:700;margin:2rem 0 1rem;">Terminal Hubs</h2>
+                <ul style="list-style:disc;padding-left:2rem;line-height:2;color:#94a3b8;">
+                    <li><strong>Market Analytics Hub</strong> &mdash; AI Market Brief, Whale Pulse, Chain Velocity, On-Chain Analytics, Options Flow, GEX Profile, Mindshare &amp; Narrative, Newsroom, Advanced Charting</li>
+                    <li><strong>Macro Intelligence Hub</strong> &mdash; AI Briefing, Capital Flows, Sector Rotation, Macro Compass, Correlation Matrix, Macro Calendar, Market Regime Classifier</li>
+                    <li><strong>Strategy &amp; Backtester Hub</strong> &mdash; Live Signals, Alpha Score, Strategy Lab, Signal Backtester V2, Signal Archive, Narrative Galaxy</li>
+                    <li><strong>Alerts &amp; Webhooks Hub</strong> &mdash; Live Signal Alerts, Price Alerts, Signal Leaderboard, Webhooks, Signal Archive</li>
+                    <li><strong>Portfolio &amp; Risk Hub</strong> &mdash; Portfolio Simulation, AI Portfolio Optimiser, Token Unlocks, DeFi Yield Lab, Trade Idea Lab</li>
+                    <li><strong>Global Markets Hub</strong> &mdash; Bitcoin Spot ETF Flows, Liquidation Scanner, Open Interest Radar, CME Gap Tracker</li>
+                </ul>
+                <p style="margin-top:2rem;color:#94a3b8;">AlphaSignal is available as a Progressive Web App (PWA) &mdash; install on iOS and Android for full native terminal access. Pricing starts at $7.99/month. <a href="https://alphasignal.digital/" style="color:#7dd3fc;">Get started at alphasignal.digital</a>.</p>
+            </div>
+            </noscript>
+            <!-- INLINE LOADER DISMISS - runs synchronously at parse time for public views.
+                 Must be inline (not defer) so it fires the instant the pre-render is parsed,
+                 before any external scripts download. This is what moves LCP to ~FCP time. -->
+            <script>
+            (function(){
+                var v = (new URLSearchParams(location.search).get('view')||'home');
+                if(v==='home'||v==='signals'||v==='help'||v===''){
+                    var l=document.getElementById('app-loader');
+                    var m=document.getElementById('main-layout');
+                    if(l){l.style.transition='opacity 0.15s';l.style.opacity='0';setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l);},160);}
+                    if(m){m.classList.remove('hidden');m.style.removeProperty('filter');}
+                }
+            })();
+            </script>
+
+            <footer class="global-footer" role="contentinfo">
+                <div class="footer-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;margin-bottom:2rem;">
+                    <div class="footer-brand">
+                        <div class="brand-title" style="font-size:1.3rem;font-weight:900;margin-bottom:0.5rem;">Alpha<span>Signal</span></div>
+                        <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;">Institutional Alpha &amp; Multi-Asset Intelligence Terminal. Real-time Z-score signals, AI briefings, on-chain analytics, and 60+ analytical views. From $7.99/month.</p>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">SIGNALS &amp; ANALYTICS</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=signals" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Live Alpha Signals</a></li>
+                            <li><a href="/?view=alpha-score" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Alpha Score Dashboard</a></li>
+                            <li><a href="/?view=market-brief-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">AI Market Brief</a></li>
+                            <li><a href="/?view=signal-archive" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Archive</a></li>
+                            <li><a href="/?view=backtester-v2" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Backtester V2</a></li>
+                            <li><a href="/?view=leaderboard-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Leaderboard</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">ON-CHAIN &amp; MARKET</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=whales" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Whale Pulse Monitor</a></li>
+                            <li><a href="/?view=onchain" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">On-Chain Analytics (MVRV, SOPR)</a></li>
+                            <li><a href="/?view=options-flow" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Deribit Options Flow Scanner</a></li>
+                            <li><a href="/?view=etf-flows" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Bitcoin Spot ETF Flows</a></li>
+                            <li><a href="/?view=liquidations" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Liquidation Scanner</a></li>
+                            <li><a href="/?view=gex-profile" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Gamma Exposure (GEX)</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">MACRO &amp; STRATEGY</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=macro-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Macro Intelligence Hub</a></li>
+                            <li><a href="/?view=macro-calendar" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Macro Event Calendar (FOMC, CPI)</a></li>
+                            <li><a href="/?view=regime" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Market Regime Classifier</a></li>
+                            <li><a href="/?view=rotation" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Crypto Sector Rotation</a></li>
+                            <li><a href="/?view=strategy-lab" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Strategy Lab</a></li>
+                            <li><a href="/?view=cme-gaps" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">CME Bitcoin Gap Tracker</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">PORTFOLIO &amp; RISK</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=portfolio-optimizer" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">AI Portfolio Optimiser</a></li>
+                            <li><a href="/?view=risk" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Risk Matrix &amp; VaR</a></li>
+                            <li><a href="/?view=stress" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Stress Test Lab</a></li>
+                            <li><a href="/?view=token-unlocks" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Token Unlock Schedule</a></li>
+                            <li><a href="/?view=yield-lab" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">DeFi Yield Lab</a></li>
+                            <li><a href="/?view=trade-ledger" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Institutional Trade Ledger</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">RESOURCES</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=help" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Help &amp; Documentation</a></li>
+                            <li><a href="/?view=ask-terminal" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Ask Terminal AI</a></li>
+                            <li><a href="/?view=newsroom" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Crypto Newsroom</a></li>
+                            <li><a href="/?view=advanced-charting" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Advanced Charting Suite</a></li>
+                            <li><a href="/?view=alerts-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Alerts &amp; Webhooks</a></li>
+                            <li><a href="/?view=liquidity" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Liquidity &amp; Order Flow</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:1.5rem;">
+                    <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.7;margin-bottom:1rem;max-width:900px;">
+                        <strong style="color:var(--text-main);">AlphaSignal</strong> is an institutional Bitcoin and crypto intelligence terminal providing real-time <strong>trading signals</strong>, <strong>on-chain analytics</strong>, <strong>options flow</strong>, <strong>whale tracking</strong>, <strong>ETF flows</strong>, and <strong>AI market analysis</strong>. Designed for professional crypto traders and institutional desks. Not financial advice.
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <span>&copy; 2026 ALPHASIGNAL TERMINAL &mdash; alphasignal.digital</span>
+                    <div class="system-badges">
+                        <span class="badge">SECURE_SSL</span>
+                        <span class="badge">AI_NEURAL_ACTIVE</span>
+                        <span class="badge">PWA_READY</span>
+                    </div>
+                </div>
+            </footer>
+        </main>
+
+        <nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation">
+            <div class="mobile-nav-item active" data-view="signals" aria-label="View Signals">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">radar</span>
+                <span class="m-label">Signals</span>
+            </div>
+            <div class="mobile-nav-item" data-view="briefing" aria-label="View AI Intel">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">memory</span>
+                <span class="m-label">AI Intel</span>
+            </div>
+            <div class="mobile-nav-item" data-view="macro-hub" aria-label="View Market">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">public</span>
+                <span class="m-label">Macro</span>
+            </div>
+            <div class="mobile-nav-item" data-view="alerts-hub" aria-label="View Alerts" style="position:relative">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">notifications</span>
+                <span class="m-label">Alerts</span>
+                <span id="mobile-alert-dot" style="display:none;position:absolute;top:8px;right:22%;width:8px;height:8px;border-radius:50%;background:var(--risk-high);border:1px solid var(--bg)"></span>
+            </div>
+            <div class="mobile-nav-item" id="mobile-more-btn" aria-label="View More Options">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">apps</span>
+                <span class="m-label">Hubs</span>
+            </div>
+        </nav>
+    </div>
+
+    <div id="detail-overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <button class="close-overlay" aria-label="Close Overlay">&times;</button>
+            <div id="detail-body">
+                <!-- Detail content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Zoom Overlay -->
+    <div id="chart-zoom-overlay" class="overlay hidden" style="z-index:99999;backdrop-filter:blur(8px);">
+        <div class="overlay-content" style="max-width:98vw;width:1400px;height:90vh;display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--accent);box-shadow:0 0 50px rgba(0,242,255,0.1);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.05)">
+                <h2 id="chart-zoom-title" style="margin:0;font-size:1.1rem;letter-spacing:1px;color:var(--text)"><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">zoom_in</span>CHART INSPECTOR</h2>
+                <button aria-label="Close Chart Zoom" onclick="document.getElementById('chart-zoom-overlay').classList.add('hidden')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;"><span class="material-symbols-outlined" style="font-size:24px">close</span></button>
+            </div>
+            <div style="flex-grow:1;position:relative;width:100%;height:100%;">
+                <canvas id="chart-zoom-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pack G5: AI Analyst Modal -->
+    <div id="ai-modal" class="overlay hidden">
+        <div class="overlay-content ai-analyst-panel">
+            <button class="close-ai-modal" aria-label="Close AI Analyst Modal" onclick="document.getElementById('ai-modal').classList.add('hidden')">&times;</button>
+            <div class="ai-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="display:flex;align-items:center;gap:10px;flex:1;">
+                    <div class="ai-orb"></div>
+                    <h2 style="margin:0;">Alpha Intelligence Analyst</h2>
+                </div>
+                <button onclick="exportDeepDivePDF()" aria-label="Export Deep-Dive to PDF"
+                    style="background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.25);color:#7dd3fc;
+                           padding:4px 14px;border-radius:6px;cursor:pointer;font-size:0.62rem;font-weight:900;
+                           letter-spacing:1px;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;">
+                    <span class="material-symbols-outlined" style="font-size:14px;">picture_as_pdf</span>EXPORT PDF
+                </button>
+                <div style="flex:1;"></div>
+            </div>
+            <div id="ai-synthesis-content" class="ai-text-flow">
+                <!-- AI text/synthesis injected here -->
+            </div>
+            <div class="ai-footer">
+                <span class="ai-status">Synthesis Complete</span>
+                <button class="intel-action-btn" style="width:auto" onclick="document.getElementById('ai-modal').classList.add('hidden')" aria-label="Acknowledge AI Disclaimer">ACKNOWLEDGE</button>
+            </div>
+        </div>
+    </div>
+    <!-- News Article Modal -->
+    <div id="news-modal" class="overlay hidden">
+        <div class="overlay-content news-article-panel">
+            <button class="close-overlay" onclick="document.getElementById('news-modal').classList.add('hidden')" aria-label="Close News Modal">&times;</button>
+            <div id="news-article-body">
+                <!-- News content injected here -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Auth Shell -->
+    <div id="auth-overlay" class="overlay hidden">
+        <div class="overlay-content auth-panel" role="dialog" aria-labelledby="auth-title" aria-describedby="auth-desc">
+
+            <div class="auth-header">
+                <div class="logo-orb large" aria-hidden="true"></div>
+                <h2 id="auth-title">ALPHA<span>SIGNAL</span></h2>
+                <p id="auth-desc">Institutional Intelligence Terminal</p>
+            </div>
+
+            <div id="auth-form-container" class="auth-body">
+
+                <div class="auth-input-wrap">
+                    <span class="auth-input-icon material-symbols-outlined">mail</span>
+                    <input type="email" id="auth-email" placeholder="Email address" autocomplete="email" aria-required="true" aria-label="Email address" />
+                </div>
+
+                <div class="auth-input-wrap">
+                    <span class="auth-input-icon material-symbols-outlined">lock</span>
+                    <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" aria-required="true" aria-label="Password" />
+                    <button type="button" class="auth-eye-btn" id="auth-eye" aria-label="Toggle password visibility" onclick="const i=document.getElementById('auth-password');const e=document.getElementById('auth-eye-icon');i.type=i.type==='password'?'text':'password';e.textContent=i.type==='password'?'visibility':'visibility_off'">
+                        <span class="material-symbols-outlined" id="auth-eye-icon">visibility</span>
+                    </button>
+                </div>
+
+                <div id="auth-error" class="auth-error hidden" role="alert"></div>
+
+                <button id="login-btn" class="intel-action-btn auth-submit" aria-label="Login to Terminal">
+                    <span class="material-symbols-outlined" style="font-size:1rem">login</span>
+                    <span id="auth-btn-label">SIGN IN</span>
+                </button>
+
+                <div style="text-align:center;margin-top:0.75rem">
+                    <a href="#" id="forgot-password-link" style="font-size:0.7rem;color:var(--text-dim);letter-spacing:0.5px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">Forgot password?</a>
+                </div>
+
+                <div class="auth-divider"><span>or</span></div>
+
+                <div class="auth-switch">
+                    <a href="#" id="toggle-auth" aria-label="Toggle between Login and Registration">Create account</a>
+                </div>
+            </div>
+
+            <div class="auth-trust-strip">
+                <div class="trust-item">
+                    <span class="material-symbols-outlined">shield</span>
+                    <span>256-bit SSL</span>
+                </div>
+                <div class="trust-sep"></div>
+                <div class="trust-item">
+                    <span class="material-symbols-outlined">group</span>
+                    <span>2,400+ traders</span>
+                </div>
+                <div class="trust-sep"></div>
+                <div class="trust-item">
+                    <span class="material-symbols-outlined">bolt</span>
+                    <span>Live data</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paywall Modal -->
+    <div id="paywall-overlay" class="overlay hidden">
+        <div class="overlay-content paywall-panel">
+            <button class="close-overlay" onclick="document.getElementById('paywall-overlay').classList.add('hidden')" aria-label="Close Upgrade Prompt">&times;</button>
+            <div class="paywall-header">
+                <div class="premium-orb"></div>
+                <h2>PREMIUM<span>ACCESS</span></h2>
+                <p>INSTITUTIONAL GRADE INTELLIGENCE</p>
+            </div>
+            <div class="paywall-body">
+                <div class="benefit-item">
+                    <span class="benefit-icon material-symbols-outlined">memory</span>
+                    <div class="benefit-text">
+                        <h4>AI Deep-Dive Analyst</h4>
+                        <p>Real-time neural synthesis of multidimensional signals.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon material-symbols-outlined">waves</span>
+                    <div class="benefit-text">
+                        <h4>Whale Pulse Monitor</h4>
+                        <p>Track institutional-sized moves on-chain before they hit the tape.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon material-symbols-outlined">shield</span>
+                    <div class="benefit-text">
+                        <h4>Institutional Risk Engine</h4>
+                        <p>Advanced systemic correlation & VaR analytics.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon material-symbols-outlined">bar_chart</span>
+                    <div class="benefit-text">
+                        <h4>Order Flow (GOMM)</h4>
+                        <p>Visualizing professional liquidity walls and execution tape.</p>
+                    </div>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="price">$7.99<span>/mo</span></div>
+                    <button class="intel-action-btn large" onclick="handleSubscribe()" aria-label="Upgrade to AlphaSignal Institutional Plan">UPGRADE TO PRO</button>
+                </div>
+                <p class="paywall-footer-text">SECURE SUBSCRIPTION &bull; 256-BIT ENCRYPTION &bull; CANCEL ANYTIME</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications"></div>
+    <div id="toast-container"></div>
+    <script src="tape.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
+    <!-- Phase 16-C: TradingView Advanced Chart Widget -->
+    <script src="https://s3.tradingview.com/tv.js" async></script>
+    <!-- Phase 15-C: Export libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
+    <script src="https://js.stripe.com/v3/" defer></script>
+    <script src="js/utils.js?v=2.65" defer></script>
+    <script src="js/auth.js?v=2.65" defer></script>
+    <script src="js/core.js?v=2.65" defer></script>
+    <script src="js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="js/charts.js?v=2.65" defer></script>
+    <!-- views/ modules (split from views.js) - hub-nav must load first -->
+    <script src="js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
+    <script>
+    window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
+        if (!ticker) return;
+        try {
+            const res = await fetchAPI('/watchlist', 'POST', { ticker: ticker.toUpperCase(), note: 'Quick add from signal feed' });
+            if (res && res.success) {
+                showToast('WATCHLIST', ticker.toUpperCase() + ' added to your watchlist', 'success');
+            } else {
+                showToast('WATCHLIST', res && res.error ? res.error : 'Could not add ' + ticker, 'warning');
+            }
+        } catch(e) {
+            showToast('ERROR', 'Watchlist add failed: ' + e.message, 'alert');
+        }
+    };
+    </script>
+    <script src="js/views/signals.js?v=2.65" defer></script>
+    <script src="js/views/performance.js?v=2.65" defer></script>
+    <script src="js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="js/views/whales.js?v=2.65" defer></script>
+    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="js/views/strategy.js?v=2.65" defer></script>
+    <script src="js/views/portfolio.js?v=2.65" defer></script>
+    <script src="js/views/narrative.js?v=2.65" defer></script>
+    <script src="js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="js/views/audit.js?v=2.65" defer></script>
+    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="js/views/advanced.js?v=2.65" defer></script>
+    <script src="js/views/onchain.js?v=2.65" defer></script>
+    <script src="js/views/command-center.js?v=2.65" defer></script>
+    <script src="js/views/home.js?v=2.65" defer></script>
+    <script src="js/views/algo-hub.js?v=2.65"></script>
+    <script src="js/views/explain.js?v=2.65" defer></script>
+    <script src="js/views/my-terminal.js?v=2.65"></script>
+    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="js/views/onboarding.js?v=2.65" defer></script>
+    <script src="js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="js/views/market-brief.js?v=2.65" defer></script>
+    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <!-- Docs + Export utilities -->
+    <script src="js/docs-a.js?v=2.65" defer></script>
+    <script src="js/docs-b.js?v=2.65" defer></script>
+    <script src="js/docs-c.js?v=2.65" defer></script>
+    <script src="js/export.js?v=2.65" defer></script>
+    <script src="js/seo-meta.js?v=2.65" defer></script>
+    <script src="js/main.js?v=2.65" defer></script>
+    <script src="js/router.js?v=2.65" defer></script>
+
+    <!-- Notification Settings Modal -->
+    <!-- Notification Settings Modal -->
+    <div id="notification-modal" class="overlay hidden">
+        <div class="overlay-content auth-panel animate-in" style="max-width:520px;">
+            <div class="auth-header">
+                <div class="logo-orb large" style="width:40px; height:40px; margin-bottom:1rem"></div>
+                <h2>ALERT<span>CONFIG</span></h2>
+                <p>INSTITUTIONAL HOOKS REGISTRY</p>
+            </div>
+            <div class="auth-body">
+                <div class="input-group">
+                    <label for="discord-webhook">DISCORD WEBHOOK</label>
+                    <input type="url" id="discord-webhook" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
+                </div>
+                <div class="input-group" id="tg-bot-panel">
+                    <label>TELEGRAM BOT</label>
+                    <div id="tg-status-connected" style="display:none; align-items:center; gap:10px; padding:10px 14px; background:rgba(0,242,255,0.06); border:1px solid rgba(0,242,255,0.25); border-radius:8px; margin-bottom:2px;">
+                        <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.2rem;">check_circle</span>
+                        <div style="flex:1">
+                            <div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--accent)">CONNECTED</div>
+                            <div id="tg-linked-email" style="font-size:0.72rem;color:var(--text-dim);margin-top:1px"></div>
+                        </div>
+                        <button onclick="testTelegramConnection()" style="background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.3);color:var(--accent);padding:5px 12px;border-radius:6px;font-size:0.6rem;font-weight:700;cursor:pointer;letter-spacing:0.5px">TEST</button>
+                    </div>
+                    <div id="tg-status-unlinked" style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.5;">
+                            Link your account in 60 seconds via the AlphaSignal bot:
+                        </div>
+                        <a id="tg-bot-link" href="https://t.me/alphasignalbot_bot" target="_blank" rel="noopener"
+                            style="display:flex;align-items:center;justify-content:center;gap:8px;
+                            background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(0,242,255,0.05));
+                            border:1px solid rgba(0,242,255,0.35);color:var(--accent);
+                            padding:10px 18px;border-radius:8px;font-size:0.72rem;font-weight:900;
+                            letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+                            onmouseover="this.style.background='rgba(0,242,255,0.2)'"
+                            onmouseout="this.style.background='linear-gradient(135deg,rgba(0,242,255,0.15),rgba(0,242,255,0.05))'">
+                            <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
+                            CONNECT VIA @alphasignalbot_bot
+                        </a>
+                        <div style="font-size:0.62rem;color:var(--text-dim);text-align:center;">
+                            Open the bot &rarr; send /start &rarr; reply with your email
+                        </div>
+                    </div>
+                    <input type="hidden" id="telegram-chat-id">
+                </div>
+                <!-- Phase 17-A: Z-Score Alert Threshold -->
+                <div class="input-group">
+                    <label for="z-modal-threshold-slider" style="display:flex; justify-content:space-between">
+                        <span>SIGNAL THRESHOLD</span>
+                        <span id="z-modal-threshold-display" style="color:var(--accent); font-weight:900">2.0% predicted alpha</span>
+                    </label>
+                    <input type="range" id="z-modal-threshold-slider" min="0.5" max="10" step="0.5" value="2.0"
+                        style="width:100%; accent-color:var(--accent); cursor:pointer; margin-top:4px"
+                        oninput="document.getElementById('z-modal-threshold-display').textContent = this.value + '% predicted alpha'">
+                    <p style="font-size:0.6rem; color:var(--text-dim); margin-top:6px">
+                        Only fire push alerts when ML engine predicts = threshold alpha. Lower = more alerts. Higher = only major signals.
+                    </p>
+                </div>
+                <div class="input-group" style="flex-direction:row; align-items:center; gap:10px;">
+                    <input type="checkbox" id="alerts-enabled" checked style="width:20px; height:20px; cursor:pointer">
+                    <label for="alerts-enabled" style="margin:0; cursor:pointer">NETWORK ALERTS ENABLED</label>
+                </div>
+                <div id="notif-error" class="auth-error hidden" style="margin-bottom:1rem;"></div>
+                <div style="display:flex; flex-direction:column; gap:0.8rem; margin-top:1rem">
+                    <button class="intel-action-btn" onclick="saveNotificationSettings()">SAVE CONFIGURATION</button>
+                    <button class="intel-action-btn secondary" style="background:rgba(0,242,255,0.08); color:var(--accent); border:1px solid rgba(0,242,255,0.2)" onclick="testFireAlert()">?? SEND TEST ALERT</button>
+                    <button class="intel-action-btn secondary" style="background:rgba(255,255,255,0.05); color:var(--text-dim)" onclick="showNotificationSettings(false)">CLOSE REGISTRY</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.log('Service Worker registration failed', err));
+            });
+        }
+    </script>
+
+    <!-- Phase 15-D: PWA Install Banner -->
+    <div id="pwa-install-banner" style="
+        display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+        background:rgba(13,17,23,0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+        border:1px solid rgba(0,212,170,0.3); border-radius:16px; padding:14px 20px;
+        z-index:9999; display:none; align-items:center; gap:14px;
+        box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
+        max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
+        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <div style="flex:1; min-width:0;">
+            <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
+        </div>
+        <button id="pwa-install-btn" style="
+            background:linear-gradient(135deg,#00d4aa,#00a896); color:#000;
+            border:none; border-radius:8px; padding:8px 14px;
+            font-size:0.7rem; font-weight:800; cursor:pointer; flex-shrink:0;">INSTALL</button>
+        <button id="pwa-dismiss-btn" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;flex-shrink:0;padding:4px;display:flex;align-items:center;" aria-label="Dismiss"><span class="material-symbols-outlined" style="font-size:18px">close</span></button>
+    </div>
+    <style>
+        @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+    </style>
+    <script>
+        (function() {
+            // Don't show in standalone PWA mode
+            if (window.matchMedia('(display-mode: standalone)').matches) return;
+            if (localStorage.getItem('pwa-dismissed')) return;
+
+            let deferredPrompt;
+            const banner = document.getElementById('pwa-install-banner');
+            const installBtn = document.getElementById('pwa-install-btn');
+            const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (banner) { banner.style.display = 'flex'; }
+            });
+
+            if (installBtn) {
+                installBtn.addEventListener('click', () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then(() => {
+                            deferredPrompt = null;
+                            if (banner) banner.style.display = 'none';
+                        });
+                    }
+                });
+            }
+
+            if (dismissBtn) {
+                dismissBtn.addEventListener('click', () => {
+                    if (banner) banner.style.display = 'none';
+                    localStorage.setItem('pwa-dismissed', '1');
+                });
+            }
+        })();
+    </script>
+<nav aria-label="Quant Academy Crawler Sitemap" style="display:none;" id="seo-crawler-nav">
+  <ul>
+    <li><a href="/academy/order-book-liquidity-heatmaps">How to Read Order Book Liquidity Heatmaps</a></li>
+    <li><a href="/academy/understanding-gamma-exposure-gex">Understanding Gamma Exposure (GEX) in Crypto Markets</a></li>
+    <li><a href="/academy/crypto-liquidations-tracker">Exploiting High-Leverage Crypto Liquidations</a></li>
+    <li><a href="/academy/options-flow-dark-pools">Decoding Institutional Options Flow & Dark Pools</a></li>
+    <li><a href="/academy/capital-sector-rotation">Mastering Capital Sector Rotation Strategies</a></li>
+    <li><a href="/academy/volume-profile-market-profile">Trade Like a Pro: Volume Profile & Market Profile</a></li>
+    <li><a href="/academy/institutional-yield-farming">Navigating Institutional DeFi Yield Farming</a></li>
+    <li><a href="/academy/token-unlocks-supply-dilution">Trading Trading Token Unlocks and Supply Dilution</a></li>
+    <li><a href="/academy/algorithmic-ai-trade-signals">Exploiting Algorithmic AI Trade Signals</a></li>
+    <li><a href="/academy/on-chain-whale-tracking">On-Chain Whale Tracking and Exchange Flows</a></li>
+    <li><a href="/academy/cme-futures-gaps-bitcoin">Trading CME Futures Gaps in Bitcoin</a></li>
+    <li><a href="/academy/fundamental-mvrv-z-score">Identifying Generational Tops: MVRV Z-Score</a></li>
+    <li><a href="/academy/statistical-mean-reversion-z-scores">Statistical Mean Reversion: Trading with Z-Scores</a></li>
+    <li><a href="/academy/vwap-institutional-execution">VWAP and Institutional Execution Footprints</a></li>
+    <li><a href="/academy/stablecoin-macro-liquidity-flows">Macro Liquidity: Tracking Stablecoin Supply Flows</a></li>
+    <li><a href="/academy/ai-narrative-velocity-sentiment">Narrative Velocity and Semantic Sentiment Analysis</a></li>
+    <li><a href="/academy/hidden-markov-market-regimes">Understanding Market Regimes with Hidden Markov Models</a></li>
+    <li><a href="/academy/options-implied-volatility-smile">The Options Volatility Surface: IV Smile and Term Structure</a></li>
+    <li><a href="/academy/mastering-risk-to-reward-ratio">Mastering the Risk to Reward Ratio in Trading</a></li>
+    <li><a href="/academy/trading-psychology-fomo-panic">Trading Psychology: Overcoming FOMO and Panic</a></li>
+    <li><a href="/academy/support-and-resistance-fundamentals">Support and Resistance Fundamentals</a></li>
+    <li><a href="/academy/position-sizing-and-leverage">Position Sizing and Leverage Strategies</a></li>
+    <li><a href="/academy/trading-moving-average-crossovers">Trading Moving Average Crossovers</a></li>
+    <li><a href="/academy/rsi-macd-momentum-oscillators">RSI and MACD: Momentum Oscillators Explained</a></li>
+    <li><a href="/academy/fibonacci-retracements-crypto">Fibonacci Retracements in Cryptocurrency</a></li>
+    <li><a href="/academy/breakout-trading-strategies">Breakout Trading Strategies</a></li>
+    <li><a href="/academy/how-to-set-proper-stop-loss">How to Set a Proper Stop Loss</a></li>
+    <li><a href="/academy/importance-of-trading-journal">The Importance of a Trading Journal</a></li>
+  </ul>
+</nav>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

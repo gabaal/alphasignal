@@ -769,6 +769,11 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             <div class="chart-canvas-wrapper" style="height:110px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
                 <canvas id="detail-zscore-chart"></canvas>
             </div>
+            <div style="display:flex;gap:12px;margin-top:6px">
+                <span style="font-size:0.5rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; Extreme (|Z| > 2)</span>
+                <span style="font-size:0.5rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9679; Elevated (|Z| > 1)</span>
+                <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; Normal</span>
+            </div>
         </div>
 
             <!-- Signal History Scatter -->
@@ -2108,6 +2113,25 @@ window.expandChart = function(sourceId, title) {
     document.getElementById('chart-zoom-title').innerHTML = `<span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">zoom_in</span>${title}`;
     document.getElementById('chart-zoom-overlay').classList.remove('hidden');
 
+    const legendEl = document.getElementById('chart-zoom-legend');
+    if (legendEl) {
+        if (title.includes('Z-Score')) {
+            legendEl.innerHTML = `
+                <span style="font-size:0.8rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; Extreme (|Z| > 2)</span>
+                <span style="font-size:0.8rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9679; Elevated (|Z| > 1)</span>
+                <span style="font-size:0.8rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; Normal</span>
+            `;
+        } else if (title.includes('Signal History')) {
+            legendEl.innerHTML = `
+                <span style="font-size:0.8rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; WIN (TP/Expiry)</span>
+                <span style="font-size:0.8rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; LOSS (SL/Expiry)</span>
+                <span style="font-size:0.8rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9651; Open Signal</span>
+            `;
+        } else {
+            legendEl.innerHTML = '';
+        }
+    }
+
     const ctx = document.getElementById('chart-zoom-canvas').getContext('2d');
     
     // Destroy existing chart in modal if there is one
@@ -2121,11 +2145,18 @@ window.expandChart = function(sourceId, title) {
     newOptions.responsive = true;
     newOptions.maintainAspectRatio = false;
     
-    // Make fonts larger for the modal context
+    // Make fonts larger for the modal context and enable X-axis
     if (newOptions.scales) {
         Object.keys(newOptions.scales).forEach(key => {
             if (newOptions.scales[key].ticks) {
                 newOptions.scales[key].ticks.font = { size: 12, family: "'JetBrains Mono', monospace" };
+            }
+            // Always show X-axis labels (time/date) in the expanded view
+            if (key === 'x' || key === 'xAxes') {
+                newOptions.scales[key].display = true;
+                if (!newOptions.scales[key].grid) newOptions.scales[key].grid = {};
+                newOptions.scales[key].grid.display = true;
+                newOptions.scales[key].grid.color = 'rgba(255, 255, 255, 0.04)';
             }
         });
     }
