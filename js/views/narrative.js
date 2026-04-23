@@ -156,7 +156,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     // sentiment: -1.0 - +1.0  maps to  left - right (X axis)
     // momentum: expanded positive axis to prevent clustering
     const SENT_RANGE = 1.0;   // clamp sentiment to +-1.0
-    const MOM_MAX = 20.0;     // expanded positive momentum axis
+    const MOM_MAX = 10.0;     // expanded positive momentum axis
     const MOM_MIN = -5.0;     // baseline negative momentum
 
     const stars = clusters.map(c => {
@@ -173,7 +173,8 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
 
     // - Axis drawing helper -
     function drawAxes() {
-        const TICK_COUNT  = 5;
+        const TICK_COUNT_X  = 5;
+        const TICK_COUNT_Y  = 3; // 15.0 range / 3 = 5.0 per tick (10, 5, 0, -5)
         const TICK_LEN    = 4;
         const axisColor   = alphaColor(0.18);
         const gridColor   = alphaColor(0.04);
@@ -187,8 +188,8 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         ctx.textBaseline = 'middle';
 
         // - Vertical grid lines + X-axis ticks -
-        for (let i = 0; i <= TICK_COUNT; i++) {
-            const x = axisX + (plotW / TICK_COUNT) * i;
+        for (let i = 0; i <= TICK_COUNT_X; i++) {
+            const x = axisX + (plotW / TICK_COUNT_X) * i;
             // grid line
             ctx.beginPath();
             ctx.strokeStyle = gridColor;
@@ -203,15 +204,15 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             ctx.lineTo(x, axisY + TICK_LEN);
             ctx.stroke();
             // label: sentiment -1.0 - +1.0
-            const val = ((i / TICK_COUNT) * 2 - 1).toFixed(1);
+            const val = ((i / TICK_COUNT_X) * 2 - 1).toFixed(1);
             ctx.fillStyle = labelColor;
             ctx.textAlign = 'center';
             ctx.fillText((parseFloat(val) > 0 ? '+' : '') + val, x, axisY + TICK_LEN + 9);
         }
 
         // - Horizontal grid lines + Y-axis ticks -
-        for (let i = 0; i <= TICK_COUNT; i++) {
-            const y = PAD_TOP + (plotH / TICK_COUNT) * i;
+        for (let i = 0; i <= TICK_COUNT_Y; i++) {
+            const y = PAD_TOP + (plotH / TICK_COUNT_Y) * i;
             // grid line
             ctx.beginPath();
             ctx.strokeStyle = gridColor;
@@ -226,7 +227,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             ctx.lineTo(axisX, y);
             ctx.stroke();
             // label: momentum MOM_MAX to MOM_MIN (canvas Y inverted)
-            const val = (MOM_MAX - (i / TICK_COUNT) * (MOM_MAX - MOM_MIN)).toFixed(1);
+            const val = (MOM_MAX - (i / TICK_COUNT_Y) * (MOM_MAX - MOM_MIN)).toFixed(1);
             ctx.fillStyle = labelColor;
             ctx.textAlign = 'right';
             ctx.fillText((parseFloat(val) > 0 ? '+' : '') + val + '%', axisX - TICK_LEN - 3, y);
