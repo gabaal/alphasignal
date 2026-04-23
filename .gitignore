@@ -75,3 +75,5 @@ tests/__pycache__/
 
 # === Trunk ===
 .trunk/
+
+service_account.json

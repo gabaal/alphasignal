@@ -792,6 +792,37 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 <span style="font-size:0.5rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9651; Open Signal</span>
             </div>
             </div>
+
+            <!-- MACD (12, 26, 9) -->
+            <div class="zoomable-panel" onclick="expandChart('detail-macd-chart', 'MACD (12, 26, 9)')">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                    <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">MACD (12, 26, 9)</span>
+                    <span id="detail-macd-label" style="font-size:0.55rem;margin-left:auto"></span>
+                </div>
+                <div class="chart-canvas-wrapper" style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+                    <canvas id="detail-macd-chart"></canvas>
+                </div>
+                <div style="display:flex;gap:12px;margin-top:6px">
+                    <span style="font-size:0.5rem;color:#00f2ff;display:flex;align-items:center;gap:4px">&#9679; MACD</span>
+                    <span style="font-size:0.5rem;color:#facc15;display:flex;align-items:center;gap:4px">&#9679; Signal</span>
+                    <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9632; Histogram</span>
+                </div>
+            </div>
+
+            <!-- Divergence Chart (Price vs RSI) -->
+            <div class="zoomable-panel" onclick="expandChart('detail-divergence-chart', 'Price vs RSI Divergence')">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                    <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">PRICE VS RSI DIVERGENCE</span>
+                    <span id="detail-divergence-label" style="font-size:0.55rem;margin-left:auto;color:var(--text-dim)">Option A (Standard)</span>
+                </div>
+                <div class="chart-canvas-wrapper" style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+                    <canvas id="detail-divergence-chart"></canvas>
+                </div>
+                <div style="display:flex;gap:12px;margin-top:6px">
+                    <span style="font-size:0.5rem;color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:4px">&#9679; Price</span>
+                    <span style="font-size:0.5rem;color:#8b5cf6;display:flex;align-items:center;gap:4px">&#9679; RSI</span>
+                </div>
+            </div>
         </div>
 
         <div class="institutional-timeline" style="margin-top:2rem">
@@ -1103,6 +1134,49 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         });
     }
 
+    function computeEMA(prices, period) {
+        const k = 2 / (period + 1);
+        let ema = new Array(prices.length).fill(null);
+        if (prices.length < period) return ema;
+        let sum = 0;
+        for (let i = 0; i < period; i++) sum += prices[i];
+        ema[period - 1] = sum / period;
+        for (let i = period; i < prices.length; i++) {
+            ema[i] = (prices[i] - ema[i - 1]) * k + ema[i - 1];
+        }
+        return ema;
+    }
+
+    function computeMACDSeries(prices, short = 12, long = 26, signal = 9) {
+        const emaShort = computeEMA(prices, short);
+        const emaLong = computeEMA(prices, long);
+        const macdLine = new Array(prices.length).fill(null);
+        let validMacd = [];
+        let validMacdIndices = [];
+        
+        for (let i = 0; i < prices.length; i++) {
+            if (emaShort[i] !== null && emaLong[i] !== null) {
+                macdLine[i] = emaShort[i] - emaLong[i];
+                validMacd.push(macdLine[i]);
+                validMacdIndices.push(i);
+            }
+        }
+        
+        const signalLineRaw = computeEMA(validMacd, signal);
+        const signalLine = new Array(prices.length).fill(null);
+        const histogram = new Array(prices.length).fill(null);
+        
+        for (let j = 0; j < validMacd.length; j++) {
+            const idx = validMacdIndices[j];
+            signalLine[idx] = signalLineRaw[j];
+            if (signalLine[idx] !== null) {
+                histogram[idx] = macdLine[idx] - signalLine[idx];
+            }
+        }
+        
+        return { macdLine, signalLine, histogram };
+    }
+
     // - 1. RSI (14) + Volume -
     (async () => {
         // Wait briefly for lwChart klines to populate window._detailKlines
@@ -1290,6 +1364,96 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 }
             });
         } catch(e) { console.warn('[Signal Scatter]', e); }
+    })();
+
+    // - 4. MACD Chart -
+    (() => {
+        const ctx = document.getElementById('detail-macd-chart');
+        if (!ctx || !history || history.length < 35) return; // need enough data for 26EMA + 9EMA
+
+        const prices = history.map(h => h.price || h.close || 0);
+        const labels = history.map(h => h.date);
+        const macdData = computeMACDSeries(prices, 12, 26, 9);
+        
+        const labelEl = document.getElementById('detail-macd-label');
+        if (labelEl) {
+            const lastMacd = macdData.macdLine[macdData.macdLine.length - 1];
+            const lastSig = macdData.signalLine[macdData.signalLine.length - 1];
+            if (lastMacd !== null && lastSig !== null) {
+                const diff = lastMacd - lastSig;
+                labelEl.textContent = `HIST: ${diff > 0 ? '+' : ''}${diff.toFixed(2)}`;
+                labelEl.style.color = diff > 0 ? '#22c55e' : '#ef4444';
+            }
+        }
+
+        const histColors = macdData.histogram.map((h, i) => {
+            if (h === null) return 'transparent';
+            if (h >= 0) {
+                const prev = i > 0 ? macdData.histogram[i-1] : 0;
+                return h >= prev ? 'rgba(34,197,94,0.8)' : 'rgba(34,197,94,0.4)';
+            } else {
+                const prev = i > 0 ? macdData.histogram[i-1] : 0;
+                return h <= prev ? 'rgba(239,68,68,0.8)' : 'rgba(239,68,68,0.4)';
+            }
+        });
+
+        new Chart(ctx.getContext('2d'), {
+            data: {
+                labels,
+                datasets: [
+                    { type: 'bar',  label: 'Histogram', data: macdData.histogram, backgroundColor: histColors, yAxisID: 'y' },
+                    { type: 'line', label: 'MACD',      data: macdData.macdLine,   borderColor: '#00f2ff', borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'y', tension: 0.1 },
+                    { type: 'line', label: 'Signal',    data: macdData.signalLine, borderColor: '#facc15', borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'y', tension: 0.1 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: { filter: i => i.datasetIndex === 1, callbacks: { label: c => `MACD: ${c.parsed.y?.toFixed(2) ?? '-'}` } }
+                },
+                scales: {
+                    x: { display: false, grid: { display: false } },
+                    y: { position: 'right', grid: { color: _gridColor }, ticks: { color: '#888', font: _monoFont, maxTicksLimit: 5 } }
+                }
+            }
+        });
+    })();
+
+    // - 5. Divergence Chart (Price vs RSI) -
+    (() => {
+        const ctx = document.getElementById('detail-divergence-chart');
+        if (!ctx || !history || history.length < 15) return;
+
+        const prices = history.map(h => h.price || h.close || 0);
+        const labels = history.map(h => h.date);
+        const rsi = computeRSI(prices, 14);
+
+        new Chart(ctx.getContext('2d'), {
+            data: {
+                labels,
+                datasets: [
+                    { type: 'line', label: 'Price', data: prices, borderColor: 'rgba(255,255,255,0.8)', borderWidth: 2, pointRadius: 0, fill: false, yAxisID: 'yPrice', tension: 0.1 },
+                    { type: 'line', label: 'RSI',   data: rsi,    borderColor: '#8b5cf6', borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'yRSI', tension: 0.2 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y?.toFixed(2) ?? '-'}` } }
+                },
+                scales: {
+                    x: { display: false, grid: { display: false } },
+                    yPrice: { position: 'left',  grid: { color: _gridColor }, ticks: { color: '#888', font: _monoFont, maxTicksLimit: 4 } },
+                    yRSI:   { position: 'right', grid: { display: false }, ticks: { color: '#8b5cf6', font: _monoFont, maxTicksLimit: 4 }, min: 0, max: 100 }
+                }
+            }
+        });
     })();
 
     renderDetailLiquidity(liqData);
@@ -2126,6 +2290,18 @@ window.expandChart = function(sourceId, title) {
                 <span style="font-size:0.8rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; WIN (TP/Expiry)</span>
                 <span style="font-size:0.8rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; LOSS (SL/Expiry)</span>
                 <span style="font-size:0.8rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9651; Open Signal</span>
+            `;
+        } else if (title.includes('MACD')) {
+            legendEl.innerHTML = `
+                <span style="font-size:0.8rem;color:#00f2ff;display:flex;align-items:center;gap:4px">&#9679; MACD Line</span>
+                <span style="font-size:0.8rem;color:#facc15;display:flex;align-items:center;gap:4px">&#9679; Signal Line</span>
+                <span style="font-size:0.8rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9632; Positive Momentum</span>
+                <span style="font-size:0.8rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9632; Negative Momentum</span>
+            `;
+        } else if (title.includes('Divergence')) {
+            legendEl.innerHTML = `
+                <span style="font-size:0.8rem;color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:4px">&#9679; Price Action</span>
+                <span style="font-size:0.8rem;color:#8b5cf6;display:flex;align-items:center;gap:4px">&#9679; RSI Momentum</span>
             `;
         } else {
             legendEl.innerHTML = '';
