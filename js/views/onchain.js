@@ -1159,7 +1159,7 @@ async function loadOptionsFlow(currency, source) {
 
         setTimeout(() => {
             if (window.injectAIChartTranslator) {
-                injectAIChartTranslator(appEl.querySelector('.view-header'), 'options', () => d);
+                injectAIChartTranslator(appEl.querySelector('.view-header'), 'options', () => ({ ticker: currency, ...d }));
             }
         }, 50);
 
