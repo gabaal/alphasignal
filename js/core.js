@@ -745,6 +745,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             <label style="font-size:0.7rem; color:var(--text-dim); font-weight:700">ADVANCED OVERLAYS:</label>
             <button class="timeframe-btn" onclick="toggleOverlay('ema')">EMA (12/26)</button>
             <button class="timeframe-btn" onclick="toggleOverlay('vol')">VOL RIBBONS</button>
+            <button class="timeframe-btn" onclick="toggleOverlay('zscore')" style="border-color:#facc15;color:#facc15">Z SCORE</button>
         </div>
         
         <!-- Advanced Charting Grid -->
@@ -953,6 +954,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                     if (window._ema26Series) { try { lwChart.removeSeries(window._ema26Series); } catch(e){} window._ema26Series = null; }
                     if (window._bbUpperSeries) { try { lwChart.removeSeries(window._bbUpperSeries); } catch(e){} window._bbUpperSeries = null; }
                     if (window._bbLowerSeries) { try { lwChart.removeSeries(window._bbLowerSeries); } catch(e){} window._bbLowerSeries = null; }
+                    if (window._zScoreOverlaySeries) { try { lwChart.removeSeries(window._zScoreOverlaySeries); } catch(e){} window._zScoreOverlaySeries = null; }
 
                     const closes = window._detailKlines.map(d => d.close);
                     const times  = window._detailKlines.map(d => d.time);
@@ -985,6 +987,28 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                         window._bbLowerSeries = lwChart.addLineSeries({ color: 'rgba(0,242,255,0.3)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
                         window._bbUpperSeries.setData(times.filter((_,i)=>bbs[i]).map((t,i)=>({ time: t, value: bbs.filter(Boolean)[i]?.upper })).filter(d=>d.value));
                         window._bbLowerSeries.setData(times.filter((_,i)=>bbs[i]).map((t,i)=>({ time: t, value: bbs.filter(Boolean)[i]?.lower })).filter(d=>d.value));
+                    }
+
+                    if (window.activeOverlays?.zscore) {
+                        const zs = computeZScoreSeries(closes, 20);
+                        window._zScoreOverlaySeries = lwChart.addLineSeries({ 
+                            color: '#facc15', 
+                            lineWidth: 2, 
+                            priceScaleId: 'zscale',
+                            priceLineVisible: false, 
+                            lastValueVisible: false 
+                        });
+                        lwChart.priceScale('zscale').applyOptions({
+                            scaleMargins: { top: 0.7, bottom: 0 },
+                            visible: false
+                        });
+                        const zData = [];
+                        for (let i = 0; i < times.length; i++) {
+                            if (zs[i] !== null && typeof zs[i] !== 'undefined') {
+                                zData.push({ time: times[i], value: zs[i] });
+                            }
+                        }
+                        window._zScoreOverlaySeries.setData(zData);
                     }
 
                     // Draw AI Signal Markers on candles — arrows only, no text labels

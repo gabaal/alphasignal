@@ -4733,7 +4733,7 @@ class InstitutionalRoutesMixin:
                 from datetime import datetime as _dt2, timezone
                 try:
                     sig_ts = _dt2.fromisoformat(ts.replace('Z',''))
-                    age_days = (datetime.utcnow() - sig_ts).days
+                    age_days = (datetime.utcnow().date() - sig_ts.date()).days
                 except:
                     age_days = None
 
