@@ -142,6 +142,8 @@ class NotificationService:
     def get_signal_thresholds(sig_type: str) -> tuple:
         """Return (expiry_days, tp_pct, sl_pct) based on signal category."""
         st = (sig_type or '').upper()
+        if 'URL_MACRO_SHIFT' in st:
+            return 1, 10.0, 10.0
         if st in ('RSI_OVERSOLD', 'RSI_OVERBOUGHT', 'ALPHA_DIVERGENCE_LONG', 'LIQUIDITY_VACUUM'):
             return 5, 15.0, 5.0
         elif st in ('REGIME_BULL', 'REGIME_SHIFT_LONG', 'WHALE_ACCUMULATION'):
@@ -645,7 +647,6 @@ class HarvestService:
                 SELECT id, type, ticker, price, user_email, timestamp
                 FROM alerts_history
                 WHERE COALESCE(status,'active') = 'active'
-                  AND price IS NOT NULL AND price > 0
             """)
             active_rows = c.fetchall()
             if not active_rows:
