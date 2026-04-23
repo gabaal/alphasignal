@@ -380,6 +380,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_error(500, 'Internal server error')
             elif path == '/api/user/settings':
                 self.handle_user_settings(post_data)
+            elif path == '/api/user/algo-params':
+                self.handle_algo_params(post_data)
             elif path == '/api/alert-settings':
                 self.handle_alert_settings(post_data)
             elif path == '/api/trade-ledger':
@@ -688,6 +690,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_ai_rebalancer()
             elif path == '/api/alert-settings':
                 self.handle_alert_settings()
+            elif path == '/api/user/algo-params':
+                self.handle_algo_params()
             elif path == '/api/liquidity':
                 self.handle_liquidity()
             elif path == '/api/liquidity-history':

@@ -40,6 +40,7 @@ async function renderMacroHub() {
 // ============= Alpha Strategy Hub =============
 const alphaHubTabs = [
     { id: 'signals',      label: 'LIVE SIGNALS',    view: 'signals',        icon: 'radar' },
+    { id: 'algo-params',  label: 'ALGO PARAMETERS', view: 'algo-params',    icon: 'tune' },
     { id: 'score',        label: 'ALPHA SCORE',      view: 'alpha-score',    icon: 'bolt' },
     { id: 'profile',      label: 'MARKET PROFILE',   view: 'volume-profile', icon: 'leaderboard' },
     { id: 'lab',          label: 'STRATEGY LAB',     view: 'strategy-lab',   icon: 'science' },

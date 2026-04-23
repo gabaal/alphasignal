@@ -277,6 +277,12 @@ def init_db():
         c.execute("ALTER TABLE user_settings ADD COLUMN rebalance_threshold REAL DEFAULT 2.5")
     except: pass
     try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_rsi_oversold REAL DEFAULT 25.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_rsi_overbought REAL DEFAULT 75.0")
+    except: pass
+    try:
         c.execute("ALTER TABLE user_settings ADD COLUMN alerts_last_seen TEXT")
     except: pass
     # B7: separate Telegram-only mute flag so /unsub doesn't disable Discord/badge
@@ -289,6 +295,21 @@ def init_db():
     except: pass
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN algo_webhook TEXT")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_z_threshold REAL DEFAULT 2.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_whale_threshold REAL DEFAULT 5.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_depeg_threshold REAL DEFAULT 1.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_vol_spike_threshold REAL DEFAULT 2.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_cme_gap_threshold REAL DEFAULT 1.0")
     except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS exchange_keys (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

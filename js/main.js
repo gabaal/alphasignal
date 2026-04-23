@@ -5,6 +5,7 @@ const viewMap = {
     'tradingview-hub': renderTradingViewHub,
     'custom-analytics': renderCustomAnalytics,
     signals: renderSignals,
+    'algo-params': renderAlgoParams,
     briefing: renderBriefing,
     mindshare: renderMindshare,
     flow: renderFlows,

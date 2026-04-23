@@ -6044,6 +6044,66 @@ class InstitutionalRoutesMixin:
             import traceback; traceback.print_exc()
             self.send_json({'error': str(e)})
 
+    def handle_algo_params(self, post_data=None):
+        """GET: return current algorithmic thresholds. POST: save new algorithmic thresholds."""
+        try:
+            auth = self.is_authenticated()
+            if not auth:
+                self.send_json({'error': 'Unauthorized'}); return
+            email = auth.get('email', '')
+            conn = sqlite3.connect(DB_PATH, timeout=30)
+            c = conn.cursor()
+            if post_data:
+                c.execute('SELECT algo_z_threshold, algo_whale_threshold, algo_depeg_threshold, algo_vol_spike_threshold, algo_cme_gap_threshold, algo_rsi_oversold, algo_rsi_overbought FROM user_settings WHERE user_email=?', (email,))
+                ext = c.fetchone()
+                
+                z_t = float(post_data.get('algo_z_threshold', ext[0] if ext and ext[0] is not None else 2.0))
+                whale_t = float(post_data.get('algo_whale_threshold', ext[1] if ext and ext[1] is not None else 5.0))
+                depeg_t = float(post_data.get('algo_depeg_threshold', ext[2] if ext and ext[2] is not None else 1.0))
+                vol_t = float(post_data.get('algo_vol_spike_threshold', ext[3] if ext and ext[3] is not None else 2.0))
+                cme_t = float(post_data.get('algo_cme_gap_threshold', ext[4] if ext and ext[4] is not None else 1.0))
+                rsi_os = float(post_data.get('algo_rsi_oversold', ext[5] if ext and len(ext) > 5 and ext[5] is not None else 25.0))
+                rsi_ob = float(post_data.get('algo_rsi_overbought', ext[6] if ext and len(ext) > 6 and ext[6] is not None else 75.0))
+                
+                c.execute("""UPDATE user_settings SET
+                               algo_z_threshold = ?,
+                               algo_whale_threshold = ?,
+                               algo_depeg_threshold = ?,
+                               algo_vol_spike_threshold = ?,
+                               algo_cme_gap_threshold = ?,
+                               algo_rsi_oversold = ?,
+                               algo_rsi_overbought = ?
+                             WHERE user_email = ?""",
+                          (z_t, whale_t, depeg_t, vol_t, cme_t, rsi_os, rsi_ob, email))
+                conn.commit()
+                conn.close()
+                self.send_json({'success': True, 'algo_z_threshold': z_t, 'algo_whale_threshold': whale_t, 
+                                'algo_depeg_threshold': depeg_t, 'algo_vol_spike_threshold': vol_t, 'algo_cme_gap_threshold': cme_t,
+                                'algo_rsi_oversold': rsi_os, 'algo_rsi_overbought': rsi_ob})
+            else:
+                c.execute('SELECT algo_z_threshold, algo_whale_threshold, algo_depeg_threshold, algo_vol_spike_threshold, algo_cme_gap_threshold, algo_rsi_oversold, algo_rsi_overbought FROM user_settings WHERE user_email=?', (email,))
+                row = c.fetchone()
+                conn.close()
+                if row:
+                    self.send_json({
+                        'algo_z_threshold': row[0] if row[0] is not None else 2.0,
+                        'algo_whale_threshold': row[1] if row[1] is not None else 5.0,
+                        'algo_depeg_threshold': row[2] if row[2] is not None else 1.0,
+                        'algo_vol_spike_threshold': row[3] if row[3] is not None else 2.0,
+                        'algo_cme_gap_threshold': row[4] if row[4] is not None else 1.0,
+                        'algo_rsi_oversold': row[5] if row[5] is not None else 25.0,
+                        'algo_rsi_overbought': row[6] if row[6] is not None else 75.0,
+                    })
+                else:
+                    self.send_json({
+                        'algo_z_threshold': 2.0, 'algo_whale_threshold': 5.0,
+                        'algo_depeg_threshold': 1.0, 'algo_vol_spike_threshold': 2.0, 'algo_cme_gap_threshold': 1.0,
+                        'algo_rsi_oversold': 25.0, 'algo_rsi_overbought': 75.0
+                    })
+        except Exception as e:
+            print(f'[AlgoParams] {e}')
+            self.send_json({'error': str(e)})
+
     # ================================================================
     # Phase 17-B: Deribit Options Flow Scanner
     # ================================================================

@@ -845,19 +845,18 @@ class HarvestService:
                 
                 if np.isnan(z_score): z_score = 0.0
 
-                # Get minimum z_threshold across all active users
+                # Get minimum algo_z_threshold across all active users
                 try:
-                    c.execute("SELECT MIN(z_threshold) FROM user_settings WHERE alerts_enabled = 1")
+                    c.execute("SELECT MIN(COALESCE(algo_z_threshold, z_threshold, 2.0)) FROM user_settings WHERE alerts_enabled = 1")
                     _min_z = c.fetchone()[0]
-                    min_z_thresh = float(_min_z) if _min_z is not None else 2.0
+                    min_algo_z_thresh = float(_min_z) if _min_z is not None else 2.0
                 except:
-                    min_z_thresh = 2.0
+                    min_algo_z_thresh = 2.0
 
-                # 3. Decision Logic: Alert if absolute Z-Score > min_z_thresh
+                # 3. Decision Logic: Alert if absolute Z-Score > min_algo_z_thresh
                 # ML signals use a stricter floor (2.5) to reduce false positives.
-                # Rule-based signals (RSI etc.) are unaffected by this gate.
                 ML_ZSCORE_FLOOR = 2.5
-                ml_z_thresh = max(min_z_thresh, ML_ZSCORE_FLOOR)
+                ml_z_thresh = max(min_algo_z_thresh, ML_ZSCORE_FLOOR)
                 signal_type = None
                 if abs(z_score) >= ml_z_thresh:
                     signal_type = "ML_ALPHA_PREDICTION"
@@ -870,12 +869,19 @@ class HarvestService:
                     try:
                         with sqlite3.connect(DB_PATH, timeout=30) as ue_conn:
                             ue_c = ue_conn.cursor()
-                            ue_c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
-                            enabled_users = [r[0] for r in ue_c.fetchall()]
+                            ue_c.execute("SELECT user_email, COALESCE(algo_z_threshold, z_threshold, 2.0) FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
+                            enabled_users_data = ue_c.fetchall()
                     except:
-                        enabled_users = []
+                        enabled_users_data = []
 
-                    for target_email in enabled_users:
+                    enabled_users = []
+                    for (target_email, user_algo_z) in enabled_users_data:
+                        # Apply Gatekeeper: individual algo_z_threshold dictates signal generation
+                        if abs(z_score) < max(float(user_algo_z), ML_ZSCORE_FLOOR):
+                            continue
+                            
+                        enabled_users.append(target_email)
+                        
                         # Per-user anti-spam: skip if this user already has this ticker in last 1h
                         c.execute("SELECT id FROM alerts_history WHERE ticker=? AND user_email=? AND timestamp > datetime('now', '-1 hours')", (ticker, target_email))
                         if c.fetchone(): continue
@@ -1043,6 +1049,16 @@ class HarvestService:
             tickers = data.columns.get_level_values(1).unique() if isinstance(data.columns, pd.MultiIndex) else []
             generated_signals = []
             
+            # Query global RSI extremes to ensure we calculate for the widest possible net
+            try:
+                c.execute("SELECT MAX(algo_rsi_oversold), MIN(algo_rsi_overbought) FROM user_settings WHERE alerts_enabled = 1")
+                row = c.fetchone()
+                max_rsi_os = float(row[0]) if row and row[0] is not None else 30.0
+                min_rsi_ob = float(row[1]) if row and row[1] is not None else 70.0
+            except:
+                max_rsi_os = 30.0
+                min_rsi_ob = 70.0
+            
             # Global Exclusions: Ignore Stablecoins (no volatility) and Memecoins (precision/slippage risks).
             STABLECOINS = {
                 'USDC-USD','USDT-USD','DAI-USD','BUSD-USD','TUSD-USD',
@@ -1105,10 +1121,10 @@ class HarvestService:
                     # --- RSI_OVERSOLD (LONG) ---
                     # Only buy oversold dips in confirmed uptrends (price above SMA-50).
                     # Below SMA-50, oversold RSI usually means trend continuation down.
-                    if curr_rsi < 25 and prev_rsi >= 25:
+                    if curr_rsi < max_rsi_os and prev_rsi >= max_rsi_os:
                         if above_sma50:
                             sig_type = 'RSI_OVERSOLD'
-                            message  = (f'RSI-14 crossed under 25 (at {curr_rsi:.1f}) while price is '
+                            message  = (f'RSI-14 crossed under {max_rsi_os:.0f} (at {curr_rsi:.1f}) while price is '
                                         f'above SMA-50 (${sma50:,.4f}) — oversold pullback in an uptrend. '
                                         f'Mean-reversion long setup.')
                             severity = 'high'
@@ -1116,10 +1132,10 @@ class HarvestService:
                     # --- RSI_OVERBOUGHT (SHORT) ---
                     # Only short overbought exhaustion when price is below SMA-50 (downtrend).
                     # Above SMA-50, overbought RSI = momentum continuation, not reversal.
-                    elif curr_rsi > 75 and prev_rsi <= 75:
+                    elif curr_rsi > min_rsi_ob and prev_rsi <= min_rsi_ob:
                         if below_sma50:
                             sig_type = 'RSI_OVERBOUGHT'
-                            message  = (f'RSI-14 crossed over 75 (at {curr_rsi:.1f}) while price is '
+                            message  = (f'RSI-14 crossed over {min_rsi_ob:.0f} (at {curr_rsi:.1f}) while price is '
                                         f'below SMA-50 (${sma50:,.4f}) — overbought exhaustion in a '
                                         f'bearish trend context. Reversal setup.')
                             severity = 'high'
@@ -1233,18 +1249,27 @@ class HarvestService:
                         notify_c = notify_conn.cursor()
                         notify_c.execute("""SELECT user_email, z_threshold,
                                                    whale_threshold, depeg_threshold,
-                                                   vol_spike_threshold, cme_gap_threshold
+                                                   vol_spike_threshold, cme_gap_threshold,
+                                                   algo_rsi_oversold, algo_rsi_overbought
                                             FROM user_settings WHERE alerts_enabled = 1""")
                         for row in notify_c.fetchall():
-                            (n_email, n_z, n_whale, n_depeg, n_vol, n_cme) = row
+                            (n_email, n_z, n_whale, n_depeg, n_vol, n_cme, n_rsi_os, n_rsi_ob) = row
                             user_z    = float(n_z)     if n_z     else 2.0
                             user_whale= float(n_whale) if n_whale else 5.0
                             user_depeg= float(n_depeg) if n_depeg else 1.0
                             user_vol  = float(n_vol)   if n_vol   else 2.0
                             user_cme  = float(n_cme)   if n_cme   else 1.0
+                            user_rsi_os = float(n_rsi_os) if n_rsi_os else 25.0
+                            user_rsi_ob = float(n_rsi_ob) if n_rsi_ob else 75.0
 
                             # Per-signal-type threshold gates
-                            if sig_type in ('RSI_OVERSOLD', 'RSI_OVERBOUGHT', 'MACD_BULLISH_CROSS', 'MACD_BEARISH_CROSS'):
+                            if sig_type == 'RSI_OVERSOLD':
+                                if rsi > user_rsi_os: continue
+                                if severity == 'medium' and user_z > 1.5: continue
+                            elif sig_type == 'RSI_OVERBOUGHT':
+                                if rsi < user_rsi_ob: continue
+                                if severity == 'medium' and user_z > 1.5: continue
+                            elif sig_type in ('MACD_BULLISH_CROSS', 'MACD_BEARISH_CROSS'):
                                 if severity == 'medium' and user_z > 1.5:
                                     continue
                             elif sig_type == 'VOLUME_SPIKE':
