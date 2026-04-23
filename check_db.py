@@ -1,8 +1,13 @@
 import sqlite3
-import os
-db_path = os.path.abspath('database.db')
-c = sqlite3.connect(db_path, timeout=30)
-results = c.execute("SELECT id, ticker, z_score, alpha FROM alerts_history WHERE ticker='MOG-USD'").fetchall()
-print('MOG-USD in DB:', len(results))
-for r in results:
-    print(r)
+from datetime import datetime, timedelta
+
+def check():
+    conn = sqlite3.connect('backend/alphasignal.db')
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM alerts_history WHERE status='closed' AND closed_at > datetime('now', '-1 hour')")
+    count = c.fetchone()[0]
+    print(f"Newly closed signals: {count}")
+    conn.close()
+
+if __name__ == '__main__':
+    check()

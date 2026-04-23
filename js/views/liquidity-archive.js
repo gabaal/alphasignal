@@ -1082,6 +1082,7 @@ async function renderSignalArchive(tabs = null) {
             return `
                 ${aTH('ticker','TICKER','left')}
                 ${aTH('type','TYPE','left')}
+                ${aTH('direction','ACTION','center')}
                 ${aTH('severity','SEV','center')}
                 ${aTH('entry','ENTRY','right')}
                 ${aTH('current','CURRENT','right')}

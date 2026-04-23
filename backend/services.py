@@ -139,24 +139,38 @@ class NotificationService:
         return f'${v:.{dps}f}'
 
     @staticmethod
+    def get_signal_thresholds(sig_type: str) -> tuple:
+        """Return (expiry_days, tp_pct, sl_pct) based on signal category."""
+        st = (sig_type or '').upper()
+        if st in ('RSI_OVERSOLD', 'RSI_OVERBOUGHT', 'ALPHA_DIVERGENCE_LONG', 'LIQUIDITY_VACUUM'):
+            return 5, 15.0, 5.0
+        elif st in ('REGIME_BULL', 'REGIME_SHIFT_LONG', 'WHALE_ACCUMULATION'):
+            return 30, 30.0, 15.0
+        else: # Momentum & Breakout (default)
+            return 2, 10.0, 3.0
+
+    @staticmethod
     def build_action_fields(sig_type: str, direction: str, curr_p: float) -> tuple:
         """Return (action_label, tp_price, sl_price, embed_color, action_emoji)."""
         is_long = direction in ('LONG', 'BULLISH') or \
                   any(x in sig_type for x in ('OVERSOLD','BULLISH','ML_ALPHA','VOLUME_SPIKE','MOMENTUM'))
         is_short = direction in ('SHORT', 'BEARISH') or \
                    any(x in sig_type for x in ('OVERBOUGHT','BEARISH'))
+                   
+        _, tp_pct, sl_pct = NotificationService.get_signal_thresholds(sig_type)
+
         if is_short:
             action   = 'SELL / SHORT'
             emoji    = '🔴'
             color    = 0xef4444
-            tp_price = curr_p * (1 - NotificationService.TP_PCT / 100) if curr_p else None
-            sl_price = curr_p * (1 + NotificationService.SL_PCT / 100) if curr_p else None
+            tp_price = curr_p * (1 - tp_pct / 100) if curr_p else None
+            sl_price = curr_p * (1 + sl_pct / 100) if curr_p else None
         else:
             action   = 'BUY / LONG'
             emoji    = '🟢'
             color    = 0x22c55e
-            tp_price = curr_p * (1 + NotificationService.TP_PCT / 100) if curr_p else None
-            sl_price = curr_p * (1 - NotificationService.SL_PCT / 100) if curr_p else None
+            tp_price = curr_p * (1 + tp_pct / 100) if curr_p else None
+            sl_price = curr_p * (1 - sl_pct / 100) if curr_p else None
         return action, tp_price, sl_price, color, emoji
 
     @staticmethod
@@ -623,10 +637,6 @@ class HarvestService:
             'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
             'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
         }
-        TP2_THRESHOLD = 10.0   # % gain -> auto-close win
-        SL_THRESHOLD  = -3.0   # % loss -> auto-close loss
-        EXPIRY_DAYS   = 7      # close stale signals after 7 days
-
         conn = sqlite3.connect(DB_PATH, timeout=30)
         c    = conn.cursor()
         try:
@@ -674,24 +684,28 @@ class HarvestService:
             closed  = 0
             expired = 0
             for sig_id, sig_type, ticker, entry_p, user_email, sig_ts in active_rows:
-                # --- Time-based expiry check FIRST (7 days) ---
+                expiry_days, tp2_threshold, sl_threshold = NotificationService.get_signal_thresholds(sig_type)
+
+                # --- Time-based expiry check FIRST (dynamic) ---
                 # This runs even if we have no current price for the ticker
                 try:
                     sig_dt = datetime.fromisoformat(sig_ts) if sig_ts else None
-                    if sig_dt and (now_dt - sig_dt).days >= EXPIRY_DAYS:
-                        curr_p = price_map.get(ticker)
-                        final_roi = 0.0
-                        exit_px = 0.0
-                        if curr_p and entry_p and entry_p > 0:
-                            direction = 1 if (sig_type or '').upper() in BULLISH else -1
-                            final_roi = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
-                            exit_px = round(curr_p, 10)
-                        c.execute(
-                            "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
-                            (now_ts, exit_px, final_roi, sig_id)
-                        )
-                        expired += 1
-                        continue
+                    if sig_dt:
+                        hours_passed = (now_dt - sig_dt).total_seconds() / 3600.0
+                        if hours_passed >= (expiry_days * 24.0):
+                            curr_p = price_map.get(ticker)
+                            final_roi = 0.0
+                            exit_px = 0.0
+                            if curr_p and entry_p and entry_p > 0:
+                                direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                                final_roi = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
+                                exit_px = round(curr_p, 10)
+                            c.execute(
+                                "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                                (now_ts, exit_px, final_roi, sig_id)
+                            )
+                            expired += 1
+                            continue
                 except Exception:
                     pass
 
@@ -702,14 +716,14 @@ class HarvestService:
                 direction = 1 if (sig_type or '').upper() in BULLISH else -1
                 roi = direction * (curr_p - entry_p) / entry_p * 100
 
-                if roi >= TP2_THRESHOLD or roi <= SL_THRESHOLD:
+                if roi >= tp2_threshold or roi <= -abs(sl_threshold):
                     final_roi  = round(roi, 2)
                     exit_px    = round(curr_p, 10)
                     c.execute(
                         "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
                         (now_ts, exit_px, final_roi, sig_id)
                     )
-                    is_win  = roi >= TP2_THRESHOLD
+                    is_win  = roi >= tp2_threshold
                     reason  = 'TP2 HIT' if is_win else 'STOP LOSS'
                     print(f"[AutoClose] Signal #{sig_id} {ticker} {reason}: ROI={final_roi:+.2f}% entry={entry_p} exit={exit_px}")
                     closed += 1
@@ -761,8 +775,8 @@ class HarvestService:
                 except Exception:
                     pass
                 parts = []
-                if closed:  parts.append(f"{closed} TP2/SL")
-                if expired: parts.append(f"{expired} expired (>{EXPIRY_DAYS}d)")
+                if closed:  parts.append(f"{closed} TP/SL")
+                if expired: parts.append(f"{expired} expired")
                 print(f"[AutoClose] {' + '.join(parts)} = {total_closed} signal(s) auto-closed this cycle.")
             else:
                 print(f"[AutoClose] No signals hit TP2 or SL this cycle ({len(active_rows)} active).")
