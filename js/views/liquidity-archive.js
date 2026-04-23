@@ -1009,7 +1009,15 @@ async function renderSignalArchive(tabs = null) {
                             const age = s.age_days != null
                                 ? (s.age_days === 0 ? 'today' : s.age_days === 1 ? '1d ago' : s.age_days + 'd ago')
                                 : '';
-                            return `${datePart}${hhmm ? `<br><span style="font-size:0.65rem;color:#7dd3fc;font-family:var(--font-mono);font-weight:700">${hhmm} UTC</span>` : ''}<br><span style="font-size:0.55rem;color:var(--text-dim);opacity:0.6">${age}</span>`;
+                            
+                            let extraContext = '';
+                            if (s.state === 'ACTIVE' && s.expires_in_str) {
+                                extraContext = `<span style="color:#f59e0b;font-size:0.55rem;letter-spacing:0.5px" title="Time until auto-close">Expires in ${s.expires_in_str}</span>`;
+                            } else if (s.state === 'CLOSED' && s.duration_str) {
+                                extraContext = `<span style="color:var(--text-dim);font-size:0.55rem;letter-spacing:0.5px" title="Total time open">Open for ${s.duration_str}</span>`;
+                            }
+
+                            return `${datePart}${hhmm ? `<br><span style="font-size:0.65rem;color:#7dd3fc;font-family:var(--font-mono);font-weight:700">${hhmm} UTC</span>` : ''}<br><span style="font-size:0.55rem;color:var(--text-dim);opacity:0.6">${age}</span>${extraContext ? `<br>${extraContext}` : ''}`;
                         })()
                     }</td>
                     <td data-label="DIR" class="col-dir" style="padding:10px 12px;text-align:center">

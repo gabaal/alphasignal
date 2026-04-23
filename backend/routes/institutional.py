@@ -4730,12 +4730,38 @@ class InstitutionalRoutesMixin:
                 else:
                     curr_p = entry_p  # no price data at all - show entry as placeholder
 
-                from datetime import datetime as _dt2, timezone
+                from datetime import datetime as _dt2, timezone, timedelta
+                from backend.services import NotificationService
+                
+                age_days = None
+                duration_str = None
+                expires_in_str = None
                 try:
                     sig_ts = _dt2.fromisoformat(ts.replace('Z',''))
-                    age_days = (datetime.utcnow().date() - sig_ts.date()).days
-                except:
-                    age_days = None
+                    now_dt = _dt2.utcnow()
+                    age_days = (now_dt.date() - sig_ts.date()).days
+                    
+                    if state == 'CLOSED' and closed_at:
+                        c_ts = _dt2.fromisoformat(closed_at.replace('Z',''))
+                        diff_sec = (c_ts - sig_ts).total_seconds()
+                        if diff_sec > 0:
+                            d = int(diff_sec // 86400)
+                            h = int((diff_sec % 86400) // 3600)
+                            m = int((diff_sec % 3600) // 60)
+                            duration_str = f"{d}d {h}h" if d > 0 else f"{h}h {m}m"
+                    elif state == 'ACTIVE':
+                        expiry_days, _, _ = NotificationService.get_signal_thresholds(sig_type)
+                        expires_ts = sig_ts + timedelta(days=expiry_days)
+                        diff_sec = (expires_ts - now_dt).total_seconds()
+                        if diff_sec > 0:
+                            d = int(diff_sec // 86400)
+                            h = int((diff_sec % 86400) // 3600)
+                            m = int((diff_sec % 3600) // 60)
+                            expires_in_str = f"{d}d {h}h" if d > 0 else f"{h}h {m}m"
+                        else:
+                            expires_in_str = "soon"
+                except Exception:
+                    pass
 
                 results.append({
                     'id':         row_id,
@@ -4750,6 +4776,8 @@ class InstitutionalRoutesMixin:
                     'timestamp':  ts,
                     'age_days':   age_days,
                     'closed_at':  closed_at,
+                    'duration_str': duration_str,
+                    'expires_in_str': expires_in_str,
                     'exit_price': round(float(exit_px), 10) if exit_px else None,
                     'final_roi':  round(float(stored_roi), 2) if stored_roi is not None else None,
                 })
