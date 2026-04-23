@@ -153,18 +153,19 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
     const plotW = rect.width  - PAD_LEFT - PAD_RIGHT;
     const plotH = rect.height - PAD_TOP  - PAD_BOTTOM;
 
-    // sentiment: -0.5 - +0.5  maps to  left - right (X axis)
-    // momentum:  -5% - +5%  maps to  bottom - top (Y axis, canvas inverted)
-    const SENT_RANGE = 0.5;   // clamp sentiment to +-0.5
-    const MOM_RANGE  = 5.0;   // clamp momentum  to +-5.0 %
+    // sentiment: -1.0 - +1.0  maps to  left - right (X axis)
+    // momentum: expanded positive axis to prevent clustering
+    const SENT_RANGE = 1.0;   // clamp sentiment to +-1.0
+    const MOM_MAX = 20.0;     // expanded positive momentum axis
+    const MOM_MIN = -5.0;     // baseline negative momentum
 
     const stars = clusters.map(c => {
         const sent = Math.max(-SENT_RANGE, Math.min(SENT_RANGE, c.sentiment || 0));
-        const mom  = Math.max(-MOM_RANGE,  Math.min(MOM_RANGE,  c.momentum  || 0));
-        // X: -1 - PAD_LEFT, +1 - PAD_LEFT + plotW
+        const mom  = Math.max(MOM_MIN, Math.min(MOM_MAX, c.momentum || 0));
+        // X: left to right
         const x = PAD_LEFT + ((sent + SENT_RANGE) / (2 * SENT_RANGE)) * plotW;
-        // Y: +MOM - PAD_TOP (top), -MOM - PAD_TOP + plotH (bottom)
-        const y = PAD_TOP  + ((MOM_RANGE - mom) / (2 * MOM_RANGE)) * plotH;
+        // Y: top (MOM_MAX) to bottom (MOM_MIN)
+        const y = PAD_TOP  + ((MOM_MAX - mom) / (MOM_MAX - MOM_MIN)) * plotH;
         return { ...c, x, y };
     });
     const hoverScale = 1.2;
@@ -224,8 +225,8 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
             ctx.moveTo(axisX - TICK_LEN, y);
             ctx.lineTo(axisX, y);
             ctx.stroke();
-            // label: momentum +5% -5% (canvas Y inverted)
-            const val = (((TICK_COUNT - i) / TICK_COUNT) * 2 * MOM_RANGE - MOM_RANGE).toFixed(1);
+            // label: momentum MOM_MAX to MOM_MIN (canvas Y inverted)
+            const val = (MOM_MAX - (i / TICK_COUNT) * (MOM_MAX - MOM_MIN)).toFixed(1);
             ctx.fillStyle = labelColor;
             ctx.textAlign = 'right';
             ctx.fillText((parseFloat(val) > 0 ? '+' : '') + val + '%', axisX - TICK_LEN - 3, y);
@@ -245,7 +246,7 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
 
         // - Zero cross-hair lines -
         const zeroX = axisX + plotW / 2;
-        const zeroY = PAD_TOP + plotH / 2;
+        const zeroY = PAD_TOP + (MOM_MAX / (MOM_MAX - MOM_MIN)) * plotH;
         ctx.beginPath();
         ctx.strokeStyle = 'rgba(0,242,255,0.12)';
         ctx.setLineDash([4, 6]);
