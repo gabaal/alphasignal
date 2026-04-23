@@ -770,7 +770,7 @@ async function renderSignalArchive(tabs = null) {
             </div>
             <!-- Action buttons -->
             <div style="display:flex;gap:8px;align-items:center;height:100%;margin-top:auto">
-                <button id="apply-filters" class="setup-generator-btn" style="padding:7px 18px;font-size:0.7rem;height:36px">
+                <button id="apply-filters" class="setup-generator-btn" style="padding:7px 18px;font-size:0.7rem;height:36px;margin:0">
                     <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:4px">filter_list</span>APPLY
                 </button>
                 <button onclick="window._drpSelect('30d',30);document.getElementById('filter-ticker').value='';document.getElementById('filter-type').value='';document.getElementById('filter-severity').value='';document.getElementById('filter-direction').value='';loadData(1)"
