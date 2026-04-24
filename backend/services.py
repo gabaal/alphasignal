@@ -854,8 +854,8 @@ class HarvestService:
                     min_algo_z_thresh = 2.0
 
                 # 3. Decision Logic: Alert if absolute Z-Score > min_algo_z_thresh
-                # ML signals use a stricter floor (2.5) to reduce false positives.
-                ML_ZSCORE_FLOOR = 2.5
+                # ML signals use a floor (2.0) to reduce false positives.
+                ML_ZSCORE_FLOOR = 2.0
                 ml_z_thresh = max(min_algo_z_thresh, ML_ZSCORE_FLOOR)
                 signal_type = None
                 if abs(z_score) >= ml_z_thresh:

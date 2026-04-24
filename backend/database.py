@@ -276,10 +276,10 @@ def init_db():
         c.execute("ALTER TABLE user_settings ADD COLUMN rebalance_threshold REAL DEFAULT 2.5")
     except: pass
     try:
-        c.execute("ALTER TABLE user_settings ADD COLUMN algo_rsi_oversold REAL DEFAULT 25.0")
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_rsi_oversold REAL DEFAULT 30.0")
     except: pass
     try:
-        c.execute("ALTER TABLE user_settings ADD COLUMN algo_rsi_overbought REAL DEFAULT 75.0")
+        c.execute("ALTER TABLE user_settings ADD COLUMN algo_rsi_overbought REAL DEFAULT 70.0")
     except: pass
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN alerts_last_seen TEXT")
