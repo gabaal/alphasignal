@@ -155,6 +155,9 @@ async function _renderAlgoParamsContent(tabs) {
 
                 <div style="margin-top: 2rem; display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
                     <span id="algo-save-status" style="font-size: 0.75rem; font-weight: 700; color: var(--risk-low); display: none;">SETTINGS SAVED</span>
+                    <button class="intel-action-btn outline" onclick="resetAlgoParamsToDefault()" style="font-weight: 700; padding: 10px 18px; font-size: 0.75rem; display: flex; align-items: center;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 6px;">settings_backup_restore</span> DEFAULT
+                    </button>
                     <button class="intel-action-btn primary" onclick="saveAlgoParams()" style="font-weight: 900; padding: 10px 24px; font-size: 0.8rem;">
                         UPDATE ENGINE
                     </button>
@@ -165,6 +168,28 @@ async function _renderAlgoParamsContent(tabs) {
 
     appEl.innerHTML = html;
 }
+
+window.resetAlgoParamsToDefault = function() {
+    const defaults = {
+        'algo-z': { val: 2.0, suffix: 'σ', precision: 1 },
+        'algo-whale': { val: 5.0, prefix: '$', suffix: 'M', precision: 1 },
+        'algo-vol': { val: 2.0, suffix: 'x StdDev', precision: 1 },
+        'algo-rsi-os': { val: 25.0, suffix: '', precision: 0 },
+        'algo-rsi-ob': { val: 75.0, suffix: '', precision: 0 },
+        'algo-depeg': { val: 1.0, suffix: '%', precision: 1 },
+        'algo-cme': { val: 1.0, suffix: '%', precision: 1 }
+    };
+    
+    for (const [key, cfg] of Object.entries(defaults)) {
+        const slider = document.getElementById(`${key}-slider`);
+        const label = document.getElementById(`${key}-val`);
+        if (slider && label) {
+            slider.value = cfg.val;
+            label.textContent = (cfg.prefix || '') + cfg.val.toFixed(cfg.precision) + cfg.suffix;
+        }
+    }
+    showToast("DEFAULTS RESTORED", "Click 'Update Engine' to save.", "info");
+};
 
 async function saveAlgoParams() {
     const btn = event.currentTarget;

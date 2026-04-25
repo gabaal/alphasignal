@@ -925,7 +925,7 @@ class HarvestService:
                                     nat_en = bool(row[6]) if len(row) > 6 else False
                                     trd_sz = float(row[7]) if len(row) > 7 and row[7] else 100.0
 
-                                    if abs(z_score) >= user_z_thresh:
+                                    if abs(z_score) >= user_z_thresh and _cat != 'EQUITIES':
                                         # Native Execution
                                         if nat_en and exch_name and exch_key and exch_sec:
                                             def _fire_native(en=exch_name, ek=exch_key, es=exch_sec, tk=ticker, dr=_direction, sz=trd_sz):
@@ -1334,7 +1334,7 @@ class HarvestService:
                             )
                             
                             # Native Execution for Rule-Based Signals
-                            if nat_en_bool and exch_name and exch_key and exch_sec and _dir in ('LONG', 'SHORT'):
+                            if _cat != 'EQUITIES' and nat_en_bool and exch_name and exch_key and exch_sec and _dir in ('LONG', 'SHORT'):
                                 def _fire_native_rule(en=exch_name, ek=exch_key, es=exch_sec, tk=ticker, dr=_dir, sz=trd_sz_float):
                                     try:
                                         from backend.execution import NativeExecutionService
