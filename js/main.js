@@ -304,6 +304,29 @@ async function showNotificationSettings(visible) {
 
         if (document.getElementById('alerts-enabled'))
             document.getElementById('alerts-enabled').checked = settings?.alerts_enabled !== false;
+            
+        // Native Execution Engine settings
+        const exchangeSelect = document.getElementById('exchange-name');
+        if (exchangeSelect) {
+            // Fetch user's KeyVault connections
+            try {
+                const keys = await fetchAPI('/user/exchange-keys');
+                let optionsHtml = '<option value="">-- No Exchange Selected --</option>';
+                if (keys && keys.length > 0) {
+                    keys.forEach(k => {
+                        const isSelected = settings?.exchange_name && settings.exchange_name.toUpperCase() === k.exchange.toUpperCase() ? 'selected' : '';
+                        optionsHtml += `<option value="${k.exchange}" ${isSelected}>${k.exchange}</option>`;
+                    });
+                }
+                exchangeSelect.innerHTML = optionsHtml;
+            } catch (e) {
+                console.warn('Failed to fetch exchange keys', e);
+            }
+        }
+        if (document.getElementById('trade-size-usd'))
+            document.getElementById('trade-size-usd').value = settings?.trade_size_usd || '';
+        if (document.getElementById('native-execution-enabled'))
+            document.getElementById('native-execution-enabled').checked = !!settings?.native_execution_enabled;
 
         modal.classList.remove('hidden');
         if (layout) layout.style.filter = 'blur(10px)';
@@ -337,15 +360,21 @@ async function saveNotificationSettings() {
     const discord = document.getElementById('discord-webhook').value.trim();
     const telegram = document.getElementById('telegram-chat-id').value.trim();
     const enabled = document.getElementById('alerts-enabled').checked;
+    
+    // Native Execution Engine settings
+    const exchangeName = document.getElementById('exchange-name')?.value.trim() || null;
+    const tradeSizeUsd = parseFloat(document.getElementById('trade-size-usd')?.value) || null;
+    const nativeExecutionEnabled = document.getElementById('native-execution-enabled')?.checked || false;
+
     const digestOn = document.getElementById('digest-enabled')?.checked ?? true;
     const errorEl = document.getElementById('notif-error');
 
     if (errorEl) errorEl.classList.add('hidden');
 
     // Basic validation for Discord
-    if (discord && !discord.startsWith('https://discord.com/api/webhooks/')) {
+    if (discord && !discord.match(/discord(?:app)?\.com\/api\/webhooks/i)) {
         if (errorEl) {
-            errorEl.textContent = "INVALID_HOOK: Discord webhook must start with https://discord.com/api/webhooks/";
+            errorEl.textContent = "INVALID_HOOK: Discord webhook must contain discord.com or discordapp.com /api/webhooks";
             errorEl.classList.remove('hidden');
         }
         console.warn('[AlphaSignal] Invalid Discord Webhook format.');
@@ -358,7 +387,10 @@ async function saveNotificationSettings() {
             discord_webhook: discord,
             telegram_chat_id: telegram,
             alerts_enabled: enabled,
-            digest_enabled: digestOn
+            digest_enabled: digestOn,
+            exchange_name: exchangeName,
+            trade_size_usd: tradeSizeUsd,
+            native_execution_enabled: nativeExecutionEnabled
         });
         // Also persist z_threshold via Phase 17-A endpoint
         await fetchAPI('/alert-settings', 'POST', { z_threshold: z });

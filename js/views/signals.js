@@ -612,7 +612,9 @@ async function renderAlphaScore(tabs = null) {
                             <tr style="border-bottom:1px solid ${alphaColor(0.04)}; transition:background 0.2s"
                                 onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                                 <td style="padding:10px 12px; color:var(--text-dim)">${startIndex + i + 1}</td>
-                                <td style="padding:10px 12px; font-weight:700; color:var(--accent)">${s.ticker}</td>
+                                <td style="padding:10px 12px; font-weight:700; color:var(--accent)">
+                                    <span style="cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,242,255,0.3); text-underline-offset:3px" onclick="openDetail('${s.ticker}')" onmouseover="this.style.textDecorationColor='var(--accent)'" onmouseout="this.style.textDecorationColor='rgba(0,242,255,0.3)'">${s.ticker}</span>
+                                </td>
                                 <td style="padding:10px 12px; color:var(--text-dim); font-size:0.65rem; letter-spacing:1px">${s.sector}</td>
                                 <td style="padding:10px 12px">
                                     <div style="display:flex; align-items:center; gap:8px">

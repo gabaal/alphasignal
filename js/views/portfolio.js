@@ -497,6 +497,9 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
             if (loadingEl) loadingEl.style.display = 'none';
             if (chartEl) chartEl.style.display = 'block';
 
+            // If user navigated away while loading, abort rendering
+            if (!document.getElementById('frontierChart')) return;
+
             // Build scatter dataset colored by Sharpe
             const minSharpe = Math.min(...ef.points.map(p => p.sharpe));
             const maxSharpe = Math.max(...ef.points.map(p => p.sharpe));

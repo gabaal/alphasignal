@@ -912,14 +912,30 @@ class HarvestService:
                         try:
                             with sqlite3.connect(DB_PATH, timeout=30) as alert_conn:
                                 alert_c = alert_conn.cursor()
-                                # Include algo_webhook in the query
-                                alert_c.execute("SELECT user_email, z_threshold, algo_webhook FROM user_settings WHERE alerts_enabled = 1")
+                                # Include algo_webhook and native execution fields in the query
+                                alert_c.execute("SELECT user_email, z_threshold, algo_webhook, exchange_name, exchange_api_key, exchange_api_secret, native_execution_enabled, trade_size_usd FROM user_settings WHERE alerts_enabled = 1")
                                 for row in alert_c.fetchall():
                                     target_email = row[0]
                                     user_z_thresh = float(row[1]) if row[1] else 2.0
                                     algo_url = row[2] if len(row) > 2 and row[2] else None
+                                    
+                                    exch_name = row[3] if len(row) > 3 else None
+                                    exch_key = row[4] if len(row) > 4 else None
+                                    exch_sec = row[5] if len(row) > 5 else None
+                                    nat_en = bool(row[6]) if len(row) > 6 else False
+                                    trd_sz = float(row[7]) if len(row) > 7 and row[7] else 100.0
 
                                     if abs(z_score) >= user_z_thresh:
+                                        # Native Execution
+                                        if nat_en and exch_name and exch_key and exch_sec:
+                                            def _fire_native(en=exch_name, ek=exch_key, es=exch_sec, tk=ticker, dr=_direction, sz=trd_sz):
+                                                try:
+                                                    from backend.execution import NativeExecutionService
+                                                    NativeExecutionService.execute_trade(en, ek, es, tk, dr, sz)
+                                                except Exception as e:
+                                                    print(f"[NativeExecution] Error: {e}")
+                                            threading.Thread(target=_fire_native, daemon=True).start()
+                                            
                                         # Issue Algorithmic Trade Webhook if configured
                                         if algo_url:
                                             def _fire_algo(url=algo_url, t_email=target_email):
@@ -1247,13 +1263,18 @@ class HarvestService:
                 try:
                     with sqlite3.connect(DB_PATH, timeout=30) as notify_conn:
                         notify_c = notify_conn.cursor()
-                        notify_c.execute("""SELECT user_email, z_threshold,
-                                                   whale_threshold, depeg_threshold,
-                                                   vol_spike_threshold, cme_gap_threshold,
-                                                   algo_rsi_oversold, algo_rsi_overbought
-                                            FROM user_settings WHERE alerts_enabled = 1""")
+                        notify_c.execute("""SELECT u.user_email, u.z_threshold,
+                                                   u.whale_threshold, u.depeg_threshold,
+                                                   u.vol_spike_threshold, u.cme_gap_threshold,
+                                                   u.algo_rsi_oversold, u.algo_rsi_overbought,
+                                                   u.exchange_name, e.api_key, e.api_secret,
+                                                   u.native_execution_enabled, u.trade_size_usd
+                                            FROM user_settings u
+                                            LEFT JOIN exchange_keys e ON u.user_email = e.user_email AND UPPER(u.exchange_name) = UPPER(e.exchange)
+                                            WHERE u.alerts_enabled = 1""")
                         for row in notify_c.fetchall():
-                            (n_email, n_z, n_whale, n_depeg, n_vol, n_cme, n_rsi_os, n_rsi_ob) = row
+                            (n_email, n_z, n_whale, n_depeg, n_vol, n_cme, n_rsi_os, n_rsi_ob,
+                             exch_name, exch_key, exch_sec, nat_en, trd_sz) = row
                             user_z    = float(n_z)     if n_z     else 2.0
                             user_whale= float(n_whale) if n_whale else 5.0
                             user_depeg= float(n_depeg) if n_depeg else 1.0
@@ -1261,6 +1282,9 @@ class HarvestService:
                             user_cme  = float(n_cme)   if n_cme   else 1.0
                             user_rsi_os = float(n_rsi_os) if n_rsi_os else 25.0
                             user_rsi_ob = float(n_rsi_ob) if n_rsi_ob else 75.0
+                            
+                            nat_en_bool = bool(nat_en) if nat_en else False
+                            trd_sz_float = float(trd_sz) if trd_sz else 100.0
 
                             # Per-signal-type threshold gates
                             if sig_type == 'RSI_OVERSOLD':
@@ -1308,6 +1332,16 @@ class HarvestService:
                                     {"name": "RSI-14",      "value": f"{rsi:.1f}" if not is_macro else "MACRO", "inline": True},
                                 ]
                             )
+                            
+                            # Native Execution for Rule-Based Signals
+                            if nat_en_bool and exch_name and exch_key and exch_sec and _dir in ('LONG', 'SHORT'):
+                                def _fire_native_rule(en=exch_name, ek=exch_key, es=exch_sec, tk=ticker, dr=_dir, sz=trd_sz_float):
+                                    try:
+                                        from backend.execution import NativeExecutionService
+                                        NativeExecutionService.execute_trade(en, ek, es, tk, dr, sz)
+                                    except Exception as e:
+                                        print(f"[NativeExecution] Error: {e}")
+                                threading.Thread(target=_fire_native_rule, daemon=True).start()
                 except Exception as ne:
                     print(f'[RuleSig Notify] Error: {ne}')
 

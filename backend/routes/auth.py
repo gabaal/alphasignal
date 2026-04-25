@@ -5,7 +5,22 @@ from datetime import datetime, timedelta
 from backend.caching import CACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, NotificationService
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
+from cryptography.fernet import Fernet
 
+# Initialize Fernet Key
+FERNET_KEY = os.getenv("FERNET_KEY", Fernet.generate_key().decode())
+fernet = Fernet(FERNET_KEY.encode())
+
+def encrypt_secret(secret: str) -> str:
+    if not secret: return ""
+    return fernet.encrypt(secret.encode()).decode()
+
+def decrypt_secret(encrypted_secret: str) -> str:
+    if not encrypted_secret: return ""
+    try:
+        return fernet.decrypt(encrypted_secret.encode()).decode()
+    except:
+        return ""
 # - Body cap (shared with api_router) -
 _MAX_BODY_BYTES = 1 * 1024 * 1024
 
@@ -170,13 +185,21 @@ class AuthRoutesMixin:
         if self.command == 'GET':
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1), algo_webhook FROM user_settings WHERE user_email = ?', (email,))
+            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1), algo_webhook, exchange_name, native_execution_enabled, trade_size_usd FROM user_settings WHERE user_email = ?', (email,))
             row = c.fetchone()
             conn.close()
             if row:
-                self.send_json({'discord_webhook': row[0], 'telegram_webhook': row[1], 'telegram_chat_id': row[2], 'alerts_enabled': bool(row[3]), 'digest_enabled': bool(row[4]), 'algo_webhook': row[5] or ''})
+                self.send_json({
+                    'discord_webhook': row[0], 'telegram_webhook': row[1], 'telegram_chat_id': row[2], 
+                    'alerts_enabled': bool(row[3]), 'digest_enabled': bool(row[4]), 'algo_webhook': row[5] or '',
+                    'exchange_name': row[6] or '', 'native_execution_enabled': bool(row[7]), 'trade_size_usd': row[8] if row[8] is not None else 100.0
+                })
             else:
-                self.send_json({'discord_webhook': '', 'telegram_webhook': '', 'telegram_chat_id': '', 'alerts_enabled': True, 'digest_enabled': True, 'algo_webhook': ''})
+                self.send_json({
+                    'discord_webhook': '', 'telegram_webhook': '', 'telegram_chat_id': '', 
+                    'alerts_enabled': True, 'digest_enabled': True, 'algo_webhook': '',
+                    'exchange_name': '', 'native_execution_enabled': False, 'trade_size_usd': 100.0
+                })
         elif self.command == 'POST':
             if post_data is None:
                 length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
@@ -187,12 +210,18 @@ class AuthRoutesMixin:
             algo_hook  = post_data.get('algo_webhook', '')
             enabled    = 1 if post_data.get('alerts_enabled', True) else 0
             digest_on  = 1 if post_data.get('digest_enabled', True) else 0
+            
+            exchange_name = post_data.get('exchange_name', '')
+            native_execution_enabled = 1 if post_data.get('native_execution_enabled', False) else 0
+            trade_size_usd = float(post_data.get('trade_size_usd', 100.0))
+            
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
+
             # First ensure row exists
             c.execute('''INSERT OR IGNORE INTO user_settings (user_email, alerts_enabled) VALUES (?, ?)''', (email, enabled))
             # Then update all fields
-            c.execute('''UPDATE user_settings SET discord_webhook=?, telegram_webhook=?, telegram_chat_id=?, alerts_enabled=?, digest_enabled=?, algo_webhook=? WHERE user_email=?''', (discord, telegram, tg_chat_id, enabled, digest_on, algo_hook, email))
+            c.execute('''UPDATE user_settings SET discord_webhook=?, telegram_webhook=?, telegram_chat_id=?, alerts_enabled=?, digest_enabled=?, algo_webhook=?, exchange_name=?, native_execution_enabled=?, trade_size_usd=? WHERE user_email=?''', (discord, telegram, tg_chat_id, enabled, digest_on, algo_hook, exchange_name, native_execution_enabled, trade_size_usd, email))
             conn.commit()
             conn.close()
             self.send_json({'success': True})

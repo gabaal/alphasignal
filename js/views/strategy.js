@@ -392,8 +392,8 @@ async function renderChainVelocity(tabs = null) {
                     ${data.leaderboard.map((l, i) => `
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 10px; border-bottom:1px solid ${alphaColor(0.05)}">
                             <div style="display:flex; align-items:center; gap:12px">
-                                <span style="font-size:1.2rem; font-weight:900; color:${alphaColor(0.05)}">#${i+1}</span>
-                                <span style="font-weight:900; color:white; font-size:0.9rem">${l.ticker.split('-')[0]}</span>
+                                <span style="font-size:1.2rem; font-weight:900; color:var(--text-dim)">#${i+1}</span>
+                                <span style="font-weight:900; color:white; font-size:0.9rem; cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,242,255,0.3); text-underline-offset:3px" onclick="openDetail('${l.ticker}', 'VELOCITY')" onmouseover="this.style.textDecorationColor='var(--accent)'" onmouseout="this.style.textDecorationColor='rgba(0,242,255,0.3)'">${l.ticker.split('-')[0]}</span>
                             </div>
                             <div style="text-align:right">
                                 <div style="font-size:1rem; font-weight:900; color:var(--accent)">${l.score.toFixed(1)}</div>
@@ -415,7 +415,7 @@ async function renderChainVelocity(tabs = null) {
             ${Object.entries(data.velocity_data).map(([ticker, v]) => `
                 <div class="card" style="padding:1.5rem; border-left:4px solid ${v.raw_momentum >= 0 ? 'var(--risk-low)' : 'var(--risk-high)'}">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start">
-                        <span style="font-size:0.7rem; font-weight:900; color:var(--text-dim); letter-spacing:1px">${ticker}</span>
+                        <span style="font-size:0.7rem; font-weight:900; color:var(--text-dim); letter-spacing:1px; cursor:pointer; text-decoration:underline; text-decoration-color:rgba(255,255,255,0.2); text-underline-offset:3px" onclick="openDetail('${ticker}', 'VELOCITY')" onmouseover="this.style.color='var(--accent)'; this.style.textDecorationColor='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'; this.style.textDecorationColor='rgba(255,255,255,0.2)'">${ticker}</span>
                         <span class="premium-badge" style="font-size:0.5rem">L1 NODE</span>
                     </div>
                     <div style="font-size:1.8rem; font-weight:900; color:white; margin:10px 0">${v.raw_momentum >=0 ? '+' : ''}${v.raw_momentum.toFixed(2)}%</div>

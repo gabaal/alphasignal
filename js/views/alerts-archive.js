@@ -275,47 +275,7 @@ async function renderAlerts(tabs = null) {
 
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem">
-
-                <!-- Discord -->
-
-                <div>
-
-                    <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:6px">
-
-                        <span style="font-size:0.85rem"></span> DISCORD WEBHOOK
-
-                        ${hasDiscord ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700"> CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:${alphaColor(0.05)};color:var(--text-dim)">NOT SET</span>'}
-
-                    </label>
-
-                    <input id="discord-webhook-input" type="password" placeholder="${hasDiscord ? discMasked + ' (enter new to update)' : 'https://discord.com/api/webhooks/...'}"
-
-                        style="width:100%;padding:10px 12px;border:1px solid ${hasDiscord ? 'rgba(34,197,94,0.3)' : alphaColor(0.1)};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
-
-                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Server > Integrations > Webhooks > Copy URL</div>
-
-                </div>
-
-                <!-- Telegram -->
-
-                <div>
-
-                    <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:6px">
-
-                        <span style="font-size:0.85rem"></span> TELEGRAM CHAT ID
-
-                        ${hasTelegram ? '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700"> CONNECTED</span>' : '<span style="font-size:0.55rem;padding:2px 6px;border-radius:6px;background:${alphaColor(0.05)};color:var(--text-dim)">NOT SET</span>'}
-
-                    </label>
-
-                    <input id="telegram-chat-input" type="text" placeholder="${hasTelegram ? tgMasked + ' (enter new to update)' : '-1001234567890'}"
-
-                        style="width:100%;padding:10px 12px;border:1px solid ${hasTelegram ? 'rgba(34,197,94,0.3)' : alphaColor(0.1)};border-radius:8px;color:white;font-size:0.75rem;font-family:monospace;box-sizing:border-box">
-
-                    <div style="font-size:0.55rem;color:var(--text-dim);margin-top:4px">Open @userinfobot or @getidsbot in Telegram to find your chat ID</div>
-
-                </div>
+            <div style="display:none;">
 
             </div>
 
@@ -902,25 +862,11 @@ async function renderAlerts(tabs = null) {
     fetchAPI('/alert-settings').then(s => {
 
         if (!s || s.error) return;
-
-        const discIn  = document.getElementById('discord-webhook-input');
-
-        const tgIn    = document.getElementById('telegram-chat-input');
-
         const slider  = document.getElementById('z-threshold-slider');
-
         const zDisp   = document.getElementById('z-val-display');
-
         const toggle  = document.getElementById('alerts-enabled-toggle');
-
         if (slider && s.z_threshold) { slider.value = s.z_threshold; if(zDisp) zDisp.textContent = parseFloat(s.z_threshold).toFixed(1) + '%'; }
-
         if (toggle) toggle.checked = s.alerts_enabled !== false;
-
-        if (discIn && s.has_discord) discIn.placeholder = (s.discord_masked || '...') + ' (enter new to update)';
-
-        if (tgIn   && s.has_telegram) tgIn.placeholder  = (s.telegram_masked || '...') + ' (enter new to update)';
-
         // Populate the 4 signal sliders
 
         const setSlider = (id, dispId, val, fmt) => {

@@ -310,6 +310,23 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN algo_cme_gap_threshold REAL DEFAULT 1.0")
     except: pass
+    
+    # Native Execution Engine Integrations
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN exchange_name TEXT")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN exchange_api_key TEXT")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN exchange_api_secret TEXT")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN native_execution_enabled INTEGER DEFAULT 0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN trade_size_usd REAL DEFAULT 100.0")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS exchange_keys (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_email TEXT NOT NULL,

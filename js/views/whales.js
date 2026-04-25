@@ -28,7 +28,7 @@ async function renderWhales(tabs = null) {
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">Whale Pulse Monitor</h2>
 
         <div class="whale-pulse-header" style="display:grid; grid-template-columns: 1fr 1fr 300px; gap:2rem; margin-bottom:2rem">
-            <div class="glass-card" style="padding:1.5rem">
+            <div class="glass-card zoomable-panel" style="padding:1.5rem; cursor:pointer" onclick="expandChart('whale-flow-chart', '24H Net Flow History (BTC)')">
                 <div class="card-header">
                     <h3>24H Net Flow History (BTC)</h3>
                     <span class="label-tag">AGGREGATED FLOW</span>
@@ -37,7 +37,7 @@ async function renderWhales(tabs = null) {
                     <canvas id="whale-flow-chart" role="img" aria-label="Whale transaction flow chart"></canvas>
                 </div>
             </div>
-            <div class="glass-card" style="padding:1.5rem">
+            <div class="glass-card zoomable-panel" style="padding:1.5rem; cursor:pointer" onclick="expandChart('whale-tier-chart', 'Whale Conviction Scatter')">
                 <div class="card-header">
                     <h3>Whale Conviction Scatter (Size vs Time)</h3>
                     <span class="label-tag">BUBBLE MATRIX</span>
@@ -56,7 +56,7 @@ async function renderWhales(tabs = null) {
         </div>
 
         <div class="execution-topography-section" style="margin-bottom:2rem">
-            <div class="glass-card" style="padding:1.5rem">
+            <div class="glass-card zoomable-panel" style="padding:1.5rem; cursor:pointer" onclick="expandChart('whale-polar-chart', 'Execution Time Topography')">
                 <div class="card-header">
                     <h3>Execution Time Topography (Asian vs US Session)</h3>
                     <span class="label-tag">POLAR MATRIX</span>
@@ -66,6 +66,20 @@ async function renderWhales(tabs = null) {
                         <p style="font-size:0.8rem; color:var(--text-dim); line-height:1.5">
                             This 24-period Polar Area algorithmic array aggregates on-chain transaction volume classified by hour. Skewed radials indicate geographic execution dominance (e.g. extending heavily into the 01:00-06:00 UTC zones signals Asian market manipulation, whereas 14:00-20:00 UTC denotes Wall St Open routing).
                         </p>
+                        <div style="display:flex; flex-direction:column; gap:10px; margin-top:1.5rem; font-size:0.75rem; color:var(--text-dim)">
+                            <div style="display:flex; align-items:center; gap:8px">
+                                <div style="width:12px; height:12px; background:rgba(239, 68, 68, 0.4); border:1px solid rgba(239, 68, 68, 0.8); border-radius:2px"></div>
+                                <span><strong style="color:var(--risk-high)">Asian Session (01:00 - 06:00 UTC):</strong> High manipulation probability</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px">
+                                <div style="width:12px; height:12px; background:rgba(0, 242, 255, 0.4); border:1px solid rgba(0, 242, 255, 0.8); border-radius:2px"></div>
+                                <span><strong style="color:var(--accent)">US Session (14:00 - 20:00 UTC):</strong> Wall Street Open routing</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px">
+                                <div style="width:12px; height:12px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.2); border-radius:2px"></div>
+                                <span><strong style="color:var(--text-dim)">Neutral (Other Hours):</strong> Standard ambient flow</span>
+                            </div>
+                        </div>
                     </div>
                     <div style="flex:1; height: 350px; position: relative; min-width:300px">
                         <canvas id="whale-polar-chart" role="img" aria-label="Whale activity polar chart"></canvas>

@@ -1,4 +1,4 @@
-import sqlite3, os, requests, threading, time
+import sqlite3, os, requests, threading, time, html
 from datetime import datetime, timedelta
 from backend.database import DB_PATH, SUPABASE_URL, SUPABASE_HEADERS
 from backend.services import NOTIFY
@@ -23,7 +23,7 @@ DIGEST_MINUTE_UTC = int(os.getenv('DIGEST_MINUTE_UTC', '30'))
 # -
 
 def _get_top_signals(limit=5):
-    """Top signals from last 24h by severity, then recency."""
+    """Top distinct signals from last 24h by severity, then recency (1 per ticker)."""
     try:
         conn = sqlite3.connect(DB_PATH, timeout=30)
         conn.row_factory = sqlite3.Row
@@ -40,11 +40,20 @@ def _get_top_signals(limit=5):
                     ELSE 4
                 END,
                 timestamp DESC
-            LIMIT ?
-        """, (limit,))
-        rows = [dict(r) for r in c.fetchall()]
+            LIMIT 50
+        """)
+        raw_rows = [dict(r) for r in c.fetchall()]
         conn.close()
-        return rows
+        
+        seen_tickers = set()
+        deduped = []
+        for r in raw_rows:
+            if r['ticker'] not in seen_tickers:
+                seen_tickers.add(r['ticker'])
+                deduped.append(r)
+                if len(deduped) >= limit:
+                    break
+        return deduped
     except Exception as e:
         print(f"[Digest] Error fetching signals: {e}")
         return []
@@ -433,13 +442,14 @@ def _build_telegram_digest(user_email, signals, btc_price):
         for s in signals[:3]:
             sev      = s.get('severity', 'MEDIUM')
             icon     = {'CRITICAL': '[CRITICAL]', 'HIGH': '[HIGH]', 'MEDIUM': '[MED]'}.get(sev, '[LOW]')
-            ticker   = (s.get('ticker') or '?').replace('-USD', '')
-            sig_type = (s.get('type') or '').replace('_', ' ')
-            price_str = f"@ ${s['price']:,.2f}" if s.get('price') else ''
+            ticker   = html.escape((s.get('ticker') or '?').replace('-USD', ''))
+            sig_type = html.escape((s.get('type') or '').replace('_', ' '))
+            price_str = html.escape(f"@ ${s['price']:,.2f}" if s.get('price') else '')
             parts.append(f"{icon} <b>{ticker}</b> - {sig_type} {price_str}".strip())
-            msg = _fix(s.get('message') or '')
+            raw_msg = s.get('message') or ''
+            msg = _fix(raw_msg).strip()
             if msg:
-                safe_msg = msg[:80] + ('...' if len(msg) > 80 else '')
+                safe_msg = html.escape(msg[:80]) + ('...' if len(msg) > 80 else '')
                 parts.append(f"   <i>{safe_msg}</i>")
     else:
         parts.append("- No signals in the last 24h - markets are quiet.")
@@ -458,12 +468,13 @@ def _build_discord_digest(user_email, signals, btc_price):
     for s in signals[:3]:
         sev    = s.get('severity', 'MEDIUM')
         icon   = {'CRITICAL': '[!!]', 'HIGH': '[!]', 'MEDIUM': '[-]'}.get(sev, '[ok]')
-        ticker = s.get('ticker', '?').replace('-USD', '')
+        ticker = (s.get('ticker') or '?').replace('-USD', '')
         price_str = f"@ ${s['price']:,.2f}" if s.get('price') else ''
-        msg    = _fix(s.get('message', '') or '')[:100]
+        raw_msg = s.get('message') or ''
+        msg    = _fix(raw_msg).strip()[:100]
         fields.append({
-            "name": f"{icon} {ticker} - {s.get('type','')} {price_str}",
-            "value": msg or "No details",
+            "name": f"{icon} {ticker} - {s.get('type','')} {price_str}".strip(),
+            "value": msg if msg else "No details",
             "inline": False
         })
     if not signals:
@@ -511,13 +522,16 @@ def send_digest_to_user(user_email):
                 conn.close()
                 if row and row[0]:
                     msg = _build_telegram_digest(user_email, signals, btc)
-                    requests.post(
+                    resp = requests.post(
                         f"https://api.telegram.org/bot{bot_token}/sendMessage",
                         json={"chat_id": row[0], "text": msg,
                               "parse_mode": "HTML", "disable_web_page_preview": False},
                         timeout=10
                     )
-                    print(f"[Digest] Telegram sent to {user_email}", flush=True)
+                    if resp.status_code == 200:
+                        print(f"[Digest] Telegram sent to {user_email}", flush=True)
+                    else:
+                        print(f"[Digest] Telegram failed ({resp.status_code}) for {user_email}: {resp.text}", flush=True)
             except Exception as e:
                 print(f"[Digest] Telegram error for {user_email}: {e}")
 
@@ -530,8 +544,11 @@ def send_digest_to_user(user_email):
             conn.close()
             if row and row[0]:
                 payload = _build_discord_digest(user_email, signals, btc)
-                requests.post(row[0], json=payload, timeout=10)
-                print(f"[Digest] Discord sent to {user_email}", flush=True)
+                resp = requests.post(row[0], json=payload, timeout=10)
+                if resp.status_code in (200, 204):
+                    print(f"[Digest] Discord sent to {user_email}", flush=True)
+                else:
+                    print(f"[Digest] Discord failed ({resp.status_code}) for {user_email}: {resp.text}", flush=True)
         except Exception as e:
             print(f"[Digest] Discord error for {user_email}: {e}")
 

@@ -682,7 +682,10 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
     const overlay = document.getElementById('detail-overlay');
     const body = document.getElementById('detail-body');
     overlay.classList.remove('hidden');
-    body.innerHTML = '<div class="loader"></div><p style="text-align:center;margin-top:1rem">Fetching institutional history...</p>';
+    body.innerHTML = '<div class="loader"></div><p style="text-align:center;margin-top:1rem">Fetching institutional intelligence...</p>';
+    
+    // Clear previous ticker state to prevent data bleed
+    window._detailAlerts = [];
 
     // Map UI labels to yfinance periods
     const periodMap = { '1W': '5d', '1M': '1mo', '60d': '60d', '3M': '3mo', '6M': '6mo' };
@@ -1091,6 +1094,9 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                             sigTip.style.left = Math.min(x, window.innerWidth - 240) + 'px';
                             sigTip.style.top  = Math.max(y - sigTip.offsetHeight, 4) + 'px';
                         });
+                    } else {
+                        candleSeries.setMarkers([]);
+                        if (window._lwSignalTipUnsub) { try { window._lwSignalTipUnsub(); } catch(e){} }
                     }
                 };
                 window.renderDetailOverlays();
@@ -1888,9 +1894,9 @@ async function loadRiskMatrix(tickers = null) {
         <div class="rotation-matrix-container">
             <div class="matrix-grid" style="grid-template-columns: 100px repeat(${tks.length}, 1fr)">
                 <div></div>
-                ${tks.map(t => `<div class="matrix-label horizontal" style="font-size:0.6rem">${t.split('-')[0]}</div>`).join('')}
+                ${tks.map(t => `<div class="matrix-label horizontal" style="font-size:0.6rem; cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,242,255,0.3); text-underline-offset:3px" onclick="openDetail('${t}', 'RISK')" onmouseover="this.style.color='var(--accent)'; this.style.textDecorationColor='var(--accent)'" onmouseout="this.style.color=''; this.style.textDecorationColor='rgba(0,242,255,0.3)'">${t.split('-')[0]}</div>`).join('')}
                 ${data.matrix.map((row, i) => `
-                    <div class="matrix-label vertical" style="font-size:0.6rem; height:40px">${tks[i].split('-')[0]}</div>
+                    <div class="matrix-label vertical" style="font-size:0.6rem; height:40px; cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,242,255,0.3); text-underline-offset:3px" onclick="openDetail('${tks[i]}', 'RISK')" onmouseover="this.style.color='var(--accent)'; this.style.textDecorationColor='var(--accent)'" onmouseout="this.style.color=''; this.style.textDecorationColor='rgba(0,242,255,0.3)'">${tks[i].split('-')[0]}</div>
                     ${row.map(val => {
                         const intensity = Math.abs(val);
                         const color = val >= 0 ? `rgba(0, 242, 255, ${intensity * 0.8})` : `rgba(255, 107, 107, ${intensity * 0.8})`;
@@ -1960,6 +1966,15 @@ async function loadRiskMatrix(tickers = null) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                onHover: (e, activeEls, chart) => {
+                    chart.canvas.style.cursor = activeEls.length > 0 ? 'pointer' : 'default';
+                },
+                onClick: (e, activeEls) => {
+                    if (activeEls.length > 0) {
+                        const ticker = scatterPoints[activeEls[0].index].ticker;
+                        if (ticker) openDetail(ticker, 'RISK');
+                    }
+                },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -1975,6 +1990,15 @@ async function loadRiskMatrix(tickers = null) {
                     },
                     datalabels: {
                         display: true,
+                        listeners: {
+                            enter: function(context) { context.chart.canvas.style.cursor = 'pointer'; return true; },
+                            leave: function(context) { context.chart.canvas.style.cursor = 'default'; return true; },
+                            click: function(context) {
+                                const ticker = scatterPoints[context.dataIndex].ticker;
+                                if (ticker) openDetail(ticker, 'RISK');
+                                return true;
+                            }
+                        },
                         formatter: (val) => val.ticker,
                         color: (ctx) => colors[ctx.dataIndex] ?? alphaColor(0.7),
                         font: {
@@ -2327,6 +2351,17 @@ window.expandChart = function(sourceId, title) {
                 <span style="font-size:0.8rem;color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:4px">&#9679; Price Action</span>
                 <span style="font-size:0.8rem;color:#8b5cf6;display:flex;align-items:center;gap:4px">&#9679; RSI Momentum</span>
             `;
+        } else if (title.includes('Execution Time Topography')) {
+            legendEl.innerHTML = `
+                <span style="font-size:0.8rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; Asian Session (01:00-06:00 UTC)</span>
+                <span style="font-size:0.8rem;color:rgba(0,242,255,0.7);display:flex;align-items:center;gap:4px">&#9679; US Session (14:00-20:00 UTC)</span>
+                <span style="font-size:0.8rem;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:4px">&#9679; Neutral</span>
+            `;
+        } else if (title.includes('Whale Conviction')) {
+            legendEl.innerHTML = `
+                <span style="font-size:0.8rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; Inflow</span>
+                <span style="font-size:0.8rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; Outflow</span>
+            `;
         } else {
             legendEl.innerHTML = '';
         }
@@ -2357,6 +2392,27 @@ window.expandChart = function(sourceId, title) {
                 if (!newOptions.scales[key].grid) newOptions.scales[key].grid = {};
                 newOptions.scales[key].grid.display = true;
                 newOptions.scales[key].grid.color = 'rgba(255, 255, 255, 0.04)';
+                
+                if (title.includes('Whale Conviction')) {
+                    newOptions.scales[key].title = {
+                        display: true,
+                        text: 'Relative Time (Older → Newer)',
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        font: { size: 14, family: "'JetBrains Mono', monospace", weight: 'bold' }
+                    };
+                    newOptions.scales[key].ticks = { display: false }; // Hide abstract numerical indices
+                }
+            }
+            
+            if (key === 'y' || key === 'yAxes') {
+                if (title.includes('Whale Conviction')) {
+                    newOptions.scales[key].position = 'left';
+                    newOptions.scales[key].display = true;
+                    if (!newOptions.scales[key].title) newOptions.scales[key].title = { display: true };
+                    newOptions.scales[key].title.text = 'Transaction Size (BTC, Log Scale)';
+                    newOptions.scales[key].title.color = 'rgba(255, 255, 255, 0.5)';
+                    newOptions.scales[key].title.font = { size: 14, family: "'JetBrains Mono', monospace", weight: 'bold' };
+                }
             }
         });
     }

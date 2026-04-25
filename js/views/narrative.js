@@ -121,7 +121,9 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                     const bar   = Math.min(Math.abs(sent) * 100, 100);
                     const anchor = data.anchors?.[c.category] || {};
                     return `<div style="background:${bg};border:1px solid ${color}22;border-radius:8px;padding:10px">
-                        <div style="font-size:0.65rem;font-weight:800;color:var(--text);margin-bottom:2px">${(c.ticker||'-').replace('-USD','')}</div>
+                        <div style="font-size:0.65rem;font-weight:800;color:var(--text);margin-bottom:2px">
+                            <span style="cursor:pointer;text-decoration:underline;text-decoration-color:rgba(0,242,255,0.3);text-underline-offset:3px" onclick="openDetail('${c.ticker}', 'NARRATIVE')" onmouseover="this.style.textDecorationColor='var(--accent)'" onmouseout="this.style.textDecorationColor='rgba(0,242,255,0.3)'">${(c.ticker||'-').replace('-USD','')}</span>
+                        </div>
                         <div style="font-size:0.5rem;color:var(--text-dim);margin-bottom:6px">${c.category || ''}</div>
                         <div style="height:3px;background:${alphaColor(0.06)};border-radius:2px;margin-bottom:4px">
                             <div style="height:3px;background:${color};border-radius:2px;width:${bar}%"></div>
@@ -352,7 +354,13 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
         const mx = e.offsetX;
         const my = e.offsetY;
         
-        hoveredStar = stars.find(s => Math.hypot(s.x - mx, s.y - my) < 15);
+        hoveredStar = stars.find(s => {
+            const isNearCenter = Math.hypot(s.x - mx, s.y - my) < 15;
+            const size = s.size || 5;
+            const isLabelVisible = isNearCenter || Math.abs(s.momentum) > 10;
+            const isNearLabel = isLabelVisible && mx >= (s.x + size) && mx <= (s.x + size + 60) && Math.abs(s.y + 5 - my) < 12;
+            return isNearCenter || isNearLabel;
+        });
         
         if (hoveredStar) {
             canvas.style.cursor = 'pointer';
