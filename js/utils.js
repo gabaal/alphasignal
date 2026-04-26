@@ -180,6 +180,14 @@ function showSignalToast(signal) {
     toast.className = 'toast signal-toast';
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
+    toast.style.cursor = 'pointer';
+    toast.onclick = function(e) {
+        if(e.target.innerText === '-' || e.target.closest('span[onclick]')) return;
+        if(typeof showSignalDetail === 'function') {
+            showSignalDetail(signal.id ? signal.id : 'undefined', ticker);
+        }
+        this.remove();
+    };
     toast.innerHTML = `
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
             <div style="width:8px;height:8px;border-radius:50%;background:${dirColor};box-shadow:0 0 8px ${dirColor};flex-shrink:0;animation:pulse-live 1.2s infinite"></div>
@@ -196,17 +204,17 @@ function showSignalToast(signal) {
         </div>
         <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
             <span style="font-size:0.65rem;color:${alphaColor(0.4)};flex:1">High-confidence alpha detected by ML engine</span>
-            <button onclick="switchView('alerts');this.closest('.toast').remove()" style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">VIEW ALERT →</button>
+            <button style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">DEEP DIVE →</button>
         </div>
     `;
 
     container.appendChild(toast);
 
-    // Auto-dismiss after 8s
+    // Auto-dismiss after 20s
     setTimeout(() => {
         toast.style.animation = 'toastSlideOut 0.4s ease forwards';
         setTimeout(() => toast.remove(), 400);
-    }, 8000);
+    }, 20000);
 }
 
 // Feature 2: Notification Bell Panel
