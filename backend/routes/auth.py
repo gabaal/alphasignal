@@ -204,19 +204,56 @@ class AuthRoutesMixin:
             if post_data is None:
                 length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
                 post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
-            discord    = post_data.get('discord_webhook', '')
-            telegram   = post_data.get('telegram_webhook', '')
-            tg_chat_id = post_data.get('telegram_chat_id', '')
-            algo_hook  = post_data.get('algo_webhook', '')
-            enabled    = 1 if post_data.get('alerts_enabled', True) else 0
-            digest_on  = 1 if post_data.get('digest_enabled', True) else 0
-            
-            exchange_name = post_data.get('exchange_name', '')
-            native_execution_enabled = 1 if post_data.get('native_execution_enabled', False) else 0
-            trade_size_usd = float(post_data.get('trade_size_usd', 100.0))
             
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
+
+            # Fetch existing to merge
+            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1), algo_webhook, exchange_name, native_execution_enabled, trade_size_usd FROM user_settings WHERE user_email = ?', (email,))
+            row = c.fetchone()
+            
+            if row:
+                discord    = row[0]
+                telegram   = row[1]
+                tg_chat_id = row[2]
+                enabled    = row[3]
+                digest_on  = row[4]
+                algo_hook  = row[5] if row[5] is not None else ''
+                exchange_name = row[6] if row[6] is not None else ''
+                native_execution_enabled = row[7] if row[7] is not None else 0
+                trade_size_usd = row[8] if row[8] is not None else 100.0
+            else:
+                discord    = ''
+                telegram   = ''
+                tg_chat_id = ''
+                enabled    = 1
+                digest_on  = 1
+                algo_hook  = ''
+                exchange_name = ''
+                native_execution_enabled = 0
+                trade_size_usd = 100.0
+
+            if 'discord_webhook' in post_data:
+                discord = post_data['discord_webhook']
+            if 'telegram_webhook' in post_data:
+                telegram = post_data['telegram_webhook']
+            if 'telegram_chat_id' in post_data:
+                tg_chat_id = post_data['telegram_chat_id']
+            if 'alerts_enabled' in post_data:
+                enabled = 1 if post_data['alerts_enabled'] else 0
+            if 'digest_enabled' in post_data:
+                digest_on = 1 if post_data['digest_enabled'] else 0
+            if 'algo_webhook' in post_data:
+                algo_hook = post_data['algo_webhook']
+            if 'exchange_name' in post_data:
+                exchange_name = post_data['exchange_name']
+            if 'native_execution_enabled' in post_data:
+                native_execution_enabled = 1 if post_data['native_execution_enabled'] else 0
+            if 'trade_size_usd' in post_data:
+                try:
+                    trade_size_usd = float(post_data['trade_size_usd'])
+                except:
+                    pass
 
             # First ensure row exists
             c.execute('''INSERT OR IGNORE INTO user_settings (user_email, alerts_enabled) VALUES (?, ?)''', (email, enabled))
