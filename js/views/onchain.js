@@ -814,7 +814,12 @@ async function renderOptionsFlow(tabs = null) {
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">ssid_chart</span>Options Flow <span class="premium-badge">LIVE</span></h1>
                 <p>Real-time BTC &amp; ETH Deribit options data &mdash; Put/Call ratio, Max Pain, IV smile, top OI strikes.</p>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="document.getElementById('opts-video-modal').style.display='flex'" style="background:rgba(0, 242, 255, 0.1);border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:4px;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s">
+                    <span class="material-symbols-outlined" style="font-size:16px">smart_display</span> How to Read
+                </button>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            </div>
         </div>
         ${renderHubTabs('options', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1rem">Institutional Options Flow Scanner</h2>
@@ -897,6 +902,31 @@ async function renderOptionsFlow(tabs = null) {
                     </tr></thead>
                     <tbody id="opts-strikes-table"><tr><td colspan="6" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading Deribit data...</td></tr></tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Video Modal -->
+        <div id="opts-video-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;justify-content:center;align-items:center;backdrop-filter:blur(5px);">
+            <div style="background:var(--bg-dark);border:1px solid var(--accent);border-radius:8px;width:90%;max-width:800px;overflow:hidden;box-shadow:0 0 30px rgba(0,242,255,0.2);">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:15px 20px;border-bottom:1px solid rgba(0,242,255,0.1);">
+                    <h3 style="margin:0;font-size:1rem;display:flex;align-items:center;gap:8px">
+                        <span class="material-symbols-outlined" style="color:var(--accent)">school</span> Educational Guide
+                    </h3>
+                    <button onclick="document.getElementById('opts-video-modal').style.display='none'; document.getElementById('opts-iframe').src = document.getElementById('opts-iframe').src;" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+                    <iframe id="opts-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+                        src="https://www.youtube.com/embed/yTbWEsMxNCw?rel=0" 
+                        title="YouTube video player" frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div style="padding:15px 20px;font-size:0.8rem;color:var(--text-dim);">
+                    Options Flow tracking involves monitoring the tape for unusually large, aggressive block trades or sweeps executed by institutional funds.
+                </div>
             </div>
         </div>
     `;

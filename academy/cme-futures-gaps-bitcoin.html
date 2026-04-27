@@ -303,8 +303,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
       "headline": "Trading CME Futures Gaps in Bitcoin",
       "description": "Exploit the institutional weekend arbitrage loop by trading CME (Chicago Mercantile Exchange) gaps. Understand the statistical probabilities of gap fills and ho",
       "url": "https://alphasignal.digital/academy/cme-futures-gaps-bitcoin",
-      "datePublished": "2026-04-23",
-      "dateModified": "2026-04-23",
+      "datePublished": "2026-04-27",
+      "dateModified": "2026-04-27",
       "author": {"@type": "Organization", "name": "AlphaSignal", "url": "https://alphasignal.digital/"},
       "publisher": {
         "@type": "Organization",
@@ -493,6 +493,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                     </div>
 
                     <div class="action-group" id="system-actions-group">
+                        <button onclick="showNotificationSettings(true)" aria-label="Alerts & Execution Hooks" class="action-btn-styled primary" title="Configure Execution & Webhooks">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">api</span> HOOKS
+                        </button>
                         <button onclick="switchView('home'); setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),350)" aria-label="Pricing" class="action-btn-styled outline" title="View pricing plans" style="font-size:0.75rem;letter-spacing:1px;font-weight:700">
                             <span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> PRICING
                         </button>
@@ -568,7 +571,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                 </ul>
                 <h2 style="font-size:1.5rem;font-weight:700;margin:2rem 0 1rem;">Terminal Hubs</h2>
                 <ul style="list-style:disc;padding-left:2rem;line-height:2;color:#94a3b8;">
-                    <li><strong>Market Analytics Hub</strong> &mdash; AI Market Brief, Whale Pulse, Chain Velocity, On-Chain Analytics, Options Flow, GEX Profile, Mindshare &amp; Narrative, Newsroom, Advanced Charting</li>
+                    <li><strong>Market Analytics Hub</strong> &mdash; AI Market Brief, Whale Pulse, Chain Velocity, On-Chain Analytics, Options Flow, GEX Profile, Mindshare &amp; Narrative, Newsroom</li>
                     <li><strong>Macro Intelligence Hub</strong> &mdash; AI Briefing, Capital Flows, Sector Rotation, Macro Compass, Correlation Matrix, Macro Calendar, Market Regime Classifier</li>
                     <li><strong>Strategy &amp; Backtester Hub</strong> &mdash; Live Signals, Alpha Score, Strategy Lab, Signal Backtester V2, Signal Archive, Narrative Galaxy</li>
                     <li><strong>Alerts &amp; Webhooks Hub</strong> &mdash; Live Signal Alerts, Price Alerts, Signal Leaderboard, Webhooks, Signal Archive</li>
@@ -649,7 +652,6 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                             <li><a href="/?view=help" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Help &amp; Documentation</a></li>
                             <li><a href="/?view=ask-terminal" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Ask Terminal AI</a></li>
                             <li><a href="/?view=newsroom" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Crypto Newsroom</a></li>
-                            <li><a href="/?view=advanced-charting" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Advanced Charting Suite</a></li>
                             <li><a href="/?view=alerts-hub" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Alerts &amp; Webhooks</a></li>
                             <li><a href="/?view=liquidity" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Liquidity &amp; Order Flow</a></li>
                         </ul>
@@ -712,8 +714,11 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                 <h2 id="chart-zoom-title" style="margin:0;font-size:1.1rem;letter-spacing:1px;color:var(--text)"><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">zoom_in</span>CHART INSPECTOR</h2>
                 <button aria-label="Close Chart Zoom" onclick="document.getElementById('chart-zoom-overlay').classList.add('hidden')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;"><span class="material-symbols-outlined" style="font-size:24px">close</span></button>
             </div>
-            <div style="flex-grow:1;position:relative;width:100%;height:100%;">
-                <canvas id="chart-zoom-canvas"></canvas>
+            <div style="flex-grow:1;position:relative;width:100%;height:100%; display:flex; flex-direction:column;">
+                <div style="flex-grow:1;position:relative;width:100%;">
+                    <canvas id="chart-zoom-canvas"></canvas>
+                </div>
+                <div id="chart-zoom-legend" style="display:flex;gap:16px;justify-content:center;margin-top:12px;min-height:24px;"></div>
             </div>
         </div>
     </div>
@@ -916,11 +921,11 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="js/views/audit.js?v=2.65" defer></script>
     <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
     <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/advanced.js?v=2.65" defer></script>
     <script src="js/views/onchain.js?v=2.65" defer></script>
     <script src="js/views/command-center.js?v=2.65" defer></script>
     <script src="js/views/home.js?v=2.65" defer></script>
     <script src="js/views/algo-hub.js?v=2.65"></script>
+    <script src="js/views/algo-params.js?v=2.65" defer></script>
     <script src="js/views/explain.js?v=2.65" defer></script>
     <script src="js/views/my-terminal.js?v=2.65"></script>
     <script src="js/views/signal-permalink.js?v=2.65" defer></script>
@@ -984,6 +989,35 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                     </div>
                     <input type="hidden" id="telegram-chat-id">
                 </div>
+                
+                <!-- Native Execution Integration -->
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1rem 0 0.5rem 0; font-weight:700">NATIVE EXECUTION ENGINE</div>
+                
+                <div class="input-group">
+                    <label for="exchange-name" style="display:flex; justify-content:space-between">
+                        <span>EXECUTION EXCHANGE</span>
+                        <a href="#" onclick="switchView('docs-hub-exchange'); showNotificationSettings(false); return false;" style="color:var(--accent); text-decoration:none; font-size:10px">Manage KeyVault</a>
+                    </label>
+                    <select id="exchange-name" style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; font-family:var(--font-mono); font-size:0.8rem">
+                        <option value="">-- No Exchange Selected --</option>
+                    </select>
+                </div>
+                <div class="input-group" style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label for="trade-size-usd">TRADE SIZE (USD)</label>
+                        <input type="number" id="trade-size-usd" placeholder="100" min="10" step="1" autocomplete="off">
+                    </div>
+                    <div style="flex:1; display:flex; align-items:flex-end;">
+                        <label style="display:flex; align-items:center; gap:8px; height:40px; margin:0; cursor:pointer;">
+                            <input type="checkbox" id="native-execution-enabled" style="width:16px; height:16px; cursor:pointer">
+                            <span style="font-size:12px; font-weight:700;">ENABLE TRADING</span>
+                        </label>
+                    </div>
+                </div>
+                <p style="font-size:0.6rem; color:var(--text-dim); margin-top:6px; margin-bottom:1rem;">
+                    Warning: Enabling Native Execution will execute live market orders on your exchange account automatically when Alpha alerts trigger. API keys are securely retrieved from your KeyVault.
+                </p>
+
                 <!-- Phase 17-A: Z-Score Alert Threshold -->
                 <div class="input-group">
                     <label for="z-modal-threshold-slider" style="display:flex; justify-content:space-between">

@@ -47,6 +47,14 @@ articles = {
         'title': 'Decoding Institutional Options Flow & Dark Pools',
         'summary': 'Track massive options block trades, dark pool sweeps, and unusual options activity to front-run institutional capital movements in both crypto and equities.',
         'content': '''<h2>What is Options Flow?</h2>
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
+    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+        src="https://www.youtube.com/embed/yTbWEsMxNCw?rel=0" 
+        title="Options Flow Tutorial" frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
 <p>Options Flow tracking involves monitoring the tape for unusually large, aggressive block trades or sweeps executed by institutional funds. Unlike retail traders who execute single contracts, institutions execute thousands of contracts across multiple exchanges simultaneously, leaving a distinct footprint.</p>
 
 <h3>Bullish vs. Bearish Flow Patterns</h3>
