@@ -386,10 +386,39 @@ async function renderCapitalRotation(tabs = null) {
         </div>
         
         <div class="card" style="margin-top:2rem;padding:1.5rem;border:1px solid rgba(0,242,255,0.12);">
-            <div class="card-header" style="margin-bottom:15px">
+            <div class="card-header" style="margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;">
                 <h3>Capital Flow Dynamics <span style="font-size:0.8rem; color:var(--text-dim)">(30D Velocity)</span></h3>
+                <button onclick="document.getElementById('sankey-video-modal').style.display='flex'" style="background:rgba(0, 242, 255, 0.1);border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:4px;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s">
+                    <span class="material-symbols-outlined" style="font-size:16px">smart_display</span> How to Read
+                </button>
             </div>
             <div id="sankey-container" style="width:100%;height:400px;position:relative;"></div>
+        </div>
+
+        <!-- Video Modal -->
+        <div id="sankey-video-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;justify-content:center;align-items:center;backdrop-filter:blur(5px);">
+            <div style="background:var(--bg-dark);border:1px solid var(--accent);border-radius:8px;width:90%;max-width:800px;overflow:hidden;box-shadow:0 0 30px rgba(0,242,255,0.2);">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:15px 20px;border-bottom:1px solid rgba(0,242,255,0.1);">
+                    <h3 style="margin:0;font-size:1rem;display:flex;align-items:center;gap:8px">
+                        <span class="material-symbols-outlined" style="color:var(--accent)">school</span> Educational Guide
+                    </h3>
+                    <button onclick="document.getElementById('sankey-video-modal').style.display='none'" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+                    <!-- Valid YouTube Embed for Sankey Diagram Tutorial -->
+                    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+                        src="https://www.youtube.com/embed/dAOzDsluIX0?rel=0" 
+                        title="YouTube video player" frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div style="padding:15px 20px;font-size:0.8rem;color:var(--text-dim);">
+                    Sankey charts visualize the flow of capital from left (source) to right (destination). The width of the bands represents the volume of capital moving between sectors.
+                </div>
+            </div>
         </div>
     `;
 
