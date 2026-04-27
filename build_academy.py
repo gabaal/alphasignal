@@ -7,6 +7,14 @@ articles = {
         'title': 'How to Read Order Book Liquidity Heatmaps',
         'summary': 'Decode Limit Order Book (LOB) data to identify institutional defense levels, spoofs, and high-probability support/resistance structures before price gets there.',
         'content': '''<h2>Introduction to Limit Order Books (LOB)</h2>
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
+    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+        src="https://www.youtube.com/embed/BDNcodKI8BI?rel=0" 
+        title="LOB Heatmap Tutorial" frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
 <p>Unlike traditional candlestick charts that only show executed trades, a <strong>Limit Order Book Heatmap</strong> exposes the active, unexecuted limit orders resting across different price levels. This allows quantitative traders to visualize true market depth and identify where institutional capital is stacked.</p>
 
 <h3>Identifying Spoofing vs. True Support</h3>
@@ -20,6 +28,14 @@ articles = {
         'title': 'Understanding Gamma Exposure (GEX) in Crypto Markets',
         'summary': 'A comprehensive guide to understanding options market maker positioning, hedging dynamics, and the impact of Gamma Exposure (GEX) on underlying asset price action.',
         'content': '''<h2>Introduction to Gamma Exposure</h2>
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
+    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+        src="https://www.youtube.com/embed/ma9bEqS2XAQ?rel=0" 
+        title="GEX Tutorial" frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
 <p>Gamma Exposure (GEX) quantifies the directional exposure of options market makers. When retail and institutional traders buy options, market makers take the opposite side of the trade and must dynamically hedge their positions in the spot or futures market.</p>
 
 <h3>Positive vs. Negative Gamma Regimes</h3>
@@ -81,6 +97,14 @@ articles = {
         'title': 'Trade Like a Pro: Volume Profile & Market Profile',
         'summary': 'Move beyond time-based charts. Utilize Volume Profile to discover High Volume Nodes (HVN), Point of Control (POC), and Value Areas.',
         'content': '''<h2>Time vs. Volume</h2>
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
+    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+        src="https://www.youtube.com/embed/Xe30nXrRxYg?rel=0" 
+        title="Volume Profile Tutorial" frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
 <p>Traditional charts plot price over time, inherently weighing slow consolidation periods equivalently to fast trend movements. Volume Profile plots volume traded at specific price levels, establishing the concept of "Market Acceptance" and "Value."</p>
 
 <h3>Core Structural Components</h3>
@@ -123,6 +147,14 @@ articles = {
         'title': 'Exploiting Algorithmic AI Trade Signals',
         'summary': 'Discover how AlphaSignal utilizes deep learning neural networks, Natural Language Processing, and fundamental data to generate deterministic, emotionless trade signals.',
         'content': '''<h2>The Evolution of Quantitative Trading</h2>
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
+    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+        src="https://www.youtube.com/embed/Bo7HFcEeLFk?rel=0" 
+        title="Algorithmic Trading Tutorial" frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
 <p>Traditional technical analysis relies on subjective chart patterns. AlphaSignal's AI Engine replaces human bias with rigorous machine learning models trained on decades of order book data, macro indicators, and on-chain metrics to output highly probable directional forecasts.</p>
 
 <h3>Confidence Scoring and Z-Scores</h3>

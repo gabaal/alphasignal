@@ -727,7 +727,12 @@ window.renderLobHeatmap = async function(tabs = null, selectedTicker = 'BTC') {
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">blur_on</span>LOB Heatmap <span class="premium-badge">LIVE</span></h1>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-lob-heatmap')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="document.getElementById('lob-video-modal').style.display='flex'" style="background:rgba(0, 242, 255, 0.1);border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:4px;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s">
+                    <span class="material-symbols-outlined" style="font-size:16px">smart_display</span> How to Read
+                </button>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-lob-heatmap')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            </div>
         </div>
         ${renderHubTabs('lob', tabs)}
         <div style="color:var(--text-dim)">Loading High-Density LOB for ${selectedTicker}...</div>
@@ -742,7 +747,12 @@ window.renderLobHeatmap = async function(tabs = null, selectedTicker = 'BTC') {
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Global Markets Hub</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">blur_on</span>LOB Heatmap <span class="premium-badge">LIVE</span></h1>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-lob-heatmap')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="document.getElementById('lob-video-modal').style.display='flex'" style="background:rgba(0, 242, 255, 0.1);border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:4px;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s">
+                    <span class="material-symbols-outlined" style="font-size:16px">smart_display</span> How to Read
+                </button>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-lob-heatmap')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            </div>
         </div>
         ${renderHubTabs('lob', tabs)}
         <div class="glass-card" style="padding:1.5rem">
@@ -757,6 +767,31 @@ window.renderLobHeatmap = async function(tabs = null, selectedTicker = 'BTC') {
             </div>
             <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1rem">Visualizing resting limit orders. Brighter colors indicate heavier liquidity walls.</p>
             <div style="height:500px;width:100%;position:relative;"><canvas id="lobChart"></canvas></div>
+        </div>
+
+        <!-- Video Modal -->
+        <div id="lob-video-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;justify-content:center;align-items:center;backdrop-filter:blur(5px);">
+            <div style="background:var(--bg-dark);border:1px solid var(--accent);border-radius:8px;width:90%;max-width:800px;overflow:hidden;box-shadow:0 0 30px rgba(0,242,255,0.2);">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:15px 20px;border-bottom:1px solid rgba(0,242,255,0.1);">
+                    <h3 style="margin:0;font-size:1rem;display:flex;align-items:center;gap:8px">
+                        <span class="material-symbols-outlined" style="color:var(--accent)">school</span> Educational Guide
+                    </h3>
+                    <button onclick="document.getElementById('lob-video-modal').style.display='none'; document.getElementById('lob-iframe').src = document.getElementById('lob-iframe').src;" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+                    <iframe id="lob-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+                        src="https://www.youtube.com/embed/BDNcodKI8BI?rel=0" 
+                        title="YouTube video player" frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div style="padding:15px 20px;font-size:0.8rem;color:var(--text-dim);">
+                    Learn how to read Limit Order Book (LOB) heatmaps to identify institutional defense levels, spoofing, and high-probability support/resistance structures.
+                </div>
+            </div>
         </div>
     `;
     
