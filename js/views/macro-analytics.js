@@ -402,13 +402,13 @@ async function renderCapitalRotation(tabs = null) {
                     <h3 style="margin:0;font-size:1rem;display:flex;align-items:center;gap:8px">
                         <span class="material-symbols-outlined" style="color:var(--accent)">school</span> Educational Guide
                     </h3>
-                    <button onclick="document.getElementById('sankey-video-modal').style.display='none'" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px">
+                    <button onclick="document.getElementById('sankey-video-modal').style.display='none'; document.getElementById('sankey-iframe').src = document.getElementById('sankey-iframe').src;" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px">
                         <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
                 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
                     <!-- Valid YouTube Embed for Sankey Diagram Tutorial -->
-                    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+                    <iframe id="sankey-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
                         src="https://www.youtube.com/embed/dAOzDsluIX0?rel=0" 
                         title="YouTube video player" frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
