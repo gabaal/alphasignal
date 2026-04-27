@@ -521,12 +521,16 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <p>Many novice traders obsess over their "win rate"—the percentage of trades that are profitable. However, professional traders understand that win rate alone is a meaningless vanity metric. The true engine of sustainable trading edge is the <strong>Risk to Reward Ratio (R:R)</strong>.</p>
 <p>If your strategy risks $1 to make $1 (a 1:1 R:R), you must win more than 50% of your trades just to break even after exchange fees. However, if you risk $1 to make $3 (a 1:3 R:R), you only need to win 25% of your trades to be highly profitable.</p>
 
+<img src="/academy/images/asymmetric_risk_model.png" alt="Asymmetric Risk Model" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+
 <h3>Structuring Asymmetric Bets</h3>
 <p>Quantitative trading is about identifying and executing asymmetric bets. You should never enter a trade where the potential downside equals or exceeds the potential upside.</p>
 <ul>
     <li><strong>R-Multiples:</strong> Think of risk in terms of "R" (your fixed risk unit). If your stop loss represents 1R, your take profit must represent at least 2R or 3R.</li>
     <li><strong>Invalidation Points:</strong> A tight R:R requires a precise invalidation point. This is the exact price level where your thesis is proven wrong, enabling you to cut the loss early.</li>
 </ul>
+
+<img src="/academy/images/r_multiple_distribution.png" alt="R-Multiple Distribution Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
 
 <h3>Implementing the Strategy</h3>
 <p>Using the AlphaSignal Terminal, traders can identify high-probability asymmetric setups by aligning macro regimes with local order flow. When the AlphaSignal ML Engine flags an asset with a high Z-score near a major support level, traders can place a tight 1R stop below the support while targeting a 4R take-profit at the nearest historically determined volume node.</p>

@@ -528,11 +528,17 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </div>
 <p>In highly leveraged crypto derivatives markets, intense price volatility often leads to forced position liquidations. When a heavily leveraged long position is liquidated, the exchange matching engine indiscriminately issues a market sell order, causing a cascading drop in price known as a "liquidation cascade" or "long squeeze."</p>
 
-<h3>Funding Rates and Open Interest (OI)</h3>
+<img src="/academy/images/liquidation_heatmap.png" alt="Cascading Liquidation Heatmap" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+
+<h3>Funding Rates and Open Interest (OI) Velocity</h3>
 <p>By correlating real-time liquidation data with Open Interest (OI) and Funding Rates, traders can map out dense clusters of impending liquidations. When funding rates are wildly positive and OI is historically high, the probability of a long squeeze dramatically increases.</p>
+<p>Conversely, a "Short Squeeze" occurs when over-leveraged shorts are forced to buy back their positions at higher prices, creating violent upward wicks.</p>
+
+<img src="/academy/images/funding_oi_gauge.png" alt="Funding Rate and OI Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
 
 <h3>Execution Strategies: Fading the Cascade</h3>
 <p>Institutional traders use the AlphaSignal Liquidations Tracker combined with Tape velocity to identify the exact moment a liquidation cascade exhausts. Buying the blood of a forced margin call provides some of the highest risk-to-reward setups in cryptocurrency trading.</p>
+<p>When the Delta-to-Liquidation ratio spikes beyond the 95th percentile, it indicates the cascade is fully exhausted. This is the optimal window to execute a mean-reverting long position targeting the Volume Profile POC.</p>
 
 </div>
 

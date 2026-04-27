@@ -528,11 +528,36 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </div>
 <p>Unlike traditional candlestick charts that only show executed trades, a <strong>Limit Order Book Heatmap</strong> exposes the active, unexecuted limit orders resting across different price levels. This allows quantitative traders to visualize true market depth and identify where institutional capital is stacked.</p>
 
-<h3>Identifying Spoofing vs. True Support</h3>
-<p>Not all liquidity is real. Large market players often employ spoofing strategies by flashing massive buy or sell walls to manipulate retail sentiment, only to pull the orders before execution. AlphaSignal's Liquidity Heatmap uses high-frequency delta decay algorithms to isolate transient spoofing from authentic institutional support structures.</p>
+<p>Every time a market participant submits an order to buy or sell an asset at a specific price, it rests in the LOB until it is filled or canceled. By aggregating this data into a visual heatmap, traders can see exactly where the market has true, structural support and where it is hollow and vulnerable to massive volatility spikes.</p>
 
-<h3>Trading Execution Strategies</h3>
-<p>For day traders and scalpers, LOB heatmaps provide an unparalleled edge for identifying local tops and bottoms. By tracking the migration of liquidity bands, traders can anticipate breakout directionality and predict aggressive institutional market orders hunting stops.</p>
+<img src="/academy/images/institutional_blocks.png" alt="Institutional Order Blocks Heatmap" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+
+<h3>The Anatomy of Liquidity Bands</h3>
+<p>When institutions need to deploy hundreds of millions of dollars, they cannot execute via a single market order without causing catastrophic slippage. Instead, they break their orders up into smaller limit orders and spread them across a price band. On a heatmap, these appear as thick, intensely glowing horizontal bands. These bands act as dense, magnetic support and resistance structures because massive liquidity must be absorbed to break through them.</p>
+
+<img src="/academy/images/spoofing_heatmap.png" alt="Spoofing vs Layering" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+
+<h3>Identifying Spoofing vs. Layering</h3>
+<p>Not all liquidity is real. Large market players frequently employ manipulation strategies:</p>
+<ul>
+    <li><strong>Spoofing:</strong> A whale flashes a massive buy or sell wall near the current price to manipulate retail sentiment into buying or selling. The moment the price approaches the wall, the whale immediately cancels the order.</li>
+    <li><strong>Layering:</strong> Similar to spoofing, but the fake orders are layered across multiple price points to create the illusion of overwhelming trend momentum.</li>
+</ul>
+<p>AlphaSignal's Liquidity Heatmap uses high-frequency delta decay algorithms to isolate transient spoofing from authentic institutional support structures, allowing you to fade the fake walls.</p>
+
+<img src="/academy/images/stop_hunt_sweep.png" alt="Stop Hunt Sweep" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+
+<h3>Liquidity Sweeps and Stop Hunting</h3>
+<p>Because the market operates purely on the mechanics of supply and demand, price is naturally drawn to areas of high liquidity. If millions of retail traders place their stop losses just below a swing low, that area becomes a massive pool of sell orders. Institutional algorithms will intentionally drive the price down into this pocket—a <strong>Liquidity Sweep</strong>—to trigger those stops. The sudden influx of sell orders gives the institution the exact liquidity they need to fill their massive buy orders without slippage.</p>
+
+<h3>Advanced Trading Execution Strategies</h3>
+<p>For day traders and scalpers, LOB heatmaps provide an unparalleled edge for identifying local tops and bottoms.</p>
+<ol>
+    <li>Wait for price to approach a thick, historically persistent liquidity band.</li>
+    <li>Observe the heatmap to confirm the band isn't being spoofed (it remains solid as price nears).</li>
+    <li>Execute your trade in the opposite direction (fade the move), placing your stop loss tightly behind the thickest part of the liquidity band.</li>
+</ol>
+<p>By tracking the migration of these liquidity bands, traders can anticipate breakout directionality and predict aggressive institutional market orders hunting stops.</p>
 
 </div>
 

@@ -520,12 +520,16 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h2>Introduction to On-Chain Valuation</h2>
 <p>Traditional technical analysis relies heavily on price momentum and oscillators, which can easily be manipulated by algorithmic wash trading. <strong>On-Chain Analysis</strong> completely circumvents chart-level noise by analyzing the actual blockchain ledger. It effectively performs fundamental analysis on a decentralized network.</p>
 
+<img src="/academy/images/realized_value_model.png" alt="Realized Value vs Market Value" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+
 <h3>Understanding Realized Value</h3>
 <p>The core concept behind MVRV is the distinction between <em>Market Value</em> and <em>Realized Value</em>.</p>
 <ul>
     <li><strong>Market Value:</strong> The current market capitalization (Current Price x Circulating Supply).</li>
     <li><strong>Realized Value:</strong> The true cost basis of the network. It values each Bitcoin at the specific price it was last moved on the blockchain, stripping out old, lost, or dormant coins.</li>
 </ul>
+
+<img src="/academy/images/mvrv_zscore_chart.png" alt="MVRV Z-Score Chart" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
 
 <h3>The MVRV Z-Score Formula</h3>
 <p>The MVRV Z-Score is the statistical standard deviation between these two metrics. When the Market Value aggressively outpaces the Realized Value, the Z-Score skyrockets. This occurs purely because retail participants are euphoric, rapidly buying the asset higher while the underlying institutional holders refuse to move their coins.</p>

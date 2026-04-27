@@ -518,9 +518,18 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Exploit the institutional weekend arbitrage loop by trading CME (Chicago Mercantile Exchange) gaps. Understand the statistical probabilities of gap fills and how to position your portfolio before the Friday close.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 <h2>The Mechanics of the CME Gap</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" src="https://www.youtube-nocookie.com/embed/ADSOBbXdzNE?rel=0" title="CME Gaps Tutorial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
+    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
+        src="https://www.youtube-nocookie.com/embed/ADSOBbXdzNE?rel=0" 
+        title="CME Gaps Tutorial" frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
 <p>Unlike native crypto spot markets that trade 24/7/365, the <strong>Chicago Mercantile Exchange (CME) Bitcoin Futures</strong> market closes on Friday afternoon and reopens on Sunday evening (ET). During this period, spot prices often exhibit significant volatility driven by retail trading and weekend news catalysts.</p>
-<p>When the CME market finally reopens on Sunday, the opening price is almost always different from Friday\'s closing price. This price discrepancy on the chart is known as a "Gap".</p>
+<p>When the CME market finally reopens on Sunday, the opening price is almost always different from Friday's closing price. This price discrepancy on the chart is known as a "Gap".</p>
+
+<img src="/academy/images/cme_gap_chart.png" alt="CME Gap Chart" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
 
 <h3>The Magnetic Pull of Unfilled Gaps</h3>
 <p>In quantitative trading, gaps act as massive institutional magnets. Because large funds and institutional market makers are restricted to trading during CME hours, any weekend price movement creates an imbalance in their portfolio hedging. Consequently, the market has a statistically overwhelming tendency to retrace its steps and "fill" the gap (return to the Friday closing price).</p>
@@ -529,8 +538,11 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <li><strong>Breakaway Gaps:</strong> Gaps that are not immediately filled often become "breakaway gaps," signaling a violent regime shift in the overarching macro trend.</li>
 </ul>
 
+<img src="/academy/images/institutional_arbitrage.png" alt="Institutional Arbitrage Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+
 <h3>Strategic Execution using AlphaSignal</h3>
-<p>The AlphaSignal terminal automatically tracks all unfilled CME gaps by cross-referencing real-time spot momentum against historical CME hourly wicks. By combining the Gap Magnet dashboard with Volume Profile (POC) confluence, traders can identify high-probability entries. If a gap aligns perfectly with a High Volume Node (HVN) and positive Gamma Exposure (GEX), it becomes an elite, asymmetric risk-to-reward setup.</p>
+<p>The AlphaSignal terminal automatically tracks all unfilled CME gaps by cross-referencing real-time spot momentum against historical CME hourly wicks. By combining the Gap Magnet dashboard with Volume Profile (POC) confluence, traders can identify high-probability entries.</p>
+<p>If an unfilled CME Gap perfectly overlaps with a high-density Volume Profile node and a major options strike price, it becomes an elite, asymmetric risk-to-reward setup for a mean-reverting arbitrage trade.</p>
 
 </div>
 
