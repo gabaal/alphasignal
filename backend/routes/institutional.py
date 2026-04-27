@@ -2304,8 +2304,9 @@ class InstitutionalRoutesMixin:
         c.execute('SELECT ticker FROM tracked_tickers')
         tracked = [r[0] for r in c.fetchall()]
         conn.close()
-        universe_tickers = [t for sub in UNIVERSE.values() for t in sub]
-        all_tickers = sorted(list(set(universe_tickers + tracked)))
+        NON_CRYPTO = set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', []))
+        universe_tickers = [t for cat, sub in UNIVERSE.items() if cat not in ('EQUITIES', 'TREASURY') for t in sub]
+        all_tickers = sorted(list(set(universe_tickers + tracked) - NON_CRYPTO))
         results = []
         try:
             data = CACHE.download(all_tickers, period='60d', interval='1d', column='Close')
@@ -4545,6 +4546,13 @@ class InstitutionalRoutesMixin:
                 else:
                     base_where  = "WHERE ah.timestamp > datetime('now', ?) AND LOWER(ah.user_email) = LOWER(?)"
                     params      = [f'-{f_days} day', user_email]
+                
+                # Filter out NON_CRYPTO tickers
+                NON_CRYPTO = tuple(set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', [])))
+                if NON_CRYPTO:
+                    base_where += f" AND ah.ticker NOT IN ({','.join(['?']*len(NON_CRYPTO))})"
+                    params.extend(NON_CRYPTO)
+                    
                 count_params = list(params)
             else:
                 # Unauthenticated: return empty result

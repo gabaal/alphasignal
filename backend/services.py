@@ -804,6 +804,9 @@ class HarvestService:
 
         for ticker in all_tickers:
             # Global Exclusions: Ignore Stablecoins (no volatility) and Memecoins (precision/slippage risks)
+            # NEW: explicitly ignore non-crypto traditional Equities and Treasury companies
+            NON_CRYPTO_EXCLUSIONS = set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', []))
+            
             STABLECOINS = {
                 'USDC-USD','USDT-USD','DAI-USD','BUSD-USD','TUSD-USD',
                 'FRAX-USD','LUSD-USD','USDP-USD','GUSD-USD','PYUSD-USD',
@@ -812,7 +815,7 @@ class HarvestService:
             MEMECOINS = {
                 'SHIB-USD','PEPE-USD','FLOKI-USD','BONK-USD','DOGE-USD','WIF-USD'
             }
-            if ticker in STABLECOINS or ticker in MEMECOINS:
+            if ticker in STABLECOINS or ticker in MEMECOINS or ticker in NON_CRYPTO_EXCLUSIONS:
                 continue
 
             try:
