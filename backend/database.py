@@ -144,10 +144,10 @@ UNIVERSE = {
     'MINERS':   ['RIOT', 'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT',
                  'BTBT', 'CIFR', 'BTDR'],                           # added: Bit Digital, Cipher, Bitdeer
     'PROXY':    ['MSTR'],
-    'TREASURY': ['SMLR', 'KULR', 'MIGI'],                          # BTC treasury companies
+    'TREASURY': [],                          # BTC treasury companies
     'ETF':      ['IBIT', 'FBTC', 'ARKB', 'BITO',
                  'BITB', 'HODL', 'BTCO', 'EZBC'],                  # added: Bitwise, VanEck, Invesco, Franklin
-    'EQUITIES': ['NVDA', 'TSLA', 'PLTR', 'SMCI', 'AMD'],          # crypto-correlated tech
+    'EQUITIES': [],          # crypto-correlated tech
     'DEFI':     ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 'EIGEN-USD'],
     'L1':       ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD',
                  'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD',
