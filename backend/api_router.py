@@ -216,13 +216,25 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     conn = sqlite3.connect(DB_PATH, timeout=30)
                     c = conn.cursor()
                     symbols = ('AMD', 'TSLA', 'PLTR', 'NVDA', 'SMCI', 'KULR', 'MIGI', 'SMLR')
-                    c.execute(f"DELETE FROM alerts_history WHERE ticker IN {symbols}")
-                    alerts_deleted = c.rowcount
-                    c.execute(f"DELETE FROM market_ticks WHERE symbol IN {symbols}")
-                    ticks_deleted = c.rowcount
+                    tables_ticker = ['alerts_history', 'tracked_tickers', 'watchlist', 'positions', 'price_alerts']
+                    tables_symbol = ['market_ticks', 'ml_predictions', 'sentiment_history']
+                    
+                    stats = {}
+                    for table in tables_ticker:
+                        try:
+                            c.execute(f"DELETE FROM {table} WHERE ticker IN {symbols}")
+                            stats[table] = c.rowcount
+                        except: pass
+                        
+                    for table in tables_symbol:
+                        try:
+                            c.execute(f"DELETE FROM {table} WHERE symbol IN {symbols}")
+                            stats[table] = c.rowcount
+                        except: pass
+                        
                     conn.commit()
                     conn.close()
-                    self.send_json({'success': True, 'alerts_deleted': alerts_deleted, 'ticks_deleted': ticks_deleted})
+                    self.send_json({'success': True, 'deleted_counts': stats})
                 except Exception as e:
                     self.send_error_json(str(e))
                 return
