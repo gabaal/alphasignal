@@ -35,37 +35,9 @@ SERVICE_ACCOUNT_FILE = "service_account.json"
 SCOPES = ["https://www.googleapis.com/auth/indexing"]
 INDEXING_API_URL = "https://indexing.googleapis.com/v3/urlNotifications:publish"
 
+import os
+
 URLS = [
-    # Academy articles (28 pages)
-    "https://alphasignal.digital/academy/on-chain-whale-tracking",
-    "https://alphasignal.digital/academy/fundamental-mvrv-z-score",
-    "https://alphasignal.digital/academy/statistical-mean-reversion-z-scores",
-    "https://alphasignal.digital/academy/understanding-gamma-exposure-gex",
-    "https://alphasignal.digital/academy/options-flow-dark-pools",
-    "https://alphasignal.digital/academy/options-implied-volatility-smile",
-    "https://alphasignal.digital/academy/order-book-liquidity-heatmaps",
-    "https://alphasignal.digital/academy/vwap-institutional-execution",
-    "https://alphasignal.digital/academy/volume-profile-market-profile",
-    "https://alphasignal.digital/academy/crypto-liquidations-tracker",
-    "https://alphasignal.digital/academy/capital-sector-rotation",
-    "https://alphasignal.digital/academy/stablecoin-macro-liquidity-flows",
-    "https://alphasignal.digital/academy/algorithmic-ai-trade-signals",
-    "https://alphasignal.digital/academy/cme-futures-gaps-bitcoin",
-    "https://alphasignal.digital/academy/ai-narrative-velocity-sentiment",
-    "https://alphasignal.digital/academy/hidden-markov-market-regimes",
-    "https://alphasignal.digital/academy/institutional-yield-farming",
-    "https://alphasignal.digital/academy/token-unlocks-supply-dilution",
-    "https://alphasignal.digital/academy/mastering-risk-to-reward-ratio",
-    "https://alphasignal.digital/academy/trading-psychology-fomo-panic",
-    "https://alphasignal.digital/academy/support-and-resistance-fundamentals",
-    "https://alphasignal.digital/academy/position-sizing-and-leverage",
-    "https://alphasignal.digital/academy/trading-moving-average-crossovers",
-    "https://alphasignal.digital/academy/rsi-macd-momentum-oscillators",
-    "https://alphasignal.digital/academy/fibonacci-retracements-crypto",
-    "https://alphasignal.digital/academy/breakout-trading-strategies",
-    "https://alphasignal.digital/academy/how-to-set-proper-stop-loss",
-    "https://alphasignal.digital/academy/importance-of-trading-journal",
-    # Core app pages
     "https://alphasignal.digital/",
     "https://alphasignal.digital/?view=signals",
     "https://alphasignal.digital/?view=market-brief-hub",
@@ -84,6 +56,16 @@ URLS = [
     "https://alphasignal.digital/?view=portfolio-optimizer",
     "https://alphasignal.digital/?view=help",
 ]
+
+if os.path.exists("academy"):
+    for f in os.listdir("academy"):
+        if f.endswith(".html"):
+            URLS.append(f"https://alphasignal.digital/academy/{f[:-5]}")
+
+if os.path.exists("docs"):
+    for f in os.listdir("docs"):
+        if f.endswith(".html"):
+            URLS.append(f"https://alphasignal.digital/docs/{f[:-5]}")
 
 def get_credentials():
     creds = service_account.Credentials.from_service_account_file(
