@@ -211,7 +211,22 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             path = parsed.path
             length = min(int(self.headers.get('Content-Length', 0)), _MAX_BODY_BYTES)
             post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
-            if path == '/api/auth/login':
+            if path == '/api/admin/purge-equities':
+                try:
+                    conn = sqlite3.connect('backend/alphasignal.db')
+                    c = conn.cursor()
+                    symbols = ('AMD', 'TSLA', 'PLTR', 'NVDA', 'SMCI', 'KULR', 'MIGI', 'SMLR')
+                    c.execute(f"DELETE FROM alerts_history WHERE ticker IN {symbols}")
+                    alerts_deleted = c.rowcount
+                    c.execute(f"DELETE FROM market_ticks WHERE symbol IN {symbols}")
+                    ticks_deleted = c.rowcount
+                    conn.commit()
+                    conn.close()
+                    self.send_json({'success': True, 'alerts_deleted': alerts_deleted, 'ticks_deleted': ticks_deleted})
+                except Exception as e:
+                    self.send_error_json(str(e))
+                return
+            elif path == '/api/auth/login':
                 email_attempt = post_data.get('email', '')
                 # S4: lockout check
                 if _check_login_lockout(email_attempt):
