@@ -213,7 +213,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             post_data = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             if path == '/api/admin/purge-equities':
                 try:
-                    conn = sqlite3.connect('backend/alphasignal.db')
+                    conn = sqlite3.connect(DB_PATH, timeout=30)
                     c = conn.cursor()
                     symbols = ('AMD', 'TSLA', 'PLTR', 'NVDA', 'SMCI', 'KULR', 'MIGI', 'SMLR')
                     c.execute(f"DELETE FROM alerts_history WHERE ticker IN {symbols}")
