@@ -384,14 +384,23 @@ async function renderCapitalRotation(tabs = null) {
             </div>
             <div id="sunburst-container" style="width:100%;display:flex;justify-content:center;padding-bottom:1.5rem;"></div>
         </div>
+        
+        <div class="card" style="margin-top:2rem;padding:1.5rem;border:1px solid rgba(0,242,255,0.12);">
+            <div class="card-header" style="margin-bottom:15px">
+                <h3>Capital Flow Dynamics <span style="font-size:0.8rem; color:var(--text-dim)">(30D Velocity)</span></h3>
+            </div>
+            <div id="sankey-container" style="width:100%;height:400px;position:relative;"></div>
+        </div>
     `;
 
     // - Fetch live data -
     let root_data;
+    let flows_data;
     try {
         const data = await fetchAPI('/capital-rotation');
         if (data && data.children) {
             root_data = data;
+            flows_data = data.flows;
             // Populate summary bar from API
             document.getElementById('cr-summary-bar').innerHTML = `
                 <div>
@@ -583,6 +592,95 @@ async function renderCapitalRotation(tabs = null) {
         paths.on('click', clicked)
              .on('mouseover', function(e, d) { d3.select(this).attr('fill-opacity', 0.95); })
              .on('mouseout', function(e, d) { d3.select(this).attr('fill-opacity', arcVisible(d.current) ? (1 - d.depth * 0.2) : 0); });
+
+        // --- Render Sankey Diagram ---
+        if (typeof d3.sankey === 'function' && flows_data && flows_data.nodes && flows_data.links && flows_data.nodes.length > 0) {
+            const sankeyContainer = document.getElementById('sankey-container');
+            sankeyContainer.innerHTML = '';
+            
+            const sW = sankeyContainer.clientWidth || 800;
+            const sH = sankeyContainer.clientHeight || 400;
+            
+            const sankeySvg = d3.select('#sankey-container').append('svg')
+                .attr('width', '100%')
+                .attr('height', '100%')
+                .attr('viewBox', `0 0 ${sW} ${sH}`)
+                .style('font-family', 'JetBrains Mono, monospace');
+                
+            const sankey = d3.sankey()
+                .nodeId(d => d.name)
+                .nodeWidth(15)
+                .nodePadding(10)
+                .extent([[10, 10], [sW - 10, sH - 10]]);
+                
+            const {nodes: sNodes, links: sLinks} = sankey({
+                nodes: flows_data.nodes.map(d => Object.assign({}, d)),
+                links: flows_data.links.map(d => Object.assign({}, d))
+            });
+            
+            // Define gradients for links
+            const defs = sankeySvg.append("defs");
+            sLinks.forEach((link, i) => {
+                const gradient = defs.append("linearGradient")
+                    .attr("id", `gradient-${i}`)
+                    .attr("gradientUnits", "userSpaceOnUse")
+                    .attr("x1", link.source.x1)
+                    .attr("x2", link.target.x0);
+                    
+                const srcColor = palettes[link.source.name] || '#7dd3fc';
+                const tgtColor = palettes[link.target.name] || '#f59e0b';
+                
+                gradient.append("stop").attr("offset", "0%").attr("stop-color", srcColor);
+                gradient.append("stop").attr("offset", "100%").attr("stop-color", tgtColor);
+            });
+            
+            // Draw links
+            const link = sankeySvg.append("g")
+                .attr("fill", "none")
+                .attr("stroke-opacity", 0.4)
+              .selectAll("g")
+              .data(sLinks)
+              .join("g")
+                .style("mix-blend-mode", "screen");
+                
+            link.append("path")
+                .attr("d", d3.sankeyLinkHorizontal())
+                .attr("stroke", (d, i) => `url(#gradient-${i})`)
+                .attr("stroke-width", d => Math.max(1, d.width));
+                
+            link.append("title")
+                .text(d => `${d.source.name} → ${d.target.name}\nVolume: ${d.value}`);
+                
+            // Draw nodes
+            const node = sankeySvg.append("g")
+              .selectAll("rect")
+              .data(sNodes)
+              .join("rect")
+                .attr("x", d => d.x0)
+                .attr("y", d => d.y0)
+                .attr("height", d => Math.max(2, d.y1 - d.y0))
+                .attr("width", d => d.x1 - d.x0)
+                .attr("fill", d => palettes[d.name] || '#555')
+                .attr("rx", 2);
+                
+            node.append("title")
+                .text(d => `${d.name}\nTotal: ${d.value}`);
+                
+            // Draw labels
+            sankeySvg.append("g")
+                .style("font-size", "10px")
+                .style("fill", "#fff")
+              .selectAll("text")
+              .data(sNodes)
+              .join("text")
+                .attr("x", d => d.x0 < sW / 2 ? d.x1 + 6 : d.x0 - 6)
+                .attr("y", d => (d.y1 + d.y0) / 2)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", d => d.x0 < sW / 2 ? "start" : "end")
+                .text(d => d.name);
+        } else if (!d3.sankey) {
+            document.getElementById('sankey-container').innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:2rem;">Sankey library not loaded.</div>';
+        }
 
     }, 200);
 }

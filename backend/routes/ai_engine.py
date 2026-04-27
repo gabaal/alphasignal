@@ -635,11 +635,11 @@ class AIEngineRoutesMixin:
             "Write exactly 4 paragraphs, each with a bold header. "
             "Headers: **Macro Context**, **BTC Outlook**, **Top Signals**, **Risk Factors**. "
             "Style: concise, authoritative, data-driven. No bullet points. Max 300 words total. "
-            "Be specific with price levels, percentages, and indicator names where relevant."
+            "CRITICAL: You must use EXACTLY the current prices and data provided in the prompt. Do not hallucinate outdated prices from your training data (e.g. $28k or $30k for BTC). Treat the provided BTC price as absolute truth."
         )
         user_prompt = (
-            f"Today is {now_str}. Market data:\n{context}\n\n"
-            "Write today's institutional morning brief."
+            f"Today is {now_str}. CURRENT LIVE MARKET DATA (DO NOT INVENT PRICES):\n{context}\n\n"
+            "Write today's institutional morning brief using the EXACT live market data above."
         )
 
         try:

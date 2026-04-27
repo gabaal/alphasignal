@@ -6243,21 +6243,25 @@ class InstitutionalRoutesMixin:
             returns_map = {}
             for name, sym, sect in name_syms:
                 try:
-                    if raw is None:
+                    if raw is None or raw.empty:
                         returns_map[(sect, name)] = 0.0
                         continue
                     # Multi-ticker download -> MultiIndex (field, ticker) or (ticker, field)
                     try:
                         closes = raw['Close'][sym].dropna()
                     except (KeyError, TypeError):
-                        closes = raw[sym]['Close'].dropna()
+                        try:
+                            closes = raw[sym]['Close'].dropna()
+                        except KeyError:
+                            closes = raw.xs('Close', level='Price', axis=1)[sym].dropna()
+                            
                     if len(closes) < 2:
                         returns_map[(sect, name)] = 0.0
                     else:
                         returns_map[(sect, name)] = round(
                             float((closes.iloc[-1] / closes.iloc[0] - 1) * 100), 2)
                 except Exception as ex:
-                    print(f'[CapRot] {sym}: {ex}')
+                    print(f'[CapRot] {sym} extraction error: {ex}')
                     returns_map[(sect, name)] = 0.0
 
             # - Build hierarchy with offset-normalised sector weights -
@@ -6307,11 +6311,59 @@ class InstitutionalRoutesMixin:
                     'col':   SECTOR_COLORS[sect],
                 })
 
+            # - Synthesize Rotation Flows (Sankey Data) -
+            nodes_set = set()
+            links = []
+            
+            mean_perf = sum(c['perf'] for c in children) / len(children) if children else 0
+            outflow_sectors = [c for c in children if c['perf'] < mean_perf]
+            inflow_sectors = [c for c in children if c['perf'] >= mean_perf]
+            
+            if not outflow_sectors: outflow_sectors = children[:2]; inflow_sectors = children[2:]
+            if not inflow_sectors: inflow_sectors = children[:2]; outflow_sectors = children[2:]
+            
+            for out_s in outflow_sectors:
+                nodes_set.add(out_s['name'])
+                for in_s in inflow_sectors:
+                    nodes_set.add(in_s['name'])
+                    flow_val = abs(in_s['perf'] - out_s['perf']) * (out_s['value'] / 100)
+                    links.append({
+                        'source': out_s['name'],
+                        'target': in_s['name'],
+                        'value': max(0.5, round(flow_val, 2))
+                    })
+                    
+            for in_s in inflow_sectors:
+                for kid in in_s['children']:
+                    if kid['perf'] > -50:  # Allow most kids
+                        nodes_set.add(kid['name'])
+                        links.append({
+                            'source': in_s['name'],
+                            'target': kid['name'],
+                            'value': max(0.2, round(kid['value'] * 0.5, 2))
+                        })
+            
+            for out_s in outflow_sectors:
+                for kid in out_s['children']:
+                    if kid['perf'] < 50:  # Allow most kids
+                        nodes_set.add(kid['name'])
+                        links.append({
+                            'source': kid['name'],
+                            'target': out_s['name'],
+                            'value': max(0.2, round(kid['value'] * 0.5, 2))
+                        })
+
+            flows = {
+                'nodes': [{'name': n} for n in sorted(nodes_set)],
+                'links': links
+            }
+
             result = {
                 'name':     'Total Capital',
                 'value':    0,
                 'children': children,
                 'summary':  summary,
+                'flows':    flows,
                 'updated':  datetime.utcnow().strftime('%d %b %Y %H:%M UTC'),
                 'source':   'yfinance - 30D live returns',
             }

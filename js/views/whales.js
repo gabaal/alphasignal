@@ -330,36 +330,7 @@ function renderExecutionTopography(data) {
     });
 }
 
-async function renderWhaleSankeyChart() {
-    const sankeySection = document.getElementById('whale-sankey-section');
-    if (!sankeySection || typeof d3 === 'undefined') return;
-    try {
-        const sk = await fetchAPI('/whale-sankey');
-        if (!sk || !sk.nodes) return;
-        sankeySection.querySelector('#sankey-loading').style.display = 'none';
-        const W = Math.min(700, window.innerWidth - 60), H = 320;
-        const svg = d3.select('#sankey-svg').attr('width', W).attr('height', H);
-        // Simple force-free Sankey layout
-        const d3sankey = (typeof d3.sankey !== 'undefined') ? d3.sankey : null;
-        if (!d3sankey) {
-            // Fallback: simple proportional bar diagram if d3-sankey not loaded
-            const total = sk.links.reduce((s, l) => s + l.value, 0);
-            const g = svg.append('g');
-            let yOff = 20;
-            sk.nodes.forEach((n, i) => {
-                const inflow = sk.links.filter(l => l.target === i).reduce((s,l) => s+l.value, 0);
-                const outflow = sk.links.filter(l => l.source === i).reduce((s,l) => s+l.value, 0);
-                const barW = Math.max(4, (inflow + outflow) / total * (W - 120));
-                g.append('rect').attr('x', 10).attr('y', yOff).attr('width', barW).attr('height', 22)
-                    .attr('fill', inflow > outflow ? 'rgba(0,242,255,0.5)' : 'rgba(239,83,80,0.5)').attr('rx', 4);
-                g.append('text').attr('x', barW + 16).attr('y', yOff + 15)
-                    .attr('fill', 'white').attr('font-size', 10).attr('font-family', 'JetBrains Mono').text(`${n.name}  ${inflow > 0 ? '+' : ''}${(inflow-outflow).toFixed(0)} BTC`);
-                yOff += 32;
-            });
-            return;
-        }
-    } catch(e) { console.error('[WhaleSankey]', e); }
-}
+
 
 // ============= Market Pulse =============
 

@@ -54,7 +54,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
     _checkFundingSpikes(fundingMap);
 
     const filtered = category === 'ALL' ? signals : signals.filter(s => s.category === category);
-    const cats = ['ALL', 'EXCHANGE', 'PROXY', 'MINERS', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
+    const cats = ['ALL', 'EXCHANGE', 'PROXY', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -538,10 +538,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
     }, 400);
 }
 
-// ============= Miners View =============
-async function renderMiners() {
-    renderSignals('MINERS');
-}
+
 
 // ============================================================
 // Feature 2: Alpha Score Composite

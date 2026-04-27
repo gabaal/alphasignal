@@ -58,7 +58,6 @@ const viewMap = {
     'explain-risk': () => switchView('docs-risk-matrix'),
     'explain-playbook': () => switchView('docs-strategy-lab'),
     'explain-regimes': () => switchView('docs-regime'),
-    'explain-advanced-charting': () => switchView('docs-charting-suite'),
     'explain-onchain': () => switchView('docs-onchain'),
     'explain-api': renderHelp,
     'explain-glossary': renderHelp,
