@@ -604,7 +604,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar',
                     '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard',
                     '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe',
-                    '/api/signal-thesis',
+                    '/api/signal-thesis', '/api/admin/purge-equities',
                     # Command Center — fully public
                     '/api/macro', '/api/ai-trade-now', '/api/regime', '/api/correlation-matrix',
                     '/api/etf-flows', '/api/cme-gaps', '/api/capital-rotation', '/api/mindshare',
@@ -643,6 +643,31 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
 
             if path == '/api/auth/status':
                 self.handle_auth_status(auth_info)
+            elif path == '/api/admin/purge-equities':
+                import sqlite3
+                from backend.database import DB_PATH, UNIVERSE
+                NON_CRYPTO = list(set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', [])))
+                if not NON_CRYPTO:
+                    self.send_json({"status": "ok", "message": "No non-crypto equities to purge"})
+                    return
+                try:
+                    conn = sqlite3.connect(DB_PATH, timeout=30)
+                    c = conn.cursor()
+                    placeholders = ','.join(['?']*len(NON_CRYPTO))
+                    c.execute(f"DELETE FROM alerts_history WHERE ticker IN ({placeholders})", NON_CRYPTO)
+                    ah_deleted = c.rowcount
+                    c.execute(f"DELETE FROM market_ticks WHERE symbol IN ({placeholders})", NON_CRYPTO)
+                    mt_deleted = c.rowcount
+                    conn.commit()
+                    conn.close()
+                    self.send_json({
+                        "status": "success",
+                        "purged_tickers": NON_CRYPTO,
+                        "alerts_history_deleted": ah_deleted,
+                        "market_ticks_deleted": mt_deleted
+                    })
+                except Exception as e:
+                    self.send_error_json(str(e))
             elif path == '/api/user/ai-memory':
                 self.handle_ai_knowledge_get(auth_info)
             elif path == '/api/config':
