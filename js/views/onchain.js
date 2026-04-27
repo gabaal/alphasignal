@@ -541,7 +541,7 @@ async function renderBacktesterV2(tabs = null) {
                 </div>
                 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
                     <iframe id="btv2-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-                        src="https://www.youtube.com/embed/Bo7HFcEeLFk?rel=0" 
+                        src="https://www.youtube-nocookie.com/embed/Bo7HFcEeLFk?rel=0" 
                         title="YouTube video player" frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowfullscreen>
@@ -948,7 +948,7 @@ async function renderOptionsFlow(tabs = null) {
                 </div>
                 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
                     <iframe id="opts-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-                        src="https://www.youtube.com/embed/yTbWEsMxNCw?rel=0" 
+                        src="https://www.youtube-nocookie.com/embed/yTbWEsMxNCw?rel=0" 
                         title="YouTube video player" frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowfullscreen>
@@ -1868,7 +1868,7 @@ window.renderGexProfile = async function(tabs = null) {
                 </div>
                 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
                     <iframe id="gex-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-                        src="https://www.youtube.com/embed/ma9bEqS2XAQ?rel=0" 
+                        src="https://www.youtube-nocookie.com/embed/ma9bEqS2XAQ?rel=0" 
                         title="YouTube video player" frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowfullscreen>
@@ -1964,7 +1964,7 @@ window.renderVolumeProfile = async function(tabs = null) {
                 </div>
                 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
                     <iframe id="vol-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-                        src="https://www.youtube.com/embed/Xe30nXrRxYg?rel=0" 
+                        src="https://www.youtube-nocookie.com/embed/Xe30nXrRxYg?rel=0" 
                         title="YouTube video player" frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowfullscreen>

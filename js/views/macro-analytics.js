@@ -409,7 +409,7 @@ async function renderCapitalRotation(tabs = null) {
                 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
                     <!-- Valid YouTube Embed for Sankey Diagram Tutorial -->
                     <iframe id="sankey-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-                        src="https://www.youtube.com/embed/dAOzDsluIX0?rel=0" 
+                        src="https://www.youtube-nocookie.com/embed/dAOzDsluIX0?rel=0" 
                         title="YouTube video player" frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowfullscreen>

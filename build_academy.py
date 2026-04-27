@@ -9,7 +9,7 @@ articles = {
         'content': '''<h2>Introduction to Limit Order Books (LOB)</h2>
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
     <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube.com/embed/BDNcodKI8BI?rel=0" 
+        src="https://www.youtube-nocookie.com/embed/BDNcodKI8BI?rel=0" 
         title="LOB Heatmap Tutorial" frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>
@@ -30,7 +30,7 @@ articles = {
         'content': '''<h2>Introduction to Gamma Exposure</h2>
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
     <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube.com/embed/ma9bEqS2XAQ?rel=0" 
+        src="https://www.youtube-nocookie.com/embed/ma9bEqS2XAQ?rel=0" 
         title="GEX Tutorial" frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>
@@ -65,7 +65,7 @@ articles = {
         'content': '''<h2>What is Options Flow?</h2>
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
     <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube.com/embed/yTbWEsMxNCw?rel=0" 
+        src="https://www.youtube-nocookie.com/embed/yTbWEsMxNCw?rel=0" 
         title="Options Flow Tutorial" frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>
@@ -99,7 +99,7 @@ articles = {
         'content': '''<h2>Time vs. Volume</h2>
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
     <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube.com/embed/Xe30nXrRxYg?rel=0" 
+        src="https://www.youtube-nocookie.com/embed/Xe30nXrRxYg?rel=0" 
         title="Volume Profile Tutorial" frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>
@@ -149,7 +149,7 @@ articles = {
         'content': '''<h2>The Evolution of Quantitative Trading</h2>
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
     <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube.com/embed/Bo7HFcEeLFk?rel=0" 
+        src="https://www.youtube-nocookie.com/embed/Bo7HFcEeLFk?rel=0" 
         title="Algorithmic Trading Tutorial" frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>

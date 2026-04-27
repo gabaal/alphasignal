@@ -6,7 +6,7 @@
     <atom:link href="https://alphasignal.digital/academy/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Institutional-grade quantitative trading education: on-chain analytics, options flow, algo signals, macro intelligence, and crypto market strategy articles from AlphaSignal.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 27 Apr 2026 08:24:45 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 27 Apr 2026 08:27:14 +0000</lastBuildDate>
     <managingEditor>hello@alphasignal.digital (AlphaSignal)</managingEditor>
     <webMaster>hello@alphasignal.digital (AlphaSignal)</webMaster>
     <image>
@@ -20,7 +20,7 @@
     <link>https://alphasignal.digital/academy/order-book-liquidity-heatmaps</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/order-book-liquidity-heatmaps</guid>
     <description><![CDATA[Decode Limit Order Book (LOB) data to identify institutional defense levels, spoofs, and high-probability support/resistance structures before price gets there.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -28,7 +28,7 @@
     <link>https://alphasignal.digital/academy/understanding-gamma-exposure-gex</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/understanding-gamma-exposure-gex</guid>
     <description><![CDATA[A comprehensive guide to understanding options market maker positioning, hedging dynamics, and the impact of Gamma Exposure (GEX) on underlying asset price acti]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -36,7 +36,7 @@
     <link>https://alphasignal.digital/academy/crypto-liquidations-tracker</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/crypto-liquidations-tracker</guid>
     <description><![CDATA[Learn how to track and exploit forced liquidations and margin calls across major derivatives exchanges to fade momentum and capture violent mean-reversion bounc]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -44,7 +44,7 @@
     <link>https://alphasignal.digital/academy/options-flow-dark-pools</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/options-flow-dark-pools</guid>
     <description><![CDATA[Track massive options block trades, dark pool sweeps, and unusual options activity to front-run institutional capital movements in both crypto and equities.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -52,7 +52,7 @@
     <link>https://alphasignal.digital/academy/capital-sector-rotation</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/capital-sector-rotation</guid>
     <description><![CDATA[Uncover the flow of capital from Bitcoin into large-cap altcoins, DeFi, and meme coins using ecosystem rotation heatmaps and relative strength momentum.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -60,7 +60,7 @@
     <link>https://alphasignal.digital/academy/volume-profile-market-profile</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/volume-profile-market-profile</guid>
     <description><![CDATA[Move beyond time-based charts. Utilize Volume Profile to discover High Volume Nodes (HVN), Point of Control (POC), and Value Areas.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -68,7 +68,7 @@
     <link>https://alphasignal.digital/academy/institutional-yield-farming</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/institutional-yield-farming</guid>
     <description><![CDATA[Analyze risk-adjusted return vectors, stablecoin supply constraints, and protocol emissions to optimize your decentralization finance (DeFi) yield strategy.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -76,7 +76,7 @@
     <link>https://alphasignal.digital/academy/token-unlocks-supply-dilution</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/token-unlocks-supply-dilution</guid>
     <description><![CDATA[Track venture capitalist vesting schedules and massive token unlock events to anticipate structural supply shocks and short-selling opportunities.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -84,7 +84,7 @@
     <link>https://alphasignal.digital/academy/algorithmic-ai-trade-signals</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/algorithmic-ai-trade-signals</guid>
     <description><![CDATA[Discover how AlphaSignal utilizes deep learning neural networks, Natural Language Processing, and fundamental data to generate deterministic, emotionless trade ]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -92,7 +92,7 @@
     <link>https://alphasignal.digital/academy/on-chain-whale-tracking</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/on-chain-whale-tracking</guid>
     <description><![CDATA[Trace massive cryptocurrency transactions between cold storage wallets and centralized exchanges to predict local tops and bottoms.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -100,7 +100,7 @@
     <link>https://alphasignal.digital/academy/cme-futures-gaps-bitcoin</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/cme-futures-gaps-bitcoin</guid>
     <description><![CDATA[Exploit the institutional weekend arbitrage loop by trading CME (Chicago Mercantile Exchange) gaps. Understand the statistical probabilities of gap fills and ho]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -108,7 +108,7 @@
     <link>https://alphasignal.digital/academy/fundamental-mvrv-z-score</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/fundamental-mvrv-z-score</guid>
     <description><![CDATA[Master on-chain valuation using the MVRV (Market Value to Realized Value) Z-score to determine when Bitcoin is severely overvalued or historically undervalued.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -116,7 +116,7 @@
     <link>https://alphasignal.digital/academy/statistical-mean-reversion-z-scores</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/statistical-mean-reversion-z-scores</guid>
     <description><![CDATA[Avoid the emotional pitfalls of FOMO and Panic by adopting purely statistical, deterministic trading strategies based on standard deviations and Z-Scores.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -124,7 +124,7 @@
     <link>https://alphasignal.digital/academy/vwap-institutional-execution</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/vwap-institutional-execution</guid>
     <description><![CDATA[Track algorithmic "Smart Money" accumulation patterns and understand how large whales mask their entry orders using Volume Weighted Average Price (VWAP).]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -132,7 +132,7 @@
     <link>https://alphasignal.digital/academy/stablecoin-macro-liquidity-flows</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/stablecoin-macro-liquidity-flows</guid>
     <description><![CDATA[The ultimate leading indicator of cryptocurrency bull runs: Monitoring Tether (USDT) and USD Coin (USDC) mints and burns across the ecosystem.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -140,7 +140,7 @@
     <link>https://alphasignal.digital/academy/ai-narrative-velocity-sentiment</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/ai-narrative-velocity-sentiment</guid>
     <description><![CDATA[Learn how to quantify social momentum and front-run hype cycles using Natural Language Processing (NLP) and vector-based semantic sentiment analysis.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -148,7 +148,7 @@
     <link>https://alphasignal.digital/academy/hidden-markov-market-regimes</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/hidden-markov-market-regimes</guid>
     <description><![CDATA[Stop using the same trading strategy for every market condition. Utilize probabilistic regime classification to dynamically adapt to shifting volatility paradig]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -156,7 +156,7 @@
     <link>https://alphasignal.digital/academy/options-implied-volatility-smile</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/options-implied-volatility-smile</guid>
     <description><![CDATA[Decode the advanced option pricing models used by institutional derivatives traders to forecast future market turbulence and directional skew.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -164,7 +164,7 @@
     <link>https://alphasignal.digital/academy/mastering-risk-to-reward-ratio</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/mastering-risk-to-reward-ratio</guid>
     <description><![CDATA[Learn why win rate is less important than your risk-to-reward ratio. Discover how professional traders maintain profitability even when they lose more than 50% ]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -172,7 +172,7 @@
     <link>https://alphasignal.digital/academy/trading-psychology-fomo-panic</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/trading-psychology-fomo-panic</guid>
     <description><![CDATA[The greatest enemy of a trader is their own mind. Learn how to conquer the emotional extremes of Fear of Missing Out (FOMO) and panic selling through determinis]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -180,7 +180,7 @@
     <link>https://alphasignal.digital/academy/support-and-resistance-fundamentals</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/support-and-resistance-fundamentals</guid>
     <description><![CDATA[Identify the structural foundation of price action. Learn how to map out historical supply and demand zones effectively to frame your trades.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -188,7 +188,7 @@
     <link>https://alphasignal.digital/academy/position-sizing-and-leverage</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/position-sizing-and-leverage</guid>
     <description><![CDATA[Master the mathematics of survival. Understand how to calculate optimal position sizes and manage localized leverage to prevent catastrophic portfolio ruin.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -196,7 +196,7 @@
     <link>https://alphasignal.digital/academy/trading-moving-average-crossovers</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/trading-moving-average-crossovers</guid>
     <description><![CDATA[Learn how to utilize Simple and Exponential Moving Averages to confirm macro trend direction and identify high-probability momentum shifts.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -204,7 +204,7 @@
     <link>https://alphasignal.digital/academy/rsi-macd-momentum-oscillators</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/rsi-macd-momentum-oscillators</guid>
     <description><![CDATA[Decode market momentum using the Relative Strength Index (RSI) and the Moving Average Convergence Divergence (MACD) indicators to identify overbought and overso]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -212,7 +212,7 @@
     <link>https://alphasignal.digital/academy/fibonacci-retracements-crypto</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/fibonacci-retracements-crypto</guid>
     <description><![CDATA[Apply the golden ratio to financial markets. Learn how to use Fibonacci retracement levels to identify invisible support and resistance zones during explosive m]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -220,7 +220,7 @@
     <link>https://alphasignal.digital/academy/breakout-trading-strategies</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/breakout-trading-strategies</guid>
     <description><![CDATA[Learn how to trade volatility compressions and identify explosive chart breakouts before retail traders enter the market.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -228,7 +228,7 @@
     <link>https://alphasignal.digital/academy/how-to-set-proper-stop-loss</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/how-to-set-proper-stop-loss</guid>
     <description><![CDATA[Stop guessing your exit plan. Master structural stop loss placement, trailing stops, and invalidation points to systematically protect your capital.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -236,7 +236,7 @@
     <link>https://alphasignal.digital/academy/importance-of-trading-journal</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/importance-of-trading-journal</guid>
     <description><![CDATA[Quantify your mistakes and optimize your strengths. Uncover the institutional mandate of rigorous trade logging and performance auditing.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -244,7 +244,7 @@
     <link>https://alphasignal.digital/academy/candlestick-patterns</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/candlestick-patterns</guid>
     <description><![CDATA[Learn the foundational visual language of price action. Master how to interpret bullish engulfing, dojis, and hammer candles to predict immediate momentum shift]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -252,7 +252,7 @@
     <link>https://alphasignal.digital/academy/elliott-wave-theory</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/elliott-wave-theory</guid>
     <description><![CDATA[Understand the fractal nature of market cycles. Identify motive and corrective waves to anticipate the next major directional move.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -260,7 +260,7 @@
     <link>https://alphasignal.digital/academy/trendlines-and-channels</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/trendlines-and-channels</guid>
     <description><![CDATA[Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -268,7 +268,7 @@
     <link>https://alphasignal.digital/academy/divergence-trading-strategies</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/divergence-trading-strategies</guid>
     <description><![CDATA[Identify hidden weaknesses in market trends. Learn how to spot bullish and bearish divergences using momentum oscillators to predict major market reversals.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -276,7 +276,7 @@
     <link>https://alphasignal.digital/academy/pairs-trading-crypto-arbitrage</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/pairs-trading-crypto-arbitrage</guid>
     <description><![CDATA[Eliminate directional market risk. Discover how institutional quantitative funds use pairs trading to profit from relative asset performance regardless of macro]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -284,7 +284,7 @@
     <link>https://alphasignal.digital/academy/wyckoff-method-accumulation-distribution</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/wyckoff-method-accumulation-distribution</guid>
     <description><![CDATA[Read the hidden intentions of the "Composite Man." Use the Wyckoff Method to track institutional accumulation phases and markdown cycles.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -292,7 +292,7 @@
     <link>https://alphasignal.digital/academy/bollinger-bands-volatility</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/bollinger-bands-volatility</guid>
     <description><![CDATA[Measure price dispersion and identify explosive momentum breakouts using dynamic volatility channels.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -300,7 +300,7 @@
     <link>https://alphasignal.digital/academy/harmonic-patterns-trading</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/harmonic-patterns-trading</guid>
     <description><![CDATA[Utilize advanced geometry and overlapping Fibonacci sequences to pinpoint highly accurate geometric reversal zones.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -308,7 +308,7 @@
     <link>https://alphasignal.digital/academy/ichimoku-cloud-strategy</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/ichimoku-cloud-strategy</guid>
     <description><![CDATA[Master the Ichimoku Kinko Hyo to instantly determine trend direction, momentum, and future support/resistance levels at a single glance.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -316,7 +316,7 @@
     <link>https://alphasignal.digital/academy/order-blocks-institutional</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/order-blocks-institutional</guid>
     <description><![CDATA[Locate the exact price zones where central banks and major institutions accumulate massive positions before inducing retail panic.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -324,7 +324,7 @@
     <link>https://alphasignal.digital/academy/price-action-trading-naked</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/price-action-trading-naked</guid>
     <description><![CDATA[Strip away the lagging indicators and learn how to read raw market structure, candle momentum, and liquidity sweeps.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   <item>
@@ -332,7 +332,7 @@
     <link>https://alphasignal.digital/academy/smart-money-concepts-smc</link>
     <guid isPermaLink="true">https://alphasignal.digital/academy/smart-money-concepts-smc</guid>
     <description><![CDATA[Understand Fair Value Gaps (FVG), Inducement, and Liquidity Grabs to trade in alignment with institutional market makers.]]></description>
-    <pubDate>Mon, 27 Apr 2026 08:24:45 +0000</pubDate>
+    <pubDate>Mon, 27 Apr 2026 08:27:14 +0000</pubDate>
     <category>Quant Academy</category>
   </item>
   </channel>
