@@ -296,7 +296,7 @@ class PersonalRoutesMixin:
                             is_long = amt > 0
                             ticker = p.get('symbol').replace('USDT', '-USD')
                             
-                            c.execute("SELECT name, tp_pct, sl_pct FROM trading_bots WHERE user_email=? AND asset=? AND status='active'", (user_email, ticker))
+                            c.execute("SELECT name, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email=? AND asset=? AND status='active'", (user_email, ticker))
                             b_row = c.fetchone()
                             
                             pos_obj = {
@@ -366,7 +366,7 @@ class PersonalRoutesMixin:
                     if amt > 0:
                         is_long = p.get('type') == 'buy'
                         
-                        c.execute("SELECT name, tp_pct, sl_pct FROM trading_bots WHERE user_email=? AND asset=? AND status='active'", (user_email, ticker))
+                        c.execute("SELECT name, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email=? AND asset=? AND status='active'", (user_email, ticker))
                         b_row = c.fetchone()
                         
                         pos_obj = {
@@ -384,6 +384,110 @@ class PersonalRoutesMixin:
                             'sl_pct': b_row[2] if b_row else None,
                         }
                         open_positions.append(pos_obj)
+
+                # 4. Fetch Spot Balances and map to open_positions
+                balance_data = kraken_request('/0/private/Balance')
+                if not balance_data.get('error') and balance_data.get('result'):
+                    spot_balances = balance_data['result']
+                    fiat_currencies = {'ZUSD', 'ZGBP', 'ZEUR', 'ZAUD', 'ZCAD', 'ZJPY', 'CHF', 'USD', 'EUR', 'GBP'}
+                    
+                    crypto_balances = {}
+                    for asset, bal_str in spot_balances.items():
+                        if asset not in fiat_currencies:
+                            bal = float(bal_str)
+                            if bal > 0:
+                                crypto_balances[asset] = bal
+                                
+                    if crypto_balances:
+                        trades_data = kraken_request('/0/private/TradesHistory', data={'trades': 'true'})
+                        trades = trades_data.get('result', {}).get('trades', {})
+                        
+                        buy_trades = {}
+                        for txid, t in trades.items():
+                            if t.get('type') == 'buy':
+                                pair = t.get('pair', '')
+                                asset = pair
+                                for fiat in fiat_currencies:
+                                    if pair.endswith(fiat):
+                                        asset = pair.replace(fiat, '')
+                                        break
+                                if asset.startswith('X') and len(asset) >= 4 and asset not in ['XRP', 'XTZ', 'XLM', 'XMR']:
+                                    asset = asset[1:]
+                                
+                                if asset not in buy_trades:
+                                    buy_trades[asset] = []
+                                buy_trades[asset].append(t)
+                        
+                        pairs_to_query = [a + 'USD' for a in crypto_balances.keys()]
+                        tickers = {}
+                        if pairs_to_query:
+                            ticker_data = requests.get(f"https://api.kraken.com/0/public/Ticker?pair={','.join(pairs_to_query)}").json()
+                            if not ticker_data.get('error'):
+                                tickers = ticker_data.get('result', {})
+                                
+                        for asset, qty in crypto_balances.items():
+                            std_ticker = asset.replace('X', '') + '-USD' if asset.startswith('X') and asset not in ['XRP', 'XTZ', 'XLM', 'XMR'] else asset + '-USD'
+                            if asset == 'XXBT' or asset == 'XBT': std_ticker = 'BTC-USD'
+                            if asset == 'XETH': std_ticker = 'ETH-USD'
+                            
+                            entry_price = 0.0
+                            if asset in buy_trades:
+                                total_vol = 0.0
+                                total_weighted_price = 0.0
+                                sorted_trades = sorted(buy_trades[asset], key=lambda x: float(x.get('time', 0)), reverse=True)
+                                for t in sorted_trades:
+                                    vol = float(t.get('vol', 0))
+                                    price = float(t.get('price', 0))
+                                    
+                                    pair = t.get('pair', '')
+                                    if pair.endswith('GBP') or pair.endswith('ZGBP'):
+                                        price *= 1.25 # Simple conversion to USD
+                                    elif pair.endswith('EUR') or pair.endswith('ZEUR'):
+                                        price *= 1.08
+                                        
+                                    if total_vol + vol <= qty:
+                                        total_vol += vol
+                                        total_weighted_price += price * vol
+                                    else:
+                                        rem = qty - total_vol
+                                        total_vol += rem
+                                        if vol > 0:
+                                            total_weighted_price += price * rem
+                                        break
+                                if total_vol > 0:
+                                    entry_price = total_weighted_price / total_vol
+                            
+                            mark_price = 0.0
+                            ticker_key = asset + 'USD'
+                            if ticker_key in tickers:
+                                mark_price = float(tickers[ticker_key]['c'][0])
+                            elif 'X' + asset + 'ZUSD' in tickers:
+                                mark_price = float(tickers['X' + asset + 'ZUSD']['c'][0])
+                                
+                            unrealized_pnl = 0.0
+                            if entry_price > 0 and mark_price > 0:
+                                unrealized_pnl = (mark_price - entry_price) * qty
+                            elif entry_price == 0:
+                                entry_price = mark_price
+                                
+                            c.execute("SELECT name, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email=? AND asset=? AND status='active'", (user_email, std_ticker))
+                            b_row = c.fetchone()
+                            
+                            pos_obj = {
+                                'ticker': std_ticker,
+                                'side': 'LONG',
+                                'qty': qty,
+                                'entry_price': entry_price,
+                                'mark_price': mark_price,
+                                'unrealized_pnl': unrealized_pnl,
+                                'leverage': 1,
+                                'liquidation_price': 0.0,
+                                'bot_managed': bool(b_row),
+                                'bot_name': b_row[0] if b_row else None,
+                                'tp_pct': b_row[1] if b_row else None,
+                                'sl_pct': b_row[2] if b_row else None,
+                            }
+                            open_positions.append(pos_obj)
 
             else:
                 conn.close()
