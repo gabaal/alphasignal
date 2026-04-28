@@ -1,7 +1,6 @@
 import ccxt
 import traceback
-from backend.routes.auth import decrypt_secret
-
+from backend.keyvault import KeyVault
 class NativeExecutionService:
     @staticmethod
     def execute_trade(exchange_name, api_key, encrypted_secret, ticker, direction, trade_size_usd):
@@ -16,7 +15,7 @@ class NativeExecutionService:
                 print(f"[Execution] Missing exchange credentials for {ticker}")
                 return False
                 
-            api_secret = decrypt_secret(encrypted_secret)
+            api_secret = KeyVault.decrypt_secret(encrypted_secret)
             if not api_secret:
                 print(f"[Execution] Failed to decrypt API secret for {ticker}")
                 return False
