@@ -733,11 +733,41 @@ class PersonalRoutesMixin:
                 except Exception as ex:
                     return self.send_json({'error': f"Kraken Connection Error: {str(ex)}"})
             else:
-                # Mock Binance execution
-                timestamp = str(int(datetime.now().timestamp() * 1000))
-                payload_str = f"symbol={ticker.replace('-','')}&side={action}&type=LIMIT&quantity={computed_size_usd/price:.4f}&price={price:.2f}&timestamp={timestamp}"
-                signature = hmac.new(decrypted_secret.encode('utf-8'), payload_str.encode('utf-8'), hashlib.sha256).hexdigest()
-                order_id = f"BIN-{signature[:8]}"
+                # Live Binance Spot Execution via /api/v3/order (HMAC-SHA256)
+                import time, urllib.parse, requests
+                
+                # Format symbol: BTC-USD -> BTCUSDT, ETH-USD -> ETHUSDT
+                raw_symbol = ticker.replace('-USD', 'USDT').replace('-', '')
+                
+                timestamp = str(int(time.time() * 1000))
+                quantity = f"{computed_size_usd / price:.6f}"
+                
+                params = {
+                    'symbol':    raw_symbol,
+                    'side':      action,           # BUY or SELL
+                    'type':      'MARKET',
+                    'quantity':  quantity,
+                    'timestamp': timestamp
+                }
+                
+                query_string = urllib.parse.urlencode(params)
+                signature = hmac.new(
+                    decrypted_secret.encode('utf-8'),
+                    query_string.encode('utf-8'),
+                    hashlib.sha256
+                ).hexdigest()
+                
+                url = f"https://api.binance.com/api/v3/order?{query_string}&signature={signature}"
+                headers = { 'X-MBX-APIKEY': api_key }
+                
+                try:
+                    r = requests.post(url, headers=headers, timeout=5)
+                    resp = r.json()
+                    if 'code' in resp and resp['code'] != 200:
+                        return self.send_json({'error': f"Binance Execution Failed: {resp.get('msg', 'Unknown error')}"})
+                    order_id = str(resp.get('orderId', f"BIN-{timestamp[-8:]}"))
+                except Exception as ex:
+                    return self.send_json({'error': f"Binance Connection Error: {str(ex)}"})
 
             # - 5. Insert Live Trade into Trade Ledger -
             ledger_conn = sqlite3.connect(DB_PATH, timeout=30)
