@@ -227,88 +227,167 @@ class PersonalRoutesMixin:
     # - OMS DASHBOARD (LIVE EXCHANGE INTEGRATION) -
     def handle_oms_dashboard(self, auth_info):
         try:
-            import time, hmac, hashlib
+            import time, hmac, hashlib, base64, urllib.parse
             import sqlite3
             from backend.database import DB_PATH
             from backend.keyvault import KeyVault
 
             user_email = auth_info['email']
 
-            # 1. Fetch Binance keys from Vault
+            # 1. Fetch latest exchange keys from Vault (Any exchange)
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute('SELECT api_key, api_secret FROM exchange_keys WHERE user_email = ? AND exchange = ? ORDER BY created_at DESC LIMIT 1', (user_email, 'BINANCE'))
+            c.execute('SELECT api_key, api_secret, exchange FROM exchange_keys WHERE user_email = ? ORDER BY created_at DESC LIMIT 1', (user_email,))
             row = c.fetchone()
 
             if not row:
                 conn.close()
-                return self.send_json({'error': 'No Binance keys configured. Please add them in the Institutional Data Hub.'})
+                return self.send_json({'error': 'No Exchange keys configured. Please add them in the KeyVault.'})
 
             api_key = row[0]
             enc_secret = row[1]
+            exchange = row[2].upper()
             api_secret = KeyVault.decrypt_secret(enc_secret)
 
             if not api_secret:
                 conn.close()
                 return self.send_json({'error': 'Failed to decrypt API secret using KeyVault.'})
 
-            # Helper for Binance HMAC signed requests
-            def binance_request(endpoint, method='GET'):
-                url = f"https://fapi.binance.com{endpoint}"
-                timestamp = int(time.time() * 1000)
-                query = f"timestamp={timestamp}"
-                signature = hmac.new(api_secret.encode('utf-8'), query.encode('utf-8'), hashlib.sha256).hexdigest()
-                full_url = f"{url}?{query}&signature={signature}"
-                headers = {'X-MBX-APIKEY': api_key}
-                try:
-                    r = requests.request(method, full_url, headers=headers, timeout=5)
-                    return r.json() if r.status_code == 200 else {'error': r.text}
-                except Exception as ex:
-                    return {'error': str(ex)}
-
-            # 2. Fetch Balances (Futures Account)
-            account_data = binance_request('/fapi/v2/account')
-            if 'error' in account_data:
-                conn.close()
-                return self.send_json({'error': f"Binance API Error: {account_data['error']}"})
-
-            total_margin_balance = sum(float(a['marginBalance']) for a in account_data.get('assets', []) if float(a['marginBalance']) > 0)
-            available_balance = sum(float(a['availableBalance']) for a in account_data.get('assets', []) if float(a['availableBalance']) > 0)
-            unrealized_pnl = sum(float(a['unrealizedProfit']) for a in account_data.get('assets', []))
-
-            # 3. Fetch Open Positions
-            positions_data = binance_request('/fapi/v2/positionRisk')
-            if isinstance(positions_data, dict) and 'error' in positions_data:
-                conn.close()
-                return self.send_json({'error': f"Binance Positions Error: {positions_data['error']}"})
-
+            total_margin_balance = 0.0
+            available_balance = 0.0
+            unrealized_pnl = 0.0
             open_positions = []
-            if isinstance(positions_data, list):
-                for p in positions_data:
-                    amt = float(p.get('positionAmt', 0))
-                    if amt != 0:
-                        is_long = amt > 0
-                        ticker = p.get('symbol').replace('USDT', '-USD')
+
+            if exchange == 'BINANCE':
+                # Helper for Binance HMAC signed requests
+                def binance_request(endpoint, method='GET'):
+                    url = f"https://fapi.binance.com{endpoint}"
+                    timestamp = int(time.time() * 1000)
+                    query = f"timestamp={timestamp}"
+                    signature = hmac.new(api_secret.encode('utf-8'), query.encode('utf-8'), hashlib.sha256).hexdigest()
+                    full_url = f"{url}?{query}&signature={signature}"
+                    headers = {'X-MBX-APIKEY': api_key}
+                    try:
+                        r = requests.request(method, full_url, headers=headers, timeout=5)
+                        return r.json() if r.status_code == 200 else {'error': r.text}
+                    except Exception as ex:
+                        return {'error': str(ex)}
+
+                # 2. Fetch Balances (Futures Account)
+                account_data = binance_request('/fapi/v2/account')
+                if 'error' in account_data:
+                    conn.close()
+                    return self.send_json({'error': f"Binance API Error: {account_data['error']}"})
+
+                total_margin_balance = sum(float(a['marginBalance']) for a in account_data.get('assets', []) if float(a['marginBalance']) > 0)
+                available_balance = sum(float(a['availableBalance']) for a in account_data.get('assets', []) if float(a['availableBalance']) > 0)
+                unrealized_pnl = sum(float(a['unrealizedProfit']) for a in account_data.get('assets', []))
+
+                # 3. Fetch Open Positions
+                positions_data = binance_request('/fapi/v2/positionRisk')
+                if isinstance(positions_data, dict) and 'error' in positions_data:
+                    conn.close()
+                    return self.send_json({'error': f"Binance Positions Error: {positions_data['error']}"})
+
+                if isinstance(positions_data, list):
+                    for p in positions_data:
+                        amt = float(p.get('positionAmt', 0))
+                        if amt != 0:
+                            is_long = amt > 0
+                            ticker = p.get('symbol').replace('USDT', '-USD')
+                            
+                            c.execute("SELECT name, tp_pct, sl_pct FROM trading_bots WHERE user_email=? AND asset=? AND status='active'", (user_email, ticker))
+                            b_row = c.fetchone()
+                            
+                            pos_obj = {
+                                'ticker': ticker,
+                                'side': 'LONG' if is_long else 'SHORT',
+                                'qty': abs(amt),
+                                'entry_price': float(p.get('entryPrice', 0)),
+                                'mark_price': float(p.get('markPrice', 0)),
+                                'unrealized_pnl': float(p.get('unRealizedProfit', 0)),
+                                'leverage': int(p.get('leverage', 1)),
+                                'liquidation_price': float(p.get('liquidationPrice', 0)),
+                                'bot_managed': bool(b_row),
+                                'bot_name': b_row[0] if b_row else None,
+                                'tp_pct': b_row[1] if b_row else None,
+                                'sl_pct': b_row[2] if b_row else None,
+                            }
+                            open_positions.append(pos_obj)
+
+            elif exchange == 'KRAKEN':
+                def kraken_request(endpoint, data=None):
+                    if data is None: data = {}
+                    data['nonce'] = str(int(time.time() * 1000000))
+                    url = f"https://api.kraken.com{endpoint}"
+                    postdata = urllib.parse.urlencode(data)
+                    encoded = (str(data['nonce']) + postdata).encode('utf8')
+                    message = endpoint.encode('utf8') + hashlib.sha256(encoded).digest()
+                    mac = hmac.new(base64.b64decode(api_secret), message, hashlib.sha512)
+                    sigdigest = base64.b64encode(mac.digest())
+                    headers = {
+                        'API-Key': api_key,
+                        'API-Sign': sigdigest.decode('utf-8')
+                    }
+                    try:
+                        r = requests.post(url, headers=headers, data=data, timeout=5)
+                        return r.json()
+                    except Exception as ex:
+                        return {'error': [str(ex)]}
+
+                # 2. Fetch Balances
+                tb_data = kraken_request('/0/private/TradeBalance', data={'asset': 'ZUSD'})
+                if tb_data.get('error'):
+                    conn.close()
+                    return self.send_json({'error': f"Kraken API Error: {', '.join(tb_data['error'])}"})
+                
+                res = tb_data.get('result', {})
+                total_margin_balance = float(res.get('eb', 0)) # Equivalent balance
+                available_balance = float(res.get('mf', 0))    # Free margin
+                unrealized_pnl = float(res.get('n', 0))        # Unrealized net profit/loss
+
+                # 3. Fetch Open Positions
+                pos_data = kraken_request('/0/private/OpenPositions')
+                if pos_data.get('error'):
+                    conn.close()
+                    return self.send_json({'error': f"Kraken Positions Error: {', '.join(pos_data['error'])}"})
+                
+                pos_result = pos_data.get('result', {})
+                for txid, p in pos_result.items():
+                    pair = p.get('pair', '')
+                    if pair.endswith('ZUSD'):
+                        ticker = pair.replace('ZUSD', '').replace('X', '') + '-USD'
+                    elif pair.endswith('USD'):
+                        ticker = pair.replace('USD', '') + '-USD'
+                    else:
+                        ticker = pair
                         
-                        # Check if a bot manages this position
+                    amt = float(p.get('vol', 0)) - float(p.get('vol_closed', 0))
+                    if amt > 0:
+                        is_long = p.get('type') == 'buy'
+                        
                         c.execute("SELECT name, tp_pct, sl_pct FROM trading_bots WHERE user_email=? AND asset=? AND status='active'", (user_email, ticker))
                         b_row = c.fetchone()
                         
                         pos_obj = {
                             'ticker': ticker,
                             'side': 'LONG' if is_long else 'SHORT',
-                            'qty': abs(amt),
-                            'entry_price': float(p.get('entryPrice', 0)),
-                            'mark_price': float(p.get('markPrice', 0)),
-                            'unrealized_pnl': float(p.get('unRealizedProfit', 0)),
-                            'leverage': int(p.get('leverage', 1)),
-                            'liquidation_price': float(p.get('liquidationPrice', 0)),
+                            'qty': amt,
+                            'entry_price': float(p.get('cost', 0)) / amt if amt else 0.0,
+                            'mark_price': float(p.get('value', 0)) / amt if amt else 0.0,
+                            'unrealized_pnl': float(p.get('net', 0)),
+                            'leverage': 1,
+                            'liquidation_price': 0.0,
                             'bot_managed': bool(b_row),
                             'bot_name': b_row[0] if b_row else None,
                             'tp_pct': b_row[1] if b_row else None,
                             'sl_pct': b_row[2] if b_row else None,
                         }
                         open_positions.append(pos_obj)
+
+            else:
+                conn.close()
+                return self.send_json({'error': f"Exchange {exchange} is not supported for reading positions yet."})
 
             conn.close()
 

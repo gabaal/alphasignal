@@ -1,6 +1,6 @@
 import os
 import base64
-from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import logging
 
 logger = logging.getLogger(__name__)
@@ -8,13 +8,13 @@ logger = logging.getLogger(__name__)
 class KeyVault:
     """
     Institutional-grade KeyVault for API credential storage.
-    Encrypts exchange API secrets symmetrically using AES-128 via Fernet.
+    Encrypts exchange API secrets symmetrically using AES-256-GCM.
     """
-    _fernet = None
+    _key = None
 
     @classmethod
     def initialize(cls):
-        if cls._fernet is not None:
+        if cls._key is not None:
             return
 
         # Attempt to get secret from environment or construct fallback for local dev
@@ -29,34 +29,43 @@ class KeyVault:
             secret = secret.encode('utf-8')
 
         try:
-            cls._fernet = Fernet(secret)
-        except ValueError as e:
-            logger.error("Failed to initialize KeyVault Fernet. Secret must be 32 URL-safe base64-encoded bytes.")
+            decoded = base64.urlsafe_b64decode(secret)
+            if len(decoded) != 32:
+                raise ValueError("Key must be 32 bytes for AES-256")
+            cls._key = decoded
+        except Exception as e:
+            logger.error("Failed to initialize KeyVault. Secret must be 32 URL-safe base64-encoded bytes.")
             # Fallback to avoid complete crash
-            cls._fernet = Fernet(Fernet.generate_key())
+            cls._key = AESGCM.generate_key(bit_length=256)
 
     @classmethod
     def encrypt_secret(cls, plaintext: str) -> str:
-        if not cls._fernet:
+        if not cls._key:
             cls.initialize()
         if not plaintext:
             return ""
         try:
-            encrypted_bytes = cls._fernet.encrypt(plaintext.encode('utf-8'))
-            return encrypted_bytes.decode('utf-8')
+            aesgcm = AESGCM(cls._key)
+            nonce = os.urandom(12)
+            ciphertext = aesgcm.encrypt(nonce, plaintext.encode('utf-8'), None)
+            return base64.urlsafe_b64encode(nonce + ciphertext).decode('utf-8')
         except Exception as e:
             logger.error(f"Encryption failed: {e}")
             return ""
 
     @classmethod
     def decrypt_secret(cls, ciphertext: str) -> str:
-        if not cls._fernet:
+        if not cls._key:
             cls.initialize()
         if not ciphertext:
             return ""
         try:
-            decrypted_bytes = cls._fernet.decrypt(ciphertext.encode('utf-8'))
-            return decrypted_bytes.decode('utf-8')
+            data = base64.urlsafe_b64decode(ciphertext.encode('utf-8'))
+            nonce = data[:12]
+            ct = data[12:]
+            aesgcm = AESGCM(cls._key)
+            decrypted = aesgcm.decrypt(nonce, ct, None)
+            return decrypted.decode('utf-8')
         except Exception as e:
             logger.error(f"Decryption failed: {e}")
             return ""

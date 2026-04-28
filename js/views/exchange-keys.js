@@ -3,7 +3,7 @@ async function renderExchangeKeys() {
         <div class="view-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
                 <h1><span class="material-symbols-outlined" style="vertical-align:-4px;margin-right:8px;color:var(--accent)">api</span>KeyVault</h1>
-                <p style="color:var(--text-dim)">Securely connect external exchange APIs for 1-Click execution from the terminal. Protected by AES-128 institutional encryption.</p>
+                <p style="color:var(--text-dim)">Securely connect external exchange APIs for 1-Click execution from the terminal. Protected by AES-256 institutional encryption.</p>
             </div>
             <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-hub-exchange')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
         </div>
@@ -38,7 +38,7 @@ async function renderExchangeKeys() {
 
                 <p style="font-size:0.7rem;color:var(--text-dim);margin-top:1.5rem;display:flex;gap:6px;align-items:flex-start">
                     <span class="material-symbols-outlined" style="font-size:14px;color:var(--risk-low)">lock</span>
-                    Keys are locally AES-128 encrypted at rest via the KeyVault. We recommend creating an API key restricted to 'Trade' permissions only, disabling 'Withdrawal' access completely.
+                    Keys are locally AES-256 encrypted at rest via the KeyVault. We recommend creating an API key restricted to 'Trade' permissions only, disabling 'Withdrawal' access completely.
                 </p>
             </div>
 
