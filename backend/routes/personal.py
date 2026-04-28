@@ -594,10 +594,12 @@ class PersonalRoutesMixin:
                 return self.send_json({'error': 'Exchange API key decryption failed. KeyVault mismatch or corrupted secret.'})
 
             # - 2. Risk Matrix Position Sizer -
-            PORTFOLIO_NAV = 1250000.0  # Simulated institutional portfolio NAV ($1.25M)
-            RISK_PCT = 0.02            # 2% Risk per trade
-            capital_at_risk = PORTFOLIO_NAV * RISK_PCT
-            
+            # Fetch user's configured trade size from settings (default $100 if not set)
+            c.execute('SELECT trade_size_usd FROM user_settings WHERE user_email = ?', (user_email,))
+            settings_row = c.fetchone()
+            conn.close()
+            USER_TRADE_SIZE_USD = float(settings_row[0]) if settings_row and settings_row[0] else 100.0
+
             target = 0.0
             stop = 0.0
             rr = 0.0
@@ -613,26 +615,39 @@ class PersonalRoutesMixin:
                 # Prevent divide by zero (cap at 1% min stop distance)
                 risk_dist_pct = max(0.01, risk_dist_pct)
                 
-                # Sizer math: Position Size = (Capital at Risk) / (Distance to Stop %)
-                computed_size_usd = capital_at_risk / risk_dist_pct
-                
-                # Max leverage cap (e.g. 5x total portfolio)
-                if computed_size_usd > PORTFOLIO_NAV * 5:
-                    computed_size_usd = PORTFOLIO_NAV * 5
+                # Sizer math: Position Size = (User Trade Size) / (Distance to Stop %)
+                # Capped at 5x the user's configured trade size for safety
+                computed_size_usd = min(USER_TRADE_SIZE_USD / risk_dist_pct, USER_TRADE_SIZE_USD * 5)
             else:
-                # Fallback flat 10% notional if no strict stop is defined
-                computed_size_usd = PORTFOLIO_NAV * 0.10
+                # 1-Click Execute: use the user's exact configured trade_size_usd directly
+                computed_size_usd = USER_TRADE_SIZE_USD
                 stop = price * (0.95 if action == 'BUY' else 1.05)
                 target = price * (1.10 if action == 'BUY' else 0.90)
                 rr = 2.0
+
 
             formatted_size = f"${computed_size_usd:,.2f}"
 
             # - 3. Order Reconciliation & L2 Book Walking (VWAP) -
             try:
-                from backend.routes.realdata import fetch_binance_depth
-                raw_ticker = ticker.replace('-', '')
-                depth = fetch_binance_depth(raw_ticker, limit=50)
+                depth = None
+                if exchange_nm == 'KRAKEN':
+                    import requests
+                    k_pair = ticker.replace('-', '')
+                    if ticker.startswith('BTC'): k_pair = 'XBTUSD'
+                    elif ticker.startswith('ETH'): k_pair = 'ETHUSD'
+                    try:
+                        r = requests.get(f"https://api.kraken.com/0/public/Depth?pair={k_pair}&count=50", timeout=3)
+                        d_res = r.json().get('result', {})
+                        if d_res:
+                            first_key = list(d_res.keys())[0]
+                            depth = d_res[first_key]
+                    except Exception as ke:
+                        print(f"[KeyVault Router] Kraken Depth Error: {ke}")
+                else:
+                    from backend.routes.realdata import fetch_binance_depth
+                    raw_ticker = ticker.replace('-', '')
+                    depth = fetch_binance_depth(raw_ticker, limit=50)
                 
                 true_vwap = price
                 estimated_slippage = 0.00015
@@ -677,9 +692,8 @@ class PersonalRoutesMixin:
                 import time, urllib.parse, base64, requests
                 
                 pair = ticker.replace('-', '')
-                if pair.endswith('USD'): pair = pair.replace('USD', 'ZUSD')
-                if ticker.startswith('BTC'): pair = 'XXBTZUSD'
-                elif ticker.startswith('ETH'): pair = 'XETHZUSD'
+                if ticker.startswith('BTC'): pair = 'XBTUSD'
+                elif ticker.startswith('ETH'): pair = 'ETHUSD'
                 
                 vol = computed_size_usd / price
                 vol_str = f"{vol:.8f}"
@@ -710,7 +724,6 @@ class PersonalRoutesMixin:
                     r = requests.post(url, headers=headers, data=data_payload, timeout=5)
                     resp = r.json()
                     if resp.get('error'):
-                        conn.close()
                         return self.send_json({'error': f"Kraken Execution Failed: {', '.join(resp['error'])}"})
                     
                     result = resp.get('result', {})
@@ -718,7 +731,6 @@ class PersonalRoutesMixin:
                     if txids:
                         order_id = txids[0]
                 except Exception as ex:
-                    conn.close()
                     return self.send_json({'error': f"Kraken Connection Error: {str(ex)}"})
             else:
                 # Mock Binance execution
@@ -728,11 +740,13 @@ class PersonalRoutesMixin:
                 order_id = f"BIN-{signature[:8]}"
 
             # - 5. Insert Live Trade into Trade Ledger -
-            c.execute('''INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage)
+            ledger_conn = sqlite3.connect(DB_PATH, timeout=30)
+            ledger_c = ledger_conn.cursor()
+            ledger_c.execute('''INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
                       (user_email, ticker, action, price, target, stop, rr, estimated_slippage))
-            conn.commit()
-            conn.close()
+            ledger_conn.commit()
+            ledger_conn.close()
             
             slippage_bps = estimated_slippage * 10000
             self.send_json({

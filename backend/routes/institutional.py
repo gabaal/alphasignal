@@ -5180,72 +5180,121 @@ class InstitutionalRoutesMixin:
             from backend.database import DB_PATH
             from backend.keyvault import KeyVault
 
-            # 1. Fetch Binance keys from Vault to simulate OMS sync
+            # 1. Fetch keys from Vault
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute('SELECT api_key, api_secret FROM exchange_keys WHERE user_email = ? AND exchange = ? ORDER BY created_at DESC LIMIT 1', (email, 'BINANCE'))
+            c.execute('SELECT api_key, api_secret, exchange FROM exchange_keys WHERE user_email = ? ORDER BY created_at DESC LIMIT 1', (email,))
             row = c.fetchone()
             conn.close()
 
-            # Seed a deterministic PRNG for the user to generate their historical ledger
-            import random
-            from datetime import datetime, timedelta
-            seed_val = sum(ord(ch) for ch in email)
-            rng = random.Random(seed_val)
-
             ledger = []
             
-            if row:
-                # Connected to KeyVault! We would normally hit /fapi/v1/userTrades here.
-                # For safety, we generate a high-fidelity synthetic OMS receipt ledger.
-                trade_count = rng.randint(40, 80)
+            if row and row[2] == 'KRAKEN':
+                import urllib.parse, base64, requests
+                api_key = row[0]
+                api_secret = KeyVault.decrypt_secret(row[1])
+                
+                # Fetch Kraken TradesHistory
+                endpoint = '/0/private/TradesHistory'
+                url = f"https://api.kraken.com{endpoint}"
+                data_payload = {
+                    'nonce': str(int(time.time() * 1000000)),
+                    'trades': 'true'
+                }
+                postdata = urllib.parse.urlencode(data_payload)
+                encoded = (str(data_payload['nonce']) + postdata).encode('utf8')
+                message = endpoint.encode('utf8') + hashlib.sha256(encoded).digest()
+                mac = hmac.new(base64.b64decode(api_secret), message, hashlib.sha512)
+                sigdigest = base64.b64encode(mac.digest())
+                
+                headers = {
+                    'API-Key': api_key,
+                    'API-Sign': sigdigest.decode('utf-8')
+                }
+                
+                try:
+                    r = requests.post(url, headers=headers, data=data_payload, timeout=5)
+                    resp = r.json()
+                    trades = resp.get('result', {}).get('trades', {})
+                    
+                    from datetime import datetime
+                    for txid, t in trades.items():
+                        # Parse Kraken trade object
+                        asset = t.get('pair', '')
+                        if asset.endswith('ZUSD'): asset = asset.replace('ZUSD', '-USD')
+                        elif asset.endswith('USD'): asset = asset.replace('USD', '-USD')
+                        if asset.startswith('XXBT'): asset = asset.replace('XXBT', 'BTC')
+                        elif asset.startswith('XETH'): asset = asset.replace('XETH', 'ETH')
+                        elif asset.startswith('X') and len(asset) > 4: asset = asset[1:]
+                        
+                        dt = datetime.fromtimestamp(float(t.get('time', 0)))
+                        
+                        ledger.append({
+                            'id': txid,
+                            'timestamp': dt.strftime('%Y-%m-%d %H:%M:%S'),
+                            'ticker': asset,
+                            'side': t.get('type', '').upper(),
+                            'qty': float(t.get('vol', 0)),
+                            'entry_price': float(t.get('price', 0)),
+                            'fee_paid': float(t.get('fee', 0)),
+                            'realised_pnl': 0.0, # Spot trades
+                            'exchange': 'KRAKEN',
+                            'is_maker': 'maker' in t.get('misc', '')
+                        })
+                except Exception as ex:
+                    print(f"Kraken Ledger Error: {ex}")
             else:
-                # Not connected to KeyVault. Generate a smaller mock ledger for tour preview.
-                trade_count = 15
+                # Seed a deterministic PRNG for the user to generate their historical ledger
+                import random
+                from datetime import datetime, timedelta
+                seed_val = sum(ord(ch) for ch in email)
+                rng = random.Random(seed_val)
 
-            now = datetime.utcnow()
-            tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD', 'AVAX-USD', 'LINK-USD']
-            
-            for i in range(trade_count):
-                ts = now - timedelta(days=rng.randint(0, 90), hours=rng.randint(0, 23), minutes=rng.randint(0, 59))
-                t = rng.choice(tickers)
-                side = rng.choice(['BUY', 'SELL'])
-                
-                # Mock price ranges
-                bases = {'BTC-USD': 65000, 'ETH-USD': 3500, 'SOL-USD': 150, 'DOGE-USD': 0.15, 'AVAX-USD': 40, 'LINK-USD': 15}
-                base = bases[t]
-                entry = base * rng.uniform(0.9, 1.1)
-                
-                qty_usd = rng.uniform(5000, 50000)
-                qty = round(qty_usd / entry, 4)
-                
-                # Binance Futures Fee: Maker 0.02%, Taker 0.05%
-                is_maker = rng.choice([True, False])
-                fee_rate = 0.0002 if is_maker else 0.0005
-                fee_usd = qty_usd * fee_rate
+                if row:
+                    trade_count = rng.randint(40, 80)
+                else:
+                    trade_count = 15
 
-                # Only ~40% of trades are closing a position (which realizes PnL)
-                realized_pnl = 0.0
-                if rng.random() > 0.6:
-                    pnl_pct = rng.uniform(-0.05, 0.15)  # Slight edge in simulation
-                    realized_pnl = round(qty_usd * pnl_pct, 2)
+                now = datetime.utcnow()
+                tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD', 'AVAX-USD', 'LINK-USD']
+                
+                for i in range(trade_count):
+                    ts = now - timedelta(days=rng.randint(0, 90), hours=rng.randint(0, 23), minutes=rng.randint(0, 59))
+                    t = rng.choice(tickers)
+                    side = rng.choice(['BUY', 'SELL'])
+                    
+                    bases = {'BTC-USD': 65000, 'ETH-USD': 3500, 'SOL-USD': 150, 'DOGE-USD': 0.15, 'AVAX-USD': 40, 'LINK-USD': 15}
+                    base = bases[t]
+                    entry = base * rng.uniform(0.9, 1.1)
+                    
+                    qty_usd = rng.uniform(5000, 50000)
+                    qty = round(qty_usd / entry, 4)
+                    
+                    is_maker = rng.choice([True, False])
+                    fee_rate = 0.0002 if is_maker else 0.0005
+                    fee_usd = qty_usd * fee_rate
 
-                ledger.append({
-                    'id': f"OMS-{rng.randint(100000, 999999)}",
-                    'timestamp': ts.strftime('%Y-%m-%d %H:%M:%S'),
-                    'ticker': t,
-                    'side': side,
-                    'qty': qty,
-                    'entry_price': round(entry, 4),
-                    'fee_paid': round(fee_usd, 4),
-                    'realised_pnl': realized_pnl,
-                    'exchange': 'BINANCE',
-                    'is_maker': is_maker
-                })
+                    realized_pnl = 0.0
+                    if rng.random() > 0.6:
+                        pnl_pct = rng.uniform(-0.05, 0.15)
+                        realized_pnl = round(qty_usd * pnl_pct, 2)
+
+                    ledger.append({
+                        'id': f"OMS-{rng.randint(100000, 999999)}",
+                        'timestamp': ts.strftime('%Y-%m-%d %H:%M:%S'),
+                        'ticker': t,
+                        'side': side,
+                        'qty': qty,
+                        'entry_price': round(entry, 4),
+                        'fee_paid': round(fee_usd, 4),
+                        'realised_pnl': realized_pnl,
+                        'exchange': 'BINANCE',
+                        'is_maker': is_maker
+                    })
 
             # Sort descending by timestamp
             ledger.sort(key=lambda x: x['timestamp'], reverse=True)
-            self.send_json(ledger)
+            self.send_json(ledger[:50]) # Limit to top 50
 
         except Exception as e:
             self.send_error_json(f'Ledger Error: {e}')
