@@ -457,16 +457,27 @@ function updateSEOMeta(view) {
             });
         }
         
-        // Add TechArticle schema for docs
-        if (view.startsWith('docs-')) {
-            schemas.push({
+        // 5. Add TechArticle or HowTo schema for docs / academy
+        if (view.startsWith('docs-') || view.startsWith('academy-')) {
+            const isHowTo = meta.title.toLowerCase().includes('how to') || 
+                            meta.title.toLowerCase().includes('guide') || 
+                            meta.title.toLowerCase().includes('mastering');
+            
+            const articleSchema = {
                 "@context": "https://schema.org",
-                "@type": "TechArticle",
+                "@type": isHowTo ? "HowTo" : "TechArticle",
                 "headline": meta.title,
                 "description": meta.desc,
+                "image": [
+                    "https://alphasignal.digital/assets/social-preview.png",
+                    "https://alphasignal.digital/assets/pwa-icon-512.png"
+                ],
+                "datePublished": "2026-04-20T08:00:00+00:00",
+                "dateModified": new Date().toISOString(),
                 "author": {
                     "@type": "Organization",
-                    "name": "AlphaSignal Quantitative Research"
+                    "name": "AlphaSignal Quantitative Research",
+                    "url": "https://alphasignal.digital/"
                 },
                 "publisher": {
                     "@type": "Organization",
@@ -480,7 +491,19 @@ function updateSEOMeta(view) {
                     "@type": "WebPage",
                     "@id": viewUrl
                 }
-            });
+            };
+
+            if (isHowTo) {
+                articleSchema["name"] = meta.title;
+                articleSchema["estimatedCost"] = {
+                    "@type": "MonetaryAmount",
+                    "currency": "USD",
+                    "value": "0"
+                };
+                articleSchema["totalTime"] = "PT10M";
+            }
+
+            schemas.push(articleSchema);
         }
 
         ldJsonEl.textContent = JSON.stringify(schemas);
