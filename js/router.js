@@ -191,8 +191,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     document.querySelectorAll('.close-overlay').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.getElementById('detail-overlay').classList.add('hidden');
+        btn.addEventListener('click', (e) => {
+            const overlay = e.target.closest('.overlay');
+            if (overlay) overlay.classList.add('hidden');
+            
+            // Ensure layout blur is removed
+            const layout = document.querySelector('.layout');
+            if (layout) layout.style.filter = 'none';
+
             if (window.activeTape) window.activeTape.stop();
         });
     });
@@ -206,7 +212,18 @@ window.addEventListener('DOMContentLoaded', async () => {
                 switchView('home');
                 return;
             }
+            
+            if (e.target.id === 'notification-modal') {
+                showNotificationSettings(false);
+                return;
+            }
+
             e.target.classList.add('hidden');
+            
+            // Ensure layout blur is removed
+            const layout = document.querySelector('.layout');
+            if (layout) layout.style.filter = 'none';
+
             if (e.target.id === 'detail-overlay' && window.activeTape) {
                 window.activeTape.stop();
             }
