@@ -366,7 +366,7 @@ async function renderPositionsTab(el) {
                 <h3 style="margin:1rem 0 0.5rem;color:white">Live Exchange Unreachable</h3>
                 <p style="margin:0 0 1.5rem;color:var(--risk-high);font-size:0.8rem">${data?.error || 'Failed to connect to OMS gateway.'}</p>
                 <div>
-                    <button class="intel-action-btn" onclick="switchView('advanced')"><span class="material-symbols-outlined" style="vertical-align:middle;font-size:16px;margin-right:6px">settings</span> CONFIGURE EXCHANGE KEYS</button>
+                    <button class="intel-action-btn" onclick="switchView('exchange-keys')"><span class="material-symbols-outlined" style="vertical-align:middle;font-size:16px;margin-right:6px">settings</span> CONFIGURE EXCHANGE KEYS</button>
                 </div>
             </div>`;
         return;
