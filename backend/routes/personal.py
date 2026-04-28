@@ -670,11 +670,62 @@ class PersonalRoutesMixin:
                 print(f"[KeyVault Router] VWAP Book Walk Error: {e}")
                 estimated_slippage = 0.00015
 
-            # - 4. Construct Exchange Payload & Mock Execution -
-            # (Demonstrating HMAC SHA256 signing for Binance/Bybit)
-            timestamp = str(int(datetime.now().timestamp() * 1000))
-            payload_str = f"symbol={ticker.replace('-','')}&side={action}&type=LIMIT&quantity={computed_size_usd/price:.4f}&price={price:.2f}&timestamp={timestamp}"
-            signature = hmac.new(decrypted_secret.encode('utf-8'), payload_str.encode('utf-8'), hashlib.sha256).hexdigest()
+            # - 4. Live Exchange Execution -
+            order_id = "MOCK-ORDER"
+            
+            if exchange_nm == 'KRAKEN':
+                import time, urllib.parse, base64, requests
+                
+                pair = ticker.replace('-', '')
+                if pair.endswith('USD'): pair = pair.replace('USD', 'ZUSD')
+                if ticker.startswith('BTC'): pair = 'XXBTZUSD'
+                elif ticker.startswith('ETH'): pair = 'XETHZUSD'
+                
+                vol = computed_size_usd / price
+                vol_str = f"{vol:.8f}"
+                kraken_action = 'buy' if action == 'BUY' else 'sell'
+                
+                data_payload = {
+                    'nonce': str(int(time.time() * 1000000)),
+                    'ordertype': 'market',
+                    'type': kraken_action,
+                    'volume': vol_str,
+                    'pair': pair
+                    # 'validate': 'true' # Uncomment to enable dry-run testing
+                }
+                
+                endpoint = '/0/private/AddOrder'
+                url = f"https://api.kraken.com{endpoint}"
+                postdata = urllib.parse.urlencode(data_payload)
+                encoded = (str(data_payload['nonce']) + postdata).encode('utf8')
+                message = endpoint.encode('utf8') + hashlib.sha256(encoded).digest()
+                mac = hmac.new(base64.b64decode(decrypted_secret), message, hashlib.sha512)
+                sigdigest = base64.b64encode(mac.digest())
+                headers = {
+                    'API-Key': api_key,
+                    'API-Sign': sigdigest.decode('utf-8')
+                }
+                
+                try:
+                    r = requests.post(url, headers=headers, data=data_payload, timeout=5)
+                    resp = r.json()
+                    if resp.get('error'):
+                        conn.close()
+                        return self.send_json({'error': f"Kraken Execution Failed: {', '.join(resp['error'])}"})
+                    
+                    result = resp.get('result', {})
+                    txids = result.get('txid', [])
+                    if txids:
+                        order_id = txids[0]
+                except Exception as ex:
+                    conn.close()
+                    return self.send_json({'error': f"Kraken Connection Error: {str(ex)}"})
+            else:
+                # Mock Binance execution
+                timestamp = str(int(datetime.now().timestamp() * 1000))
+                payload_str = f"symbol={ticker.replace('-','')}&side={action}&type=LIMIT&quantity={computed_size_usd/price:.4f}&price={price:.2f}&timestamp={timestamp}"
+                signature = hmac.new(decrypted_secret.encode('utf-8'), payload_str.encode('utf-8'), hashlib.sha256).hexdigest()
+                order_id = f"BIN-{signature[:8]}"
 
             # - 5. Insert Live Trade into Trade Ledger -
             c.execute('''INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage)
@@ -686,7 +737,7 @@ class PersonalRoutesMixin:
             slippage_bps = estimated_slippage * 10000
             self.send_json({
                 'success': True, 
-                'message': f'FILLED {action} {ticker} @ ${price:,.2f} | Size: {formatted_size} | Slippage: {slippage_bps:.2f} bps'
+                'message': f'FILLED {action} {ticker} @ ${price:,.2f} | Size: {formatted_size} | Slippage: {slippage_bps:.2f} bps | ID: {order_id}'
             })
         except Exception as e:
             self.send_json({'error': str(e)})
