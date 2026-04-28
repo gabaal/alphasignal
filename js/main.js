@@ -324,8 +324,30 @@ async function showNotificationSettings(visible) {
         }
         if (document.getElementById('trade-size-usd'))
             document.getElementById('trade-size-usd').value = settings?.trade_size_usd || '';
-        if (document.getElementById('native-execution-enabled'))
-            document.getElementById('native-execution-enabled').checked = !!settings?.native_execution_enabled;
+        if (document.getElementById('native-execution-enabled')) {
+            const execToggle = document.getElementById('native-execution-enabled');
+            execToggle.checked = !!settings?.native_execution_enabled;
+            
+            // Remove any previous listener to avoid duplicates on modal re-open
+            execToggle.onchange = function() {
+                if (this.checked) {
+                    // Show live-fire warning before enabling
+                    const confirmed = confirm(
+                        '⚠️ LIVE EXECUTION WARNING\n\n' +
+                        'Enabling Auto-Trading will place REAL market orders on your connected Kraken account using REAL funds.\n\n' +
+                        'Orders will fire automatically whenever an AI signal breaches your configured threshold.\n\n' +
+                        'Trade size: $' + (document.getElementById('trade-size-usd')?.value || '?') + ' USD per signal.\n\n' +
+                        'Are you sure you want to enable live automated trading?'
+                    );
+                    if (!confirmed) {
+                        this.checked = false; // Revert the toggle
+                        showToast('AUTO-TRADING CANCELLED', 'Live execution was NOT enabled.', 'alert');
+                    } else {
+                        showToast('⚠️ WEAPONS HOT', 'Live automated trading is ACTIVE. Real orders will be placed on signal breach.', 'alert');
+                    }
+                }
+            };
+        }
 
         modal.classList.remove('hidden');
         if (layout) layout.style.filter = 'blur(10px)';
