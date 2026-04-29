@@ -3371,9 +3371,20 @@ class InstitutionalRoutesMixin:
                 print(f"[handle_klines] high-fidelity interception failed for {ticker}: {e}")
         
         raw_data = CACHE.download(ticker, period=period, interval=interval)
+        _interval_fallback = None
         if raw_data is None or (hasattr(raw_data, 'empty') and raw_data.empty):
-            self.send_json([])
-            return
+            # For intraday intervals, fall back to daily if the asset lacks sub-daily data
+            if interval != '1d':
+                print(f"[handle_klines] {ticker} returned empty at interval={interval}, falling back to 1d")
+                raw_data = CACHE.download(ticker, period=period, interval='1d')
+                if raw_data is None or (hasattr(raw_data, 'empty') and raw_data.empty):
+                    self.send_json({'candles': [], 'fallback_interval': '1d'})
+                    return
+                _interval_fallback = '1d'
+                interval = '1d'   # continue building the response as daily
+            else:
+                self.send_json([])
+                return
         
         # Flatten multi-level column headers (yfinance sometimes returns MultiIndex)
         if isinstance(raw_data.columns, pd.MultiIndex):
@@ -3408,7 +3419,10 @@ class InstitutionalRoutesMixin:
                 'close':  c,
                 'volume': v
             })
-        self.send_json(prices)
+        if _interval_fallback:
+            self.send_json({'candles': prices, 'fallback_interval': _interval_fallback})
+        else:
+            self.send_json(prices)
 
 
     def handle_history(self):

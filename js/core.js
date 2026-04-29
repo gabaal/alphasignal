@@ -943,20 +943,52 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         window.updateChartInterval = async (interval) => {
             const chartEl = document.getElementById('price-chart-container');
             if (!chartEl) return;
-            document.getElementById('int-btn-1d').classList.remove('active');
-            document.getElementById('int-btn-1h').classList.remove('active');
-            document.getElementById('int-btn-15m').classList.remove('active');
-            document.getElementById('int-btn-' + interval).classList.add('active');
+            // Optimistically update button state
+            ['1d','1h','15m'].forEach(i => {
+                const b = document.getElementById('int-btn-' + i);
+                if (b) b.classList.remove('active');
+            });
+            const activeBtn = document.getElementById('int-btn-' + interval);
+            if (activeBtn) activeBtn.classList.add('active');
             try {
-                const kData = await fetchAPI(`/klines?ticker=${window.currentChartTicker}&period=${window.currentChartPeriod}&interval=${interval}`);
+                const raw = await fetchAPI(`/klines?ticker=${window.currentChartTicker}&period=${window.currentChartPeriod}&interval=${interval}`);
+                // Backend may return plain array or {candles, fallback_interval} when the
+                // requested interval has no data (e.g. MKR at 1h via yfinance)
+                let kData = raw;
+                let fallback = null;
+                if (raw && !Array.isArray(raw) && raw.candles !== undefined) {
+                    kData    = raw.candles;
+                    fallback = raw.fallback_interval;
+                }
                 if (kData && kData.length > 0) {
                     const sorted = kData.filter(d => d.time && d.close).sort((a,b) => a.time - b.time);
                     window._detailKlines = sorted;
                     window._detailCandleSeries.setData(sorted);
                     window._detailLwChart.timeScale().fitContent();
                     if (window.renderDetailOverlays) window.renderDetailOverlays();
+                    if (fallback) {
+                        // Reset button to 1d since we fell back
+                        ['1d','1h','15m'].forEach(i => {
+                            const b = document.getElementById('int-btn-' + i);
+                            if (b) b.classList.remove('active');
+                        });
+                        const fb = document.getElementById('int-btn-1d');
+                        if (fb) fb.classList.add('active');
+                        showToast('INTERVAL UNAVAILABLE', `${window.currentChartTicker} has no ${interval.toUpperCase()} data — showing 1D instead`, 'warning');
+                    }
+                } else {
+                    // Empty data — revert button to 1d
+                    ['1d','1h','15m'].forEach(i => {
+                        const b = document.getElementById('int-btn-' + i);
+                        if (b) b.classList.remove('active');
+                    });
+                    const fb = document.getElementById('int-btn-1d');
+                    if (fb) fb.classList.add('active');
+                    showToast('INTERVAL UNAVAILABLE', `No ${interval.toUpperCase()} data available for ${window.currentChartTicker}`, 'warning');
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.warn('[updateChartInterval] error:', e);
+            }
         };
 
         try {
