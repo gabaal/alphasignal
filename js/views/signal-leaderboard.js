@@ -289,7 +289,11 @@ async function renderSignalLeaderboard(tabs = null) {
                         return `<tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.2s;"
                                     onmouseenter="this.style.background='rgba(0,242,255,0.02)'"
                                     onmouseleave="this.style.background=''">
-                            <td style="padding:10px 12px;font-size:0.8rem;font-weight:700;color:var(--accent);">${s.ticker}${openTag}</td>
+                            <td style="padding:10px 12px;font-size:0.8rem;font-weight:700;color:var(--accent);cursor:pointer;white-space:nowrap;"
+                                onclick="openDetail('${s.ticker}','${s.direction||'SIGNAL'}')"
+                                onmouseenter="this.style.textDecoration='underline';this.style.textDecorationColor='rgba(0,242,255,0.5)'"
+                                onmouseleave="this.style.textDecoration='none'"
+                                title="Open ${s.ticker} chart">${s.ticker}${openTag}</td>
                             <td style="padding:10px 12px;font-size:0.7rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.type}">${s.type}</td>
                             <td style="padding:10px 12px;">
                                 <span style="font-size:0.65rem;font-weight:700;color:${s.direction==='LONG'?'var(--risk-low)':'var(--risk-high)'};">${s.direction}</span>
