@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
@@ -14,12 +14,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Custom Charts - Check Live Execution Metrics | AlphaSignal System</title>
-    <meta name="description" content="Four proprietary charts built on AlphaSignal's own backend data using LightweightCharts. Unlike the TradingView Hub, these charts use real data from our API â€” B">
+    <meta name="description" content="Four proprietary charts built on AlphaSignal's own backend data using LightweightCharts. Unlike the TradingView Hub, these charts use real data from our API — B">
     <meta name="keywords" content="AlphaSignal, Alpha Signal, alphasignal.digital, alpha signal terminal, alphasignal crypto, alpha signals, bitcoin trading signals, crypto trading signals, bitcoin signals, trading terminal, institutional crypto terminal, bitcoin analytics, crypto intelligence, crypto AI terminal, on-chain analytics, MVRV Z-Score, SOPR, Puell Multiple, NVT ratio, strategy backtester, TradingView integration, whale tracker, whale pulse, options flow scanner, Z-score signals, portfolio optimizer, crypto dashboard, real-time market intelligence, DeFi analytics, ETF flows, bitcoin spot ETF flows, BlackRock IBIT, Fidelity FBTC, crypto signals, market regime classifier, liquidation scanner, CME gap tracker, sector rotation, macro calendar, FOMC BTC impact, signal leaderboard, signal archive, narrative galaxy, order flow GOMM, liquidity dashboard, institutional trading, crypto alpha, trading signals, bitcoin intelligence, defi yield lab, token unlock tracker, stress test portfolio, Value at Risk crypto, cumulative volume delta CVD, volume profile crypto">
     <meta name="author" content="AlphaSignal">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
     <meta name="rating" content="general">
-    <link rel="canonical" id="canonical-link" href="https://alphasignal.digital/">
+    <link rel="canonical" id="canonical-link" href="https://alphasignal.digital/docs/custom-analytics">
 
     <!-- DNS prefetch + preconnect for CDN performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -407,34 +407,34 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                 <div class='docs-container seo-pre-render' style='padding:4rem 2rem; max-width:800px; margin:0 auto;'>
 <div style='color:#22c55e'>Analytics Hub</div>
 <h1 style='font-size:2.5rem; margin-bottom:1rem'>Custom Charts Guide & Analytics</h1>
-<p style='font-size:1.1rem; line-height:1.7'>Four proprietary charts built on AlphaSignal's own backend data using LightweightCharts. Unlike the TradingView Hub, these charts use real data from our API â€” BTC dominance via proxy market cap calculation, live Binance FAPI funding rates, on-chain metrics (MVRV, SOPR), and price-derived rolling volatility. Each card is click-to-expand into a full-screen modal.</p>
+<p style='font-size:1.1rem; line-height:1.7'>Four proprietary charts built on AlphaSignal's own backend data using LightweightCharts. Unlike the TradingView Hub, these charts use real data from our API — BTC dominance via proxy market cap calculation, live Binance FAPI funding rates, on-chain metrics (MVRV, SOPR), and price-derived rolling volatility. Each card is click-to-expand into a full-screen modal.</p>
 <section style='margin-top:3rem'>
 <h2 style='font-size:1.5rem; border-bottom:1px solid #333; padding-bottom:0.5rem'>BTC Dominance</h2>
 <h3>Overview</h3>
 <p>Area chart showing Bitcoin's share of a three-asset proxy market cap (BTC, ETH, SOL) over 60 days. BTC displayed as an orange area fill, ETH as a blue line, Alts (SOL proxy) as a grey line. Data sourced from the /api/dominance endpoint using yfinance price data multiplied by approximate circulating supply.</p>
 <h3>How to Read</h3>
-<p>The BTC area fill rising = Bitcoin increasing its share of the crypto market. Falling BTC dominance = capital flowing into altcoins. Watch for the grey Alts line surging while BTC falls â€” this signals altcoin season.</p>
+<p>The BTC area fill rising = Bitcoin increasing its share of the crypto market. Falling BTC dominance = capital flowing into altcoins. Watch for the grey Alts line surging while BTC falls — this signals altcoin season.</p>
 </section>
 <section style='margin-top:3rem'>
 <h2 style='font-size:1.5rem; border-bottom:1px solid #333; padding-bottom:0.5rem'>Funding Rate Bar Chart</h2>
 <h3>Overview</h3>
 <p>Horizontal bar chart showing the current 8-hour perpetual funding rate for 8 assets: BTC, ETH, SOL, LINK, ADA, BNB, XRP, and DOGE. Bars are colour-coded: green = positive rate (longs paying shorts), red = negative rate (shorts paying longs). Each bar shows the absolute rate and the annualised equivalent. Data sourced live from Binance FAPI premiumIndex endpoint.</p>
 <h3>How to Read</h3>
-<p>Longer green bars = market is heavily long on that asset â€” longs are paying a premium to hold positions. This is a crowded trade risk signal. Short red bars mean shorts are dominant â€” potential squeeze setup.</p>
+<p>Longer green bars = market is heavily long on that asset — longs are paying a premium to hold positions. This is a crowded trade risk signal. Short red bars mean shorts are dominant — potential squeeze setup.</p>
 </section>
 <section style='margin-top:3rem'>
 <h2 style='font-size:1.5rem; border-bottom:1px solid #333; padding-bottom:0.5rem'>MVRV / SOPR Overlay</h2>
 <h3>Overview</h3>
-<p>Dual line chart with MVRV Z-Score (red) and SOPR (green) both normalized to 0â€“1 on the same axis using min-max scaling. This removes the different absolute scales of each metric and allows direct visual comparison of their cycle positioning. Data sourced from the /api/onchain endpoint.</p>
+<p>Dual line chart with MVRV Z-Score (red) and SOPR (green) both normalized to 0–1 on the same axis using min-max scaling. This removes the different absolute scales of each metric and allows direct visual comparison of their cycle positioning. Data sourced from the /api/onchain endpoint.</p>
 <h3>How to Read</h3>
-<p>When both lines converge near 0: market is at historical lows â€” classic accumulation zone. When both lines converge near 1: market is at historical highs â€” distribution zone. Divergence between the two (one high, one low) marks transitional periods.</p>
+<p>When both lines converge near 0: market is at historical lows — classic accumulation zone. When both lines converge near 1: market is at historical highs — distribution zone. Divergence between the two (one high, one low) marks transitional periods.</p>
 </section>
 <section style='margin-top:3rem'>
 <h2 style='font-size:1.5rem; border-bottom:1px solid #333; padding-bottom:0.5rem'>30-Day Rolling Volatility</h2>
 <h3>Overview</h3>
-<p>Annualised 30-day rolling volatility chart (purple area fill) computed from daily log-returns of BTC price data from the on-chain API. Formula: âˆš(30-day variance Ã— 365) Ã— 100. Spikes in this chart historically align with liquidation cascades, macro shocks, and regime transitions.</p>
+<p>Annualised 30-day rolling volatility chart (purple area fill) computed from daily log-returns of BTC price data from the on-chain API. Formula: v(30-day variance × 365) × 100. Spikes in this chart historically align with liquidation cascades, macro shocks, and regime transitions.</p>
 <h3>How to Read</h3>
-<p>Low flat volatility (< 30%) = compressed market, energy coiling â€” breakout imminent. Rising volatility (> 60%) = regime change in progress. Extreme spike (> 100%) = crisis event.</p>
+<p>Low flat volatility (< 30%) = compressed market, energy coiling — breakout imminent. Rising volatility (> 60%) = regime change in progress. Extreme spike (> 100%) = crisis event.</p>
 </section>
 <section style='margin-top:3rem'>
 <h2 style='font-size:1.5rem; border-bottom:1px solid #333; padding-bottom:0.5rem'>Correlation Matrix</h2>
