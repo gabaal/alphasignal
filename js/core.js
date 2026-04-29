@@ -740,8 +740,15 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             </div>
         </div>
 
-        <div class="timeframe-bar">
-            ${['1W','1M','60d','3M','6M'].map(tf => `<button class="tf-btn ${tf === period ? 'active' : ''}" onclick="openDetail('${ticker}','${category}',${correlation},${alpha},${sentiment},'${tf}',${isTracked})">${tf}</button>`).join('')}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+            <div class="timeframe-bar" style="margin-bottom:0">
+                ${['1W','1M','60d','3M','6M'].map(tf => `<button class="tf-btn ${tf === period ? 'active' : ''}" onclick="openDetail('${ticker}','${category}',${correlation},${alpha},${sentiment},'${tf}',${isTracked})">${tf}</button>`).join('')}
+            </div>
+            <div class="timeframe-bar" style="margin-bottom:0">
+                <button id="int-btn-1d" class="tf-btn active" onclick="updateChartInterval('1d')">1D</button>
+                <button id="int-btn-1h" class="tf-btn" onclick="updateChartInterval('1h')">1H</button>
+                <button id="int-btn-15m" class="tf-btn" onclick="updateChartInterval('15m')">15M</button>
+            </div>
         </div>
         <div class="chart-container" id="price-chart-container" style="height:300px;border-radius:8px;overflow:hidden;"></div>
         <div class="overlay-controls" style="margin-top:0.75rem; display:flex; gap:10px; align-items:center">
@@ -931,8 +938,29 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         const candleSeries = lwChart.addCandlestickSeries({ upColor: '#22c55e', downColor: '#ef4444', borderVisible: false, wickUpColor: '#22c55e', wickDownColor: '#ef4444' });
         window._detailCandleSeries = candleSeries;
 
+        window.currentChartTicker = ticker;
+        window.currentChartPeriod = yfPeriod;
+        window.updateChartInterval = async (interval) => {
+            const chartEl = document.getElementById('price-chart-container');
+            if (!chartEl) return;
+            document.getElementById('int-btn-1d').classList.remove('active');
+            document.getElementById('int-btn-1h').classList.remove('active');
+            document.getElementById('int-btn-15m').classList.remove('active');
+            document.getElementById('int-btn-' + interval).classList.add('active');
+            try {
+                const kData = await fetchAPI(`/klines?ticker=${window.currentChartTicker}&period=${window.currentChartPeriod}&interval=${interval}`);
+                if (kData && kData.length > 0) {
+                    const sorted = kData.filter(d => d.time && d.close).sort((a,b) => a.time - b.time);
+                    window._detailKlines = sorted;
+                    window._detailCandleSeries.setData(sorted);
+                    window._detailLwChart.timeScale().fitContent();
+                    if (window.renderDetailOverlays) window.renderDetailOverlays();
+                }
+            } catch(e) {}
+        };
+
         try {
-            const klinesData = await fetchAPI(`/klines?ticker=${ticker}&period=${yfPeriod}`);
+            const klinesData = await fetchAPI(`/klines?ticker=${ticker}&period=${yfPeriod}&interval=1d`);
             if (klinesData && klinesData.length > 0) {
                 const sorted = klinesData.filter(d => d.time && d.close).sort((a,b) => a.time - b.time);
                 
