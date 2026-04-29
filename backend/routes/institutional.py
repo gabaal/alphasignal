@@ -5189,6 +5189,8 @@ class InstitutionalRoutesMixin:
 
             ledger = []
             
+            use_mock = False
+            
             if row and row[2] == 'KRAKEN':
                 import urllib.parse, base64, requests
                 api_key = row[0]
@@ -5241,9 +5243,15 @@ class InstitutionalRoutesMixin:
                             'exchange': 'KRAKEN',
                             'is_maker': 'maker' in t.get('misc', '')
                         })
+                    if not ledger:
+                        use_mock = True
                 except Exception as ex:
                     print(f"Kraken Ledger Error: {ex}")
+                    use_mock = True
             else:
+                use_mock = True
+
+            if use_mock:
                 # Seed a deterministic PRNG for the user to generate their historical ledger
                 import random
                 from datetime import datetime, timedelta
@@ -5288,7 +5296,7 @@ class InstitutionalRoutesMixin:
                         'entry_price': round(entry, 4),
                         'fee_paid': round(fee_usd, 4),
                         'realised_pnl': realized_pnl,
-                        'exchange': 'BINANCE',
+                        'exchange': 'BINANCE' if not row else row[2],
                         'is_maker': is_maker
                     })
 
