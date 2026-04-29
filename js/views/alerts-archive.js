@@ -208,6 +208,7 @@ async function renderAlerts(tabs = null) {
     let hasDiscord  = false, hasTelegram = false, zThreshold = 2.0, alertsOn = true;
     let discMasked  = '', tgMasked = '';
     let whaleSize = 5, depeg = 1.0, volSpike = 2.0, cmeGap = 1.0, rebalance = 2.5;
+    let tp1Pct = 5.0, tp2Pct = 10.0, slPct = 3.0;
 
     try {
         const stored = localStorage.getItem('alert_settings');
@@ -220,6 +221,9 @@ async function renderAlerts(tabs = null) {
             if (s.volSpike !== undefined) volSpike = parseFloat(s.volSpike);
             if (s.cmeGap !== undefined) cmeGap = parseFloat(s.cmeGap);
             if (s.rebalance !== undefined) rebalance = parseFloat(s.rebalance);
+            if (s.tp1Pct !== undefined) tp1Pct = parseFloat(s.tp1Pct);
+            if (s.tp2Pct !== undefined) tp2Pct = parseFloat(s.tp2Pct);
+            if (s.slPct  !== undefined) slPct  = parseFloat(s.slPct);
             if (s.discord) { hasDiscord = true; discMasked = s.discord.substring(0, 20) + '...'; }
             if (s.telegram) { hasTelegram = true; tgMasked = '...' + s.telegram.substring(s.telegram.length - 4); }
         }
@@ -431,7 +435,6 @@ async function renderAlerts(tabs = null) {
 
 
 
-                
                     <!-- Portfolio Rebalance -->
                     <div>
                         <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
@@ -445,6 +448,57 @@ async function renderAlerts(tabs = null) {
                             <span>0.5%</span><span>10%</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- TP/SL Divider -->
+                <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+                    <p style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:1rem">SIGNAL EXIT THRESHOLDS</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+
+                        <!-- TP1 -->
+                        <div>
+                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                                <span>TP1 (L1)</span>
+                                <span id="tp1-val-display" style="color:#22c55e;font-weight:900">${tp1Pct.toFixed(1)}%</span>
+                            </label>
+                            <input type="range" id="tp1-pct-slider" min="1" max="20" step="0.5" value="${tp1Pct}"
+                                oninput="document.getElementById('tp1-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
+                                style="width:100%;accent-color:#22c55e;cursor:pointer">
+                            <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                                <span>1%</span><span>20%</span>
+                            </div>
+                        </div>
+
+                        <!-- TP2 -->
+                        <div>
+                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                                <span>TP2 (L2)</span>
+                                <span id="tp2-val-display" style="color:#00f2ff;font-weight:900">${tp2Pct.toFixed(1)}%</span>
+                            </label>
+                            <input type="range" id="tp2-pct-slider" min="1" max="30" step="0.5" value="${tp2Pct}"
+                                oninput="document.getElementById('tp2-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
+                                style="width:100%;accent-color:#00f2ff;cursor:pointer">
+                            <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                                <span>1%</span><span>30%</span>
+                            </div>
+                        </div>
+
+                        <!-- Stop Loss -->
+                        <div>
+                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                                <span>STOP LOSS</span>
+                                <span id="sl-val-display" style="color:#ef4444;font-weight:900">${slPct.toFixed(1)}%</span>
+                            </label>
+                            <input type="range" id="sl-pct-slider" min="0.5" max="15" step="0.5" value="${slPct}"
+                                oninput="document.getElementById('sl-val-display').textContent=parseFloat(this.value).toFixed(1)+'%'"
+                                style="width:100%;accent-color:#ef4444;cursor:pointer">
+                            <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                                <span>0.5%</span><span>15%</span>
+                            </div>
+                        </div>
+
+                    </div>
+                    <p style="font-size:0.55rem;color:var(--text-dim);margin-top:8px;opacity:0.7">These thresholds determine when a signal is classified as TP1 Hit, TP2 Hit, or Stopped Out in the Alerts Hub and Signal Leaderboard.</p>
                 </div>
 
             </div>
@@ -885,6 +939,9 @@ async function renderAlerts(tabs = null) {
         setSlider('vol-spike-threshold-slider', 'vol-val-display',   s.vol_spike_threshold,  v => parseFloat(v).toFixed(1) + '-');
         setSlider('cme-gap-threshold-slider',   'cme-val-display',   s.cme_gap_threshold,    v => parseFloat(v).toFixed(1) + '%');
         setSlider('rebalance-threshold-slider', 'rebalance-val-display', s.rebalance_threshold, v => parseFloat(v).toFixed(1) + '%');
+        setSlider('tp1-pct-slider', 'tp1-val-display', s.tp1_pct, v => parseFloat(v).toFixed(1) + '%');
+        setSlider('tp2-pct-slider', 'tp2-val-display', s.tp2_pct, v => parseFloat(v).toFixed(1) + '%');
+        setSlider('sl-pct-slider',  'sl-val-display',  s.sl_pct,  v => parseFloat(v).toFixed(1) + '%');
 
 
 
@@ -948,9 +1005,14 @@ window.saveAlertSettings = async function() {
     const enabled  = document.getElementById('alerts-enabled-toggle')?.checked !== false;
 
     
+    const tp1    = parseFloat(document.getElementById('tp1-pct-slider')?.value || 5.0);
+    const tp2    = parseFloat(document.getElementById('tp2-pct-slider')?.value || 10.0);
+    const sl     = parseFloat(document.getElementById('sl-pct-slider')?.value || 3.0);
+
     localStorage.setItem('alert_settings', JSON.stringify({
-        discord: discord, telegram: telegram, zThreshold: z, alertsOn: enabled,
-        whaleSize: whale, depeg: depeg, volSpike: vol, cmeGap: cme, rebalance: rebalance
+        discord, telegram, zThreshold: z, alertsOn: enabled,
+        whaleSize: whale, depeg, volSpike: vol, cmeGap: cme, rebalance,
+        tp1Pct: tp1, tp2Pct: tp2, slPct: sl
     }));
 
     const result = await fetchAPI('/alert-settings', 'POST', {
@@ -958,7 +1020,8 @@ window.saveAlertSettings = async function() {
         z_threshold: z, alerts_enabled: enabled,
         whale_threshold: whale, depeg_threshold: depeg,
         vol_spike_threshold: vol, cme_gap_threshold: cme,
-        rebalance_threshold: rebalance
+        rebalance_threshold: rebalance,
+        tp1_pct: tp1, tp2_pct: tp2, sl_pct: sl
     });
 
     if (result?.success) {

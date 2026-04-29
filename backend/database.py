@@ -310,6 +310,15 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN algo_cme_gap_threshold REAL DEFAULT 1.0")
     except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN tp1_pct REAL DEFAULT 5.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN tp2_pct REAL DEFAULT 10.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN sl_pct REAL DEFAULT 3.0")
+    except: pass
     
     # Native Execution Engine Integrations
     try:
