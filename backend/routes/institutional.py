@@ -2392,8 +2392,13 @@ class InstitutionalRoutesMixin:
                 params.append(user_email)
 
             if filter_ticker:
-                where_clauses.append("ticker = ?")
-                params.append(filter_ticker)
+                # Accept both 'STRK' and 'STRK-USD' — callers may strip the suffix
+                ticker_variants = [filter_ticker]
+                if not filter_ticker.endswith('-USD'):
+                    ticker_variants.append(filter_ticker + '-USD')
+                placeholders = ','.join('?' * len(ticker_variants))
+                where_clauses.append(f"ticker IN ({placeholders})")
+                params.extend(ticker_variants)
 
             where_sql = " AND ".join(where_clauses)
             params.append(limit)
