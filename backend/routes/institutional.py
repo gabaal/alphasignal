@@ -4551,10 +4551,9 @@ class InstitutionalRoutesMixin:
                 return
 
             conn = sqlite3.connect(DB_PATH, timeout=30)
-            conn.set_trace_callback(print)
             c    = conn.cursor()
 
-            # User scoping: strictly own signals only
+            # User scoping: show own signals if authenticated, all signals if not
             if user_email:
                 # Custom date range takes priority over days-based lookback.
                 # datetime(ah.timestamp) normalises both 'T' and space separators
@@ -4581,10 +4580,20 @@ class InstitutionalRoutesMixin:
                     
                 count_params = list(params)
             else:
-                # Unauthenticated: return empty result
-                self.send_json({'data': [], 'pagination': {'page': 1, 'limit': limit, 'total': 0, 'pages': 0},
-                                'summary': {'total': 0, 'closed': 0, 'active': 0, 'wins': 0, 'losses': 0, 'avg_roi': None, 'page_wins': 0, 'page_losses': 0}})
-                return
+                # Unauthenticated: show all signals (public market intelligence, not private user data)
+                if f_from and f_to:
+                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND datetime(ah.timestamp) <= ?"
+                    params      = [f_from + ' 00:00:00', f_to + ' 23:59:59']
+                elif f_from:
+                    base_where  = "WHERE datetime(ah.timestamp) >= ?"
+                    params      = [f_from + ' 00:00:00']
+                elif f_to:
+                    base_where  = "WHERE datetime(ah.timestamp) <= ?"
+                    params      = [f_to + ' 23:59:59']
+                else:
+                    base_where  = "WHERE ah.timestamp > datetime('now', ?)"
+                    params      = [f'-{f_days} day']
+                count_params = list(params)
 
             if f_ticker:
                 base_where  += ' AND ah.ticker = ?'
@@ -4731,10 +4740,10 @@ class InstitutionalRoutesMixin:
 
             # Load per-user TP/SL thresholds
             _user_tp1, _user_tp2, _user_sl = 5.0, 10.0, 3.0
-            if auth:
+            if auth_info:
                 try:
                     _uc = sqlite3.connect(DB_PATH, timeout=10)
-                    _ur = _uc.execute('SELECT tp1_pct, tp2_pct, sl_pct FROM user_settings WHERE user_email=?', (auth.get('email',''),)).fetchone()
+                    _ur = _uc.execute('SELECT tp1_pct, tp2_pct, sl_pct FROM user_settings WHERE user_email=?', (auth_info.get('email',''),)).fetchone()
                     _uc.close()
                     if _ur:
                         _user_tp1 = float(_ur[0]) if _ur[0] is not None else 5.0
