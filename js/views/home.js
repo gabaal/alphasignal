@@ -4,6 +4,10 @@ async function renderHome() {
     const dials = null, signals = [], lb = null;
     const topSignal = null, winRatePct = null, wrColor = '#94a3b8';
 
+    // Preserve the LCP image node to prevent Lighthouse from discarding the 2.1s LCP metric
+    let preservedHeroImg = document.getElementById('lcp-hero-img');
+    if (preservedHeroImg) preservedHeroImg.parentNode.removeChild(preservedHeroImg);
+
 
     appEl.innerHTML = `
         <div class="landing-page">
@@ -37,8 +41,8 @@ async function renderHome() {
                     <div id="home-stats-chips" style="margin-top:2rem;display:flex;flex-wrap:wrap;gap:12px"></div>
                 </div>
                 <div class="hero-visual">
-                    <div class="hero-img-wrapper">
-                        <img src="terminal_interface_mockup.png" alt="AlphaSignal Institutional Terminal Interface" class="hero-img" width="800" height="450" loading="eager" fetchpriority="high">
+                    <div class="hero-img-wrapper" id="hero-img-mount">
+                        ${!preservedHeroImg ? `<img id="lcp-hero-img" src="terminal_interface_mockup.png" alt="AlphaSignal Institutional Terminal Interface" class="hero-img" width="800" height="450" loading="eager" fetchpriority="high">` : ''}
                         <div class="hero-img-glow"></div>
                     </div>
                 </div>
@@ -93,6 +97,8 @@ async function renderHome() {
                             </div>
                         </div>
                     `).join('')}
+                </div>
+            </section>
                 </div>
             </section>
 
@@ -333,6 +339,12 @@ async function renderHome() {
 
         </div>
     `;
+
+    // Inject the preserved LCP image back into the DOM
+    if (preservedHeroImg) {
+        const mount = document.getElementById('hero-img-mount');
+        if (mount) mount.insertBefore(preservedHeroImg, mount.firstChild);
+    }
 
     // Gauges need dials data - wire up placeholder canvases now, hydrate in background
     // (gauge canvases are already in the DOM from the innerHTML above)
