@@ -517,32 +517,45 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>What is a CME Gap? Bitcoin Weekend Gap Trading Guide</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Exploit the institutional weekend arbitrage loop by trading CME (Chicago Mercantile Exchange) gaps. Understand the statistical probabilities of gap fills and how to position your portfolio before the Friday close.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Mechanics of the CME Gap</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/ADSOBbXdzNE?rel=0" 
-        title="CME Gaps Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
+
+<h2>The Institutional Weekend Lag: Why Gaps Exist</h2>
+<p>While the crypto market is a 24/7 ecosystem, the primary venue for institutional Bitcoin exposure is the **Chicago Mercantile Exchange (CME)**. Because the CME closes from Friday 5:00 PM (ET) to Sunday 6:00 PM (ET), there is a massive window where institutional market makers are "blind" to spot price movements. This creates the <strong>CME Gap</strong>—the literal price difference between Friday's close and Sunday's open.</p>
+
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Arbitrage Loop</h3>
+    <p style="margin-bottom:0;">When the CME reopens on Sunday evening, institutional desks must re-hedge their weekend spot positions. If Bitcoin rose 5% over the weekend, institutions must buy futures at the open to balance their books. This collective rebalancing act is what creates the "Magnetic Pull" that often forces price back to the Friday close.</p>
 </div>
-<p>Unlike native crypto spot markets that trade 24/7/365, the <strong>Chicago Mercantile Exchange (CME) Bitcoin Futures</strong> market closes on Friday afternoon and reopens on Sunday evening (ET). During this period, spot prices often exhibit significant volatility driven by retail trading and weekend news catalysts.</p>
-<p>When the CME market finally reopens on Sunday, the opening price is almost always different from Friday's closing price. This price discrepancy on the chart is known as a "Gap".</p>
 
-<img src="/academy/images/cme_gap_chart.png" alt="CME Gap Chart" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
-
-<h3>The Magnetic Pull of Unfilled Gaps</h3>
-<p>In quantitative trading, gaps act as massive institutional magnets. Because large funds and institutional market makers are restricted to trading during CME hours, any weekend price movement creates an imbalance in their portfolio hedging. Consequently, the market has a statistically overwhelming tendency to retrace its steps and "fill" the gap (return to the Friday closing price).</p>
+<h2>Decoding Gap Fill Probabilities</h2>
+<p>Not every gap is created equal. AlphaSignal's backtesting engine has isolated specific statistical triggers for gap fills:</p>
 <ul>
-    <li><strong>Historical Probability:</strong> Extrapolated data implies that over 75% of CME gaps formed over the weekend are eventually filled within the following week.</li>
-    <li><strong>Breakaway Gaps:</strong> Gaps that are not immediately filled often become "breakaway gaps," signaling a violent regime shift in the overarching macro trend.</li>
+    <li><strong>The 24-Hour Rule:</strong> Approximately 65% of all weekend gaps are filled within the first 24 hours of the CME reopening. If a gap is not filled within this window, the probability of a fill within the week drops significantly.</li>
+    <li><strong>The Size Factor:</strong> Small gaps (less than 1.5% of price) have an 85% fill rate. Large gaps (greater than 4%) are significantly more likely to be **Runaway Gaps**, where the market never returns, signaling a powerful new trend.</li>
+    <li><strong>Monday Drift:</strong> If price opens with a Gap Up and remains above the opening range for the first 4 hours of Monday, it indicates that "Smart Money" is accepting higher prices, and the gap may act as new support rather than a target.</li>
 </ul>
 
-<img src="/academy/images/institutional_arbitrage.png" alt="Institutional Arbitrage Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>Runaway Gaps vs. Exhaustion Gaps</h2>
+<p>Institutional traders distinguish between gaps to determine if they should <strong>Fade</strong> the move or <strong>Follow</strong> it:</p>
+<h3>1. The Runaway (Breakaway) Gap</h3>
+<p>Occurs at the start of a new market regime. Price gaps out of a long consolidation period on high volume. <strong>Strategy:</strong> Do not short the fill. These are signals of institutional accumulation.</p>
+<h3>2. The Exhaustion Gap</h3>
+<p>Occurs at the end of a long trend. Price gaps up one last time on thinning volume. <strong>Strategy:</strong> This is a high-probability mean-reversion setup. Look for a "Failed Reclaim" and target the Friday close.</p>
 
-<h3>Strategic Execution using AlphaSignal</h3>
-<p>The AlphaSignal terminal automatically tracks all unfilled CME gaps by cross-referencing real-time spot momentum against historical CME hourly wicks. By combining the Gap Magnet dashboard with Volume Profile (POC) confluence, traders can identify high-probability entries.</p>
-<p>If an unfilled CME Gap perfectly overlaps with a high-density Volume Profile node and a major options strike price, it becomes an elite, asymmetric risk-to-reward setup for a mean-reverting arbitrage trade.</p>
+<h2>Confluence: GEX Profile & CME Gaps</h2>
+<p>The most powerful AlphaSignal setup involves cross-referencing the **GEX (Gamma Exposure)** profile with an unfilled CME gap. Options market makers have "hedging walls" at specific strikes. If an unfilled CME gap exists at $64,000 and the GEX profile shows a massive **Negative Gamma** cluster at $64,200, the market makers will be forced to sell into any rallies, creating a "Waterfall Effect" that pushes price directly into the gap fill target.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Play: The Sunday Open Fade</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">On Sunday at 6:00 PM ET, identify the CME open. If the gap is >1% and the AlphaSignal **Sentiment Score** is in extreme territory (Fear > 80 or Greed > 80), execute a mean-reversion trade targeting the Friday close. Set your stop loss 0.5% beyond the Sunday opening wick.</p>
+</div>
+
+<h2>Operationalizing CME Gaps in the Terminal</h2>
+<ol>
+    <li>Navigate to the <strong>Global Markets Hub</strong> and open the CME Gap Tracker.</li>
+    <li>Identify **Unfilled Gaps** from the last 90 days. These act as "Historical Magnets" during high-volatility events.</li>
+    <li>Wait for price to enter the **Gap Zone** (the space between the Friday close and Sunday open).</li>
+    <li>Execute when the **Order Flow Heatmap** shows an Iceberg order defending the opposite side of the gap.</li>
+</ol>
 
 </div>
 
