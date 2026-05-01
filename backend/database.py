@@ -319,6 +319,18 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN sl_pct REAL DEFAULT 3.0")
     except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN enable_ml_alpha INTEGER DEFAULT 1")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN enable_vol_spike INTEGER DEFAULT 1")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN enable_rsi INTEGER DEFAULT 1")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN enable_macd INTEGER DEFAULT 1")
+    except: pass
     
     # Native Execution Engine Integrations
     try:
