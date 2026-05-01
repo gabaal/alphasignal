@@ -517,28 +517,41 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Exploiting High-Leverage Crypto Liquidations</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Learn how to track and exploit forced liquidations and margin calls across major derivatives exchanges to fade momentum and capture violent mean-reversion bounces.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Mechanics of Forced Liquidations</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/rYMSKGX6zTI?rel=0" 
-        title="Crypto Liquidations Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
+
+<h2>1. Foundational Overview: The Mechanics of Forced Selling</h2>
+<p>In highly leveraged cryptocurrency derivatives markets, a **Liquidation** occurs when a trader's margin account can no longer support their open positions. The exchange matching engine is forced to indiscriminately close the position by issuing a "Market Order."</p>
+<p>Because these orders are "forced," they pay no attention to price or slippage. A massive cluster of liquidations creates a "Cascading Event" where one liquidation drives price further into the next person's liquidation price, leading to violent, vertical price moves.</p>
+
+<h2>2. Intermediate Mechanics: Long vs. Short Squeezes</h2>
+<p>We categorize these events into two primary "Squeezes":</p>
+<ul>
+    <li><strong>Long Squeeze:</strong> A rapid drop in price that triggers a chain reaction of leveraged long liquidations. This creates a "Sell-Side Cascade."</li>
+    <li><strong>Short Squeeze:</strong> A rapid rise in price that forces shorts to buy back their positions. This creates a "Buy-Side Cascade," often resulting in a vertical "God Candle."</li>
+</ul>
+<p>Liquidations act as a **"Market Magnet."** Price has a mathematical tendency to seek out areas of high leverage to "clear the board" of over-leveraged participants before the next major trend begins.</p>
+
+<h2>3. Advanced Quantitative Mechanics: OI Velocity & Liquidation Clusters</h2>
+<p>To predict a squeeze, AlphaSignal tracks **Open Interest (OI) Velocity**. If price is flat but Open Interest is rising rapidly, it means new leverage is entering the system. This creates a "Coiled Spring" effect. </p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Gamma Trap Confluence</h3>
+    <p style="margin-bottom:0;">When a dense **Liquidation Cluster** aligns with a negative **GEX (Gamma Exposure)** zone, the market enters a "Gamma Trap." In this environment, market makers are forced to sell into a falling market to remain delta-neutral, which accelerates the liquidation cascade even further. This is where the most violent "Wick" events occur.</p>
 </div>
-<p>In highly leveraged crypto derivatives markets, intense price volatility often leads to forced position liquidations. When a heavily leveraged long position is liquidated, the exchange matching engine indiscriminately issues a market sell order, causing a cascading drop in price known as a "liquidation cascade" or "long squeeze."</p>
 
-<img src="/academy/images/liquidation_heatmap.png" alt="Cascading Liquidation Heatmap" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>4. Institutional Deep Dive: The "Wick Capture" Strategy</h2>
+<p>Institutional desks do not "fear" liquidations; they use them as a source of **Passive Liquidity**. To fill a $50M position without moving the market, a desk needs a massive counterparty. A liquidation cascade provides exactly that—a forced, indiscriminate seller.</p>
 
-<h3>Funding Rates and Open Interest (OI) Velocity</h3>
-<p>By correlating real-time liquidation data with Open Interest (OI) and Funding Rates, traders can map out dense clusters of impending liquidations. When funding rates are wildly positive and OI is historically high, the probability of a long squeeze dramatically increases.</p>
-<p>Conversely, a "Short Squeeze" occurs when over-leveraged shorts are forced to buy back their positions at higher prices, creating violent upward wicks.</p>
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Fading the Exhaustion Wick</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Watch for the **"Delta Divergence"** during a crash. When you see $100M+ in long liquidations hit the tape, but the **CVD (Cumulative Volume Delta)** begins to tick UP, it means institutions are "Absorbing" the forced selling with limit orders. This is the "Wick Capture." Execute a long position at the bottom of the cluster, targeting a mean-reversion back to the VWAP. Your stop-loss should be placed just below the final liquidation "Clean-Out" level.</p>
+</div>
 
-<img src="/academy/images/funding_oi_gauge.png" alt="Funding Rate and OI Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
-
-<h3>Execution Strategies: Fading the Cascade</h3>
-<p>Institutional traders use the AlphaSignal Liquidations Tracker combined with Tape velocity to identify the exact moment a liquidation cascade exhausts. Buying the blood of a forced margin call provides some of the highest risk-to-reward setups in cryptocurrency trading.</p>
-<p>When the Delta-to-Liquidation ratio spikes beyond the 95th percentile, it indicates the cascade is fully exhausted. This is the optimal window to execute a mean-reverting long position targeting the Volume Profile POC.</p>
+<h2>Operationalizing Liquidation Intelligence in the Terminal</h2>
+<ol>
+    <li>Monitor the <strong>Liquidation Heatmap</strong> for "High-Density Bubbles" near current price.</li>
+    <li>Check <strong>Funding Rates</strong>—if they are deeply negative while price is falling, a "Short Squeeze" is likely imminent.</li>
+    <li>Use the <strong>OI Velocity Tracker</strong> to see if leverage is building or flushing.</li>
+    <li>Set alerts for **"Mega-Liquidation Events"** (>$10M in a single minute) to identify potential market pivot points.</li>
+</ol>
 
 </div>
 

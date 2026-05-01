@@ -517,21 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Divergence Trading Strategies</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Identify hidden weaknesses in market trends. Learn how to spot bullish and bearish divergences using momentum oscillators to predict major market reversals.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>What is a Divergence?</h2>
-<p>A divergence occurs when the price of an asset moves in the opposite direction of a technical indicator, typically a momentum oscillator like the RSI or MACD. It serves as a leading indicator, warning traders that the current trend is losing its underlying strength.</p>
 
-<h3>Bearish and Bullish Divergences</h3>
+<h2>1. Foundational Overview: The Physics of Divergence - Momentum vs. Price</h2>
+<p>Divergence is a leading indicator of trend exhaustion. It occurs when price action is not supported by the underlying momentum of the market. Mathematically, price is the "First Derivative" of movement, while momentum (via oscillators) represents the "Velocity." When price is rising but velocity is falling, the trend is physically unstable.</p>
 <ul>
-    <li><strong>Regular Bullish Divergence:</strong> Price makes a lower low, but the oscillator makes a higher low. This indicates that despite the new low, downward momentum is fading, signaling a potential bullish reversal.</li>
-    <li><strong>Regular Bearish Divergence:</strong> Price makes a higher high, but the oscillator makes a lower high. The upward momentum is exhausted, warning of an impending top and correction.</li>
+    <li><strong>Regular Bullish Divergence:</strong> Price makes a lower low, but momentum makes a higher low. Selling pressure is exhausting.</li>
+    <li><strong>Regular Bearish Divergence:</strong> Price makes a higher high, but momentum makes a lower high. Buying pressure is evaporating.</li>
 </ul>
 
-<img src="/academy/images/bearish_divergence_warning.png" alt="Bearish Divergence Warning" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>2. Intermediate Mechanics: Oscillator Decay and Mean Reversion</h2>
+<p>Oscillators like the RSI and MACD decay toward their center lines as a trend ages. Professional traders look for **Multi-Drive Divergences**—where price makes three consecutive highs while momentum makes three consecutive lower peaks. This indicates a structural failure in price delivery and a high probability of a violent mean-reversion event.</p>
 
-<h3>Hidden Divergences</h3>
-<p>While regular divergences signal trend reversals, <em>hidden</em> divergences signal trend continuation. A hidden bullish divergence occurs when price makes a higher low, but the oscillator makes a lower low, suggesting the asset is gathering momentum for the next leg up.</p>
+<h2>3. Advanced Quantitative Mechanics: Delta Divergence - The Institutional Fingerprint</h2>
+<p>While retail traders use RSI, quantitative desks focus on **Cumulative Volume Delta (CVD) Divergence**. This is the most accurate form of divergence analysis. If price is reaching new highs, but CVD is falling, it means that aggressive market buyers have disappeared, and the move is being driven by "thin" liquidity or retail FOMO.</p>
 
-<img src="/academy/images/hidden_bullish_divergence.png" alt="Hidden Bullish Divergence" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">Absorption Detection</h3>
+    <p style="margin-bottom:0;">When price hits a new high but CVD remains flat or negative, it confirms **Institutional Absorption**. Large players are using the breakout momentum as exit liquidity to sell their positions into the aggressive retail buy orders.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The Hidden Divergence Strategy</h2>
+<p>Unlike regular divergence (which signals reversal), **Hidden Divergence** signals trend continuation. It is the signature of institutional "Reloading." A hidden bullish divergence occurs when price makes a **Higher Low**, but momentum makes a **Lower Low**. This indicates that the market has "Reset" its momentum without giving up its price gains—a signal of extreme strength.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Trend Reload</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">In a strong uptrend, wait for a price pullback to the **VWAP** or a key **Order Block**. If the RSI drops to a new low for the session, but the price remains significantly higher than the previous swing low, a Hidden Bullish Divergence has formed. Enter a Long position as price breaks the previous 15-minute candle's high. Your stop-loss goes below the recent swing low. You are now aligned with the institutional money that is "stepping in" to defend the trend.</p>
+</div>
+
+<h2>Operationalizing Divergence in the Terminal</h2>
+<ol>
+    <li>Overlay the **AlphaSignal CVD Tracker** on every chart.</li>
+    <li>Filter for **Z-Score Deviations** in momentum to identify true "Overbought/Oversold" conditions.</li>
+    <li>Use the **Divergence Auto-Scanner** to find Hidden Divergence setups across 50+ assets simultaneously.</li>
+    <li>Confirm divergence at the **Value Area High/Low** for maximum probabilistic edge.</li>
+</ol>
 
 </div>
 

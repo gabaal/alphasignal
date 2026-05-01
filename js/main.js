@@ -264,6 +264,10 @@ async function showNotificationSettings(visible) {
     }
 
     if (visible) {
+        if (!window.isAuthenticatedUser) {
+            showAuth(true);
+            return;
+        }
         // Fetch settings and bot info in parallel
         const [settings, botInfo] = await Promise.all([
             fetchAPI('/user/settings').catch(() => null),

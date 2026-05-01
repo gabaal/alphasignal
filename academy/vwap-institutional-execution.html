@@ -517,30 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>VWAP and Institutional Execution Footprints</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Track algorithmic "Smart Money" accumulation patterns and understand how large whales mask their entry orders using Volume Weighted Average Price (VWAP).</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Institutional Accumulation Problem</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/SeqVUNanFeY?rel=0" 
-        title="VWAP Execution Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
-<p>When a retail trader wants to buy $1,000 worth of Bitcoin, they simply hit the "Market Buy" button. The order fills instantly with zero price impact. However, when an institutional fund wants to accumulate $500,000,000 of Ethereum, submitting a market order would trigger massive slippage, destroying their profit margins and creating a giant green candle that alerts the entire market to their presence.</p>
 
-<img src="/academy/images/vwap_execution_band.png" alt="VWAP Execution Bands" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
-
-<h3>The Solution: VWAP Algorithms</h3>
-<p>To avoid detection, institutions employ Volume Weighted Average Price (VWAP) algorithms. VWAP breaks the massive parent order into thousands of micro-orders called "child orders." These child orders are mathematically timed to execute only when there is sufficient retail liquidity to absorb them without moving the price.</p>
+<h2>1. Foundational Overview: The Average Price - Understanding Benchmark Execution</h2>
+<p>VWAP (Volume Weighted Average Price) is the gold standard for institutional execution. Unlike a simple moving average, VWAP accounts for the amount of volume traded at each price level. It represents the **"Fair Value"** of an asset during a specific session.</p>
 <ul>
-    <li>VWAP algorithms inherently buy the dip and pause during rallies to maintain an optimal average entry price over a prolonged time window (often 24 to 72 hours).</li>
-    <li>This creates distinct, sideways consolidation ranges characterized by repeated, stubborn bounces off a flat moving average.</li>
+    <li><strong>The Center Line:</strong> The average price paid by all participants, weighted by volume.</li>
+    <li><strong>Institutional Mandate:</strong> Large funds are often mandated to execute orders "at or better than VWAP" to minimize market impact.</li>
 </ul>
 
-<img src="/academy/images/order_flow_absorption.png" alt="Order Flow Absorption Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>2. Intermediate Mechanics: Anchored VWAP - Identifying Key Pivot Origins</h2>
+<p>Standard VWAP resets daily. **Anchored VWAP (AVWAP)** allows you to anchor the calculation to a specific event—such as a major local high, an exchange hack, or an ETF launch. This reveals the exact average cost-basis of the participants who entered the market during that specific event.</p>
 
-<h3>Hunting the Whales with AlphaSignal</h3>
-<p>By dissecting the execution tape and employing advanced volume delta profiles, AlphaSignal reverse-engineers these algorithmic footprints. When our Order Flow dashboard detects sustained passive absorption at localized lows combined with flat VWAP anchoring, it signals a massive institutional accumulation phase. Savvy traders can shadow these entries, positioning themselves perfectly before the whale achieves their target allocation and allows the price to markup.</p>
+<h2>3. Advanced Quantitative Mechanics: VWAP Standard Deviation Bands</h2>
+<p>Professional traders use Standard Deviation (SD) bands anchored to the VWAP to identify overextension. </p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Sigma 2.5 Liquidity Vacuum</h3>
+    <p style="margin-bottom:0.75rem;"><strong>1st StDev:</strong> Represents "Normal" institutional flow. If price stays here, the trend is healthy.</p>
+    <p style="margin-bottom:0;"><strong>2nd & 3rd StDev:</strong> Represent mathematical extremes. When price hits the 2.5SD band, it indicates a **Liquidity Vacuum** where high-frequency trading (HFT) algorithms are forced to either cover or reverse their positions.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The "VWAP Mean Reversion" Strategy</h2>
+<p>Institutional desks often use a tactic called **"VWAP Fade"** to capitalize on retail panic. When price crashes into the **Lower 2.5SD Band** on high volume but the **Delta** shows absorption, it indicates that a massive "VWAP Buyer" has stepped in to defend their average entry price.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading HFT Exhaustion</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor the session VWAP during a high-volatility event. Wait for price to touch the **Lower 3SD Band**. Check the **Order Flow Heatmap**; if you see large limit orders being "slapped" but price refuses to go lower, enter a Long position. Your target is the **Mean (VWAP)**. This strategy is highly effective because it bets against the statistical probability of price remaining at a 3SD extreme for more than a few minutes.</p>
+</div>
+
+<h2>Operationalizing VWAP Intelligence in the Terminal</h2>
+<ol>
+    <li>Check the <strong>VWAP Deviation Heatmap</strong> to identify assets at ±2.5 Sigma extremes.</li>
+    <li>Use the <strong>Anchored VWAP</strong> tool to track the cost-basis of whales since the last major market pivot.</li>
+    <li>Confluence: Look for where the VWAP aligns with the **Volume POC (Point of Control)** for high-conviction support/resistance.</li>
+    <li>Set alerts for **"VWAP Rejections"**—these often signal the start of an institutional trend continuation.</li>
+</ol>
 
 </div>
 

@@ -517,28 +517,43 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>On-Chain Whale Tracking and Exchange Flows</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Trace massive cryptocurrency transactions between cold storage wallets and centralized exchanges to predict local tops and bottoms.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>Understanding the On-Chain Ledger</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/MG3U8bRNTR8?rel=0" 
-        title="On-Chain Tracking Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
+
+<h2>1. Foundational Overview: The Transparency of the Ledger</h2>
+<p>Unlike traditional dark pools in equities, the blockchain is a perfectly transparent ledger. Every transaction—no matter how large—is visible to anyone with an internet connection. <strong>On-Chain Whale Tracking</strong> is the practice of monitoring the largest wallet addresses (Whales) to determine where the "Smart Money" is positioning itself.</p>
+<p>By following the flow of high-conviction capital, we move from reactive gambling to proactive positioning alongside the market's most influential participants.</p>
+
+<h2>2. Intermediate Mechanics: Entity Clustering & Wallet Labels</h2>
+<p>A single "Whale" may own hundreds of different wallet addresses. Simple tracking is ineffective because it doesn't account for this fragmentation. AlphaSignal utilizes <strong>Entity Clustering Algorithms</strong> to link related wallets together based on transaction patterns and common ownership. </p>
+<p>We apply "Labels" to these clusters, such as: </p>
+<ul>
+    <li><strong>Exchange Hot Wallets:</strong> High-velocity wallets used for retail trading.</li>
+    <li><strong>Institutional Custodians:</strong> Wallets belonging to entities like Coinbase Custody or Fidelity.</li>
+    <li><strong>Miners:</strong> Wallets that receive block rewards directly.</li>
+</ul>
+
+<h2>3. Advanced Quantitative Mechanics: Exchange Flow Dynamics</h2>
+<p>The most critical on-chain metric is the **Net Exchange Flow**. </p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Supply Shock Principle</h3>
+    <p style="margin-bottom:0;">When Whales move BTC from cold storage into an exchange (Inflow), it indicates an **Intent to Sell**. This increases the "Active Supply" and creates downside pressure. Conversely, when BTC moves from an exchange to cold storage (Outflow), it indicates **Long-Term Accumulation**. This creates a "Supply Shock," where even a small amount of buying pressure can drive prices exponentially higher due to the lack of available liquid supply.</p>
 </div>
-<p>Because blockchain ledgers are perfectly transparent, every major transaction is permanently recorded. By clustering wallet addresses and identifying entities like Exchange Hot Wallets, Miners, and Institutional Custodians, AlphaSignal maps the flow of hidden liquidity.</p>
 
-<img src="/academy/images/whale_tracking_network.png" alt="On-Chain Whale Tracking Network" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>4. Institutional Deep Dive: OTC Desks & "Smart" Accumulation</h2>
+<p>Professional desks often avoid public exchanges to prevent "Slippage." Instead, they use **OTC (Over-The-Counter) Desks**. Tracking these moves requires monitoring the specific "Liquidity Voids" left on-chain. </p>
+<p>AlphaSignal's **Whale Pulse** engine monitors for "Signature Transactions"—massive moves that skip the exchange entirely and land in private vaults. If we see record-high OTC accumulation while price is flat or falling, it signals that institutions are "Absorption-Buying" the retail panic. This is the ultimate "Pre-Pump" signal, often providing a 3-7 day lead time before the price breaks out.</p>
 
-<h3>Exchange Inflows vs. Outflows</h3>
-<p><strong>Net Inflows:</strong> When Whales move massive amounts of Bitcoin from cold storage into Centralized Exchanges (CEX), it generally signifies an intent to sell. The sudden spike in active supply on the exchange order books drastically increases downside selling pressure.</p>
-<p><strong>Net Outflows:</strong> Conversely, when record amounts of cryptocurrency are withdrawn from exchanges into cold storage, it indicates deep supply accumulation and long-term holding strategies. This removes active supply from the order books, leading to supply-side shocks and explosive upside price action.</p>
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The Miner Capitulation Fade</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor the **Miner Net Position Change**. When miners are forced to dump their reserves (Capitulation), it creates a final, violent sell-off. If AlphaSignal detects a spike in **Exchange Outflows** immediately following a miner dump, it means institutions are "mopping up" the supply. This has historically been the most accurate signal for a generational market bottom.</p>
+</div>
 
-<img src="/academy/images/miner_capitulation.png" alt="Miner Capitulation Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
-
-<h3>Miner Capitulation as a Macro Bottom</h3>
-<p>By tracking Bitcoin miner reserves, traders can identify "Miner Capitulation" phases. During extended bear markets, the cost of electricity required to mine a single Bitcoin can exceed the market price of Bitcoin itself.</p>
-<p>When this happens, over-leveraged miners are forced to dump their massive BTC reserves on the open market to cover operational costs. This massive influx of selling pressure creates a final, violent capitulation wick, historically marking absolute generational market bottoms.</p>
+<h2>Operationalizing Whale Intelligence in the Terminal</h2>
+<ol>
+    <li>Open the <strong>Whale Pulse Hub</strong> to see real-time large transaction alerts.</li>
+    <li>Filter for **"Cold Storage to Exchange"** moves for a potential local top signal.</li>
+    <li>Check the **Entity Clustering Map** to see if specific funds are accumulating a certain asset.</li>
+    <li>Match these moves with **CVD (Cumulative Volume Delta)**—is the price action being driven by these whales, or is it just retail noise?</li>
+</ol>
 
 </div>
 

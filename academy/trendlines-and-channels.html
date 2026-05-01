@@ -517,18 +517,39 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Trendlines and Channels</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>Mapping the Trend</h2>
-<p>A trendline is a straight line connecting a series of ascending swing lows (in a bull trend) or descending swing highs (in a bear trend). It acts as dynamic support or resistance, visualizing the angle and velocity of the current market momentum.</p>
 
-<img src="/academy/images/ascending_trend_channel.png" alt="Ascending Trend Channel" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>1. Foundational Overview: Drawing the Narrative - The Geometry of Price</h2>
+<p>Trendlines and channels are the most basic forms of market geometry. They define the "corridor" in which price is moving. A trendline connects a series of higher-lows (Bullish) or lower-highs (Bearish), acting as a diagonal barrier that market participants use to time entries.</p>
+<ul>
+    <li><strong>Support Trendline:</strong> A floor that confirms buyer aggression at higher prices.</li>
+    <li><strong>Resistance Trendline:</strong> A ceiling that confirms seller absorption of demand.</li>
+</ul>
 
-<h3>Trading the Channel</h3>
-<p>When a parallel line is drawn opposite the primary trendline, it creates a <strong>Channel</strong>. Price will often oscillate between the lower channel boundary (support) and the upper channel boundary (resistance). Traders buy near the lower boundary and take profit near the upper boundary.</p>
+<h2>2. Intermediate Mechanics: Acceleration & Deceleration</h2>
+<p>Trends are rarely linear. Professional traders monitor the <strong>Angle of Ascent</strong>. When a trendline steepens (e.g., from 30° to 60°), it indicates **Trend Acceleration**. While this looks bullish, it often signals the "Blow-off Top" phase where retail FOMO takes over. Conversely, a shallowing trendline indicates **Deceleration**, a precursor to a structural trend reversal.</p>
 
-<h3>Breakouts and Invalidations</h3>
-<p>A definitive close outside the channel indicates a change in market character. A breakout above an ascending channel (an "overthrow") signifies extreme, parabolic euphoria. Conversely, a break below the support trendline invalidates the trend, often triggering a cascade of stop-losses and a rapid reversal. AlphaSignal tools help confirm these structural breaks with volume and momentum data.</p>
+<h2>3. Advanced Quantitative Mechanics: Regression Channels vs. Hand-Drawn Bias</h2>
+<p>Human traders often force trendlines to fit their bias. Institutional desks use <strong>Linear Regression Channels</strong>—mathematical models that calculate the "Best Fit" line through a price series and project 1, 2, or 3 **Standard Deviation** envelopes around it.</p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">Mean Reversion at the Outer Envelopes</h3>
+    <p style="margin-bottom:0;">When price hits the +2.5 Standard Deviation boundary of a Regression Channel, it is statistically overextended. AlphaSignal's **Regime Classifier** uses these deviations to trigger "Mean Reversion" alerts, targeting the center median line of the channel.</p>
+</div>
 
-<img src="/academy/images/channel_breakout_invalidation.png" alt="Channel Breakout Invalidation" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>4. Institutional Deep Dive: The "Liquidity Sweep" Channel Strategy</h2>
+<p>Institutions know that retail traders place their stop-losses just outside obvious trendlines and channel boundaries. This creates "Liquidity Pools." A common institutional tactic is the <strong>Sweep & Reclaim</strong>.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the "False Breakdown"</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">In a bullish channel, wait for price to aggressively break **below** the support trendline. This triggers retail stops. If the **Order Flow Heatmap** shows massive Buy-Market orders absorbing this selling, and price quickly "Reclaims" the channel boundary, enter a Long. This confirms the break was a "Liquidity Sweep" intended to fuel the next leg up.</p>
+</div>
+
+<h2>Operationalizing Market Geometry in the Terminal</h2>
+<ol>
+    <li>Launch the **Auto-Regression** tool on any ticker.</li>
+    <li>Look for **Standard Deviation Overextensions** (±2.5 StDev) to identify exhaustion.</li>
+    <li>Monitor the **CVD (Cumulative Volume Delta)** during channel breaks; if CVD is rising while price breaks down, it’s a "Bear Trap."</li>
+    <li>Use the **Median Line** as your primary target for take-profits in a sideways or ranging market.</li>
+</ol>
 
 </div>
 

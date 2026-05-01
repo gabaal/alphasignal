@@ -138,6 +138,26 @@ function updatePremiumUI() {
             if (manageBtn) manageBtn.classList.add('hidden');
         }
     }
+
+    // Update Hooks Button Restriction (Visual Cue)
+    const hooksBtn = document.querySelector('button[onclick="showNotificationSettings(true)"]');
+    if (hooksBtn) {
+        if (!isAuthenticatedUser) {
+            if (!hooksBtn.querySelector('.premium-lock')) {
+                const lock = document.createElement('span');
+                lock.className = 'premium-lock material-symbols-outlined';
+                lock.style.fontSize = '0.9rem';
+                lock.style.marginLeft = '4px';
+                lock.textContent = 'login';
+                hooksBtn.appendChild(lock);
+            }
+            hooksBtn.style.opacity = '0.8';
+        } else {
+            const lock = hooksBtn.querySelector('.premium-lock');
+            if (lock) lock.remove();
+            hooksBtn.style.opacity = '1';
+        }
+    }
 }
 
 function showPaywall(visible) {

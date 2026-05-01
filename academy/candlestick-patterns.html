@@ -517,21 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Candlestick Patterns</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Learn the foundational visual language of price action. Master how to interpret bullish engulfing, dojis, and hammer candles to predict immediate momentum shifts.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Language of Price</h2>
-<p>Candlestick charts provide a visual representation of price action over a specific timeframe, summarizing the open, high, low, and close (OHLC). This is essential for quickly interpreting market sentiment.</p>
 
-<img src="/academy/images/bullish_engulfing_reversal.png" alt="Bullish Engulfing Reversal" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
-
-<h3>Key Reversal Patterns</h3>
+<h2>1. Foundational Overview: Candle Anatomy - Moving Beyond Red & Green</h2>
+<p>A candlestick is more than a price point; it is a visual record of a battle between supply and demand over a fixed period. The <strong>Body</strong> represents the conviction of the move, while the <strong>Wicks (Shadows)</strong> represent price rejection and liquidity discovery.</p>
 <ul>
-    <li><strong>Bullish Engulfing:</strong> A large green candle completely engulfing the previous red candle's body, indicating a strong influx of buying pressure.</li>
-    <li><strong>Hammer:</strong> A small body with a long lower wick, suggesting that sellers pushed the price down, but buyers overwhelmed them to close near the open. Often marks a local bottom.</li>
+    <li><strong>Long Body:</strong> High conviction; the market has reached a consensus on value for that timeframe.</li>
+    <li><strong>Long Wicks:</strong> Low conviction; the market found "unfair value" and aggressively pushed back to the mean.</li>
 </ul>
 
-<h3>Continuation vs. Indecision</h3>
-<p>A <strong>Doji</strong>, characterized by a very small body and long wicks on both sides, indicates market indecision. The battle between buyers and sellers is tied. When a Doji forms after a prolonged trend, it often acts as an early warning of an impending reversal or significant consolidation.</p>
+<h2>2. Intermediate Mechanics: Multibar Context & Volume Confluence</h2>
+<p>Professional traders never look at a single candle in isolation. A "Hammer" candle is meaningless in a sideways market; it only gains significance at the end of a prolonged **Impulse Wave**. The most important rule in candle analysis is **Volume Confluence**. A reversal candle on low volume is often a "Trap." A reversal candle on massive volume indicates a **Climax Event**—the point where institutions have finished their distribution and are ready to reverse the trend.</p>
 
-<img src="/academy/images/doji_indecision_candle.png" alt="Doji Indecision Candle" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>3. Advanced Quantitative Mechanics: ATR-Weighted Wick Analysis</h2>
+<p>To remove subjectivity, quantitative desks use **ATR (Average True Range)** to weight candle wicks. If a lower wick is >1.5x the ATR of the last 14 periods, it is mathematically classified as a **Sigma Rejection**. This removes the noise of small wicks and focuses on true liquidity sweeps.</p>
+
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Body-to-Wick Ratio (BWR)</h3>
+    <p style="margin-bottom:0;">A BWR of < 0.2 indicates that 80% of the price movement was rejected. In the AlphaSignal Terminal, we flag these candles as **Institutional Absorption Zones**—levels where large limit orders are "soaking up" the market's momentum.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The "Hammer Trap" Strategy</h2>
+<p>Institutions often create "Bull Traps" and "Bear Traps" using candle patterns. A common tactic is the **Stop-Run Hammer**. Price will aggressively break a key support level to trigger retail stop-losses (creating a "Selling Climax"), only to close back above the level, leaving a massive lower wick. This "Hammer" isn't a reversal yet—it's a liquidity grab.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Fading the Failed Breakout</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor a major horizontal support level. If a 1H candle breaks below it but closes **above** the level with a wick > 2x the body, check the **Volume Delta**. If Delta is positive during the wick, it confirms institutional buying. Enter a Long position on the break of the Hammer's high. Your target is the "Value Area High" of the previous range. You are now trading the reversal caused by retail traders being forced to buy back their short positions.</p>
+</div>
+
+<h2>Operationalizing Candlesticks in the Terminal</h2>
+<ol>
+    <li>Enable the <strong>Sigma Candle Overlay</strong> on the main chart to flag high-ATR rejections.</li>
+    <li>Identify candles with <strong>Body-to-Wick Ratios</strong> below 0.3 at key structural levels.</li>
+    <li>Wait for a <strong>Confirmation Candle</strong> (the next candle closing in the direction of the rejection).</li>
+    <li>Check the <strong>Liquidation Scanner</strong>—a trap candle is most effective when it coincides with a spike in retail liquidations.</li>
+</ol>
 
 </div>
 

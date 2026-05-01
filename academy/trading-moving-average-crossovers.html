@@ -517,22 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Trading Moving Average Crossovers</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Learn how to utilize Simple and Exponential Moving Averages to confirm macro trend direction and identify high-probability momentum shifts.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>Smoothing the Price Action</h2>
-<p>Financial markets are incredibly noisy. <strong>Moving Averages (MAs)</strong> smooth out erratic, daily volatility to reveal the underlying long-term trend. The two most common types are the Simple Moving Average (SMA) and the Exponential Moving Average (EMA), with the EMA placing greater mathematical weight on recent price action.</p>
 
-<img src="/academy/images/moving_average_crossover.png" alt="Moving Average Crossover Chart" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
-
-<h3>The Golden Cross and Death Cross</h3>
-<p>Moving average crossovers are foundational signal triggers used in trend-following algorithms.</p>
+<h2>1. Foundational Overview: The Physics of Momentum - Why Trends Persist</h2>
+<p>Trend following is based on the observation that an asset in motion tends to stay in motion until acted upon by a significant outside force (liquidity exhaustion). In quantitative terms, this is known as **Positive Autocorrelation**. If price rose yesterday, there is a statistically higher probability it will rise today. Trends persist because institutional capital cannot enter or exit the market all at once; they must "layer" their orders over days or weeks.</p>
 <ul>
-    <li><strong>Golden Cross:</strong> Occurs when a short-term moving average (e.g., the 50-day MA) crosses <em>above</em> a long-term moving average (e.g., the 200-day MA). This signifies a macro transition from a bear market to a bull market.</li>
-    <li><strong>Death Cross:</strong> Occurs when the short-term moving average crosses <em>below</em> the long-term moving average. This signals a transition into a protracted bearish regime.</li>
+    <li><strong>The Trend Engine:</strong> Institutional accumulation (buying) or distribution (selling) over long periods.</li>
+    <li><strong>Momentum:</strong> The velocity of the trend. High momentum indicates a high-conviction institutional move.</li>
 </ul>
 
-<h3>Filtering False Signals</h3>
-<p>Moving averages are lagging indicators by design. In a choppy, sideways market, crossover strategies will generate numerous "false signals" (whipsaws) that result in continuous small losses. To counteract this, traders use the AlphaSignal Regime Matrix to verify that the market is in a "High-Volatility Expansion" state before deploying moving average strategies.</p>
+<h2>2. Intermediate Mechanics: Moving Average Envelopes and Trend Filters</h2>
+<p>Professional trend followers don't just use a single moving average; they use **Envelopes** and **Filters**. A trend filter (like the 200-day SMA) acts as a binary switch: if price is above the filter, we are in a "Long Regime." If price is below, we are in a "Short Regime." This prevents "Whipsaws" in sideways markets and ensures we only trade when the macro direction is clear.</p>
 
-<img src="/academy/images/regime_filter_dashboard.png" alt="Market Regime Filter Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>3. Advanced Quantitative Mechanics: Time-Series Momentum (TSMOM)</h2>
+<p>TSMOM is a quantitative strategy that looks at an asset's absolute return over a specific lookback period (e.g., 12 months). If the return is positive, the asset has "Positive Momentum." In the AlphaSignal Terminal, we use **Cross-Sectional Momentum** to compare multiple assets against each other. We only buy the assets with the highest momentum scores (the "Top Decile"), ensuring our capital is always allocated to the strongest market leaders.</p>
+
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Momentum Trap</h3>
+    <p style="margin-bottom:0;">The greatest risk for a trend follower is the **Momentum Crash**—a sudden, violent reversal. To avoid this, we monitor **Volatility Scaled Returns**. If the trend's volatility exceeds its 30-day average, we "De-risk" the position, as high volatility is often a precursor to a trend reversal.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The Breakout-Pullback-Continuation Strategy</h2>
+<p>Institutional desks use a specific three-phase process to enter a trend. First, they trigger a **Breakout** to clear out the local liquidity. Second, they allow the price to **Pull back** to a key level (like the 21-day EMA) to "Reload" their positions. Third, they drive the **Continuation** leg. This strategy allows them to buy at a "Value" price within a high-conviction trend.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Institutional Reload</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a 1H trend where the price is making Higher Highs and Higher Lows. Wait for a pullback to the **VWAP** or the **Value Area High (VAH)**. Monitor the **Order Flow Heatmap** in the AlphaSignal Terminal. If you see a massive "Buy Wall" forming at these levels, it indicates institutional absorption. Enter a Long position. Your stop-loss goes below the recent swing low. Your target is a new swing high. You are now "Riding the Coattails" of the large fund managers as they defend the trend.</p>
+</div>
+
+<h2>Operationalizing Trend Following in the Terminal</h2>
+<ol>
+    <li>Use the <strong>Market Regime Classifier</strong> to ensure the market is in a "Trending" state.</li>
+    <li>Filter assets by their <strong>Alpha Momentum Score</strong> to find the strongest trend leaders.</li>
+    <li>Set alerts for **EMA/VWAP Pullbacks** on high-conviction assets.</li>
+    <li>Verify the trend strength using **CVD (Cumulative Volume Delta)**—the trend must be supported by aggressive buying.</li>
+</ol>
 
 </div>
 

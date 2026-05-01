@@ -517,18 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Ichimoku Cloud: The All-in-One Indicator</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Master the Ichimoku Kinko Hyo to instantly determine trend direction, momentum, and future support/resistance levels at a single glance.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>One Glance Equilibrium Chart</h2>
-<p>The Ichimoku Cloud is a comprehensive technical indicator system designed to show support, resistance, momentum, and trend direction all at once. While visually intimidating, it provides a remarkably holistic view of market structure.</p>
 
-<img src="/academy/images/ichimoku_kumo_breakout.png" alt="Ichimoku Kumo Breakout" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>1. Foundational Overview: The "One Glance" Equilibrium - System Components</h2>
+<p>Ichimoku Kinko Hyo (Equilibrium Chart at a Glance) is a comprehensive system designed to provide an immediate snapshot of trend, momentum, and support/resistance. Unlike simple moving averages, Ichimoku calculates price action based on **high-low averages** over specific periods.</p>
+<ul>
+    <li><strong>Tenkan-sen (Fast):</strong> Average of the highest high and lowest low for the past 9 periods.</li>
+    <li><strong>Kijun-sen (Base):</strong> Average for the past 26 periods. Acts as the "Center of Gravity."</li>
+    <li><strong>Kumo (Cloud):</strong> Formed by Senkou Span A and B, projected 26 periods into the future.</li>
+</ul>
 
-<h3>The Kumo (Cloud)</h3>
-<p>The most prominent feature is the Cloud itself, which is projected forward in time. When price is above the Cloud, the overarching trend is bullish, and the top of the Cloud acts as dynamic support. When price is below, the trend is bearish, and the bottom of the Cloud acts as resistance.</p>
+<h2>2. Intermediate Mechanics: The Kumo Breakout & Sentiment Shifts</h2>
+<p>The Cloud represents the "Volatility Corridor" of the market. When price is inside the Cloud, the market is in **Equilibrium** (sideways), and trading is high-risk. A "Kumo Breakout" occurs when price closes outside the Cloud boundary, indicating a definitive shift in sentiment. A thick Cloud suggests strong structural support/resistance, while a thin Cloud (a "Kumo Twist") indicates a weak level that is prone to being pierced.</p>
 
-<h3>The Tenkan / Kijun Cross</h3>
-<p>Similar to moving average crossovers, when the fast-moving Tenkan-sen crosses above the slower-moving Kijun-sen while the price is above the Cloud, it generates a high-probability "TK Cross" buy signal, confirming strong upward momentum.</p>
+<h2>3. Advanced Quantitative Mechanics: Chikou Span & Momentum Lag</h2>
+<p>The **Chikou Span** (Lagging Line) is the current price shifted back 26 periods. Institutional traders use it to confirm the "Open Path." If the Chikou Span is above both the price and the Cloud 26 periods ago, the path to higher prices is clear. If it is "tangled" in the historical price action, the trend is likely to face friction and consolidate. </p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The 26-Period Projection</h3>
+    <p style="margin-bottom:0;">The AlphaSignal Terminal uses the projected Cloud boundaries to calculate **Forward Liquidity Zones**. By looking 26 periods ahead, we can identify where market makers are likely to step in before the price even arrives.</p>
+</div>
 
-<img src="/academy/images/ichimoku_tk_cross.png" alt="Ichimoku TK Cross" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>4. Institutional Deep Dive: The "Cloud Edge" Absorption Strategy</h2>
+<p>A common mistake is buying every Cloud breakout. Institutions instead look for the <strong>TK Cross at the Edge</strong>. When the Tenkan-sen crosses the Kijun-sen while price is **inside** the Cloud, but near the outer boundary, it indicates an "Absorption" of the opposing side's orders.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The Kumo Twist Fade</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor the future Cloud for a "Twist" (Span A crossing Span B). This twist represents a moment of zero-momentum. If price approaches a thick Cloud edge but the **Alpha Intelligence Brief** suggests a macro reversal, wait for a rejection. Institutions often "defend" the thick Cloud edges, creating a high-reward short opportunity back toward the Kijun-sen median.</p>
+</div>
+
+<h2>Operationalizing Ichimoku in the Terminal</h2>
+<ol>
+    <li>Overlay the **Institutional Ichimoku** component on your 4H charts.</li>
+    <li>Identify **Kumo Breakouts** confirmed by the **Chikou Span** being in "Open Space."</li>
+    <li>Use the **Future Senkou Span B** (the flat line) as your primary institutional target for long-term exits.</li>
+    <li>Filter Ichimoku signals with the **Market Regime Classifier**—Ichimoku is 80% more effective in "Trending" regimes than "Volatile" regimes.</li>
+</ol>
 
 </div>
 

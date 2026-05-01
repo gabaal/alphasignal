@@ -517,16 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Identifying Institutional Order Blocks</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Locate the exact price zones where central banks and major institutions accumulate massive positions before inducing retail panic.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Footprints of Smart Money</h2>
-<p>An Order Block is a specific price range where large institutions and market makers have accumulated or distributed a massive amount of capital. These blocks represent areas of intense, hidden liquidity that algorithmically act as future support or resistance.</p>
 
-<img src="/academy/images/bullish_order_block.png" alt="Bullish Order Block" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>1. Foundational Overview: The Logic of Displacement</h2>
+<p>An Order Block is a specific price range where large institutions have accumulated or distributed a massive amount of capital. Unlike retail support/resistance, an institutional Order Block is defined by **Displacement**—the impulsive, high-volume move that leaves a footprint in the market structure.</p>
+<ul>
+    <li><strong>The Footprint:</strong> The last candle of the opposing trend before a breakout.</li>
+    <li><strong>The Mandate:</strong> Institutions often leave unfilled limit orders at these levels to balance their portfolios during future retests.</li>
+</ul>
 
-<h3>Bullish vs. Bearish Order Blocks</h3>
-<p>A <strong>Bullish Order Block</strong> is typically the last down-candle before a massive, impulsive upward move that breaks market structure. It indicates that institutions pushed the price down to trap retail shorts and accumulate longs. When price eventually returns to this block, institutions will aggressively defend their entry price, causing a bounce.</p>
-<p>A <strong>Bearish Order Block</strong> is the last up-candle before a massive sell-off. Traders mark these zones on high timeframes (e.g., 4H, Daily) and place limit orders to fade the retail crowd when price inevitably retests the block.</p>
+<h2>2. Intermediate Mechanics: Mitigation and Refinement</h2>
+<p>When price returns to an Order Block, it is "Mitigating" the institutional exposure. Professional traders don't buy the entire block; they "Refine" the zone by looking for the **Mean Threshold** (the 50% equilibrium point of the block) or the **Opening Price**, where the bulk of the liquidity is parked.</p>
 
-<img src="/academy/images/bearish_order_block_fade.png" alt="Bearish Order Block Fade" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>3. Advanced Quantitative Mechanics: Volumetric Confirmation</h2>
+<p>A zone is only an "Active" Order Block if it is supported by volume. Professional desks use the **AlphaSignal Delta Map** to verify these zones.</p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">Confirming with Volumetric Delta</h3>
+    <p style="margin-bottom:0.75rem;"><strong>Positive Delta Spike:</strong> Confirms a Bullish Order Block. It shows aggressive buy-side absorption at the level.</p>
+    <p style="margin-bottom:0;"><strong>Absorption vs. Exhaustion:</strong> If price hits an OB on high volume but the Delta is neutral, it signals **Absorption**—a sign the level will hold. If volume is low, it is **Exhaustion**, and the level is likely to fail.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The "Breaker Block" Strategy</h2>
+<p>The most powerful setup is the **Breaker Block**—a failed Order Block that has been "broken" during a liquidity sweep. When an institution sweeps the stops below a Bullish OB, that OB "Flips" and becomes a Bearish Breaker.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Liquidity Sweep</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a high-timeframe Bullish Order Block. Wait for price to drop *below* the block to sweep retail stop-losses. If price then impulsively breaks back *above* the block with a massive Delta spike, the zone has been "Validated." Execute a long position on the first retest of the **Breaker Level**. Your stop-loss is placed at the swing low of the sweep. This strategy exploits the "Stop-Run" mechanics that institutions use to generate liquidity for their own entries.</p>
+</div>
+
+<h2>Operationalizing Order Blocks in the Terminal</h2>
+<ol>
+    <li>Use the <strong>Order Flow Heatmap</strong> to visualize hidden limit orders at OB levels.</li>
+    <li>Scan for <strong>Structural Displacement</strong> to identify new, unmitigated blocks.</li>
+    <li>Confluence: Ensure the Order Block aligns with a <strong>Fibonacci Golden Pocket</strong> or <strong>VWAP Deviation Band</strong>.</li>
+    <li>Set alerts for **"OB Retests"** to capture the high-RR (Risk/Reward) entry window.</li>
+</ol>
 
 </div>
 

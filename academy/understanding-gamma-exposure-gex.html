@@ -517,23 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Understanding Gamma Exposure (GEX) in Crypto Markets</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>A comprehensive guide to understanding options market maker positioning, hedging dynamics, and the impact of Gamma Exposure (GEX) on underlying asset price action.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>Introduction to Gamma Exposure</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/ma9bEqS2XAQ?rel=0" 
-        title="GEX Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
+
+<h2>1. Foundational Overview: The Hidden Hand of Option Dealers</h2>
+<p>Gamma Exposure (GEX) is the single most important "Hidden Vector" in modern crypto markets. When you buy a call option on Deribit, you aren't trading against another retail user—you are likely trading against an **Institutional Market Maker (Dealer)**. To stay market-neutral, these dealers must "hedge" their options exposure by buying or selling the underlying asset (BTC or ETH).</p>
+<p><strong>GEX</strong> measures the sensitivity of these dealer hedges to changes in price. By tracking GEX, we can predict exactly when market makers will be forced to buy or sell, effectively "Front-Running" billions in institutional flow.</p>
+
+<h2>2. Intermediate Mechanics: Positive vs. Negative Gamma</h2>
+<p>The market environment changes drastically based on whether dealers are in "Positive" or "Negative" Gamma territory:</p>
+<ul>
+    <li><strong>Positive Gamma (Stability):</strong> Dealers hedge by buying into dips and selling into rallies. This creates a "Volatility Buffer," pinning the price into a tight range. This is why price often "stagnates" near large strike prices.</li>
+    <li><strong>Negative Gamma (Acceleration):</strong> Dealers hedge by selling into dips and buying into rallies. This acts as a "Volatility Amplifier," leading to violent, multi-thousand dollar candles as dealers are forced to "Chase" the price to remain hedged.</li>
+</ul>
+
+<h2>3. Advanced Quantitative Mechanics: Vanna, Charm, and Zero-DTE</h2>
+<p>Beyond simple Gamma, professional desks monitor "Second-Order Greeks" that dictate the speed of dealer hedging:</p>
+<ul>
+    <li><strong>Vanna:</strong> Measures how dealer hedges change relative to **Implied Volatility (IV)**. If IV drops, dealers may be forced to sell spot BTC, even if price hasn't moved.</li>
+    <li><strong>Charm:</strong> Measures the "Time Decay" of dealer hedges. As an option nears expiration, dealers must slowly unwind their hedges. This creates a predictable "Drift" in price toward the Max Pain level as expiration Friday approaches.</li>
+</ul>
+
+<h2>4. Institutional Deep Dive: The "Gamma Squeeze" & Pinning Levels</h2>
+<p>Institutional traders use GEX to identify "Volatile Breakout Zones." When a major asset like BTC approaches a **"Gamma Flip"** level (the point where dealers transition from Positive to Negative Gamma), the market is susceptible to a **Gamma Squeeze**.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Front-Running the Dealer Chase</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a strike price with the highest **Negative GEX** (e.g., $70,000 BTC). If price breaks above this level, market makers *must* buy spot BTC to hedge their short calls. This forced buying drives price higher, which forces *more* buying. This is a Gamma Squeeze. To execute, enter a long position on a 5-minute close above the GEX peak strike, and target the next major "Positive GEX" wall where dealer selling will likely stall the rally.</p>
 </div>
-<p>Gamma Exposure (GEX) quantifies the directional exposure of options market makers. When retail and institutional traders buy options, market makers take the opposite side of the trade and must dynamically hedge their positions in the spot or futures market.</p>
 
-<h3>Positive vs. Negative Gamma Regimes</h3>
-<p><strong>Positive Gamma Regimes:</strong> When market makers are long gamma, they hedge by buying into dips and selling into rallies. This creates unnatural market stability and suppresses volatility, leading to tight consolidation ranges.</p>
-<p><strong>Negative Gamma Regimes:</strong> Conversely, when market makers are short gamma, they must buy into rallies and sell into dips to maintain delta neutrality. This acts as a volatility amplifier, accelerating price movements and causing explosive breakouts or cascading liquidations.</p>
-
-<h3>Using the AlphaSignal GEX Profile</h3>
-<p>The AlphaSignal GEX Profile maps out key gamma strike levels for Bitcoin and Ethereum, highlighting major support walls and resistance roofs dictated by options open interest decay. Traders can use these levels to frame high-probability mean-reversion trades or anticipate volatility expansion zones.</p>
+<h2>Operationalizing GEX Intelligence in the Terminal</h2>
+<ol>
+    <li>Navigate to the <strong>GEX Profile Hub</strong>.</li>
+    <li>Locate the **"Gamma Flip"** price—this is your line in the sand for volatility expansion.</li>
+    <li>Identify **"Pinning Strikes"** (Large Positive GEX walls)—these are your take-profit targets as price will likely stall here.</li>
+    <li>Cross-reference with <strong>Liquidation Clusters</strong>. If a GEX Flip aligns with a massive liquidation cluster, the resulting move will be 2-3x more violent.</li>
+</ol>
 
 </div>
 

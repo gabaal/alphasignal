@@ -518,49 +518,44 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Avoid the emotional pitfalls of FOMO and Panic by adopting purely statistical, deterministic trading strategies based on standard deviations and Z-Scores.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
-<h2>The Mathematics of Market Irrationality</h2>
-<p>In highly volatile crypto markets, price action is rarely driven by fundamentals in the short term. Instead, it is dominated by behavioral extremes—specifically, the alternating cycles of greed-induced FOMO and panic-induced capitulation. A quantitative trader does not guess when a move is over; they measure exactly how <strong>mathematically irrational</strong> the current price has become relative to its historical distribution.</p>
-
-<div style="background:rgba(139,92,246,0.05); border-left:4px solid var(--purple); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
-    <h3 style="margin-top:0; color:var(--purple);">The Gaussian Law: 68-95-99.7</h3>
-    <p style="margin-bottom:0;">Under a normal distribution (the Bell Curve), 68% of price action stays within 1 standard deviation of the mean. 95% stays within 2. A move that exceeds **3 standard deviations** (a Z-Score of 3.0) is a statistical anomaly that occurs only 0.3% of the time. When you see a Z-Score of 3.0, you are witnessing a market that has "stretched" to its breaking point.</p>
-</div>
-
-<h2>What is a Z-Score?</h2>
-<p>A Z-Score is a dimensionless measurement representing the number of standard deviations a data point is from its rolling mean. While retail traders use lagging oscillators like RSI, the AlphaSignal engine applies Z-Scores to three distinct "Alpha Vectors":</p>
-
+<h2>1. Foundational Overview: The Law of Large Numbers - Understanding Mean Reversion</h2>
+<p>Mean reversion is the mathematical premise that price, over time, will always return to its average value. In the institutional world, this is known as "Statistical Equilibrium." When price deviates significantly from its mean, it creates a "Stretched" state. The Law of Large Numbers suggests that extreme outliers are temporary and that the market will eventually correct itself to reflect the true consensus value.</p>
 <ul>
-    <li><strong>Price Momentum Z-Score:</strong> Measures if the current price velocity is sustainable or an exhaustive spike.</li>
-    <li><strong>Z-Score > 2.0:</strong> Price is in the top 2.5% of its historical range. This is "Mathematically Overbought."</li>
-    <li><strong>Z-Score < -2.0:</strong> Price is in the bottom 2.5% of its range. This is "Mathematically Oversold."</li>
+    <li><strong>Equilibrium:</strong> The point where buyers and sellers are in balance (usually represented by the VWAP).</li>
+    <li><strong>The Stretch:</strong> A move driven by emotional extremes (FOMO or Panic) that pushes price away from value.</li>
 </ul>
-<p>By using Z-Scores instead of standard RSI, we remove the "flat" nature of oscillator indicators and instead measure price in terms of **Standard Deviations**.</p>
 
-<h2>3. Advanced Quantitative Mechanics: Multi-Timeframe Confluence</h2>
-<p>The most dangerous scenario for a mean-reversion trader is a "Trending Market" that stays overextended for days. To solve this, AlphaSignal uses **Multi-Timeframe Z-Score Confluence**. </p>
+<h2>2. Intermediate Mechanics: Z-Scores and Standard Deviation Bands</h2>
+<p>Professional traders don't use simple oscillators; they use **Z-Scores**. A Z-Score measures exactly how many standard deviations price is from its rolling mean. 
+    <ul>
+        <li><strong>Z-Score > 2.0:</strong> Price is in the top 2.5% of its historical range (Statistically Overbought).</li>
+        <li><strong>Z-Score < -2.0:</strong> Price is in the bottom 2.5% of its historical range (Statistically Oversold).</li>
+    </ul>
+    By using Z-Scores, you are making a deterministic decision based on probability, not intuition.</p>
+
+<h2>3. Advanced Quantitative Mechanics: Rolling Mean Decay and Half-Life Analysis</h2>
+<p>Not all means are equal. Quantitative desks use **Half-Life Analysis** to determine how long a mean-reversion trade should take to complete. If an asset has a "Half-Life of 4 hours," it means that, statistically, it takes 4 hours for the price to return halfway to its mean. If price doesn't revert within this window, the statistical edge begins to "Decay," and the trade should be closed.</p>
+
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
-    <h3 style="margin-top:0; color:var(--accent);">The Confluence Rule</h3>
-    <p style="margin-bottom:0;">We only execute a "Fade" (reversal) trade when the Z-Score is >2.5 on the 15-minute chart AND >1.5 on the 4-hour chart. This ensures that we are not just fading a local spike, but catching an exhaustion point that aligns with the higher-timeframe trend exhaustion.</p>
+    <h3 style="margin-top:0; color:var(--accent);">The Mean Reversion Paradox</h3>
+    <p style="bottom:0;">A mean reversion strategy works best in **Mean-Reverting Regimes** (low volatility, range-bound). In a **Trending Regime**, fading a Z-Score of 3.0 can be disastrous. Always cross-reference your Z-Score with the **ADX (Average Directional Index)** to ensure the trend is weak enough to revert.</p>
 </div>
 
-<h2>4. Institutional Deep Dive: VWAP Reversion & Arbitrage</h2>
-<p>Institutional desks don't just revert to a simple moving average; they revert to the **VWAP (Volume Weighted Average Price)**. VWAP is the "True Mean" because it incorporates every dollar transacted in the market. </p>
-<p>In the AlphaSignal Terminal, we monitor the **Z-Score of Distance from VWAP**. When this score hits extreme levels (e.g., +/- 3.0), it indicates a "Liquidation Cascade" has occurred. Professional arbitrageurs step in here to buy the "forced selling" of liquidated retail traders, driving price violently back to the VWAP. This "Reversion to Value" is one of the most consistent institutional revenue streams in crypto.</p>
+<h2>4. Institutional Deep Dive: The Pairs Trading Strategy - Statistical Arbitrage</h2>
+<p>Institutional desks often trade "Pairs" instead of single assets. They look for two highly correlated assets (e.g., BTC and ETH). If BTC rises while ETH stays flat, the **Spread** between them deviates from its mean. The trader sells BTC and buys ETH, betting that the relationship between them must return to its historical average. This is known as **Statistical Arbitrage** (StatArb).</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
-    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The Z-Score Squeeze Fade</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a parabolic move where the Z-Score is >3.0. Check the **Liquidation Scanner**. If you see a massive spike in "Short Liquidations" while the Z-Score is at its peak, wait for the first 5-minute candle to close lower, then enter a Short. You are trading the "Exhaustion" of the squeeze as the last short-seller is wiped out and the "forced buying" ends.</p>
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Executing the StatArb Spread</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Open the **Correlation Matrix** in the AlphaSignal Terminal. Find two assets with a 90-day correlation > 0.90. Monitor the **Z-Score of the Spread**. When the spread hits +/- 2.5, it indicates a dislocation. Go Long the underperformer and Short the overperformer. Exit the trade when the spread Z-Score returns to 0.0. You are now profiting from the mathematical certainty of correlation, regardless of which way the overall market moves.</p>
 </div>
 
 <h2>Operationalizing Mean Reversion in the Terminal</h2>
-<p>Trading Z-Scores is not about picking tops. It is about identifying the **Zone of Exhaustion**. Within the Strategy Lab, we recommend the following execution framework:</p>
 <ol>
-    <li><strong>Entry:</strong> Only when Z-Score crosses the 2.5 threshold on the 1H timeframe.</li>
-    <li><strong>Confirmation:</strong> Look for a "Rounding Top" on the 5m candle chart combined with a drop in the Social Velocity Z-Score.</li>
-    <li><strong>Exit:</strong> Scale out 50% of the position when the Z-Score reverts to 1.0. Close the remainder when it hits the Mean (0.0).</li>
+    <li>Overlay the **AlphaSignal Z-Score Tracker** on your primary chart.</li>
+    <li>Use the **Correlation Matrix** to identify potential Pairs Trading opportunities.</li>
+    <li>Filter for **Z-Score Deviations** combined with **Low ADX** for the highest-probability reversals.</li>
+    <li>Set alerts for **VWAP Deviations**—the "True Mean" used by institutional execution algos.</li>
 </ol>
-
-<p>By removing the subjective "feeling" of a trade and replacing it with a deterministic Z-Score mandate, you transform from a reactive gambler into a proactive market mechanic.</p>
 
 </div>
 

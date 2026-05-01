@@ -517,25 +517,41 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Breakout Trading Strategies</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Learn how to trade volatility compressions and identify explosive chart breakouts before retail traders enter the market.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Physics of Volatility Compression</h2>
-<p>Market volatility is cyclical. Prolonged periods of low volatility (consolidation) are mathematically guaranteed to result in explosive periods of high volatility (expansion). The longer an asset compresses in a tight trading range, the more explosive the eventual breakout will be.</p>
 
-<img src="/academy/images/volatility_compression_coil.png" alt="Volatility Compression Chart" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>1. Foundational Overview: The Breakout Archetype - Identifying Real Expansion</h2>
+<p>Market volatility is cyclical. Prolonged periods of low volatility (consolidation) are mathematically guaranteed to result in explosive periods of high volatility (expansion). A breakout is simply the point where the supply/demand equilibrium is violated. However, in the institutional world, a breakout is only valid if it occurs with a **Structural Market Shift**.</p>
+<ul>
+    <li><strong>The Coiled Spring:</strong> The longer an asset compresses in a tight trading range, the more explosive the eventual expansion will be.</li>
+    <li><strong>Institutional Accumulation:</strong> Professionals use consolidation zones to build positions without moving the price. The breakout is the start of the "Mark-Up" phase.</li>
+</ul>
 
-<h3>Identifying the Setup</h3>
-<p>Breakout traders look for chart patterns such as ascending triangles, bull flags, and tightening Bollinger Bands. These patterns symbolize a coiled spring. As the price bounces between tightening support and resistance, institutional pressure builds.</p>
+<h2>2. Intermediate Mechanics: Volume Profile and Value Area</h2>
+<p>A true breakout must move price away from its **Point of Control (POC)**—the price level with the highest traded volume. Professional traders look for breakouts that clear the **Value Area High (VAH)** or **Value Area Low (VAL)**. If price breaks out but volume remains concentrated in the old range, the breakout is likely to fail.</p>
 
-<h3>Execution and False Breakouts</h3>
-<p>The danger of breakout trading is the "Fake-out"—when price momentarily pierces resistance to trap retail longs before violently dumping. Professional traders mitigate this risk by requiring strict volume confirmation.</p>
+<h2>3. Advanced Quantitative Mechanics: Delta Divergence and Absorption</h2>
+<p>To filter "Fakeouts," we analyze **Cumulative Volume Delta (CVD)**. If price is breaking to a new high, but CVD is falling, it indicates that aggressive buyers are being **Absorbed** by institutional limit sell orders. This "Bearish Absorption" is a high-probability signal that the breakout will reverse into a trap.</p>
+
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Breakout Filter</h3>
+    <p style="margin-bottom:0.75rem;"><strong>Momentum:</strong> High velocity + rising Delta = Institutional participation. This breakout has "Fuel."</p>
+    <p style="margin-bottom:0;"><strong>Exhaustion:</strong> Slow velocity + falling Delta = Retail FOMO. This breakout is the "Exit Liquidity" for professionals.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The "Failed Breakout Trap" (The SFP)</h2>
+<p>The **Swing Failure Pattern (SFP)** is the most powerful institutional reversal setup. It occurs when price pierces a major breakout level (e.g., a 52-week high) just enough to trigger retail "Buy-Stop" orders, only to instantly reverse and close back inside the range. This traps thousands of retail traders in a losing position, creating a "Liquidity Vacuum" that accelerates the reversal.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the SFP Trap</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a high-timeframe "Resistance" level that retail traders are watching. Wait for price to wick above this level. Monitor the **Order Flow Heatmap**—look for a massive cluster of buy orders being filled (The Trap). If the candle closes back *below* the resistance level, enter a Short position. Your stop-loss goes at the high of the wick. Your target is the opposite side of the consolidation range. You are now trading the "Re-balancing" of the market as trapped longs are forced to liquidate.</p>
+</div>
+
+<h2>Operationalizing Breakouts in the Terminal</h2>
 <ol>
-    <li>Wait for the price candle to definitively close outside the consolidation structure.</li>
-    <li>Verify that the breakout was accompanied by a massive, anomalous spike in trading volume.</li>
-    <li>Optionally, wait for the price to retest the broken resistance line (which now acts as new support) to execute a safer entry.</li>
+    <li>Use the <strong>Volume Profile</strong> overlay to identify the "Value Area" boundaries.</li>
+    <li>Monitor <strong>CVD Divergence</strong> during every breakout attempt to detect absorption.</li>
+    <li>Scan for <strong>Z-Score Volatility Anomalies</strong> to predict when a compression phase is about to end.</li>
+    <li>Set alerts for **"Swing Failure Patterns"** on the 4H and Daily timeframes.</li>
 </ol>
-
-<img src="/academy/images/breakout_volume_confirmation.png" alt="Breakout Volume Confirmation" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
-
-<p>AlphaSignal's Regime Matrix classifies exactly when the market transitions from "Compression" to "Expansion," acting as the ultimate macro filter for breakout strategies.</p>
 
 </div>
 

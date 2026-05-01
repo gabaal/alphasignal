@@ -517,21 +517,41 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Support and Resistance Fundamentals</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Identify the structural foundation of price action. Learn how to map out historical supply and demand zones effectively to frame your trades.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Architecture of Price</h2>
+
+<h2>1. Foundational Overview: The Architecture of Price</h2>
 <p>At its core, financial trading is a continuous auction. <strong>Support and Resistance</strong> represent the fundamental laws of supply and demand acting on a chart. These are not arbitrary lines; they are psychological and institutional memory banks where major capital previously changed hands.</p>
+<ul>
+    <li><strong>Support:</strong> A price zone where demand (buying pressure) overwhelms supply, preventing the price from falling further. It acts as a structural "floor."</li>
+    <li><strong>Resistance:</strong> A price zone where supply (selling pressure) overwhelms demand, preventing the price from rising further. It acts as a structural "ceiling."</li>
+</ul>
 
-<img src="/academy/images/institutional_liquidity_zones.png" alt="Institutional Liquidity Zones" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>2. Intermediate Mechanics: Role Reversal & Polarity</h2>
+<p>One of the most reliable concepts in institutional trading is the **Principle of Polarity**. When a major resistance level is finally broken to the upside, it frequently becomes the new localized support level upon a retest.</p>
+<p>This happens because market participants who missed the initial breakout are now eager to enter at the "old price," while those who were short are looking to cover their losses at breakeven. This collective behavior creates a "Self-Fulfilling Prophecy" that anchors price to previous structures.</p>
 
-<h3>Defining the Zones</h3>
-<p><strong>Support:</strong> A price zone where demand (buying pressure) has historically overwhelmed supply, preventing the price from falling further. It acts as a "floor."</p>
-<p><strong>Resistance:</strong> A price zone where supply (selling pressure) historically overwhelms demand, preventing the price from rising further. It acts as a "ceiling."</p>
+<h2>3. Advanced Quantitative Mechanics: Volume Profile Confluence</h2>
+<p>Retail traders draw lines connecting wicks; institutional traders look for **Volume Nodes**. AlphaSignal's Volume Profile tool abstracts traditional chart lines by plotting actual historical density.</p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">High Volume Nodes (HVN) vs. Valleys</h3>
+    <p style="margin-bottom:0.75rem;"><strong>HVNs:</strong> Represent price levels where the most trading activity has occurred. These act as "Magnets," pinning price into a range as the market agrees on a "Fair Value."</p>
+    <p style="margin-bottom:0;"><strong>Low Volume Valleys:</strong> Areas where price moved so quickly that very few trades were executed. These act as "Rejection Zones." If price enters a valley, it will likely "teleport" through it until it hits the next HVN, creating explosive momentum trades.</p>
+</div>
 
-<h3>Polarity and Institutional Magnetism</h3>
-<p>One of the most reliable concepts in trading is the Principle of Polarity: when a major resistance level is finally broken to the upside, it frequently becomes the new localized support level upon a retest.</p>
+<h2>4. Institutional Deep Dive: The "Liquidity Sweep" (Stop Run)</h2>
+<p>The most lucrative AlphaSignal setup involves identifying when institutions use support levels to "Hunt Liquidity." </p>
 
-<img src="/academy/images/polarity_retest_chart.png" alt="Principle of Polarity Retest" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The Bear Trap Fade</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Institutions require massive liquidity to fill their orders. They know that retail traders place their "Stop Loss" orders exactly below obvious support levels. To fill a large Buy order, an institution will push price *through* support, triggering those stops (which are Sell orders). This creates a temporary "Liquidity Flush." When AlphaSignal detects price breaking support but **Order Flow Heatmap** shows massive buy-side absorption, enter a Long. This is a "Liquidity Sweep," and price will likely reverse violently back into the range.</p>
+</div>
 
-<p>While retail traders draw simple horizontal lines connecting wicks, institutional traders view these levels as broad "liquidity zones." The AlphaSignal Volume Profile tool abstracts traditional chart lines by plotting actual historical volume nodes, revealing the true depth and density of these support and resistance structures.</p>
+<h2>Operationalizing Structure in the Terminal</h2>
+<ol>
+    <li>Overlay the <strong>Fixed Range Volume Profile</strong> on the current consolidation.</li>
+    <li>Identify the **Point of Control (POC)**—the single most traded price level.</li>
+    <li>Look for **Confluence** between a horizontal support level and a 6-month High Volume Node.</li>
+    <li>Wait for the **Liquidity Sweep** (a quick wick below support) before executing your entry.</li>
+</ol>
 
 </div>
 

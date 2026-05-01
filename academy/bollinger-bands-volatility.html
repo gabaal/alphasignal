@@ -517,18 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Bollinger Bands and Volatility Envelopes</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Measure price dispersion and identify explosive momentum breakouts using dynamic volatility channels.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>Understanding Volatility Bands</h2>
-<p>Developed by John Bollinger, these bands consist of a simple moving average (usually 20-period) and two standard deviation bands plotted above and below it. They dynamically expand during periods of high volatility and contract during periods of low volatility.</p>
 
-<img src="/academy/images/bollinger_volatility_squeeze.png" alt="Bollinger Volatility Squeeze" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>1. Foundational Overview: The Elasticity of Price - Volatility Mapping</h2>
+<p>Developed by John Bollinger, these bands consist of a simple moving average (usually 20-period) and two standard deviation (SD) bands. Unlike static channels, Bollinger Bands are **Adaptive Envelopes**—they expand and contract based on the mathematical dispersion of price. They represent the "Elasticity" of the market; the further price stretches from the mean, the higher the tension for a reversion.</p>
+<ul>
+    <li><strong>The Center Line:</strong> Represents the intermediate-term trend (The Mean).</li>
+    <li><strong>The Outer Bands:</strong> Represent the 95% Confidence Interval of price action.</li>
+</ul>
 
-<h3>The Bollinger Squeeze</h3>
-<p>When the bands tightly constrict together (a "Squeeze"), it indicates a period of abnormally low volatility. In financial markets, low volatility mathematically guarantees incoming high volatility. Traders use the squeeze to anticipate violent, directional breakouts.</p>
+<h2>2. Intermediate Mechanics: The "Squeeze" & Expansion Cycle</h2>
+<p>Volatility is cyclical. Periods of extreme high volatility are always followed by a "Squeeze" (low volatility), which acts as a pressure cooker for the next move. An institutional **Bollinger Squeeze** identifies where the bands are at their tightest point in a rolling 6-month window. This doesn't dictate direction, but it signals that an explosive, multi-week trend is imminent.</p>
 
-<h3>Mean Reversion and Riding the Band</h3>
-<p>While price touching the upper band often signals an overbought condition (prompting a mean-reverting short), in strong trends, price can "ride the band" for extended periods. Combining Bollinger Bands with the RSI helps differentiate between a valid mean-reversion setup and a massive parabolic breakout.</p>
+<h2>3. Advanced Quantitative Mechanics: Bollinger Band Width and Sigma-3 Deviations</h2>
+<p>Professional desks quantify the bands using **Band Width**. This metric normalizes the distance between the upper and lower bands as a single value. When Band Width reaches a historical low, it triggers a "Volatility Compression" alert. Furthermore, while retail traders use 2SD bands, institutions monitor the **Sigma-3 (3SD)** level. A touch of the 3SD band represents a 99.7% outlier event—a "Black Swan" price point where the probability of a violent mean reversion exceeds 99%.</p>
 
-<img src="/academy/images/bollinger_mean_reversion.png" alt="Bollinger Mean Reversion" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Expansion Trap</h3>
+    <p style="margin-bottom:0;">A common retail error is "fading" the bands (selling the top band) during a volatility expansion. In a strong institutional trend, price can "Walk the Bands" for weeks. Never fade an outer band touch unless the **AlphaSignal Mindshare Tracker** shows a collapse in narrative momentum.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The "Volatility Compression" Strategy</h2>
+<p>Institutions profit from the transition between regimes. The **Volatility Compression** strategy involves identifying a tight squeeze followed by a "Head-Fake." Price will often break briefly out of one side of the squeeze to trigger retail stops, before reversing violently and "Walking" the opposite band for a massive move.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Riding the Band-Walk</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify an asset with a **Bandwidth** value in the bottom 5th percentile of its 1-year history. Wait for a candle to close outside the Upper Band on high volume. This is the "Ignition." Instead of selling the "Overbought" condition, enter a Long position. Use the 20-period SMA (Center Line) as your trailing stop. Hold the position as long as price continues to close between the Upper Band and the 20-SMA. This strategy captures the most explosive phase of an institutional trend.</p>
+</div>
+
+<h2>Operationalizing Volatility in the Terminal</h2>
+<ol>
+    <li>Monitor the <strong>Volatility Regime Classifier</strong> to see if the market is in Compression or Expansion.</li>
+    <li>Use the <strong>AlphaSignal Squeeze Scanner</strong> to find assets coiled for a move.</li>
+    <li>Check the <strong>3SD Sigma Reversion</strong> alerts for high-probability mean reversion trades during crashes.</li>
+    <li>Add <strong>Bollinger Band Width</strong> to your dashboard to quantify the "Pressure" of the current consolidation.</li>
+</ol>
 
 </div>
 

@@ -517,19 +517,41 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Smart Money Concepts (SMC)</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Understand Fair Value Gaps (FVG), Inducement, and Liquidity Grabs to trade in alignment with institutional market makers.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>Trading Like the Algorithm</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" src="https://www.youtube-nocookie.com/embed/xNcHsVJ71qo?rel=0" title="Smart Money Concepts Tutorial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-<p>Smart Money Concepts (SMC) is a refined terminology framework for institutional trading strategies. It focuses entirely on tracking how market-making algorithms hunt liquidity and balance the order book.</p>
 
-<img src="/academy/images/fair_value_gap_fill.png" alt="Fair Value Gap Fill" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>1. Foundational Overview: The SMC Framework - Institutional Order Flow</h2>
+<p>Smart Money Concepts (SMC) is a framework that views the market as a deterministic algorithm. Instead of random movements, SMC posits that price is "delivered" to specific liquidity points by a central bank algorithm. In this world, retail patterns are viewed as **Engineering Liquidity** for institutional entries.</p>
+<ul>
+    <li><strong>The Core Thesis:</strong> Institutions do not trade like retail. They need massive pools of stop-losses to fill their multi-billion dollar positions.</li>
+    <li><strong>Order Flow:</strong> The bias of the higher-timeframe "Main Trend" which dictates where the algorithm will deliver price next.</li>
+</ul>
 
-<h3>Fair Value Gaps (FVG)</h3>
-<p>A Fair Value Gap occurs during a massive, impulsive price movement where a candle is so large that the wicks of the preceding and following candles do not overlap. This creates a "gap" in the price delivery algorithm. Because the market abhors inefficiency, price will almost always aggressively retrace to fill this FVG, offering a pristine entry point.</p>
+<h2>2. Intermediate Mechanics: Inducement and Internal Range Liquidity</h2>
+<p>An **Inducement** is a localized high or low that "induces" retail traders to enter early. The algorithm will often sweep this inducement to gather the necessary liquidity before moving in the intended direction. **Internal Range Liquidity (IRL)** refers to the pools of stops sitting inside a trading range, while **External Range Liquidity (ERL)** sits at the major swing highs and lows.</p>
 
-<h3>Inducement and Traps</h3>
-<p>SMC teaches that retail patterns (like double tops or trendlines) are often engineered by market makers to "induce" retail traders into entering early. The algorithm will then violently sweep this liquidity (a stop run) before moving in the actual intended direction. SMC traders patiently wait for this inducement sweep to occur before entering their positions.</p>
+<h2>3. Advanced Quantitative Mechanics: Fair Value Gaps (FVG) and Balanced Price Ranges</h2>
+<p>A **Fair Value Gap (FVG)** is a structural imbalance where price moved so fast that only one side of the market (buy or sell) was efficiently delivered. A **Balanced Price Range (BPR)** occurs when an FVG is immediately filled and then price reverses, creating a "perfectly balanced" zone that often acts as the strongest possible support or resistance in the future.</p>
 
-<img src="/academy/images/inducement_trap_sweep.png" alt="Inducement Trap Sweep" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Efficiency Algorithm</h3>
+    <p style="margin-bottom:0.75rem;"><strong>Imbalance:</strong> The market algorithm seeks to "Repair" FVG zones to ensure two-way trading has occurred at all price levels.</p>
+    <p style="margin-bottom:0;"><strong>Consolidation:</strong> When price is balanced, it consolidates. When it is unbalanced, it expands impulsively toward the next liquidity pool.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The "ICT Silver Bullet" Strategy</h2>
+<p>The **Silver Bullet** is a time-based liquidity setup. Institutional market makers are most active during specific "Kill Zones" (e.g., the New York Open). This strategy targets the high-probability expansion that occurs when the algorithm seeks to sweep the high or low of the previous session.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Time-Based Expansion</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor the 10:00 AM to 11:00 AM EST window. Wait for price to sweep an **Internal Range Liquidity** pool (an old high or low from the London session). Once the sweep is complete, look for a **Market Structure Shift** and a corresponding **Fair Value Gap**. Enter your position at the retest of the FVG. Your target is the **External Range Liquidity** (the session high/low). This strategy exploits the algorithmic "Price Delivery" that occurs during the height of institutional trading volume.</p>
+</div>
+
+<h2>Operationalizing SMC in the Terminal</h2>
+<ol>
+    <li>Use the <strong>Fair Value Gap Scanner</strong> to identify unmitigated imbalances.</li>
+    <li>Identify <strong>Kill Zone Windows</strong> on your chart to time your entries with institutional flows.</li>
+    <li>Confluence: Look for where an <strong>SMC Breaker</strong> aligns with a **Standard Deviation Band** on the VWAP.</li>
+    <li>Set alerts for **"Liquidity Sweeps"** on high-timeframe swing points.</li>
+</ol>
 
 </div>
 

@@ -517,21 +517,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Trading Harmonic Patterns</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Utilize advanced geometry and overlapping Fibonacci sequences to pinpoint highly accurate geometric reversal zones.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Geometry of Price</h2>
-<p>Harmonic trading combines geometric chart patterns with precise Fibonacci ratios to predict future price movements. Unlike standard chart patterns, harmonics require strict mathematical validation to be considered tradable.</p>
 
-<img src="/academy/images/harmonic_gartley_pattern.png" alt="Harmonic Gartley Pattern" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
-
-<h3>Common Harmonic Structures</h3>
+<h2>1. Foundational Overview: The Geometry of Markets - Identifying Fibonacci Ratios</h2>
+<p>Harmonic trading is based on the principle that market movements are not random but governed by geometric ratios. These patterns use precise Fibonacci sequences to identify high-probability turning points. In the institutional world, these aren't just "shapes"—they represent the mathematical balancing of supply and demand.</p>
 <ul>
-    <li><strong>The Gartley Pattern:</strong> The most famous harmonic, relying on a specific M or W shaped structure where the B point retraces exactly 61.8% of the X-A leg.</li>
-    <li><strong>The Butterfly & Bat:</strong> Variations of the Gartley that target deeper or shallower retracement levels, often signaling major market turning points.</li>
+    <li><strong>The Core Ratios:</strong> 0.618, 0.786, 0.886, and 1.618. Every valid harmonic pattern must adhere to these ratios within a 2-3% margin of error.</li>
+    <li><strong>Cyclical Harmony:</strong> Geometric patterns often repeat across multiple timeframes, creating "Nested Harmonics."</li>
 </ul>
 
-<h3>The Potential Reversal Zone (PRZ)</h3>
-<p>The ultimate goal of drawing a harmonic pattern is identifying the PRZ. This is a cluster of overlapping Fibonacci extensions where the pattern completes. When price enters the PRZ, harmonic traders look for local price action confirmation (like a bullish engulfing candle) to execute a high-conviction reversal trade.</p>
+<h2>2. Intermediate Mechanics: The Potential Reversal Zone (PRZ)</h2>
+<p>The PRZ is a narrow price range where at least three Fibonacci levels converge. Professional traders do not "blindly" buy the completion of a pattern; they wait for the PRZ to be tested. If price enters the PRZ and reacts with institutional order flow (a volume spike or CVD shift), the pattern is validated.</p>
 
-<img src="/academy/images/harmonic_prz_cluster.png" alt="Harmonic PRZ Cluster" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>3. Advanced Quantitative Mechanics: Volatility-Adjusted Target Projection</h2>
+<p>Retail traders target the standard 38.2% and 61.8% retracements. Quantitative desks, however, use **ATR-Adjusted Targets**. If the market is in a high-volatility regime, the targets are extended to account for the increased "noise." Conversely, in low-volatility regimes, targets are tightened to ensure execution before the next compression phase.</p>
+
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Harmonic Filter</h3>
+    <p style="margin-bottom:0;">A harmonic pattern that completes within a **High-Volume Node (HVN)** of the Volume Profile is 70% more likely to result in a successful reversal than one that completes in a "low-volume vacuum."</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The Shark & Cypher - Trading Algorithmic Stop-Hunts</h2>
+<p>The **Shark** and **Cypher** patterns are unique because they rely on a "Failed Breakout" (the C-point wicks above/below the X-point). These patterns are designed to capture the liquidity created when retail traders' stop-losses are hit. The "D-Point" of these patterns often completes at the 88.6% or 113% extension—levels where retail traders have given up, but HFT bots are starting to buy.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Cypher Reversal</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a Cypher pattern forming on the 4H timeframe. Wait for price to reach the D-point (the 78.6% retracement of the XC leg). Monitor the **Liquidation Scanner** in the AlphaSignal Terminal. If you see a spike in "Short Liquidations" as price hits the D-point, it confirms that the market is "cleaning out" the late sellers. Enter a Long position. Your stop-loss goes below the X-point. Your target is the 38.2% retracement of the CD leg. You are now trading the "Re-balancing" of the market after a successful stop-hunt.</p>
+</div>
+
+<h2>Operationalizing Harmonics in the Terminal</h2>
+<ol>
+    <li>Use the <strong>Harmonic Auto-Scanner</strong> to identify emerging patterns across 50+ assets.</li>
+    <li>Cross-reference the <strong>PRZ</strong> with the <strong>Volume Profile HVN</strong> for confluence.</li>
+    <li>Set alerts for **Shark Pattern completion** at key psychological levels (e.g., $100k BTC).</li>
+    <li>Verify the reversal using **Order Flow Delta**—look for "Aggressive Buying" at the D-point.</li>
+</ol>
 
 </div>
 

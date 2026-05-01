@@ -517,18 +517,41 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Naked Price Action Trading</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Strip away the lagging indicators and learn how to read raw market structure, candle momentum, and liquidity sweeps.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>Trading the Naked Chart</h2>
-<p>Price Action trading operates on the philosophy that all necessary market data is already reflected in the raw price. Instead of relying on lagging oscillators, price action traders analyze the tape, candle structure, and localized market geometry.</p>
 
-<img src="/academy/images/market_structure_break.png" alt="Market Structure Break" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>1. Foundational Overview: The Primacy of Price - Deconstructing the Tape</h2>
+<p>Price Action is the study of raw market movement without the lag of indicators. In the institutional world, price action is viewed as a series of **Liquidity Transferences**. Every candle represents a localized battle between passive limit orders and aggressive market orders.</p>
+<ul>
+    <li><strong>The Naked Chart:</strong> Removing oscillators allows a trader to see the "Real Tape"—the velocity and magnitude of price shifts.</li>
+    <li><strong>Institutional Bias:</strong> Professional desks don't look for patterns; they look for **Intent**. Is the price moving to fill an imbalance or to sweep a liquidity pool?</li>
+</ul>
 
-<h3>Market Structure and Swings</h3>
-<p>The foundation of price action is identifying Higher Highs (HH) and Higher Lows (HL) for uptrends, and Lower Highs (LH) and Lower Lows (LL) for downtrends. A "Break of Structure" (BOS) occurs when this sequence is violated, offering the earliest possible signal of a macro trend reversal.</p>
+<h2>2. Intermediate Mechanics: Market Structure Shifts (MSS)</h2>
+<p>A trend isn't just "up" or "down." It is a sequence of Higher Highs (HH) and Higher Lows (HL). A **Market Structure Shift (MSS)** occurs when price impulsively breaks the last "protected" swing low or high. This is the earliest mathematical signal that the institutional bias has flipped.</p>
 
-<h3>Liquidity Sweeps</h3>
-<p>A major concept in naked trading is the Liquidity Sweep. Market makers often push the price just past a major swing high or swing low to trigger retail stop-losses (creating a massive liquidity pool) before instantly reversing the price in the opposite direction. Identifying these sweeps prevents traders from buying the absolute top or selling the absolute bottom.</p>
+<h2>3. Advanced Quantitative Mechanics: Liquidity Pools and Voids</h2>
+<p>Price moves between areas of liquidity. **Liquidity Pools** are clusters of stop-losses sitting above old highs or below old lows. **Liquidity Voids** (or Fair Value Gaps) are areas where price moved so fast that no two-way trading occurred, creating a vacuum that price will eventually return to fill.</p>
 
-<img src="/academy/images/liquidity_sweep_reversal.png" alt="Liquidity Sweep Reversal" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Law of Magnetism</h3>
+    <p style="margin-bottom:0.75rem;"><strong>Gravity:</strong> Price is "attracted" to large liquidity pools. Institutions need these pools to fill their massive orders without causing excessive slippage.</p>
+    <p style="margin-bottom:0;"><strong>The Void:</strong> When price leaves a void, it creates an "Imbalance" that the market algorithm seeks to rebalance before continuing the primary trend.</p>
+</div>
+
+<h2>4. Institutional Deep Dive: The "Stop-Run Reversal" Strategy</h2>
+<p>Professional traders often wait for retail traders to be "Correct but Trapped." This occurs during a **Stop-Run**. Price will break a major resistance level to entice retail "Breakout Buyers," only to instantly reverse once their buy-stops have provided the liquidity for an institutional sell-side entry.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading Trap Liquidity</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a major "Retail Resistance" level (Double Top). Wait for price to wick above this level on high volume—this is the **Liquidity Sweep**. If price then closes back *inside* the range with a **Market Structure Shift** on the lower timeframe, enter a Short position. Your target is the **Sell-Side Liquidity (SSL)** sitting at the bottom of the range. This strategy has a high win rate because it aligns your entry with the massive capital flows of market makers.</p>
+</div>
+
+<h2>Operationalizing Price Action in the Terminal</h2>
+<ol>
+    <li>Use the <strong>Liquidity Heatmap</strong> to identify major pools before they are swept.</li>
+    <li>Monitor <strong>Volume Delta</strong> during a Break of Structure to confirm institutional intent.</li>
+    <li>Scan for <strong>Fair Value Gaps (FVG)</strong> to identify where price is likely to "Magnetize" back to.</li>
+    <li>Set alerts for **"Swing Failure Patterns"**—the classic signature of a Stop-Run Reversal.</li>
+</ol>
 
 </div>
 
