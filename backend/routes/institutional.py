@@ -2390,6 +2390,18 @@ class InstitutionalRoutesMixin:
             if user_email:
                 where_clauses.append("LOWER(user_email) = LOWER(?)")
                 params.append(user_email)
+                c.execute('SELECT enable_rsi, enable_macd, enable_ml_alpha, enable_vol_spike FROM user_settings WHERE user_email=?', (user_email,))
+                r = c.fetchone()
+                if r:
+                    enable_rsi, enable_macd, enable_ml, enable_vol = r
+                    if not enable_rsi:
+                        where_clauses.append("type NOT LIKE '%RSI%'")
+                    if not enable_macd:
+                        where_clauses.append("type NOT LIKE '%MACD%'")
+                    if not enable_ml:
+                        where_clauses.append("type NOT LIKE '%ML_%'")
+                    if not enable_vol:
+                        where_clauses.append("type NOT LIKE '%VOLUME_%'")
 
             if filter_ticker:
                 # Accept both 'STRK' and 'STRK-USD' — callers may strip the suffix
@@ -4287,9 +4299,23 @@ class InstitutionalRoutesMixin:
     def handle_performance(self):
         """Feature 4: Performance Dashboard - track record from alerts_history."""
         try:
+            auth = self.is_authenticated()
+            email = auth.get('email', '') if auth else ''
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute('SELECT ticker, price, timestamp, direction, status, final_roi FROM alerts_history WHERE price IS NOT NULL AND price > 0 ORDER BY timestamp DESC LIMIT 100')
+            
+            where_clauses = "price IS NOT NULL AND price > 0"
+            if email:
+                c.execute('SELECT enable_rsi, enable_macd, enable_ml_alpha, enable_vol_spike FROM user_settings WHERE user_email=?', (email,))
+                r = c.fetchone()
+                if r:
+                    enable_rsi, enable_macd, enable_ml, enable_vol = r
+                    if not enable_rsi: where_clauses += " AND type NOT LIKE '%RSI%'"
+                    if not enable_macd: where_clauses += " AND type NOT LIKE '%MACD%'"
+                    if not enable_ml: where_clauses += " AND type NOT LIKE '%ML_%'"
+                    if not enable_vol: where_clauses += " AND type NOT LIKE '%VOLUME_%'"
+
+            c.execute(f'SELECT ticker, price, timestamp, direction, status, final_roi FROM alerts_history WHERE {where_clauses} ORDER BY timestamp DESC LIMIT 100')
             signals = c.fetchall()
             conn.close()
             total = len(signals)
@@ -4571,6 +4597,15 @@ class InstitutionalRoutesMixin:
                 else:
                     base_where  = "WHERE ah.timestamp > datetime('now', ?) AND LOWER(ah.user_email) = LOWER(?)"
                     params      = [f'-{f_days} day', user_email]
+                
+                c.execute('SELECT enable_rsi, enable_macd, enable_ml_alpha, enable_vol_spike FROM user_settings WHERE user_email=?', (user_email,))
+                r = c.fetchone()
+                if r:
+                    enable_rsi, enable_macd, enable_ml, enable_vol = r
+                    if not enable_rsi: base_where += " AND ah.type NOT LIKE '%RSI%'"
+                    if not enable_macd: base_where += " AND ah.type NOT LIKE '%MACD%'"
+                    if not enable_ml: base_where += " AND ah.type NOT LIKE '%ML_%'"
+                    if not enable_vol: base_where += " AND ah.type NOT LIKE '%VOLUME_%'"
                 
                 # Filter out NON_CRYPTO tickers
                 NON_CRYPTO = tuple(set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', [])))
@@ -6180,7 +6215,7 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             if post_data:
-                c.execute('SELECT algo_z_threshold, algo_whale_threshold, algo_depeg_threshold, algo_vol_spike_threshold, algo_cme_gap_threshold, algo_rsi_oversold, algo_rsi_overbought FROM user_settings WHERE user_email=?', (email,))
+                c.execute('SELECT algo_z_threshold, algo_whale_threshold, algo_depeg_threshold, algo_vol_spike_threshold, algo_cme_gap_threshold, algo_rsi_oversold, algo_rsi_overbought, enable_ml_alpha, enable_vol_spike, enable_rsi, enable_macd FROM user_settings WHERE user_email=?', (email,))
                 ext = c.fetchone()
                 
                 z_t = float(post_data.get('algo_z_threshold', ext[0] if ext and ext[0] is not None else 2.0))
@@ -6191,6 +6226,11 @@ class InstitutionalRoutesMixin:
                 rsi_os = float(post_data.get('algo_rsi_oversold', ext[5] if ext and len(ext) > 5 and ext[5] is not None else 25.0))
                 rsi_ob = float(post_data.get('algo_rsi_overbought', ext[6] if ext and len(ext) > 6 and ext[6] is not None else 75.0))
                 
+                en_ml = 1 if post_data.get('enable_ml_alpha', ext[7] if ext and len(ext) > 7 else 1) else 0
+                en_vol = 1 if post_data.get('enable_vol_spike', ext[8] if ext and len(ext) > 8 else 1) else 0
+                en_rsi = 1 if post_data.get('enable_rsi', ext[9] if ext and len(ext) > 9 else 1) else 0
+                en_macd = 1 if post_data.get('enable_macd', ext[10] if ext and len(ext) > 10 else 1) else 0
+                
                 c.execute("""UPDATE user_settings SET
                                algo_z_threshold = ?,
                                algo_whale_threshold = ?,
@@ -6198,16 +6238,22 @@ class InstitutionalRoutesMixin:
                                algo_vol_spike_threshold = ?,
                                algo_cme_gap_threshold = ?,
                                algo_rsi_oversold = ?,
-                               algo_rsi_overbought = ?
+                               algo_rsi_overbought = ?,
+                               enable_ml_alpha = ?,
+                               enable_vol_spike = ?,
+                               enable_rsi = ?,
+                               enable_macd = ?
                              WHERE user_email = ?""",
-                          (z_t, whale_t, depeg_t, vol_t, cme_t, rsi_os, rsi_ob, email))
+                          (z_t, whale_t, depeg_t, vol_t, cme_t, rsi_os, rsi_ob, en_ml, en_vol, en_rsi, en_macd, email))
                 conn.commit()
                 conn.close()
                 self.send_json({'success': True, 'algo_z_threshold': z_t, 'algo_whale_threshold': whale_t, 
                                 'algo_depeg_threshold': depeg_t, 'algo_vol_spike_threshold': vol_t, 'algo_cme_gap_threshold': cme_t,
-                                'algo_rsi_oversold': rsi_os, 'algo_rsi_overbought': rsi_ob})
+                                'algo_rsi_oversold': rsi_os, 'algo_rsi_overbought': rsi_ob,
+                                'enable_ml_alpha': bool(en_ml), 'enable_vol_spike': bool(en_vol),
+                                'enable_rsi': bool(en_rsi), 'enable_macd': bool(en_macd)})
             else:
-                c.execute('SELECT algo_z_threshold, algo_whale_threshold, algo_depeg_threshold, algo_vol_spike_threshold, algo_cme_gap_threshold, algo_rsi_oversold, algo_rsi_overbought FROM user_settings WHERE user_email=?', (email,))
+                c.execute('SELECT algo_z_threshold, algo_whale_threshold, algo_depeg_threshold, algo_vol_spike_threshold, algo_cme_gap_threshold, algo_rsi_oversold, algo_rsi_overbought, enable_ml_alpha, enable_vol_spike, enable_rsi, enable_macd FROM user_settings WHERE user_email=?', (email,))
                 row = c.fetchone()
                 conn.close()
                 if row:
@@ -6219,12 +6265,18 @@ class InstitutionalRoutesMixin:
                         'algo_cme_gap_threshold': row[4] if row[4] is not None else 1.0,
                         'algo_rsi_oversold': row[5] if row[5] is not None else 25.0,
                         'algo_rsi_overbought': row[6] if row[6] is not None else 75.0,
+                        'enable_ml_alpha': bool(row[7] if row[7] is not None else 1),
+                        'enable_vol_spike': bool(row[8] if row[8] is not None else 1),
+                        'enable_rsi': bool(row[9] if row[9] is not None else 1),
+                        'enable_macd': bool(row[10] if row[10] is not None else 1),
                     })
                 else:
                     self.send_json({
                         'algo_z_threshold': 2.0, 'algo_whale_threshold': 5.0,
                         'algo_depeg_threshold': 1.0, 'algo_vol_spike_threshold': 2.0, 'algo_cme_gap_threshold': 1.0,
-                        'algo_rsi_oversold': 25.0, 'algo_rsi_overbought': 75.0
+                        'algo_rsi_oversold': 25.0, 'algo_rsi_overbought': 75.0,
+                        'enable_ml_alpha': True, 'enable_vol_spike': True,
+                        'enable_rsi': True, 'enable_macd': True
                     })
         except Exception as e:
             print(f'[AlgoParams] {e}')
