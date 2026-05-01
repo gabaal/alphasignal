@@ -42,7 +42,7 @@ async function renderAlgoParams(tabs) {
 
 async function _renderAlgoParamsContent(tabs) {
     // Fetch current algo params
-    let params = { algo_z_threshold: 2.0, algo_whale_threshold: 5.0, algo_depeg_threshold: 1.0, algo_vol_spike_threshold: 2.0, algo_cme_gap_threshold: 1.0, algo_rsi_oversold: 25.0, algo_rsi_overbought: 75.0 };
+    let params = { algo_z_threshold: 2.0, algo_whale_threshold: 5.0, algo_depeg_threshold: 1.0, algo_vol_spike_threshold: 2.0, algo_cme_gap_threshold: 1.0, algo_rsi_oversold: 25.0, algo_rsi_overbought: 75.0, enable_ml_alpha: true, enable_vol_spike: true, enable_rsi: true, enable_macd: true };
     try {
         const res = await fetchAPI('/user/algo-params');
         if (res && !res.error) {
@@ -151,6 +151,42 @@ async function _renderAlgoParamsContent(tabs) {
                         <input type="range" id="algo-cme-slider" min="0.5" max="5.0" step="0.1" value="${params.algo_cme_gap_threshold}" style="width: 100%; cursor: pointer;" oninput="document.getElementById('algo-cme-val').textContent = parseFloat(this.value).toFixed(1) + '%'">
                         <p style="font-size: 0.7rem; color: var(--text-dim); margin: 6px 0 0 0;">Minimum percentage gap between Friday close and Monday open on CME futures.</p>
                     </div>
+                    <!-- Signal Toggles -->
+                    <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text); letter-spacing: 1px; display:block; margin-bottom: 15px;">ACTIVE SIGNAL MODULES</label>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text);">ML Alpha Prediction</div>
+                                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Neural network confidence scoring. Highly profitable.</div>
+                            </div>
+                            <input type="checkbox" id="algo-enable-ml" ${params.enable_ml_alpha !== false ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text);">Volume Spikes</div>
+                                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Momentum confirmation via unexpected volume.</div>
+                            </div>
+                            <input type="checkbox" id="algo-enable-vol" ${params.enable_vol_spike !== false ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--risk-high);">RSI Overbought / Oversold</div>
+                                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Legacy technical indicator. Prone to fakeouts in trending markets.</div>
+                            </div>
+                            <input type="checkbox" id="algo-enable-rsi" ${params.enable_rsi !== false ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--risk-high);">
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--risk-high);">MACD Crossovers</div>
+                                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Legacy momentum oscillator. High false-positive rate.</div>
+                            </div>
+                            <input type="checkbox" id="algo-enable-macd" ${params.enable_macd !== false ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--risk-high);">
+                        </div>
+                    </div>
                 </div>
 
                 <div style="margin-top: 2rem; display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
@@ -188,7 +224,14 @@ window.resetAlgoParamsToDefault = function() {
             label.textContent = (cfg.prefix || '') + cfg.val.toFixed(cfg.precision) + cfg.suffix;
         }
     }
-    showToast("DEFAULTS RESTORED", "Click 'Update Engine' to save.", "info");
+    
+    // Reset Checkboxes
+    if(document.getElementById('algo-enable-ml')) document.getElementById('algo-enable-ml').checked = true;
+    if(document.getElementById('algo-enable-vol')) document.getElementById('algo-enable-vol').checked = true;
+    if(document.getElementById('algo-enable-rsi')) document.getElementById('algo-enable-rsi').checked = false;
+    if(document.getElementById('algo-enable-macd')) document.getElementById('algo-enable-macd').checked = false;
+
+    showToast("DEFAULTS RESTORED", "Legacy signals disabled. Click 'Update Engine' to save.", "info");
 };
 
 async function saveAlgoParams() {
@@ -202,7 +245,11 @@ async function saveAlgoParams() {
         algo_depeg_threshold: parseFloat(document.getElementById('algo-depeg-slider').value),
         algo_cme_gap_threshold: parseFloat(document.getElementById('algo-cme-slider').value),
         algo_rsi_oversold: parseFloat(document.getElementById('algo-rsi-os-slider').value),
-        algo_rsi_overbought: parseFloat(document.getElementById('algo-rsi-ob-slider').value)
+        algo_rsi_overbought: parseFloat(document.getElementById('algo-rsi-ob-slider').value),
+        enable_ml_alpha: document.getElementById('algo-enable-ml').checked,
+        enable_vol_spike: document.getElementById('algo-enable-vol').checked,
+        enable_rsi: document.getElementById('algo-enable-rsi').checked,
+        enable_macd: document.getElementById('algo-enable-macd').checked
     };
 
     try {
