@@ -160,7 +160,7 @@ async function _renderAlgoParamsContent(tabs) {
                                 <div style="font-size: 0.8rem; font-weight: 700; color: var(--text);">ML Alpha Prediction</div>
                                 <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Neural network confidence scoring. Highly profitable.</div>
                             </div>
-                            <input type="checkbox" id="algo-enable-ml" ${params.enable_ml_alpha !== false ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
+                            <input type="checkbox" id="algo-enable-ml" ${params.enable_ml_alpha ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
                         </div>
 
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -168,7 +168,7 @@ async function _renderAlgoParamsContent(tabs) {
                                 <div style="font-size: 0.8rem; font-weight: 700; color: var(--text);">Volume Spikes</div>
                                 <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Momentum confirmation via unexpected volume.</div>
                             </div>
-                            <input type="checkbox" id="algo-enable-vol" ${params.enable_vol_spike !== false ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
+                            <input type="checkbox" id="algo-enable-vol" ${params.enable_vol_spike ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
                         </div>
 
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -176,7 +176,7 @@ async function _renderAlgoParamsContent(tabs) {
                                 <div style="font-size: 0.8rem; font-weight: 700; color: var(--risk-high);">RSI Overbought / Oversold</div>
                                 <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Legacy technical indicator. Prone to fakeouts in trending markets.</div>
                             </div>
-                            <input type="checkbox" id="algo-enable-rsi" ${params.enable_rsi !== false ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--risk-high);">
+                            <input type="checkbox" id="algo-enable-rsi" ${params.enable_rsi ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--risk-high);">
                         </div>
 
                         <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -184,7 +184,7 @@ async function _renderAlgoParamsContent(tabs) {
                                 <div style="font-size: 0.8rem; font-weight: 700; color: var(--risk-high);">MACD Crossovers</div>
                                 <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Legacy momentum oscillator. High false-positive rate.</div>
                             </div>
-                            <input type="checkbox" id="algo-enable-macd" ${params.enable_macd !== false ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--risk-high);">
+                            <input type="checkbox" id="algo-enable-macd" ${params.enable_macd ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--risk-high);">
                         </div>
                     </div>
                 </div>
