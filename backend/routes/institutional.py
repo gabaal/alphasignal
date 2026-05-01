@@ -5755,13 +5755,27 @@ class InstitutionalRoutesMixin:
             except ValueError:
                 alpha_filter = None
 
+            auth = self.is_authenticated()
+            email = auth.get('email', '') if auth else ''
+
             # 1. Pull signal history from DB
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c    = conn.cursor()
             
-            sql_query = '''SELECT ticker, type, price, timestamp
+            where_clauses = ["price > 0"]
+            if email:
+                c.execute('SELECT enable_rsi, enable_macd, enable_ml_alpha, enable_vol_spike FROM user_settings WHERE user_email=?', (email,))
+                r = c.fetchone()
+                if r:
+                    en_rsi, en_macd, en_ml, en_vol = r
+                    if not en_rsi: where_clauses.append("type NOT LIKE '%RSI%'")
+                    if not en_macd: where_clauses.append("type NOT LIKE '%MACD%'")
+                    if not en_ml: where_clauses.append("type NOT LIKE '%ML_%'")
+                    if not en_vol: where_clauses.append("type NOT LIKE '%VOLUME_%'")
+
+            sql_query = f'''SELECT ticker, type, price, timestamp
                          FROM alerts_history
-                         WHERE price > 0'''
+                         WHERE {" AND ".join(where_clauses)}'''
             params = []
             
             if start_date:
@@ -6231,20 +6245,24 @@ class InstitutionalRoutesMixin:
                 en_rsi = 1 if post_data.get('enable_rsi', ext[9] if ext and len(ext) > 9 else 1) else 0
                 en_macd = 1 if post_data.get('enable_macd', ext[10] if ext and len(ext) > 10 else 1) else 0
                 
-                c.execute("""UPDATE user_settings SET
-                               algo_z_threshold = ?,
-                               algo_whale_threshold = ?,
-                               algo_depeg_threshold = ?,
-                               algo_vol_spike_threshold = ?,
-                               algo_cme_gap_threshold = ?,
-                               algo_rsi_oversold = ?,
-                               algo_rsi_overbought = ?,
-                               enable_ml_alpha = ?,
-                               enable_vol_spike = ?,
-                               enable_rsi = ?,
-                               enable_macd = ?
-                             WHERE user_email = ?""",
-                          (z_t, whale_t, depeg_t, vol_t, cme_t, rsi_os, rsi_ob, en_ml, en_vol, en_rsi, en_macd, email))
+                c.execute("""INSERT INTO user_settings (
+                               user_email, algo_z_threshold, algo_whale_threshold, algo_depeg_threshold, 
+                               algo_vol_spike_threshold, algo_cme_gap_threshold, algo_rsi_oversold, algo_rsi_overbought,
+                               enable_ml_alpha, enable_vol_spike, enable_rsi, enable_macd
+                             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                             ON CONFLICT(user_email) DO UPDATE SET
+                               algo_z_threshold = excluded.algo_z_threshold,
+                               algo_whale_threshold = excluded.algo_whale_threshold,
+                               algo_depeg_threshold = excluded.algo_depeg_threshold,
+                               algo_vol_spike_threshold = excluded.algo_vol_spike_threshold,
+                               algo_cme_gap_threshold = excluded.algo_cme_gap_threshold,
+                               algo_rsi_oversold = excluded.algo_rsi_oversold,
+                               algo_rsi_overbought = excluded.algo_rsi_overbought,
+                               enable_ml_alpha = excluded.enable_ml_alpha,
+                               enable_vol_spike = excluded.enable_vol_spike,
+                               enable_rsi = excluded.enable_rsi,
+                               enable_macd = excluded.enable_macd""",
+                          (email, z_t, whale_t, depeg_t, vol_t, cme_t, rsi_os, rsi_ob, en_ml, en_vol, en_rsi, en_macd))
                 conn.commit()
                 conn.close()
                 self.send_json({'success': True, 'algo_z_threshold': z_t, 'algo_whale_threshold': whale_t, 
