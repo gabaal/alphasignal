@@ -81,8 +81,8 @@ async function renderMacroSync(tabs = null) {
                 <h4 style="color:var(--accent); margin-bottom:0.5rem">Institutional Macro Correlation Guide</h4>
                 <p style="font-size:0.85rem; color:var(--text-dim); line-height:1.6">
                     Professional traders monitor these correlations to identify "Narrative Shifts." 
-                    A high correlation with **GOLD** confirms the "Safe Haven" thesis, while high correlation with the **SPX** classifies BTC as a "High-Beta Tech" asset. 
-                    The **DXY** correlation is the most critical: a strong negative value suggests Bitcoin is absorbing liquidity from fiat debasement.
+                    A high correlation with <b>GOLD</b> confirms the "Safe Haven" thesis, while high correlation with the <b>SPX</b> classifies BTC as a "High-Beta Tech" asset. 
+                    The <b>DXY</b> correlation is the most critical: a strong negative value suggests Bitcoin is absorbing liquidity from fiat debasement.
                 </p>
             </div>
         </div>
@@ -328,7 +328,7 @@ async function renderRotation(tabs = null) {
                 <div class="guide-text">
                     <h4 style="color:var(--accent); margin-bottom:0.5rem">How to Read Correlation Dynamics</h4>
                     <p style="font-size:0.85rem; line-height:1.6; color:var(--text-dim)">
-                        This matrix tracks 30-day **Pearson Correlation** between synthetic sector indices. 
+                        This matrix tracks 30-day <b>Pearson Correlation</b> between synthetic sector indices. 
                         Values near <b>+1.00</b> (Bright Turquoise) indicate sectors moving in lockstep, suggesting broad institutional consensus. 
                         Values near <b>0.00</b> (Dark) indicate decoupled price action, highlighting alpha opportunities. 
                         Negative values (Red) suggest inverse rotation, where capital is exiting one sector to enter another.

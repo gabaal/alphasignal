@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -520,25 +520,32 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
 <h2>1. Foundational Overview: The Institutional Weekend Lag</h2>
 <p>Unlike native crypto exchanges that trade 24/7, the <strong>Chicago Mercantile Exchange (CME)</strong>—the primary venue for institutional Bitcoin exposure—closes on Friday at 5:00 PM (ET) and reopens on Sunday at 6:00 PM (ET). During this 49-hour window, Bitcoin price action continues in the spot markets, driven by retail sentiment and weekend news cycles.</p>
-<p>When the CME reopens, the difference between Friday's close and Sunday's open creates a literal price "Gap" on the chart. To an institutional desk, this gap represents an **Imbalance in Risk** that must be reconciled.</p>
+<p>When the CME reopens, the difference between Friday's close and Sunday's open creates a literal price "Gap" on the chart. To an institutional desk, this gap represents an <strong>Imbalance in Risk</strong> that must be reconciled.</p>
+
+<figure style="margin: 2rem 0; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000;">
+    <img src="../assets/academy/cme-gap.png" alt="Bitcoin CME Futures Gap Illustration" style="width: 100%; height: auto; display: block;">
+    <figcaption style="padding: 1rem; background: rgba(255,255,255,0.03); font-size: 0.85rem; color: var(--text-dim); text-align: center;">
+        <strong>Figure 1:</strong> A CME Futures Gap. Highlighting the price void created over the weekend and the subsequent 'Fill' as price returns to the Friday close.
+    </figcaption>
+</figure>
 
 <h2>2. Intermediate Mechanics: The Arbitrage Loop</h2>
-<p>The legendary "Magnetic Pull" of the CME gap is not magic; it is a result of **Institutional Re-hedging**. Large market makers who hold spot Bitcoin over the weekend use CME futures to hedge their exposure. When the CME opens with a gap, their hedges are no longer perfectly balanced.</p>
+<p>The legendary "Magnetic Pull" of the CME gap is not magic; it is a result of <strong>Institutional Re-hedging</strong>. Large market makers who hold spot Bitcoin over the weekend use CME futures to hedge their exposure. When the CME opens with a gap, their hedges are no longer perfectly balanced.</p>
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">The Gap Fill Statistics</h3>
-    <p style="margin-bottom:0;">AlphaSignal's historical backtesting engine shows that **76.4% of weekend gaps are filled** (price returns to the Friday close) within the first 72 hours of the week. This high probability makes the Friday close one of the most significant "Institutional Anchor" points in technical analysis.</p>
+    <p style="margin-bottom:0;">AlphaSignal's historical backtesting engine shows that <strong>76.4% of weekend gaps are filled</strong> (price returns to the Friday close) within the first 72 hours of the week. This high probability makes the Friday close one of the most significant "Institutional Anchor" points in technical analysis.</p>
 </div>
 
 <h2>3. Advanced Analysis: Runaway vs. Exhaustion Gaps</h2>
-<p>Quantitative traders distinguish between gaps to determine if they should **Fade** the move or **Follow** it. The AlphaSignal **Market Regime Classifier** is used to categorize these:</p>
+<p>Quantitative traders distinguish between gaps to determine if they should <strong>Fade</strong> the move or <strong>Follow</strong> it. The AlphaSignal <strong>Market Regime Classifier</strong> is used to categorize these:</p>
 <ul>
     <li><strong>The Runaway (Breakaway) Gap:</strong> Occurs when Bitcoin gaps out of a multi-month consolidation on extreme volume. These gaps rarely fill and instead signal the start of a new macro bull or bear market.</li>
     <li><strong>The Exhaustion Gap:</strong> Occurs at the end of a parabolic trend. Price gaps one last time, but fails to find new buyers. These have a >90% fill rate and are prime candidates for a mean-reversion trade back to the Friday close.</li>
 </ul>
 
 <h2>4. Institutional Deep Dive: GEX & The "Waterfall" Effect</h2>
-<p>The most sophisticated AlphaSignal setup involves cross-referencing the **GEX (Gamma Exposure)** profile with an unfilled CME gap. Options market makers have "hedging walls" at specific strikes. </p>
-<p>If an unfilled CME gap exists at $64,000 and the GEX profile shows a massive **Negative Gamma** cluster at $64,200, the market makers will be forced to sell into any rallies, creating a "Waterfall Effect" that pushes price directly into the gap fill target. This is not a "guess"—it is a result of mechanical, programmatic selling by dealer desks.</p>
+<p>The most sophisticated AlphaSignal setup involves cross-referencing the <strong>GEX (Gamma Exposure)</strong> profile with an unfilled CME gap. Options market makers have "hedging walls" at specific strikes. </p>
+<p>If an unfilled CME gap exists at $64,000 and the GEX profile shows a massive <strong>Negative Gamma</strong> cluster at $64,200, the market makers will be forced to sell into any rallies, creating a "Waterfall Effect" that pushes price directly into the gap fill target. This is not a "guess"—it is a result of mechanical, programmatic selling by dealer desks.</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The Monday Drift Fade</h4>
@@ -548,9 +555,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h2>Operationalizing CME Gaps in the Terminal</h2>
 <ol>
     <li>Navigate to the <strong>Global Markets Hub</strong> and open the CME Gap Tracker.</li>
-    <li>Identify **Unfilled Gaps** from the last 90 days. These act as historical price magnets.</li>
-    <li>Check the **Sentiment Score**—if Sentiment is >80 (Greed) and price is gapping up, the probability of an exhaustion fill is extremely high.</li>
-    <li>Execute when the **Order Book Heatmap** shows a major wall defending the opposite side of the gap.</li>
+    <li>Identify <strong>Unfilled Gaps</strong> from the last 90 days. These act as historical price magnets.</li>
+    <li>Check the <strong>Sentiment Score</strong>—if Sentiment is >80 (Greed) and price is gapping up, the probability of an exhaustion fill is extremely high.</li>
+    <li>Execute when the <strong>Order Book Heatmap</strong> shows a major wall defending the opposite side of the gap.</li>
 </ol>
 
 </div>
@@ -894,7 +901,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -907,14 +914,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -931,40 +938,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1086,7 +1093,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1210,6 +1217,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

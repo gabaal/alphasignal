@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -525,23 +525,37 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <li><strong>Long Wicks:</strong> Low conviction; the market found "unfair value" and aggressively pushed back to the mean.</li>
 </ul>
 
+<figure style="margin: 2rem 0; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000;">
+    <img src="../assets/academy/hammer-reversal.png" alt="Hammer Candlestick Reversal Illustration" style="width: 100%; height: auto; display: block;">
+    <figcaption style="padding: 1rem; background: rgba(255,255,255,0.03); font-size: 0.85rem; color: var(--text-dim); text-align: center;">
+        <strong>Figure 1:</strong> A Bullish Hammer at Support. The long lower wick signifies institutional absorption of sell-side liquidity.
+    </figcaption>
+</figure>
+
 <h2>2. Intermediate Mechanics: Multibar Context & Volume Confluence</h2>
-<p>Professional traders never look at a single candle in isolation. A "Hammer" candle is meaningless in a sideways market; it only gains significance at the end of a prolonged **Impulse Wave**. The most important rule in candle analysis is **Volume Confluence**. A reversal candle on low volume is often a "Trap." A reversal candle on massive volume indicates a **Climax Event**—the point where institutions have finished their distribution and are ready to reverse the trend.</p>
+<p>Professional traders never look at a single candle in isolation. A "Hammer" candle is meaningless in a sideways market; it only gains significance at the end of a prolonged <strong>Impulse Wave</strong>. The most important rule in candle analysis is <strong>Volume Confluence</strong>. A reversal candle on low volume is often a "Trap." A reversal candle on massive volume indicates a <strong>Climax Event</strong>—the point where institutions have finished their distribution and are ready to reverse the trend.</p>
 
 <h2>3. Advanced Quantitative Mechanics: ATR-Weighted Wick Analysis</h2>
-<p>To remove subjectivity, quantitative desks use **ATR (Average True Range)** to weight candle wicks. If a lower wick is >1.5x the ATR of the last 14 periods, it is mathematically classified as a **Sigma Rejection**. This removes the noise of small wicks and focuses on true liquidity sweeps.</p>
+<p>To remove subjectivity, quantitative desks use <strong>ATR (Average True Range)</strong> to weight candle wicks. If a lower wick is >1.5x the ATR of the last 14 periods, it is mathematically classified as a <strong>Sigma Rejection</strong>. This removes the noise of small wicks and focuses on true liquidity sweeps.</p>
 
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">The Body-to-Wick Ratio (BWR)</h3>
-    <p style="margin-bottom:0;">A BWR of < 0.2 indicates that 80% of the price movement was rejected. In the AlphaSignal Terminal, we flag these candles as **Institutional Absorption Zones**—levels where large limit orders are "soaking up" the market's momentum.</p>
+    <p style="margin-bottom:0;">A BWR of < 0.2 indicates that 80% of the price movement was rejected. In the AlphaSignal Terminal, we flag these candles as <strong>Institutional Absorption Zones</strong>—levels where large limit orders are "soaking up" the market's momentum.</p>
 </div>
 
 <h2>4. Institutional Deep Dive: The "Hammer Trap" Strategy</h2>
-<p>Institutions often create "Bull Traps" and "Bear Traps" using candle patterns. A common tactic is the **Stop-Run Hammer**. Price will aggressively break a key support level to trigger retail stop-losses (creating a "Selling Climax"), only to close back above the level, leaving a massive lower wick. This "Hammer" isn't a reversal yet—it's a liquidity grab.</p>
+<p>Institutions often create "Bull Traps" and "Bear Traps" using candle patterns. A common tactic is the <strong>Stop-Run Hammer</strong>. Price will aggressively break a key support level to trigger retail stop-losses (creating a "Selling Climax"), only to close back above the level, leaving a massive lower wick. This "Hammer" isn't a reversal yet—it's a liquidity grab.</p>
+
+<figure style="margin: 2rem 0; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000;">
+    <img src="../assets/academy/candlestick-hammer.png" alt="Institutional Hammer Candlestick and Liquidity Absorption" style="width: 100%; height: auto; display: block;">
+    <figcaption style="padding: 1rem; background: rgba(255,255,255,0.03); font-size: 0.85rem; color: var(--text-dim); text-align: center;">
+        <strong>Figure 1:</strong> The Hammer Reversal. High-volume lower wick indicating institutional absorption of retail panic selling.
+    </figcaption>
+</figure>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Fading the Failed Breakout</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor a major horizontal support level. If a 1H candle breaks below it but closes **above** the level with a wick > 2x the body, check the **Volume Delta**. If Delta is positive during the wick, it confirms institutional buying. Enter a Long position on the break of the Hammer's high. Your target is the "Value Area High" of the previous range. You are now trading the reversal caused by retail traders being forced to buy back their short positions.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor a major horizontal support level. If a 1H candle breaks below it but closes <strong>above</strong> the level with a wick > 2x the body, check the <strong>Volume Delta</strong>. If Delta is positive during the wick, it confirms institutional buying. Enter a Long position on the break of the Hammer's high. Your target is the "Value Area High" of the previous range. You are now trading the reversal caused by retail traders being forced to buy back their short positions.</p>
 </div>
 
 <h2>Operationalizing Candlesticks in the Terminal</h2>
@@ -893,7 +907,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -906,14 +920,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -930,40 +944,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1085,7 +1099,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1209,6 +1223,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

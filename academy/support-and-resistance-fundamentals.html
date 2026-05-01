@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -526,11 +526,11 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </ul>
 
 <h2>2. Intermediate Mechanics: Role Reversal & Polarity</h2>
-<p>One of the most reliable concepts in institutional trading is the **Principle of Polarity**. When a major resistance level is finally broken to the upside, it frequently becomes the new localized support level upon a retest.</p>
+<p>One of the most reliable concepts in institutional trading is the <strong>Principle of Polarity</strong>. When a major resistance level is finally broken to the upside, it frequently becomes the new localized support level upon a retest.</p>
 <p>This happens because market participants who missed the initial breakout are now eager to enter at the "old price," while those who were short are looking to cover their losses at breakeven. This collective behavior creates a "Self-Fulfilling Prophecy" that anchors price to previous structures.</p>
 
 <h2>3. Advanced Quantitative Mechanics: Volume Profile Confluence</h2>
-<p>Retail traders draw lines connecting wicks; institutional traders look for **Volume Nodes**. AlphaSignal's Volume Profile tool abstracts traditional chart lines by plotting actual historical density.</p>
+<p>Retail traders draw lines connecting wicks; institutional traders look for <strong>Volume Nodes</strong>. AlphaSignal's Volume Profile tool abstracts traditional chart lines by plotting actual historical density.</p>
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">High Volume Nodes (HVN) vs. Valleys</h3>
     <p style="margin-bottom:0.75rem;"><strong>HVNs:</strong> Represent price levels where the most trading activity has occurred. These act as "Magnets," pinning price into a range as the market agrees on a "Fair Value."</p>
@@ -542,15 +542,15 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The Bear Trap Fade</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Institutions require massive liquidity to fill their orders. They know that retail traders place their "Stop Loss" orders exactly below obvious support levels. To fill a large Buy order, an institution will push price *through* support, triggering those stops (which are Sell orders). This creates a temporary "Liquidity Flush." When AlphaSignal detects price breaking support but **Order Flow Heatmap** shows massive buy-side absorption, enter a Long. This is a "Liquidity Sweep," and price will likely reverse violently back into the range.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Institutions require massive liquidity to fill their orders. They know that retail traders place their "Stop Loss" orders exactly below obvious support levels. To fill a large Buy order, an institution will push price *through* support, triggering those stops (which are Sell orders). This creates a temporary "Liquidity Flush." When AlphaSignal detects price breaking support but <strong>Order Flow Heatmap</strong> shows massive buy-side absorption, enter a Long. This is a "Liquidity Sweep," and price will likely reverse violently back into the range.</p>
 </div>
 
 <h2>Operationalizing Structure in the Terminal</h2>
 <ol>
     <li>Overlay the <strong>Fixed Range Volume Profile</strong> on the current consolidation.</li>
-    <li>Identify the **Point of Control (POC)**—the single most traded price level.</li>
-    <li>Look for **Confluence** between a horizontal support level and a 6-month High Volume Node.</li>
-    <li>Wait for the **Liquidity Sweep** (a quick wick below support) before executing your entry.</li>
+    <li>Identify the <strong>Point of Control (POC)</strong>—the single most traded price level.</li>
+    <li>Look for <strong>Confluence</strong> between a horizontal support level and a 6-month High Volume Node.</li>
+    <li>Wait for the <strong>Liquidity Sweep</strong> (a quick wick below support) before executing your entry.</li>
 </ol>
 
 </div>
@@ -894,7 +894,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -907,14 +907,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -931,40 +931,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1086,7 +1086,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1210,6 +1210,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

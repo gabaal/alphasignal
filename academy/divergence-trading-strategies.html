@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -525,31 +525,38 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <li><strong>Regular Bearish Divergence:</strong> Price makes a higher high, but momentum makes a lower high. Buying pressure is evaporating.</li>
 </ul>
 
+<figure style="margin: 2rem 0; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000;">
+    <img src="../assets/academy/rsi-divergence.png" alt="RSI Bullish Divergence Technical Illustration" style="width: 100%; height: auto; display: block;">
+    <figcaption style="padding: 1rem; background: rgba(255,255,255,0.03); font-size: 0.85rem; color: var(--text-dim); text-align: center;">
+        <strong>Figure 1:</strong> RSI Bullish Divergence. Price makes a lower low while RSI makes a higher low, signaling a momentum-backed institutional reversal.
+    </figcaption>
+</figure>
+
 <h2>2. Intermediate Mechanics: Oscillator Decay and Mean Reversion</h2>
-<p>Oscillators like the RSI and MACD decay toward their center lines as a trend ages. Professional traders look for **Multi-Drive Divergences**—where price makes three consecutive highs while momentum makes three consecutive lower peaks. This indicates a structural failure in price delivery and a high probability of a violent mean-reversion event.</p>
+<p>Oscillators like the RSI and MACD decay toward their center lines as a trend ages. Professional traders look for <strong>Multi-Drive Divergences</strong>—where price makes three consecutive highs while momentum makes three consecutive lower peaks. This indicates a structural failure in price delivery and a high probability of a violent mean-reversion event.</p>
 
 <h2>3. Advanced Quantitative Mechanics: Delta Divergence - The Institutional Fingerprint</h2>
-<p>While retail traders use RSI, quantitative desks focus on **Cumulative Volume Delta (CVD) Divergence**. This is the most accurate form of divergence analysis. If price is reaching new highs, but CVD is falling, it means that aggressive market buyers have disappeared, and the move is being driven by "thin" liquidity or retail FOMO.</p>
+<p>While retail traders use RSI, quantitative desks focus on <strong>Cumulative Volume Delta (CVD) Divergence</strong>. This is the most accurate form of divergence analysis. If price is reaching new highs, but CVD is falling, it means that aggressive market buyers have disappeared, and the move is being driven by "thin" liquidity or retail FOMO.</p>
 
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">Absorption Detection</h3>
-    <p style="margin-bottom:0;">When price hits a new high but CVD remains flat or negative, it confirms **Institutional Absorption**. Large players are using the breakout momentum as exit liquidity to sell their positions into the aggressive retail buy orders.</p>
+    <p style="margin-bottom:0;">When price hits a new high but CVD remains flat or negative, it confirms <strong>Institutional Absorption</strong>. Large players are using the breakout momentum as exit liquidity to sell their positions into the aggressive retail buy orders.</p>
 </div>
 
 <h2>4. Institutional Deep Dive: The Hidden Divergence Strategy</h2>
-<p>Unlike regular divergence (which signals reversal), **Hidden Divergence** signals trend continuation. It is the signature of institutional "Reloading." A hidden bullish divergence occurs when price makes a **Higher Low**, but momentum makes a **Lower Low**. This indicates that the market has "Reset" its momentum without giving up its price gains—a signal of extreme strength.</p>
+<p>Unlike regular divergence (which signals reversal), <strong>Hidden Divergence</strong> signals trend continuation. It is the signature of institutional "Reloading." A hidden bullish divergence occurs when price makes a <strong>Higher Low</strong>, but momentum makes a <strong>Lower Low</strong>. This indicates that the market has "Reset" its momentum without giving up its price gains—a signal of extreme strength.</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Trend Reload</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">In a strong uptrend, wait for a price pullback to the **VWAP** or a key **Order Block**. If the RSI drops to a new low for the session, but the price remains significantly higher than the previous swing low, a Hidden Bullish Divergence has formed. Enter a Long position as price breaks the previous 15-minute candle's high. Your stop-loss goes below the recent swing low. You are now aligned with the institutional money that is "stepping in" to defend the trend.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">In a strong uptrend, wait for a price pullback to the <strong>VWAP</strong> or a key <strong>Order Block</strong>. If the RSI drops to a new low for the session, but the price remains significantly higher than the previous swing low, a Hidden Bullish Divergence has formed. Enter a Long position as price breaks the previous 15-minute candle's high. Your stop-loss goes below the recent swing low. You are now aligned with the institutional money that is "stepping in" to defend the trend.</p>
 </div>
 
 <h2>Operationalizing Divergence in the Terminal</h2>
 <ol>
-    <li>Overlay the **AlphaSignal CVD Tracker** on every chart.</li>
-    <li>Filter for **Z-Score Deviations** in momentum to identify true "Overbought/Oversold" conditions.</li>
-    <li>Use the **Divergence Auto-Scanner** to find Hidden Divergence setups across 50+ assets simultaneously.</li>
-    <li>Confirm divergence at the **Value Area High/Low** for maximum probabilistic edge.</li>
+    <li>Overlay the <strong>AlphaSignal CVD Tracker</strong> on every chart.</li>
+    <li>Filter for <strong>Z-Score Deviations</strong> in momentum to identify true "Overbought/Oversold" conditions.</li>
+    <li>Use the <strong>Divergence Auto-Scanner</strong> to find Hidden Divergence setups across 50+ assets simultaneously.</li>
+    <li>Confirm divergence at the <strong>Value Area High/Low</strong> for maximum probabilistic edge.</li>
 </ol>
 
 </div>
@@ -893,7 +900,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -906,14 +913,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -930,40 +937,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1085,7 +1092,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1209,6 +1216,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

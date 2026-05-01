@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -519,7 +519,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
 <h2>1. Foundational Overview: The "One Glance" Equilibrium - System Components</h2>
-<p>Ichimoku Kinko Hyo (Equilibrium Chart at a Glance) is a comprehensive system designed to provide an immediate snapshot of trend, momentum, and support/resistance. Unlike simple moving averages, Ichimoku calculates price action based on **high-low averages** over specific periods.</p>
+<p>Ichimoku Kinko Hyo (Equilibrium Chart at a Glance) is a comprehensive system designed to provide an immediate snapshot of trend, momentum, and support/resistance. Unlike simple moving averages, Ichimoku calculates price action based on <strong>high-low averages</strong> over specific periods.</p>
 <ul>
     <li><strong>Tenkan-sen (Fast):</strong> Average of the highest high and lowest low for the past 9 periods.</li>
     <li><strong>Kijun-sen (Base):</strong> Average for the past 26 periods. Acts as the "Center of Gravity."</li>
@@ -527,29 +527,29 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </ul>
 
 <h2>2. Intermediate Mechanics: The Kumo Breakout & Sentiment Shifts</h2>
-<p>The Cloud represents the "Volatility Corridor" of the market. When price is inside the Cloud, the market is in **Equilibrium** (sideways), and trading is high-risk. A "Kumo Breakout" occurs when price closes outside the Cloud boundary, indicating a definitive shift in sentiment. A thick Cloud suggests strong structural support/resistance, while a thin Cloud (a "Kumo Twist") indicates a weak level that is prone to being pierced.</p>
+<p>The Cloud represents the "Volatility Corridor" of the market. When price is inside the Cloud, the market is in <strong>Equilibrium</strong> (sideways), and trading is high-risk. A "Kumo Breakout" occurs when price closes outside the Cloud boundary, indicating a definitive shift in sentiment. A thick Cloud suggests strong structural support/resistance, while a thin Cloud (a "Kumo Twist") indicates a weak level that is prone to being pierced.</p>
 
 <h2>3. Advanced Quantitative Mechanics: Chikou Span & Momentum Lag</h2>
-<p>The **Chikou Span** (Lagging Line) is the current price shifted back 26 periods. Institutional traders use it to confirm the "Open Path." If the Chikou Span is above both the price and the Cloud 26 periods ago, the path to higher prices is clear. If it is "tangled" in the historical price action, the trend is likely to face friction and consolidate. </p>
+<p>The <strong>Chikou Span</strong> (Lagging Line) is the current price shifted back 26 periods. Institutional traders use it to confirm the "Open Path." If the Chikou Span is above both the price and the Cloud 26 periods ago, the path to higher prices is clear. If it is "tangled" in the historical price action, the trend is likely to face friction and consolidate. </p>
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">The 26-Period Projection</h3>
-    <p style="margin-bottom:0;">The AlphaSignal Terminal uses the projected Cloud boundaries to calculate **Forward Liquidity Zones**. By looking 26 periods ahead, we can identify where market makers are likely to step in before the price even arrives.</p>
+    <p style="margin-bottom:0;">The AlphaSignal Terminal uses the projected Cloud boundaries to calculate <strong>Forward Liquidity Zones</strong>. By looking 26 periods ahead, we can identify where market makers are likely to step in before the price even arrives.</p>
 </div>
 
 <h2>4. Institutional Deep Dive: The "Cloud Edge" Absorption Strategy</h2>
-<p>A common mistake is buying every Cloud breakout. Institutions instead look for the <strong>TK Cross at the Edge</strong>. When the Tenkan-sen crosses the Kijun-sen while price is **inside** the Cloud, but near the outer boundary, it indicates an "Absorption" of the opposing side's orders.</p>
+<p>A common mistake is buying every Cloud breakout. Institutions instead look for the <strong>TK Cross at the Edge</strong>. When the Tenkan-sen crosses the Kijun-sen while price is <strong>inside</strong> the Cloud, but near the outer boundary, it indicates an "Absorption" of the opposing side's orders.</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The Kumo Twist Fade</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor the future Cloud for a "Twist" (Span A crossing Span B). This twist represents a moment of zero-momentum. If price approaches a thick Cloud edge but the **Alpha Intelligence Brief** suggests a macro reversal, wait for a rejection. Institutions often "defend" the thick Cloud edges, creating a high-reward short opportunity back toward the Kijun-sen median.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Monitor the future Cloud for a "Twist" (Span A crossing Span B). This twist represents a moment of zero-momentum. If price approaches a thick Cloud edge but the <strong>Alpha Intelligence Brief</strong> suggests a macro reversal, wait for a rejection. Institutions often "defend" the thick Cloud edges, creating a high-reward short opportunity back toward the Kijun-sen median.</p>
 </div>
 
 <h2>Operationalizing Ichimoku in the Terminal</h2>
 <ol>
-    <li>Overlay the **Institutional Ichimoku** component on your 4H charts.</li>
-    <li>Identify **Kumo Breakouts** confirmed by the **Chikou Span** being in "Open Space."</li>
-    <li>Use the **Future Senkou Span B** (the flat line) as your primary institutional target for long-term exits.</li>
-    <li>Filter Ichimoku signals with the **Market Regime Classifier**—Ichimoku is 80% more effective in "Trending" regimes than "Volatile" regimes.</li>
+    <li>Overlay the <strong>Institutional Ichimoku</strong> component on your 4H charts.</li>
+    <li>Identify <strong>Kumo Breakouts</strong> confirmed by the <strong>Chikou Span</strong> being in "Open Space."</li>
+    <li>Use the <strong>Future Senkou Span B</strong> (the flat line) as your primary institutional target for long-term exits.</li>
+    <li>Filter Ichimoku signals with the <strong>Market Regime Classifier</strong>—Ichimoku is 80% more effective in "Trending" regimes than "Volatile" regimes.</li>
 </ol>
 
 </div>
@@ -893,7 +893,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -906,14 +906,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -930,40 +930,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1085,7 +1085,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1209,6 +1209,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

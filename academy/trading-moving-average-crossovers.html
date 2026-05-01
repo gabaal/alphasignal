@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -519,37 +519,37 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
 <h2>1. Foundational Overview: The Physics of Momentum - Why Trends Persist</h2>
-<p>Trend following is based on the observation that an asset in motion tends to stay in motion until acted upon by a significant outside force (liquidity exhaustion). In quantitative terms, this is known as **Positive Autocorrelation**. If price rose yesterday, there is a statistically higher probability it will rise today. Trends persist because institutional capital cannot enter or exit the market all at once; they must "layer" their orders over days or weeks.</p>
+<p>Trend following is based on the observation that an asset in motion tends to stay in motion until acted upon by a significant outside force (liquidity exhaustion). In quantitative terms, this is known as <strong>Positive Autocorrelation</strong>. If price rose yesterday, there is a statistically higher probability it will rise today. Trends persist because institutional capital cannot enter or exit the market all at once; they must "layer" their orders over days or weeks.</p>
 <ul>
     <li><strong>The Trend Engine:</strong> Institutional accumulation (buying) or distribution (selling) over long periods.</li>
     <li><strong>Momentum:</strong> The velocity of the trend. High momentum indicates a high-conviction institutional move.</li>
 </ul>
 
 <h2>2. Intermediate Mechanics: Moving Average Envelopes and Trend Filters</h2>
-<p>Professional trend followers don't just use a single moving average; they use **Envelopes** and **Filters**. A trend filter (like the 200-day SMA) acts as a binary switch: if price is above the filter, we are in a "Long Regime." If price is below, we are in a "Short Regime." This prevents "Whipsaws" in sideways markets and ensures we only trade when the macro direction is clear.</p>
+<p>Professional trend followers don't just use a single moving average; they use <strong>Envelopes</strong> and <strong>Filters</strong>. A trend filter (like the 200-day SMA) acts as a binary switch: if price is above the filter, we are in a "Long Regime." If price is below, we are in a "Short Regime." This prevents "Whipsaws" in sideways markets and ensures we only trade when the macro direction is clear.</p>
 
 <h2>3. Advanced Quantitative Mechanics: Time-Series Momentum (TSMOM)</h2>
-<p>TSMOM is a quantitative strategy that looks at an asset's absolute return over a specific lookback period (e.g., 12 months). If the return is positive, the asset has "Positive Momentum." In the AlphaSignal Terminal, we use **Cross-Sectional Momentum** to compare multiple assets against each other. We only buy the assets with the highest momentum scores (the "Top Decile"), ensuring our capital is always allocated to the strongest market leaders.</p>
+<p>TSMOM is a quantitative strategy that looks at an asset's absolute return over a specific lookback period (e.g., 12 months). If the return is positive, the asset has "Positive Momentum." In the AlphaSignal Terminal, we use <strong>Cross-Sectional Momentum</strong> to compare multiple assets against each other. We only buy the assets with the highest momentum scores (the "Top Decile"), ensuring our capital is always allocated to the strongest market leaders.</p>
 
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">The Momentum Trap</h3>
-    <p style="margin-bottom:0;">The greatest risk for a trend follower is the **Momentum Crash**—a sudden, violent reversal. To avoid this, we monitor **Volatility Scaled Returns**. If the trend's volatility exceeds its 30-day average, we "De-risk" the position, as high volatility is often a precursor to a trend reversal.</p>
+    <p style="margin-bottom:0;">The greatest risk for a trend follower is the <strong>Momentum Crash</strong>—a sudden, violent reversal. To avoid this, we monitor <strong>Volatility Scaled Returns</strong>. If the trend's volatility exceeds its 30-day average, we "De-risk" the position, as high volatility is often a precursor to a trend reversal.</p>
 </div>
 
 <h2>4. Institutional Deep Dive: The Breakout-Pullback-Continuation Strategy</h2>
-<p>Institutional desks use a specific three-phase process to enter a trend. First, they trigger a **Breakout** to clear out the local liquidity. Second, they allow the price to **Pull back** to a key level (like the 21-day EMA) to "Reload" their positions. Third, they drive the **Continuation** leg. This strategy allows them to buy at a "Value" price within a high-conviction trend.</p>
+<p>Institutional desks use a specific three-phase process to enter a trend. First, they trigger a <strong>Breakout</strong> to clear out the local liquidity. Second, they allow the price to <strong>Pull back</strong> to a key level (like the 21-day EMA) to "Reload" their positions. Third, they drive the <strong>Continuation</strong> leg. This strategy allows them to buy at a "Value" price within a high-conviction trend.</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Institutional Reload</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a 1H trend where the price is making Higher Highs and Higher Lows. Wait for a pullback to the **VWAP** or the **Value Area High (VAH)**. Monitor the **Order Flow Heatmap** in the AlphaSignal Terminal. If you see a massive "Buy Wall" forming at these levels, it indicates institutional absorption. Enter a Long position. Your stop-loss goes below the recent swing low. Your target is a new swing high. You are now "Riding the Coattails" of the large fund managers as they defend the trend.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a 1H trend where the price is making Higher Highs and Higher Lows. Wait for a pullback to the <strong>VWAP</strong> or the <strong>Value Area High (VAH)</strong>. Monitor the <strong>Order Flow Heatmap</strong> in the AlphaSignal Terminal. If you see a massive "Buy Wall" forming at these levels, it indicates institutional absorption. Enter a Long position. Your stop-loss goes below the recent swing low. Your target is a new swing high. You are now "Riding the Coattails" of the large fund managers as they defend the trend.</p>
 </div>
 
 <h2>Operationalizing Trend Following in the Terminal</h2>
 <ol>
     <li>Use the <strong>Market Regime Classifier</strong> to ensure the market is in a "Trending" state.</li>
     <li>Filter assets by their <strong>Alpha Momentum Score</strong> to find the strongest trend leaders.</li>
-    <li>Set alerts for **EMA/VWAP Pullbacks** on high-conviction assets.</li>
-    <li>Verify the trend strength using **CVD (Cumulative Volume Delta)**—the trend must be supported by aggressive buying.</li>
+    <li>Set alerts for <strong>EMA/VWAP Pullbacks</strong> on high-conviction assets.</li>
+    <li>Verify the trend strength using <strong>CVD (Cumulative Volume Delta)</strong>—the trend must be supported by aggressive buying.</li>
 </ol>
 
 </div>
@@ -893,7 +893,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -906,14 +906,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -930,40 +930,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1085,7 +1085,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1209,6 +1209,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

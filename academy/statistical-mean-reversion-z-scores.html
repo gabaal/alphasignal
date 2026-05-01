@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -526,7 +526,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </ul>
 
 <h2>2. Intermediate Mechanics: Z-Scores and Standard Deviation Bands</h2>
-<p>Professional traders don't use simple oscillators; they use **Z-Scores**. A Z-Score measures exactly how many standard deviations price is from its rolling mean. 
+<p>Professional traders don't use simple oscillators; they use <strong>Z-Scores</strong>. A Z-Score measures exactly how many standard deviations price is from its rolling mean. 
     <ul>
         <li><strong>Z-Score > 2.0:</strong> Price is in the top 2.5% of its historical range (Statistically Overbought).</li>
         <li><strong>Z-Score < -2.0:</strong> Price is in the bottom 2.5% of its historical range (Statistically Oversold).</li>
@@ -534,27 +534,27 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     By using Z-Scores, you are making a deterministic decision based on probability, not intuition.</p>
 
 <h2>3. Advanced Quantitative Mechanics: Rolling Mean Decay and Half-Life Analysis</h2>
-<p>Not all means are equal. Quantitative desks use **Half-Life Analysis** to determine how long a mean-reversion trade should take to complete. If an asset has a "Half-Life of 4 hours," it means that, statistically, it takes 4 hours for the price to return halfway to its mean. If price doesn't revert within this window, the statistical edge begins to "Decay," and the trade should be closed.</p>
+<p>Not all means are equal. Quantitative desks use <strong>Half-Life Analysis</strong> to determine how long a mean-reversion trade should take to complete. If an asset has a "Half-Life of 4 hours," it means that, statistically, it takes 4 hours for the price to return halfway to its mean. If price doesn't revert within this window, the statistical edge begins to "Decay," and the trade should be closed.</p>
 
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">The Mean Reversion Paradox</h3>
-    <p style="bottom:0;">A mean reversion strategy works best in **Mean-Reverting Regimes** (low volatility, range-bound). In a **Trending Regime**, fading a Z-Score of 3.0 can be disastrous. Always cross-reference your Z-Score with the **ADX (Average Directional Index)** to ensure the trend is weak enough to revert.</p>
+    <p style="bottom:0;">A mean reversion strategy works best in <strong>Mean-Reverting Regimes</strong> (low volatility, range-bound). In a <strong>Trending Regime</strong>, fading a Z-Score of 3.0 can be disastrous. Always cross-reference your Z-Score with the <strong>ADX (Average Directional Index)</strong> to ensure the trend is weak enough to revert.</p>
 </div>
 
 <h2>4. Institutional Deep Dive: The Pairs Trading Strategy - Statistical Arbitrage</h2>
-<p>Institutional desks often trade "Pairs" instead of single assets. They look for two highly correlated assets (e.g., BTC and ETH). If BTC rises while ETH stays flat, the **Spread** between them deviates from its mean. The trader sells BTC and buys ETH, betting that the relationship between them must return to its historical average. This is known as **Statistical Arbitrage** (StatArb).</p>
+<p>Institutional desks often trade "Pairs" instead of single assets. They look for two highly correlated assets (e.g., BTC and ETH). If BTC rises while ETH stays flat, the <strong>Spread</strong> between them deviates from its mean. The trader sells BTC and buys ETH, betting that the relationship between them must return to its historical average. This is known as <strong>Statistical Arbitrage</strong> (StatArb).</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Executing the StatArb Spread</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Open the **Correlation Matrix** in the AlphaSignal Terminal. Find two assets with a 90-day correlation > 0.90. Monitor the **Z-Score of the Spread**. When the spread hits +/- 2.5, it indicates a dislocation. Go Long the underperformer and Short the overperformer. Exit the trade when the spread Z-Score returns to 0.0. You are now profiting from the mathematical certainty of correlation, regardless of which way the overall market moves.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Open the <strong>Correlation Matrix</strong> in the AlphaSignal Terminal. Find two assets with a 90-day correlation > 0.90. Monitor the <strong>Z-Score of the Spread</strong>. When the spread hits +/- 2.5, it indicates a dislocation. Go Long the underperformer and Short the overperformer. Exit the trade when the spread Z-Score returns to 0.0. You are now profiting from the mathematical certainty of correlation, regardless of which way the overall market moves.</p>
 </div>
 
 <h2>Operationalizing Mean Reversion in the Terminal</h2>
 <ol>
-    <li>Overlay the **AlphaSignal Z-Score Tracker** on your primary chart.</li>
-    <li>Use the **Correlation Matrix** to identify potential Pairs Trading opportunities.</li>
-    <li>Filter for **Z-Score Deviations** combined with **Low ADX** for the highest-probability reversals.</li>
-    <li>Set alerts for **VWAP Deviations**—the "True Mean" used by institutional execution algos.</li>
+    <li>Overlay the <strong>AlphaSignal Z-Score Tracker</strong> on your primary chart.</li>
+    <li>Use the <strong>Correlation Matrix</strong> to identify potential Pairs Trading opportunities.</li>
+    <li>Filter for <strong>Z-Score Deviations</strong> combined with <strong>Low ADX</strong> for the highest-probability reversals.</li>
+    <li>Set alerts for <strong>VWAP Deviations</strong>—the "True Mean" used by institutional execution algos.</li>
 </ol>
 
 </div>
@@ -898,7 +898,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -911,14 +911,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -935,40 +935,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1090,7 +1090,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1214,6 +1214,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

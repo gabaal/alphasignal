@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -519,7 +519,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
 <h2>1. Foundational Overview: The Order Book Anatomy</h2>
-<p>At its most basic level, every financial market is governed by a **Limit Order Book (LOB)**. This is a real-time list of buy orders (Bids) and sell orders (Asks) that haven't been filled yet. While a traditional price chart shows you where the market *was*, the Order Book shows you where the market *wants to go*.</p>
+<p>At its most basic level, every financial market is governed by a <strong>Limit Order Book (LOB)</strong>. This is a real-time list of buy orders (Bids) and sell orders (Asks) that haven't been filled yet. While a traditional price chart shows you where the market *was*, the Order Book shows you where the market *wants to go*.</p>
 <p>However, looking at a raw "ladder" of numbers is nearly impossible for the human brain to process during high volatility. This is where <strong>Liquidity Heatmaps</strong> come in. By translating the volume of orders at each price level into a color-coded map, we can visualize the "Gravity" of the market.</p>
 
 <h2>2. Intermediate Mechanics: Depth of Market (DOM) & The Wall Effect</h2>
@@ -533,26 +533,26 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <p>This is where institutional trading separates itself from retail. <strong>Passive Absorption</strong> occurs when a large buyer doesn't push the price up, but instead sits at a single bid level and "absorbs" every sell order that comes their way. </p>
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">The Delta Decay Signal</h3>
-    <p style="margin-bottom:0;">AlphaSignal monitors the relationship between **Market Orders** (Aggressive) and **Limit Orders** (Passive). If we see $10M in market sells but the price is not moving down, it means a "Hidden Buyer" is passively absorbing that volume. This is one of the most powerful institutional reversal signals in existence.</p>
+    <p style="margin-bottom:0;">AlphaSignal monitors the relationship between <strong>Market Orders</strong> (Aggressive) and <strong>Limit Orders</strong> (Passive). If we see $10M in market sells but the price is not moving down, it means a "Hidden Buyer" is passively absorbing that volume. This is one of the most powerful institutional reversal signals in existence.</p>
 </div>
 
 <h2>4. Institutional Deep Dive: Spoofing, Layering, and Stop-Hunts</h2>
 <p>High-Frequency Trading (HFT) algorithms often manipulate the heatmap to trick retail traders. Two common tactics include:</p>
 <h3>Spoofing vs. Real Intent</h3>
-<p><strong>Spoofing</strong> is the act of placing a massive order to move price, only to cancel it the millisecond price gets close. AlphaSignal's **Order Longevity Metric** filters out these fake orders. If a wall has been stable for 12+ hours, it represents real institutional commitment; if it "flickers" or moves with the price, it is a manipulation play.</p>
+<p><strong>Spoofing</strong> is the act of placing a massive order to move price, only to cancel it the millisecond price gets close. AlphaSignal's <strong>Order Longevity Metric</strong> filters out these fake orders. If a wall has been stable for 12+ hours, it represents real institutional commitment; if it "flickers" or moves with the price, it is a manipulation play.</p>
 <h3>The "Liquidity Gap" Stop-Hunt</h3>
 <p>When the heatmap shows a "Dark Zone" (low liquidity), price will move through it with extreme velocity. Institutions often push price into these <strong>Liquidity Voids</strong> to trigger retail stop-losses. The resulting "Stop-Loss Cascade" provides the massive liquidity the institution needs to fill their own counter-position at an advantageous price.</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Failure to Consume</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Watch price approach a major Heatmap Wall. If the **Cumulative Volume Delta (CVD)** shows a massive spike in aggressive buying into the wall, but the wall does not break, it is a "Failed Breakout." Short the rejection immediately, as the aggressive buyers have just exhausted themselves into a brick wall of institutional supply.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Watch price approach a major Heatmap Wall. If the <strong>Cumulative Volume Delta (CVD)</strong> shows a massive spike in aggressive buying into the wall, but the wall does not break, it is a "Failed Breakout." Short the rejection immediately, as the aggressive buyers have just exhausted themselves into a brick wall of institutional supply.</p>
 </div>
 
 <h2>Operationalizing Heatmaps in the AlphaSignal Terminal</h2>
 <ol>
     <li>Navigate to the <strong>Liquidity Hub</strong> and set depth to +/- 5%.</li>
-    <li>Identify **"Golden Bands"**—levels where liquidity has been resting for more than 12 hours.</li>
-    <li>Wait for the **Iceberg Detector** to confirm that the wall is being actively defended.</li>
+    <li>Identify <strong>"Golden Bands"</strong>—levels where liquidity has been resting for more than 12 hours.</li>
+    <li>Wait for the <strong>Iceberg Detector</strong> to confirm that the wall is being actively defended.</li>
     <li>Set your Take Profit 5 ticks *in front* of the next major liquidity cluster to ensure your fill.</li>
 </ol>
 
@@ -897,7 +897,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -910,14 +910,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -934,40 +934,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1089,7 +1089,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1213,6 +1213,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

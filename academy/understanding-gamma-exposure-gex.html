@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -519,8 +519,15 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
 <h2>1. Foundational Overview: The Hidden Hand of Option Dealers</h2>
-<p>Gamma Exposure (GEX) is the single most important "Hidden Vector" in modern crypto markets. When you buy a call option on Deribit, you aren't trading against another retail user—you are likely trading against an **Institutional Market Maker (Dealer)**. To stay market-neutral, these dealers must "hedge" their options exposure by buying or selling the underlying asset (BTC or ETH).</p>
+<p>Gamma Exposure (GEX) is the single most important "Hidden Vector" in modern crypto markets. When you buy a call option on Deribit, you aren't trading against another retail user—you are likely trading against an <strong>Institutional Market Maker (Dealer)</strong>. To stay market-neutral, these dealers must "hedge" their options exposure by buying or selling the underlying asset (BTC or ETH).</p>
 <p><strong>GEX</strong> measures the sensitivity of these dealer hedges to changes in price. By tracking GEX, we can predict exactly when market makers will be forced to buy or sell, effectively "Front-Running" billions in institutional flow.</p>
+
+<figure style="margin: 2rem 0; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000;">
+    <img src="../assets/academy/gex-profile.png" alt="Gamma Exposure (GEX) Profile Map" style="width: 100%; height: auto; display: block;">
+    <figcaption style="padding: 1rem; background: rgba(255,255,255,0.03); font-size: 0.85rem; color: var(--text-dim); text-align: center;">
+        <strong>Figure 1:</strong> A GEX Profile Map. Highlighting 'Gamma Walls' (Positive GEX) that act as support/resistance and the 'Gamma Flip' point where volatility expands.
+    </figcaption>
+</figure>
 
 <h2>2. Intermediate Mechanics: Positive vs. Negative Gamma</h2>
 <p>The market environment changes drastically based on whether dealers are in "Positive" or "Negative" Gamma territory:</p>
@@ -532,23 +539,23 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h2>3. Advanced Quantitative Mechanics: Vanna, Charm, and Zero-DTE</h2>
 <p>Beyond simple Gamma, professional desks monitor "Second-Order Greeks" that dictate the speed of dealer hedging:</p>
 <ul>
-    <li><strong>Vanna:</strong> Measures how dealer hedges change relative to **Implied Volatility (IV)**. If IV drops, dealers may be forced to sell spot BTC, even if price hasn't moved.</li>
+    <li><strong>Vanna:</strong> Measures how dealer hedges change relative to <strong>Implied Volatility (IV)</strong>. If IV drops, dealers may be forced to sell spot BTC, even if price hasn't moved.</li>
     <li><strong>Charm:</strong> Measures the "Time Decay" of dealer hedges. As an option nears expiration, dealers must slowly unwind their hedges. This creates a predictable "Drift" in price toward the Max Pain level as expiration Friday approaches.</li>
 </ul>
 
 <h2>4. Institutional Deep Dive: The "Gamma Squeeze" & Pinning Levels</h2>
-<p>Institutional traders use GEX to identify "Volatile Breakout Zones." When a major asset like BTC approaches a **"Gamma Flip"** level (the point where dealers transition from Positive to Negative Gamma), the market is susceptible to a **Gamma Squeeze**.</p>
+<p>Institutional traders use GEX to identify "Volatile Breakout Zones." When a major asset like BTC approaches a <strong>"Gamma Flip"</strong> level (the point where dealers transition from Positive to Negative Gamma), the market is susceptible to a <strong>Gamma Squeeze</strong>.</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Front-Running the Dealer Chase</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a strike price with the highest **Negative GEX** (e.g., $70,000 BTC). If price breaks above this level, market makers *must* buy spot BTC to hedge their short calls. This forced buying drives price higher, which forces *more* buying. This is a Gamma Squeeze. To execute, enter a long position on a 5-minute close above the GEX peak strike, and target the next major "Positive GEX" wall where dealer selling will likely stall the rally.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a strike price with the highest <strong>Negative GEX</strong> (e.g., $70,000 BTC). If price breaks above this level, market makers *must* buy spot BTC to hedge their short calls. This forced buying drives price higher, which forces *more* buying. This is a Gamma Squeeze. To execute, enter a long position on a 5-minute close above the GEX peak strike, and target the next major "Positive GEX" wall where dealer selling will likely stall the rally.</p>
 </div>
 
 <h2>Operationalizing GEX Intelligence in the Terminal</h2>
 <ol>
     <li>Navigate to the <strong>GEX Profile Hub</strong>.</li>
-    <li>Locate the **"Gamma Flip"** price—this is your line in the sand for volatility expansion.</li>
-    <li>Identify **"Pinning Strikes"** (Large Positive GEX walls)—these are your take-profit targets as price will likely stall here.</li>
+    <li>Locate the <strong>"Gamma Flip"</strong> price—this is your line in the sand for volatility expansion.</li>
+    <li>Identify <strong>"Pinning Strikes"</strong> (Large Positive GEX walls)—these are your take-profit targets as price will likely stall here.</li>
     <li>Cross-reference with <strong>Liquidation Clusters</strong>. If a GEX Flip aligns with a massive liquidation cluster, the resulting move will be 2-3x more violent.</li>
 </ol>
 
@@ -893,7 +900,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -906,14 +913,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -930,40 +937,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1085,7 +1092,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1209,6 +1216,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 

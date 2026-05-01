@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -519,7 +519,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
 <h2>1. Foundational Overview: The Mechanics of Forced Selling</h2>
-<p>In highly leveraged cryptocurrency derivatives markets, a **Liquidation** occurs when a trader's margin account can no longer support their open positions. The exchange matching engine is forced to indiscriminately close the position by issuing a "Market Order."</p>
+<p>In highly leveraged cryptocurrency derivatives markets, a <strong>Liquidation</strong> occurs when a trader's margin account can no longer support their open positions. The exchange matching engine is forced to indiscriminately close the position by issuing a "Market Order."</p>
 <p>Because these orders are "forced," they pay no attention to price or slippage. A massive cluster of liquidations creates a "Cascading Event" where one liquidation drives price further into the next person's liquidation price, leading to violent, vertical price moves.</p>
 
 <h2>2. Intermediate Mechanics: Long vs. Short Squeezes</h2>
@@ -528,21 +528,21 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <li><strong>Long Squeeze:</strong> A rapid drop in price that triggers a chain reaction of leveraged long liquidations. This creates a "Sell-Side Cascade."</li>
     <li><strong>Short Squeeze:</strong> A rapid rise in price that forces shorts to buy back their positions. This creates a "Buy-Side Cascade," often resulting in a vertical "God Candle."</li>
 </ul>
-<p>Liquidations act as a **"Market Magnet."** Price has a mathematical tendency to seek out areas of high leverage to "clear the board" of over-leveraged participants before the next major trend begins.</p>
+<p>Liquidations act as a <strong>"Market Magnet."</strong> Price has a mathematical tendency to seek out areas of high leverage to "clear the board" of over-leveraged participants before the next major trend begins.</p>
 
 <h2>3. Advanced Quantitative Mechanics: OI Velocity & Liquidation Clusters</h2>
-<p>To predict a squeeze, AlphaSignal tracks **Open Interest (OI) Velocity**. If price is flat but Open Interest is rising rapidly, it means new leverage is entering the system. This creates a "Coiled Spring" effect. </p>
+<p>To predict a squeeze, AlphaSignal tracks <strong>Open Interest (OI) Velocity</strong>. If price is flat but Open Interest is rising rapidly, it means new leverage is entering the system. This creates a "Coiled Spring" effect. </p>
 <div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
     <h3 style="margin-top:0; color:var(--accent);">The Gamma Trap Confluence</h3>
-    <p style="margin-bottom:0;">When a dense **Liquidation Cluster** aligns with a negative **GEX (Gamma Exposure)** zone, the market enters a "Gamma Trap." In this environment, market makers are forced to sell into a falling market to remain delta-neutral, which accelerates the liquidation cascade even further. This is where the most violent "Wick" events occur.</p>
+    <p style="margin-bottom:0;">When a dense <strong>Liquidation Cluster</strong> aligns with a negative <strong>GEX (Gamma Exposure)</strong> zone, the market enters a "Gamma Trap." In this environment, market makers are forced to sell into a falling market to remain delta-neutral, which accelerates the liquidation cascade even further. This is where the most violent "Wick" events occur.</p>
 </div>
 
 <h2>4. Institutional Deep Dive: The "Wick Capture" Strategy</h2>
-<p>Institutional desks do not "fear" liquidations; they use them as a source of **Passive Liquidity**. To fill a $50M position without moving the market, a desk needs a massive counterparty. A liquidation cascade provides exactly that—a forced, indiscriminate seller.</p>
+<p>Institutional desks do not "fear" liquidations; they use them as a source of <strong>Passive Liquidity</strong>. To fill a $50M position without moving the market, a desk needs a massive counterparty. A liquidation cascade provides exactly that—a forced, indiscriminate seller.</p>
 
 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
     <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Fading the Exhaustion Wick</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Watch for the **"Delta Divergence"** during a crash. When you see $100M+ in long liquidations hit the tape, but the **CVD (Cumulative Volume Delta)** begins to tick UP, it means institutions are "Absorbing" the forced selling with limit orders. This is the "Wick Capture." Execute a long position at the bottom of the cluster, targeting a mean-reversion back to the VWAP. Your stop-loss should be placed just below the final liquidation "Clean-Out" level.</p>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Watch for the <strong>"Delta Divergence"</strong> during a crash. When you see $100M+ in long liquidations hit the tape, but the <strong>CVD (Cumulative Volume Delta)</strong> begins to tick UP, it means institutions are "Absorbing" the forced selling with limit orders. This is the "Wick Capture." Execute a long position at the bottom of the cluster, targeting a mean-reversion back to the VWAP. Your stop-loss should be placed just below the final liquidation "Clean-Out" level.</p>
 </div>
 
 <h2>Operationalizing Liquidation Intelligence in the Terminal</h2>
@@ -550,7 +550,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <li>Monitor the <strong>Liquidation Heatmap</strong> for "High-Density Bubbles" near current price.</li>
     <li>Check <strong>Funding Rates</strong>—if they are deeply negative while price is falling, a "Short Squeeze" is likely imminent.</li>
     <li>Use the <strong>OI Velocity Tracker</strong> to see if leverage is building or flushing.</li>
-    <li>Set alerts for **"Mega-Liquidation Events"** (>$10M in a single minute) to identify potential market pivot points.</li>
+    <li>Set alerts for <strong>"Mega-Liquidation Events"</strong> (>$10M in a single minute) to identify potential market pivot points.</li>
 </ol>
 
 </div>
@@ -894,7 +894,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="tape.js" defer></script>
+    <script src="../tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -907,14 +907,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.65" defer></script>
-    <script src="js/auth.js?v=2.65" defer></script>
-    <script src="js/core.js?v=2.65" defer></script>
-    <script src="js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="js/charts.js?v=2.65" defer></script>
+    <script src="../js/utils.js?v=2.65" defer></script>
+    <script src="../js/auth.js?v=2.65" defer></script>
+    <script src="../js/core.js?v=2.65" defer></script>
+    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="../js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="js/views/global-markets.js?v=2.65" defer></script>
+    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="../js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -931,40 +931,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.65" defer></script>
-    <script src="js/views/performance.js?v=2.65" defer></script>
-    <script src="js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="js/views/whales.js?v=2.65" defer></script>
-    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="js/views/strategy.js?v=2.65" defer></script>
-    <script src="js/views/portfolio.js?v=2.65" defer></script>
-    <script src="js/views/narrative.js?v=2.65" defer></script>
-    <script src="js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="js/views/audit.js?v=2.65" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="js/views/onchain.js?v=2.65" defer></script>
-    <script src="js/views/command-center.js?v=2.65" defer></script>
-    <script src="js/views/home.js?v=2.65" defer></script>
-    <script src="js/views/algo-hub.js?v=2.65"></script>
-    <script src="js/views/algo-params.js?v=2.65" defer></script>
-    <script src="js/views/explain.js?v=2.65" defer></script>
-    <script src="js/views/my-terminal.js?v=2.65"></script>
-    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="js/views/onboarding.js?v=2.65" defer></script>
-    <script src="js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="js/views/market-brief.js?v=2.65" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="js/views/webhooks.js?v=2.65" defer></script>
+    <script src="../js/views/signals.js?v=2.65" defer></script>
+    <script src="../js/views/performance.js?v=2.65" defer></script>
+    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="../js/views/whales.js?v=2.65" defer></script>
+    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="../js/views/strategy.js?v=2.65" defer></script>
+    <script src="../js/views/portfolio.js?v=2.65" defer></script>
+    <script src="../js/views/narrative.js?v=2.65" defer></script>
+    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="../js/views/audit.js?v=2.65" defer></script>
+    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="../js/views/onchain.js?v=2.65" defer></script>
+    <script src="../js/views/command-center.js?v=2.65" defer></script>
+    <script src="../js/views/home.js?v=2.65" defer></script>
+    <script src="../js/views/algo-hub.js?v=2.65"></script>
+    <script src="../js/views/algo-params.js?v=2.65" defer></script>
+    <script src="../js/views/explain.js?v=2.65" defer></script>
+    <script src="../js/views/my-terminal.js?v=2.65"></script>
+    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="../js/views/onboarding.js?v=2.65" defer></script>
+    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="../js/views/market-brief.js?v=2.65" defer></script>
+    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="../js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.65" defer></script>
-    <script src="js/docs-b.js?v=2.65" defer></script>
-    <script src="js/docs-c.js?v=2.65" defer></script>
-    <script src="js/export.js?v=2.65" defer></script>
-    <script src="js/seo-meta.js?v=2.65" defer></script>
-    <script src="js/main.js?v=2.65" defer></script>
-    <script src="js/router.js?v=2.65" defer></script>
+    <script src="../js/docs-a.js?v=2.65" defer></script>
+    <script src="../js/docs-b.js?v=2.65" defer></script>
+    <script src="../js/docs-c.js?v=2.65" defer></script>
+    <script src="../js/export.js?v=2.65" defer></script>
+    <script src="../js/seo-meta.js?v=2.65" defer></script>
+    <script src="../js/main.js?v=2.65" defer></script>
+    <script src="../js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1086,7 +1086,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1210,6 +1210,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
+
+
+
 
 
 
