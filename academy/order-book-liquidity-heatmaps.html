@@ -313,7 +313,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
       },
       "image": "https://alphasignal.digital/assets/social-preview.png",
       "mainEntityOfPage": {"@type": "WebPage", "@id": "https://alphasignal.digital/academy/order-book-liquidity-heatmaps"},
-      "keywords": "crypto trading, bitcoin, quantitative trading, AlphaSignal, How to Read Order Book Liquidity Heatmaps",
+      "keywords": "crypto trading, bitcoin, quantitative trading, AlphaSignal, Order Book Liquidity Heatmaps",
       "articleSection": "Quant Academy",
       "video": {
         "@type": "VideoObject",
@@ -574,7 +574,24 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Watch price approach a major Heatmap Wall. If the <strong>Cumulative Volume Delta (CVD)</strong> shows a massive spike in aggressive buying into the wall, but the wall does not break, it is a "Failed Breakout." Short the rejection immediately, as the aggressive buyers have just exhausted themselves into a brick wall of institutional supply.</p>
 </div>
 
-<h2>Operationalizing Heatmaps in the AlphaSignal Terminal</h2>
+<section class="academy-video-section" style="margin: 3.5rem 0; padding: 2rem; background: rgba(125,211,252,0.03); border: 1px solid rgba(125,211,252,0.1); border-radius: 16px;">
+    <h3 style="margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 10px;">
+        <span class="material-symbols-outlined">play_circle</span>
+        Institutional Masterclass: Liquidity Heatmaps
+    </h3>
+    <div class="video-facade" 
+         onclick="this.innerHTML='<iframe width=100% height=100% src=\'https://www.youtube-nocookie.com/embed/8AaFSdjsZbY?autoplay=1&rel=0\' frameborder=0 allow=\'autoplay; encrypted-media\' allowfullscreen style=\'border-radius:12px;\'></iframe>'"
+         style="position: relative; width: 100%; aspect-ratio: 16/9; background: url('https://img.youtube.com/vi/8AaFSdjsZbY/maxresdefault.jpg') center/cover; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
+        <div class="play-btn" style="width: 70px; height: 70px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(125,211,252,0.4); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            <span class="material-symbols-outlined" style="font-size: 42px; color: #000;">play_arrow</span>
+        </div>
+    </div>
+    <p style="margin-top: 1.5rem; font-size: 0.95rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 0;">
+        <strong>Strategic Briefing:</strong> This Bookmap masterclass breaks down the mechanics of the limit order book. Learn how to spot 'Spoofing' traps and identify where major liquidity providers are truly defending price levels.
+    </p>
+</section>
+
+<h2>Operationalizing Liquidity Heatmaps in the Terminal</h2>
 <ol>
     <li>Navigate to the <strong>Liquidity Hub</strong> and set depth to +/- 5%.</li>
     <li>Identify <strong>"Golden Bands"</strong>—levels where liquidity has been resting for more than 12 hours.</li>
