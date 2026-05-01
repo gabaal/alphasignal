@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="../manifest.json">
+    <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -252,32 +252,34 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
           onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
     <!-- Sentry: Frontend error monitoring -->
-    <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous"></script>
     <script>
-        if (window.Sentry) {
-            Sentry.init({
-                dsn: "https://9b6ec670f830eb849a3f32fd79c09c70@o4508024362303488.ingest.de.sentry.io/4511258304905296",
-                tracesSampleRate: 0.05,
-                environment: 'production',
-                ignoreErrors: [
-                    'ResizeObserver loop limit exceeded',
-                    'Non-Error promise rejection captured',
-                    /^Network Error/,
-                    /^Load failed/
-                ]
-            });
+        function initSentry() {
+            if (window.Sentry) {
+                Sentry.init({
+                    dsn: "https://9b6ec670f830eb849a3f32fd79c09c70@o4508024362303488.ingest.de.sentry.io/4511258304905296",
+                    tracesSampleRate: 0.05,
+                    environment: 'production',
+                    ignoreErrors: [
+                        'ResizeObserver loop limit exceeded',
+                        'Non-Error promise rejection captured',
+                        /^Network Error/,
+                        /^Load failed/
+                    ]
+                });
+            }
         }
     </script>
+    <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous" async onload="initSentry()"></script>
     <!-- Supabase JS client (for forgot-password / reset-password flows) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- NOTE: D3 and jsPDF loaded once in body with defer. No duplicates here. -->
     <script>
-        window._supabase = supabase.createClient(
-            'https://rrfcjvpflbwtxlhkpooz.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZmNqdnBmbGJ3dHhsaGtwb296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NjYxMTksImV4cCI6MjA4OTI0MjExOX0.H_JJDYt9OsYR7CQfUAs6JeYACUFtMbWlWzEKN3aFNQc'
-        );
+        function initSupabase() {
+            window._supabase = supabase.createClient(
+                'https://rrfcjvpflbwtxlhkpooz.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZmNqdnBmbGJ3dHhsaGtwb296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NjYxMTksImV4cCI6MjA4OTI0MjExOX0.H_JJDYt9OsYR7CQfUAs6JeYACUFtMbWlWzEKN3aFNQc'
+            );
+        }
     </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async onload="initSupabase()"></script>
     <!-- Chart.js, lightweight-charts, html2canvas, jsPDF - loaded non-blocking with defer in body below -->
 
 
@@ -303,8 +305,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
       "headline": "Mastering Capital Sector Rotation Strategies",
       "description": "Uncover the flow of capital from Bitcoin into large-cap altcoins, DeFi, and meme coins using ecosystem rotation heatmaps and relative strength momentum.",
       "url": "https://alphasignal.digital/academy/capital-sector-rotation",
-      "datePublished": "2026-04-27",
-      "dateModified": "2026-04-27",
+      "datePublished": "2026-05-01",
+      "dateModified": "2026-05-01",
       "author": {"@type": "Organization", "name": "AlphaSignal", "url": "https://alphasignal.digital/"},
       "publisher": {
         "@type": "Organization",
@@ -314,7 +316,15 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
       "image": "https://alphasignal.digital/assets/social-preview.png",
       "mainEntityOfPage": {"@type": "WebPage", "@id": "https://alphasignal.digital/academy/capital-sector-rotation"},
       "keywords": "crypto trading, bitcoin, quantitative trading, AlphaSignal, Mastering Capital Sector Rotation Strategies",
-      "articleSection": "Quant Academy"
+      "articleSection": "Quant Academy",
+      "video": {
+        "@type": "VideoObject",
+        "name": "Sector Rotation Masterclass",
+        "description": "Learn how to identify and front-run the rotation of capital across different crypto sectors.",
+        "thumbnailUrl": "https://img.youtube.com/vi/86I62GZ7u-4/maxresdefault.jpg",
+        "uploadDate": "2026-05-01",
+        "embedUrl": "https://www.youtube-nocookie.com/embed/86I62GZ7u-4"
+      }
     }
     </script>
         <style>
@@ -517,40 +527,47 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Mastering Capital Sector Rotation Strategies</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Uncover the flow of capital from Bitcoin into large-cap altcoins, DeFi, and meme coins using ecosystem rotation heatmaps and relative strength momentum.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
+<h2>The Crypto Capital Flow Cycle</h2>
+<section class="academy-video-section" style="margin: 3.5rem 0; padding: 2rem; background: rgba(125,211,252,0.03); border: 1px solid rgba(125,211,252,0.1); border-radius: 16px;">
+    <h3 style="margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 10px;">
+        <span class="material-symbols-outlined">play_circle</span>
+        Sector Rotation Masterclass
+    </h3>
+    <div class="video-facade" 
+         onclick="this.innerHTML='<iframe width=100% height=100% src=\'https://www.youtube-nocookie.com/embed/86I62GZ7u-4?autoplay=1&rel=0\' frameborder=0 allow=\'autoplay; encrypted-media\' allowfullscreen style=\'border-radius:12px;\'></iframe>'"
+         style="position: relative; width: 100%; aspect-ratio: 16/9; background: url(\'https://img.youtube.com/vi/86I62GZ7u-4/maxresdefault.jpg\') center/cover; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
+        <div class="play-btn" style="width: 70px; height: 70px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(125,211,252,0.4); transition: transform 0.2s;" onmouseover="this.style.transform=\'scale(1.1)\'" onmouseout="this.style.transform=\'scale(1)\'">
+            <span class="material-symbols-outlined" style="font-size: 42px; color: #000;">play_arrow</span>
+        </div>
+    </div>
+    <p style="margin-top: 1.5rem; font-size: 0.95rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 0;">
+        <strong>Strategic Briefing:</strong> Learn how to identify and front-run the rotation of capital across different crypto sectors.
+    </p>
+</section>
 
-<h2>1. Foundational Overview: The Capital Flow Cycle</h2>
-<p>Cryptocurrency bull markets typically follow a predictable capital rotation cycle. Fiat capital first flows into Bitcoin, which leads the market rally. Once Bitcoin consolidates, institutional and retail profits rotate "down the risk curve" into Ethereum, then Large-Cap Altcoins, and eventually Micro-Cap tokens. This is the "Waterfall of Liquidity" that fuels Altcoin seasons.</p>
 
-<h2>2. Intermediate Mechanics: Measuring Relative Strength (RS)</h2>
-<p>Professional rotation traders don't look at USD price; they look at <strong>Relative Strength (RS)</strong>. By charting sectors against Bitcoin (e.g., SOL/BTC or AI/BTC), we can isolate which sectors are outperforming the benchmark.</p>
-<ul>
-    <li><strong>Outperformance:</strong> If the RS line is rising, the sector is gaining value faster than Bitcoin. This is where you should be overweight.</li>
-    <li><strong>Underperformance:</strong> If the RS line is falling, even if the USD price is rising, you are losing money relative to simply holding Bitcoin.</li>
-</ul>
+<p>Cryptocurrency bull markets typically follow a predictable capital rotation cycle. Fiat capital flows into Bitcoin, which leads the market rally. Once Bitcoin consolidates, institutional and retail profits rotate down the risk curve into Ethereum, then Large-Cap Altcoins, and eventually Micro-Cap tokens.</p>
 
-<h2>3. Advanced Analysis: Stablecoin Velocity as a Lead</h2>
-<p>The most important leading indicator for rotation is <strong>Stablecoin Velocity</strong>. When the market cap of USDT or USDC is rising, but the stablecoins are sitting idle in wallets, the market is in a "Dry Powder" phase.</p>
-<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
-    <h3 style="margin-top:0; color:var(--accent);">The Deployment Signal</h3>
-    <p style="margin-bottom:0;">AlphaSignal monitors on-chain transfers from private wallets to decentralized exchanges (DEXs). When we see a spike in Stablecoin Velocity alongside a consolidation in Bitcoin price, it signals that institutions are actively deploying capital into the next sector rotation wave.</p>
-</div>
+<p>Understanding where the market is within this macro rotation cycle is the single most important factor for maximizing portfolio returns. If you are heavy in Micro-Caps during the initial Bitcoin accumulation phase, your portfolio will bleed against the benchmark.</p>
 
-<h2>4. Institutional Deep Dive: Narrative Arc Life Cycles</h2>
-<p>Every rotation follows a <strong>Narrative Arc</strong>. Capital flows into the "Blue Chip" tokens of a sector first, followed by the mid-caps, and finally the micro-caps. </p>
-<p>AlphaSignal's <strong>Mindshare Engine</strong> tracks the life cycle of these arcs by analyzing volume delta and social velocity. The rotation is considered "Mature" (high risk) when the most illiquid, "meme" tokens of a sector start going parabolic. This is the mechanical signal to rotate back into Bitcoin or Stablecoins, as the rotation has reached its final, retail-driven stage.</p>
+<img src="/academy/images/sector_capital_flow.png" alt="Capital Sector Flow" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
 
-<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
-    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The "Laggard" Rebalance</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a sector leader (e.g., SOL) that has just rallied 20%. Look for the "Ecosystem Laggard"—a high-quality project in the same ecosystem that hasn't moved yet. If the AlphaSignal <strong>Mindshare Score</strong> for the laggard is rising while the price is flat, enter a Long. Capital will almost inevitably flow "down the chain" to find value.</p>
-</div>
-
-<h2>Operationalizing Rotation in the AlphaSignal Terminal</h2>
+<h3>The Four Phases of Sector Rotation</h3>
 <ol>
-    <li>Navigate to the <strong>Macro Hub</strong> and open the Sector Rotation map.</li>
-    <li>Filter for the <strong>Trailing 7-Day Performance</strong> against BTC.</li>
-    <li>Identify the sector with the highest <strong>Alpha Score</strong> (positive momentum + rising mindshare).</li>
-    <li>Use the <strong>Backtester</strong> to verify if this sector historically performs well in the current Market Regime.</li>
+    <li><strong>Bitcoin Dominance Expansion:</strong> Smart money accumulates Bitcoin at the bottom. BTC Dominance rises as altcoins bleed.</li>
+    <li><strong>The Ethereum Rotation:</strong> Bitcoin hits an all-time high and consolidates sideways. Profits begin rotating into Ethereum, sparking the altcoin rally.</li>
+    <li><strong>Large-Cap & Sector Specific Rallies:</strong> Capital flows into specific narratives like DeFi, Layer 2s, or AI tokens.</li>
+    <li><strong>Micro-Cap Euphoria:</strong> The final blow-off top where retail capital floods into meme coins and illiquid assets, marking the end of the cycle.</li>
 </ol>
+
+<h3>Measuring Relative Strength</h3>
+<p>The Sector Rotation dashboard utilizes algorithmic pairs trading logic (e.g., SOL/BTC, ETH/BTC) to measure the relative strength of specific ecosystems against the market benchmark. Recognizing when a sector is transitioning from the "Accumulation" quadrant to the "Leading" quadrant is essential for capturing outsized macro returns.</p>
+
+<img src="/academy/images/sector_relative_strength.png" alt="Relative Strength Heatmap" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+
+<h3>AlphaSignal's Ecosystem Tracking</h3>
+<p>By aggregating volume, social mindshare, and cumulative delta across Layer 1s, DeFi, AI, and Gaming sectors, AlphaSignal generates a deterministic view of where capital is currently parked.</p>
+<p>When the Relative Strength heatmap shows the AI sector flashing bright green while the Layer 1 sector is cooling off, quantitative traders instantly rotate their portfolios to capture the impending narrative wave, effectively front-running retail FOMO.</p>
 
 </div>
 
@@ -565,7 +582,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                  This guarantees Googlebot indexes keyword-rich page content regardless of JS execution. -->
             <noscript>
             <div style="max-width:1100px;margin:0 auto;padding:4rem 2rem;font-family:system-ui,sans-serif;color:#e2e8f0;">
-                <h2 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">AlphaSignal &mdash; Institutional Bitcoin &amp; Crypto Intelligence Terminal</h2>
+                <h1 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">AlphaSignal &mdash; Institutional Bitcoin &amp; Crypto Intelligence Terminal</h1>
                 <p style="font-size:1.1rem;color:#94a3b8;line-height:1.8;margin-bottom:2rem;">
                     AlphaSignal (alphasignal.digital) is a real-time institutional intelligence terminal for Bitcoin, crypto, and macro markets.
                     Trusted by 2,400+ professional traders, AlphaSignal delivers Z-score alpha signals, AI-generated market briefings,
@@ -893,7 +910,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="../tape.js" defer></script>
+    <script src="tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -906,14 +923,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="../js/utils.js?v=2.65" defer></script>
-    <script src="../js/auth.js?v=2.65" defer></script>
-    <script src="../js/core.js?v=2.65" defer></script>
-    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="../js/charts.js?v=2.65" defer></script>
+    <script src="js/utils.js?v=2.65" defer></script>
+    <script src="js/auth.js?v=2.65" defer></script>
+    <script src="js/core.js?v=2.65" defer></script>
+    <script src="js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="../js/views/global-markets.js?v=2.65" defer></script>
+    <script src="js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -930,40 +947,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="../js/views/signals.js?v=2.65" defer></script>
-    <script src="../js/views/performance.js?v=2.65" defer></script>
-    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="../js/views/whales.js?v=2.65" defer></script>
-    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="../js/views/strategy.js?v=2.65" defer></script>
-    <script src="../js/views/portfolio.js?v=2.65" defer></script>
-    <script src="../js/views/narrative.js?v=2.65" defer></script>
-    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="../js/views/audit.js?v=2.65" defer></script>
-    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="../js/views/onchain.js?v=2.65" defer></script>
-    <script src="../js/views/command-center.js?v=2.65" defer></script>
-    <script src="../js/views/home.js?v=2.65" defer></script>
-    <script src="../js/views/algo-hub.js?v=2.65"></script>
-    <script src="../js/views/algo-params.js?v=2.65" defer></script>
-    <script src="../js/views/explain.js?v=2.65" defer></script>
-    <script src="../js/views/my-terminal.js?v=2.65"></script>
-    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="../js/views/onboarding.js?v=2.65" defer></script>
-    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="../js/views/market-brief.js?v=2.65" defer></script>
-    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="../js/views/webhooks.js?v=2.65" defer></script>
+    <script src="js/views/signals.js?v=2.65" defer></script>
+    <script src="js/views/performance.js?v=2.65" defer></script>
+    <script src="js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="js/views/whales.js?v=2.65" defer></script>
+    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="js/views/strategy.js?v=2.65" defer></script>
+    <script src="js/views/portfolio.js?v=2.65" defer></script>
+    <script src="js/views/narrative.js?v=2.65" defer></script>
+    <script src="js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="js/views/audit.js?v=2.65" defer></script>
+    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="js/views/onchain.js?v=2.65" defer></script>
+    <script src="js/views/command-center.js?v=2.65" defer></script>
+    <script src="js/views/home.js?v=2.65" defer></script>
+    <script src="js/views/algo-hub.js?v=2.65"></script>
+    <script src="js/views/algo-params.js?v=2.65" defer></script>
+    <script src="js/views/explain.js?v=2.65" defer></script>
+    <script src="js/views/my-terminal.js?v=2.65"></script>
+    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="js/views/onboarding.js?v=2.65" defer></script>
+    <script src="js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="js/views/market-brief.js?v=2.65" defer></script>
+    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="../js/docs-a.js?v=2.65" defer></script>
-    <script src="../js/docs-b.js?v=2.65" defer></script>
-    <script src="../js/docs-c.js?v=2.65" defer></script>
-    <script src="../js/export.js?v=2.65" defer></script>
-    <script src="../js/seo-meta.js?v=2.65" defer></script>
-    <script src="../js/main.js?v=2.65" defer></script>
-    <script src="../js/router.js?v=2.65" defer></script>
+    <script src="js/docs-a.js?v=2.65" defer></script>
+    <script src="js/docs-b.js?v=2.65" defer></script>
+    <script src="js/docs-c.js?v=2.65" defer></script>
+    <script src="js/export.js?v=2.65" defer></script>
+    <script src="js/seo-meta.js?v=2.65" defer></script>
+    <script src="js/main.js?v=2.65" defer></script>
+    <script src="js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1085,7 +1102,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1136,45 +1153,6 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
             }
         })();
     </script>
-<style>
-.academy-related-links a {
-  color: #7dd3fc;
-  text-decoration: none;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  transition: color 0.15s;
-}
-.academy-related-links a:hover { color: #fff; text-decoration: underline; }
-</style>
-
-<section class="academy-related-links" aria-label="Related content" style="
-  max-width:820px; margin:3rem auto 2rem; padding:2rem;
-  background:rgba(125,211,252,0.04); border:1px solid rgba(125,211,252,0.12);
-  border-radius:12px; font-family:'Inter',sans-serif;">
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
-    <div>
-      <h3 style="font-size:0.7rem; font-weight:800; letter-spacing:2px;
-                 color:#7dd3fc; text-transform:uppercase; margin-bottom:1rem;">
-        Continue Learning
-      </h3>
-      <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.6rem;">
-      <li><a href="/academy/hidden-markov-market-regimes">Understanding Market Regimes with Hidden Markov Models</a></li>
-      <li><a href="/academy/stablecoin-macro-liquidity-flows">Macro Liquidity: Tracking Stablecoin Supply Flows</a></li>
-      <li><a href="/academy/pairs-trading-crypto-arbitrage">Pairs Trading and Crypto Arbitrage</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3 style="font-size:0.7rem; font-weight:800; letter-spacing:2px;
-                 color:#7dd3fc; text-transform:uppercase; margin-bottom:1rem;">
-        Use This in AlphaSignal
-      </h3>
-      <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.6rem;">
-      <li><a href="/docs/rotation">Sector Rotation &rarr;</a></li>
-      <li><a href="/docs/macro-hub">Macro Compass &rarr;</a></li>
-      </ul>
-    </div>
-  </div>
-</section>
 <nav aria-label="Quant Academy Crawler Sitemap" style="display:none;" id="seo-crawler-nav">
   <ul>
     <li><a href="/academy/order-book-liquidity-heatmaps">How to Read Order Book Liquidity Heatmaps</a></li>
@@ -1184,7 +1162,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <li><a href="/academy/capital-sector-rotation">Mastering Capital Sector Rotation Strategies</a></li>
     <li><a href="/academy/volume-profile-market-profile">Trade Like a Pro: Volume Profile & Market Profile</a></li>
     <li><a href="/academy/institutional-yield-farming">Navigating Institutional DeFi Yield Farming</a></li>
-    <li><a href="/academy/token-unlocks-supply-dilution">Trading Token Unlocks and Supply Dilution</a></li>
+    <li><a href="/academy/token-unlocks-supply-dilution">Trading Trading Token Unlocks and Supply Dilution</a></li>
     <li><a href="/academy/algorithmic-ai-trade-signals">Exploiting Algorithmic AI Trade Signals</a></li>
     <li><a href="/academy/on-chain-whale-tracking">On-Chain Whale Tracking and Exchange Flows</a></li>
     <li><a href="/academy/cme-futures-gaps-bitcoin">Trading CME Futures Gaps in Bitcoin</a></li>
@@ -1209,10 +1187,6 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
-
-
-
-
 
 
 

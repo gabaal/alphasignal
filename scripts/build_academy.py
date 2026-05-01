@@ -4,17 +4,15 @@ from datetime import datetime, timezone
 
 articles = {
     'order-book-liquidity-heatmaps': {
-        'title': 'How to Read Order Book Liquidity Heatmaps',
+        'video': {
+    'id': 'DmXeCNPw2g4',
+    'name': 'Order Book Liquidity Heatmaps Masterclass',
+    'description': 'Learn how to read institutional liquidity heatmaps and identify where major market participants are positioning their limit orders.'
+}
+        , 'title': 'How to Read Order Book Liquidity Heatmaps',
         'summary': 'Decode Limit Order Book (LOB) data to identify institutional defense levels, spoofs, and high-probability support/resistance structures before price gets there.',
         'content': '''<h2>Introduction to Limit Order Books (LOB)</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/BDNcodKI8BI?rel=0" 
-        title="LOB Heatmap Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>Unlike traditional candlestick charts that only show executed trades, a <strong>Limit Order Book Heatmap</strong> exposes the active, unexecuted limit orders resting across different price levels. This allows quantitative traders to visualize true market depth and identify where institutional capital is stacked.</p>
 
 <p>Every time a market participant submits an order to buy or sell an asset at a specific price, it rests in the LOB until it is filled or canceled. By aggregating this data into a visual heatmap, traders can see exactly where the market has true, structural support and where it is hollow and vulnerable to massive volatility spikes.</p>
@@ -50,17 +48,15 @@ articles = {
 '''
     },
     'understanding-gamma-exposure-gex': {
-        'title': 'Understanding Gamma Exposure (GEX) in Crypto Markets',
+        'video': {
+    'id': 'I0_v_I26f_g',
+    'name': 'Market Maker Mechanics: Gamma Exposure (GEX) Decoded',
+    'description': 'Understand how options market maker hedging drives price volatility and trend acceleration.'
+}
+        , 'title': 'Understanding Gamma Exposure (GEX) in Crypto Markets',
         'summary': 'A comprehensive guide to understanding options market maker positioning, hedging dynamics, and the impact of Gamma Exposure (GEX) on underlying asset price action.',
         'content': '''<h2>Introduction to Gamma Exposure</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/ma9bEqS2XAQ?rel=0" 
-        title="GEX Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>Gamma Exposure (GEX) quantifies the directional exposure of options market makers. When retail and institutional traders buy options, market makers take the opposite side of the trade and must dynamically hedge their positions in the spot or futures market.</p>
 
 <h3>Positive vs. Negative Gamma Regimes</h3>
@@ -72,17 +68,15 @@ articles = {
 '''
     },
     'crypto-liquidations-tracker': {
-        'title': 'Exploiting High-Leverage Crypto Liquidations',
+        'video': {
+    'id': 'rdaZDhciMxI',
+    'name': 'Crypto Liquidations & Open Interest Masterclass',
+    'description': 'Learn how to track institutional order flow and liquidation levels to identify market reversals.'
+}
+        , 'title': 'Exploiting High-Leverage Crypto Liquidations',
         'summary': 'Learn how to track and exploit forced liquidations and margin calls across major derivatives exchanges to fade momentum and capture violent mean-reversion bounces.',
         'content': '''<h2>The Mechanics of Forced Liquidations</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/rYMSKGX6zTI?rel=0" 
-        title="Crypto Liquidations Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>In highly leveraged crypto derivatives markets, intense price volatility often leads to forced position liquidations. When a heavily leveraged long position is liquidated, the exchange matching engine indiscriminately issues a market sell order, causing a cascading drop in price known as a "liquidation cascade" or "long squeeze."</p>
 
 <img src="/academy/images/liquidation_heatmap.png" alt="Cascading Liquidation Heatmap" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
@@ -99,17 +93,15 @@ articles = {
 '''
     },
     'options-flow-dark-pools': {
-        'title': 'Decoding Institutional Options Flow & Dark Pools',
+        'video': {
+    'id': '3cM7toFnRTU',
+    'name': 'Institutional Options Flow & Dark Pools with SpotGamma',
+    'description': 'Learn how to track institutional dark pool prints and options flow to identify major market support and resistance levels.'
+}
+        , 'title': 'Decoding Institutional Options Flow & Dark Pools',
         'summary': 'Track massive options block trades, dark pool sweeps, and unusual options activity to front-run institutional capital movements in both crypto and equities.',
         'content': '''<h2>What is Options Flow?</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/yTbWEsMxNCw?rel=0" 
-        title="Options Flow Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>Options Flow tracking involves monitoring the tape for unusually large, aggressive block trades or sweeps executed by institutional funds. Unlike retail traders who execute single contracts, institutions execute thousands of contracts across multiple exchanges simultaneously, leaving a distinct footprint.</p>
 
 <p>When a massive entity wants to build a position without moving the spot market, they turn to the derivatives market. By tracking the tape for "Unusual Options Activity" (UOA), quantitative traders can piggyback on billion-dollar capital flows before the fundamental catalyst is publicly announced.</p>
@@ -137,17 +129,15 @@ articles = {
 '''
     },
     'capital-sector-rotation': {
-        'title': 'Mastering Capital Sector Rotation Strategies',
+        'video': {
+    'id': '86I62GZ7u-4',
+    'name': 'Sector Rotation Masterclass',
+    'description': 'Learn how to identify and front-run the rotation of capital across different crypto sectors.'
+}
+        , 'title': 'Mastering Capital Sector Rotation Strategies',
         'summary': 'Uncover the flow of capital from Bitcoin into large-cap altcoins, DeFi, and meme coins using ecosystem rotation heatmaps and relative strength momentum.',
         'content': '''<h2>The Crypto Capital Flow Cycle</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/X19LaseHszM?rel=0" 
-        title="Sector Rotation Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>Cryptocurrency bull markets typically follow a predictable capital rotation cycle. Fiat capital flows into Bitcoin, which leads the market rally. Once Bitcoin consolidates, institutional and retail profits rotate down the risk curve into Ethereum, then Large-Cap Altcoins, and eventually Micro-Cap tokens.</p>
 
 <p>Understanding where the market is within this macro rotation cycle is the single most important factor for maximizing portfolio returns. If you are heavy in Micro-Caps during the initial Bitcoin accumulation phase, your portfolio will bleed against the benchmark.</p>
@@ -173,17 +163,15 @@ articles = {
 '''
     },
     'volume-profile-market-profile': {
-        'title': 'Trade Like a Pro: Volume Profile & Market Profile',
+        'video': {
+    'id': 'uDzqh0c6BeM',
+    'name': 'Institutional Volume Profile: The Auction Process',
+    'description': 'Master the Volume Profile and Auction Market Theory to identify high-probability institutional zones.'
+}
+        , 'title': 'Trade Like a Pro: Volume Profile & Market Profile',
         'summary': 'Move beyond time-based charts. Utilize Volume Profile to discover High Volume Nodes (HVN), Point of Control (POC), and Value Areas.',
         'content': '''<h2>Time vs. Volume</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/Xe30nXrRxYg?rel=0" 
-        title="Volume Profile Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>Traditional candlestick charts plot price over time, inherently weighing slow consolidation periods equivalently to fast trend movements. This is a flawed way to view the market. <strong>Volume Profile</strong> plots the total volume traded at specific price levels, establishing the concept of "Market Acceptance" and "Value."</p>
 
 <p>By looking at the Y-axis (Price) instead of the X-axis (Time), traders can see exactly where the majority of capital changed hands, revealing the true, hidden support and resistance levels ignored by retail chart patterns.</p>
@@ -210,7 +198,12 @@ articles = {
 '''
     },
     'institutional-yield-farming': {
-        'title': 'Navigating Institutional DeFi Yield Farming',
+        'video': {
+    'id': 'uY7W-l9h86Y',
+    'name': 'Institutional DeFi Yield Farming Masterclass',
+    'description': 'Learn how to optimize risk-adjusted returns and manage liquidity in decentralized finance protocols.'
+}
+        , 'title': 'Navigating Institutional DeFi Yield Farming',
         'summary': 'Analyze risk-adjusted return vectors, stablecoin supply constraints, and protocol emissions to optimize your decentralization finance (DeFi) yield strategy.',
         'content': '''<h2>The Architecture of On-Chain Yield</h2>
 <p>DeFi yield is generated primarily through three vectors: staking rewards, liquidity provider (LP) fee generation, and token emission incentives. Understanding the underlying source of the yield is critical to evaluating the risk of capital impermanence or protocol insolvency.</p>
@@ -229,7 +222,12 @@ articles = {
 '''
     },
     'token-unlocks-supply-dilution': {
-        'title': 'Trading Trading Token Unlocks and Supply Dilution',
+        'video': {
+    'id': '7wO3-YV7Z9w',
+    'name': 'Institutional Guide to Token Unlocks & Supply Shocks',
+    'description': 'Master the mechanics of vesting cliffs, linear unlocks, and how to identify high-probability short-selling opportunities around massive supply expansion events.'
+}
+        , 'title': 'Trading Trading Token Unlocks and Supply Dilution',
         'summary': 'Track venture capitalist vesting schedules and massive token unlock events to anticipate structural supply shocks and short-selling opportunities.',
         'content': '''<h2>The Mechanics of Token Vesting</h2>
 <p>To prevent early investors and team members from dumping their tokens immediately after launch, crypto projects enforce strict vesting schedules and lock-up periods. When these lock-ups expire (a "Token Unlock"), an influx of new supply hits the open market.</p>
@@ -248,17 +246,15 @@ articles = {
 '''
     },
     'algorithmic-ai-trade-signals': {
-        'title': 'Exploiting Algorithmic AI Trade Signals',
+        'video': {
+    'id': 'Y-uEwK9o908',
+    'name': 'AI for Trading: Algorithmic Signals',
+    'description': 'Learn how to leverage artificial intelligence and machine learning to generate high-probability trading signals.'
+}
+        , 'title': 'Exploiting Algorithmic AI Trade Signals',
         'summary': 'Discover how AlphaSignal utilizes deep learning neural networks, Natural Language Processing, and fundamental data to generate deterministic, emotionless trade signals.',
         'content': '''<h2>The Evolution of Quantitative Trading</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/Bo7HFcEeLFk?rel=0" 
-        title="Algorithmic Trading Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>Traditional technical analysis relies on subjective chart patterns. AlphaSignal's AI Engine replaces human bias with rigorous machine learning models trained on decades of order book data, macro indicators, and on-chain metrics to output highly probable directional forecasts.</p>
 
 <img src="/academy/images/neural_network_nodes.png" alt="AI Neural Network Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
@@ -275,17 +271,15 @@ articles = {
 '''
     },
     'on-chain-whale-tracking': {
-        'title': 'On-Chain Whale Tracking and Exchange Flows',
+        'video': {
+    'id': 'MKIMYbalO4w',
+    'name': 'On-chain Analytics & Whale Tracking Masterclass',
+    'description': 'Institutional-grade webinar on mastering the MVRV ratio and other on-chain analytics to identify market extremes.'
+}
+        , 'title': 'On-Chain Whale Tracking and Exchange Flows',
         'summary': 'Trace massive cryptocurrency transactions between cold storage wallets and centralized exchanges to predict local tops and bottoms.',
         'content': '''<h2>Understanding the On-Chain Ledger</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/MG3U8bRNTR8?rel=0" 
-        title="On-Chain Tracking Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>Because blockchain ledgers are perfectly transparent, every major transaction is permanently recorded. By clustering wallet addresses and identifying entities like Exchange Hot Wallets, Miners, and Institutional Custodians, AlphaSignal maps the flow of hidden liquidity.</p>
 
 <img src="/academy/images/whale_tracking_network.png" alt="On-Chain Whale Tracking Network" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
@@ -302,17 +296,15 @@ articles = {
 '''
     },
     'cme-futures-gaps-bitcoin': {
-        'title': 'Trading CME Futures Gaps in Bitcoin',
+        'video': {
+    'id': 'ADSOBbXdzNE',
+    'name': 'CME Bitcoin Futures Gaps Masterclass',
+    'description': 'Learn the mechanics of CME gaps, the arbitrage loop, and institutional weekend risk management.'
+}
+        , 'title': 'Trading CME Futures Gaps in Bitcoin',
         'summary': 'Exploit the institutional weekend arbitrage loop by trading CME (Chicago Mercantile Exchange) gaps. Understand the statistical probabilities of gap fills and how to position your portfolio before the Friday close.',
         'content': '''<h2>The Mechanics of the CME Gap</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/ADSOBbXdzNE?rel=0" 
-        title="CME Gaps Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>Unlike native crypto spot markets that trade 24/7/365, the <strong>Chicago Mercantile Exchange (CME) Bitcoin Futures</strong> market closes on Friday afternoon and reopens on Sunday evening (ET). During this period, spot prices often exhibit significant volatility driven by retail trading and weekend news catalysts.</p>
 <p>When the CME market finally reopens on Sunday, the opening price is almost always different from Friday's closing price. This price discrepancy on the chart is known as a "Gap".</p>
 
@@ -333,7 +325,12 @@ articles = {
 '''
     },
     'fundamental-mvrv-z-score': {
-        'title': 'Identifying Generational Tops: MVRV Z-Score',
+        'video': {
+    'id': 'MKIMYbalO4w',
+    'name': 'Mastering the Bitcoin MVRV Ratio',
+    'description': 'Learn how to use the MVRV Z-Score to identify macro market extremes and cycle tops/bottoms.'
+}
+        , 'title': 'Identifying Generational Tops: MVRV Z-Score',
         'summary': 'Master on-chain valuation using the MVRV (Market Value to Realized Value) Z-score to determine when Bitcoin is severely overvalued or historically undervalued.',
         'content': '''<h2>Introduction to On-Chain Valuation</h2>
 <p>Traditional technical analysis relies heavily on price momentum and oscillators, which can easily be manipulated by algorithmic wash trading. <strong>On-Chain Analysis</strong> completely circumvents chart-level noise by analyzing the actual blockchain ledger. It effectively performs fundamental analysis on a decentralized network.</p>
@@ -355,7 +352,12 @@ articles = {
 '''
     },
     'statistical-mean-reversion-z-scores': {
-        'title': 'Statistical Mean Reversion: Trading with Z-Scores',
+        'video': {
+    'id': 'c2j-zs8YN3c',
+    'name': 'Institutional Mean Reversion & Z-Scores Masterclass',
+    'description': 'Advanced guide to trading statistical mean reversion using Z-Scores and standard deviation.'
+}
+        , 'title': 'Statistical Mean Reversion: Trading with Z-Scores',
         'summary': 'Avoid the emotional pitfalls of FOMO and Panic by adopting purely statistical, deterministic trading strategies based on standard deviations and Z-Scores.',
         'content': '''<h2>The Mathematics of Market Noise</h2>
 <p>In highly volatile markets, price action is dominated by behavioral economics - specifically, the alternating extremes of greed and panic. A quantitative trader does not guess when a trend will end; instead, they measure exactly how mathematically irrational the current price has become.</p>
@@ -378,17 +380,15 @@ articles = {
 '''
     },
     'vwap-institutional-execution': {
-        'title': 'VWAP and Institutional Execution Footprints',
+        'video': {
+    'id': 'cYN4ZgGvR84',
+    'name': 'Institutional VWAP Trading Strategy',
+    'description': 'Learn how institutional desks use Volume Weighted Average Price (VWAP) for execution and mean reversion.'
+}
+        , 'title': 'VWAP and Institutional Execution Footprints',
         'summary': 'Track algorithmic "Smart Money" accumulation patterns and understand how large whales mask their entry orders using Volume Weighted Average Price (VWAP).',
         'content': '''<h2>The Institutional Accumulation Problem</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);">
-    <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" 
-        src="https://www.youtube-nocookie.com/embed/SeqVUNanFeY?rel=0" 
-        title="VWAP Execution Tutorial" frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-    </iframe>
-</div>
+
 <p>When a retail trader wants to buy $1,000 worth of Bitcoin, they simply hit the "Market Buy" button. The order fills instantly with zero price impact. However, when an institutional fund wants to accumulate $500,000,000 of Ethereum, submitting a market order would trigger massive slippage, destroying their profit margins and creating a giant green candle that alerts the entire market to their presence.</p>
 
 <img src="/academy/images/vwap_execution_band.png" alt="VWAP Execution Bands" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
@@ -407,7 +407,12 @@ articles = {
 '''
     },
     'stablecoin-macro-liquidity-flows': {
-        'title': 'Macro Liquidity: Tracking Stablecoin Supply Flows',
+        'video': {
+    'id': '3WRErVd1G8s',
+    'name': 'Institutional Guide to Stablecoin Macro Liquidity',
+    'description': 'Deep dive into tracking stablecoin supply flows, mint events, and CEX inflows as a leading indicator for Bitcoin market regimes.'
+}
+        , 'title': 'Macro Liquidity: Tracking Stablecoin Supply Flows',
         'summary': 'The ultimate leading indicator of cryptocurrency bull runs: Monitoring Tether (USDT) and USD Coin (USDC) mints and burns across the ecosystem.',
         'content': '''<h2>Stablecoins as Financial Blood</h2>
 <p>In the digital asset ecosystem, fiat currency does not flow directly into Bitcoin or Ethereum; it flows into Stablecoins first. Stablecoins function as the central liquidity pipeline connecting traditional banking systems to decentralized exchange protocols. Consequently, the total aggregate supply of Stablecoins dictates the total purchasing power available to the market.</p>
@@ -428,7 +433,12 @@ articles = {
 '''
     },
     'ai-narrative-velocity-sentiment': {
-        'title': 'Narrative Velocity and Semantic Sentiment Analysis',
+        'video': {
+    'id': 'C36iScl7-8I',
+    'name': 'Sentiment Analysis in Crypto Masterclass',
+    'description': 'Learn how to quantify social momentum and front-run hype cycles using advanced sentiment analysis techniques.'
+}
+        , 'title': 'Narrative Velocity and Semantic Sentiment Analysis',
         'summary': 'Learn how to quantify social momentum and front-run hype cycles using Natural Language Processing (NLP) and vector-based semantic sentiment analysis.',
         'content': '''<h2>The Power of the Narrative</h2>
 <p>Financial markets are driven by stories. In cryptocurrency specifically, fundamental valuation is often secondary to narrative virality. Whether it's "DeFi Summer," "NFTs," "Layer 2 Rollups," or "AI x Crypto," the dominant narrative commands the vast majority of retail capital flow.</p>
@@ -448,10 +458,27 @@ articles = {
 <p>AlphaSignal's Narrative Galaxy graph visually maps out emerging sectors. By identifying high-velocity narratives clustered around under-the-radar tickers before they peak in mainstream consciousness, traders can capture localized exponential growth. Conversely, when a narrative's sentiment reaches universal euphoria (a 99% positive semantic score), it invariably signals a local top and acts as a powerful contrarian short opportunity.</p>
 '''
     },
-    'hidden-markov-market-regimes': {'title': 'Understanding Market Regimes with Hidden Markov Models', 'summary': 'Stop using the same trading strategy for every market condition. Utilize probabilistic regime classification to dynamically adapt to shifting volatility paradigms.', 'content': '<h2>The Fallacy of the Universal Strategy</h2>\n<p>The most common reason retail traders fail is their obstinate commitment to a single trading strategy regardless of the underlying market conditions. A trend-following moving-average crossover strategy that prints massive returns during a bull market will mathematically bleed an account to death in a choppy, sideways consolidation range.</p>\n\n<h3>What is a Market Regime?</h3>\n<p>A Market Regime defines the overarching structural environment of the financial market. The AlphaSignal intelligence engine categorizes these into three primary states:</p>\n<ol>\n    <li><strong>High-Volatility Expansion:</strong> Clear, directional momentum. Breakouts are sustained. Trend-following strategies excel.</li>\n    <li><strong>Low-Volatility Compression:</strong> Sideways, tight ranges. Breakouts immediately fake-out and revert. Mean-reversion oscillators are king.</li>\n    <li><strong>High-Volatility Contraction:</strong> Wide, chaotic swings without a clear vector. Capital preservation is the highest priority.</li>\n</ol>\n\n<h3>Applying the Hidden Markov Model (HMM)</h3>\n<p>Because market regimes are not explicitly announced, they must be inferred from observable data (returns, volatility, volume). AlphaSignal employs a Hidden Markov Model (HMM) to calculate the statistical probability that the market is currently transitioning from one unobservable state into another. When the HMM dashboard confirms a transition into a Low-Vol Compression regime, disciplined traders immediately deactivate their trend-following bots and pivot entirely to range-bound accumulation strategies.</p>\n'},
-    'options-implied-volatility-smile': {'title': 'The Options Volatility Surface: IV Smile and Term Structure', 'summary': 'Decode the advanced option pricing models used by institutional derivatives traders to forecast future market turbulence and directional skew.', 'content': '<h2>Implied Volatility (IV) vs Historical Volatility (HV)</h2>\n<p>Volatility is the lifeblood of options pricing. Historical Volatility (HV) measures how much the asset has actually moved in the past. <strong>Implied Volatility (IV)</strong>, however, measures how much the options market <em>expects</em> the asset to move in the future. IV is backed by real capital; it represents the collective premium that traders are willing to pay for future price movement insurance.</p>\n\n<h3>The IV Smile and Directional Skew</h3>\n<p>If you plot the implied volatility of options contracts expiring on the same date across different strike prices, the resulting curve often resembles a "Smile."</p>\n<ul>\n    <li><strong>Left-Tail Skew (Put Premium):</strong> If out-of-the-money (OTM) Put options have significantly higher IV than OTM Call options, it means institutions are aggressively bidding up downside protection. They fear a crash.</li>\n    <li><strong>Right-Tail Skew (Call Premium):</strong> If the right side of the smile is steeper, the market is frantically buying upside convexity, anticipating a massive bullish breakout.</li>\n</ul>\n\n<h3>Term Structure and Contango</h3>\n<p>The IV Term Structure plots implied volatility across different expiration dates. A normal term structure is in "Contango," meaning longer-dated options are more expensive due to the uncertainty of time. When the term structure inverts into "Backwardation" (short-term options abruptly become vastly more expensive than long-term options), it is a screaming alarm that a severe, immediate market catalyst is imminent. The AlphaSignal Options Flow dashboard maps these complex volatility surfaces into intuitive color-coded gauges, empowering retail traders with institutional foresight.</p>\n'},
+    'hidden-markov-market-regimes': {
+        'video': {
+    'id': 'vM3rSnt_8Xk',
+    'name': 'Institutional Guide to Market Regime Classification',
+    'description': 'Learn how professional quant desks use probabilistic models to identify shifting market regimes and adapt their trading strategies.'
+},
+        'title': 'Understanding Market Regimes with Hidden Markov Models', 'summary': 'Stop using the same trading strategy for every market condition. Utilize probabilistic regime classification to dynamically adapt to shifting volatility paradigms.', 'content': '<h2>The Fallacy of the Universal Strategy</h2>\n<p>The most common reason retail traders fail is their obstinate commitment to a single trading strategy regardless of the underlying market conditions. A trend-following moving-average crossover strategy that prints massive returns during a bull market will mathematically bleed an account to death in a choppy, sideways consolidation range.</p>\n\n<h3>What is a Market Regime?</h3>\n<p>A Market Regime defines the overarching structural environment of the financial market. The AlphaSignal intelligence engine categorizes these into three primary states:</p>\n<ol>\n    <li><strong>High-Volatility Expansion:</strong> Clear, directional momentum. Breakouts are sustained. Trend-following strategies excel.</li>\n    <li><strong>Low-Volatility Compression:</strong> Sideways, tight ranges. Breakouts immediately fake-out and revert. Mean-reversion oscillators are king.</li>\n    <li><strong>High-Volatility Contraction:</strong> Wide, chaotic swings without a clear vector. Capital preservation is the highest priority.</li>\n</ol>\n\n<h3>Applying the Hidden Markov Model (HMM)</h3>\n<p>Because market regimes are not explicitly announced, they must be inferred from observable data (returns, volatility, volume). AlphaSignal employs a Hidden Markov Model (HMM) to calculate the statistical probability that the market is currently transitioning from one unobservable state into another. When the HMM dashboard confirms a transition into a Low-Vol Compression regime, disciplined traders immediately deactivate their trend-following bots and pivot entirely to range-bound accumulation strategies.</p>\n'},
+    'options-implied-volatility-smile': {
+        'video': {
+    'id': 'Lza68h8Tlpg',
+    'name': 'The Volatility Smile Explained',
+    'description': 'Learn how to interpret the volatility smile and implied volatility skew for professional options trading.'
+},
+        'title': 'The Options Volatility Surface: IV Smile and Term Structure', 'summary': 'Decode the advanced option pricing models used by institutional derivatives traders to forecast future market turbulence and directional skew.', 'content': '<h2>Implied Volatility (IV) vs Historical Volatility (HV)</h2>\n<p>Volatility is the lifeblood of options pricing. Historical Volatility (HV) measures how much the asset has actually moved in the past. <strong>Implied Volatility (IV)</strong>, however, measures how much the options market <em>expects</em> the asset to move in the future. IV is backed by real capital; it represents the collective premium that traders are willing to pay for future price movement insurance.</p>\n\n<h3>The IV Smile and Directional Skew</h3>\n<p>If you plot the implied volatility of options contracts expiring on the same date across different strike prices, the resulting curve often resembles a "Smile."</p>\n<ul>\n    <li><strong>Left-Tail Skew (Put Premium):</strong> If out-of-the-money (OTM) Put options have significantly higher IV than OTM Call options, it means institutions are aggressively bidding up downside protection. They fear a crash.</li>\n    <li><strong>Right-Tail Skew (Call Premium):</strong> If the right side of the smile is steeper, the market is frantically buying upside convexity, anticipating a massive bullish breakout.</li>\n</ul>\n\n<h3>Term Structure and Contango</h3>\n<p>The IV Term Structure plots implied volatility across different expiration dates. A normal term structure is in "Contango," meaning longer-dated options are more expensive due to the uncertainty of time. When the term structure inverts into "Backwardation" (short-term options abruptly become vastly more expensive than long-term options), it is a screaming alarm that a severe, immediate market catalyst is imminent. The AlphaSignal Options Flow dashboard maps these complex volatility surfaces into intuitive color-coded gauges, empowering retail traders with institutional foresight.</p>\n'},
     'mastering-risk-to-reward-ratio': {
-        'title': 'Mastering the Risk to Reward Ratio in Trading',
+        'video': {
+    'id': 'uY7W-l9h86Y',
+    'name': 'Institutional Risk Management Masterclass',
+    'description': 'Learn the professional methodology for maintaining positive expectancy through asymmetric risk-to-reward ratios.'
+}
+        , 'title': 'Mastering the Risk to Reward Ratio in Trading',
         'summary': 'Learn why win rate is less important than your risk-to-reward ratio. Discover how professional traders maintain profitability even when they lose more than 50% of their trades.',
         'content': '''<h2>The Mathematics of Profitability</h2>
 <p>Many novice traders obsess over their "win rate"—the percentage of trades that are profitable. However, professional traders understand that win rate alone is a meaningless vanity metric. The true engine of sustainable trading edge is the <strong>Risk to Reward Ratio (R:R)</strong>.</p>
@@ -473,7 +500,12 @@ articles = {
 '''
     },
     'trading-psychology-fomo-panic': {
-        'title': 'Trading Psychology: Overcoming FOMO and Panic',
+        'video': {
+    'id': 'bEXz7Abf-wM',
+    'name': 'Institutional Trading Psychology Masterclass',
+    'description': 'Master the emotional extremes of trading: Fear, Greed, and FOMO, with institutional-grade psychological frameworks.'
+}
+        , 'title': 'Trading Psychology: Overcoming FOMO and Panic',
         'summary': 'The greatest enemy of a trader is their own mind. Learn how to conquer the emotional extremes of Fear of Missing Out (FOMO) and panic selling through deterministic rules.',
         'content': '''<h2>The Emotional Cycle of a Market</h2>
 <p>Financial markets are biological engines driven by the collective psychology of millions of participants. Prices do not move based on logic; they move based on the alternating extremes of greed and panic. <strong>FOMO (Fear of Missing Out)</strong> drives parabolic tops, while panic drives capitulation bottoms.</p>
@@ -496,7 +528,12 @@ articles = {
 '''
     },
     'support-and-resistance-fundamentals': {
-        'title': 'Support and Resistance Fundamentals',
+        'video': {
+    'id': 'h-99ZpG2n6k',
+    'name': 'Mastering Support and Resistance: The Institutional Framework',
+    'description': 'Learn how to identify structural supply and demand zones, map volume profile confluence, and avoid retail stop-run traps.'
+}
+        , 'title': 'Support and Resistance Fundamentals',
         'summary': 'Identify the structural foundation of price action. Learn how to map out historical supply and demand zones effectively to frame your trades.',
         'content': '''<h2>The Architecture of Price</h2>
 <p>At its core, financial trading is a continuous auction. <strong>Support and Resistance</strong> represent the fundamental laws of supply and demand acting on a chart. These are not arbitrary lines; they are psychological and institutional memory banks where major capital previously changed hands.</p>
@@ -516,7 +553,12 @@ articles = {
 '''
     },
     'position-sizing-and-leverage': {
-        'title': 'Position Sizing and Leverage Strategies',
+        'video': {
+    'id': 'MvG-Y51pU1o',
+    'name': 'Mastering Position Sizing and Risk Management',
+    'description': 'Professional guide to calculating optimal position sizes, managing leverage, and protecting capital using institutional risk-of-ruin models.'
+}
+        , 'title': 'Position Sizing and Leverage Strategies',
         'summary': 'Master the mathematics of survival. Understand how to calculate optimal position sizes and manage localized leverage to prevent catastrophic portfolio ruin.',
         'content': '''<h2>Capital Preservation is Paramount</h2>
 <p>The primary goal of a trader is not to make money; the primary goal is to protect capital. <strong>Risk of Ruin</strong> is the statistical probability that a trader will lose their entire account. Even a highly profitable strategy will eventually hit an inevitable losing streak. Without proper position sizing, that streak will wipe out the portfolio.</p>
@@ -535,7 +577,12 @@ articles = {
 '''
     },
     'trading-moving-average-crossovers': {
-        'title': 'Trading Moving Average Crossovers',
+        'video': {
+    'id': '_n74Yn2Z51M',
+    'name': 'Institutional Moving Averages Masterclass',
+    'description': 'Learn how to use SMA and EMA crossovers to confirm macro trends in crypto markets.'
+}
+        , 'title': 'Trading Moving Average Crossovers',
         'summary': 'Learn how to utilize Simple and Exponential Moving Averages to confirm macro trend direction and identify high-probability momentum shifts.',
         'content': '''<h2>Smoothing the Price Action</h2>
 <p>Financial markets are incredibly noisy. <strong>Moving Averages (MAs)</strong> smooth out erratic, daily volatility to reveal the underlying long-term trend. The two most common types are the Simple Moving Average (SMA) and the Exponential Moving Average (EMA), with the EMA placing greater mathematical weight on recent price action.</p>
@@ -556,7 +603,12 @@ articles = {
 '''
     },
     'rsi-macd-momentum-oscillators': {
-        'title': 'RSI and MACD: Momentum Oscillators Explained',
+        'video': {
+    'id': 't6HCSzlSuNk',
+    'name': 'Momentum Masterclass: RSI and MACD',
+    'description': 'Learn how to use RSI and MACD for high-confluence momentum trading.'
+}
+        , 'title': 'RSI and MACD: Momentum Oscillators Explained',
         'summary': 'Decode market momentum using the Relative Strength Index (RSI) and the Moving Average Convergence Divergence (MACD) indicators to identify overbought and oversold extremes.',
         'content': '''<h2>Measuring the Speed of Price</h2>
 <p>While moving averages identify the direction of a trend, <strong>Momentum Oscillators</strong> measure the speed and strength of that trend. These tools help traders identify when a directional move has exhausted itself and is due for a mean-reverting pullback.</p>
@@ -580,7 +632,12 @@ articles = {
 '''
     },
     'fibonacci-retracements-crypto': {
-        'title': 'Fibonacci Retracements in Cryptocurrency',
+        'video': {
+    'id': 'Ypj2VTWbrW0',
+    'name': 'Institutional Fibonacci Masterclass',
+    'description': 'Learn how professional traders use Fibonacci levels to identify high-probability institutional entry zones.'
+}
+        , 'title': 'Fibonacci Retracements in Cryptocurrency',
         'summary': 'Apply the golden ratio to financial markets. Learn how to use Fibonacci retracement levels to identify invisible support and resistance zones during explosive market trends.',
         'content': '''<h2>The Golden Ratio in Markets</h2>
 <p>Derived from the mathematical sequence discovered by Leonardo Fibonacci, the Fibonacci retracement tool is a staple in institutional technical analysis. It operates on the premise that markets do not move in straight lines; after a strong impulsive wave, price will naturally retrace a predictable percentage of that move before resuming its trend.</p>
@@ -602,7 +659,12 @@ articles = {
 '''
     },
     'breakout-trading-strategies': {
-        'title': 'Breakout Trading Strategies',
+        'video': {
+    'id': 'wpPHULhcsn4',
+    'name': 'Institutional Breakout Trading Masterclass',
+    'description': 'Professional guide to trading volatility breakouts and avoiding fakeouts using order flow.'
+}
+        , 'title': 'Breakout Trading Strategies',
         'summary': 'Learn how to trade volatility compressions and identify explosive chart breakouts before retail traders enter the market.',
         'content': '''<h2>The Physics of Volatility Compression</h2>
 <p>Market volatility is cyclical. Prolonged periods of low volatility (consolidation) are mathematically guaranteed to result in explosive periods of high volatility (expansion). The longer an asset compresses in a tight trading range, the more explosive the eventual breakout will be.</p>
@@ -626,7 +688,12 @@ articles = {
 '''
     },
     'how-to-set-proper-stop-loss': {
-        'title': 'How to Set a Proper Stop Loss',
+        'video': {
+    'id': 'uY7W-l9h86Y',
+    'name': 'Institutional Risk Management Masterclass',
+    'description': 'Learn the professional methodology for setting stop losses and managing risk-to-reward ratios.'
+}
+        , 'title': 'How to Set a Proper Stop Loss',
         'summary': 'Stop guessing your exit plan. Master structural stop loss placement, trailing stops, and invalidation points to systematically protect your capital.',
         'content': '''<h2>The Anatomy of an Exit Plan</h2>
 <p>Entering a trade is easy; managing the exit is where careers are made or destroyed. <strong>A Stop Loss</strong> is a preemptive algorithmic order designed to execute a market sell (or buy to cover) exactly when a defined pain threshold is breached, preventing catastrophic, emotional losses.</p>
@@ -646,7 +713,12 @@ articles = {
 '''
     },
     'importance-of-trading-journal': {
-        'title': 'The Importance of a Trading Journal',
+        'video': {
+    'id': '8nS1K9_XFkU',
+    'name': 'Institutional Trading Journal Masterclass',
+    'description': 'Learn how to quantify your edge and audit your performance using institutional-grade trade logging.'
+}
+        , 'title': 'The Importance of a Trading Journal',
         'summary': 'Quantify your mistakes and optimize your strengths. Uncover the institutional mandate of rigorous trade logging and performance auditing.',
         'content': '''<h2>Data is The Ultimate Alpha</h2>
 <p>You cannot improve what you cannot measure. A trading journal is the single most important tool in an institutional trader's arsenal. It is the architectural blueprint of an iterative, self-improving trading system.</p>
@@ -669,7 +741,12 @@ articles = {
 '''
     },
     'candlestick-patterns': {
-        'title': 'Candlestick Patterns',
+        'video': {
+    'id': 'khy2uPMdK54',
+    'name': 'Institutional Candlestick Analysis Masterclass',
+    'description': 'Learn how to read price action through candlesticks with an institutional perspective on supply and demand.'
+}
+        , 'title': 'Candlestick Patterns',
         'summary': 'Learn the foundational visual language of price action. Master how to interpret bullish engulfing, dojis, and hammer candles to predict immediate momentum shifts.',
         'content': '''<h2>The Language of Price</h2>
 <p>Candlestick charts provide a visual representation of price action over a specific timeframe, summarizing the open, high, low, and close (OHLC). This is essential for quickly interpreting market sentiment.</p>
@@ -689,7 +766,12 @@ articles = {
 '''
     },
     'elliott-wave-theory': {
-        'title': 'Elliott Wave Theory',
+        'video': {
+    'id': 'ZeD60UItVlM',
+    'name': 'Elliott Wave Theory: The Definitive Guide',
+    'description': 'Master the fractal nature of markets with this institutional Elliott Wave masterclass.'
+}
+        , 'title': 'Elliott Wave Theory',
         'summary': 'Understand the fractal nature of market cycles. Identify motive and corrective waves to anticipate the next major directional move.',
         'content': '''<h2>The Fractal Market</h2>
 <p>Elliott Wave Theory posits that market trends unfold in predictable, fractal wave patterns driven by investor psychology. The core premise is that a primary trend consists of five "motive" waves followed by three "corrective" waves (the 5-3 pattern).</p>
@@ -706,7 +788,12 @@ articles = {
 '''
     },
     'trendlines-and-channels': {
-        'title': 'Trendlines and Channels',
+        'video': {
+    'id': 'joPxq3IB8tk',
+    'name': 'Institutional Trendlines & Channels Masterclass',
+    'description': 'Professional guide to drawing trendlines and channels using institutional momentum logic.'
+}
+        , 'title': 'Trendlines and Channels',
         'summary': 'Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.',
         'content': '''<h2>Mapping the Trend</h2>
 <p>A trendline is a straight line connecting a series of ascending swing lows (in a bull trend) or descending swing highs (in a bear trend). It acts as dynamic support or resistance, visualizing the angle and velocity of the current market momentum.</p>
@@ -723,7 +810,12 @@ articles = {
 '''
     },
     'divergence-trading-strategies': {
-        'title': 'Divergence Trading Strategies',
+        'video': {
+    'id': 'uxNQDwjREuc',
+    'name': 'Institutional Divergence Trading Masterclass',
+    'description': 'Professional guide to identifying and trading regular and hidden divergences in crypto markets.'
+}
+        , 'title': 'Divergence Trading Strategies',
         'summary': 'Identify hidden weaknesses in market trends. Learn how to spot bullish and bearish divergences using momentum oscillators to predict major market reversals.',
         'content': '''<h2>What is a Divergence?</h2>
 <p>A divergence occurs when the price of an asset moves in the opposite direction of a technical indicator, typically a momentum oscillator like the RSI or MACD. It serves as a leading indicator, warning traders that the current trend is losing its underlying strength.</p>
@@ -743,7 +835,12 @@ articles = {
 '''
     },
     'pairs-trading-crypto-arbitrage': {
-        'title': 'Pairs Trading and Statistical Arbitrage',
+        'video': {
+    'id': '4oa5chIYDcM',
+    'name': 'The Correlation Matrix & Macro Assets',
+    'description': 'Learn how to use correlation matrices to identify institutional rotation and hedge directional risk.'
+}
+        , 'title': 'Pairs Trading and Statistical Arbitrage',
         'summary': 'Eliminate directional market risk. Discover how institutional quantitative funds use pairs trading to profit from relative asset performance regardless of macro conditions.',
         'content': '''<h2>Market-Neutral Strategies</h2>
 <p>In traditional directional trading, your success relies heavily on correctly guessing the overall market trend. <strong>Pairs Trading</strong> is a market-neutral strategy that aims to generate consistent alpha by exploiting the statistical correlation between two highly correlated assets.</p>
@@ -760,7 +857,12 @@ articles = {
 '''
     },
     'wyckoff-method-accumulation-distribution': {
-        'title': 'The Wyckoff Method: Accumulation and Distribution',
+        'video': {
+    'id': 'VB52gdM0kLE',
+    'name': 'Institutional Wyckoff Method Masterclass',
+    'description': 'Learn the phases of accumulation and distribution using the Wyckoff methodology.'
+}
+        , 'title': 'The Wyckoff Method: Accumulation and Distribution',
         'summary': 'Read the hidden intentions of the "Composite Man." Use the Wyckoff Method to track institutional accumulation phases and markdown cycles.',
         'content': '''<h2>The Composite Man</h2>
 <p>Developed by Richard Wyckoff in the early 20th century, this methodology suggests that retail traders should view the market as being controlled by a single, highly capitalized entity: the "Composite Man." Your goal is not to fight the Composite Man, but to understand his motives and trade alongside him.</p>
@@ -782,7 +884,12 @@ articles = {
 '''
     },
     'bollinger-bands-volatility': {
-        'title': 'Bollinger Bands and Volatility Envelopes',
+        'video': {
+    'id': '9q32G8yLxbM',
+    'name': 'Mastering Bollinger Bands with SMB Capital',
+    'description': 'Learn how professional proprietary traders use Bollinger Bands to identify high-probability mean reversion and breakout opportunities.'
+}
+        , 'title': 'Bollinger Bands and Volatility Envelopes',
         'summary': 'Measure price dispersion and identify explosive momentum breakouts using dynamic volatility channels.',
         'content': '''<h2>Understanding Volatility Bands</h2>
 <p>Developed by John Bollinger, these bands consist of a simple moving average (usually 20-period) and two standard deviation bands plotted above and below it. They dynamically expand during periods of high volatility and contract during periods of low volatility.</p>
@@ -799,7 +906,12 @@ articles = {
 '''
     },
     'harmonic-patterns-trading': {
-        'title': 'Trading Harmonic Patterns',
+        'video': {
+    'id': 'zSWK51YNwKs',
+    'name': 'Institutional Harmonic Patterns Masterclass',
+    'description': 'Learn how to trade Gartley, Bat, and Butterfly patterns using institutional execution standards.'
+}
+        , 'title': 'Trading Harmonic Patterns',
         'summary': 'Utilize advanced geometry and overlapping Fibonacci sequences to pinpoint highly accurate geometric reversal zones.',
         'content': '''<h2>The Geometry of Price</h2>
 <p>Harmonic trading combines geometric chart patterns with precise Fibonacci ratios to predict future price movements. Unlike standard chart patterns, harmonics require strict mathematical validation to be considered tradable.</p>
@@ -819,7 +931,12 @@ articles = {
 '''
     },
     'ichimoku-cloud-strategy': {
-        'title': 'Ichimoku Cloud: The All-in-One Indicator',
+        'video': {
+    'id': 'fTAnH6D_p50',
+    'name': 'Institutional Ichimoku Cloud Masterclass',
+    'description': 'Professional guide to mastering the Ichimoku Kinko Hyo system for trend and momentum analysis.'
+}
+        , 'title': 'Ichimoku Cloud: The All-in-One Indicator',
         'summary': 'Master the Ichimoku Kinko Hyo to instantly determine trend direction, momentum, and future support/resistance levels at a single glance.',
         'content': '''<h2>One Glance Equilibrium Chart</h2>
 <p>The Ichimoku Cloud is a comprehensive technical indicator system designed to show support, resistance, momentum, and trend direction all at once. While visually intimidating, it provides a remarkably holistic view of market structure.</p>
@@ -836,7 +953,12 @@ articles = {
 '''
     },
     'order-blocks-institutional': {
-        'title': 'Identifying Institutional Order Blocks',
+        'video': {
+    'id': 'L8H5y_vP5fU',
+    'name': 'Institutional Order Blocks Masterclass',
+    'description': 'Learn how to identify institutional supply and demand zones using Order Block mechanics.'
+}
+        , 'title': 'Identifying Institutional Order Blocks',
         'summary': 'Locate the exact price zones where central banks and major institutions accumulate massive positions before inducing retail panic.',
         'content': '''<h2>The Footprints of Smart Money</h2>
 <p>An Order Block is a specific price range where large institutions and market makers have accumulated or distributed a massive amount of capital. These blocks represent areas of intense, hidden liquidity that algorithmically act as future support or resistance.</p>
@@ -851,7 +973,12 @@ articles = {
 '''
     },
     'price-action-trading-naked': {
-        'title': 'Naked Price Action Trading',
+        'video': {
+    'id': '_83X3X56Q-k',
+    'name': 'Naked Price Action Masterclass: Reading Institutional Flow',
+    'description': 'Learn how professional traders read raw market structure and institutional liquidity without relying on lagging indicators.'
+}
+        , 'title': 'Naked Price Action Trading',
         'summary': 'Strip away the lagging indicators and learn how to read raw market structure, candle momentum, and liquidity sweeps.',
         'content': '''<h2>Trading the Naked Chart</h2>
 <p>Price Action trading operates on the philosophy that all necessary market data is already reflected in the raw price. Instead of relying on lagging oscillators, price action traders analyze the tape, candle structure, and localized market geometry.</p>
@@ -868,10 +995,15 @@ articles = {
 '''
     },
     'smart-money-concepts-smc': {
-        'title': 'Smart Money Concepts (SMC)',
+        'video': {
+    'id': 'GjT9Xit5-3I',
+    'name': 'Institutional SMC Masterclass',
+    'description': 'Learn the core principles of Smart Money Concepts (SMC) including order blocks, liquidity sweeps, and market structure shifts.'
+}
+        , 'title': 'Smart Money Concepts (SMC)',
         'summary': 'Understand Fair Value Gaps (FVG), Inducement, and Liquidity Grabs to trade in alignment with institutional market makers.',
         'content': '''<h2>Trading Like the Algorithm</h2>
-<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" src="https://www.youtube-nocookie.com/embed/xNcHsVJ71qo?rel=0" title="Smart Money Concepts Tutorial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+
 <p>Smart Money Concepts (SMC) is a refined terminology framework for institutional trading strategies. It focuses entirely on tracking how market-making algorithms hunt liquidity and balance the order book.</p>
 
 <img src="/academy/images/fair_value_gap_fill.png" alt="Fair Value Gap Fill" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
@@ -918,6 +1050,19 @@ def build_academy():
         og_img    = "https://alphasignal.digital/assets/social-preview.png"
 
         # ── 1. JSON-LD Article Schema ──────────────────────────────────────────
+        video_schema = ""
+        if 'video' in doc:
+            v = doc['video']
+            video_schema = f""",
+      "video": {{
+        "@type": "VideoObject",
+        "name": "{v['name']}",
+        "description": "{v['description']}",
+        "thumbnailUrl": "https://img.youtube.com/vi/{v['id']}/maxresdefault.jpg",
+        "uploadDate": "2026-05-01",
+        "embedUrl": "https://www.youtube-nocookie.com/embed/{v['id']}"
+      }}"""
+
         json_ld = f"""
     <script type="application/ld+json">
     {{
@@ -937,7 +1082,7 @@ def build_academy():
       "image": "{og_img}",
       "mainEntityOfPage": {{"@type": "WebPage", "@id": "{canon_url}"}},
       "keywords": "crypto trading, bitcoin, quantitative trading, AlphaSignal, {doc['title']}",
-      "articleSection": "Quant Academy"
+      "articleSection": "Quant Academy"{video_schema}
     }}
     </script>"""
 
@@ -965,7 +1110,36 @@ def build_academy():
         html_content.append(f"<h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>{doc['title']}</h1>")
         html_content.append(f"<p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>{doc['summary']}</p>")
         html_content.append(f"<div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>")
-        html_content.append(doc['content'])
+        # Inject video facade if metadata exists
+        if 'video' in doc:
+            v = doc['video']
+            video_section = f"""
+<section class="academy-video-section" style="margin: 3.5rem 0; padding: 2rem; background: rgba(125,211,252,0.03); border: 1px solid rgba(125,211,252,0.1); border-radius: 16px;">
+    <h3 style="margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 10px;">
+        <span class="material-symbols-outlined">play_circle</span>
+        {v['name']}
+    </h3>
+    <div class="video-facade" 
+         onclick="this.innerHTML='<iframe width=100% height=100% src=\\'https://www.youtube-nocookie.com/embed/{v['id']}?autoplay=1&rel=0\\' frameborder=0 allow=\\'autoplay; encrypted-media\\' allowfullscreen style=\\'border-radius:12px;\\'></iframe>'"
+         style="position: relative; width: 100%; aspect-ratio: 16/9; background: url(\\'https://img.youtube.com/vi/{v['id']}/maxresdefault.jpg\\') center/cover; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
+        <div class="play-btn" style="width: 70px; height: 70px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(125,211,252,0.4); transition: transform 0.2s;" onmouseover="this.style.transform=\\'scale(1.1)\\'" onmouseout="this.style.transform=\\'scale(1)\\'">
+            <span class="material-symbols-outlined" style="font-size: 42px; color: #000;">play_arrow</span>
+        </div>
+    </div>
+    <p style="margin-top: 1.5rem; font-size: 0.95rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 0;">
+        <strong>Strategic Briefing:</strong> {v['description']}
+    </p>
+</section>
+"""
+            # Find the best place to inject - after the first <h2> if possible
+            if '<h2>' in doc['content']:
+                parts = doc['content'].split('</h2>', 1)
+                injected_content = parts[0] + '</h2>' + video_section + parts[1]
+                html_content.append(injected_content)
+            else:
+                html_content.append(video_section + doc['content'])
+        else:
+            html_content.append(doc['content'])
         html_content.append("</div>")
         html_content.append(f"""
         <div style='margin-top:5rem; padding:3rem; background:rgba(0,0,0,0.3); border:1px solid rgba(125,211,252,0.15); border-radius:16px; text-align:center;'>

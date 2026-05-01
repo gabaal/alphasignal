@@ -41,7 +41,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AlphaSignal">
     <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="../manifest.json">
+    <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="/icon-512.png">
 
     <!-- Open Graph -->
@@ -239,9 +239,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="../styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="../styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="../assets/pwa-icon-512.png">
+    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
@@ -252,32 +252,34 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
           onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
     <!-- Sentry: Frontend error monitoring -->
-    <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous"></script>
     <script>
-        if (window.Sentry) {
-            Sentry.init({
-                dsn: "https://9b6ec670f830eb849a3f32fd79c09c70@o4508024362303488.ingest.de.sentry.io/4511258304905296",
-                tracesSampleRate: 0.05,
-                environment: 'production',
-                ignoreErrors: [
-                    'ResizeObserver loop limit exceeded',
-                    'Non-Error promise rejection captured',
-                    /^Network Error/,
-                    /^Load failed/
-                ]
-            });
+        function initSentry() {
+            if (window.Sentry) {
+                Sentry.init({
+                    dsn: "https://9b6ec670f830eb849a3f32fd79c09c70@o4508024362303488.ingest.de.sentry.io/4511258304905296",
+                    tracesSampleRate: 0.05,
+                    environment: 'production',
+                    ignoreErrors: [
+                        'ResizeObserver loop limit exceeded',
+                        'Non-Error promise rejection captured',
+                        /^Network Error/,
+                        /^Load failed/
+                    ]
+                });
+            }
         }
     </script>
+    <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous" async onload="initSentry()"></script>
     <!-- Supabase JS client (for forgot-password / reset-password flows) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- NOTE: D3 and jsPDF loaded once in body with defer. No duplicates here. -->
     <script>
-        window._supabase = supabase.createClient(
-            'https://rrfcjvpflbwtxlhkpooz.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZmNqdnBmbGJ3dHhsaGtwb296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NjYxMTksImV4cCI6MjA4OTI0MjExOX0.H_JJDYt9OsYR7CQfUAs6JeYACUFtMbWlWzEKN3aFNQc'
-        );
+        function initSupabase() {
+            window._supabase = supabase.createClient(
+                'https://rrfcjvpflbwtxlhkpooz.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZmNqdnBmbGJ3dHhsaGtwb296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NjYxMTksImV4cCI6MjA4OTI0MjExOX0.H_JJDYt9OsYR7CQfUAs6JeYACUFtMbWlWzEKN3aFNQc'
+            );
+        }
     </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async onload="initSupabase()"></script>
     <!-- Chart.js, lightweight-charts, html2canvas, jsPDF - loaded non-blocking with defer in body below -->
 
 
@@ -303,8 +305,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
       "headline": "RSI and MACD: Momentum Oscillators Explained",
       "description": "Decode market momentum using the Relative Strength Index (RSI) and the Moving Average Convergence Divergence (MACD) indicators to identify overbought and overso",
       "url": "https://alphasignal.digital/academy/rsi-macd-momentum-oscillators",
-      "datePublished": "2026-04-27",
-      "dateModified": "2026-04-27",
+      "datePublished": "2026-05-01",
+      "dateModified": "2026-05-01",
       "author": {"@type": "Organization", "name": "AlphaSignal", "url": "https://alphasignal.digital/"},
       "publisher": {
         "@type": "Organization",
@@ -525,65 +527,42 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>RSI and MACD: Momentum Oscillators Explained</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Decode market momentum using the Relative Strength Index (RSI) and the Moving Average Convergence Divergence (MACD) indicators to identify overbought and oversold extremes.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-
-<h2>1. Foundational Overview: The Psychology of Exhaustion - Overbought vs. Oversold</h2>
-<p>Momentum oscillators are designed to capture the "Elasticity" of price. When price moves too far too fast, it creates a state of exhaustion. In the retail world, this is called being "Overbought" or "Oversold." At these extremes, the psychological pressure on the participants who are "out of position" becomes unbearable, leading to a capitulation event that resets the momentum.</p>
-<ul>
-    <li><strong>The Overbought State:</strong> Every buyer who wanted to buy has already bought. There is no "new money" left to drive price higher.</li>
-    <li><strong>The Oversold State:</strong> Every seller has already sold. The "selling pressure" has been exhausted, leaving only a vacuum for buyers to fill.</li>
-</ul>
-
+<h2>Measuring the Speed of Price</h2>
 <section class="academy-video-section" style="margin: 3.5rem 0; padding: 2rem; background: rgba(125,211,252,0.03); border: 1px solid rgba(125,211,252,0.1); border-radius: 16px;">
     <h3 style="margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 10px;">
         <span class="material-symbols-outlined">play_circle</span>
-        Institutional Masterclass: Momentum Confluence
+        Momentum Masterclass: RSI and MACD
     </h3>
     <div class="video-facade" 
          onclick="this.innerHTML='<iframe width=100% height=100% src=\'https://www.youtube-nocookie.com/embed/t6HCSzlSuNk?autoplay=1&rel=0\' frameborder=0 allow=\'autoplay; encrypted-media\' allowfullscreen style=\'border-radius:12px;\'></iframe>'"
-         style="position: relative; width: 100%; aspect-ratio: 16/9; background: url('https://img.youtube.com/vi/t6HCSzlSuNk/maxresdefault.jpg') center/cover; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
-        <div class="play-btn" style="width: 70px; height: 70px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(125,211,252,0.4); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+         style="position: relative; width: 100%; aspect-ratio: 16/9; background: url(\'https://img.youtube.com/vi/t6HCSzlSuNk/maxresdefault.jpg\') center/cover; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
+        <div class="play-btn" style="width: 70px; height: 70px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(125,211,252,0.4); transition: transform 0.2s;" onmouseover="this.style.transform=\'scale(1.1)\'" onmouseout="this.style.transform=\'scale(1)\'">
             <span class="material-symbols-outlined" style="font-size: 42px; color: #000;">play_arrow</span>
         </div>
     </div>
     <p style="margin-top: 1.5rem; font-size: 0.95rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 0;">
-        <strong>Strategic Briefing:</strong> Master the interplay between RSI extremes and MACD crossovers. This masterclass focuses on identifying 'Derivative Divergence'—the leading signal for institutional reversals.
+        <strong>Strategic Briefing:</strong> Learn how to use RSI and MACD for high-confluence momentum trading.
     </p>
 </section>
 
+<p>While moving averages identify the direction of a trend, <strong>Momentum Oscillators</strong> measure the speed and strength of that trend. These tools help traders identify when a directional move has exhausted itself and is due for a mean-reverting pullback.</p>
 
-<h2>2. Intermediate Mechanics: Derivative Divergence and Momentum Acceleration</h2>
-<p>Simple crossovers are often false signals. Professional traders look for <strong>Derivative Divergence</strong>. This is when the rate of change (acceleration) of the momentum starts to slow down even while price is still moving. If price rises 5% on Monday and 2% on Tuesday, the momentum is "Decelerating" even though the price is still rising. This is the first warning sign of a trend reversal.</p>
+<img src="/academy/images/macd_momentum_histogram.png" alt="MACD Momentum Histogram" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
 
-<figure style="margin: 2rem 0; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000;">
-    <img src="../assets/academy/rsi-divergence.png" alt="RSI Bullish Divergence and Momentum Shift" style="width: 100%; height: auto; display: block;">
-    <figcaption style="padding: 1rem; background: rgba(255,255,255,0.03); font-size: 0.85rem; color: var(--text-dim); text-align: center;">
-        <strong>Figure 1:</strong> Bullish Divergence. Price making lower lows while RSI makes higher lows, indicating a hidden shift in momentum.
-    </figcaption>
-</figure>
+<h3>The Relative Strength Index (RSI)</h3>
+<p>The RSI is a bounded oscillator running from 0 to 100. It measures the magnitude of recent price changes.</p>
+<ul>
+    <li><strong>Overbought (RSI &gt; 70):</strong> Indicates the asset has rallied too far, too fast, and is primed for a local correction.</li>
+    <li><strong>Oversold (RSI &lt; 30):</strong> Indicates the asset has been aggressively sold off and is due for a relief bounce.</li>
+</ul>
 
-<h2>3. Advanced Quantitative Mechanics: Adaptive Momentum (KAMA) and Volatility-Adjusted RSI</h2>
-<p>Standard RSI (14-period) is often too noisy. Institutional desks use <strong>Adaptive Momentum</strong> indicators like the <strong>Kaufman Adaptive Moving Average (KAMA)</strong>. KAMA adjusts its sensitivity based on market noise. In a high-noise environment, it slows down to prevent whipsaws. In a low-noise trending environment, it speeds up to catch the move. Similarly, <strong>Volatility-Adjusted RSI</strong> normalizes the oscillator based on the asset's current ATR, ensuring that a "70 RSI" in a low-volatility period is weighted differently than a "70 RSI" during a market crash.</p>
+<h3>The MACD</h3>
+<p>The Moving Average Convergence Divergence (MACD) visualizes the relationship between two moving averages, producing a histogram that expands and contracts as momentum accelerates or decays. A MACD bullish centerline crossover is heavily utilized to confirm upward momentum.</p>
 
-<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
-    <h3 style="margin-top:0; color:var(--accent);">The Oscillator Fallacy</h3>
-    <p style="margin-bottom:0;">An oscillator can stay "Overbought" for weeks during a strong bull run. Never fade a momentum extreme without a <strong>Structural Shift</strong> (Break of Market Structure) on a lower timeframe. Momentum tells you the trend is tired; structure tells you the trend is dead.</p>
-</div>
+<h3>Hunting Divergences</h3>
+<p>The most powerful signal these oscillators provide is <strong>Divergence</strong>. When the price of Bitcoin makes a higher high, but the RSI simultaneously prints a lower high, it indicates that the upward momentum is structurally decaying. This bearish divergence is a high-confidence early warning system utilized by the AlphaSignal AI Engine to trigger trailing stop losses.</p>
 
-<h2>4. Institutional Deep Dive: The "Three-Tap Exhaustion" Strategy</h2>
-<p>Institutions profit from the "Final Push" of a trend. The <strong>Three-Tap Exhaustion</strong> occurs when price makes three distinct attempts to break a high/low, while the momentum oscillator makes three successively lower peaks. This is the ultimate sign of a <strong>Climax Reversal</strong>. The third tap is usually a "Stop-Run" that traps the final retail FOMO buyers right before the institutional distribution begins.</p>
-
-<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
-    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Fading the Climax Tap</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Find a 4H chart where price has hit a major resistance zone. Identify three successive Higher Highs in price, accompanied by three successively Lower Highs on the <strong>AlphaSignal Momentum Tracker</strong>. On the third tap of the high, look for a <strong>SFP (Swing Failure Pattern)</strong>. Enter a Short position as soon as price closes back inside the previous high's range. This strategy exploits the exact moment when institutional liquidity has been filled by retail buy-stops, leaving no one left to support the price.</p>
-</div>
-
-<h2>Operationalizing Momentum in the Terminal</h2>
-<ol>
-    <li>Add the <strong>AlphaSignal Adaptive RSI</strong> to your dashboard for noise-filtered momentum data.</li>
-    <li>Scan for <strong>Three-Tap Divergence</strong> across major institutional assets.</li>
-    <li>Use the <strong>Liquidation Scanner</strong> to identify when a momentum extreme is driven by forced liquidations (the highest probability reversal point).</li>
-    <li>Confirm entries with a <strong>CVD Divergence</strong>—momentum must be falling while delta is exhausted.</li>
-</ol>
+<img src="/academy/images/rsi_divergence_tracker.png" alt="RSI Divergence Tracker" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
 
 </div>
 
@@ -598,7 +577,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                  This guarantees Googlebot indexes keyword-rich page content regardless of JS execution. -->
             <noscript>
             <div style="max-width:1100px;margin:0 auto;padding:4rem 2rem;font-family:system-ui,sans-serif;color:#e2e8f0;">
-                <h2 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">AlphaSignal &mdash; Institutional Bitcoin &amp; Crypto Intelligence Terminal</h2>
+                <h1 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">AlphaSignal &mdash; Institutional Bitcoin &amp; Crypto Intelligence Terminal</h1>
                 <p style="font-size:1.1rem;color:#94a3b8;line-height:1.8;margin-bottom:2rem;">
                     AlphaSignal (alphasignal.digital) is a real-time institutional intelligence terminal for Bitcoin, crypto, and macro markets.
                     Trusted by 2,400+ professional traders, AlphaSignal delivers Z-score alpha signals, AI-generated market briefings,
@@ -926,7 +905,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
     <div id="notifications"></div>
     <div id="toast-container"></div>
-    <script src="../tape.js" defer></script>
+    <script src="tape.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
     <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
@@ -939,14 +918,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="../js/utils.js?v=2.65" defer></script>
-    <script src="../js/auth.js?v=2.65" defer></script>
-    <script src="../js/core.js?v=2.65" defer></script>
-    <script src="../js/heatmap_engine.js?v=2.65" defer></script>
-    <script src="../js/charts.js?v=2.65" defer></script>
+    <script src="js/utils.js?v=2.65" defer></script>
+    <script src="js/auth.js?v=2.65" defer></script>
+    <script src="js/core.js?v=2.65" defer></script>
+    <script src="js/heatmap_engine.js?v=2.65" defer></script>
+    <script src="js/charts.js?v=2.65" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="../js/views/hub-nav.js?v=2.65" defer></script>
-    <script src="../js/views/global-markets.js?v=2.65" defer></script>
+    <script src="js/views/hub-nav.js?v=2.65" defer></script>
+    <script src="js/views/global-markets.js?v=2.65" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -963,40 +942,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="../js/views/signals.js?v=2.65" defer></script>
-    <script src="../js/views/performance.js?v=2.65" defer></script>
-    <script src="../js/views/macro-intel.js?v=2.65" defer></script>
-    <script src="../js/views/whales.js?v=2.65" defer></script>
-    <script src="../js/views/macro-analytics.js?v=2.65" defer></script>
-    <script src="../js/views/strategy.js?v=2.65" defer></script>
-    <script src="../js/views/portfolio.js?v=2.65" defer></script>
-    <script src="../js/views/narrative.js?v=2.65" defer></script>
-    <script src="../js/views/trade-lab.js?v=2.65" defer></script>
-    <script src="../js/views/audit.js?v=2.65" defer></script>
-    <script src="../js/views/liquidity-archive.js?v=2.65" defer></script>
-    <script src="../js/views/alerts-archive.js?v=2.65" defer></script>
-    <script src="../js/views/onchain.js?v=2.65" defer></script>
-    <script src="../js/views/command-center.js?v=2.65" defer></script>
-    <script src="../js/views/home.js?v=2.65" defer></script>
-    <script src="../js/views/algo-hub.js?v=2.65"></script>
-    <script src="../js/views/algo-params.js?v=2.65" defer></script>
-    <script src="../js/views/explain.js?v=2.65" defer></script>
-    <script src="../js/views/my-terminal.js?v=2.65"></script>
-    <script src="../js/views/signal-permalink.js?v=2.65" defer></script>
-    <script src="../js/views/onboarding.js?v=2.65" defer></script>
-    <script src="../js/views/price-alerts.js?v=2.65" defer></script>
-    <script src="../js/views/signal-leaderboard.js?v=2.65" defer></script>
-    <script src="../js/views/market-brief.js?v=2.65" defer></script>
-    <script src="../js/views/exchange-keys.js?v=2.65" defer></script>
-    <script src="../js/views/webhooks.js?v=2.65" defer></script>
+    <script src="js/views/signals.js?v=2.65" defer></script>
+    <script src="js/views/performance.js?v=2.65" defer></script>
+    <script src="js/views/macro-intel.js?v=2.65" defer></script>
+    <script src="js/views/whales.js?v=2.65" defer></script>
+    <script src="js/views/macro-analytics.js?v=2.65" defer></script>
+    <script src="js/views/strategy.js?v=2.65" defer></script>
+    <script src="js/views/portfolio.js?v=2.65" defer></script>
+    <script src="js/views/narrative.js?v=2.65" defer></script>
+    <script src="js/views/trade-lab.js?v=2.65" defer></script>
+    <script src="js/views/audit.js?v=2.65" defer></script>
+    <script src="js/views/liquidity-archive.js?v=2.65" defer></script>
+    <script src="js/views/alerts-archive.js?v=2.65" defer></script>
+    <script src="js/views/onchain.js?v=2.65" defer></script>
+    <script src="js/views/command-center.js?v=2.65" defer></script>
+    <script src="js/views/home.js?v=2.65" defer></script>
+    <script src="js/views/algo-hub.js?v=2.65"></script>
+    <script src="js/views/algo-params.js?v=2.65" defer></script>
+    <script src="js/views/explain.js?v=2.65" defer></script>
+    <script src="js/views/my-terminal.js?v=2.65"></script>
+    <script src="js/views/signal-permalink.js?v=2.65" defer></script>
+    <script src="js/views/onboarding.js?v=2.65" defer></script>
+    <script src="js/views/price-alerts.js?v=2.65" defer></script>
+    <script src="js/views/signal-leaderboard.js?v=2.65" defer></script>
+    <script src="js/views/market-brief.js?v=2.65" defer></script>
+    <script src="js/views/exchange-keys.js?v=2.65" defer></script>
+    <script src="js/views/webhooks.js?v=2.65" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="../js/docs-a.js?v=2.65" defer></script>
-    <script src="../js/docs-b.js?v=2.65" defer></script>
-    <script src="../js/docs-c.js?v=2.65" defer></script>
-    <script src="../js/export.js?v=2.65" defer></script>
-    <script src="../js/seo-meta.js?v=2.65" defer></script>
-    <script src="../js/main.js?v=2.65" defer></script>
-    <script src="../js/router.js?v=2.65" defer></script>
+    <script src="js/docs-a.js?v=2.65" defer></script>
+    <script src="js/docs-b.js?v=2.65" defer></script>
+    <script src="js/docs-c.js?v=2.65" defer></script>
+    <script src="js/export.js?v=2.65" defer></script>
+    <script src="js/seo-meta.js?v=2.65" defer></script>
+    <script src="js/main.js?v=2.65" defer></script>
+    <script src="js/router.js?v=2.65" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1118,7 +1097,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         z-index:9999; display:none; align-items:center; gap:14px;
         box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);
         max-width:360px; width:calc(100vw - 2rem); animation: slideUp 0.4s ease;">
-        <img src="../assets/pwa-icon-192.png" alt="AlphaSignal PWA Icon" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
+        <img src="assets/pwa-icon-192.png" width="40" height="40" style="border-radius:10px; flex-shrink:0;" />
         <div style="flex:1; min-width:0;">
             <div style="font-size:0.8rem;font-weight:800;color:#fff;margin-bottom:2px;">Install AlphaSignal</div>
             <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);">Add to home screen for instant access</div>
@@ -1169,45 +1148,6 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
             }
         })();
     </script>
-<style>
-.academy-related-links a {
-  color: #7dd3fc;
-  text-decoration: none;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  transition: color 0.15s;
-}
-.academy-related-links a:hover { color: #fff; text-decoration: underline; }
-</style>
-
-<section class="academy-related-links" aria-label="Related content" style="
-  max-width:820px; margin:3rem auto 2rem; padding:2rem;
-  background:rgba(125,211,252,0.04); border:1px solid rgba(125,211,252,0.12);
-  border-radius:12px; font-family:'Inter',sans-serif;">
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
-    <div>
-      <h3 style="font-size:0.7rem; font-weight:800; letter-spacing:2px;
-                 color:#7dd3fc; text-transform:uppercase; margin-bottom:1rem;">
-        Continue Learning
-      </h3>
-      <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.6rem;">
-      <li><a href="/academy/bollinger-bands-volatility">Bollinger Bands and Volatility Envelopes</a></li>
-      <li><a href="/academy/divergence-trading-strategies">Divergence Trading Strategies</a></li>
-      <li><a href="/academy/trading-moving-average-crossovers">Trading Moving Average Crossovers</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3 style="font-size:0.7rem; font-weight:800; letter-spacing:2px;
-                 color:#7dd3fc; text-transform:uppercase; margin-bottom:1rem;">
-        Use This in AlphaSignal
-      </h3>
-      <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.6rem;">
-      <li><a href="/docs/signals">Live Signals &rarr;</a></li>
-      <li><a href="/docs/backtester-v2">Strategy Backtester &rarr;</a></li>
-      </ul>
-    </div>
-  </div>
-</section>
 <nav aria-label="Quant Academy Crawler Sitemap" style="display:none;" id="seo-crawler-nav">
   <ul>
     <li><a href="/academy/order-book-liquidity-heatmaps">How to Read Order Book Liquidity Heatmaps</a></li>
@@ -1217,7 +1157,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <li><a href="/academy/capital-sector-rotation">Mastering Capital Sector Rotation Strategies</a></li>
     <li><a href="/academy/volume-profile-market-profile">Trade Like a Pro: Volume Profile & Market Profile</a></li>
     <li><a href="/academy/institutional-yield-farming">Navigating Institutional DeFi Yield Farming</a></li>
-    <li><a href="/academy/token-unlocks-supply-dilution">Trading Token Unlocks and Supply Dilution</a></li>
+    <li><a href="/academy/token-unlocks-supply-dilution">Trading Trading Token Unlocks and Supply Dilution</a></li>
     <li><a href="/academy/algorithmic-ai-trade-signals">Exploiting Algorithmic AI Trade Signals</a></li>
     <li><a href="/academy/on-chain-whale-tracking">On-Chain Whale Tracking and Exchange Flows</a></li>
     <li><a href="/academy/cme-futures-gaps-bitcoin">Trading CME Futures Gaps in Bitcoin</a></li>
@@ -1242,10 +1182,6 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 </nav>
 </body>
 </html>
-
-
-
-
 
 
 
