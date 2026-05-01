@@ -518,45 +518,39 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Track massive options block trades, dark pool sweeps, and unusual options activity to front-run institutional capital movements in both crypto and equities.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
-<h2>The Invisible Hand: Derivative-Driven Markets</h2>
-<p>In modern finance, the "Tail wags the Dog." Derivative markets (Options and Futures) have become so large that they now dictate the price of the underlying spot assets. <strong>Options Flow</strong> is the art of tracking the largest, most aggressive institutional derivative bets to anticipate where the spot market will be forced to move next.</p>
+<h2>1. Foundational Overview: The Public Tape vs. Block Trades</h2>
+<p>Options Flow is the real-time tracking of every single option contract traded across global exchanges. While a price chart shows you the result of trading, Options Flow shows you the **Intent** of large capital. </p>
+<p>Most retail traders only see the "Lit" (public) market. Institutional desks, however, execute massive **Block Trades**—private, negotiated orders that are often large enough to move the entire market. Tracking these flows allows you to follow the "Smart Money" before the move happens on the spot chart.</p>
 
-<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
-    <h3 style="margin-top:0; color:var(--accent);">The "Golden Sweep" Alert</h3>
-    <p style="margin-bottom:0;">A **Golden Sweep** occurs when an institutional trader executes a massive order across multiple exchanges simultaneously, paying the "Ask" price for every single contract. This indicates extreme urgency. When AlphaSignal detects a Golden Sweep >$1M in premium, it is historically a 72-hour leading indicator of a violent breakout.</p>
-</div>
-
-<h2>Gamma Squeezes: Forced Buying Mechanics</h2>
-<p>To understand why options flow moves markets, you must understand **Market Maker Hedging**. When you buy a Call option, the person selling it to you is usually a Market Maker. To stay "Delta Neutral" (unexposed to price risk), the market maker must immediately buy the underlying spot asset as a hedge.</p>
+<h2>2. Intermediate Mechanics: Decoding Aggression</h2>
+<p>Not all options activity is bullish. To trade flow effectively, you must identify the **Side** of the trade. AlphaSignal's ML engine categorizes every print based on its execution relative to the Bid and Ask:</p>
 <ul>
-    <li><strong>The Loop:</strong> As price rises, the Delta of the call option increases. This forces the market maker to buy *more* spot to stay hedged.</li>
-    <li><strong>The Squeeze:</strong> This forced buying drives the price higher, which increases the Delta again, forcing *even more* buying. This is a **Gamma Squeeze**.</li>
-    <li><strong>AlphaSignal Edge:</strong> Our GEX Profile monitors these "Hedging Walls" to tell you exactly where market makers will be forced to buy or sell.</li>
+    <li><strong>Bought at the Ask (Aggressive):</strong> Indicates urgent buying. The institution is willing to pay a premium to secure the position immediately. This is high-conviction bullish flow.</li>
+    <li><strong>Sold at the Bid (Defensive):</strong> Indicates an institution is "writing" (selling) options to collect premium, betting that price will stay within a certain range.</li>
 </ul>
 
-<h2>Dark Pools: The Shadow Tape</h2>
-<p>Large institutions (Whales) use **Dark Pools** to execute massive spot trades without alerting the public order book. These trades are executed "in the dark" and reported to the tape with a delay of up to 24 hours.</p>
-<p>AlphaSignal's <strong>Whale Pulse</strong> scans the delayed reporting tape for **Signature Prints**—massive clusters of trades executed at the exact same price level. These prints establish a "High-Conviction Floor" or "Ceiling." If Bitcoin is trading at $60,000 and we see a $500M Dark Pool print at $58,500, that level becomes a structural support zone that institutions will likely defend for weeks.</p>
-
-<h2>Advanced Flow Analysis: Skew & Term Structure</h2>
-<p>Institutional sentiment is best revealed by **Skew Analysis**—the difference in price between Put options and Call options. </p>
-<ol>
-    <li><strong>Negative Skew:</strong> Puts are more expensive than Calls. This indicates institutions are buying "Insurance" (hedging for a crash).</li>
-    <li><strong>Positive Skew:</strong> Calls are more expensive. This indicates aggressive "Speculative Longing."</li>
-</ol>
-<p>When the AlphaSignal **Skew Meter** flips from extreme negative to neutral while price is still falling, it signals that institutions have finished hedging and are beginning to rotate back into Longs—the ultimate "Buy the Dip" signal.</p>
-
-<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
-    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Play: The Dark Pool Cross</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Wait for a major Dark Pool Signature Print to appear on the 1D chart. If price dips below this print and then **reclaims it** on a Golden Sweep alert, enter a Long position. The Dark Pool print acts as your "Institutional Anchor," and the Golden Sweep is your "Momentum Fuel."</p>
+<h2>3. Advanced Analysis: Gamma Exposure (GEX) & Delta Hedging</h2>
+<p>Why does options flow move the spot price? The answer lies in **Market Maker Hedging**. When an institution buys $100M in Call options, the Market Maker who sells them those calls is now "Short Delta." To stay neutral, the Market Maker must immediately buy the underlying Bitcoin spot as a hedge.</p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Gamma Squeeze Loop</h3>
+    <p style="margin-bottom:0;">As the price of Bitcoin rises, the "Delta" of those Call options increases, forcing the Market Maker to buy *even more* spot to stay hedged. This creates a self-reinforcing loop known as a **Gamma Squeeze**. AlphaSignal's GEX profile tells you exactly where these forced-buying triggers are located.</p>
 </div>
 
-<h2>Operationalizing Flow in the Terminal</h2>
+<h2>4. Institutional Deep Dive: Dark Pool "Signature Prints"</h2>
+<p>Dark Pools are private exchanges where institutions trade massive blocks of spot Bitcoin off-book to avoid moving the price. These trades are eventually reported to the tape as **Delayed Prints**. </p>
+<p>The most powerful signal in the AlphaSignal Terminal is the **Signature Print**—a massive cluster of trades executed at the exact same price level. These prints act as "Hidden Anchors." If price is trading at $60,000 and we see a $500M print at $58,500, that level becomes a structural floor that institutions will defend for weeks. Price "Gravity" will often hold until that specific Dark Pool level is either defended or breached.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The "Golden Sweep" Breakout</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a "Golden Sweep"—a massive order executed across multiple exchanges simultaneously at the Ask. If this sweep occurs while price is testing a major Dark Pool Signature Print, enter a Long. The Dark Pool print provides the "Floor," and the Golden Sweep provides the "Rocket Fuel" for the breakout.</p>
+</div>
+
+<h2>Operationalizing Flow in the AlphaSignal Terminal</h2>
 <ol>
-    <li>Open the <strong>Options Flow Scanner</strong> and filter for "Sweeps Only."</li>
-    <li>Look for **Repeat Activity**—the same strike price and expiry being bought multiple times in an hour.</li>
-    <li>Check the **Dark Pool Radar** for any prints within 1% of the current price.</li>
-    <li>Set your stop loss behind the highest-volume Dark Pool print of the week.</li>
+    <li>Navigate to the <strong>Options Hub</strong> and filter for "Sweeps Only."</li>
+    <li>Look for **Repeat Activity** at a specific strike price—this indicates institutional accumulation.</li>
+    <li>Cross-reference the flow with the **GEX Profile** to find "Hedging Walls."</li>
+    <li>Set your stop loss 0.5% below the largest **Dark Pool Print** of the last 24 hours.</li>
 </ol>
 
 </div>

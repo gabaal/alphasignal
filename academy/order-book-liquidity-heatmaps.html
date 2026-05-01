@@ -518,41 +518,42 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Decode Limit Order Book (LOB) data to identify institutional defense levels, spoofs, and high-probability support/resistance structures before price gets there.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
-<h2>The Hidden War: Passive vs. Aggressive Liquidity</h2>
-<p>Most retail charts only show <strong>Executed Volume</strong>—what has already happened. However, the price of an asset is actually determined by the interaction between <strong>Passive Liquidity</strong> (Limit Orders) and <strong>Aggressive Liquidity</strong> (Market Orders). The <strong>Liquidity Heatmap</strong> is your window into the Passive side of the equation—the "Structural Walls" that dictate where price is permitted to go.</p>
+<h2>1. Foundational Overview: The Order Book Anatomy</h2>
+<p>At its most basic level, every financial market is governed by a **Limit Order Book (LOB)**. This is a real-time list of buy orders (Bids) and sell orders (Asks) that haven't been filled yet. While a traditional price chart shows you where the market *was*, the Order Book shows you where the market *wants to go*.</p>
+<p>However, looking at a raw "ladder" of numbers is nearly impossible for the human brain to process during high volatility. This is where <strong>Liquidity Heatmaps</strong> come in. By translating the volume of orders at each price level into a color-coded map, we can visualize the "Gravity" of the market.</p>
 
-<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
-    <h3 style="margin-top:0; color:var(--accent);">Quantitative Rule: The Law of Absorption</h3>
-    <p style="margin-bottom:0;">Price cannot move through a liquidity level until every single limit order at that price has been "consumed" by a market order. If you see a $50M sell wall on the heatmap and only $5M of buying volume, the price is mathematically guaranteed to stall or reverse. This is called **Passive Absorption**.</p>
-</div>
-
-<h2>Iceberg Orders: Detecting the Invisible</h2>
-<p>Institutions rarely show their full hand. When an institutional desk needs to buy 5,000 BTC, they don't place a 5,000 BTC limit order (which would scare the market). Instead, they use an **Iceberg Order**—a single large order broken into 100 smaller pieces that "refresh" the moment they are filled.</p>
-<p>On a standard order book, you only see the 50 BTC "tip." But on the AlphaSignal Heatmap, these refresh cycles appear as a persistent, "shimmering" band that refuses to disappear despite heavy selling. Detecting an Iceberg is the highest-conviction signal that a major player is defending a price level.</p>
-
-<h2>Liquidity Voids: The Slippage Traps</h2>
-<p>The opposite of a liquidity wall is a **Liquidity Void**—a "hollow" area in the order book where almost no limit orders exist. Price behaves like a vacuum in these zones; it will "slice" through 2-3% of price action in seconds because there is no passive resistance to slow it down.</p>
+<h2>2. Intermediate Mechanics: Depth of Market (DOM) & The Wall Effect</h2>
+<p>When you see a "bright" zone on the AlphaSignal Heatmap, you are looking at a <strong>Liquidity Wall</strong>—a massive cluster of limit orders sitting at a specific price. These walls act as both support/resistance and magnets:</p>
 <ul>
-    <li><strong>Identifying Voids:</strong> On the heatmap, these appear as dark, black spaces between glowing bands.</li>
-    <li><strong>The Trap:</strong> Retail traders often try to "scalp" in these zones, only to be hit by massive slippage because there is no one on the other side of their trade.</li>
-    <li><strong>The Strategy:</strong> Never enter a trade *inside* a void. Only trade from one liquidity wall *toward* another wall across a void.</li>
+    <li><strong>The Magnet Effect:</strong> Price is naturally drawn toward high-liquidity zones because large market participants (Whales) need that liquidity to fill their massive positions without causing excessive slippage.</li>
+    <li><strong>The Wall Effect:</strong> Once price hits a liquidity wall, it must "consume" every single limit order at that level before it can move higher or lower. If the wall is large enough, price will "bounce" as the aggressive sellers/buyers are exhausted.</li>
 </ul>
 
-<h2>Delta Decay: Isolating Fake Walls (Spoofing)</h2>
-<p>High-frequency algorithms (HFTs) use "Spoofing" to trick retail traders. They place a massive order to create a fake wall, then cancel it milliseconds before price touches it. AlphaSignal uses a proprietary <strong>Delta Decay Algorithm</strong> to identify these fake walls:</p>
-<p>If a liquidity band has high "persistence" (it has been there for hours), it is likely an institutional structural level. If it appeared 30 seconds ago and is moving *with* the price, it is a spoof. The AlphaSignal Terminal highlights persistent walls in **Electric Blue** and transient spoofs in **Faded Gray**.</p>
-
-<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
-    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Play: The Liquidity Sweep Reclaim</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Institutions often "sweep" the liquidity just below a major wall to trigger retail stop losses. When you see price dip through a thick band and then immediately **close back above it** with a surge in the AlphaSignal "Buy Delta," that is your signal to go Long. The "Fuel" for the move up is the retail traders who just got stopped out.</p>
+<h2>3. Advanced Quantitative Mechanics: Passive Absorption</h2>
+<p>This is where institutional trading separates itself from retail. <strong>Passive Absorption</strong> occurs when a large buyer doesn't push the price up, but instead sits at a single bid level and "absorbs" every sell order that comes their way. </p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Delta Decay Signal</h3>
+    <p style="margin-bottom:0;">AlphaSignal monitors the relationship between **Market Orders** (Aggressive) and **Limit Orders** (Passive). If we see $10M in market sells but the price is not moving down, it means a "Hidden Buyer" is passively absorbing that volume. This is one of the most powerful institutional reversal signals in existence.</p>
 </div>
 
-<h2>How to Use the Heatmap Like an Alpha</h2>
+<h2>4. Institutional Deep Dive: Spoofing, Layering, and Stop-Hunts</h2>
+<p>High-Frequency Trading (HFT) algorithms often manipulate the heatmap to trick retail traders. Two common tactics include:</p>
+<h3>Spoofing vs. Real Intent</h3>
+<p><strong>Spoofing</strong> is the act of placing a massive order to move price, only to cancel it the millisecond price gets close. AlphaSignal's **Order Longevity Metric** filters out these fake orders. If a wall has been stable for 12+ hours, it represents real institutional commitment; if it "flickers" or moves with the price, it is a manipulation play.</p>
+<h3>The "Liquidity Gap" Stop-Hunt</h3>
+<p>When the heatmap shows a "Dark Zone" (low liquidity), price will move through it with extreme velocity. Institutions often push price into these <strong>Liquidity Voids</strong> to trigger retail stop-losses. The resulting "Stop-Loss Cascade" provides the massive liquidity the institution needs to fill their own counter-position at an advantageous price.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: Trading the Failure to Consume</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Watch price approach a major Heatmap Wall. If the **Cumulative Volume Delta (CVD)** shows a massive spike in aggressive buying into the wall, but the wall does not break, it is a "Failed Breakout." Short the rejection immediately, as the aggressive buyers have just exhausted themselves into a brick wall of institutional supply.</p>
+</div>
+
+<h2>Operationalizing Heatmaps in the AlphaSignal Terminal</h2>
 <ol>
-    <li>Open the <strong>Liquidity Hub</strong> and set the depth to +/- 5%.</li>
-    <li>Look for the **"Golden Bands"**—levels where liquidity has been resting for more than 12 hours.</li>
-    <li>Check the **CVD (Cumulative Volume Delta)**. If price is hitting a Sell Wall but CVD is rising, the wall is being "Absorbed" and a breakout is imminent.</li>
-    <li>Set your Take Profit 5-10 ticks *in front* of the next major liquidity cluster to ensure your fill.</li>
+    <li>Navigate to the <strong>Liquidity Hub</strong> and set depth to +/- 5%.</li>
+    <li>Identify **"Golden Bands"**—levels where liquidity has been resting for more than 12 hours.</li>
+    <li>Wait for the **Iceberg Detector** to confirm that the wall is being actively defended.</li>
+    <li>Set your Take Profit 5 ticks *in front* of the next major liquidity cluster to ensure your fill.</li>
 </ol>
 
 </div>

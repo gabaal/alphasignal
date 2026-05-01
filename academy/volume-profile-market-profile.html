@@ -518,50 +518,40 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Move beyond time-based charts. Utilize Volume Profile to discover High Volume Nodes (HVN), Point of Control (POC), and Value Areas.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
 
-<h2>Beyond Time: Auction Market Theory</h2>
-<p>Most retail traders view the market through the lens of time-based candles (1m, 5m, 1h). However, institutions view the market as a continuous **Auction**. The sole purpose of a financial market is to facilitate trade between buyers and sellers by seeking a price where the most volume can be transacted. This is the foundation of <strong>Auction Market Theory (AMT)</strong>.</p>
-<p>Volume Profile is the primary tool for visualizing this auction. By plotting volume on the Y-axis, we identify "Fair Value"—the price levels where the market is efficient—and "Unfair Value," where the market is seeking a new balance.</p>
+<h2>1. Foundational Overview: Volume-at-Price vs. Volume-over-Time</h2>
+<p>Most traders look at volume as bars at the bottom of their chart (Volume-over-Time). However, the price of an asset is not just a function of time, but of **Acceptance**. <strong>Volume Profile</strong> plots trading activity at specific price levels, revealing the "Value Area"—the price range where the most business was conducted.</p>
+<p>By shifting from time-based volume to price-based volume, we can identify exactly where "Smart Money" is building positions and where retail traders are getting "trapped" in low-liquidity zones.</p>
 
-<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
-    <h3 style="margin-top:0; color:var(--accent);">The Institutional "Fair Value" Rule</h3>
-    <p style="margin-bottom:0;">When price is inside the <strong>Value Area</strong>, the market is in "Balance." In this state, institutions are typically executing large orders via TWAP/VWAP without moving the price. When price breaks out of the Value Area, it is in "Imbalance," searching for the next High Volume Node to find a new equilibrium.</p>
-</div>
-
-<h2>Decoding Profile Shapes: The Narrative of the Day</h2>
-<p>The geometric shape of a Volume Profile tells a story about the participants in the market. AlphaSignal identifies four primary structural archetypes:</p>
-
-<h3>1. The "P-Shape" (Short Covering / Bullish Momentum)</h3>
-<p>A thin tail at the bottom with a cluster of volume at the top. This indicates that sellers were aggressively squeezed out early in the session, and the market found a new, higher "Fair Value" zone. <strong>Trade logic:</strong> Look for dip-buys into the "stem" of the P-shape.</p>
-
-<h3>2. The "b-Shape" (Long Liquidation / Bearish Momentum)</h3>
-<p>A cluster of volume at the bottom with a thin tail at the top. This indicates that buyers are trapped at higher prices and are being liquidated. The market is aggressively seeking lower prices to find new buyers. <strong>Trade logic:</strong> Fade any rallies back into the thin upper tail.</p>
-
-<h3>3. The "D-Shape" (Perfect Balance)</h3>
-<p>A symmetrical profile where the Point of Control (POC) is in the center. This indicates a "bracketed" market where neither buyers nor sellers have the upper hand. <strong>Trade logic:</strong> Reversion to the mean. Buy the VAL, sell the VAH.</p>
-
-<h3>4. The "Thin Profile" (Trend Day)</h3>
-<p>Multiple small nodes with no clear Value Area. Price is moving too fast for volume to cluster. This is the most dangerous environment for mean-reversion traders but the "Holy Grail" for trend followers.</p>
-
-<h2>Structural Anomalies: Single Prints & Poor Highs</h2>
-<p>Institutions look for **Structural Anomalies**—areas where the auction was incomplete. AlphaSignal's Liquidity Hub highlights these automatically:</p>
+<h2>2. Intermediate Mechanics: Profile Shape Analysis</h2>
+<p>The visual structure of the profile reveals the market's intent. AlphaSignal categorizes profiles into three primary shapes:</p>
 <ul>
-    <li><strong>Single Prints:</strong> Thin areas of the profile where price moved so fast that only one "Auction" took place. These act as significant magnets; the market almost always returns to "repair" these prints in future sessions.</li>
-    <li><strong>Poor Highs/Lows:</strong> When a profile ends with multiple TPOs or volume clusters at the extreme edge rather than a thin tail. This suggests the auction is "unfinished" and price will eventually return to breach that level.</li>
-    <li><strong>Naked Point of Control (nPOC):</strong> A POC from a previous day that has not been touched by price since. These are the highest-probability targets for institutional mean-reversion trades.</li>
+    <li><strong>The "D" Shape (Balanced):</strong> Indicates a market in equilibrium. Price is ranging between the Value Area High (VAH) and Value Area Low (VAL). The strategy here is mean-reversion to the POC (Point of Control).</li>
+    <li><strong>The "P" Shape (Short Covering):</strong> Price rallies aggressively and then consolidates at the top. This indicates aggressive buyers are in control and the trend is likely to continue higher.</li>
+    <li><strong>The "b" Shape (Long Liquidation):</strong> Price drops aggressively and consolidates at the bottom. This indicates the market is searching for new value at lower prices.</li>
 </ul>
 
-<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
-    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Play: The VAL-to-POC Reversion</h4>
-    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">When price dips below the Value Area Low (VAL) and the AlphaSignal **Liquidation Scanner** shows a spike in Long liquidations, wait for price to reclaim the VAL. This "Failed Breakdown" setup has a 70% probability of targeting the POC within the same session.</p>
+<h2>3. Advanced Quantitative Mechanics: Auction Market Theory (AMT)</h2>
+<p>Auction Market Theory states that the purpose of the market is to facilitate trade by finding a price where both buyers and sellers agree. </p>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">The Law of Value Area Rejection</h3>
+    <p style="margin-bottom:0;">If price attempts to break out of the Value Area but fails to find new volume, it is a "Look Above and Fail" setup. This is a high-probability institutional signal that price is returning to the **POC** on the opposite side. AlphaSignal's **Value Rejection Metric** quantifies this by measuring the rate of volume decay at the profile edges.</p>
 </div>
 
-<h2>Operationalizing the Profile</h2>
-<p>To use this effectively in the AlphaSignal Terminal:</p>
+<h2>4. Institutional Deep Dive: Single Prints & Emotional Extremes</h2>
+<p>Institutional execution often leaves behind **Single Prints**—areas on the profile where price moved so fast that almost no volume was transacted. These represent "Emotional Extremes." </p>
+<p>In the AlphaSignal Terminal, these are highlighted as **Inefficiency Zones**. Price has a "Memory" of these zones and will almost always return to "repair" them later. If you see a major rally that leaves behind a massive Single Print, that zone becomes a high-conviction "re-entry" point for institutions who missed the initial move. Trading these "Fill the Gap" setups is a cornerstone of professional prop desk strategies.</p>
+
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Tactical Strategy: The VAL-to-POC Reversion</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">Identify a market that has dipped below the **Value Area Low (VAL)** on the daily profile. If the AlphaSignal **Cumulative Delta** flips positive while price is below VAL, enter a Long targeting the **Point of Control (POC)**. The market has found "unfair value" and is now rushing back to the high-volume equilibrium.</p>
+</div>
+
+<h2>Operationalizing Volume Profile in the Terminal</h2>
 <ol>
-    <li>Open the <strong>Liquidity & Order Flow</strong> hub.</li>
-    <li>Identify the **Value Area (VA)** for the current week and month.</li>
-    <li>Filter for **High Volume Nodes (HVN)** to place your Stop Losses behind "Structural Walls."</li>
-    <li>Target **Low Volume Nodes (LVN)** for take-profits, as price will likely stall or reverse once it hits the next HVN cluster.</li>
+    <li>Navigate to the <strong>Order Flow Hub</strong> and enable the Fixed Range Volume Profile.</li>
+    <li>Identify the **Point of Control (POC)**—the most significant price level of the day.</li>
+    <li>Monitor the **Value Area High/Low** for breakout vs. rejection signals.</li>
+    <li>Cross-reference with **Liquidity Heatmaps** to see if major walls align with the POC.</li>
 </ol>
 
 </div>
