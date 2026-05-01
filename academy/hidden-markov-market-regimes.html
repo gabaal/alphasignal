@@ -517,19 +517,50 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Understanding Market Regimes with Hidden Markov Models</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Stop using the same trading strategy for every market condition. Utilize probabilistic regime classification to dynamically adapt to shifting volatility paradigms.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
+
 <h2>The Fallacy of the Universal Strategy</h2>
-<p>The most common reason retail traders fail is their obstinate commitment to a single trading strategy regardless of the underlying market conditions. A trend-following moving-average crossover strategy that prints massive returns during a bull market will mathematically bleed an account to death in a choppy, sideways consolidation range.</p>
+<p>The most common reason quantitative traders fail is their commitment to a single strategy regardless of the underlying market condition. A mean-reversion engine that prints 80% win rates during a choppy range-bound market will mathematically bleed an account to death the moment the market enters a sustained, directional trend. To survive, an algorithm must first understand the <strong>Regime</strong> it is operating in.</p>
 
-<h3>What is a Market Regime?</h3>
-<p>A Market Regime defines the overarching structural environment of the financial market. The AlphaSignal intelligence engine categorizes these into three primary states:</p>
-<ol>
-    <li><strong>High-Volatility Expansion:</strong> Clear, directional momentum. Breakouts are sustained. Trend-following strategies excel.</li>
-    <li><strong>Low-Volatility Compression:</strong> Sideways, tight ranges. Breakouts immediately fake-out and revert. Mean-reversion oscillators are king.</li>
-    <li><strong>High-Volatility Contraction:</strong> Wide, chaotic swings without a clear vector. Capital preservation is the highest priority.</li>
-</ol>
+<div style="background:rgba(125,211,252,0.05); border-left:4px solid var(--accent); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--accent);">Quantitative Insight: The Hidden State</h3>
+    <p style="margin-bottom:0;">A "Hidden Markov Model" (HMM) assumes that the market exists in one of several unobservable states. We cannot see the state directly, but we can infer it by observing "Emissions"—specifically volatility, price velocity, and volume clustering.</p>
+</div>
 
-<h3>Applying the Hidden Markov Model (HMM)</h3>
-<p>Because market regimes are not explicitly announced, they must be inferred from observable data (returns, volatility, volume). AlphaSignal employs a Hidden Markov Model (HMM) to calculate the statistical probability that the market is currently transitioning from one unobservable state into another. When the HMM dashboard confirms a transition into a Low-Vol Compression regime, disciplined traders immediately deactivate their trend-following bots and pivot entirely to range-bound accumulation strategies.</p>
+<h2>The Three Primary Market States</h2>
+<p>AlphaSignal’s intelligence engine classifies the crypto market into three distinct probabilistic regimes:</p>
+
+<h3>1. State 0: Low-Volatility Equilibrium (The "Sideways" Grind)</h3>
+<p>In this state, the market is in a phase of accumulation or distribution. Price action is bounded by clear liquidity walls. <strong>Mean-reversion tools like RSI, MACD, and Z-Score deviations are most effective here.</strong> Every move away from the mean is an opportunity to fade the crowd.</p>
+
+<h3>2. State 1: High-Volatility Expansion (The "Trend" Regime)</h3>
+<p>This is the regime of "Advection." Momentum is the primary driver, and price moves in a single vector with high conviction. <strong>In State 1, mean-reversion signals are "false positives."</strong> You do not step in front of the train; you use VWAP and Breakout filters to ride the velocity.</p>
+
+<h3>3. State 2: High-Volatility Turbulence (The "Chaos" Regime)</h3>
+<p>Market swings are wide but lack a clear direction. Funding rates are erratic, and liquidations are cascading in both directions. This is the most dangerous regime for any automated engine. AlphaSignal’s risk engine typically recommends reducing position sizes by 60-80% when State 2 is detected.</p>
+
+<h2>The Transition Matrix: Predicting the Shift</h2>
+<p>The true power of an HMM is the <strong>Transition Matrix</strong>. It calculates the probability of moving from one state to another (e.g., what is the probability that this sideways grind is about to break out into a State 1 expansion?).</p>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin:2rem 0;">
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.25rem; border-radius:12px;">
+        <h4 style="color:#fff; margin-bottom:0.5rem;">Observation Bias</h4>
+        <p style="font-size:0.95rem; line-height:1.5;">Retail traders look at price. Quants look at the <em>probability of a regime shift</em> based on realized volatility vs. implied volatility skew.</p>
+    </div>
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.25rem; border-radius:12px;">
+        <h4 style="color:#fff; margin-bottom:0.5rem;">Tactical Application</h4>
+        <p style="font-size:0.95rem; line-height:1.5;">When AlphaSignal detects a State 1 transition, it automatically adjusts the "Confidence Threshold" of all RSI signals to prevent "Catching a Falling Knife."</p>
+</div>
+</div>
+
+<h2>How to Trade These Regimes in AlphaSignal</h2>
+<p>Within the AlphaSignal Terminal, you can use the <strong>Market Regime Classifier</strong> to view the real-time probability of the current state. Here is your tactical playbook:</p>
+<ul>
+    <li><strong>During Low Volatility (State 0):</strong> Look for Z-Score signals above 2.5 on the 15m/1h timeframes. These are high-conviction mean-reversion entries.</li>
+    <li><strong>During Trending Markets (State 1):</strong> Switch to the <strong>VWAP & Institutional Execution</strong> view. Focus on "absorption" levels where whales are defending the trend.</li>
+    <li><strong>During Turbulence (State 2):</strong> Check the <strong>Liquidation Scanner</strong>. Trade only the "wick" of the liquidation cascade, or remain in stablecoins.</li>
+</ul>
+
+<p>By treating the market as a shifting series of probabilistic states rather than a single predictable entity, you remove the emotional bias that leads to account ruin. <strong>Quantitative trading is not about being right; it's about being in the right regime.</strong></p>
 
 </div>
 

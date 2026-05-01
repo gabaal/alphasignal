@@ -517,24 +517,47 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 <h1 style='font-size:clamp(2rem, 4vw, 3.5rem); margin-bottom:1.5rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>Statistical Mean Reversion: Trading with Z-Scores</h1>
 <p style='font-size:1.35rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Avoid the emotional pitfalls of FOMO and Panic by adopting purely statistical, deterministic trading strategies based on standard deviations and Z-Scores.</p>
 <div class='academy-article-dynamic' style='font-size:1.15rem; line-height:1.8; color:#cbd5e1;'>
-<h2>The Mathematics of Market Noise</h2>
-<p>In highly volatile markets, price action is dominated by behavioral economics - specifically, the alternating extremes of greed and panic. A quantitative trader does not guess when a trend will end; instead, they measure exactly how mathematically irrational the current price has become.</p>
 
-<img src="/academy/images/mean_reversion_oscillator.png" alt="Mean Reversion Oscillator" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>The Mathematics of Market Irrationality</h2>
+<p>In highly volatile crypto markets, price action is rarely driven by fundamentals in the short term. Instead, it is dominated by behavioral extremes—specifically, the alternating cycles of greed-induced FOMO and panic-induced capitulation. A quantitative trader does not guess when a move is over; they measure exactly how <strong>mathematically irrational</strong> the current price has become relative to its historical distribution.</p>
 
-<h3>What is a Z-Score?</h3>
-<p>A Z-Score is a statistical measurement representing the number of standard deviations a data point is from the mean of its historical distribution. In trading, we apply the Z-Score to various metrics including price momentum, funding rates, open interest, and social velocity.</p>
+<div style="background:rgba(139,92,246,0.05); border-left:4px solid var(--purple); padding:1.5rem; margin:2rem 0; border-radius:0 8px 8px 0;">
+    <h3 style="margin-top:0; color:var(--purple);">The Gaussian Law: 68-95-99.7</h3>
+    <p style="margin-bottom:0;">Under a normal distribution (the Bell Curve), 68% of price action stays within 1 standard deviation of the mean. 95% stays within 2. A move that exceeds **3 standard deviations** (a Z-Score of 3.0) is a statistical anomaly that occurs only 0.3% of the time. When you see a Z-Score of 3.0, you are witnessing a market that has "stretched" to its breaking point.</p>
+</div>
+
+<h2>What is a Z-Score?</h2>
+<p>A Z-Score is a dimensionless measurement representing the number of standard deviations a data point is from its rolling mean. While retail traders use lagging oscillators like RSI, the AlphaSignal engine applies Z-Scores to three distinct "Alpha Vectors":</p>
+
 <ul>
-    <li><strong>Z-Score of 0:</strong> The asset is trading exactly at its historical average. No edge exists.</li>
-    <li><strong>Z-Score of 1.0 to 1.5:</strong> The asset is establishing a definitive trend. Momentum traders seek these levels.</li>
-    <li><strong>Z-Score &gt; 2.5:</strong> The asset is moving mathematically three standard deviations faster than normal. This represents an extreme statistical anomaly.</li>
+    <li><strong>Price Momentum Z-Score:</strong> Measures if the current price velocity is sustainable or an exhaustive spike.</li>
+    <li><strong>Funding Rate Z-Score:</strong> Measures the "cost of leverage." An extreme positive Z-Score here indicates that the market is dangerously over-leveraged and prone to a "Long Squeeze."</li>
+    <li><strong>Social Velocity Z-Score:</strong> Measures the rate of change in mentions across social clusters. When Social Z-Score is 4.0 but Price Z-Score is only 1.0, a pump is being "manufactured" before the price move even happens.</li>
 </ul>
 
-<img src="/academy/images/statistical_anomaly.png" alt="Statistical Anomaly Detection Dashboard" style="width:100%;border-radius:8px;margin:2rem 0;border:1px solid rgba(0,242,255,0.2);" />
+<h2>The "Retail Exhaustion" Setup</h2>
+<p>The highest conviction trades in the AlphaSignal Terminal occur during a **Multi-Dimensional Divergence**. This is when different Z-Scores begin to disconnect from one another.</p>
 
-<h3>Fading the Crowd: Mean Reversion setups</h3>
-<p>A fundamental law of financial markets is that prices eventually revert to their mean. When an asset like Dogecoin spikes to a sentiment Z-Score of 3.5 while its underlying liquidity Z-Score remains at 0.5, the move is unsupported by capital and purely driven by retail euphoria.</p>
-<p>AlphaSignal's Strategy & Backtester hub generates deterministic Mean Reversion signals the moment an asset hits an extreme, uncorrelated Z-Score. By patiently waiting for these mathematical anomalies, traders execute purely objective contrarian setups with massive profit potential.</p>
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1.5rem; border-radius:12px; margin:2rem 0;">
+    <h4 style="color:var(--accent); margin-bottom:0.75rem;">Example: The "Euphoria Fade"</h4>
+    <p style="font-size:1rem; line-height:1.6; margin-bottom:0;">You see a mid-cap altcoin spike 40% in two hours. You check the AlphaSignal dashboard:</p>
+    <ul style="margin-top:1rem; font-size:0.95rem;">
+        <li><strong>Price Z-Score:</strong> 3.8 (Extremely overextended)</li>
+        <li><strong>Funding Z-Score:</strong> 4.2 (Leverage is at a local peak)</li>
+        <li><strong>Volume Z-Score:</strong> 0.8 (Volume is NOT supporting the move)</li>
+    </ul>
+    <p style="margin-top:1rem; font-weight:700; color:#f87171;">Verdict: This is a low-liquidity "scam pump" driven by forced buy-ins. The probability of a 15-20% mean-reversion snap-back within 4 hours is historically >82%.</p>
+</div>
+
+<h2>Operationalizing Mean Reversion</h2>
+<p>Trading Z-Scores is not about picking tops. It is about identifying the **Zone of Exhaustion**. Within the Strategy Lab, we recommend the following execution framework:</p>
+<ol>
+    <li><strong>Entry:</strong> Only when Z-Score crosses the 2.5 threshold on the 1H timeframe.</li>
+    <li><strong>Confirmation:</strong> Look for a "Rounding Top" on the 5m candle chart combined with a drop in the Social Velocity Z-Score.</li>
+    <li><strong>Exit:</strong> Scale out 50% of the position when the Z-Score reverts to 1.0. Close the remainder when it hits the Mean (0.0).</li>
+</ol>
+
+<p>By removing the subjective "feeling" of a trade and replacing it with a deterministic Z-Score mandate, you transform from a reactive gambler into a proactive market mechanic.</p>
 
 </div>
 

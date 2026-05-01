@@ -329,6 +329,12 @@ def init_db():
         c.execute("ALTER TABLE user_settings ADD COLUMN enable_rsi INTEGER DEFAULT 1")
     except: pass
     try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN enable_rsi_oversold INTEGER DEFAULT 1")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN enable_rsi_overbought INTEGER DEFAULT 1")
+    except: pass
+    try:
         c.execute("ALTER TABLE user_settings ADD COLUMN enable_macd INTEGER DEFAULT 1")
     except: pass
     

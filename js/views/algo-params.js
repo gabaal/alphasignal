@@ -173,10 +173,18 @@ async function _renderAlgoParamsContent(tabs) {
 
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <div>
-                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--risk-high);">RSI Overbought / Oversold</div>
-                                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Legacy technical indicator. Prone to fakeouts in trending markets.</div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #22c55e;">RSI Oversold (Bullish)</div>
+                                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Standard mean-reversion signal for potential bottoms.</div>
                             </div>
-                            <input type="checkbox" id="algo-enable-rsi" ${params.enable_rsi ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--risk-high);">
+                            <input type="checkbox" id="algo-enable-rsi-oversold" ${params.enable_rsi_oversold ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:#22c55e;">
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #ef4444;">RSI Overbought (Bearish)</div>
+                                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Legacy technical indicator. Often fails in strong bull markets.</div>
+                            </div>
+                            <input type="checkbox" id="algo-enable-rsi-overbought" ${params.enable_rsi_overbought ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:#ef4444;">
                         </div>
 
                         <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -228,7 +236,8 @@ window.resetAlgoParamsToDefault = function() {
     // Reset Checkboxes
     if(document.getElementById('algo-enable-ml')) document.getElementById('algo-enable-ml').checked = true;
     if(document.getElementById('algo-enable-vol')) document.getElementById('algo-enable-vol').checked = true;
-    if(document.getElementById('algo-enable-rsi')) document.getElementById('algo-enable-rsi').checked = false;
+    if(document.getElementById('algo-enable-rsi-oversold')) document.getElementById('algo-enable-rsi-oversold').checked = false;
+    if(document.getElementById('algo-enable-rsi-overbought')) document.getElementById('algo-enable-rsi-overbought').checked = false;
     if(document.getElementById('algo-enable-macd')) document.getElementById('algo-enable-macd').checked = false;
 
     showToast("DEFAULTS RESTORED", "Legacy signals disabled. Click 'Update Engine' to save.", "info");
@@ -248,7 +257,8 @@ async function saveAlgoParams() {
         algo_rsi_overbought: parseFloat(document.getElementById('algo-rsi-ob-slider').value),
         enable_ml_alpha: document.getElementById('algo-enable-ml').checked,
         enable_vol_spike: document.getElementById('algo-enable-vol').checked,
-        enable_rsi: document.getElementById('algo-enable-rsi').checked,
+        enable_rsi_oversold: document.getElementById('algo-enable-rsi-oversold').checked,
+        enable_rsi_overbought: document.getElementById('algo-enable-rsi-overbought').checked,
         enable_macd: document.getElementById('algo-enable-macd').checked
     };
 
