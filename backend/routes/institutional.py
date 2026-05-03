@@ -7550,3 +7550,97 @@ class InstitutionalRoutesMixin:
             })
         except Exception as e:
             self.send_json({'error': str(e)})
+
+    def handle_atr(self):
+        """True Wilder 14-day ATR endpoint for live ATR-adjusted position sizing.
+
+        Returns:
+            ticker, period, atr, atr_pct, current_price, stop_distance (2×ATR),
+            position_sizes for three account sizes (5k, 25k, 100k) at 1% risk,
+            and a regime label (LOW/NORMAL/ELEVATED/HIGH volatility).
+        """
+        import urllib.parse
+        import yfinance as yf
+        import pandas as pd
+        import numpy as np
+
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0].upper()
+        period = int(query.get('period', [14])[0])
+
+        try:
+            # Fetch enough daily bars for a stable Wilder ATR (3× window minimum)
+            raw = yf.download(ticker, period='60d', interval='1d', progress=False)
+            if raw is None or raw.empty:
+                self.send_json({'error': f'No data for {ticker}'}); return
+
+            if isinstance(raw.columns, pd.MultiIndex):
+                raw.columns = raw.columns.get_level_values(0)
+
+            df = raw[['High', 'Low', 'Close']].copy().dropna()
+            if len(df) < period + 1:
+                self.send_json({'error': f'Insufficient history for {ticker}'}); return
+
+            # ── True Wilder ATR ──────────────────────────────────────────────
+            # TR = max(H-L, |H-C_prev|, |L-C_prev|)
+            df['H-L']     = df['High'] - df['Low']
+            df['H-Cp']    = (df['High'] - df['Close'].shift(1)).abs()
+            df['L-Cp']    = (df['Low']  - df['Close'].shift(1)).abs()
+            df['TR']      = df[['H-L', 'H-Cp', 'L-Cp']].max(axis=1)
+
+            # Wilder smoothing: first value = simple mean, then EWM α=1/period
+            first_atr = df['TR'].iloc[1:period + 1].mean()
+            atr_series = [np.nan] * period  # pad with NaN for the first `period` rows
+            atr_series.append(first_atr)
+            for tr in df['TR'].iloc[period + 1:]:
+                atr_series.append(atr_series[-1] * (1 - 1 / period) + tr * (1 / period))
+            df['ATR'] = atr_series
+
+            atr_val      = float(df['ATR'].iloc[-1])
+            current_price = float(df['Close'].iloc[-1])
+            atr_pct      = round(atr_val / current_price * 100, 2)
+
+            # ── Position sizing: 1% account risk, stop = 2× ATR ─────────────
+            stop_distance = round(atr_val * 2, 4)
+            account_sizes = [5_000, 25_000, 100_000]
+            position_sizes = {}
+            for acct in account_sizes:
+                risk_dollars = acct * 0.01          # 1% of account
+                if stop_distance > 0:
+                    units  = risk_dollars / stop_distance
+                    notional = units * current_price
+                else:
+                    units = notional = 0
+                position_sizes[str(acct)] = {
+                    'units':    round(units, 6),
+                    'notional': round(notional, 2),
+                    'risk_usd': round(risk_dollars, 2)
+                }
+
+            # ── Volatility regime ────────────────────────────────────────────
+            rolling_vol = df['TR'].rolling(60).mean().iloc[-1]
+            if atr_val < rolling_vol * 0.75:
+                regime = 'LOW'
+            elif atr_val < rolling_vol * 1.25:
+                regime = 'NORMAL'
+            elif atr_val < rolling_vol * 1.75:
+                regime = 'ELEVATED'
+            else:
+                regime = 'HIGH'
+
+            self.send_json({
+                'ticker':         ticker,
+                'period':         period,
+                'atr':            round(atr_val, 4),
+                'atr_pct':        atr_pct,
+                'current_price':  round(current_price, 4),
+                'stop_distance':  stop_distance,
+                'stop_pct':       round(stop_distance / current_price * 100, 2),
+                'position_sizes': position_sizes,
+                'volatility_regime': regime,
+                'timestamp':      pd.Timestamp.now().strftime('%H:%M UTC')
+            })
+
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            self.send_json({'error': str(e)})

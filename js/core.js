@@ -2096,6 +2096,166 @@ async function loadRiskMatrix(tickers = null) {
             tickers: tks,
             matrix: data.matrix
         }));
+
+        // ── ATR Position Sizer Panel ─────────────────────────────────────
+        // Inject the live sizer below the matrix now that the DOM is ready
+        const atrPanel = document.createElement('div');
+        atrPanel.id = 'atr-sizer-panel';
+        atrPanel.style.cssText = 'margin-top:2rem;';
+        atrPanel.innerHTML = `
+            <div style="padding:1.5rem; background:rgba(0,242,255,0.04); border:1px solid rgba(0,242,255,0.15); border-radius:14px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.3rem;">calculate</span>
+                        <div>
+                            <div style="font-size:0.7rem;font-weight:900;letter-spacing:2px;color:var(--accent)">ATR POSITION SIZER</div>
+                            <div style="font-size:0.65rem;color:var(--text-dim);margin-top:2px">WILDER 14-DAY · 1% ACCOUNT RISK · 2× ATR STOP</div>
+                        </div>
+                        <span id="atr-regime-badge" class="premium-badge" style="font-size:0.5rem;background:rgba(250,204,21,0.15);border-color:#facc15;color:#facc15">LOADING...</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <select id="atr-ticker-select" style="background:#0a0a0f;border:1px solid var(--border);color:white;padding:6px 10px;border-radius:8px;font-family:'JetBrains Mono';font-size:0.7rem;cursor:pointer;">
+                            <option value="BTC-USD">BTC-USD</option>
+                            <option value="ETH-USD">ETH-USD</option>
+                            <option value="SOL-USD">SOL-USD</option>
+                            <option value="MSTR">MSTR</option>
+                            <option value="COIN">COIN</option>
+                            <option value="MARA">MARA</option>
+                            <option value="XRP-USD">XRP-USD</option>
+                            <option value="DOGE-USD">DOGE-USD</option>
+                        </select>
+                        <button id="atr-refresh-btn" onclick="window.loadATRSizer()" style="background:rgba(0,242,255,0.08);border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:8px;font-family:'JetBrains Mono';font-size:0.65rem;font-weight:900;cursor:pointer;letter-spacing:1px;">
+                            <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:4px;">sync</span>REFRESH
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live ATR stats bar -->
+                <div id="atr-stats-bar" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.2rem;">
+                    ${['ATR (14D)', 'ATR %', 'CURRENT PRICE', '2× ATR STOP', 'STOP %'].map(l => `
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 12px;">
+                            <div style="font-size:0.55rem;font-weight:900;letter-spacing:1px;color:var(--text-dim);margin-bottom:4px;">${l}</div>
+                            <div style="font-size:0.9rem;font-weight:900;color:white;font-family:'JetBrains Mono'">--</div>
+                        </div>`).join('')}
+                </div>
+
+                <!-- Interactive account size input -->
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;flex-wrap:wrap;">
+                    <label style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim);flex-shrink:0;">ACCOUNT SIZE ($)</label>
+                    <input id="atr-account-input" type="number" value="25000" min="100" step="1000"
+                        style="background:#0a0a0f;border:1px solid rgba(0,242,255,0.3);color:white;padding:8px 12px;border-radius:8px;font-family:'JetBrains Mono';font-size:0.85rem;width:160px;"
+                        oninput="window.recalcATRSizer()" />
+                    <div style="display:flex;gap:6px;">
+                        ${['5000','25000','100000'].map(v => `<button onclick="document.getElementById('atr-account-input').value='${v}';window.recalcATRSizer()" style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.2);color:var(--accent);padding:5px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;font-family:'JetBrains Mono'">$${parseInt(v).toLocaleString()}</button>`).join('')}
+                    </div>
+                </div>
+
+                <!-- Result output -->
+                <div id="atr-result" style="background:rgba(0,0,0,0.3);border:1px solid rgba(0,242,255,0.1);border-radius:10px;padding:1.2rem;">
+                    <div style="text-align:center;color:var(--text-dim);font-size:0.8rem;">Select an asset and click REFRESH to calculate ATR-adjusted position size.</div>
+                </div>
+
+                <div style="margin-top:0.8rem;font-size:0.65rem;color:var(--text-dim);line-height:1.6;border-top:1px solid rgba(255,255,255,0.05);padding-top:0.75rem;">
+                    <strong style="color:var(--accent)">Formula:</strong>
+                    Position Size = (Account × 1%) ÷ (2 × ATR₁₄) &nbsp;|&nbsp;
+                    Stop placed at 2× ATR below entry — beyond typical daily noise.
+                    ATR calculated using Wilder smoothing (α = 1/14), not simple average.
+                </div>
+            </div>`;
+
+        container.appendChild(atrPanel);
+
+        // Store current ATR data for recalculation
+        window._atrData = null;
+
+        window.loadATRSizer = async function() {
+            const ticker = document.getElementById('atr-ticker-select')?.value || 'BTC-USD';
+            const btn = document.getElementById('atr-refresh-btn');
+            const statsBar = document.getElementById('atr-stats-bar');
+            const badge = document.getElementById('atr-regime-badge');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;animation:spin 1s linear infinite;">sync</span> LOADING...'; }
+
+            const d = await fetchAPI(`/atr?ticker=${ticker}`);
+            if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:4px;">sync</span>REFRESH'; }
+
+            if (!d || d.error) {
+                document.getElementById('atr-result').innerHTML = `<div style="color:var(--risk-high);text-align:center;font-size:0.8rem;">Error: ${d?.error || 'Failed to load ATR data'}</div>`;
+                return;
+            }
+
+            window._atrData = d;
+
+            // Update stats bar
+            const statVals = [
+                `$${d.atr.toLocaleString(undefined, {maximumFractionDigits: 2})}`,
+                `${d.atr_pct}%`,
+                `$${d.current_price.toLocaleString(undefined, {maximumFractionDigits: 2})}`,
+                `$${d.stop_distance.toLocaleString(undefined, {maximumFractionDigits: 2})}`,
+                `${d.stop_pct}%`
+            ];
+            if (statsBar) {
+                statsBar.querySelectorAll('div[style*="border-radius:8px"]').forEach((card, i) => {
+                    const val = card.querySelector('div:last-child');
+                    if (val && statVals[i]) val.textContent = statVals[i];
+                });
+            }
+
+            // Update regime badge
+            const regimeColors = { LOW: '#22c55e', NORMAL: '#00f2ff', ELEVATED: '#facc15', HIGH: '#ef4444' };
+            if (badge) {
+                badge.textContent = d.volatility_regime + ' VOL';
+                badge.style.color = badge.style.borderColor = badge.style.background = '';
+                const rc = regimeColors[d.volatility_regime] || '#00f2ff';
+                badge.style.cssText += `;background:${rc}22;border-color:${rc};color:${rc};`;
+            }
+
+            window.recalcATRSizer();
+        };
+
+        window.recalcATRSizer = function() {
+            const d = window._atrData;
+            const result = document.getElementById('atr-result');
+            if (!d || !result) return;
+
+            const acct = parseFloat(document.getElementById('atr-account-input')?.value) || 25000;
+            const riskUsd = acct * 0.01;
+            const units = d.stop_distance > 0 ? riskUsd / d.stop_distance : 0;
+            const notional = units * d.current_price;
+            const riskPct = (notional / acct * 100).toFixed(1);
+
+            const fmt = (n, dp=2) => n.toLocaleString(undefined, {minimumFractionDigits: dp, maximumFractionDigits: dp});
+
+            result.innerHTML = `
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1rem;">
+                    <div style="text-align:center;padding:1rem;background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.2);border-radius:10px;">
+                        <div style="font-size:0.55rem;font-weight:900;letter-spacing:1px;color:var(--accent);margin-bottom:6px;">POSITION SIZE</div>
+                        <div style="font-size:1.6rem;font-weight:900;color:white;font-family:'JetBrains Mono';">${fmt(units, 4)}</div>
+                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:3px;">${d.ticker.split('-')[0]} units</div>
+                    </div>
+                    <div style="text-align:center;padding:1rem;background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.2);border-radius:10px;">
+                        <div style="font-size:0.55rem;font-weight:900;letter-spacing:1px;color:var(--accent);margin-bottom:6px;">NOTIONAL VALUE</div>
+                        <div style="font-size:1.6rem;font-weight:900;color:white;font-family:'JetBrains Mono';">$${fmt(notional)}</div>
+                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:3px;">${riskPct}% of account</div>
+                    </div>
+                    <div style="text-align:center;padding:1rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;">
+                        <div style="font-size:0.55rem;font-weight:900;letter-spacing:1px;color:#ef4444;margin-bottom:6px;">MAX RISK</div>
+                        <div style="font-size:1.6rem;font-weight:900;color:#ef4444;font-family:'JetBrains Mono';">$${fmt(riskUsd)}</div>
+                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:3px;">1% of $${acct.toLocaleString()}</div>
+                    </div>
+                    <div style="text-align:center;padding:1rem;background:rgba(250,204,21,0.06);border:1px solid rgba(250,204,21,0.2);border-radius:10px;">
+                        <div style="font-size:0.55rem;font-weight:900;letter-spacing:1px;color:#facc15;margin-bottom:6px;">ATR STOP PRICE</div>
+                        <div style="font-size:1.3rem;font-weight:900;color:#facc15;font-family:'JetBrains Mono';">$${fmt(d.current_price - d.stop_distance)}</div>
+                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:3px;">Entry − 2× ATR</div>
+                    </div>
+                </div>
+                <div style="font-size:0.7rem;color:var(--text-dim);text-align:right;margin-top:0.25rem;">
+                    ${d.ticker} · ATR₁₄ $${d.atr} · Updated ${d.timestamp}
+                </div>`;
+        };
+
+        // Auto-load BTC on render
+        window.loadATRSizer();
+
     }, 50);
 }
 
