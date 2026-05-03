@@ -963,13 +963,17 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 print(f"DEBUGGING ROUTER: safe_path={safe_path}", flush=True)
                 
                 if '.' not in safe_path and safe_path != "":
-                    html_target = f"{safe_path}.html"
-                    print(f"DEBUGGING ROUTER: html_target={html_target}, exists={os.path.exists(html_target)}", flush=True)
-                    if os.path.exists(html_target):
-                        self.path = f"/{html_target}"
-                        print(f"DEBUGGING ROUTER: set self.path={self.path}", flush=True)
+                    if safe_path == "academy":
+                        self.path = "/academy/index.html"
+                        print(f"DEBUGGING ROUTER: set self.path={self.path} (Academy Hub)", flush=True)
                     else:
-                        self.path = "/index.html"
+                        html_target = f"{safe_path}.html"
+                        print(f"DEBUGGING ROUTER: html_target={html_target}, exists={os.path.exists(html_target)}", flush=True)
+                        if os.path.exists(html_target):
+                            self.path = f"/{html_target}"
+                            print(f"DEBUGGING ROUTER: set self.path={self.path}", flush=True)
+                        else:
+                            self.path = "/index.html"
                 
                 print(f"DEBUGGING ROUTER: Calling super().do_GET() with self.path={self.path}", flush=True)
                 super().do_GET()

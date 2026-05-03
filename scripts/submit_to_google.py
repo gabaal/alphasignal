@@ -55,6 +55,7 @@ URLS = [
     "https://alphasignal.digital/?view=narrative",
     "https://alphasignal.digital/?view=portfolio-optimizer",
     "https://alphasignal.digital/?view=help",
+    "https://alphasignal.digital/academy",
 ]
 
 if os.path.exists("academy"):

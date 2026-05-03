@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quant Academy - AlphaSignal Institutional Intelligence</title>
+    <meta name="description" content="Master institutional trading, on-chain analytics, and quantitative strategies with the AlphaSignal Academy.">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Outfit:wght@400;700;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+    <style>
+        :root {
+            --bg-deep: #05070a;
+            --accent: #7dd3fc;
+            --accent-dim: rgba(125, 211, 252, 0.15);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --border: rgba(125, 211, 252, 0.1);
+        }
+        
+        body {
+            background: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .academy-hero {
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 0%, rgba(125, 211, 252, 0.1) 0%, transparent 70%);
+        }
+
+        .academy-hero h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: -2px;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .academy-hero p {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 1.5rem auto 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem 10rem;
+        }
+
+        .category-section {
+            margin-top: 6rem;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .category-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .category-header .count {
+            background: var(--accent-dim);
+            color: var(--accent);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .article-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        .article-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(125,211,252,0.1);
+        }
+
+        .card-thumb {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .article-card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            box-shadow: 0 0 20px rgba(125,211,252,0.4);
+        }
+
+        .card-content {
+            padding: 1.75rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-content h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            margin: 0 0 0.75rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .card-content p {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            margin: 0;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-footer {
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-dim);
+            font-weight: 700;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">
+        <span class="material-symbols-outlined">arrow_back</span>
+        TERMINAL
+    </a>
+
+    <header class="academy-hero">
+        <div style="display:inline-block; padding:4px 12px; background:var(--accent-dim); border:1px solid var(--accent); color:var(--accent); border-radius:6px; font-size:0.75rem; letter-spacing:2px; font-weight:700; margin-bottom:1.5rem;">ALPHASIGNAL</div>
+        <h1>Quant Academy</h1>
+        <p>Master institutional trading strategies, on-chain analytics, and quantitative risk management with our professional masterclass library.</p>
+    </header>
+
+    <main class="container">
+
+        <section class="category-section">
+            <div class="category-header">
+                <h2>Technical Analysis</h2>
+                <span class="count">14</span>
+            </div>
+            <div class="article-grid">
+        
+                <a href="/academy/bollinger-bands-volatility" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/9q32G8yLxbM/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Bollinger Bands and Volatility Envelopes</h3>
+                        <p>Measure price dispersion and identify explosive momentum breakouts using dynamic volatility channels.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/breakout-trading-strategies" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/wpPHULhcsn4/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Breakout Trading Strategies</h3>
+                        <p>Learn how to trade volatility compressions and identify explosive chart breakouts before retail traders enter the market.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/candlestick-patterns" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/khy2uPMdK54/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Candlestick Patterns</h3>
+                        <p>Learn the foundational visual language of price action. Master how to interpret bullish engulfing, dojis, and hammer candles to predict immediate momentum shifts.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/divergence-trading-strategies" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/uxNQDwjREuc/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Divergence Trading Strategies</h3>
+                        <p>Identify hidden weaknesses in market trends. Learn how to spot bullish and bearish divergences using momentum oscillators to predict major market reversals.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/elliott-wave-theory" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/ZeD60UItVlM/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Elliott Wave Theory</h3>
+                        <p>Understand the fractal nature of market cycles. Identify motive and corrective waves to anticipate the next major directional move.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/fibonacci-retracements-crypto" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/Ypj2VTWbrW0/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Fibonacci Retracements in Cryptocurrency</h3>
+                        <p>Apply the golden ratio to financial markets. Learn how to use Fibonacci retracement levels to identify invisible support and resistance zones during explosive market trends.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/ichimoku-cloud-strategy" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/fTAnH6D_p50/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Ichimoku Cloud: The All-in-One Indicator</h3>
+                        <p>Master the Ichimoku Kinko Hyo to instantly determine trend direction, momentum, and future support/resistance levels at a single glance.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/price-action-trading-naked" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/_83X3X56Q-k/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Naked Price Action Trading</h3>
+                        <p>Strip away the lagging indicators and learn how to read raw market structure, candle momentum, and liquidity sweeps.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/rsi-macd-momentum-oscillators" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/t6HCSzlSuNk/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>RSI and MACD: Momentum Oscillators Explained</h3>
+                        <p>Decode market momentum using the Relative Strength Index (RSI) and the Moving Average Convergence Divergence (MACD) indicators to identify overbought and oversold extremes.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/statistical-mean-reversion-z-scores" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/c2j-zs8YN3c/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Statistical Mean Reversion: Trading with Z-Scores</h3>
+                        <p>Avoid the emotional pitfalls of FOMO and Panic by adopting purely statistical, deterministic trading strategies based on standard deviations and Z-Scores.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/wyckoff-method-accumulation-distribution" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/VB52gdM0kLE/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>The Wyckoff Method: Accumulation and Distribution</h3>
+                        <p>Read the hidden intentions of the "Composite Man." Use the Wyckoff Method to track institutional accumulation phases and markdown cycles.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/harmonic-patterns-trading" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/zSWK51YNwKs/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Trading Harmonic Patterns</h3>
+                        <p>Utilize advanced geometry and overlapping Fibonacci sequences to pinpoint highly accurate geometric reversal zones.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/trading-moving-average-crossovers" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/_n74Yn2Z51M/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Trading Moving Average Crossovers</h3>
+                        <p>Learn how to utilize Simple and Exponential Moving Averages to confirm macro trend direction and identify high-probability momentum shifts.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/trendlines-and-channels" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/joPxq3IB8tk/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Trendlines and Channels</h3>
+                        <p>Define the boundaries of market momentum. Learn how to draw ascending and descending channels to frame your trades and identify breakout triggers.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <h2>On-Chain Intelligence</h2>
+                <span class="count">5</span>
+            </div>
+            <div class="article-grid">
+        
+                <a href="/academy/crypto-liquidations-tracker" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/rdaZDhciMxI/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Exploiting High-Leverage Crypto Liquidations</h3>
+                        <p>Learn how to track and exploit forced liquidations and margin calls across major derivatives exchanges to fade momentum and capture violent mean-reversion bounces.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/fundamental-mvrv-z-score" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/JisoL4rz9Wc/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Identifying Generational Tops: MVRV Z-Score</h3>
+                        <p>Master on-chain valuation using the MVRV (Market Value to Realized Value) Z-score to determine when Bitcoin is severely overvalued or historically undervalued.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/stablecoin-macro-liquidity-flows" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/3WRErVd1G8s/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Macro Liquidity: Tracking Stablecoin Supply Flows</h3>
+                        <p>The ultimate leading indicator of cryptocurrency bull runs: Monitoring Tether (USDT) and USD Coin (USDC) mints and burns across the ecosystem.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/token-unlocks-supply-dilution" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/7wO3-YV7Z9w/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Mastering Token Unlocks and Supply Dilution</h3>
+                        <p>Track venture capitalist vesting schedules and massive token unlock events to anticipate structural supply shocks and short-selling opportunities.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/on-chain-whale-tracking" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/XSJnX9oe_is/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>On-Chain Whale Tracking and Exchange Flows</h3>
+                        <p>Trace massive cryptocurrency transactions between cold storage wallets and centralized exchanges to predict local tops and bottoms.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <h2>Institutional Metrics</h2>
+                <span class="count">6</span>
+            </div>
+            <div class="article-grid">
+        
+                <a href="/academy/options-flow-dark-pools" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/3cM7toFnRTU/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Decoding Institutional Options Flow & Dark Pools</h3>
+                        <p>Track massive options block trades, dark pool sweeps, and unusual options activity to front-run institutional capital movements in both crypto and equities.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/order-book-liquidity-heatmaps" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/DmXeCNPw2g4/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>How to Read Order Book Liquidity Heatmaps</h3>
+                        <p>Decode Limit Order Book (LOB) data to identify institutional defense levels, spoofs, and high-probability support/resistance structures before price gets there.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/order-blocks-institutional" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/L8H5y_vP5fU/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Identifying Institutional Order Blocks</h3>
+                        <p>Locate the exact price zones where central banks and major institutions accumulate massive positions before inducing retail panic.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/volume-profile-market-profile" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/uDzqh0c6BeM/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Trade Like a Pro: Volume Profile & Market Profile</h3>
+                        <p>Move beyond time-based charts. Utilize Volume Profile to discover High Volume Nodes (HVN), Point of Control (POC), and Value Areas.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/understanding-gamma-exposure-gex" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/I0_v_I26f_g/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Understanding Gamma Exposure (GEX) in Crypto Markets</h3>
+                        <p>A comprehensive guide to understanding options market maker positioning, hedging dynamics, and the impact of Gamma Exposure (GEX) on underlying asset price action.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/vwap-institutional-execution" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/cYN4ZgGvR84/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>VWAP and Institutional Execution Footprints</h3>
+                        <p>Track algorithmic "Smart Money" accumulation patterns and understand how large whales mask their entry orders using Volume Weighted Average Price (VWAP).</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <h2>Advanced Strategies</h2>
+                <span class="count">5</span>
+            </div>
+            <div class="article-grid">
+        
+                <a href="/academy/algorithmic-ai-trade-signals" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/Y-uEwK9o908/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Exploiting Algorithmic AI Trade Signals</h3>
+                        <p>Discover how AlphaSignal utilizes deep learning neural networks, Natural Language Processing, and fundamental data to generate deterministic, emotionless trade signals.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/capital-sector-rotation" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/86I62GZ7u-4/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Mastering Capital Sector Rotation Strategies</h3>
+                        <p>Uncover the flow of capital from Bitcoin into large-cap altcoins, DeFi, and meme coins using ecosystem rotation heatmaps and relative strength momentum.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/ai-narrative-velocity-sentiment" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/C36iScl7-8I/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Narrative Velocity and Semantic Sentiment Analysis</h3>
+                        <p>Learn how to quantify social momentum and front-run hype cycles using Natural Language Processing (NLP) and vector-based semantic sentiment analysis.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/pairs-trading-crypto-arbitrage" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/4oa5chIYDcM/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Pairs Trading and Statistical Arbitrage</h3>
+                        <p>Eliminate directional market risk. Discover how institutional quantitative funds use pairs trading to profit from relative asset performance regardless of macro conditions.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/hidden-markov-market-regimes" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/vM3rSnt_8Xk/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Understanding Market Regimes with Hidden Markov Models</h3>
+                        <p>Stop using the same trading strategy for every market condition. Utilize probabilistic regime classification to dynamically adapt to shifting volatility paradigms.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <h2>Foundations</h2>
+                <span class="count">4</span>
+            </div>
+            <div class="article-grid">
+        
+                <a href="/academy/how-to-set-proper-stop-loss" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/749DyLprirs/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>How to Set a Proper Stop Loss</h3>
+                        <p>Stop guessing your exit plan. Master structural stop loss placement, trailing stops, and invalidation points to systematically protect your capital.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/position-sizing-and-leverage" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/MvG-Y51pU1o/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Position Sizing and Leverage Strategies</h3>
+                        <p>Master the mathematics of survival. Understand how to calculate optimal position sizes and manage localized leverage to prevent catastrophic portfolio ruin.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/importance-of-trading-journal" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/8nS1K9_XFkU/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>The Importance of a Trading Journal</h3>
+                        <p>Quantify your mistakes and optimize your strengths. Uncover the institutional mandate of rigorous trade logging and performance auditing.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/trading-psychology-fomo-panic" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/bEXz7Abf-wM/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Trading Psychology: Overcoming FOMO and Panic</h3>
+                        <p>The greatest enemy of a trader is their own mind. Learn how to conquer the emotional extremes of Fear of Missing Out (FOMO) and panic selling through deterministic rules.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <h2>Masterclasses</h2>
+                <span class="count">6</span>
+            </div>
+            <div class="article-grid">
+        
+                <a href="/academy/mastering-risk-to-reward-ratio" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/5G1g0w6eW5I/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Mastering the Risk to Reward Ratio in Trading</h3>
+                        <p>Learn why win rate is less important than your risk-to-reward ratio. Discover how professional traders maintain profitability even when they lose more than 50% of their trades.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/institutional-yield-farming" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/ClnnLI1SClA/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Navigating Institutional DeFi Yield Farming</h3>
+                        <p>Analyze risk-adjusted return vectors, stablecoin supply constraints, and protocol emissions to optimize your decentralization finance (DeFi) yield strategy.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/smart-money-concepts-smc" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/GjT9Xit5-3I/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Smart Money Concepts (SMC)</h3>
+                        <p>Understand Fair Value Gaps (FVG), Inducement, and Liquidity Grabs to trade in alignment with institutional market makers.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/support-and-resistance-fundamentals" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/h-99ZpG2n6k/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Support and Resistance Fundamentals</h3>
+                        <p>Identify the structural foundation of price action. Learn how to map out historical supply and demand zones effectively to frame your trades.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/options-implied-volatility-smile" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/Lza68h8Tlpg/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>The Options Volatility Surface: IV Smile and Term Structure</h3>
+                        <p>Decode the advanced option pricing models used by institutional derivatives traders to forecast future market turbulence and directional skew.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+                <a href="/academy/cme-futures-gaps-bitcoin" class="article-card">
+                    <div class="card-thumb" style="background-image: url('https://img.youtube.com/vi/ADSOBbXdzNE/mqdefault.jpg')">
+                        <div class="play-overlay">
+                            <div class="play-icon">
+                                <span class="material-symbols-outlined" style="font-size: 30px;">play_arrow</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3>Trading CME Futures Gaps in Bitcoin</h3>
+                        <p>Exploit the institutional weekend arbitrage loop by trading CME (Chicago Mercantile Exchange) gaps. Understand the statistical probabilities of gap fills and how to position your portfolio before the Friday close.</p>
+                        <div class="card-footer">
+                            <span>Watch Masterclass</span>
+                            <span class="material-symbols-outlined">trending_flat</span>
+                        </div>
+                    </div>
+                </a>
+            
+            </div>
+        </section>
+        
+    </main>
+</body>
+</html>
