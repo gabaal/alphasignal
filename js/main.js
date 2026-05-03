@@ -982,13 +982,14 @@ async function openSignalThesisModal(ticker, signal, zscore) {
         modal.id = 'thesis-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
         modal.innerHTML = `
-            <div style="background:var(--bg-card);border:1px solid rgba(188,19,254,0.4);border-radius:16px;padding:2rem;max-width:520px;width:100%;position:relative">
+            <div style="background:var(--bg-card);border:1px solid rgba(188,19,254,0.4);border-radius:16px;padding:2rem;max-width:580px;width:100%;position:relative;max-height:90vh;overflow-y:auto">
                 <button onclick="document.getElementById('thesis-modal').remove()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem">&times;</button>
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem">
                     <span class="material-symbols-outlined" style="color:#bc13fe">psychology</span>
                     <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:#bc13fe">AI TRADE THESIS</span>
                 </div>
                 <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">${ticker} &bull; <span style="color:${signal === 'LONG' ? '#22c55e' : signal === 'SHORT' ? '#ef4444' : '#facc15'}">${signal}</span> &bull; Z-Score: ${zscore}-</div>
+                <div id="thesis-atr-panel"></div>
                 <div id="thesis-body" style="font-size:0.9rem;line-height:1.7;color:var(--text);min-height:80px;margin-top:1rem">
                     <div style="display:flex;align-items:center;gap:8px;color:var(--text-dim)">
                         <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;font-size:18px">sync</span>Generating thesis...
@@ -999,17 +1000,72 @@ async function openSignalThesisModal(ticker, signal, zscore) {
         document.body.appendChild(modal);
     }
 
-    try {
-        const data = await fetchAPI(`/signal-thesis?ticker=${ticker}&signal=${signal}&zscore=${zscore}`);
-        const el = document.getElementById('thesis-body');
-        const meta = document.getElementById('thesis-meta');
-        if (el && data.thesis) {
-            el.innerHTML = `<p>${formatMemoMarkdown(data.thesis)}</p>`;
-            if (meta) meta.textContent = `Source: ${data.source === 'gpt-4o-mini' ? 'GPT-4o-mini' : 'Template'}`;
-        }
-    } catch (e) {
-        const el = document.getElementById('thesis-body');
-        if (el) el.innerHTML = `<span style="color:#ef4444">Failed: ${e.message}</span>`;
+    // Fetch thesis AND ATR in parallel
+    const cleanTicker = (ticker || 'BTC-USD').replace(/^([A-Z0-9]+)$/, '$1-USD');
+    const [data, atrData] = await Promise.all([
+        fetchAPI(`/signal-thesis?ticker=${ticker}&signal=${signal}&zscore=${zscore}`),
+        fetchAPI(`/atr?ticker=${cleanTicker}`).catch(() => null)
+    ]);
+
+    // ── Inject ATR panel ───────────────────────────────────────────────────
+    const atrPanel = document.getElementById('thesis-atr-panel');
+    if (atrPanel && atrData && !atrData.error && atrData.atr) {
+        const fmt = (n, dp=2) => n.toLocaleString(undefined, {minimumFractionDigits: dp, maximumFractionDigits: dp});
+        const regimeColors = { LOW: '#22c55e', NORMAL: '#00f2ff', ELEVATED: '#facc15', HIGH: '#ef4444' };
+        const rc = regimeColors[atrData.volatility_regime] || '#00f2ff';
+        const acct = 25000;
+        const riskUsd = acct * 0.01;
+        const units = atrData.stop_distance > 0 ? riskUsd / atrData.stop_distance : 0;
+        const notional = units * atrData.current_price;
+
+        atrPanel.innerHTML = `
+        <div style="padding:1rem 1.2rem; background:rgba(0,242,255,0.04); border:1px solid rgba(0,242,255,0.15); border-radius:12px; margin-bottom:1rem;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8rem; flex-wrap:wrap; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="material-symbols-outlined" style="font-size:1rem; color:var(--accent);">calculate</span>
+                    <span style="font-size:0.65rem; font-weight:900; letter-spacing:2px; color:var(--accent);">ATR POSITION SIZING</span>
+                    <span style="font-size:0.5rem; font-weight:900; padding:2px 8px; border-radius:100px; background:${rc}22; border:1px solid ${rc}; color:${rc}; letter-spacing:1px;">${atrData.volatility_regime} VOL</span>
+                </div>
+                <span style="font-size:0.55rem; color:var(--text-dim); font-family:'JetBrains Mono';">Wilder 14D · 1% Risk · $${acct.toLocaleString()} acct</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(95px,1fr)); gap:8px;">
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:var(--text-dim); margin-bottom:3px;">ATR (14D)</div>
+                    <div style="font-size:0.8rem; font-weight:900; color:white; font-family:'JetBrains Mono';">$${fmt(atrData.atr)}</div>
+                    <div style="font-size:0.5rem; color:var(--text-dim);">${atrData.atr_pct}% of price</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:var(--text-dim); margin-bottom:3px;">2× ATR STOP</div>
+                    <div style="font-size:0.8rem; font-weight:900; color:#facc15; font-family:'JetBrains Mono';">$${fmt(atrData.stop_distance)}</div>
+                    <div style="font-size:0.5rem; color:var(--text-dim);">${atrData.stop_pct}% below entry</div>
+                </div>
+                <div style="background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.15); border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:var(--accent); margin-bottom:3px;">POSITION SIZE</div>
+                    <div style="font-size:0.8rem; font-weight:900; color:white; font-family:'JetBrains Mono';">${fmt(units, 4)}</div>
+                    <div style="font-size:0.5rem; color:var(--text-dim);">${atrData.ticker.split('-')[0]} units</div>
+                </div>
+                <div style="background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.15); border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:var(--accent); margin-bottom:3px;">NOTIONAL</div>
+                    <div style="font-size:0.8rem; font-weight:900; color:white; font-family:'JetBrains Mono';">$${fmt(notional)}</div>
+                    <div style="font-size:0.5rem; color:var(--text-dim);">1% risk = $${fmt(riskUsd)}</div>
+                </div>
+                <div style="background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.15); border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:#ef4444; margin-bottom:3px;">ATR STOP PRICE</div>
+                    <div style="font-size:0.8rem; font-weight:900; color:#ef4444; font-family:'JetBrains Mono';">$${fmt(atrData.current_price - atrData.stop_distance)}</div>
+                    <div style="font-size:0.5rem; color:var(--text-dim);">entry − 2× ATR</div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // ── Inject thesis ──────────────────────────────────────────────────────
+    const el = document.getElementById('thesis-body');
+    const meta = document.getElementById('thesis-meta');
+    if (el && data && data.thesis) {
+        el.innerHTML = `<p>${formatMemoMarkdown(data.thesis)}</p>`;
+        if (meta) meta.textContent = `Source: ${data.source === 'gpt-4o-mini' ? 'GPT-4o-mini' : 'Template'}`;
+    } else if (el) {
+        el.innerHTML = `<span style="color:#ef4444">Failed: Could not generate thesis for ${ticker}</span>`;
     }
 }
 
