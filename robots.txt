@@ -12,3 +12,4 @@ Disallow: /?debug=
 Disallow: /?test=
 
 Sitemap: https://alphasignal.digital/sitemap.xml
+Sitemap: https://alphasignal.digital/video-sitemap.xml
