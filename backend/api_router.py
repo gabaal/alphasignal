@@ -638,7 +638,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/risk', '/api/depeg', '/api/macro-calendar', '/api/options-flow',
                     '/api/equity-options-flow', '/api/ai-rebalancer', '/api/signal-history',
                     '/api/alerts', '/api/alerts/badge', '/api/klines', '/api/equity-klines',
-                    '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst',
+                    '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
                 ]
                 free_auth_routes = [
                     # Account management — login required, no premium needed
