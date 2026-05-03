@@ -7628,17 +7628,46 @@ class InstitutionalRoutesMixin:
             else:
                 regime = 'HIGH'
 
+            # ── ATR time series (for charting) ───────────────────────────────
+            # Only include bars where ATR is valid (after warmup period)
+            atr_df = df[df['ATR'].notna()].copy()
+            atr_dates  = [d.strftime('%b %d') for d in atr_df.index]
+            atr_values = [round(float(v), 4) for v in atr_df['ATR']]
+            price_vals = [round(float(v), 4) for v in atr_df['Close']]
+
+            # Regime per bar (vs its own 60-bar rolling mean of TR)
+            tr_roll = df['TR'].rolling(60).mean()
+            def _bar_regime(atr_v, roll_v):
+                if pd.isna(roll_v) or roll_v == 0:
+                    return 'NORMAL'
+                if atr_v < roll_v * 0.75:    return 'LOW'
+                if atr_v < roll_v * 1.25:    return 'NORMAL'
+                if atr_v < roll_v * 1.75:    return 'ELEVATED'
+                return 'HIGH'
+
+            bar_regimes = [
+                _bar_regime(float(atr_df['ATR'].iloc[i]), float(tr_roll.loc[atr_df.index[i]]))
+                for i in range(len(atr_df))
+            ]
+
             self.send_json({
-                'ticker':         ticker,
-                'period':         period,
-                'atr':            round(atr_val, 4),
-                'atr_pct':        atr_pct,
-                'current_price':  round(current_price, 4),
-                'stop_distance':  stop_distance,
-                'stop_pct':       round(stop_distance / current_price * 100, 2),
-                'position_sizes': position_sizes,
+                'ticker':            ticker,
+                'period':            period,
+                'atr':               round(atr_val, 4),
+                'atr_pct':           atr_pct,
+                'current_price':     round(current_price, 4),
+                'stop_distance':     stop_distance,
+                'stop_pct':          round(stop_distance / current_price * 100, 2),
+                'position_sizes':    position_sizes,
                 'volatility_regime': regime,
-                'timestamp':      pd.Timestamp.now().strftime('%H:%M UTC')
+                'timestamp':         pd.Timestamp.now().strftime('%H:%M UTC'),
+                # Time-series payload for chart rendering
+                'series': {
+                    'dates':    atr_dates,
+                    'atr':      atr_values,
+                    'price':    price_vals,
+                    'regimes':  bar_regimes,
+                }
             })
 
         except Exception as e:

@@ -865,6 +865,23 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         
         <!-- Advanced Charting Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+            <!-- ATR (14) Time Series -->
+            <div class="zoomable-panel" onclick="expandChart('detail-atr-chart', 'ATR (14) Volatility Time Series')">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">ATR (14) — VOLATILITY PROFILE</span>
+                <span id="detail-atr-label" style="font-size:0.55rem;color:var(--text-dim);margin-left:auto"></span>
+            </div>
+            <div class="chart-canvas-wrapper" style="height:130px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15);position:relative">
+                <canvas id="detail-atr-chart"></canvas>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:6px">
+                <span style="font-size:0.5rem;color:rgba(239,68,68,0.7);display:flex;align-items:center;gap:4px">&#9679; HIGH vol</span>
+                <span style="font-size:0.5rem;color:rgba(250,204,21,0.7);display:flex;align-items:center;gap:4px">&#9679; ELEVATED</span>
+                <span style="font-size:0.5rem;color:rgba(0,242,255,0.7);display:flex;align-items:center;gap:4px">&#9679; NORMAL</span>
+                <span style="font-size:0.5rem;color:rgba(34,197,94,0.7);display:flex;align-items:center;gap:4px">&#9679; LOW vol</span>
+            </div>
+            </div>
+
             <!-- RSI (14) + Volume -->
             <div class="zoomable-panel" onclick="expandChart('detail-rsi-chart', 'RSI (14) & Volume Profile')">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -1371,6 +1388,126 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         
         return { macdLine, signalLine, histogram };
     }
+
+    // - 0. ATR (14) Volatility Time Series -
+    (() => {
+        const ctx = document.getElementById('detail-atr-chart');
+        const labelEl = document.getElementById('detail-atr-label');
+        if (!ctx || !atrData || !atrData.series || !atrData.series.atr.length) return;
+
+        const { dates, atr, price, regimes } = atrData.series;
+        const currentAtr = atrData.atr;
+
+        // Colour each bar by its regime
+        const regimeColor = { LOW: '#22c55e', NORMAL: '#00f2ff', ELEVATED: '#facc15', HIGH: '#ef4444' };
+        const pointColors = regimes.map(r => regimeColor[r] || '#00f2ff');
+        const areaColors  = regimes.map(r => (regimeColor[r] || '#00f2ff').replace(')', ',0.15)').replace('rgb', 'rgba'));
+
+        if (labelEl) {
+            labelEl.textContent = `ATR $${currentAtr.toLocaleString(undefined, {maximumFractionDigits: 2})}`;
+            const rc = regimeColor[atrData.volatility_regime] || '#00f2ff';
+            labelEl.style.color = rc;
+        }
+
+        const existing = Chart.getChart('detail-atr-chart');
+        if (existing) existing.destroy();
+
+        new Chart(ctx.getContext('2d'), {
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'ATR (14)',
+                        data: atr,
+                        borderColor: pointColors,          // segment-per-point colour
+                        backgroundColor: 'rgba(0,242,255,0.06)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.3,
+                        yAxisID: 'yATR',
+                        segment: {
+                            borderColor: ctx2 => regimeColor[regimes[ctx2.p1DataIndex]] || '#00f2ff',
+                        }
+                    },
+                    {
+                        // Dashed horizontal: current ATR reference line
+                        type: 'line',
+                        label: 'Current ATR',
+                        data: new Array(dates.length).fill(currentAtr),
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 1,
+                        borderDash: [5, 4],
+                        pointRadius: 0,
+                        fill: false,
+                        yAxisID: 'yATR'
+                    },
+                    {
+                        // Dim price line for context (right axis)
+                        type: 'line',
+                        label: 'Price',
+                        data: price,
+                        borderColor: 'rgba(148,163,184,0.25)',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        fill: false,
+                        tension: 0.2,
+                        yAxisID: 'yPrice'
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(13,17,23,0.95)',
+                        titleColor: '#7dd3fc',
+                        bodyColor: '#e2e8f0',
+                        callbacks: {
+                            title: items => items[0].label,
+                            label: c => {
+                                if (c.datasetIndex === 0) return `ATR: $${c.raw.toLocaleString(undefined, {maximumFractionDigits: 2})} (${regimes[c.dataIndex] || ''})`;
+                                if (c.datasetIndex === 2) return `Price: $${c.raw.toLocaleString(undefined, {maximumFractionDigits: 2})}`;
+                                return null;
+                            }
+                        },
+                        filter: item => item.datasetIndex !== 1  // hide current-ATR line from tooltip
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: alphaColor(0.3), font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 7, maxRotation: 0 }
+                    },
+                    yATR: {
+                        position: 'left',
+                        grid: { color: alphaColor(0.04) },
+                        ticks: {
+                            color: alphaColor(0.4),
+                            font: { family: 'JetBrains Mono', size: 9 },
+                            maxTicksLimit: 4,
+                            callback: v => '$' + v.toLocaleString(undefined, {maximumFractionDigits: 0})
+                        },
+                        title: { display: true, text: 'ATR', color: alphaColor(0.2), font: { size: 9 } }
+                    },
+                    yPrice: {
+                        position: 'right',
+                        display: true,
+                        grid: { drawOnChartArea: false },
+                        ticks: {
+                            color: alphaColor(0.2),
+                            font: { family: 'JetBrains Mono', size: 9 },
+                            maxTicksLimit: 4,
+                            callback: v => '$' + v.toLocaleString(undefined, {maximumFractionDigits: 0})
+                        }
+                    }
+                }
+            }
+        });
+    })();
 
     // - 1. RSI (14) + Volume -
     (async () => {
