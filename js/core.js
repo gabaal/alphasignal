@@ -2978,3 +2978,17 @@ window.updateATR_AI = function(ticker, stopDistance, currentPrice) {
 };
 
 // TAB 1: Overview (Price + Volume + EMA 20/50 + RSI Placeholder)
+
+// --- pSEO: Automatic Deep-Dive Landing ---
+document.addEventListener('DOMContentLoaded', () => {
+    const seoTicker = document.body.dataset.seoTicker;
+    if (seoTicker) {
+        console.log(`[pSEO] Landing on asset: ${seoTicker}. Launching deep-dive...`);
+        // Small delay to ensure all modules (utils.js, signals.js) are initialized
+        setTimeout(() => {
+            if (typeof openDetail === 'function') {
+                openDetail(seoTicker);
+            }
+        }, 800);
+    }
+});

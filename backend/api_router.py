@@ -621,6 +621,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     print(f'[{datetime.now()}] FULFILLMENT ERROR: {e}')
             path = path.rstrip('/')
+            
+            # --- pSEO: Asset-specific deep landing pages ---
+            if path.startswith('/asset/'):
+                ticker = path.split('/')[-1].upper()
+                # Remove -USD if present for the SEO display
+                clean_ticker = ticker.replace('-USD', '')
+                self.handle_asset_seo(clean_ticker)
+                return
+
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
@@ -1025,6 +1034,74 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         except Exception as e:
             print(f'[Onboarding] Error: {e}')
             self.send_json({'success': False, 'error': str(e)})
+
+    def handle_asset_seo(self, ticker):
+        """pSEO: Serves index.html with dynamically injected SEO metadata for a specific asset."""
+        price = "fetching..."
+        bias = "Neutral"
+        z_score = "0.00"
+        atr_val = "0.00"
+        
+        # 1. Fetch live data for injection (uses existing cache systems)
+        try:
+            from backend.routes.institutional import InstitutionalRoutesMixin
+            sc = InstitutionalRoutesMixin._signals_cache
+            if sc and 'data' in sc:
+                for item in sc['data']:
+                    if item.get('ticker', '').upper().replace('-USD', '') == ticker.upper():
+                        price = item.get('price', price)
+                        bias = str(item.get('sentiment', bias)).title()
+                        z_score = str(round(float(item.get('z_score', 0)), 2))
+                        atr_val = str(round(float(item.get('atr_2x', 0)), 2))
+                        break
+        except: pass
+
+        try:
+            with open('index.html', 'r', encoding='utf-8') as f:
+                html = f.read()
+            
+            # Dynamic SEO payload
+            title = f"{ticker} Institutional Analytics & ATR Stop Loss | AlphaSignal"
+            desc = f"Real-time {ticker} market intelligence. Bias: {bias} | Z-Score: {z_score} | ATR 2.0x Stop: ${atr_val}. Trade {ticker} with institutional-grade data."
+            
+            seo_head = f"""
+    <title>{title}</title>
+    <meta name="description" content="{desc}">
+    <link rel="canonical" href="https://alphasignal.digital/asset/{ticker}">
+    <meta property="og:title" content="{title}">
+    <meta property="og:description" content="{desc}">
+    <meta property="og:url" content="https://alphasignal.digital/asset/{ticker}">
+    <script type="application/ld+json">
+    {{
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "{title}",
+      "description": "{desc}",
+      "url": "https://alphasignal.digital/asset/{ticker}",
+      "mainEntity": {{
+        "@type": "FinancialProduct",
+        "name": "{ticker}",
+        "description": "Institutional trading data for {ticker} including Z-Score and ATR."
+      }}
+    }}
+    </script>
+            """
+            
+            # Replace existing generic tags or just inject at top of head
+            html = html.replace('<title>AlphaSignal &mdash; Crypto Analytics &amp; Algorithmic Trading Terminal | Institutional Intelligence</title>', '')
+            html = html.replace('<meta name="description" content="AlphaSignal (Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Real-time Z-score alpha signals, AI market briefings, ETF capital flows, options flow scanner, whale pulse tracker, on-chain analytics (MVRV, SOPR, Puell Multiple), macro calendar, portfolio optimizer, and 60+ analytical views. Built for professional crypto traders and institutional desks.">', '')
+            html = html.replace('</head>', seo_head + '\n</head>')
+            
+            # Signal the frontend to open this ticker's detail on load
+            html = html.replace('<body class="cyber-theme">', f'<body class="cyber-theme" data-seo-ticker="{ticker}">')
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(html.encode('utf-8'))
+        except Exception as e:
+            print(f'[pSEO Error] {e}')
+            super().do_GET()
 
     def handle_ssr_permalink(self, ticker):
         price = "fetching..."
