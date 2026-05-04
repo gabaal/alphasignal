@@ -349,9 +349,93 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alphasignal.digital/asset/PYTH</loc>
+    <loc>https://alphasignal.digital/asset/BNB</loc>
     <lastmod>2026-05-04</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/LINK</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/UNI</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/ARB</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/SUI</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/APT</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/LTC</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/MATIC</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/PEPE</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/IMX</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/TAO</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/NVDA</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/TSLA</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/AAPL</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/asset/SPY</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
