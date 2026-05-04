@@ -227,8 +227,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <div class="layout hidden" id="main-layout">
 <a href="#app-view" class="skip-link" style="position:absolute;top:-40px;left:0;background:#7dd3fc;color:#000;padding:6px 12px;z-index:9999;font-size:0.75rem;font-weight:700;letter-spacing:1px;transition:top 0.2s;text-decoration:none;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
         <aside class="sidebar" id="sidebar" role="complementary" aria-label="Main Navigation">
-            <div class="brand" onclick="switchView('home')" style="cursor:pointer; justify-content: center; padding: 1rem 0;" role="link" aria-label="Go to Home">
-                <div class="brand-title">Alpha<span>Signal</span></div>
+            <div class="brand" onclick="switchView('home')" style="cursor:pointer; justify-content: center; padding: 1rem 0;" role="link" aria-label="AlphaSignal - Go to Home">
+                <span class="brand-title">Alpha<span style="color:var(--accent);">Signal</span></span>
             </div>
             
 
@@ -295,7 +295,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                 </div>
             </nav>
 
-            <div class="user-profile-card profile-dropdown" id="user-profile-dropdown" aria-haspopup="true" aria-expanded="false">
+            <div class="user-profile-card profile-dropdown" id="user-profile-dropdown" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-label="User Profile and Settings">
                 <div class="profile-header dropdown-trigger">
                     <div class="user-avatar">
                         <span id="user-initials">IU</span>
@@ -304,7 +304,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                         <span id="display-user-email">Institutional User</span>
                         <div id="user-tier-badge" class="tier-badge free">FREE TIER</div>
                     </div>
-                    <span class="material-symbols-outlined dropdown-caret">expand_more</span>
+                    <span class="material-symbols-outlined dropdown-caret" aria-hidden="true">expand_more</span>
                 </div>
                 <div class="profile-actions dropdown-menu">
                     <button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()" aria-label="Manage Billing and Subscription">
@@ -539,24 +539,24 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         </main>
 
         <nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation">
-            <div class="mobile-nav-item active" data-view="signals" aria-label="View Signals">
+            <div class="mobile-nav-item active" data-view="signals" role="button" tabindex="0" aria-label="View Signals">
                 <span class="m-icon material-symbols-outlined" aria-hidden="true">radar</span>
                 <span class="m-label">Signals</span>
             </div>
-            <div class="mobile-nav-item" data-view="briefing" aria-label="View AI Intel">
+            <div class="mobile-nav-item" data-view="briefing" role="button" tabindex="0" aria-label="View AI Intel">
                 <span class="m-icon material-symbols-outlined" aria-hidden="true">memory</span>
                 <span class="m-label">AI Intel</span>
             </div>
-            <div class="mobile-nav-item" data-view="macro-hub" aria-label="View Market">
+            <div class="mobile-nav-item" data-view="macro-hub" role="button" tabindex="0" aria-label="View Macro Intelligence">
                 <span class="m-icon material-symbols-outlined" aria-hidden="true">public</span>
                 <span class="m-label">Macro</span>
             </div>
-            <div class="mobile-nav-item" data-view="alerts-hub" aria-label="View Alerts" style="position:relative">
+            <div class="mobile-nav-item" data-view="alerts-hub" role="button" tabindex="0" aria-label="View Alerts" style="position:relative">
                 <span class="m-icon material-symbols-outlined" aria-hidden="true">notifications</span>
                 <span class="m-label">Alerts</span>
-                <span id="mobile-alert-dot" style="display:none;position:absolute;top:8px;right:22%;width:8px;height:8px;border-radius:50%;background:var(--risk-high);border:1px solid var(--bg)"></span>
+                <span id="mobile-alert-dot" style="display:none;position:absolute;top:8px;right:22%;width:8px;height:8px;border-radius:50%;background:var(--risk-high);border:1px solid var(--bg)" aria-hidden="true"></span>
             </div>
-            <div class="mobile-nav-item" id="mobile-more-btn" aria-label="View More Options">
+            <div class="mobile-nav-item" id="mobile-more-btn" role="button" tabindex="0" aria-label="View More Hubs">
                 <span class="m-icon material-symbols-outlined" aria-hidden="true">apps</span>
                 <span class="m-label">Hubs</span>
             </div>
