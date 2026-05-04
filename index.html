@@ -30,7 +30,21 @@
     <link rel="dns-prefetch" href="https://js.stripe.com">
     <link rel="dns-prefetch" href="https://s3.tradingview.com">
     <link rel="dns-prefetch" href="https://d3js.org">
-    <!-- LCP preload: hero image fetched at HTML parse time, not after JS renders -->
+    
+    <!-- Critical CSS Inline (Above the fold) -->
+    <style>
+        :root {
+            --bg-body: #090c14;
+            --text-main: #e2e8f0;
+            --accent: #7dd3fc;
+            --sidebar-w: 260px;
+        }
+        body { background: var(--bg-body); color: var(--text-main); font-family: 'Outfit', sans-serif; margin: 0; }
+        .prerender-shell { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 2rem; }
+        #lcp-hero-img { max-width: min(800px, 100%); height: auto; border-radius: 12px; box-shadow: 0 0 60px rgba(0,242,255,0.1); }
+    </style>
+
+    <!-- LCP preload: hero image fetched at HTML parse time -->
     <link rel="preload" as="image" href="terminal_interface_mockup.webp" fetchpriority="high">
 
     <!-- PWA / Mobile -->
@@ -61,71 +75,9 @@
     <meta property="twitter:description" id="twitter-desc" content="Alpha Signal by AlphaSignal Terminal - real-time Bitcoin & crypto intelligence. Z-score signals, ETF flows, whale tracker, options flow, on-chain analytics, macro calendar, AI market brief. Institutional grade. alphasignal.digital">
     <meta property="twitter:image" content="https://alphasignal.digital/assets/social-preview.png">
 
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "AlphaSignal Terminal",
-      "alternateName": ["Alpha Signal", "AlphaSignal", "alphasignal.digital"],
-      "operatingSystem": "Web, iOS (PWA), Android (PWA)",
-      "applicationCategory": "FinanceApplication",
-      "applicationSubCategory": "Cryptocurrency Trading Tools",
-      "offers": {
-        "@type": "Offer",
-        "price": "7.99",
-        "priceCurrency": "USD",
-        "priceValidUntil": "2027-12-31",
-        "availability": "https://schema.org/InStock",
-        "url": "https://alphasignal.digital/"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "412",
-        "bestRating": "5",
-        "worstRating": "1"
-      },
-      "description": "AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.",
-      "url": "https://alphasignal.digital/",
-      "screenshot": "https://alphasignal.digital/assets/social-preview.png",
-      "featureList": "Live Bitcoin Trading Signals, Alpha Signal Intelligence, AI Daily Market Briefing, Options Flow Scanner (Deribit), Whale Pulse Tracker, On-Chain Analytics MVRV SOPR, Signal Backtester V2, TradingView Professional Charts, AI Portfolio Optimiser, Strategy Lab, Macro Event Calendar, Token Unlock Schedule, DeFi Yield Lab, Trade Idea Lab, Institutional Trade Ledger, Sector Rotation Tracker, CME Gap Analysis, Liquidation Cascade Scanner, ETF Flow Monitor, Market Regime Classifier"
-    }
-    </script>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "AlphaSignal",
-      "alternateName": "Alpha Signal Terminal",
-      "url": "https://alphasignal.digital/",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://alphasignal.digital/?view=signals&q={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
-      }
-    }
-    </script>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "AlphaSignal",
-      "url": "https://alphasignal.digital/",
-      "logo": "https://alphasignal.digital/assets/pwa-icon-512.png",
-      "sameAs": [
-        "https://twitter.com/alphasignalai",
-        "https://t.me/alphasignalbot_bot"
-      ],
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "contactType": "customer support",
-        "url": "https://alphasignal.digital/?view=help"
-      }
-    }
-    </script>
+    
+    
+    
     <script type="application/ld+json" id="ld-json-dynamic">{ }</script>
 
     <style id="critical-css">
@@ -1089,6 +1041,46 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async onload="initSupabase()"></script>
+    <!-- Structured Data moved to footer for performance -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AlphaSignal Terminal",
+      "alternateName": ["Alpha Signal", "AlphaSignal", "alphasignal.digital"],
+      "operatingSystem": "Web, iOS (PWA), Android (PWA)",
+      "applicationCategory": "FinanceApplication",
+      "applicationSubCategory": "Cryptocurrency Trading Tools",
+      "offers": {
+        "@type": "Offer",
+        "price": "7.99",
+        "priceCurrency": "USD",
+        "priceValidUntil": "2027-12-31",
+        "availability": "https://schema.org/InStock",
+        "url": "https://alphasignal.digital/"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "412",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "description": "AlphaSignal is the institutional Bitcoin and crypto intelligence terminal. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF flows, and 60+ institutional views.",
+      "url": "https://alphasignal.digital/",
+      "screenshot": "https://alphasignal.digital/assets/social-preview.png",
+      "featureList": "Live Bitcoin Trading Signals, AI Market Briefing, Options Flow Scanner, Whale Pulse Tracker, On-Chain Analytics, Signal Backtester, ETF Flow Monitor"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AlphaSignal",
+      "alternateName": "Alpha Signal Terminal",
+      "url": "https://alphasignal.digital/"
+    }
+    </script>
 </body>
 </html>
 
