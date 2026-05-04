@@ -591,9 +591,27 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             except: pass
 
     def do_GET(self):
+        print(f"[{datetime.now()}] !!! INCOMING_GET: {self.path} !!!", flush=True)
         if self.path == '/ws':
             self._proxy_websocket()
             return
+        
+        # --- pSEO: Asset-specific deep landing pages (HIGH PRIORITY) ---
+        clean_path = self.path.split('?')[0].rstrip('/')
+        if clean_path.startswith('/asset/'):
+            try:
+                ticker = clean_path.split('/')[-1].upper()
+                clean_ticker = ticker.replace('-USD', '')
+                print(f"[{datetime.now()}] !!! pSEO_ROUTER_HIT: {clean_ticker} !!!", flush=True)
+                self.handle_asset_seo(clean_ticker)
+                return
+            except Exception as e:
+                print(f"[{datetime.now()}] !!! pSEO_ROUTER_CRASH: {e} !!!", flush=True)
+                traceback.print_exc()
+                # Fallback to home if pSEO fails
+                self.path = '/'
+                super().do_GET()
+                return
             
         print(f"[{datetime.now()}] DEBUG: do_GET hit for path: {self.path}", flush=True)
         # S2: rate limit GET requests (AI endpoints get stricter limit)
@@ -621,15 +639,6 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     print(f'[{datetime.now()}] FULFILLMENT ERROR: {e}')
             path = path.rstrip('/')
-            
-            # --- pSEO: Asset-specific deep landing pages ---
-            if path.startswith('/asset/'):
-                ticker = path.split('/')[-1].upper()
-                # Remove -USD if present for the SEO display
-                clean_ticker = ticker.replace('-USD', '')
-                self.handle_asset_seo(clean_ticker)
-                return
-
             print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
             auth_info = None
             if path.startswith('/api/'):
@@ -1056,8 +1065,17 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         break
         except: pass
 
+        # --- NON-BLOCKING Placeholder Data (To prevent deadlock during startup) ---
+        bias = "Neutral"
+        z_score = "0.00"
+        atr_val = "0.00"
+        
         try:
-            with open('index.html', 'r', encoding='utf-8') as f:
+            import os as _os
+            _base_dir = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+            _index_path = _os.path.join(_base_dir, 'index.html')
+            print(f"[pSEO] Reading index from: {_index_path}", flush=True)
+            with open(_index_path, 'r', encoding='utf-8') as f:
                 html = f.read()
             
             # Dynamic SEO payload
@@ -1071,6 +1089,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
     <meta property="og:title" content="{title}">
     <meta property="og:description" content="{desc}">
     <meta property="og:url" content="https://alphasignal.digital/asset/{ticker}">
+    <style>
+    /* pSEO: Permanently suppress login wall for asset landing pages */
+    body[data-seo-ticker] #auth-overlay {{ display: none !important; }}
+    body[data-seo-ticker] .layout {{ filter: none !important; display: flex !important; }}
+    </style>
     <script type="application/ld+json">
     {{
       "@context": "https://schema.org",
@@ -1097,6 +1120,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Connection', 'close')
             self.end_headers()
             self.wfile.write(html.encode('utf-8'))
         except Exception as e:

@@ -101,6 +101,26 @@ var isPremiumUser = false;
 var isAuthenticatedUser = false;
 var hasStripeId = false;
 
+// pSEO mode: suppress login wall for search engine landing pages
+window._isPSEOLanding = window.location.pathname.startsWith('/asset/');
+
+// pSEO Safety Net: if landing on /asset/, permanently suppress the auth overlay via inline style
+if (window._isPSEOLanding) {
+    document.addEventListener('DOMContentLoaded', () => {
+        const authOverlay = document.getElementById('auth-overlay');
+        const layout = document.querySelector('.layout');
+        if (authOverlay) {
+            // Inline style takes precedence over any class-based manipulation
+            authOverlay.style.display = 'none';
+        }
+        if (layout) { layout.classList.remove('hidden'); layout.style.filter = 'none'; }
+        // Dismiss loader
+        const loader = document.getElementById('app-loader');
+        if (loader) { loader.style.opacity = '0'; setTimeout(() => { if (loader.parentNode) loader.parentNode.removeChild(loader); }, 380); }
+        console.log('[pSEO] Auth overlay permanently hidden via inline style.');
+    });
+}
+
 var currentBTCPrice = 70000;
 var alertCount = 0;
 var countdownSeconds = 30;
@@ -580,6 +600,11 @@ function showPaywall(visible) {
 }
 
 function showAuth(visible) {
+    // pSEO: Never show the login wall for search engine landing pages
+    if (visible && window._isPSEOLanding) {
+        console.log('[pSEO] Suppressed showAuth(true) for landing page visitor.');
+        return;
+    }
     const overlay = document.getElementById('auth-overlay');
     const layout = document.querySelector('.layout');
     

@@ -45,6 +45,7 @@ function switchView(view, pushState = true) {
     if (pushState && view) {
         // Semantic URL rewrite (Clean URLs)
         if (view === 'home') {
+            console.log('[Router] switchView(home) -> pushing /');
             window.history.pushState({ view }, '', '/');
         } else if (view === 'signal') {
             const existing = new URLSearchParams(window.location.search);
@@ -262,21 +263,48 @@ window.addEventListener('DOMContentLoaded', async () => {
         const processed = pathView.replace('docs/', 'docs-');
         if (viewMap[processed]) initialView = processed;
         else if (viewMap[pathView]) initialView = pathView;
+        else if (pathView.startsWith('asset/')) initialView = 'home'; // pSEO landing
     }
     
     // Replace state on initial load - preserve ticker param if view=signal
     if (initialView === 'signal') {
         const existing = new URLSearchParams(window.location.search);
         existing.set('view', 'signal');
+        console.log('[Router] Preserving signal view');
         window.history.replaceState({ view: initialView }, '', '?' + existing.toString());
+    } else if (pathView.startsWith('asset/')) {
+        // pSEO Landing: Preserve the asset URL exactly as is
+        console.log('[Router] Detected asset landing, PRESERVING URL:', pathView);
+        window.history.replaceState({ view: 'home' }, '', `/${pathView}`);
     } else if (initialView === 'home') {
+        console.log('[Router] Redirecting to root / (home)');
         window.history.replaceState({ view: initialView }, '', '/');
     } else if (initialView.startsWith('docs-')) {
+        console.log('[Router] Preserving docs view');
         window.history.replaceState({ view: initialView }, '', `/docs/${initialView.replace('docs-', '')}`);
     } else {
+        console.log('[Router] Preserving view:', initialView);
         window.history.replaceState({ view: initialView }, '', `/${initialView}`);
     }
     switchView(initialView, false);
+    
+    // pSEO: If landing on /asset/<ticker>, open the modal after home view renders
+    if (pathView.startsWith('asset/')) {
+        const seoTicker = pathView.split('/')[1].toUpperCase();
+        console.log('[pSEO] Scheduling modal for:', seoTicker);
+        // Immediately ensure the layout is visible (dismiss loader/auth wall for SEO visitors)
+        if (typeof showAuth === 'function') showAuth(false);
+        const loader = document.getElementById('app-loader');
+        if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 380); }
+        setTimeout(() => {
+            if (typeof openDetail === 'function') {
+                const yfTicker = ['BTC','ETH','SOL','BNB','XRP','ADA','AVAX','DOT','LINK','MATIC','DOGE','LTC','ATOM','UNI','AAVE','ARB','OP','INJ','SUI','APT','NEAR','FET','RNDR','WLD','PEPE','BONK','WIF','FLOKI','LDO','MKR','CRV','RUNE','IMX','TAO'].includes(seoTicker)
+                    ? seoTicker + '-USD' : seoTicker;
+                console.log('[pSEO] Opening detail for:', yfTicker);
+                openDetail(yfTicker);
+            }
+        }, 800);
+    }
     
     startCountdown(); 
     

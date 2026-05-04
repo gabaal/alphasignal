@@ -170,6 +170,18 @@ function showPaywall(visible) {
 }
 
 function showAuth(visible) {
+    // pSEO: Never show the login wall for search engine landing pages
+    if (visible && window._isPSEOLanding) {
+        console.log('[pSEO] Suppressed showAuth(true) for landing page visitor.');
+        // Always ensure layout is visible and loader is gone for pSEO visitors
+        const overlay = document.getElementById('auth-overlay');
+        const layout = document.querySelector('.layout');
+        if (overlay) overlay.classList.add('hidden');
+        if (layout) { layout.classList.remove('hidden'); layout.style.filter = 'none'; }
+        const loader = document.getElementById('app-loader');
+        if (loader) { loader.style.opacity = '0'; setTimeout(() => { if (loader.parentNode) loader.parentNode.removeChild(loader); }, 380); }
+        return;
+    }
     const overlay = document.getElementById('auth-overlay');
     const layout = document.querySelector('.layout');
     

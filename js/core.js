@@ -748,7 +748,10 @@ async function loadCorrelationMatrix(tickers, containerId = 'corr-chart', endpoi
 
 // ============= Pack G1: Flow Monitor =============
 async function openDetail(ticker, category, correlation = 0, alpha = 0, sentiment = 0, period = '60d', isTracked = false) {
-    if (!isAuthenticatedUser) {
+    // pSEO Bypass: Allow viewing asset intelligence if arriving from search (first load)
+    const isPSEO = document.body.dataset.seoTicker === ticker.replace('-USD','');
+    
+    if (!isAuthenticatedUser && !isPSEO) {
         showAuth(true);
         showToast("AUTHENTICATION REQUIRED", "Please login to access institutional intelligence.", "alert");
         return;
@@ -776,6 +779,41 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
     ]);
     
     if (!data || data.error || !data.history) {
+        // pSEO: Show a compelling sign-up teaser instead of a generic error
+        if (isPSEO && !isAuthenticatedUser) {
+            const cleanTicker = ticker.replace('-USD', '');
+            body.innerHTML = `
+                <div style="text-align:center;padding:3rem 2rem;max-width:560px;margin:0 auto">
+                    <div style="font-size:0.6rem;letter-spacing:3px;color:var(--accent);background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 16px;display:inline-block;margin-bottom:1.5rem">INSTITUTIONAL INTELLIGENCE</div>
+                    <h2 style="font-size:1.6rem;font-weight:900;margin-bottom:0.75rem">${cleanTicker} Deep-Dive Terminal</h2>
+                    <p style="color:var(--text-dim);line-height:1.7;margin-bottom:2rem;font-size:0.9rem">
+                        Real-time Z-score signals, ATR position sizing, liquidity orderbook, options flow, whale attribution, and AI market thesis for <strong style="color:var(--text)">${cleanTicker}</strong> — all inside AlphaSignal's institutional terminal.
+                    </p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2rem;text-align:left">
+                        ${[
+                            ['monitoring','Z-Score Signal Intelligence'],
+                            ['calculate','ATR Risk Calculator'],
+                            ['account_balance','Liquidity Orderbook'],
+                            ['smart_toy','AI Trade Thesis'],
+                            ['waterfall_chart','Options Flow Scanner'],
+                            ['groups','Whale Attribution']
+                        ].map(([icon,label]) => `
+                        <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--text-dim)">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">${icon}</span>${label}
+                        </div>`).join('')}
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                        <button class="intel-action-btn large" onclick="showAuth(true)" style="background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(0,242,255,0.1));border-color:rgba(34,197,94,0.5);color:#22c55e;font-size:0.85rem;padding:12px 28px">
+                            <span class="material-symbols-outlined" style="margin-right:8px;vertical-align:middle">person_add</span>JOIN FREE — UNLOCK ${cleanTicker} DATA
+                        </button>
+                        <button class="intel-action-btn large secondary" onclick="document.getElementById('detail-overlay').classList.add('hidden')" style="font-size:0.85rem;padding:12px 20px">
+                            EXPLORE TERMINAL
+                        </button>
+                    </div>
+                    <p style="font-size:0.65rem;color:var(--text-dim);margin-top:1rem">No credit card required &bull; Free tier includes live signals for 50+ assets</p>
+                </div>`;
+            return;
+        }
         body.innerHTML = `
             <div style="text-align:center;padding:2rem">
                 <h3 class="neg">Intelligence Fetch Failed</h3>
