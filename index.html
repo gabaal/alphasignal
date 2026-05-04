@@ -31,7 +31,7 @@
     <link rel="dns-prefetch" href="https://s3.tradingview.com">
     <link rel="dns-prefetch" href="https://d3js.org">
     <!-- LCP preload: hero image fetched at HTML parse time, not after JS renders -->
-    <link rel="preload" as="image" href="terminal_interface_mockup.png" fetchpriority="high">
+    <link rel="preload" as="image" href="terminal_interface_mockup.webp" fetchpriority="high">
 
     <!-- PWA / Mobile -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -249,35 +249,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
           onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
-    <!-- Sentry: Frontend error monitoring -->
-    <script>
-        function initSentry() {
-            if (window.Sentry) {
-                Sentry.init({
-                    dsn: "https://9b6ec670f830eb849a3f32fd79c09c70@o4508024362303488.ingest.de.sentry.io/4511258304905296",
-                    tracesSampleRate: 0.05,
-                    environment: 'production',
-                    ignoreErrors: [
-                        'ResizeObserver loop limit exceeded',
-                        'Non-Error promise rejection captured',
-                        /^Network Error/,
-                        /^Load failed/
-                    ]
-                });
-            }
-        }
-    </script>
-    <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous" async onload="initSentry()"></script>
-    <!-- Supabase JS client (for forgot-password / reset-password flows) -->
-    <script>
-        function initSupabase() {
-            window._supabase = supabase.createClient(
-                'https://rrfcjvpflbwtxlhkpooz.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZmNqdnBmbGJ3dHhsaGtwb296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NjYxMTksImV4cCI6MjA4OTI0MjExOX0.H_JJDYt9OsYR7CQfUAs6JeYACUFtMbWlWzEKN3aFNQc'
-            );
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async onload="initSupabase()"></script>
+
     <!-- Chart.js, lightweight-charts, html2canvas, jsPDF - loaded non-blocking with defer in body below -->
 
 </head>
@@ -474,7 +446,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                         AlphaSignal is a multi-hub institutional intelligence terminal for Bitcoin, crypto, and macro markets.
                         Real-time Z-score signals, KeyVault 1-Click execution, Plain English AI translators, and 60+ analytical views.
                     </p>
-                    <img id="lcp-hero-img" src="terminal_interface_mockup.png"
+                    <img id="lcp-hero-img" src="terminal_interface_mockup.webp"
                          alt="AlphaSignal Institutional Terminal Interface"
                          width="800" height="450"
                          loading="eager" fetchpriority="high"
@@ -1088,6 +1060,35 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <li><a href="/academy/importance-of-trading-journal">The Importance of a Trading Journal</a></li>
   </ul>
 </nav>
+    <!-- Sentry: Frontend error monitoring -->
+    <script>
+        function initSentry() {
+            if (window.Sentry) {
+                Sentry.init({
+                    dsn: "https://9b6ec670f830eb849a3f32fd79c09c70@o4508024362303488.ingest.de.sentry.io/4511258304905296",
+                    tracesSampleRate: 0.05,
+                    environment: 'production',
+                    ignoreErrors: [
+                        'ResizeObserver loop limit exceeded',
+                        'Non-Error promise rejection captured',
+                        /^Network Error/,
+                        /^Load failed/
+                    ]
+                });
+            }
+        }
+    </script>
+    <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous" async onload="initSentry()"></script>
+    <!-- Supabase JS client (for forgot-password / reset-password flows) -->
+    <script>
+        function initSupabase() {
+            window._supabase = supabase.createClient(
+                'https://rrfcjvpflbwtxlhkpooz.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZmNqdnBmbGJ3dHhsaGtwb296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NjYxMTksImV4cCI6MjA4OTI0MjExOX0.H_JJDYt9OsYR7CQfUAs6JeYACUFtMbWlWzEKN3aFNQc'
+            );
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async onload="initSupabase()"></script>
 </body>
 </html>
 

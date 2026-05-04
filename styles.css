@@ -1,56 +1,4 @@
-﻿:root {
-    /* == Core backgrounds ============================================== */
-    --bg-deep:    #090c14;
-    --bg-body:    #090c14;
-    --bg-card:    rgba(255,255,255,0.04);
-    --bg-sidebar: rgba(9,12,20,0.92);
-    --bg-modal:   #0d1117;
-    --bg-input:   rgba(0,0,0,0.3);
-
-    /* == Surfaces / Glass ============================================== */
-    --glass:     rgba(255,255,255,0.04);
-    --surface-1: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.07);
-
-    /* == Accent ======================================================== */
-    --accent:      #7dd3fc;
-    --accent-glow: rgba(125,211,252,0.15);
-
-    /* == Risk / Status ================================================= */
-    --risk-high: #f87171;
-    --risk-med:  #fb923c;
-    --risk-low:  #4ade80;
-
-    /* == Text ========================================================== */
-    --text-main: #e2e8f0;
-    --text-dim:  #94a3b8;
-    --text:      var(--text-main);
-
-    /* == On-colour text (text placed ON a coloured surface) ============ */
-    --on-accent:     #000;
-    --on-accent-inv: #fff;
-    --btn-text:      rgb(121, 204, 244); /* text on gradient CTA buttons */
-
-    /* == Border and Shadow ============================================= */
-    --border:       rgba(255,255,255,0.08);
-    --shadow-color: rgba(0,0,0,0.5);
-
-    /* == Purple secondary accent ======================================= */
-    --purple:      #8b5cf6;
-    --purple-glow: rgba(139,92,246,0.15);
-
-    /* == Aliases ======================================================= */
-    --card-bg:  var(--bg-card);
-
-    /* == Layout ======================================================== */
-    --sidebar-w: 260px;
-
-    /* == Market regime colours ========================================= */
-    --regime-accumulation: #818cf8;
-    --regime-trending:     #7dd3fc;
-    --regime-distribution: #fb923c;
-    --regime-volatile:     #f87171;
-}
+﻿
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 .hidden { display: none !important; }
@@ -679,115 +627,11 @@ select:focus {
 
 /* Mobile Responsiveness */
 @media (max-width: 1024px) {
-    :root {
-    /* == Core backgrounds ============================================== */
-    --bg-deep:    #090c14;
-    --bg-body:    #090c14;
-    --bg-card:    rgba(255,255,255,0.04);
-    --bg-sidebar: rgba(9,12,20,0.92);
-    --bg-modal:   #0d1117;
-    --bg-input:   rgba(0,0,0,0.3);
-
-    /* == Surfaces / Glass ============================================== */
-    --glass:     rgba(255,255,255,0.04);
-    --surface-1: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.07);
-
-    /* == Accent ======================================================== */
-    --accent:      #7dd3fc;
-    --accent-glow: rgba(125,211,252,0.15);
-
-    /* == Risk / Status ================================================= */
-    --risk-high: #f87171;
-    --risk-med:  #fb923c;
-    --risk-low:  #4ade80;
-
-    /* == Text ========================================================== */
-    --text-main: #e2e8f0;
-    --text-dim:  #94a3b8;
-    --text:      var(--text-main);
-
-    /* == On-colour text (text placed ON a coloured surface) ============ */
-    --on-accent:     #000;
-    --on-accent-inv: #fff;
-    --btn-text:      rgb(121, 204, 244); /* text on gradient CTA buttons */
-
-    /* == Border and Shadow ============================================= */
-    --border:       rgba(255,255,255,0.08);
-    --shadow-color: rgba(0,0,0,0.5);
-
-    /* == Purple secondary accent ======================================= */
-    --purple:      #8b5cf6;
-    --purple-glow: rgba(139,92,246,0.15);
-
-    /* == Aliases ======================================================= */
-    --card-bg:  var(--bg-card);
-
-    /* == Layout ======================================================== */
-    --sidebar-w: 260px;
-
-    /* == Market regime colours ========================================= */
-    --regime-accumulation: #818cf8;
-    --regime-trending:     #7dd3fc;
-    --regime-distribution: #fb923c;
-    --regime-volatile:     #f87171;
-}
+    
 }
 
 @media (max-width: 768px) {
-    :root {
-    /* == Core backgrounds ============================================== */
-    --bg-deep:    #090c14;
-    --bg-body:    #090c14;
-    --bg-card:    rgba(255,255,255,0.04);
-    --bg-sidebar: rgba(9,12,20,0.92);
-    --bg-modal:   #0d1117;
-    --bg-input:   rgba(0,0,0,0.3);
-
-    /* == Surfaces / Glass ============================================== */
-    --glass:     rgba(255,255,255,0.04);
-    --surface-1: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.07);
-
-    /* == Accent ======================================================== */
-    --accent:      #7dd3fc;
-    --accent-glow: rgba(125,211,252,0.15);
-
-    /* == Risk / Status ================================================= */
-    --risk-high: #f87171;
-    --risk-med:  #fb923c;
-    --risk-low:  #4ade80;
-
-    /* == Text ========================================================== */
-    --text-main: #e2e8f0;
-    --text-dim:  #94a3b8;
-    --text:      var(--text-main);
-
-    /* == On-colour text (text placed ON a coloured surface) ============ */
-    --on-accent:     #000;
-    --on-accent-inv: #fff;
-    --btn-text:      rgb(121, 204, 244); /* text on gradient CTA buttons */
-
-    /* == Border and Shadow ============================================= */
-    --border:       rgba(255,255,255,0.08);
-    --shadow-color: rgba(0,0,0,0.5);
-
-    /* == Purple secondary accent ======================================= */
-    --purple:      #8b5cf6;
-    --purple-glow: rgba(139,92,246,0.15);
-
-    /* == Aliases ======================================================= */
-    --card-bg:  var(--bg-card);
-
-    /* == Layout ======================================================== */
-    --sidebar-w: 260px;
-
-    /* == Market regime colours ========================================= */
-    --regime-accumulation: #818cf8;
-    --regime-trending:     #7dd3fc;
-    --regime-distribution: #fb923c;
-    --regime-volatile:     #f87171;
-}
+    
     .sidebar {
         position: fixed;
         left: -100%;
@@ -834,59 +678,7 @@ select:focus {
 .mobile-nav { display: none; }
 
 @media (max-width: 900px) {
-    :root {
-    /* == Core backgrounds ============================================== */
-    --bg-deep:    #090c14;
-    --bg-body:    #090c14;
-    --bg-card:    rgba(255,255,255,0.04);
-    --bg-sidebar: rgba(9,12,20,0.92);
-    --bg-modal:   #0d1117;
-    --bg-input:   rgba(0,0,0,0.3);
-
-    /* == Surfaces / Glass ============================================== */
-    --glass:     rgba(255,255,255,0.04);
-    --surface-1: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.07);
-
-    /* == Accent ======================================================== */
-    --accent:      #7dd3fc;
-    --accent-glow: rgba(125,211,252,0.15);
-
-    /* == Risk / Status ================================================= */
-    --risk-high: #f87171;
-    --risk-med:  #fb923c;
-    --risk-low:  #4ade80;
-
-    /* == Text ========================================================== */
-    --text-main: #e2e8f0;
-    --text-dim:  #94a3b8;
-    --text:      var(--text-main);
-
-    /* == On-colour text (text placed ON a coloured surface) ============ */
-    --on-accent:     #000;
-    --on-accent-inv: #fff;
-    --btn-text:      rgb(121, 204, 244); /* text on gradient CTA buttons */
-
-    /* == Border and Shadow ============================================= */
-    --border:       rgba(255,255,255,0.08);
-    --shadow-color: rgba(0,0,0,0.5);
-
-    /* == Purple secondary accent ======================================= */
-    --purple:      #8b5cf6;
-    --purple-glow: rgba(139,92,246,0.15);
-
-    /* == Aliases ======================================================= */
-    --card-bg:  var(--bg-card);
-
-    /* == Layout ======================================================== */
-    --sidebar-w: 260px;
-
-    /* == Market regime colours ========================================= */
-    --regime-accumulation: #818cf8;
-    --regime-trending:     #7dd3fc;
-    --regime-distribution: #fb923c;
-    --regime-volatile:     #f87171;
-}
+    
     
     .sidebar { 
         position: fixed; 
@@ -3939,59 +3731,7 @@ body::before {
 }
 
 /* -- Root variable upgrades -- */
-:root {
-    /* == Core backgrounds ============================================== */
-    --bg-deep:    #090c14;
-    --bg-body:    #090c14;
-    --bg-card:    rgba(255,255,255,0.04);
-    --bg-sidebar: rgba(9,12,20,0.92);
-    --bg-modal:   #0d1117;
-    --bg-input:   rgba(0,0,0,0.3);
 
-    /* == Surfaces / Glass ============================================== */
-    --glass:     rgba(255,255,255,0.04);
-    --surface-1: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.07);
-
-    /* == Accent ======================================================== */
-    --accent:      #7dd3fc;
-    --accent-glow: rgba(125,211,252,0.15);
-
-    /* == Risk / Status ================================================= */
-    --risk-high: #f87171;
-    --risk-med:  #fb923c;
-    --risk-low:  #4ade80;
-
-    /* == Text ========================================================== */
-    --text-main: #e2e8f0;
-    --text-dim:  #94a3b8;
-    --text:      var(--text-main);
-
-    /* == On-colour text (text placed ON a coloured surface) ============ */
-    --on-accent:     #000;
-    --on-accent-inv: #fff;
-    --btn-text:      rgb(121, 204, 244); /* text on gradient CTA buttons */
-
-    /* == Border and Shadow ============================================= */
-    --border:       rgba(255,255,255,0.08);
-    --shadow-color: rgba(0,0,0,0.5);
-
-    /* == Purple secondary accent ======================================= */
-    --purple:      #8b5cf6;
-    --purple-glow: rgba(139,92,246,0.15);
-
-    /* == Aliases ======================================================= */
-    --card-bg:  var(--bg-card);
-
-    /* == Layout ======================================================== */
-    --sidebar-w: 260px;
-
-    /* == Market regime colours ========================================= */
-    --regime-accumulation: #818cf8;
-    --regime-trending:     #7dd3fc;
-    --regime-distribution: #fb923c;
-    --regime-volatile:     #f87171;
-}
 
 /* -- Sidebar: deep frosted glass -- */
 .sidebar {
