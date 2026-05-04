@@ -173,13 +173,31 @@ async function openAIAnalyst(ticker, dir = null, zscore = null) {
 
         atrHtml = `
         <div style="padding:1rem 1.2rem; background:rgba(0,242,255,0.04); border:1px solid rgba(0,242,255,0.15); border-radius:12px; margin-bottom:1.2rem;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8rem; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:12px; border-bottom:1px solid rgba(0,242,255,0.1); padding-bottom:0.8rem;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="font-size:1rem; color:var(--accent);">calculate</span>
-                    <span style="font-size:0.65rem; font-weight:900; letter-spacing:2px; color:var(--accent);">ATR POSITION SIZING</span>
-                    <span style="font-size:0.5rem; font-weight:900; padding:2px 8px; border-radius:100px; background:${rc}22; border:1px solid ${rc}; color:${rc}; letter-spacing:1px;">${atrData.volatility_regime} VOL</span>
+                    <span class="material-symbols-outlined" style="font-size:1.2rem; color:var(--accent);">calculate</span>
+                    <span style="font-size:0.75rem; font-weight:900; letter-spacing:2px; color:var(--accent);">ATR RISK CALCULATOR</span>
+                    <span style="font-size:0.55rem; font-weight:900; padding:2px 8px; border-radius:100px; background:${rc}22; border:1px solid ${rc}; color:${rc}; letter-spacing:1px;">${atrData.volatility_regime} VOL</span>
                 </div>
-                <span style="font-size:0.55rem; color:var(--text-dim); font-family:'JetBrains Mono';">Wilder 14D · 1% Risk · $${acct.toLocaleString()} acct</span>
+                
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <label style="font-size:0.6rem; font-weight:800; color:var(--text-dim);">ACCT ($)</label>
+                        <input type="number" id="atr-acct-size-ai" value="${localStorage.getItem('atr_acct') || 25000}" 
+                               oninput="updateATR_AI('${ticker}', ${atrData.stop_distance}, ${atrData.current_price})"
+                               style="width:80px; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; padding:2px 6px; font-size:0.75rem; font-family:'JetBrains Mono'; color:white;">
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <label style="font-size:0.6rem; font-weight:800; color:var(--text-dim);">RISK %</label>
+                        <select id="atr-risk-pct-ai" onchange="updateATR_AI('${ticker}', ${atrData.stop_distance}, ${atrData.current_price})"
+                                style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:0.7rem; color:var(--accent); font-weight:700;">
+                            <option value="0.005" ${localStorage.getItem('atr_risk') === '0.005' ? 'selected' : ''}>0.5%</option>
+                            <option value="0.01" ${(localStorage.getItem('atr_risk') || '0.01') === '0.01' ? 'selected' : ''}>1.0%</option>
+                            <option value="0.02" ${localStorage.getItem('atr_risk') === '0.02' ? 'selected' : ''}>2.0%</option>
+                            <option value="0.05" ${localStorage.getItem('atr_risk') === '0.05' ? 'selected' : ''}>5.0%</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px;">
                 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px; text-align:center;">
@@ -194,13 +212,13 @@ async function openAIAnalyst(ticker, dir = null, zscore = null) {
                 </div>
                 <div style="background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.15); border-radius:8px; padding:8px 10px; text-align:center;">
                     <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:var(--accent); margin-bottom:3px;">POSITION SIZE</div>
-                    <div style="font-size:0.85rem; font-weight:900; color:white; font-family:'JetBrains Mono';">${fmt(units, 4)}</div>
+                    <div id="atr-pos-size-ai" style="font-size:0.85rem; font-weight:900; color:white; font-family:'JetBrains Mono';">${fmt(units, 4)}</div>
                     <div style="font-size:0.5rem; color:var(--text-dim);">${atrData.ticker.split('-')[0]} units</div>
                 </div>
                 <div style="background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.15); border-radius:8px; padding:8px 10px; text-align:center;">
                     <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:var(--accent); margin-bottom:3px;">NOTIONAL</div>
-                    <div style="font-size:0.85rem; font-weight:900; color:white; font-family:'JetBrains Mono';">$${fmt(notional)}</div>
-                    <div style="font-size:0.5rem; color:var(--text-dim);">1% risk = $${fmt(riskUsd)}</div>
+                    <div id="atr-notional-val-ai" style="font-size:0.85rem; font-weight:900; color:white; font-family:'JetBrains Mono';">$${fmt(notional)}</div>
+                    <div id="atr-risk-label-ai" style="font-size:0.5rem; color:var(--text-dim);">1% risk = $${fmt(riskUsd)}</div>
                 </div>
                 <div style="background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.15); border-radius:8px; padding:8px 10px; text-align:center;">
                     <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:#ef4444; margin-bottom:3px;">ATR STOP PRICE</div>
@@ -807,13 +825,31 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
             const _notional = _units * atrData.current_price;
             return `
         <div style="margin-bottom:1.5rem; padding:1rem 1.2rem; background:rgba(0,242,255,0.04); border:1px solid rgba(0,242,255,0.15); border-radius:10px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8rem; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:12px; border-bottom:1px solid rgba(0,242,255,0.1); padding-bottom:0.8rem;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="material-symbols-outlined" style="font-size:1rem; color:var(--accent);">calculate</span>
-                    <span style="font-size:0.65rem; font-weight:900; letter-spacing:2px; color:var(--accent);">ATR POSITION SIZING</span>
-                    <span style="font-size:0.5rem; font-weight:900; padding:2px 8px; border-radius:100px; background:${_rc}22; border:1px solid ${_rc}; color:${_rc}; letter-spacing:1px;">${atrData.volatility_regime} VOL</span>
+                    <span class="material-symbols-outlined" style="font-size:1.2rem; color:var(--accent);">calculate</span>
+                    <span style="font-size:0.75rem; font-weight:900; letter-spacing:2px; color:var(--accent);">ATR RISK CALCULATOR</span>
+                    <span style="font-size:0.55rem; font-weight:900; padding:2px 8px; border-radius:100px; background:${_rc}22; border:1px solid ${_rc}; color:${_rc}; letter-spacing:1px;">${atrData.volatility_regime} VOL</span>
                 </div>
-                <span style="font-size:0.55rem; color:var(--text-dim); font-family:'JetBrains Mono';">Wilder 14D · 1% Risk · $${_acct.toLocaleString()} acct · Updated ${atrData.timestamp}</span>
+                
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <label style="font-size:0.6rem; font-weight:800; color:var(--text-dim);">ACCT ($)</label>
+                        <input type="number" id="atr-acct-size" value="${localStorage.getItem('atr_acct') || 25000}" 
+                               oninput="updateATR('${ticker}', ${atrData.stop_distance}, ${atrData.current_price})"
+                               style="width:80px; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; padding:2px 6px; font-size:0.75rem; font-family:'JetBrains Mono'; color:white;">
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <label style="font-size:0.6rem; font-weight:800; color:var(--text-dim);">RISK %</label>
+                        <select id="atr-risk-pct" onchange="updateATR('${ticker}', ${atrData.stop_distance}, ${atrData.current_price})"
+                                style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:0.7rem; color:var(--accent); font-weight:700;">
+                            <option value="0.005" ${localStorage.getItem('atr_risk') === '0.005' ? 'selected' : ''}>0.5%</option>
+                            <option value="0.01" ${(localStorage.getItem('atr_risk') || '0.01') === '0.01' ? 'selected' : ''}>1.0%</option>
+                            <option value="0.02" ${localStorage.getItem('atr_risk') === '0.02' ? 'selected' : ''}>2.0%</option>
+                            <option value="0.05" ${localStorage.getItem('atr_risk') === '0.05' ? 'selected' : ''}>5.0%</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:8px;">
                 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px; text-align:center;">
@@ -828,13 +864,13 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 </div>
                 <div style="background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.15); border-radius:8px; padding:8px 10px; text-align:center;">
                     <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:var(--accent); margin-bottom:3px;">POSITION SIZE</div>
-                    <div style="font-size:0.9rem; font-weight:900; color:white; font-family:'JetBrains Mono';">${_fmt(_units, 4)}</div>
+                    <div id="atr-pos-size" style="font-size:0.9rem; font-weight:900; color:white; font-family:'JetBrains Mono';">${_fmt(_units, 4)}</div>
                     <div style="font-size:0.5rem; color:var(--text-dim);">${atrData.ticker.split('-')[0]} units</div>
                 </div>
                 <div style="background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.15); border-radius:8px; padding:8px 10px; text-align:center;">
                     <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:var(--accent); margin-bottom:3px;">NOTIONAL</div>
-                    <div style="font-size:0.9rem; font-weight:900; color:white; font-family:'JetBrains Mono';">$${_fmt(_notional)}</div>
-                    <div style="font-size:0.5rem; color:var(--text-dim);">1% risk = $${_fmt(_risk)}</div>
+                    <div id="atr-notional-val" style="font-size:0.9rem; font-weight:900; color:white; font-family:'JetBrains Mono';">$${_fmt(_notional)}</div>
+                    <div id="atr-risk-label" style="font-size:0.5rem; color:var(--text-dim);">1% risk = $${_fmt(_risk)}</div>
                 </div>
                 <div style="background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.15); border-radius:8px; padding:8px 10px; text-align:center;">
                     <div style="font-size:0.5rem; font-weight:900; letter-spacing:1px; color:#ef4444; margin-bottom:3px;">ATR STOP PRICE</div>
@@ -2884,6 +2920,61 @@ window.expandChart = function(sourceId, title) {
         data: sourceChart.config.data,
         options: newOptions
     });
+};
+
+// Global ATR Calculation Handler
+window.updateATR = function(ticker, stopDistance, currentPrice) {
+    const acctInput = document.getElementById('atr-acct-size');
+    const riskInput = document.getElementById('atr-risk-pct');
+    const posSizeEl = document.getElementById('atr-pos-size');
+    const notionalEl = document.getElementById('atr-notional-val');
+    const riskLabel = document.getElementById('atr-risk-label');
+
+    if (!acctInput || !riskInput || !posSizeEl || !notionalEl) return;
+
+    const acct = parseFloat(acctInput.value) || 0;
+    const riskPct = parseFloat(riskInput.value) || 0.01;
+    
+    // Persist
+    localStorage.setItem('atr_acct', acct);
+    localStorage.setItem('atr_risk', riskPct);
+
+    const riskUsd = acct * riskPct;
+    const units = stopDistance > 0 ? riskUsd / stopDistance : 0;
+    const notional = units * currentPrice;
+
+    const fmt = (n, dp=2) => n.toLocaleString(undefined, {minimumFractionDigits: dp, maximumFractionDigits: dp});
+
+    posSizeEl.innerText = fmt(units, 4);
+    notionalEl.innerText = '$' + fmt(notional);
+    if (riskLabel) riskLabel.innerText = `${(riskPct * 100).toFixed(1)}% risk = $${fmt(riskUsd)}`;
+};
+
+window.updateATR_AI = function(ticker, stopDistance, currentPrice) {
+    const acctInput = document.getElementById('atr-acct-size-ai');
+    const riskInput = document.getElementById('atr-risk-pct-ai');
+    const posSizeEl = document.getElementById('atr-pos-size-ai');
+    const notionalEl = document.getElementById('atr-notional-val-ai');
+    const riskLabel = document.getElementById('atr-risk-label-ai');
+
+    if (!acctInput || !riskInput || !posSizeEl || !notionalEl) return;
+
+    const acct = parseFloat(acctInput.value) || 0;
+    const riskPct = parseFloat(riskInput.value) || 0.01;
+    
+    // Persist
+    localStorage.setItem('atr_acct', acct);
+    localStorage.setItem('atr_risk', riskPct);
+
+    const riskUsd = acct * riskPct;
+    const units = stopDistance > 0 ? riskUsd / stopDistance : 0;
+    const notional = units * currentPrice;
+
+    const fmt = (n, dp=2) => n.toLocaleString(undefined, {minimumFractionDigits: dp, maximumFractionDigits: dp});
+
+    posSizeEl.innerText = fmt(units, 4);
+    notionalEl.innerText = '$' + fmt(notional);
+    if (riskLabel) riskLabel.innerText = `${(riskPct * 100).toFixed(1)}% risk = $${fmt(riskUsd)}`;
 };
 
 // TAB 1: Overview (Price + Volume + EMA 20/50 + RSI Placeholder)
