@@ -289,12 +289,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alphasignal.digital/asset/STX</loc>
-    <lastmod>2026-05-04</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://alphasignal.digital/asset/WBTC</loc>
     <lastmod>2026-05-04</lastmod>
     <changefreq>hourly</changefreq>
