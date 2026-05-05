@@ -2340,6 +2340,11 @@ class InstitutionalRoutesMixin:
                         corr = 0.0
                     z_score = float((rets.iloc[-1] - rets.mean()) / rets.std()) if len(rets) > 10 else 0.0
                     z_score = z_score if not np.isnan(z_score) else 0.0
+                    
+                    # pSEO Proxy: ATR 2x Stop (Price * 14d Vol * 2)
+                    atr_2x = float(prices.iloc[-1] * rets.tail(14).std() * 2) if len(rets) >= 14 else 0.0
+                    atr_2x = atr_2x if not np.isnan(atr_2x) else 0.0
+
                     category = 'CRYPTO' if '-USD' in ticker else 'EQUITY'
                     for cat, tickers in UNIVERSE.items():
                         if ticker in tickers:
@@ -2354,7 +2359,8 @@ class InstitutionalRoutesMixin:
                         'alpha': round(change - btc_change_pct, 2),
                         'sentiment': get_sentiment(ticker),
                         'category': category,
-                        'zScore': round(z_score, 2)
+                        'zScore': round(z_score, 2),
+                        'atr_2x': round(atr_2x, 2)
                     })
                 except Exception as e:
                     continue

@@ -1058,8 +1058,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             if sc and 'data' in sc:
                 for item in sc['data']:
                     if item.get('ticker', '').upper().replace('-USD', '') == ticker.upper():
-                        bias    = str(item.get('sentiment', bias)).title()
-                        z_score = str(round(float(item.get('z_score', 0) or 0), 2))
+                        # The cache uses 'zScore' and 'sentiment' (numeric)
+                        sent_val = item.get('sentiment', 0)
+                        if sent_val > 0.1: bias = "Bullish"
+                        elif sent_val < -0.1: bias = "Bearish"
+                        else: bias = "Neutral"
+                        
+                        z_score = str(round(float(item.get('zScore', 0) or 0), 2))
+                        # Note: we are about to add atr_2x to the signals_cache in institutional.py
                         atr_val = str(round(float(item.get('atr_2x', 0) or 0), 2))
                         break
         except:
