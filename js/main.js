@@ -513,7 +513,6 @@ function renderCorrelationHeatmap(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container || !data) return;
 
-    // Normalize data structure (Handle both Portfolio and Macro formats)
     const labels = data.tickers || data.assets || [];
     if (!labels.length) return;
 
@@ -521,20 +520,28 @@ function renderCorrelationHeatmap(containerId, data) {
     const n = labels.length;
 
     container.style.display = 'grid';
-    container.style.gridTemplateColumns = `repeat(${n}, 45px)`;
-    container.style.justifyContent = 'center';
-    container.style.gap = '0';
+    container.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    container.style.gap = '1px';
+    container.style.background = 'rgba(255,255,255,0.05)';
+    container.style.padding = '1px';
+    container.style.borderRadius = '4px';
 
     container.innerHTML = matrix.map(cell => {
-        // v = correlation value
         const v = cell.v !== undefined ? cell.v : cell.correlation;
         const xLabel = cell.x || cell.assetA;
         const yLabel = cell.y || cell.assetB;
 
         const opacity = Math.abs(v);
         const color = v > 0 ? `rgba(0, 242, 255, ${opacity})` : `rgba(255, 62, 62, ${opacity})`;
-        return `<div style="width:45px; height:45px; background:${color}; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:900; color:white; border:1px solid rgba(0,0,0,0.1)" title="${xLabel} vs ${yLabel}: ${v}">
-            ${xLabel === yLabel ? xLabel : ''}
+        
+        // Show labels only on diagonal or on hover via title
+        const isDiagonal = xLabel === yLabel;
+        
+        return `<div style="aspect-ratio:1/1; background:${color}; display:flex; align-items:center; justify-content:center; font-size:0.5rem; font-weight:900; color:white; cursor:crosshair; transition:filter 0.1s" 
+                     title="${xLabel} vs ${yLabel}: ${v}"
+                     onmouseover="this.style.filter='brightness(1.4)'"
+                     onmouseout="this.style.filter=''">
+            ${isDiagonal ? `<span style="opacity:0.9">${xLabel}</span>` : ''}
         </div>`;
     }).join('');
 }

@@ -7598,16 +7598,22 @@ class InstitutionalRoutesMixin:
             curr_zq = df['ZQ=F'].iloc[-1] if not df['ZQ=F'].empty else 95.0
             implied_rate = round(100 - curr_zq, 3)
             
-            # 2. Correlation
-            corr = df['DX-Y.NYB'].corr(df['BTC-USD']) if not df.empty else 0.0
-            corr = round(corr, 3)
+            # 2. Correlation + Momentum
+            corr = df['DX-Y.NYB'].corr(df['BTC-USD']) if 'DX-Y.NYB' in df and 'BTC-USD' in df else 0.0
+            corr = round(float(corr), 3)
+
+            dxy_momentum = 0.0
+            if 'DX-Y.NYB' in df and len(df['DX-Y.NYB']) >= 30:
+                dxy_start = df['DX-Y.NYB'].iloc[-30]
+                dxy_end   = df['DX-Y.NYB'].iloc[-1]
+                dxy_momentum = round(((dxy_end / dxy_start) - 1) * 100, 2)
             
             # 3. Market Regime (HMM)
             hmm = HMM_ENGINE.predict_regime('BTC-USD')
             
             self.send_json({
                 'implied_fed_rate': implied_rate,
-                'zq_futures': round(curr_zq, 3),
+                'zq_futures': round(float(curr_zq), 3),
                 'btc_dxy_correlation_90d': corr,
                 'dxy_30d_momentum': dxy_momentum,
                 'status': 'System Normalized' if corr < 0 else 'Severe Liquidity Drain',
@@ -7615,6 +7621,7 @@ class InstitutionalRoutesMixin:
                 'hmm_confidence': hmm.get('confidence', 0.0)
             })
         except Exception as e:
+            print(f"[MacroRegime] Error: {e}")
             self.send_json({'error': str(e)})
 
     def handle_atr(self):

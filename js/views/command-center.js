@@ -88,6 +88,7 @@ async function renderCommandCenter() {
             <div class="card" style="text-align:center">
                 <h3 style="font-size:0.7rem; color:var(--text-dim); letter-spacing:1px">MARKET PULSE</h3>
                 <div id="cmd-pulse-vals" style="margin-top:1.5rem; display:flex; flex-direction:column; gap:10px"></div>
+                <div id="cmd-top-signals" style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1rem"></div>
             </div>
         </div>
 
@@ -203,13 +204,16 @@ async function renderCommandCenter() {
     fetchAITradeNow(false);
 
     try {
-        const [macro, regime, etf, signals, pulse] = await Promise.all([
+        const [macro, regime, fearGreed, signalsData, pulse] = await Promise.all([
             fetchAPI('/macro'),
             fetchAPI('/regime'),
             fetchAPI('/fear-greed'),
             fetchAPI('/signals'),
-            fetch('/api/market-pulse').then(r => r.ok ? r.json() : null).catch(() => null)
+            fetchAPI('/market-pulse')
         ]);
+
+        // Normalize signals: handle both raw array and object-wrapped {signals: [...]}
+        const signals = signalsData?.signals || (Array.isArray(signalsData) ? signalsData : []);
 
 
         // 1. Fear & Greed Dial
@@ -331,7 +335,7 @@ async function renderCommandCenter() {
                 const el = document.getElementById('cmd-alphaVsZChart');
                 if (!el) return;
                 const existing = Chart.getChart('cmd-alphaVsZChart'); if (existing) existing.destroy();
-                const pts = _sigs.map(s => ({ x: parseFloat(s.zScore)||0, y: parseFloat(s.alpha)||0, label: s.ticker.replace('-USD','') }));
+                const pts = _sigs.map(s => ({ x: parseFloat(s.z_score)||0, y: parseFloat(s.alpha)||0, label: s.ticker.replace('-USD','') }));
                 const quadPlugin = { id:'cmdQuadrants', beforeDraw(chart) {
                     const {ctx:c,chartArea:{left,top,right,bottom},scales:{x,y}} = chart;
                     const mx=x.getPixelForValue(0), my=y.getPixelForValue(0); c.save();
@@ -389,7 +393,7 @@ async function renderCommandCenter() {
                 const bins=[], binLabels=[];
                 for(let v=-1;v<=1+1e-9;v=parseFloat((v+0.1).toFixed(1))){ bins.push(v); binLabels.push(v.toFixed(1)); }
                 const counts=new Array(bins.length).fill(0);
-                _sigs.forEach(s=>{ const corr=Math.max(-1,Math.min(1,parseFloat(s.btcCorrelation)||0)); const idx=Math.round((corr+1)/0.1); if(idx>=0&&idx<counts.length)counts[idx]++; });
+                _sigs.forEach(s=>{ const corr=Math.max(-1,Math.min(1,parseFloat(s.btc_correlation)||0)); const idx=Math.round((corr+1)/0.1); if(idx>=0&&idx<counts.length)counts[idx]++; });
                 const barBg=bins.map(v=>v<-0.6?'rgba(239,68,68,0.8)':v<-0.3?'rgba(251,146,60,0.7)':v<0.3?'rgba(148,163,184,0.4)':v<0.6?'rgba(0,242,255,0.6)':'rgba(34,197,94,0.8)');
                 new Chart(el.getContext('2d'), {
                     type:'bar',
