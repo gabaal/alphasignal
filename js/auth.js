@@ -279,7 +279,7 @@ async function handleSubscribe() {
         const stripe = Stripe(config.stripe_publishable_key);
         const session = await fetchAPI('/stripe/create-checkout-session', 'POST');
         if (!session || !session.id) {
-            throw new Error(session?.error || "Could not create checkout session.");
+            throw new Error(session?.error || "Please sign up or sign in to unlock pro features and start your subscription.");
         }
         
         const result = await stripe.redirectToCheckout({ sessionId: session.id });
@@ -297,7 +297,7 @@ async function manageSubscription() {
         if (res && res.url) {
             window.location.href = res.url;
         } else {
-            throw new Error(res?.error || "Could not generate portal session.");
+            throw new Error(res?.error || "Please sign up or sign in to manage your subscription.");
         }
     } catch (e) {
         console.error("Portal error:", e);
