@@ -413,23 +413,13 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
         const res = await fetch(`${API_BASE}${endpoint}`, options);
         
         if (res.status === 401) {
-            // Auth endpoints return 401 for bad credentials - don't redirect, let the caller handle it
             const isAuthEndpoint = endpoint.startsWith('/auth/');
             if (isAuthEndpoint) {
-                // Return the error body so handleAuth() can display it
                 return await res.json().catch(() => ({ error: 'Invalid credentials.' }));
             }
+            if (endpoint === '/auth/status') return null;
 
-            const params = new URLSearchParams(window.location.search);
-            const currentView = params.get('view') || 'home';
-            // PUBLIC: no auth needed at all
-            const isPublicView = (
-                currentView === 'signals' || currentView === 'home' ||
-                currentView === 'help' || currentView.startsWith('explain-')
-            );
-            if (!isPublicView) {
-                showAuth(true);
-            }
+            showAuth(true);
             return null;
         }
 

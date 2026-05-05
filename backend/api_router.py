@@ -671,6 +671,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/equity-options-flow', '/api/ai-rebalancer', '/api/signal-history',
                     '/api/alerts', '/api/alerts/badge', '/api/klines', '/api/equity-klines',
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
+                    '/api/stripe/webhook',
                     '/privacy', '/terms', '/roadmap',
                 ]
                 free_auth_routes = [
@@ -678,6 +679,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/watchlist', '/api/positions', '/api/oms-dashboard', '/api/digest/send',
                     '/api/price-alerts', '/api/market-brief', '/api/onboarding-complete',
                     '/api/alert-settings', '/api/user/settings', '/api/user/ai-memory',
+                    '/api/stripe/',
                 ]
                 # /api/signal/{id} is fully public - no auth gate for shared links
                 if path.startswith('/api/signal/'):
