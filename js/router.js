@@ -212,6 +212,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Close overlays when clicking outside the content area
     window.addEventListener('click', (e) => {
         if (e.target.classList.contains('overlay')) {
+            // pSEO: On asset landing pages, clicking outside should take users home
+            if (window.location.pathname.startsWith('/asset/')) {
+                window.location.href = '/';
+                return;
+            }
             if (e.target.id === 'auth-overlay') {
                 // Dismiss auth form and land on Welcome page
                 showAuth(false);
