@@ -79,3 +79,15 @@ tests/__pycache__/
 .trunk/
 
 service_account.json
+
+# === ML Models / Serialization ===
+*.pkl
+*.model
+*.joblib
+
+# === Content Drafts / Syndication ===
+medium_syndication_*.md
+reddit_outreach_*.md
+
+# === Local Scratch & Diagnostics ===
+scratch/
