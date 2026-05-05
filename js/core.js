@@ -803,11 +803,8 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                         </div>`).join('')}
                     </div>
                     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-                        <button class="intel-action-btn large" onclick="showAuth(true)" style="background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(0,242,255,0.1));border-color:rgba(34,197,94,0.5);color:#22c55e;font-size:0.85rem;padding:12px 28px">
-                            <span class="material-symbols-outlined" style="margin-right:8px;vertical-align:middle">person_add</span>JOIN FREE — UNLOCK ${cleanTicker} DATA
-                        </button>
-                        <button class="intel-action-btn large secondary" onclick="document.getElementById('detail-overlay').classList.add('hidden')" style="font-size:0.85rem;padding:12px 20px">
-                            EXPLORE TERMINAL
+                        <button class="intel-action-btn large" onclick="window.location.href='/'" style="font-size:0.85rem;padding:12px 28px">
+                            <span class="material-symbols-outlined" style="margin-right:8px;vertical-align:middle">rocket_launch</span>EXPLORE TERMINAL
                         </button>
                     </div>
                     <p style="font-size:0.65rem;color:var(--text-dim);margin-top:1rem">No credit card required &bull; Free tier includes live signals for 50+ assets</p>

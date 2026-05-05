@@ -1045,43 +1045,40 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             self.send_json({'success': False, 'error': str(e)})
 
     def handle_asset_seo(self, ticker):
-        """pSEO: Serves index.html with dynamically injected SEO metadata for a specific asset."""
-        price = "fetching..."
+        """pSEO: Serves index.html with a server-rendered content strip + SEO metadata.
+        The #pseo-strip div is crawlable by Google without JS and shows unique per-ticker data."""
         bias = "Neutral"
         z_score = "0.00"
         atr_val = "0.00"
-        
-        # 1. Fetch live data for injection (uses existing cache systems)
+
+        # Read from live signal cache (non-blocking — pure read, no lock acquisition)
         try:
             from backend.routes.institutional import InstitutionalRoutesMixin
             sc = InstitutionalRoutesMixin._signals_cache
             if sc and 'data' in sc:
                 for item in sc['data']:
                     if item.get('ticker', '').upper().replace('-USD', '') == ticker.upper():
-                        price = item.get('price', price)
-                        bias = str(item.get('sentiment', bias)).title()
-                        z_score = str(round(float(item.get('z_score', 0)), 2))
-                        atr_val = str(round(float(item.get('atr_2x', 0)), 2))
+                        bias    = str(item.get('sentiment', bias)).title()
+                        z_score = str(round(float(item.get('z_score', 0) or 0), 2))
+                        atr_val = str(round(float(item.get('atr_2x', 0) or 0), 2))
                         break
-        except: pass
+        except:
+            pass
 
-        # --- NON-BLOCKING Placeholder Data (To prevent deadlock during startup) ---
-        bias = "Neutral"
-        z_score = "0.00"
-        atr_val = "0.00"
-        
         try:
             import os as _os
-            _base_dir = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+            _base_dir  = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
             _index_path = _os.path.join(_base_dir, 'index.html')
-            print(f"[pSEO] Reading index from: {_index_path}", flush=True)
+            print(f"[pSEO] Serving {ticker} content strip", flush=True)
             with open(_index_path, 'r', encoding='utf-8') as f:
                 html = f.read()
-            
-            # Dynamic SEO payload
+
             title = f"{ticker} Institutional Analytics & ATR Stop Loss | AlphaSignal"
-            desc = f"Real-time {ticker} market intelligence. Bias: {bias} | Z-Score: {z_score} | ATR 2.0x Stop: ${atr_val}. Trade {ticker} with institutional-grade data."
-            
+            desc  = (f"Real-time {ticker} market intelligence. Bias: {bias} | "
+                     f"Z-Score: {z_score} | ATR 2x Stop: ${atr_val}. "
+                     f"Trade {ticker} with institutional-grade data on AlphaSignal.")
+
+            # ── Head: meta tags + per-ticker styles ──────────────────────────────
             seo_head = f"""
     <title>{title}</title>
     <meta name="description" content="{desc}">
@@ -1090,9 +1087,49 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
     <meta property="og:description" content="{desc}">
     <meta property="og:url" content="https://alphasignal.digital/asset/{ticker}">
     <style>
-    /* pSEO: Permanently suppress login wall for asset landing pages */
-    body[data-seo-ticker] #auth-overlay {{ display: none !important; }}
-    body[data-seo-ticker] .layout {{ filter: none !important; display: flex !important; }}
+      body[data-seo-ticker] #auth-overlay {{ display: none !important; }}
+      body[data-seo-ticker] .layout      {{ filter: none !important; display: flex !important; }}
+      #pseo-strip {{
+        position:fixed; inset:0; background:#090c14;
+        display:flex; align-items:center; justify-content:center;
+        z-index:1; pointer-events:none;
+        font-family:'Inter','JetBrains Mono',monospace;
+      }}
+      #pseo-strip .ps-card {{
+        max-width:860px; width:90%;
+        border:1px solid rgba(0,255,163,.15); border-radius:12px;
+        padding:2rem 2.5rem; background:rgba(255,255,255,.03);
+      }}
+      #pseo-strip .ps-eyebrow {{
+        font-size:.7rem; letter-spacing:.15em; color:#00ffa3;
+        text-transform:uppercase; margin-bottom:.4rem;
+      }}
+      #pseo-strip h1 {{
+        font-size:1.6rem; font-weight:700; color:#e8eaf0; margin:0 0 .5rem;
+      }}
+      #pseo-strip .ps-desc {{
+        font-size:.9rem; color:#8892a4; line-height:1.65; margin-bottom:1.5rem;
+      }}
+      #pseo-strip .ps-grid {{
+        display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem;
+      }}
+      #pseo-strip .ps-metric {{
+        background:rgba(255,255,255,.04);
+        border:1px solid rgba(255,255,255,.07);
+        border-radius:8px; padding:.85rem 1rem;
+      }}
+      #pseo-strip .ps-label {{
+        font-size:.65rem; letter-spacing:.1em; color:#6b7280;
+        text-transform:uppercase; margin-bottom:.3rem;
+      }}
+      #pseo-strip .ps-value {{
+        font-size:1.1rem; font-weight:600; color:#e8eaf0;
+      }}
+      #pseo-strip .ps-features {{
+        font-size:.8rem; color:#8892a4; line-height:2;
+      }}
+      #pseo-strip .ps-features span {{ margin-right:1.5rem; }}
+      #pseo-strip .ps-features span::before {{ content:"\\2713  "; color:#00ffa3; }}
     </style>
     <script type="application/ld+json">
     {{
@@ -1104,27 +1141,62 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
       "mainEntity": {{
         "@type": "FinancialProduct",
         "name": "{ticker}",
-        "description": "Institutional trading data for {ticker} including Z-Score and ATR."
+        "description": "Institutional trading analytics for {ticker}: Z-Score, ATR stop loss, options flow, whale activity, and AI signals."
       }}
     }}
-    </script>
-            """
-            
-            # Replace existing generic tags or just inject at top of head
-            html = html.replace('<title>AlphaSignal &mdash; Crypto Analytics &amp; Algorithmic Trading Terminal | Institutional Intelligence</title>', '')
-            html = html.replace('<meta name="description" content="AlphaSignal (Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Real-time Z-score alpha signals, AI market briefings, ETF capital flows, options flow scanner, whale pulse tracker, on-chain analytics (MVRV, SOPR, Puell Multiple), macro calendar, portfolio optimizer, and 60+ analytical views. Built for professional crypto traders and institutional desks.">', '')
+    </script>"""
+
+            # ── Server-rendered content strip (no JS, fully crawlable) ───────────
+            pseo_strip = f"""<div id="pseo-strip" aria-hidden="true">
+  <div class="ps-card">
+    <div class="ps-eyebrow">AlphaSignal &mdash; Institutional Intelligence</div>
+    <h1>{ticker} Real-Time Analytics &amp; Institutional Signals</h1>
+    <p class="ps-desc">Track {ticker} with institutional-grade metrics: MVRV Z-Score deviation,
+      ATR-based position sizing, options flow scanner, whale accumulation patterns,
+      and AI-generated market briefings &mdash; all updated in real-time.</p>
+    <div class="ps-grid">
+      <div class="ps-metric">
+        <div class="ps-label">Market Bias</div>
+        <div class="ps-value">{bias}</div>
+      </div>
+      <div class="ps-metric">
+        <div class="ps-label">Z-Score</div>
+        <div class="ps-value">{z_score}</div>
+      </div>
+      <div class="ps-metric">
+        <div class="ps-label">ATR 2x Stop</div>
+        <div class="ps-value">${atr_val}</div>
+      </div>
+    </div>
+    <div class="ps-features">
+      <span>MVRV Z-Score</span><span>ATR Position Sizing</span>
+      <span>Options Flow</span><span>Whale Attribution</span>
+      <span>AI Market Brief</span><span>Liquidity Heatmap</span>
+    </div>
+  </div>
+</div>"""
+
+            # ── Patch HTML ───────────────────────────────────────────────────────
+            html = html.replace(
+                '<title>AlphaSignal &mdash; Crypto Analytics &amp; Algorithmic Trading Terminal | Institutional Intelligence</title>', '')
+            html = html.replace(
+                '<meta name="description" content="AlphaSignal (Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Real-time Z-score alpha signals, AI market briefings, ETF capital flows, options flow scanner, whale pulse tracker, on-chain analytics (MVRV, SOPR, Puell Multiple), macro calendar, portfolio optimizer, and 60+ analytical views. Built for professional crypto traders and institutional desks.">', '')
             html = html.replace('</head>', seo_head + '\n</head>')
-            
-            # Signal the frontend to open this ticker's detail on load
             html = html.replace('<body class="cyber-theme">', f'<body class="cyber-theme" data-seo-ticker="{ticker}">')
-            
+            # Inject strip as first child of body
+            html = html.replace(
+                f'<body class="cyber-theme" data-seo-ticker="{ticker}">',
+                f'<body class="cyber-theme" data-seo-ticker="{ticker}">\n{pseo_strip}')
+
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Connection', 'close')
             self.end_headers()
             self.wfile.write(html.encode('utf-8'))
+
         except Exception as e:
             print(f'[pSEO Error] {e}')
+            import traceback; traceback.print_exc()
             super().do_GET()
 
     def handle_ssr_permalink(self, ticker):

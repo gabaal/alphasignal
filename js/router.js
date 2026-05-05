@@ -193,6 +193,11 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     document.querySelectorAll('.close-overlay').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            // pSEO: On asset landing pages, X should take users home, not leave them stranded
+            if (window.location.pathname.startsWith('/asset/')) {
+                window.location.href = '/';
+                return;
+            }
             const overlay = e.target.closest('.overlay');
             if (overlay) overlay.classList.add('hidden');
             

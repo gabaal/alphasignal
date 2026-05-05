@@ -182,6 +182,7 @@ function showAuth(visible) {
         if (loader) { loader.style.opacity = '0'; setTimeout(() => { if (loader.parentNode) loader.parentNode.removeChild(loader); }, 380); }
         return;
     }
+
     const overlay = document.getElementById('auth-overlay');
     const layout = document.querySelector('.layout');
     
@@ -204,6 +205,16 @@ function showAuth(visible) {
             setTimeout(() => { if (loader.parentNode) loader.parentNode.removeChild(loader); }, 380);
         }
     }
+}
+
+/**
+ * showAuthForSignup — used by the pSEO teaser modal's JOIN FREE button.
+ * Temporarily clears the pSEO guard so the sign-in modal can open,
+ * even on pages where showAuth(true) is normally suppressed.
+ */
+function showAuthForSignup() {
+    window._isPSEOLanding = false; // lift the pSEO suppression
+    showAuth(true);
 }
 
 async function handleAuth(isSignup) {
