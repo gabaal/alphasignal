@@ -12,6 +12,12 @@ from datetime import datetime, timedelta
 from backend.caching import CACHE, BCACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, get_ticker_name, get_sentiment
 from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
+from backend.routes.regime_hmm import HMM_ENGINE
+# Kick off weekly background retraining immediately on module load
+try:
+    HMM_ENGINE.start_background_retraining()
+except Exception as _hmm_init_err:
+    print(f'[HMM] Background retraining not started: {_hmm_init_err}')
 
 class InstitutionalRoutesMixin:
     def _get_price_series(self, df, ticker):
@@ -1458,65 +1464,79 @@ class InstitutionalRoutesMixin:
     _regime_cache      = {}
 
     def handle_regime(self):
-        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        query  = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
         try:
-            # - Cache check: 5-min TTL per ticker -
+            # ── HMM regime prediction ──────────────────────────────────────────
+            hmm = HMM_ENGINE.predict_regime(ticker)
+
+            # ── Legacy SMA metrics (kept for UI backward-compat) ───────────────
             rc = InstitutionalRoutesMixin._regime_cache.get(ticker)
             if rc and (time.time() - rc['ts']) < 300:
-                self.send_json(rc['data'])
-                return
-            data = CACHE.download(ticker, period='250d', interval='1d')
-            if data is None or data.empty:
-                raise ValueError('No data')
-            prices = np.array(data).flatten()
-            prices = prices[~np.isnan(prices)]
-            if len(prices) < 20:
-                raise ValueError('Insufficient data')
-            current = prices[-1]
-            sma20 = np.mean(prices[-20:])
-            sma50 = np.mean(prices[-50:])
-            sma200 = np.mean(prices[-200:])
-            regime = 'NEUTRAL'
-            strength = 50
-            if current > sma50 and sma50 > sma200:
-                regime = 'TRENDING_UP'
-                strength = 70 + (10 if current > sma20 else 0)
-            elif current < sma50 and sma50 < sma200:
-                regime = 'TRENDING_DOWN'
-                strength = 80
-            elif abs(current - sma200) / sma200 < 0.05:
-                regime = 'ACCUMULATION'
-                strength = 40
-            elif np.std(prices[-20:]) / np.mean(prices[-20:]) > 0.03:
-                regime = 'VOLATILE'
-                strength = 60
+                sma_payload = rc['data']
             else:
-                regime = 'DISTRIBUTION'
-                strength = 30
-            history = []
-            for i in range(30, 0, -1):
-                p_slice = prices[:len(prices) - i]
-                if len(p_slice) < 50:
-                    continue
-                c_p = p_slice[-1]
-                s50 = np.mean(p_slice[-50:])
-                s200 = np.mean(p_slice[-200:]) if len(p_slice) >= 200 else s50
-                h_regime = 'ACCUMULATION'
-                if c_p > s50:
-                    h_regime = 'TRENDING'
-                elif c_p < s50:
-                    h_regime = 'DISTRIBUTION'
-                date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
-                history.append({'date': date, 'regime': h_regime})
-            vol_val = np.std(prices[-20:]) / np.mean(prices[-20:])
-            sma_20_dist = (current - sma20) / sma20 * 100 if sma20 else 0
-            payload = {'ticker': ticker, 'current_regime': regime, 'strength': strength, 'confidence': round(0.7 + strength / 400, 2), 'trend': 'BULLISH' if current > sma50 else 'BEARISH' if current < sma50 else 'NEUTRAL', 'volatility': 'HIGH' if vol_val > 0.03 else 'MEDIUM' if vol_val > 0.015 else 'LOW', 'metrics': {'sma_20_dist': round(sma_20_dist, 2), 'sma_50_dist': round((current - sma50) / sma50 * 100, 2) if sma50 else 0, 'sma_200_dist': round((current - sma200) / sma200 * 100, 2) if sma200 else 0}, 'history': history, 'signals': {'sma20': round(float(sma20), 2), 'sma50': round(float(sma50), 2), 'sma200': round(float(sma200), 2)}}
-            InstitutionalRoutesMixin._regime_cache[ticker] = {'data': payload, 'ts': time.time()}
+                data = CACHE.download(ticker, period='250d', interval='1d')
+                if data is not None and not data.empty:
+                    # Extract Close only — avoid flattening all OHLCV columns
+                    if isinstance(data.columns, pd.MultiIndex):
+                        close = data['Close'][ticker] if ticker in data['Close'].columns else data['Close'].iloc[:, 0]
+                    elif 'Close' in data.columns:
+                        close = data['Close']
+                    else:
+                        close = data.iloc[:, 0]
+                    prices = close.replace(0, np.nan).dropna().values.astype(float)
+                else:
+                    prices = np.array([])
+                prices = prices[~np.isnan(prices)]
+                if len(prices) >= 50:
+                    current = prices[-1]
+                    sma20  = np.mean(prices[-20:])
+                    sma50  = np.mean(prices[-50:])
+                    sma200 = np.mean(prices[-200:]) if len(prices) >= 200 else sma50
+                    vol_val = np.std(prices[-20:]) / (np.mean(prices[-20:]) + 1e-9)
+                    sma_payload = {
+                        'trend':      'BULLISH' if current > sma50 else 'BEARISH',
+                        'volatility': 'HIGH' if vol_val > 0.03 else 'MEDIUM' if vol_val > 0.015 else 'LOW',
+                        'metrics':    {'sma_20_dist': round((current-sma20)/sma20*100,2),
+                                       'sma_50_dist': round((current-sma50)/sma50*100,2),
+                                       'sma_200_dist': round((current-sma200)/sma200*100,2)},
+                        'signals':    {'sma20': round(float(sma20),2),
+                                       'sma50': round(float(sma50),2),
+                                       'sma200': round(float(sma200),2)},
+                    }
+                    InstitutionalRoutesMixin._regime_cache[ticker] = {'data': sma_payload, 'ts': time.time()}
+                else:
+                    sma_payload = {}
+
+            # ── Merge and respond (Aligning legacy metrics with HMM) ──────────
+            hmm_label = hmm.get('current_label', 'Compression')
+            
+            # Map HMM labels to intuitive Trend/Vol descriptors for UI consistency
+            hmm_trend = 'BULLISH' if hmm_label == 'Risk-On' else 'BEARISH' if hmm_label == 'Dislocation' else 'NEUTRAL'
+            hmm_vol   = 'HIGH' if hmm_label == 'Dislocation' else 'NORMAL' if hmm_label == 'Risk-On' else 'LOW'
+
+            payload = {
+                'ticker':         ticker,
+                # HMM fields (new)
+                'current_regime': hmm_label,
+                'hmm_state':      hmm.get('current_state', 1),
+                'hmm_label':      hmm_label,
+                'hmm_confidence': hmm.get('confidence', 0.0),
+                'hmm_probs':      hmm.get('probabilities', {}),
+                'hmm_score':      hmm.get('model_score'),
+                'hmm_trained_at': hmm.get('trained_at'),
+                'history':        hmm.get('history', []),
+                # Legacy SMA fields (overridden for consistency)
+                'strength':       int(hmm.get('confidence', 50)),
+                **sma_payload,
+                'trend':          hmm_trend,
+                'volatility':     hmm_vol
+            }
             self.send_json(payload)
         except Exception as e:
-            print(f'Regime Error: {e}')
-            self.send_json({'ticker': ticker, 'current_regime': 'NEUTRAL', 'strength': 50, 'history': []})
+            print(f'[Regime] Error: {e}')
+            self.send_json({'ticker': ticker, 'current_regime': 'Compression',
+                            'hmm_label': 'Compression', 'hmm_confidence': 0, 'history': []})
 
     def handle_derivatives(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
@@ -1925,25 +1945,26 @@ class InstitutionalRoutesMixin:
                 pass
             regime_timeline = []
             try:
-                hist_data = CACHE.download('BTC-USD', period='1y', interval='1d')
-                if hist_data is not None and (not hist_data.empty):
-                    prices = np.array(hist_data).flatten()
-                    prices = prices[~np.isnan(prices)]
-                    for i in range(min(30, len(prices) - 50), -1, -1):
-                        p_slice = prices[:len(prices) - i]
-                        if len(p_slice) < 50:
-                            continue
-                        c_p = p_slice[-1]
-                        s50 = np.mean(p_slice[-50:])
-                        h_regime = 'NEUTRAL'
-                        if c_p > s50:
-                            h_regime = 'BULLISH'
-                        elif c_p < s50:
-                            h_regime = 'BEARISH'
-                        date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
-                        regime_timeline.append({'date': date, 'regime': h_regime, 'price': float(c_p)})
+                # Use HMM Engine for consistent institutional regime timeline
+                hmm_res = HMM_ENGINE.predict_regime('BTC-USD')
+                hmm_hist = hmm_res.get('history', [])
+                
+                # Fetch recent prices to align with timeline
+                price_data = CACHE.download('BTC-USD', period='60d', interval='1d')
+                if price_data is not None and not price_data.empty:
+                    if isinstance(price_data.columns, pd.MultiIndex):
+                        price_data.columns = [c[0] for c in price_data.columns]
+                    prices_dict = {d.strftime('%Y-%m-%d'): float(p) for d, p in zip(price_data.index, price_data['Close'])}
+                    
+                    for h in hmm_hist:
+                        dt = h['date']
+                        regime_timeline.append({
+                            'date': dt,
+                            'regime': h['label'],
+                            'price': prices_dict.get(dt, 0.0)
+                        })
             except Exception as e:
-                print(f'Regime error: {e}')
+                print(f'HMM Brief Timeline error: {e}')
             brief = {'headline': headline, 'summary': summary, 'market_sentiment': market_sentiment, 'top_ideas': ideas, 'macro_context': macro_context, 'sector_data': sorted_sectors[:6], 'regime_timeline': regime_timeline, 'ml_prediction': ml_pred, 'timestamp': datetime.now().strftime('%H:%M')}
             self.send_json(brief)
         except Exception as e:
@@ -2292,9 +2313,11 @@ class InstitutionalRoutesMixin:
 
     def handle_signals(self):
         try:
-            # - Cache check: 5-min TTL -
+            # Cache check: 5-min TTL
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            force_refresh = query.get('refresh', ['0'])[0] == '1'
             sc = InstitutionalRoutesMixin._signals_cache
-            if sc['data'] is not None and (time.time() - sc['ts']) < 300:
+            if not force_refresh and sc['data'] is not None and (time.time() - sc['ts']) < 300:
                 self.send_json(sc['data'])
                 return
         except Exception:
@@ -2323,33 +2346,54 @@ class InstitutionalRoutesMixin:
             btc_change_pct = (float(btc_data.iloc[-1]) - float(btc_data.iloc[-2])) / float(btc_data.iloc[-2]) * 100
             for ticker in all_tickers:
                 try:
-                    if ticker not in data.columns:
-                        continue
                     prices = data[ticker].replace(0, np.nan).dropna()
+                    
+                    # Ensure prices is a Series for stable std/mean calculations
+                    if hasattr(prices, 'iloc') and isinstance(prices, pd.DataFrame):
+                        prices = prices.iloc[:, 0]
+                    
                     if len(prices) < 10:
                         continue
+                        
                     prev_p = float(prices.iloc[-2])
                     change = (float(prices.iloc[-1]) - prev_p) / prev_p * 100
-                    # Fix: align on common index before computing correlation
+                    
                     rets = prices.pct_change().dropna()
+                    if len(rets) < 5:
+                        continue
+
+                    # Fix: align on common index before computing correlation
                     common_idx = btc_pct.index.intersection(rets.index)
                     if len(common_idx) >= 10:
                         corr = float(btc_pct.loc[common_idx].corr(rets.loc[common_idx]))
                         corr = corr if not np.isnan(corr) else 0.0
                     else:
                         corr = 0.0
-                    z_score = float((rets.iloc[-1] - rets.mean()) / rets.std()) if len(rets) > 10 else 0.0
+
+                    # Standard Deviation as float
+                    r_std = float(rets.std())
+                    r_mean = float(rets.mean())
+                    
+                    z_score = float((rets.iloc[-1] - r_mean) / r_std) if len(rets) > 5 and r_std > 0 else 0.0
                     z_score = z_score if not np.isnan(z_score) else 0.0
                     
                     # pSEO Proxy: ATR 2x Stop (Price * 14d Vol * 2)
-                    atr_2x = float(prices.iloc[-1] * rets.tail(14).std() * 2) if len(rets) >= 14 else 0.0
+                    atr_2x = float(prices.iloc[-1] * rets.tail(14).std() * 2) if len(rets) >= 10 else 0.0
                     atr_2x = atr_2x if not np.isnan(atr_2x) else 0.0
+
+                    # Phase 2: Volatility (30D Annualised)
+                    vol_30 = float(rets.tail(30).std() * np.sqrt(365) * 100) if len(rets) >= 10 else 0.0
+                    vol_30 = vol_30 if not np.isnan(vol_30) else 0.0
 
                     category = 'CRYPTO' if '-USD' in ticker else 'EQUITY'
                     for cat, tickers in UNIVERSE.items():
                         if ticker in tickers:
                             category = cat
                             break
+                    # Phase 3: Sentiment
+                    score = get_sentiment(ticker)
+                    sentiment = 'Bullish' if score > 0.1 else 'Bearish' if score < -0.1 else 'Neutral'
+
                     results.append({
                         'ticker': ticker,
                         'name': get_ticker_name(ticker),
@@ -2357,16 +2401,30 @@ class InstitutionalRoutesMixin:
                         'change': round(change, 2),
                         'btcCorrelation': round(corr, 2),
                         'alpha': round(change - btc_change_pct, 2),
-                        'sentiment': get_sentiment(ticker),
+                        'sentiment': sentiment,
+                        'sentiment_score': score,
                         'category': category,
                         'zScore': round(z_score, 2),
-                        'atr_2x': round(atr_2x, 2)
+                        'atr_2x': round(atr_2x, 2),
+                        'vol_30': round(vol_30, 1)
                     })
                 except Exception as e:
                     continue
             sorted_results = sorted(results, key=lambda x: x['alpha'], reverse=True)
-            InstitutionalRoutesMixin._signals_cache = {'data': sorted_results, 'ts': time.time()}
-            self.send_json(sorted_results)
+            # Attach global market regime context (BTC-USD HMM — cached, near-zero cost)
+            try:
+                hmm = HMM_ENGINE.predict_regime('BTC-USD')
+                market_regime = {
+                    'label':      hmm.get('current_label', 'Compression'),
+                    'confidence': hmm.get('confidence', 0.0),
+                    'probs':      hmm.get('probabilities', {}),
+                    'training':   hmm.get('training', False),
+                }
+            except Exception:
+                market_regime = {'label': 'Compression', 'confidence': 0, 'probs': {}, 'training': False}
+            response = {'signals': sorted_results, '_market_regime': market_regime}
+            InstitutionalRoutesMixin._signals_cache = {'data': response, 'ts': time.time()}
+            self.send_json(response)
         except Exception as e:
             print(f'SIGNAL ERROR: {e}')
             self.send_json([])
@@ -7544,15 +7602,17 @@ class InstitutionalRoutesMixin:
             corr = df['DX-Y.NYB'].corr(df['BTC-USD']) if not df.empty else 0.0
             corr = round(corr, 3)
             
-            # Additional dummy matrix metrics for UI representation
-            dxy_momentum = round(df['DX-Y.NYB'].iloc[-1] - df['DX-Y.NYB'].iloc[-30], 2) if len(df) >= 30 else 0
+            # 3. Market Regime (HMM)
+            hmm = HMM_ENGINE.predict_regime('BTC-USD')
             
             self.send_json({
                 'implied_fed_rate': implied_rate,
                 'zq_futures': round(curr_zq, 3),
                 'btc_dxy_correlation_90d': corr,
                 'dxy_30d_momentum': dxy_momentum,
-                'status': 'System Normalized' if corr < 0 else 'Severe Liquidity Drain'
+                'status': 'System Normalized' if corr < 0 else 'Severe Liquidity Drain',
+                'hmm_label': hmm.get('current_label', 'Compression'),
+                'hmm_confidence': hmm.get('confidence', 0.0)
             })
         except Exception as e:
             self.send_json({'error': str(e)})

@@ -1421,6 +1421,7 @@ async function renderMacroCalendar(tabs = null) {
             <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
         </div>
         ${renderHubTabs('calendar', tabs)}
+
             <!-- Advanced Macro Regime Trackers -->
             <div id="macro-regime-widgets" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-top:20px; margin-bottom:2rem;">
                 <div class="glass-card" style="padding:1.5rem">
@@ -1451,6 +1452,20 @@ async function renderMacroCalendar(tabs = null) {
                         Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.
                     </div>
                 </div>
+
+                <div class="glass-card" style="padding:1.5rem">
+                    <div class="card-header">
+                        <h3>HMM Market Regime</h3>
+                        <span class="label-tag">PROBABILISTIC</span>
+                        <span id="hmm-regime-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
+                    </div>
+                    <div id="live-hmm-label" style="font-size:2rem;font-weight:900;color:var(--accent);margin:20px 0 10px;text-transform:uppercase">
+                        --
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-dim)" id="live-hmm-desc">
+                        Gaussian Hidden Markov Model classification based on 250d volatility/return clusters.
+                    </div>
+                </div>
             </div>
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 -0.5rem">Macro Event Calendar</h2>
         <div id="macro-cal-loading" style="text-align:center;padding:3rem"><div class="loader" style="margin:0 auto"></div></div>
@@ -1478,6 +1493,27 @@ async function renderMacroCalendar(tabs = null) {
                 
                 const dxyDesc = document.getElementById('live-dxy-desc');
                 if (dxyDesc) dxyDesc.innerHTML = `<span style="font-weight:900;color:${mrData.btc_dxy_correlation_90d < -0 ? '#ef4444' : '#22c55e'}">${mrData.status.toUpperCase()}</span> - Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.`;
+
+                // HMM Integration
+                const hmmLabel = document.getElementById('live-hmm-label');
+                const hmmBadge = document.getElementById('hmm-regime-badge');
+                const hmmDesc = document.getElementById('live-hmm-desc');
+                if (hmmLabel && mrData.hmm_label) {
+                    hmmLabel.textContent = mrData.hmm_label;
+                    let color = '#fbbf24'; // Compression
+                    if (mrData.hmm_label === 'Risk-On') color = '#22c55e';
+                    if (mrData.hmm_label === 'Dislocation') color = '#ef4444';
+                    hmmLabel.style.color = color;
+                    
+                    if (hmmBadge) {
+                        hmmBadge.textContent = `- ${Math.round(mrData.hmm_confidence * 100)}% CONFIDENCE`;
+                        hmmBadge.style.color = color;
+                        hmmBadge.style.background = color + '22';
+                    }
+                    if (hmmDesc) {
+                        hmmDesc.innerHTML = `Gaussian Hidden Markov Model classification. Current confidence: <b>${(mrData.hmm_confidence * 100).toFixed(1)}%</b>`;
+                    }
+                }
             }
         } catch(e) { console.error('Macro regime error', e); }
     }, 100);

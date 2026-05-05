@@ -666,6 +666,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                 <div class="auth-switch">
                     <a href="#" id="toggle-auth" aria-label="Toggle between Login and Registration">Create account</a>
                 </div>
+
+                <div style="text-align:center;margin-top:1.5rem;opacity:0.5">
+                    <a href="/privacy" style="font-size:0.65rem;color:var(--text-dim);text-decoration:none;letter-spacing:1px">PRIVACY POLICY</a>
+                    <span style="color:var(--text-dim);margin:0 0.5rem;font-size:0.6rem">•</span>
+                    <a href="/terms" style="font-size:0.65rem;color:var(--text-dim);text-decoration:none;letter-spacing:1px">TERMS OF SERVICE</a>
+                    <span style="color:var(--text-dim);margin:0 0.5rem;font-size:0.6rem">•</span>
+                    <a href="/roadmap" style="font-size:0.65rem;color:var(--text-dim);text-decoration:none;letter-spacing:1px">PUBLIC ROADMAP</a>
+                </div>
             </div>
 
             <div class="auth-trust-strip">
@@ -730,7 +738,12 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
                     <div class="price">$7.99<span>/mo</span></div>
                     <button class="intel-action-btn large" onclick="handleSubscribe()" aria-label="Upgrade to AlphaSignal Institutional Plan">UPGRADE TO PRO</button>
                 </div>
-                <p class="paywall-footer-text">SECURE SUBSCRIPTION &bull; 256-BIT ENCRYPTION &bull; CANCEL ANYTIME</p>
+                <p class="paywall-footer-text">
+                    SECURE SUBSCRIPTION &bull; 256-BIT ENCRYPTION &bull; CANCEL ANYTIME<br>
+                    <a href="/privacy" style="color:inherit;text-decoration:underline;margin-top:0.5rem;display:inline-block;font-size:0.6rem;letter-spacing:1px">PRIVACY POLICY</a>
+                    <span style="margin:0 0.3rem">&bull;</span>
+                    <a href="/terms" style="color:inherit;text-decoration:underline;margin-top:0.5rem;display:inline-block;font-size:0.6rem;letter-spacing:1px">TERMS OF SERVICE</a>
+                </p>
             </div>
         </div>
     </div>

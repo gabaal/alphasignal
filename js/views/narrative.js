@@ -492,9 +492,9 @@ async function renderBriefing(tabs = null) {
                         <canvas id="regimeChart" role="img" aria-label="Market regime classification chart"></canvas>
                     </div>
                     <div style="display:flex; justify-content:center; gap:20px; margin-top:10px; font-size:0.6rem; color:var(--text-dim)">
-                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(34,197,94,0.4); border:1px solid #22c55e88"></div> BULLISH</span>
-                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(239,68,68,0.4); border:1px solid #ef444488"></div> BEARISH</span>
-                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:${alphaColor(0.1)}; border:1px solid ${alphaColor(0.3)}"></div> NEUTRAL</span>
+                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(34,197,94,0.3); border:1px solid #22c55e88"></div> RISK-ON</span>
+                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(251,191,36,0.3); border:1px solid #fbbf2488"></div> COMPRESSION</span>
+                        <span style="display:flex; align-items:center; gap:5px"><div style="width:10px; height:10px; background:rgba(239,68,68,0.3); border:1px solid #ef444488"></div> DISLOCATION</span>
                     </div>
                 </div>
 
@@ -590,8 +590,9 @@ async function renderBriefing(tabs = null) {
                             const endX = left + ((index + 1) * stepWidth);
                             
                             let color = alphaColor(0.03);
-                            if (item.regime === 'BULLISH') color = 'rgba(34,197,94,0.3)';
-                            if (item.regime === 'BEARISH') color = 'rgba(239,68,68,0.3)';
+                            if (item.regime === 'Risk-On') color = 'rgba(34,197,94,0.3)';
+                            if (item.regime === 'Compression') color = 'rgba(251,191,36,0.3)';
+                            if (item.regime === 'Dislocation') color = 'rgba(239,68,68,0.3)';
                             
                             ctx.fillStyle = color;
                             ctx.fillRect(startX, top, endX - startX, bottom - top);

@@ -461,14 +461,14 @@ function renderRegimeHeatmap(containerId, history) {
         .range([height - margin.top - margin.bottom, 0]);
 
     const colorScale = d3.scaleOrdinal()
-        .domain(["High-Vol Expansion", "Low-Vol Compression", "Neutral / Accumulation"])
-        .range(["#ef5350", "#26a69a", "#ffa726"]);
+        .domain(["Risk-On", "Compression", "Dislocation"])
+        .range(["#22c55e", "#fbbf24", "#ef4444"]);
 
     // Floating tooltip (replaces the erroneous showToast calls)
     const tooltip = d3.select('body').append('div')
         .style('position', 'fixed')
         .style('background', 'rgba(13,17,23,0.95)')
-        .style('border', '1px solid ${alphaColor(0.1)}')
+        .style('border', '1px solid rgba(0, 242, 255, 0.1)')
         .style('border-radius', '8px')
         .style('padding', '6px 12px')
         .style('font-size', '0.7rem')
@@ -486,12 +486,12 @@ function renderRegimeHeatmap(containerId, history) {
         .attr("y", 0)
         .attr("width", xScale.bandwidth())
         .attr("height", height - margin.top - margin.bottom)
-        .attr("fill", d => colorScale(d.regime))
+        .attr("fill", d => colorScale(d.label || d.regime))
         .attr("opacity", 0.6)
         .on("mouseover", function (event, d) {
             d3.select(this).attr("opacity", 1);
             tooltip.style('display', 'block')
-                .html(`<span style="color:var(--accent,#00f2ff);font-weight:900">${d.date}</span><br/>${d.regime}`);
+                .html(`<span style="color:var(--accent,#00f2ff);font-weight:900">${d.date}</span><br/>${d.label || d.regime}`);
         })
         .on("mousemove", function (event) {
             tooltip.style('left', (event.clientX + 14) + 'px').style('top', (event.clientY - 10) + 'px');

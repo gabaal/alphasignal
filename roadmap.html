@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Roadmap - AlphaSignal Terminal</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        :root {
+            --bg: #05070a;
+            --card-bg: #0d1117;
+            --accent: #00ffa3;
+            --accent-dim: rgba(0, 255, 163, 0.1);
+            --text: #e6edf3;
+            --text-dim: #8b949e;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .hero {
+            padding: 80px 20px;
+            text-align: center;
+            background: radial-gradient(circle at center, #1a1f2e 0%, #05070a 70%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -2px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 20px auto 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px 100px;
+        }
+
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            position: relative;
+        }
+
+        .roadmap-grid::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, var(--accent), transparent);
+            opacity: 0.3;
+        }
+
+        .phase {
+            position: relative;
+            width: 100%;
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .phase-header .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .phase-header span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 163, 0.05);
+        }
+
+        .card.completed {
+            opacity: 0.7;
+        }
+
+        .card.completed .status-tag {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        .status-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+        }
+
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .card p {
+            margin: 0;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .card .icon {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .footer-cta {
+            text-align: center;
+            margin-top: 60px;
+            padding: 40px;
+            background: linear-gradient(rgba(0, 255, 163, 0.03), transparent);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--accent);
+            color: #000;
+            padding: 14px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .roadmap-grid::before { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <h1>ROADMAP<span>2026</span></h1>
+        <p>The institutional intelligence evolution. Building the most powerful real-time alpha engine for the next market regime.</p>
+    </section>
+
+    <div class="container">
+        <div class="roadmap-grid">
+
+            <!-- Phase 1: Completed -->
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="dot" style="background: #4ade80; box-shadow: 0 0 10px #4ade80;"></div>
+                    <span style="color: #4ade80;">PHASE 1: FOUNDATION [COMPLETE]</span>
+                </div>
+                <div class="items-grid">
+                    <div class="card completed">
+                        <span class="status-tag">Live</span>
+                        <span class="material-symbols-outlined icon">analytics</span>
+                        <h3>Z-Score Engine</h3>
+                        <p>Real-time statistical deviation tracking for 60+ assets, identifying fat-tail opportunities.</p>
+                    </div>
+                    <div class="card completed">
+                        <span class="status-tag">Live</span>
+                        <span class="material-symbols-outlined icon">psychology</span>
+                        <h3>Neural Briefings</h3>
+                        <p>AI-driven market synthesis that combines order flow, news, and sentiment into a readable bias.</p>
+                    </div>
+                    <div class="card completed">
+                        <span class="status-tag">Live</span>
+                        <span class="material-symbols-outlined icon">waves</span>
+                        <h3>Whale Pulse</h3>
+                        <p>Attributed on-chain tracking of institutional wallets and exchange flow dynamics.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2: In Progress -->
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="dot" style="background: #4ade80; box-shadow: 0 0 10px #4ade80;"></div>
+                    <span style="color: #4ade80;">PHASE 2: EXPANSION [COMPLETE]</span>
+                </div>
+                <div class="items-grid">
+                    <div class="card completed">
+                        <span class="status-tag">Live</span>
+                        <span class="material-symbols-outlined icon">shield</span>
+                        <h3>ATR Risk Engine</h3>
+                        <p>Volatility-adjusted position sizing and institutional-grade stop-loss calculators.</p>
+                    </div>
+                    <div class="card completed">
+                        <span class="status-tag">Live</span>
+                        <span class="material-symbols-outlined icon">send</span>
+                        <h3>Telegram Alpha</h3>
+                        <p>Instant push notifications for high-confidence Z-score breaches and whale accumulation.</p>
+                    </div>
+                    <div class="card completed">
+                        <span class="status-tag">Live</span>
+                        <span class="material-symbols-outlined icon">picture_as_pdf</span>
+                        <h3>Signal Reports</h3>
+                        <p>One-click PDF exports of asset deep-dives for institutional portfolios and analysts.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3: Intelligence -->
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="dot"></div>
+                    <span>PHASE 3: INTELLIGENCE [UPCOMING]</span>
+                </div>
+                <div class="items-grid">
+                    <div class="card">
+                        <span class="status-tag">Q3 2026</span>
+                        <span class="material-symbols-outlined icon">memory</span>
+                        <h3>Regime Predictor</h3>
+                        <p>ML-driven classification of market states (Expansion vs Compression) using Hidden Markov Models.</p>
+                    </div>
+                    <div class="card">
+                        <span class="status-tag">Q4 2026</span>
+                        <span class="material-symbols-outlined icon">grid_view</span>
+                        <h3>Liquidity Heatmaps</h3>
+                        <p>Visualizing professional liquidity walls and resting orders across all major exchanges.</p>
+                    </div>
+                    <div class="card">
+                        <span class="status-tag">Q4 2026</span>
+                        <span class="material-symbols-outlined icon">smartphone</span>
+                        <h3>Native Mobile App</h3>
+                        <p>Full-featured iOS and Android application with low-latency signal alerts.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-cta">
+            <h2>WANT TO SHAPE THE FUTURE?</h2>
+            <p>We are building AlphaSignal in the open. Join 2,400+ institutional traders and help us define the next generation of crypto intelligence.</p>
+            <a href="/" class="btn">BACK TO TERMINAL</a>
+        </div>
+    </div>
+
+</body>
+</html>

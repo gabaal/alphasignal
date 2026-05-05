@@ -49,8 +49,8 @@ async function renderTradeLab(tabs = null) {
                         </h3>
                     </div>
                     <div style="display:flex;gap:8px">
-                        <button id="decay-regime-high" class="intel-action-btn mini" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none">HIGH-VOL REGIME</button>
-                        <button id="decay-regime-low" class="intel-action-btn mini outline" style="border-color:rgba(139,92,246,0.5);color:#8b5cf6">LOW-VOL REGIME</button>
+                        <button id="decay-regime-high" class="intel-action-btn mini" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none">DISLOCATION</button>
+                        <button id="decay-regime-low" class="intel-action-btn mini outline" style="border-color:rgba(139,92,246,0.5);color:#8b5cf6">COMPRESSION</button>
                     </div>
                 </div>
                 <div style="display:grid; grid-template-columns: 250px 1fr; gap:2rem; align-items:center;">
@@ -58,7 +58,7 @@ async function renderTradeLab(tabs = null) {
                         <div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px">EST. HALF-LIFE</div>
                         <div id="decay-hl-val" style="font-size:2.5rem;font-weight:900;color:var(--risk-high);font-family:var(--font-mono);line-height:1">18<span style="font-size:1rem;color:var(--text-dim)">m</span></div>
                         <div style="font-size:0.75rem;color:var(--text-dim);margin-top:1rem;line-height:1.5">
-                            In <span id="decay-mode-text" style="color:#ef4444;font-weight:700">high-volatility</span> environments, institutional edges decay rapidly as HFTs arbitrate inefficiencies. Execute within <span id="decay-action-text" style="color:white;font-weight:700">5-10 minutes</span> to capture peak expected alpha.
+                            In <span id="decay-mode-text" style="color:#ef4444;font-weight:700">dislocation</span> regimes, institutional edges decay rapidly as HFTs arbitrate inefficiencies. Execute within <span id="decay-action-text" style="color:white;font-weight:700">5-10 minutes</span> to capture peak expected alpha.
                         </div>
                     </div>
                     <div style="height:250px; position:relative;">
@@ -202,13 +202,13 @@ function renderAlphaDecayScatter(regime) {
     if (regime === 'high') {
         halfLife = 18;
         modeColor = '#ef4444';
-        modeWord = 'high-volatility';
+        modeWord = 'dislocation';
         actionWord = '5-10 minutes';
         decayRate = 0.08;
     } else {
         halfLife = 120;
         modeColor = '#8b5cf6';
-        modeWord = 'low-volatility';
+        modeWord = 'compression';
         actionWord = '60-90 minutes';
         decayRate = 0.015;
     }

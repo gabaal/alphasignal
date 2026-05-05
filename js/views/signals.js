@@ -1,5 +1,5 @@
 // - Signals localStorage cache (stale-while-revalidate, 3-min TTL) -
-const _SIG_CACHE_KEY = 'as_signals_v1';
+const _SIG_CACHE_KEY = 'as_signals_v2'; // v2: Phase 2 metrics (vol_30, sentiment_score)
 const _SIG_CACHE_TTL = 30 * 1000; // 30 seconds
 function _getSigCache() {
     try {
@@ -18,28 +18,25 @@ async function renderSignals(category = 'ALL', tabs = null) {
     if (!tabs) tabs = alphaHubTabs;
     currentSignalCategory = category;
 
-    // Fast path: render immediately from cache, refresh in background
+    // Unpack new envelope { signals, _market_regime } — backwards-compat with plain array
+    let signals, marketRegime = null;
     const _cached = _getSigCache();
-    let signals;
-    if (_cached) {
-        signals = _cached;
-        // Silent background refresh - update cache without blocking render
-        fetchAPI('/signals').then(fresh => { if (fresh) _setSigCache(fresh); }).catch(() => {});
-    } else {
-        appEl.innerHTML = skeleton(8);
-        signals = await fetchAPI('/signals');
-        if (!signals) {
-            appEl.innerHTML = '<div class="error-msg">Fail to sync with intelligence streams. Check connection.</div>';
-            return;
-        }
-        _setSigCache(signals);
+    const _raw = _cached || await fetchAPI('/signals').then(r => { if(r) _setSigCache(r); return r; });
+    if (_cached) fetchAPI('/signals').then(r => { if(r) _setSigCache(r); }).catch(() => {}); // bg refresh
+    if (!_raw) {
+        appEl.innerHTML = '<div class="error-msg">Fail to sync with intelligence streams. Check connection.</div>';
+        return;
     }
-    
-
+    if (Array.isArray(_raw)) {
+        signals = _raw;  // legacy plain-array response
+    } else {
+        signals      = _raw.signals || [];
+        marketRegime = _raw._market_regime || null;
+    }
 
     lastSignalsData = signals;
     updateScroller(signals);
-    startCountdown(); // Reset timer on successful fetch
+    startCountdown();
 
     // Funding rate map + options signal map: fetch both in parallel
     let fundingMap = {}, optionsMap = {};
@@ -56,15 +53,42 @@ async function renderSignals(category = 'ALL', tabs = null) {
     const filtered = category === 'ALL' ? signals : signals.filter(s => s.category === category);
     const cats = ['ALL', 'EXCHANGE', 'PROXY', 'ETF', 'DEFI', 'L1', 'STABLES', 'MEMES'];
 
+    const highConvCount = filtered.filter(s => Math.abs(s.zScore) > 1.75).length;
+    const avgAlpha = filtered.reduce((a, b) => a + b.alpha, 0) / (filtered.length || 1);
+
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alpha Strategy Hub</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">radar</span>Live Signals <span class="premium-badge">LIVE</span></h1>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div style="display:flex;gap:12px;align-items:center">
+                <div class="stat-mini" style="text-align:right">
+                    <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px">AVG ALPHA</div>
+                    <div style="font-size:0.85rem;font-weight:900;color:var(--accent)">${avgAlpha > 0 ? '+' : ''}${avgAlpha.toFixed(2)}%</div>
+                </div>
+                <div class="stat-mini" style="text-align:right">
+                    <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px">HIGH CONVICTION</div>
+                    <div style="font-size:0.85rem;font-weight:900;color:#ef4444">${highConvCount}</div>
+                </div>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-signals')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            </div>
         </div>
         ${renderHubTabs('signals', tabs)}
+        ${marketRegime ? (() => {
+            const col = marketRegime.label === 'Risk-On' ? '#22c55e' : marketRegime.label === 'Dislocation' ? '#ef4444' : '#fbbf24';
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:8px;margin:10px 0;
+                background:${col}0f;border:1px solid ${col}33;">
+                <span class="material-symbols-outlined" style="font-size:15px;color:${col}">hub</span>
+                <span style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:${col}">HMM REGIME</span>
+                <span style="font-size:0.75rem;font-weight:700;color:var(--text)">${marketRegime.label}</span>
+                ${!marketRegime.training && marketRegime.confidence > 0
+                    ? `<span style="font-size:0.6rem;color:var(--text-dim)">${marketRegime.confidence.toFixed(0)}% confidence</span>`
+                    : `<span style="font-size:0.6rem;color:var(--text-dim);font-style:italic">model training&hellip;</span>`}
+                <a href="#" onclick="switchView('regime');return false;"
+                   style="margin-left:auto;font-size:0.55rem;color:var(--accent);text-decoration:none;letter-spacing:1px;opacity:0.7">FULL ANALYSIS →</a>
+            </div>`;
+        })() : ''}
         
         <!-- Signal Analytics Row -->
         <div class="signal-analytics-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
@@ -122,12 +146,20 @@ async function renderSignals(category = 'ALL', tabs = null) {
                             background:${optSig.color}18;border:1px solid ${optSig.color}44;color:${optSig.color};white-space:nowrap">${arrow} ${optSig.label}${ivTag}</div>`;
                     })()
                     : '';
+
+                // ATR Risk Engine Badge (Phase 2)
+                const stopPrice = dir === 'LONG' ? s.price - s.atr_2x : s.price + s.atr_2x;
+                const riskBadge = s.atr_2x > 0 
+                    ? `<div title="ATR Risk Engine: Suggested Stop Loss" style="font-size:0.48rem;font-weight:900;letter-spacing:1px;padding:2px 6px;border-radius:100px;
+                        background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#a78bfa;white-space:nowrap">- ATR STOP: ${formatPrice(stopPrice)}</div>`
+                    : '';
+
                 return `
-                <div class="signal-card ${Math.abs(s.zScore) > 2 ? 'z-outlier' : ''}" onclick="openDetail('${s.ticker}', '${s.category}', ${s.btcCorrelation}, ${s.alpha}, ${s.sentiment}, '60d', ${s.category === 'TRACKED'})">
+                <div class="signal-card ${Math.abs(s.zScore) > 1.75 ? 'z-outlier' : ''}" onclick="openDetail('${s.ticker}', '${s.category}', ${s.btcCorrelation}, ${s.alpha}, ${s.sentiment_score ?? 0}, '60d', ${s.category === 'TRACKED'})">
                     <div class="card-controls" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10">
                         <div class="ai-trigger" onclick="event.stopPropagation(); window.executeTrade('${s.ticker}', '${dir}', ${s.price}, ${s.alpha})" title="1-Click Execute Trade via Exchange" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3)"><span class="material-symbols-outlined" style="font-size: 18px;color:#ef4444">rocket_launch</span></div>
                         <div class="ai-trigger" onclick="event.stopPropagation(); openAIAnalyst('${s.ticker}', '${dir}', '${zAbs}')" title="Run AI Deep-Dive"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
-                        <div class="ai-trigger" onclick="event.stopPropagation(); addToWatchlist_quick('${s.ticker}')" title="Add to My Watchlist" style="background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.3)"><span class="material-symbols-outlined" style="font-size: 18px;color:#22c55e">add_circle</span></div>
+                        <div class="ai-trigger" onclick="event.stopPropagation(); addToWatchlist_quick('${s.ticker}')" title="Add to My Watchlist" style="background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.3)"><span class="material-symbols-outlined" style="font-size: 18px;color:var(--22c55e)">add_circle</span></div>
                         <div class="ai-trigger" onclick="event.stopPropagation(); copySignalPermalink('${s.ticker}', event)" title="Copy shareable permalink" style="background:rgba(0,242,255,0.08);border-color:rgba(0,242,255,0.2)"><span class="material-symbols-outlined" style="font-size: 18px;color:var(--accent)">link</span></div>
                     </div>
                     <div class="card-header">
@@ -141,6 +173,7 @@ async function renderSignals(category = 'ALL', tabs = null) {
                                     color:${dir==='LONG'?'#22c55e':'#ef4444'}">${dir}</div>
                                 ${fundingBadge}
                                 ${optionsBadge}
+                                ${riskBadge}
                             </div>
                         </div>
                         <div class="metrics" style="align-items:flex-end;min-width:110px">
@@ -159,25 +192,42 @@ async function renderSignals(category = 'ALL', tabs = null) {
                         </div>
                     </div>
 
-                    <div class="delta-stat">
-                        <div class="delta-label">BTC CORRELATION</div>
-                        <div class="delta-value">${s.btcCorrelation.toFixed(2)}</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin: 12px 0;">
+                        <div class="delta-stat">
+                            <div class="delta-label">BTC CORRELATION</div>
+                            <div class="delta-value">${s.btcCorrelation.toFixed(2)}</div>
+                        </div>
+                        <div class="delta-stat">
+                            <div class="delta-label">ANNUAL VOL (30D)</div>
+                            <div class="delta-value">${s.vol_30 || '0.0'}%</div>
+                        </div>
                     </div>
-                    <div class="metrics">
-                        <div class="metric-line"><span>Relative Alpha</span><span class="${s.alpha >= 0 ? 'pos' : 'neg'}">${s.alpha >= 0 ? '+' : ''}${s.alpha.toFixed(2)}%</span></div>
-                        <div class="metric-line"><span>Sentiment</span><span class="${getSentimentClass(s.sentiment)}">${getSentimentLabel(s.sentiment)}</span></div>
+                    
+                    <div class="metrics" style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.04); padding-top:12px">
+                        <div class="metric-line">
+                            <span>Relative Alpha</span>
+                            <span class="${s.alpha >= 0 ? 'pos' : 'neg'}">${s.alpha >= 0 ? '+' : ''}${s.alpha.toFixed(2)}%</span>
+                        </div>
+                        <div class="metric-line">
+                            <span>Sentiment</span>
+                            <span class="${getSentimentClass(s.sentiment_score)}" style="display:flex; align-items:center; gap:4px">
+                                ${s.sentiment} 
+                                <span class="material-symbols-outlined" style="font-size:14px">${s.sentiment === 'Bullish' ? 'trending_up' : s.sentiment === 'Bearish' ? 'trending_down' : 'trending_flat'}</span>
+                            </span>
+                        </div>
                     </div>
+
                     <!-- Inline AI Thesis Strip -->
                     <div class="thesis-strip" id="${cardId}-strip"
                         onclick="event.stopPropagation(); toggleInlineThesis('${s.ticker}', '${dir}', '${zAbs}', '${cardId}')"
-                        style="margin-top:10px;padding:7px 10px;border-radius:7px;cursor:pointer;
-                               background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);
-                               display:flex;align-items:center;gap:7px;transition:background 0.2s;"
-                        onmouseover="this.style.background='rgba(139,92,246,0.14)'"
-                        onmouseout="this.style.background='rgba(139,92,246,0.07)'">
-                        <span class="material-symbols-outlined" style="font-size:14px;color:#8b5cf6;flex-shrink:0;">psychology</span>
-                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:1px;color:#8b5cf6;">AI THESIS</span>
-                        <span id="${cardId}-chevron" class="material-symbols-outlined" style="font-size:14px;color:rgba(139,92,246,0.5);margin-left:auto;transition:transform 0.2s;">expand_more</span>
+                        style="margin-top:10px;padding:8px 12px;border-radius:8px;cursor:pointer;
+                                background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);
+                                display:flex;align-items:center;gap:8px;transition:all 0.2s;"
+                        onmouseover="this.style.background='rgba(139,92,246,0.15)'"
+                        onmouseout="this.style.background='rgba(139,92,246,0.08)'">
+                        <span class="material-symbols-outlined" style="font-size:16px;color:#8b5cf6;flex-shrink:0;">psychology</span>
+                        <span style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:#8b5cf6;">AI THESIS</span>
+                        <span id="${cardId}-chevron" class="material-symbols-outlined" style="font-size:16px;color:rgba(139,92,246,0.5);margin-left:auto;transition:transform 0.2s;">expand_more</span>
                     </div>
                     <div id="${cardId}-thesis" style="display:none;padding:8px 10px 2px;font-size:0.88rem;
                         line-height:1.7;color:var(--text-dim);border-left:2px solid rgba(139,92,246,0.3);

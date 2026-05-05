@@ -576,33 +576,42 @@ class HarvestService:
                 except Exception as e:
                     print(f"TS Harvester Error: {e}")
 
-                # Global Regime Determination (Heuristic for Alerting)
+                # Global Regime Determination — HMM-powered
                 if data is not None and not data.empty:
-                    # Simple momentum check on core indices
-                    mom = data.pct_change(5).iloc[-1].mean()
-                    new_regime = "High-Vol Expansion" if mom > 0.02 else "Low-Vol Compression" if mom < -0.01 else "Neutral / Accumulation"
-                    
+                    try:
+                        from backend.routes.regime_hmm import HMM_ENGINE
+                        hmm_result = HMM_ENGINE.predict_regime('BTC-USD')
+                        new_regime = hmm_result.get('current_label', 'Compression')
+                        confidence = hmm_result.get('confidence', 0)
+                        new_regime_display = f"{new_regime} ({confidence:.0f}% confidence)"
+                    except Exception as _he:
+                        # Fallback to simple momentum if HMM unavailable
+                        mom = data.pct_change(5).iloc[-1].mean()
+                        new_regime = "Risk-On" if mom > 0.02 else "Dislocation" if mom < -0.01 else "Compression"
+                        new_regime_display = new_regime
+
                     if last_regime and new_regime != last_regime:
-                        print(f"[{datetime.now()}] !!! REGIME SHIFT DETECTED: {new_regime}")
-                        # Broadcast via WebSocket for real-time Frontend toast
+                        print(f"[{datetime.now()}] !!! HMM REGIME SHIFT: {last_regime} → {new_regime}")
                         if self.ws_server:
                             try:
                                 self.ws_server.broadcast(json.dumps({
                                     "type": "regime_shift",
-                                    "data": {"new": new_regime, "old": last_regime}
+                                    "data": {"new": new_regime, "old": last_regime,
+                                             "display": new_regime_display}
                                 }))
                             except: pass
-                        
-                        # Notify all users with alerts enabled
                         conn = sqlite3.connect(DB_PATH, timeout=30)
                         c = conn.cursor()
                         c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1")
                         all_users = c.fetchall()
                         conn.close()
                         for (email,) in all_users:
-                            NOTIFY.push_webhook(email, "STRUCTURAL TRANSITION", 
-                                f"Market Regime has shifted from **{last_regime}** to **{new_regime}**. Adjust institutional exposure accordingly.")
-                    
+                            NOTIFY.push_webhook(email, "REGIME SHIFT DETECTED",
+                                f"HMM model signals transition from <b>{last_regime}</b> to <b>{new_regime}</b>. Adjust institutional exposure accordingly.",
+                                fields=[
+                                    {'name': 'Previous Regime', 'value': last_regime, 'inline': True},
+                                    {'name': 'New Regime',      'value': new_regime_display, 'inline': True},
+                                ])
                     last_regime = new_regime
 
                 print(f"[{datetime.now()}] Harvesting cycle complete. Sleeping for {self.interval}s.")

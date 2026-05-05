@@ -538,6 +538,13 @@ async function renderRegime(tabs = null) {
 
     
 
+    const colorMap = {
+        "Risk-On": "#22c55e",
+        "Compression": "#fbbf24",
+        "Dislocation": "#ef4444"
+    };
+    const activeColor = colorMap[data.current_regime] || "#94a3b8";
+
     appEl.innerHTML = `
 
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -554,44 +561,37 @@ async function renderRegime(tabs = null) {
 
 
 
-            <div class="regime-hero-card ${regimeClass}">
-
-                <div class="regime-badge">${data.current_regime}</div>
-
-                <div class="regime-main-stat">
-
-                    <div class="regime-label">CURRENT STATE: ${data.ticker}</div>
-
-                    <div class="regime-confidence">Confidence Index: ${(data.confidence * 100).toFixed(0)}%</div>
-
+            <div class="regime-hero-card ${regimeClass}" style="background: linear-gradient(135deg, rgba(13,17,23,0.9), rgba(13,17,23,0.4)); border: 1px solid ${activeColor}33; position: relative; padding: 2rem; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); margin-bottom: 2rem;">
+                
+                <div class="regime-badge" style="position: absolute; top: 20px; right: 20px; background: ${activeColor}22; color: ${activeColor}; border: 1px solid ${activeColor}44; padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+                    ${data.current_regime}
                 </div>
 
-                <div class="regime-metrics-row">
-
-                    <div class="r-metric">
-
-                        <label>TREND BIAS</label>
-
-                        <span class="${data.trend === 'BULLISH' ? 'pos' : (data.trend === 'BEARISH' ? 'neg' : 'dim')}">${data.trend}</span>
-
+                <div class="regime-main-stat">
+                    <div class="regime-label" style="font-size: 0.6rem; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Institutional Market Context</div>
+                    <h2 style="font-size: 2.2rem; font-weight: 950; margin: 0; color: #fff; letter-spacing: -1px;">${data.ticker} <span style="font-weight: 400; color: var(--text-dim)">/ USD</span></h2>
+                    <div class="regime-confidence" style="margin-top: 12px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 0.8rem; color: var(--text-dim)">HMM Confidence Index:</span>
+                        <span style="font-size: 1rem; font-weight: 900; color: ${activeColor}">${data.hmm_confidence != null ? data.hmm_confidence.toFixed(1) : '—'}%</span>
+                        <div style="width: 100px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
+                            <div style="width: ${data.hmm_confidence}%; height: 100%; background: ${activeColor}; box-shadow: 0 0 10px ${activeColor}aa;"></div>
+                        </div>
                     </div>
+                </div>
 
+                <div class="regime-metrics-row" style="display: flex; gap: 3rem; margin-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
                     <div class="r-metric">
-
-                        <label>VOLATILITY</label>
-
-                        <span>${data.volatility}</span>
-
+                        <label style="display: block; font-size: 0.55rem; font-weight: 900; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 8px;">TREND BIAS</label>
+                        <span style="font-size: 1.1rem; font-weight: 900; color: ${data.trend === 'BULLISH' ? '#22c55e' : (data.trend === 'BEARISH' ? '#ef4444' : '#94a3b8')}">${data.trend}</span>
                     </div>
-
                     <div class="r-metric">
-
-                        <label>SMA 20 DIST</label>
-
-                        <span class="${data.metrics.sma_20_dist >= 0 ? 'pos' : 'neg'}">${data.metrics.sma_20_dist}%</span>
-
+                        <label style="display: block; font-size: 0.55rem; font-weight: 900; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 8px;">VOLATILITY</label>
+                        <span style="font-size: 1.1rem; font-weight: 900; color: ${data.volatility === 'HIGH' ? '#ef4444' : (data.volatility === 'NORMAL' ? '#fbbf24' : '#22c55e')}">${data.volatility}</span>
                     </div>
-
+                    <div class="r-metric">
+                        <label style="display: block; font-size: 0.55rem; font-weight: 900; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 8px;">SMA 20 DIST</label>
+                        <span style="font-size: 1.1rem; font-weight: 900; color: ${data.metrics.sma_20_dist >= 0 ? '#22c55e' : '#ef4444'}">${data.metrics.sma_20_dist}%</span>
+                    </div>
                 </div>
 
             </div>
@@ -608,11 +608,11 @@ async function renderRegime(tabs = null) {
 
                     <div style="display:flex; gap:16px; font-size:0.65rem; color:var(--text-dim); font-weight:700">
 
-                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ef5350; border-radius:2px"></span> HIGH-VOL EXPANSION</div>
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#22c55e; border-radius:2px"></span> RISK-ON</div>
 
-                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ffa726; border-radius:2px"></span> NEUTRAL / ACCUMULATION</div>
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#fbbf24; border-radius:2px"></span> COMPRESSION</div>
 
-                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#26a69a; border-radius:2px"></span> LOW-VOL COMPRESSION</div>
+                        <div style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; background:#ef4444; border-radius:2px"></span> DISLOCATION</div>
 
                     </div>
 
@@ -628,33 +628,25 @@ async function renderRegime(tabs = null) {
 
                 <div class="guide-card">
 
-                    <h4>ACCUMULATION</h4>
+                    <h4>RISK-ON</h4>
 
-                    <p>Smart money building positions. Historically low volatility with stabilizing sentiment.</p>
-
-                </div>
-
-                <div class="guide-card">
-
-                    <h4>TRENDING</h4>
-
-                    <p>High-conviction directional movement. Sustained alpha and institutional momentum.</p>
+                    <p>Trending up, low volatility. Smart money building positions. Optimal for long exposure and momentum strategies.</p>
 
                 </div>
 
                 <div class="guide-card">
 
-                    <h4>DISTRIBUTION</h4>
+                    <h4>COMPRESSION</h4>
 
-                    <p>Price high, momentum slowing. Volume spikes on negative days as smart money exits.</p>
+                    <p>Sideways grind, muted volatility. Neutral funding, uncertain direction. Reduce leverage, wait for confirmation.</p>
 
                 </div>
 
                 <div class="guide-card">
 
-                    <h4>VOLATILE</h4>
+                    <h4>DISLOCATION</h4>
 
-                    <p>Erratic, high-range price swings. Elevated risk environment with no clear directional edge.</p>
+                    <p>High volatility, negative returns. Liquidation cascades, extreme Z-scores. Reduce exposure or hedge aggressively.</p>
 
                 </div>
 

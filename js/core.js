@@ -844,10 +844,13 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         <div class="ticker-narrative-box" style="margin-bottom:1.5rem; padding:1.2rem; background:rgba(0, 242, 255, 0.03); border:1px solid rgba(0, 242, 255, 0.1); border-radius:8px">
             <h3 style="font-size:0.8rem; color:var(--accent); margin-bottom:0.5rem">TICKER NARRATIVE</h3>
             <p style="font-size:0.9rem; line-height:1.4; color:var(--text)">${data.summary}</p>
-            <div class="asset-metrics" style="display:flex; gap:2rem; margin-top:1rem; border-top:1px solid ${alphaColor(0.05)}; padding-top:1rem">
-                <div><label style="display:block; font-size:0.6rem; color:var(--text-dim)">MARKET CAP</label><span style="font-weight:700">${data.metrics.market_cap}</span></div>
-                <div><label style="display:block; font-size:0.6rem; color:var(--text-dim)">24H VOLUME</label><span style="font-weight:700">${data.metrics.vol_24h}</span></div>
-                <div><label style="display:block; font-size:0.6rem; color:var(--text-dim)">DOMINANCE</label><span style="font-weight:700">${data.metrics.dominance}</span></div>
+            <div class="asset-metrics" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:1.5rem; margin-top:1rem; border-top:1px solid ${alphaColor(0.05)}; padding-top:1rem">
+                <div><label style="display:block; font-size:0.55rem; font-weight:900; letter-spacing:1px; color:var(--text-dim)">MARKET CAP</label><span style="font-weight:700">${data.metrics.market_cap}</span></div>
+                <div><label style="display:block; font-size:0.55rem; font-weight:900; letter-spacing:1px; color:var(--text-dim)">24H VOLUME</label><span style="font-weight:700">${data.metrics.vol_24h}</span></div>
+                <div><label style="display:block; font-size:0.55rem; font-weight:900; letter-spacing:1px; color:var(--text-dim)">DOMINANCE</label><span style="font-weight:700">${data.metrics.dominance || 'N/A'}</span></div>
+                <div><label style="display:block; font-size:0.55rem; font-weight:900; letter-spacing:1px; color:var(--text-dim)">ANNUAL VOL</label><span style="font-weight:700; color:var(--accent)">${data.stats?.volatility || '--'}%</span></div>
+                <div><label style="display:block; font-size:0.55rem; font-weight:900; letter-spacing:1px; color:var(--text-dim)">8H FUNDING</label><span style="font-weight:700; color:${derivData?.fundingRate > 0 ? '#ef4444' : '#22c55e'}">${derivData?.fundingRate > 0 ? '+' : ''}${derivData?.fundingRate || '0.00'}%</span></div>
+                <div><label style="display:block; font-size:0.55rem; font-weight:900; letter-spacing:1px; color:var(--text-dim)">Z-SCORE</label><span style="font-weight:700; color:${Math.abs(data.stats?.zScore) > 1.5 ? '#ef4444' : 'white'}">${data.stats?.zScore > 0 ? '+' : ''}${data.stats?.zScore || '0.00'}s</span></div>
             </div>
         </div>
 

@@ -928,15 +928,13 @@ function initCommandGauges(macro, regime) {
     if (regime) {
         const regimeEl = document.getElementById('cmd-regime-status');
         if (regimeEl) {
-            const r = regime.current_regime || regime.current || 'UNKNOWN';
+            const r = regime.hmm_label || regime.current_regime || 'Compression';
             const rColors = {
-                'TRENDING':     '#22c55e',
-                'ACCUMULATION': '#7dd3fc',
-                'DISTRIBUTION': '#ef4444',
-                'VOLATILE':     '#f59e0b',
-                'RANGING':      '#94a3b8',
+                'Risk-On':     '#22c55e',
+                'Compression': '#fbbf24',
+                'Dislocation': '#ef4444',
             };
-            regimeEl.textContent = r.replace(/_/g, ' ');
+            regimeEl.textContent = r;
             regimeEl.style.color = rColors[r] || 'var(--accent)';
             // Sub-label: confidence + trend
             let sub = document.getElementById('cmd-regime-sub');
@@ -953,12 +951,13 @@ function initCommandGauges(macro, regime) {
             const tc = trendColor[regime.trend] || '#94a3b8';
             const vc = volColor[regime.volatility] || '#94a3b8';
             const pills = [];
-            if (regime.confidence)  pills.push(pill(`${Math.round(regime.confidence * 100)}% CONF`, alphaColor(0.08), alphaColor(0.6)));
+            const conf = regime.hmm_confidence || (regime.confidence ? regime.confidence * 100 : null);
+            if (conf != null)       pills.push(pill(`${Math.round(conf)}% CONF`, alphaColor(0.08), alphaColor(0.6)));
             if (regime.trend)       pills.push(pill(regime.trend, `${tc}22`, tc));
             if (regime.volatility)  pills.push(pill(`VOL ${regime.volatility}`, `${vc}22`, vc));
             sub.innerHTML = pills.join('');
         }
-        renderRegimeHeatmap('#cmd-regime-heatmap', regime.history || []);
+        renderRegimeHeatmap('cmd-regime-heatmap', regime.history || []);
     }
 }
 

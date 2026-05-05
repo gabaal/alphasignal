@@ -671,6 +671,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/equity-options-flow', '/api/ai-rebalancer', '/api/signal-history',
                     '/api/alerts', '/api/alerts/badge', '/api/klines', '/api/equity-klines',
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
+                    '/privacy', '/terms', '/roadmap',
                 ]
                 free_auth_routes = [
                     # Account management — login required, no premium needed
@@ -1000,6 +1001,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     if safe_path == "academy":
                         self.path = "/academy/index.html"
                         print(f"DEBUGGING ROUTER: set self.path={self.path} (Academy Hub)", flush=True)
+                    elif safe_path == "privacy":
+                        self.path = "/privacy.html"
+                        print(f"DEBUGGING ROUTER: set self.path={self.path} (Privacy Policy)", flush=True)
+                    elif safe_path == "terms":
+                        self.path = "/terms.html"
+                        print(f"DEBUGGING ROUTER: set self.path={self.path} (Terms of Service)", flush=True)
+                    elif safe_path == "roadmap":
+                        self.path = "/roadmap.html"
+                        print(f"DEBUGGING ROUTER: set self.path={self.path} (Public Roadmap)", flush=True)
                     else:
                         html_target = f"{safe_path}.html"
                         print(f"DEBUGGING ROUTER: html_target={html_target}, exists={os.path.exists(html_target)}", flush=True)
