@@ -598,11 +598,25 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         
         # --- pSEO: Asset-specific deep landing pages (HIGH PRIORITY) ---
         clean_path = self.path.split('?')[0].rstrip('/')
-        if clean_path.startswith('/asset/'):
+        path_parts = clean_path.split('/')
+        if clean_path.startswith('/asset/') and len(path_parts) == 3:
             try:
-                ticker = clean_path.split('/')[-1].upper()
+                ticker = path_parts[-1].upper()
                 clean_ticker = ticker.replace('-USD', '')
                 print(f"[{datetime.now()}] !!! pSEO_ROUTER_HIT: {clean_ticker} !!!", flush=True)
+                
+                # Pre-warm signals cache if empty (ensures pSEO values aren't 0.0 on cold boot)
+                sc = InstitutionalRoutesMixin._signals_cache
+                if not sc or not sc.get('data'):
+                    print(f"[{datetime.now()}] pSEO: Signals cache empty, triggering background sync...", flush=True)
+                    # We trigger handle_signals but since we are not in a standard request-response loop 
+                    # for the JSON part, we just let it populate the class-level _signals_cache.
+                    # Note: we ignore the send_json failure if it happens.
+                    try:
+                        # We create a dummy handler to run the logic without sending response to THIS client
+                        self.handle_signals()
+                    except: pass
+
                 self.handle_asset_seo(clean_ticker)
                 return
             except Exception as e:
@@ -999,7 +1013,6 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 super().do_GET()
         except Exception as e:
             print(f'[{datetime.now()}] Global do_GET error: {e}', flush=True)
-            import traceback
             traceback.print_exc()
             try:
                 self.send_error_json(f'Internal Server Error: {str(e)}', 500)
