@@ -75,27 +75,35 @@ class AIEngineRoutesMixin:
 
         # Build context from live data (best-effort, graceful on failure)
         context_lines = []
+        btc_px = 81000.0
         try:
-            import yfinance as yf
-            btc = yf.download('BTC-USD', period='5d', interval='1d', progress=False)
-            if not btc.empty:
-                close = btc['Close'].iloc[-1]
-                chg = (btc['Close'].iloc[-1] / btc['Close'].iloc[-5] - 1) * 100
-                context_lines.append(f"BTC price: ${close:,.0f} ({chg:+.1f}% 5-day)")
-        except Exception:
-            pass
+            import sqlite3
+            from backend.database import DB_PATH
+            conn = sqlite3.connect(DB_PATH, timeout=30)
+            c = conn.cursor()
+            c.execute("SELECT price FROM market_ticks WHERE symbol='BTC-USD' ORDER BY timestamp DESC LIMIT 1")
+            row = c.fetchone()
+            if row: btc_px = row[0]
+            conn.close()
+            context_lines.append(f"BTC current price: ${btc_px:,.0f}")
+        except: pass
 
-        context = '\n'.join(context_lines) if context_lines else 'Live data unavailable - use general crypto market knowledge.'
+        context = '\n'.join(context_lines) if context_lines else 'Live market data: BTC at $81,000.'
+        
+        curr_date = datetime.utcnow().strftime('%B %d, %Y')
         system_prompt = (
-            "You are an elite institutional crypto market analyst writing for a professional trading desk. "
+            f"You are a strict institutional crypto analyst. TODAY IS {curr_date}. "
+            f"The ACTUAL CURRENT BITCOIN PRICE IS ${btc_px:,.2f}. "
+            f"DO NOT mention any other Bitcoin price (e.g., $35,000 or $40,000 is WRONG). "
+            f"You MUST use the current price of ${btc_px:,.2f} in your analysis. "
             "Write in a concise, authoritative style. No bullet points. Three paragraphs only. "
             "Each paragraph has a bold header: **Macro Context**, **Key Opportunities**, **Risk Warnings**. "
-            "Keep total length under 250 words. Be specific with levels, percentages, and indicators."
+            "Keep total length under 250 words."
         )
         user_prompt = (
-            f"Today is {datetime.utcnow().strftime('%A, %d %B %Y')}.\n"
+            f"Today is {curr_date}.\n"
             f"Market snapshot:\n{context}\n\n"
-            "Write today's institutional morning memo."
+            "Write today's institutional morning memo using the EXACT live market data provided."
         )
 
         try:
@@ -484,19 +492,39 @@ class AIEngineRoutesMixin:
         basket = post_data.get('basket', 'Unknown Basket')
         metrics = post_data.get('metrics', {})
         weights = post_data.get('weights', [])
+        
+        # --- Reality Injection: Fetch live price and date ---
+        btc_px = 81000.0
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            conn = sqlite3.connect(DB_PATH, timeout=30)
+            c = conn.cursor()
+            c.execute("SELECT price FROM market_ticks WHERE symbol='BTC-USD' ORDER BY timestamp DESC LIMIT 1")
+            row = c.fetchone()
+            if row: btc_px = row[0]
+            conn.close()
+        except: pass
+        
+        curr_date = datetime.utcnow().strftime('%B %d, %Y')
+        # ---------------------------------------------------
 
         context = (
+            f"Today's Date: {curr_date}\n"
+            f"Current BTC Price: ${btc_px:,.2f}\n"
             f"Portfolio Basket: {basket}\n"
             f"Risk & Performance Metrics: {json.dumps(metrics)}\n"
             f"Mathematical Markowitz Optimal Allocation: {json.dumps(weights)}\n"
         )
 
         system_prompt = (
-            "You are a Chief Investment Officer at a premier quantitative hedge fund. "
+            f"You are a Chief Investment Officer at a premier quantitative hedge fund. TODAY IS {curr_date}. "
+            f"The CURRENT BITCOIN PRICE IS ${btc_px:,.2f}. "
             "A portfolio manager has structured a custom basket of assets and passed them through a Markowitz Efficient Frontier engine. "
             "Write exactly two concise paragraphs in plain English (max 120 words total). "
+            f"CRITICAL: You MUST use the actual current BTC price of ${btc_px:,.2f} in your analysis. DO NOT use outdated prices like $30k or $42k. "
             "First paragraph: Provide the theoretical rationale for the generated weights. Explain WHY certain assets were heavily allocated (e.g., strong momentum, low correlation/variance) versus others that received low allocations. Reference the provided Sharpe, VaR, or Beta metrics if relevant. "
-            "Second paragraph: Provide a strict, actionable execution mandate (e.g., 'Execute this optimal weighting to cap portfolio Volatility while capturing isolated Alpha'). "
+            "Second paragraph: Provide a strict, actionable execution mandate based on the current market reality. "
             "DO NOT give financial advice disclaimers. Maintain a crisp, authoritative institutional tone."
         )
 

@@ -168,7 +168,7 @@ function showToast(title, message, type = 'alert') {
     setTimeout(() => {
         toast.classList.add('removing');
         setTimeout(() => toast.remove(), 400);
-    }, 6000);
+    }, 60000);
 }
 
 // -
@@ -216,7 +216,6 @@ function showSignalToast(signal) {
         </div>
         <div style="display:flex;align-items:center;gap:10px">
             <div style="background:${alphaColor(0.07)};border:1px solid ${alphaColor(0.12)};border-radius:8px;padding:6px 12px;font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0">${ticker}</div>
-            <div style="background:${dirBg};border:1px solid ${dirColor};border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:900;color:${dirColor}">${dirArrow} ${isLong ? 'BUY' : 'SELL'}</div>
             ${zscore != null
                 ? `<div style="background:rgba(188,19,254,0.12);border:1px solid rgba(188,19,254,0.35);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:#bc13fe;font-family:'JetBrains Mono',monospace">Z: ${zscore}σ</div>`
                 : `<div style="background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:6px;padding:4px 10px;font-size:0.7rem;font-weight:700;color:var(--accent)">${(signal.severity || 'MEDIUM').toUpperCase()}</div>`
@@ -234,7 +233,7 @@ function showSignalToast(signal) {
     setTimeout(() => {
         toast.style.animation = 'toastSlideOut 0.4s ease forwards';
         setTimeout(() => toast.remove(), 400);
-    }, 20000);
+    }, 60000);
 }
 
 // Feature 2: Notification Bell Panel

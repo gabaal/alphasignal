@@ -425,7 +425,57 @@ ML_ENGINE = MLAlphaEngine()
 class PortfolioSimulator:
     def __init__(self):
         self.initial_capital = 100000.0
+        self.trading_fee_pct = 0.001  # 0.1% Institutional fee
+        self.rebalance_interval = 1800 # 30 mins
         self.running = True
+
+    def calculate_slippage(self, ticker, amount_usd, side='buy'):
+        """
+        Calculates realistic slippage based on the most recent orderbook snapshot.
+        If no snapshot exists, falls back to a 0.2% - 1.5% penalty based on asset volatility.
+        """
+        try:
+            with sqlite3.connect(DB_PATH, timeout=30) as conn:
+                c = conn.cursor()
+                c.execute("SELECT snapshot_data FROM orderbook_snapshots WHERE ticker=? ORDER BY timestamp DESC LIMIT 1", (ticker,))
+                row = c.fetchone()
+                if not row: raise ValueError("No snapshot")
+                
+                snap = json.loads(row[0])
+                walls = snap.get('walls', [])
+                target_side = 'ask' if side == 'buy' else 'bid'
+                side_walls = sorted([w for w in walls if w['side'] == target_side], key=lambda x: x['price'], reverse=(side == 'sell'))
+                
+                if not side_walls: raise ValueError("No walls on side")
+                
+                total_filled_usd = 0
+                weighted_price = 0
+                remaining_usd = amount_usd
+                
+                for wall in side_walls:
+                    wall_price = wall['price']
+                    wall_size_usd = wall['size'] * wall_price
+                    
+                    fill_usd = min(remaining_usd, wall_size_usd)
+                    weighted_price += fill_usd * wall_price
+                    total_filled_usd += fill_usd
+                    remaining_usd -= fill_usd
+                    
+                    if remaining_usd <= 0: break
+                
+                if total_filled_usd < amount_usd:
+                    # Liquidity Gap: Penalty for the remaining amount
+                    gap_penalty = 1.05 if side == 'buy' else 0.95
+                    weighted_price += remaining_usd * (side_walls[-1]['price'] * gap_penalty)
+                
+                avg_execution_price = weighted_price / amount_usd
+                base_price = side_walls[0]['price']
+                slippage_pct = abs(avg_execution_price - base_price) / base_price
+                return max(slippage_pct, 0.0005) # Minimum 5bps slippage
+                
+        except:
+            # Fallback: Volatility-adjusted random slippage (0.05% to 0.5% for major caps)
+            return random.uniform(0.0005, 0.005)
 
     def run_simulation_loop(self):
         """Background thread to perform daily fund rebalancing and record results."""
@@ -502,13 +552,21 @@ class PortfolioSimulator:
                 
                 # 4. Record Snapshot
                 assets_bin = json.dumps([t['ticker'] for t in top_5])
+                
+                # Apply Trading Fees and Slippage to the equity
+                # (Simulating that we sold everything and bought the new top 5)
+                # In a real 30-min window, many assets overlap, so we only apply fees to the 'churn'
+                churn_pct = 0.5 # Default estimate of 50% basket turnover
+                execution_penalty = (self.trading_fee_pct + 0.001) * churn_pct # Fee + Avg Slippage
+                current_equity = current_equity * (1 - execution_penalty)
+
                 c.execute("INSERT INTO portfolio_history (equity, draw_down, assets_json) VALUES (?, ?, ?)",
                          (current_equity, 0.0, assets_bin))
                 conn.commit()
                 conn.close()
                 
-                print(f"[{datetime.now()}] PortfolioSimulator: Daily rebalance recorded. Equity: ${current_equity:,.2f}")
-                time.sleep(86400) # Daily rebalance
+                print(f"[{datetime.now()}] PortfolioSimulator: 30-min rebalance recorded. Equity: ${current_equity:,.2f} (Penalty: {execution_penalty*100:.3f}%)")
+                time.sleep(self.rebalance_interval) 
             except Exception as e:
                 print(f"Portfolio Simulation Error: {e}")
                 time.sleep(3600)

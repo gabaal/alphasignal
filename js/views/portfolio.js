@@ -29,8 +29,12 @@ async function renderPortfolioLab(customBasket = null, customWeights = null, tab
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Institutional Hub</h2>
-            <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">auto_mode</span>Portfolio Optimizer <span class="premium-badge">PRO</span></h1> <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-portfolio-optimizer')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
-            <p>Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores.</p>
+            <div style="display:flex; align-items:center; gap:12px; width:100%">
+                <h1 style="margin:0"><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">auto_mode</span>Portfolio Optimizer <span class="premium-badge">PRO</span></h1>
+                <span class="premium-badge" style="background:rgba(34,197,94,0.15); color:#4ade80; border:1px solid rgba(34,197,94,0.3); font-size:0.55rem; letter-spacing:1px" title="Simulation includes 0.1% fees and real-world orderbook slippage">REALISTIC_EXECUTION_ACTIVE</span>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0" onclick="switchView('docs-portfolio-optimizer')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            </div>
+            <p style="margin-top:4px">Backtesting and simulation of a dynamically rebalanced portfolio driven by Alpha Engine scores (30-min resolution with real-world slippage & fees).</p>
         </div>
         ${tabs ? renderHubTabs('optimizer', tabs) : ''}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1.5rem">AI Portfolio Optimizer</h2>

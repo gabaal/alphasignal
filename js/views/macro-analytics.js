@@ -2,7 +2,7 @@ async function renderMacroSync(tabs = null) {
     if (!tabs) tabs = macroHubTabs;
     const tabHTML = tabs ? renderHubTabs('macro', tabs) : '';
     appEl.innerHTML = skeleton(2);
-    const [data, sectors, corrData] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors'), fetchAPI('/correlation-matrix')]);
+    const [data, sectors] = await Promise.all([fetchAPI('/macro'), fetchAPI('/sectors')]);
     if (!data) return;
 
     appEl.innerHTML = `
@@ -50,16 +50,6 @@ async function renderMacroSync(tabs = null) {
                 </div>
             </div>
 
-            <div class="card" style="margin-top:2rem">
-                <div class="card-header" style="margin-bottom:15px">
-                    <h3>Cross-Asset Correlation Matrix Heatmap</h3>
-                    <span class="label-tag">NxN STATISTICS</span>
-                </div>
-                <div id="corr-matrix-container" style="width:100%; overflow-x:auto;"></div>
-                <div style="margin-top:10px; font-size:0.75rem; color:var(--text-dim)">
-                    30-Day Pearson Correlation Coefficient spanning traditional and digital assets. Dark cyan (+1.0) equates to perfect sync, bright red (-1.0) denotes inverse flow.
-                </div>
-            </div>
 
             <div class="card" style="margin-top:2rem">
                 <div class="card-header">
@@ -191,7 +181,6 @@ async function renderMacroSync(tabs = null) {
             }
 
             if (sectors) renderSectorTreemap(sectors);
-            if (corrData) renderCorrelationHeatmap('corr-matrix-container', corrData);
 
         } catch (e) {
             console.error("Macro sync charts failed:", e);

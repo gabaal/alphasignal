@@ -24,18 +24,31 @@ class InstitutionalRoutesMixin:
         """Robustly extract the Close price series from a dataframe regardless of formatting."""
         if df is None or df.empty: return None
         try:
-            # 1. Handle MultiIndex [(Metric, Ticker)]
+            # 1. Handle MultiIndex [(Metric, Ticker)] - very common in newer yfinance
             if isinstance(df.columns, pd.MultiIndex):
-                try: return df.xs('Close', axis=1, level=0)[ticker]
-                except: 
-                    try: return df['Close'][ticker]
-                    except: pass
+                # Try locating 'Close' in any level
+                for level in range(df.columns.nlevels):
+                    try:
+                        xs = df.xs('Close', axis=1, level=level)
+                        if ticker in xs.columns: return xs[ticker]
+                        # If ticker not found in columns, but xs has columns, maybe it's the only one
+                        if len(xs.columns) == 1: return xs.iloc[:, 0]
+                    except: continue
+                # Fallback: manually find any column that looks like Close + Ticker
+                for col in df.columns:
+                    col_str = str(col).lower()
+                    if 'close' in col_str and ticker.lower() in col_str:
+                        return df[col]
+            
             # 2. Handle 'tuple-string' columns like "('Close', 'BTC-USD')"
             tuple_str = str(('Close', ticker))
             if tuple_str in df.columns: return df[tuple_str]
-            # 3. Handle simple 'Close' column
+            
+            # 3. Handle simple 'Close' column or single-column DF
             if 'Close' in df.columns: return df['Close']
-            # 4. Fallback: Search for any 'Close' string
+            if len(df.columns) == 1: return df.iloc[:, 0]
+            
+            # 4. Final Fallback: Search for any 'Close' string
             for col in df.columns:
                 if 'close' in str(col).lower(): return df[col]
         except: pass
@@ -1954,14 +1967,31 @@ class InstitutionalRoutesMixin:
                 if price_data is not None and not price_data.empty:
                     if isinstance(price_data.columns, pd.MultiIndex):
                         price_data.columns = [c[0] for c in price_data.columns]
+                    prices_list = price_data['Close'].dropna().values.tolist()
+                    last_price = float(prices_list[-1]) if prices_list else 81000.0
+                    
+                    # Also try to get absolute latest live price for "Today" fallback
+                    try:
+                        from backend.database import DB_PATH
+                        import sqlite3
+                        db_conn = sqlite3.connect(DB_PATH, timeout=30)
+                        px_row = db_conn.cursor().execute("SELECT price FROM market_ticks WHERE symbol='BTC-USD' ORDER BY timestamp DESC LIMIT 1").fetchone()
+                        if px_row: last_price = float(px_row[0])
+                        db_conn.close()
+                    except: pass
+
                     prices_dict = {d.strftime('%Y-%m-%d'): float(p) for d, p in zip(price_data.index, price_data['Close'])}
                     
                     for h in hmm_hist:
                         dt = h['date']
+                        px = prices_dict.get(dt, 0.0)
+                        # If price is missing or zero (common for 'today' in daily bars), use last_price
+                        if px <= 0: px = last_price
+                        
                         regime_timeline.append({
                             'date': dt,
                             'regime': h['label'],
-                            'price': prices_dict.get(dt, 0.0)
+                            'price': px
                         })
             except Exception as e:
                 print(f'HMM Brief Timeline error: {e}')
@@ -7212,40 +7242,96 @@ class InstitutionalRoutesMixin:
                          GROUP BY symbol
                          ORDER BY MAX(predicted_return) DESC LIMIT 15""")
             preds = c.fetchall()
+            
+            # Hybrid candidates: start with ML preds
+            candidate_map = {p[0]: (p[1], p[2]) for p in preds}
+            
+            # Always pull top alpha signals as well to ensure diversity
+            c.execute("""SELECT ticker, 0.03, 0.7 FROM alerts_history
+                         WHERE timestamp > datetime('now', '-72 hours')
+                         GROUP BY ticker ORDER BY COUNT(*) DESC LIMIT 10""")
+            for row in c.fetchall():
+                if row[0] not in candidate_map:
+                    candidate_map[row[0]] = (row[1], row[2])
+            
+            # Include anything in the user's watchlist
+            c.execute("SELECT ticker FROM watchlist WHERE user_email = ?", (auth.get('email', ''),))
+            for (w_tk,) in c.fetchall():
+                if w_tk not in candidate_map:
+                    candidate_map[w_tk] = (0.01, 0.5) # Neutral base score
+            
+            # Always include Core Assets for stability
+            for core in ['BTC-USD', 'ETH-USD', 'SOL-USD']:
+                if core not in candidate_map:
+                    candidate_map[core] = (0.02, 0.8)
 
-            if not preds:
-                # Fallback: use top alpha signals
-                c.execute("""SELECT ticker, 0.03, 0.7 FROM alerts_history
-                             WHERE timestamp > datetime('now', '-48 hours')
-                             GROUP BY ticker ORDER BY COUNT(*) DESC LIMIT 10""")
-                preds = c.fetchall()
+            if not candidate_map:
+                self.send_json({'error': 'No recent signals or watchlist items. Add assets to your watchlist to start.', 'weights': [], 'memo': '', 'tickets': []})
+                conn.close(); return
 
-            if not preds:
-                self.send_json({'error': 'No recent ML predictions. Run system for 24hrs to build signal history.', 'weights': [], 'memo': '', 'tickets': []})
-                conn.close()
-                return
-
-            tickers = [p[0] for p in preds]
-            scores  = {p[0]: p[1] for p in preds}
+            tickers = list(candidate_map.keys())
+            scores  = {tk: v[0] for tk, v in candidate_map.items()}
 
             # 2. Fetch 90D price data for these tickers
             returns_map = {}
+            from backend.database import UNIVERSE
+            all_equities = []
+            for cat in ['EXCHANGE', 'MINERS', 'PROXY', 'ETF', 'EQUITIES']:
+                all_equities.extend(UNIVERSE.get(cat, []))
+
             for tk in tickers:
                 try:
-                    df = CACHE.download(tk, period='90d', interval='1d')
-                    if df is None or df.empty: continue
+                    # Smart Normalization: 
+                    # 1. If it has a dash or is a future, keep as is.
+                    # 2. If it's in our equity universe, keep as is.
+                    # 3. Otherwise, append -USD (assume crypto).
+                    if '-' in tk or tk.endswith('=F') or tk in all_equities:
+                        yf_tk = tk
+                    else:
+                        yf_tk = f"{tk}-USD"
+
+                    print(f"[Rebalancer] Processing {tk} (normalized: {yf_tk})...", flush=True)
+                    df = CACHE.download(yf_tk, period='90d', interval='1d')
+                    if df is None or df.empty:
+                        print(f"[Rebalancer]   FAIL: No data returned for {yf_tk}", flush=True)
+                        if yf_tk != tk:
+                            df = CACHE.download(tk, period='90d', interval='1d')
+                        if df is None or df.empty: continue
+                    
                     closes = self._get_price_series(df, tk)
-                    if closes is None or len(closes) < 20: continue
+                    if closes is None:
+                        closes = self._get_price_series(df, yf_tk)
+
+                    if closes is None:
+                        print(f"[Rebalancer]   FAIL: Could not extract price series from DF for {tk}", flush=True)
+                        continue
+                    
+                    if len(closes) < 10:
+                        print(f"[Rebalancer]   FAIL: History too short ({len(closes)} days) for {tk}", flush=True)
+                        continue
+                        
+                    print(f"[Rebalancer]   SUCCESS: Found {len(closes)} days for {tk}", flush=True)
                     rets = closes.pct_change().dropna()
                     returns_map[tk] = rets
-                except:
+                except Exception as loop_e:
+                    print(f"[Rebalancer]   CRASH during {tk}: {loop_e}", flush=True)
                     pass
 
             if len(returns_map) < 2:
-                self.send_json({'error': 'Insufficient price history for optimization.', 'weights': [], 'memo': '', 'tickets': []}); conn.close(); return
+                self.send_json({'error': 'Insufficient price history for optimization. Try adding more established assets to your watchlist.', 'weights': [], 'memo': '', 'tickets': []}); conn.close(); return
 
             valid = list(returns_map.keys())
-            ret_df = pd.DataFrame(returns_map).dropna()
+            # Alignment Fix: Reindex all series to a unified union of dates (handles stock market holidays/weekends)
+            all_dates = pd.Index([])
+            for rets in returns_map.values():
+                all_dates = all_dates.union(rets.index)
+            
+            aligned_returns = {}
+            for tk, rets in returns_map.items():
+                # Fill missing dates with 0 (no return on closed days) to keep matrix dimensions consistent
+                aligned_returns[tk] = rets.reindex(all_dates).fillna(0)
+                
+            ret_df = pd.DataFrame(aligned_returns)
             mu = ret_df.mean().values * 252
             cov = ret_df.cov().values * 252
             n = len(valid)
@@ -7298,19 +7384,45 @@ class InstitutionalRoutesMixin:
             openai_key = os.getenv('OPENAI_API_KEY')
             top3 = sorted(weight_data, key=lambda x: float(x['suggested_pct'].rstrip('%')), reverse=True)[:3]
             top3_str = ', '.join(f"{t['ticker']} ({t['suggested_pct']})" for t in top3)
+            
+            # Fetch live BTC price for context injection (DB fallback)
+            btc_px = 81000.0
+            try:
+                # Try cache first
+                cached_btc = InstitutionalRoutesMixin._price_cache.get('BTC')
+                if cached_btc: 
+                    btc_px = cached_btc[0]
+                else:
+                    # Fallback to DB
+                    c.execute("SELECT price FROM market_ticks WHERE symbol='BTC-USD' ORDER BY timestamp DESC LIMIT 1")
+                    db_row = c.fetchone()
+                    if db_row: btc_px = db_row[0]
+            except: pass
+
             if openai_key:
                 try:
                     headers = {'Authorization': f'Bearer {openai_key}', 'Content-Type': 'application/json'}
+                    curr_date = datetime.utcnow().strftime('%B %d, %Y')
+                    
+                    system_msg = (
+                        f"You are a strict institutional analyst. TODAY IS {curr_date}. "
+                        f"The CURRENT BITCOIN PRICE IS ${btc_px:,.2f}. "
+                        f"DO NOT mention any other Bitcoin price (e.g., $30,000 or $25,000 is WRONG and from your training data). "
+                        f"You MUST use the current price of ${btc_px:,.2f} in your analysis."
+                    )
+                    
                     prompt = (
-                        f"You are an institutional portfolio manager. Write a 3-paragraph rebalancing memo for an AI-optimised crypto portfolio. "
-                        f"Top 3 positions: {top3_str}. "
+                        f"Write a 3-paragraph rebalancing memo for an AI-optimised crypto portfolio based on today's market. "
+                        f"Top 3 proposed positions: {top3_str}. "
                         f"Current Sharpe: {current_sharpe:.2f}. Proposed Sharpe: {round(best_sharpe, 2)}. "
                         f"Improvement: {round((best_sharpe - current_sharpe) / max(abs(current_sharpe), 0.01) * 100, 1)}%. "
-                        f"Be concise, institutional, and mention macro context. Use plain text, no markdown."
+                        f"Be concise, institutional, and cite the actual BTC price from the system context. "
+                        f"Use plain text, no markdown. Focus on the rotation into {top3_str}."
                     )
+                    
                     gpt_r = requests.post('https://api.openai.com/v1/chat/completions',
                         headers=headers,
-                        json={'model': 'gpt-3.5-turbo', 'messages': [{'role': 'user', 'content': prompt}], 'max_tokens': 400},
+                        json={'model': 'gpt-4o-mini', 'messages': [{'role': 'system', 'content': system_msg}, {'role': 'user', 'content': prompt}], 'max_tokens': 450, 'temperature': 0.1}, # Low temp to reduce hallucination
                         timeout=15)
                     if gpt_r.ok:
                         memo = gpt_r.json()['choices'][0]['message']['content'].strip()
