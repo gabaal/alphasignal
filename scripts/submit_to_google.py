@@ -43,6 +43,25 @@ URLS = [
     "https://alphasignal.digital/academy",
 ]
 
+# --- Latest Signals (SSR Permalink Indexing) ---
+try:
+    import sqlite3
+    # Use absolute path for DB to ensure script runs from anywhere
+    _script_dir = os.path.dirname(os.path.abspath(__file__))
+    _db_path = os.path.join(os.path.dirname(_script_dir), 'backend', 'alphasignal.db')
+    if os.path.exists(_db_path):
+        conn = sqlite3.connect(_db_path)
+        # Fetch top 100 latest signals to stay within daily API quotas (usually 200/day)
+        ids = [r[0] for r in conn.execute("SELECT id FROM alerts_history ORDER BY timestamp DESC LIMIT 100").fetchall()]
+        conn.close()
+        print(f"[pSEO] Adding {len(ids)} latest signals to indexing queue...")
+        for _id in ids:
+            URLS.append(f"https://alphasignal.digital/signal/{_id}")
+    else:
+        print(f"[WARN] Database not found at {_db_path}, skipping signal indexing.")
+except Exception as e:
+    print(f"[ERROR] Could not fetch signals for indexing: {e}")
+
 # --- pSEO Asset landing pages (all 81 tickers from sitemap) ---
 ASSET_TICKERS = [
     # Tier 1 - highest priority

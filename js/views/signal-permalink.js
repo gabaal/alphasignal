@@ -6,9 +6,11 @@
 // -
 
 async function renderSignalPermalink(id) {
+    console.log('[View] renderSignalPermalink() called with id:', id);
     const params  = new URLSearchParams(window.location.search);
-    // Prefer passed ID (for clean URLs like /signal/123) over query string
-    const alertId = id || params.get('id');
+    const pathParts = window.location.pathname.split('/');
+    const pathId = pathParts[1] === 'signal' ? pathParts[2] : null;
+    const alertId = id || params.get('id') || pathId;
     const ticker  = params.get('ticker') || 'BTC-USD';
 
     const isSnapshotMode = !!alertId;

@@ -1,4 +1,5 @@
 async function renderHome() {
+    console.log('[View] renderHome() called');
     // --- Phase 1: paint the shell immediately (no awaits) ---
     // Live-stat chips start with loading placeholders and are hydrated below.
     const dials = null, signals = [], lb = null;

@@ -273,19 +273,27 @@ window.addEventListener('DOMContentLoaded', async () => {
         const processed = pathView.replace('docs/', 'docs-');
         if (viewMap[processed]) initialView = processed;
         else if (viewMap[pathView]) initialView = pathView;
-        else if (pathView.startsWith('asset/')) initialView = 'home'; // pSEO landing
+        else if (pathView.startsWith('asset/')) {
+            console.log('[Router] Deep-link Asset pSEO detected:', pathView);
+            initialView = 'home'; 
+        }
+        else if (pathView.startsWith('signal/')) {
+            console.log('[Router] Deep-link Signal pSEO detected:', pathView);
+            initialView = 'signal'; 
+        }
+        console.log('[Router] Final initialView calculated:', initialView);
     }
     
     // Replace state on initial load - preserve ticker param if view=signal
-    if (initialView === 'signal') {
-        const existing = new URLSearchParams(window.location.search);
-        existing.set('view', 'signal');
-        console.log('[Router] Preserving signal view');
-        window.history.replaceState({ view: initialView }, '', '?' + existing.toString());
-    } else if (pathView.startsWith('asset/') || pathView.startsWith('signal/')) {
+    if (pathView.startsWith('asset/') || pathView.startsWith('signal/')) {
         // pSEO Landing: Preserve the URL exactly as is
         console.log('[Router] Detected pSEO landing, PRESERVING URL:', pathView);
-        window.history.replaceState({ view: 'home' }, '', `/${pathView}`);
+        window.history.replaceState({ view: initialView }, '', `/${pathView}`);
+    } else if (initialView === 'signal') {
+        const existing = new URLSearchParams(window.location.search);
+        existing.set('view', 'signal');
+        console.log('[Router] Preserving legacy signal view');
+        window.history.replaceState({ view: initialView }, '', '?' + existing.toString());
     } else if (initialView === 'home') {
         console.log('[Router] Redirecting to root / (home)');
         window.history.replaceState({ view: initialView }, '', '/');
@@ -315,18 +323,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         }, 800);
     } else if (pathView.startsWith('signal/')) {
-        const signalId = pathView.split('/')[1];
-        console.log('[pSEO] Scheduling signal permalink for ID:', signalId);
+        console.log('[pSEO] Direct signal landing detected');
         if (typeof showAuth === 'function') showAuth(false);
         const loader = document.getElementById('app-loader');
         if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 380); }
-        setTimeout(() => {
-            switchView('signal', false);
-            // Wait a tick for the view to mount, then render the specific signal
-            setTimeout(() => {
-                if (typeof renderSignalPermalink === 'function') renderSignalPermalink(signalId);
-            }, 100);
-        }, 800);
     }
     
     startCountdown(); 

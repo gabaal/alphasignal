@@ -102,7 +102,7 @@ var isAuthenticatedUser = false;
 var hasStripeId = false;
 
 // pSEO mode: suppress login wall for search engine landing pages
-window._isPSEOLanding = window.location.pathname.startsWith('/asset/');
+window._isPSEOLanding = window.location.pathname.startsWith('/asset/') || window.location.pathname.startsWith('/signal/');
 
 // pSEO Safety Net: if landing on /asset/, permanently suppress the auth overlay via inline style
 if (window._isPSEOLanding) {
