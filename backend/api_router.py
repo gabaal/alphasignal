@@ -627,6 +627,19 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 super().do_GET()
                 return
             
+        if clean_path.startswith('/signal/') and len(path_parts) == 3:
+            try:
+                signal_id = int(path_parts[-1])
+                print(f"[{datetime.now()}] !!! pSEO_SIGNAL_HIT: {signal_id} !!!", flush=True)
+                self.handle_signal_seo(signal_id)
+                return
+            except Exception as e:
+                print(f"[{datetime.now()}] !!! pSEO_SIGNAL_CRASH: {e} !!!", flush=True)
+                traceback.print_exc()
+                self.path = '/'
+                super().do_GET()
+                return
+
         print(f"[{datetime.now()}] DEBUG: do_GET hit for path: {self.path}", flush=True)
         # S2: rate limit GET requests (AI endpoints get stricter limit)
         ip = self.client_address[0]
@@ -1473,6 +1486,98 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] OG Image Generation Error: {e}")
             traceback.print_exc()
             self.send_error(500, "Image generation failed")
+
+    def handle_signal_seo(self, signal_id):
+        """pSEO: Serves the index.html but with pre-rendered SEO meta tags for a specific signal."""
+        try:
+            import sqlite3, os
+            conn = sqlite3.connect(DB_PATH, timeout=30)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute('SELECT * FROM alerts_history WHERE id = ?', (signal_id,))
+            row = c.fetchone()
+            conn.close()
+
+            if not row:
+                self.send_error(404, 'Signal not found')
+                return
+
+            raw = dict(row)
+            ticker = raw.get('ticker', 'UNKNOWN')
+            sig_type = raw.get('type', '')
+            direction = raw.get('direction') or (
+                'LONG' if any(k in sig_type for k in ('BULL', 'OVERSOLD', 'ML_ALPHA'))
+                else 'SHORT' if any(k in sig_type for k in ('BEAR', 'OVERBOUGHT'))
+                else 'NEUTRAL'
+            )
+            price = raw.get('price') or 0.0
+            from backend.services import get_ticker_name
+            asset_name = get_ticker_name(ticker)
+
+            title = f"{asset_name} ({ticker}) {direction} Alert: {sig_type} | AlphaSignal"
+            desc = f"AlphaSignal detected a {direction} opportunity for {asset_name} ({ticker}) at ${price}. Institutional quantitative alert type: {sig_type}."
+
+            _base_dir  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            _index_path = os.path.join(_base_dir, 'index.html')
+            
+            with open(_index_path, 'r', encoding='utf-8') as f:
+                html = f.read()
+
+            seo_head = f"""
+    <title>{title}</title>
+    <meta name="description" content="{desc}">
+    <link rel="canonical" href="https://alphasignal.digital/signal/{signal_id}">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AlphaSignal">
+    <meta property="og:title" content="{title}">
+    <meta property="og:description" content="{desc}">
+    <meta property="og:url" content="https://alphasignal.digital/signal/{signal_id}">
+    <meta property="og:image" content="https://alphasignal.digital/api/og-image?ticker={ticker}&bias={'Bullish' if direction=='LONG' else 'Bearish' if direction=='SHORT' else 'Neutral'}&zscore=0.0&atr=0.0">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@alphasignalai">
+    <meta property="twitter:title" content="{title}">
+    <meta property="twitter:description" content="{desc}">
+    <meta property="twitter:image" content="https://alphasignal.digital/api/og-image?ticker={ticker}&bias={'Bullish' if direction=='LONG' else 'Bearish' if direction=='SHORT' else 'Neutral'}&zscore=0.0&atr=0.0">
+    
+    <script type="application/ld+json">
+    {{
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": "{title}",
+      "description": "{desc}",
+      "image": "https://alphasignal.digital/api/og-image?ticker={ticker}&bias={'Bullish' if direction=='LONG' else 'Bearish' if direction=='SHORT' else 'Neutral'}&zscore=0.0&atr=0.0",
+      "author": {{
+        "@type": "Organization",
+        "name": "AlphaSignal",
+        "url": "https://alphasignal.digital/"
+      }},
+      "publisher": {{
+        "@type": "Organization",
+        "name": "AlphaSignal",
+        "logo": {{
+          "@type": "ImageObject",
+          "url": "https://alphasignal.digital/assets/pwa-icon-512.png"
+        }}
+      }},
+      "datePublished": "{raw.get('timestamp') or datetime.now().isoformat()}"
+    }}
+    </script>
+            """
+            
+            html = html.replace('<title>AlphaSignal &mdash; Crypto Analytics &amp; Algorithmic Trading Terminal | Institutional Intelligence</title>', seo_head)
+            html = html.replace('<body', '<body data-seo-signal="true"')
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Cache-Control', 'public, max-age=3600')
+            self.end_headers()
+            self.wfile.write(html.encode('utf-8'))
+        except Exception as e:
+            print(f"[{datetime.now()}] !!! pSEO_SIGNAL_GENERATION_ERROR: {e} !!!", flush=True)
+            traceback.print_exc()
+            self.send_error(500, "Internal Server Error")
 
 class AlphaSignalServer(ThreadedHTTPServer):
     pass

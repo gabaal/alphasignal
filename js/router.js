@@ -282,9 +282,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         existing.set('view', 'signal');
         console.log('[Router] Preserving signal view');
         window.history.replaceState({ view: initialView }, '', '?' + existing.toString());
-    } else if (pathView.startsWith('asset/')) {
-        // pSEO Landing: Preserve the asset URL exactly as is
-        console.log('[Router] Detected asset landing, PRESERVING URL:', pathView);
+    } else if (pathView.startsWith('asset/') || pathView.startsWith('signal/')) {
+        // pSEO Landing: Preserve the URL exactly as is
+        console.log('[Router] Detected pSEO landing, PRESERVING URL:', pathView);
         window.history.replaceState({ view: 'home' }, '', `/${pathView}`);
     } else if (initialView === 'home') {
         console.log('[Router] Redirecting to root / (home)');
@@ -298,7 +298,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     switchView(initialView, false);
     
-    // pSEO: If landing on /asset/<ticker>, open the modal after home view renders
+    // pSEO: If landing on /asset/<ticker> or /signal/<id>, open the appropriate modal after home view renders
     if (pathView.startsWith('asset/')) {
         const seoTicker = pathView.split('/')[1].toUpperCase();
         console.log('[pSEO] Scheduling modal for:', seoTicker);
@@ -313,6 +313,19 @@ window.addEventListener('DOMContentLoaded', async () => {
                 console.log('[pSEO] Opening detail for:', yfTicker);
                 openDetail(yfTicker);
             }
+        }, 800);
+    } else if (pathView.startsWith('signal/')) {
+        const signalId = pathView.split('/')[1];
+        console.log('[pSEO] Scheduling signal permalink for ID:', signalId);
+        if (typeof showAuth === 'function') showAuth(false);
+        const loader = document.getElementById('app-loader');
+        if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 380); }
+        setTimeout(() => {
+            switchView('signal', false);
+            // Wait a tick for the view to mount, then render the specific signal
+            setTimeout(() => {
+                if (typeof renderSignalPermalink === 'function') renderSignalPermalink(signalId);
+            }, 100);
         }, 800);
     }
     

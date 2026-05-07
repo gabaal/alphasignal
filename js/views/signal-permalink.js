@@ -7,8 +7,9 @@
 
 async function renderSignalPermalink(id) {
     const params  = new URLSearchParams(window.location.search);
-    const alertId = params.get('id');
-    const ticker  = id || params.get('ticker') || 'BTC-USD';
+    // Prefer passed ID (for clean URLs like /signal/123) over query string
+    const alertId = id || params.get('id');
+    const ticker  = params.get('ticker') || 'BTC-USD';
 
     const isSnapshotMode = !!alertId;
 
@@ -81,10 +82,10 @@ async function renderSignalPermalink(id) {
 
         // Share URL: always use the snapshot id if available so recipient sees the exact same signal
         const shareUrl  = isSnapshotMode
-            ? `https://alphasignal.digital/?view=signal&id=${alertId}`
+            ? `https://alphasignal.digital/signal/${alertId}`
             : `https://alphasignal.digital/?view=signal&ticker=${encodeURIComponent(activeTicker)}`;
         const localUrl  = isSnapshotMode
-            ? `${window.location.origin}/?view=signal&id=${alertId}`
+            ? `${window.location.origin}/signal/${alertId}`
             : `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(activeTicker)}`;
         const tweetText = `- AlphaSignal: $${activeTicker} ${dir} signal\n\n- Alpha: ${(sig.alpha >= 0 ? '+' : '')}${(sig.alpha || 0).toFixed(2)}%\n- Z-Score: ${(sig.zScore || 0).toFixed(2)}-\n- ${sentLabel}\n\nFull analysis:`;
 
@@ -305,7 +306,7 @@ async function copySignalPermalink(ticker, event) {
         const id   = Array.isArray(data) && data.length > 0 ? data[0].id : null;
 
         const url = id
-            ? `${window.location.origin}/?view=signal&id=${id}`
+            ? `${window.location.origin}/signal/${id}`
             : `${window.location.origin}/?view=signal&ticker=${encodeURIComponent(ticker)}`;
 
         navigator.clipboard.writeText(url).then(() => {
