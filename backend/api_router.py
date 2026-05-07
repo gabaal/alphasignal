@@ -663,7 +663,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar',
                     '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard',
                     '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe',
-                    '/api/signal-thesis', '/api/admin/purge-equities',
+                    '/api/signal-thesis', '/api/admin/purge-equities', '/api/og-image',
                     # Command Center — fully public
                     '/api/macro', '/api/ai-trade-now', '/api/regime', '/api/correlation-matrix',
                     '/api/etf-flows', '/api/cme-gaps', '/api/capital-rotation', '/api/mindshare',
@@ -987,6 +987,13 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     'bot_url': f'https://t.me/{bot_name}' if bot_name else '',
                     'active': bool(bot_name)
                 })
+            elif path == '/api/og-image':
+                # Dynamic Open Graph Image generation
+                ticker = query_params.get('ticker', [''])[0].upper()
+                bias = query_params.get('bias', ['Neutral'])[0]
+                zscore = query_params.get('zscore', ['0.00'])[0]
+                atr = query_params.get('atr', ['0.00'])[0]
+                self.handle_og_image(ticker, bias, zscore, atr)
             elif path == '/health':
                 self.handle_health()
             elif path == '/api/prices':
@@ -1144,9 +1151,19 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
     <title>{title}</title>
     <meta name="description" content="{desc}">
     <link rel="canonical" href="https://alphasignal.digital/asset/{ticker}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="AlphaSignal">
     <meta property="og:title" content="{title}">
     <meta property="og:description" content="{desc}">
     <meta property="og:url" content="https://alphasignal.digital/asset/{ticker}">
+    <meta property="og:image" content="https://alphasignal.digital/api/og-image?ticker={ticker}&bias={bias}&zscore={z_score}&atr={atr_val}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@alphasignalai">
+    <meta property="twitter:title" content="{title}">
+    <meta property="twitter:description" content="{desc}">
+    <meta property="twitter:image" content="https://alphasignal.digital/api/og-image?ticker={ticker}&bias={bias}&zscore={z_score}&atr={atr_val}">
     <style>
       body[data-seo-ticker] #auth-overlay {{ display: none !important; }}
       body[data-seo-ticker] .layout      {{ filter: none !important; display: flex !important; }}
@@ -1369,3 +1386,93 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             res['top_alpha'] = []
 
         self.send_json(res)
+
+    def handle_og_image(self, ticker, bias, zscore, atr):
+        """Generates a dynamic 1200x630 OpenGraph card image using Pillow."""
+        try:
+            from io import BytesIO
+            from PIL import Image, ImageDraw, ImageFont
+        except ImportError:
+            self.send_error(500, "Pillow not installed")
+            return
+            
+        try:
+            # Create base image (dark terminal background)
+            img = Image.new('RGB', (1200, 630), color='#0a0e17')
+            draw = ImageDraw.Draw(img)
+            
+            # Draw subtle grid/background
+            for i in range(0, 1200, 40):
+                draw.line([(i, 0), (i, 630)], fill='#111827', width=1)
+            for i in range(0, 630, 40):
+                draw.line([(0, i), (1200, i)], fill='#111827', width=1)
+                
+            # Fonts
+            try:
+                import os
+                if os.name == 'nt':
+                    font_dir = "C:\\Windows\\Fonts\\"
+                    title_font = ImageFont.truetype(os.path.join(font_dir, "arialbd.ttf"), 96)
+                    subtitle_font = ImageFont.truetype(os.path.join(font_dir, "arial.ttf"), 48)
+                    value_font = ImageFont.truetype(os.path.join(font_dir, "arialbd.ttf"), 64)
+                    brand_font = ImageFont.truetype(os.path.join(font_dir, "arialbd.ttf"), 42)
+                else:
+                    title_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 96)
+                    subtitle_font = ImageFont.truetype("DejaVuSans.ttf", 48)
+                    value_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 64)
+                    brand_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 42)
+            except Exception as fe:
+                print(f"[{datetime.now()}] Font load error: {fe}, falling back to default")
+                title_font = ImageFont.load_default()
+                subtitle_font = ImageFont.load_default()
+                value_font = ImageFont.load_default()
+                brand_font = ImageFont.load_default()
+            
+            # Header
+            draw.text((80, 80), f"ALPHASIGNAL", font=brand_font, fill='#7dd3fc')
+            draw.text((80, 160), f"{ticker} Analytics", font=title_font, fill='#ffffff')
+            
+            # Determine color based on bias
+            bias_color = '#00ffa3' if bias == 'Bullish' else '#ff3366' if bias == 'Bearish' else '#a0aec0'
+            
+            # Metrics Grid
+            y_start = 320
+            
+            # Box 1: Bias
+            draw.rectangle([80, y_start, 380, y_start+200], fill='#1e293b', outline='#334155', width=2)
+            draw.text((120, y_start+40), "MARKET BIAS", font=subtitle_font, fill='#94a3b8')
+            draw.text((120, y_start+110), bias, font=value_font, fill=bias_color)
+            
+            # Box 2: Z-Score
+            draw.rectangle([410, y_start, 710, y_start+200], fill='#1e293b', outline='#334155', width=2)
+            draw.text((450, y_start+40), "MVRV Z-SCORE", font=subtitle_font, fill='#94a3b8')
+            draw.text((450, y_start+110), zscore, font=value_font, fill='#ffffff')
+            
+            # Box 3: ATR
+            draw.rectangle([740, y_start, 1120, y_start+200], fill='#1e293b', outline='#334155', width=2)
+            draw.text((780, y_start+40), "ATR 2x STOP", font=subtitle_font, fill='#94a3b8')
+            draw.text((780, y_start+110), f"${atr}", font=value_font, fill='#ffffff')
+            
+            # Footer
+            draw.text((80, 560), "alphasignal.digital", font=subtitle_font, fill='#64748b')
+            draw.text((800, 560), "Institutional Grade Intelligence", font=subtitle_font, fill='#64748b')
+            
+            # Save to buffer
+            buf = BytesIO()
+            img.save(buf, format='PNG')
+            img_data = buf.getvalue()
+            
+            # Send response
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Cache-Control', 'public, max-age=3600')
+            self.end_headers()
+            self.wfile.write(img_data)
+            
+        except Exception as e:
+            print(f"[{datetime.now()}] OG Image Generation Error: {e}")
+            traceback.print_exc()
+            self.send_error(500, "Image generation failed")
+
+class AlphaSignalServer(ThreadedHTTPServer):
+    pass
