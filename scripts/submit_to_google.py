@@ -37,27 +37,34 @@ INDEXING_API_URL = "https://indexing.googleapis.com/v3/urlNotifications:publish"
 
 import os
 
+# --- Static + View pages ---
 URLS = [
     "https://alphasignal.digital/",
-    "https://alphasignal.digital/?view=signals",
-    "https://alphasignal.digital/?view=market-brief-hub",
-    "https://alphasignal.digital/?view=etf-flows",
-    "https://alphasignal.digital/?view=whales",
-    "https://alphasignal.digital/?view=onchain",
-    "https://alphasignal.digital/?view=options-flow",
-    "https://alphasignal.digital/?view=macro-calendar",
-    "https://alphasignal.digital/?view=liquidations",
-    "https://alphasignal.digital/?view=gex-profile",
-    "https://alphasignal.digital/?view=backtester-v2",
-    "https://alphasignal.digital/?view=alpha-score",
-    "https://alphasignal.digital/?view=regime",
-    "https://alphasignal.digital/?view=rotation",
-    "https://alphasignal.digital/?view=narrative",
-    "https://alphasignal.digital/?view=portfolio-optimizer",
-    "https://alphasignal.digital/?view=help",
     "https://alphasignal.digital/academy",
 ]
 
+# --- pSEO Asset landing pages (all 81 tickers from sitemap) ---
+ASSET_TICKERS = [
+    # Tier 1 - highest priority
+    'BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'BNB', 'ADA', 'AVAX', 'LINK', 'DOT',
+    'PEPE', 'SHIB', 'WIF', 'BONK', 'FLOKI',
+    'MSTR', 'IBIT', 'FBTC', 'COIN', 'MARA', 'RIOT',
+    # Tier 2 - mid cap / DeFi
+    'NEAR', 'ATOM', 'TON', 'INJ', 'SEI', 'OP', 'ARB', 'SUI', 'APT', 'LTC',
+    'TRX', 'UNI', 'AAVE', 'MKR', 'LDO', 'CRV', 'RUNE', 'SNX', 'JTO', 'EIGEN',
+    'FET', 'RENDER', 'OCEAN', 'WLD', 'PYTH',
+    'ARKB', 'BITO', 'BITB', 'HODL', 'BTCO', 'EZBC',
+    'CLSK', 'IREN', 'WULF', 'CORZ', 'HUT', 'BTBT', 'CIFR', 'BTDR',
+    'HOOD', 'VIRT',
+    # Tier 3 - small cap / narrative
+    'HBAR', 'TRUMP', 'POPCAT', 'PNUT', 'ACT', 'MOODENG', 'GOAT', 'FARTCOIN',
+    'TAO', 'IMX', 'ALGO', 'STRK', 'WBTC', 'STX', 'MATIC',
+    'NVDA', 'TSLA', 'AAPL', 'SPY',
+]
+for _t in ASSET_TICKERS:
+    URLS.append(f"https://alphasignal.digital/asset/{_t}")
+
+# --- Academy articles ---
 if os.path.exists("academy"):
     for f in os.listdir("academy"):
         if f.endswith(".html"):
@@ -123,6 +130,17 @@ def main():
         for r in errors:
             print(f"  - {r['url']}")
             print(f"    {r['error']}")
+
+    # Also ping Google's sitemap endpoint for good measure
+    try:
+        ping = requests.get(
+            "https://www.google.com/ping",
+            params={"sitemap": "https://alphasignal.digital/sitemap.xml"},
+            timeout=5
+        )
+        print(f"\n[Sitemap Ping] Google notified of sitemap update: HTTP {ping.status_code}")
+    except Exception as pe:
+        print(f"\n[Sitemap Ping] Failed: {pe}")
 
     print("\nGoogle will crawl these pages within 24-48 hours.")
     print("Monitor progress: Search Console > Coverage\n")

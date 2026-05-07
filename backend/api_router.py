@@ -1076,6 +1076,38 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         z_score = "0.00"
         atr_val = "0.00"
 
+        # Full asset name lookup table for richer, search-friendly titles
+        _ASSET_NAMES = {
+            'BTC': 'Bitcoin', 'ETH': 'Ethereum', 'SOL': 'Solana', 'XRP': 'XRP',
+            'DOGE': 'Dogecoin', 'BNB': 'BNB', 'ADA': 'Cardano', 'AVAX': 'Avalanche',
+            'LINK': 'Chainlink', 'DOT': 'Polkadot', 'PEPE': 'Pepe', 'SHIB': 'Shiba Inu',
+            'WIF': 'dogwifhat', 'BONK': 'Bonk', 'FLOKI': 'Floki', 'NEAR': 'NEAR Protocol',
+            'ATOM': 'Cosmos', 'TON': 'Toncoin', 'INJ': 'Injective', 'SEI': 'Sei',
+            'OP': 'Optimism', 'ARB': 'Arbitrum', 'SUI': 'Sui', 'APT': 'Aptos',
+            'LTC': 'Litecoin', 'TRX': 'TRON', 'UNI': 'Uniswap', 'AAVE': 'Aave',
+            'MKR': 'Maker', 'LDO': 'Lido DAO', 'CRV': 'Curve DAO', 'RUNE': 'THORChain',
+            'SNX': 'Synthetix', 'JTO': 'Jito', 'EIGEN': 'EigenLayer', 'FET': 'Fetch.ai',
+            'RENDER': 'Render', 'OCEAN': 'Ocean Protocol', 'WLD': 'Worldcoin',
+            'PYTH': 'Pyth Network', 'HBAR': 'Hedera', 'TRUMP': 'Official Trump',
+            'POPCAT': 'Popcat', 'PNUT': 'Peanut the Squirrel', 'TAO': 'Bittensor',
+            'IMX': 'Immutable', 'ALGO': 'Algorand', 'STRK': 'Starknet', 'WBTC': 'Wrapped Bitcoin',
+            'STX': 'Stacks', 'MATIC': 'Polygon', 'MSTR': 'MicroStrategy',
+            'IBIT': 'iShares Bitcoin ETF', 'FBTC': 'Fidelity Bitcoin ETF',
+            'COIN': 'Coinbase', 'MARA': 'MARA Holdings', 'RIOT': 'Riot Platforms',
+            'NVDA': 'NVIDIA', 'TSLA': 'Tesla', 'AAPL': 'Apple', 'SPY': 'S&P 500 ETF',
+        }
+        # Related assets for internal cross-linking (boosts crawl budget distribution)
+        _RELATED = {
+            'BTC':  ['ETH', 'MSTR', 'IBIT'], 'ETH':  ['BTC', 'SOL', 'AAVE'],
+            'SOL':  ['ETH', 'NEAR', 'SEI'],  'XRP':  ['BTC', 'XLM', 'ADA'],
+            'DOGE': ['SHIB', 'PEPE', 'WIF'], 'PEPE': ['DOGE', 'BONK', 'WIF'],
+            'MSTR': ['BTC', 'COIN', 'MARA'], 'IBIT': ['MSTR', 'FBTC', 'BTC'],
+            'AAVE': ['ETH', 'MKR', 'CRV'],  'INJ':  ['ETH', 'SOL', 'TIA'],
+            'ARB':  ['ETH', 'OP', 'STRK'],  'LINK': ['ETH', 'BTC', 'DOT'],
+        }
+        asset_name = _ASSET_NAMES.get(ticker, ticker)
+        related_tickers = _RELATED.get(ticker, ['BTC', 'ETH', 'SOL'])
+
         # Read from live signal cache (non-blocking — pure read, no lock acquisition)
         try:
             from backend.routes.institutional import InstitutionalRoutesMixin
@@ -1083,14 +1115,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             if sc and 'data' in sc:
                 for item in sc['data']:
                     if item.get('ticker', '').upper().replace('-USD', '') == ticker.upper():
-                        # The cache uses 'zScore' and 'sentiment' (numeric)
                         sent_val = item.get('sentiment', 0)
                         if sent_val > 0.1: bias = "Bullish"
                         elif sent_val < -0.1: bias = "Bearish"
                         else: bias = "Neutral"
-                        
                         z_score = str(round(float(item.get('zScore', 0) or 0), 2))
-                        # Note: we are about to add atr_2x to the signals_cache in institutional.py
                         atr_val = str(round(float(item.get('atr_2x', 0) or 0), 2))
                         break
         except:
@@ -1100,14 +1129,15 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             import os as _os
             _base_dir  = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
             _index_path = _os.path.join(_base_dir, 'index.html')
-            print(f"[pSEO] Serving {ticker} content strip", flush=True)
+            print(f"[pSEO] Serving {ticker} ({asset_name}) content strip", flush=True)
             with open(_index_path, 'r', encoding='utf-8') as f:
                 html = f.read()
 
-            title = f"{ticker} Institutional Analytics & ATR Stop Loss | AlphaSignal"
-            desc  = (f"Real-time {ticker} market intelligence. Bias: {bias} | "
-                     f"Z-Score: {z_score} | ATR 2x Stop: ${atr_val}. "
-                     f"Trade {ticker} with institutional-grade data on AlphaSignal.")
+            # Use full name in title for long-tail keyword targeting
+            title = f"{asset_name} ({ticker}) Live Analytics, Z-Score & ATR Signals | AlphaSignal"
+            desc  = (f"{asset_name} ({ticker}) institutional intelligence: real-time bias {bias}, "
+                     f"Z-Score {z_score}, ATR 2x stop ${atr_val}. "
+                     f"Track {asset_name} whale activity, options flow & ML alpha signals on AlphaSignal.")
 
             # ── Head: meta tags + per-ticker styles ──────────────────────────────
             seo_head = f"""
@@ -1171,9 +1201,53 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
       "url": "https://alphasignal.digital/asset/{ticker}",
       "mainEntity": {{
         "@type": "FinancialProduct",
-        "name": "{ticker}",
-        "description": "Institutional trading analytics for {ticker}: Z-Score, ATR stop loss, options flow, whale activity, and AI signals."
+        "name": "{asset_name}",
+        "alternateName": "{ticker}",
+        "description": "Institutional trading analytics for {asset_name} ({ticker}): Z-Score deviation, ATR stop loss, options flow, whale accumulation patterns, and AI alpha signals."
       }}
+    }}
+    </script>
+    <script type="application/ld+json">
+    {{
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {{"@type": "ListItem", "position": 1, "name": "AlphaSignal", "item": "https://alphasignal.digital/"}},
+        {{"@type": "ListItem", "position": 2, "name": "Asset Analytics", "item": "https://alphasignal.digital/asset/BTC"}},
+        {{"@type": "ListItem", "position": 3, "name": "{asset_name} ({ticker})", "item": "https://alphasignal.digital/asset/{ticker}"}}
+      ]
+    }}
+    </script>
+    <script type="application/ld+json">
+    {{
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {{
+          "@type": "Question",
+          "name": "What is the current {asset_name} Z-Score?",
+          "acceptedAnswer": {{
+            "@type": "Answer",
+            "text": "The current {asset_name} ({ticker}) Z-Score is {z_score}, indicating a {bias} market bias. A Z-Score above +2 signals overbought conditions; below -2 signals oversold. Track live Z-Score signals at AlphaSignal."
+          }}
+        }},
+        {{
+          "@type": "Question",
+          "name": "How do I set a stop loss for {asset_name}?",
+          "acceptedAnswer": {{
+            "@type": "Answer",
+            "text": "For {asset_name} ({ticker}), the ATR-based 2x stop loss is currently ${atr_val}. ATR (Average True Range) stop losses adjust dynamically to market volatility, preventing premature exits during normal price fluctuations while protecting against major drawdowns."
+          }}
+        }},
+        {{
+          "@type": "Question",
+          "name": "Is {asset_name} bullish or bearish right now?",
+          "acceptedAnswer": {{
+            "@type": "Answer",
+            "text": "Based on AlphaSignal's real-time ML alpha engine and sentiment analysis, {asset_name} ({ticker}) is currently showing a {bias} bias with a Z-Score of {z_score}. This is updated live using whale activity, options flow, and on-chain data."
+          }}
+        }}
+      ]
     }}
     </script>"""
 
@@ -1181,8 +1255,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             pseo_strip = f"""<div id="pseo-strip" aria-hidden="true">
   <div class="ps-card">
     <div class="ps-eyebrow">AlphaSignal &mdash; Institutional Intelligence</div>
-    <h1>{ticker} Real-Time Analytics &amp; Institutional Signals</h1>
-    <p class="ps-desc">Track {ticker} with institutional-grade metrics: MVRV Z-Score deviation,
+    <h1>{asset_name} ({ticker}) Real-Time Analytics &amp; Institutional Signals</h1>
+    <p class="ps-desc">Track {asset_name} ({ticker}) with institutional-grade metrics: MVRV Z-Score deviation,
       ATR-based position sizing, options flow scanner, whale accumulation patterns,
       and AI-generated market briefings &mdash; all updated in real-time.</p>
     <div class="ps-grid">
@@ -1203,6 +1277,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
       <span>MVRV Z-Score</span><span>ATR Position Sizing</span>
       <span>Options Flow</span><span>Whale Attribution</span>
       <span>AI Market Brief</span><span>Liquidity Heatmap</span>
+    </div>
+    <div class="ps-related">
+      <span class="ps-related-label">Related Assets:</span>
+      {''.join(f'<a class="ps-related-link" href="/asset/{t}">{t}</a>' for t in related_tickers)}
     </div>
   </div>
 </div>"""
