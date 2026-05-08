@@ -172,12 +172,13 @@ function renderBlockRadarRows(results) {
     return results.map(w => {
         const isExtreme = w.impact === 'EXTREME';
         const impactPct = w.impact === 'EXTREME' ? 100 : w.impact === 'HIGH' ? 70 : 40;
-        const sideClass = w.side.toLowerCase();
+        const sideVal = w.side || 'BUY';
+        const sideClass = sideVal.toLowerCase();
         
         return `
             <div class="block-radar-row ${isExtreme ? 'extreme' : ''}">
-                <div class="br-ticker">${w.ticker}</div>
-                <div class="br-side ${sideClass}">${w.side}</div>
+                <div class="br-ticker">${w.ticker || 'BTC'}</div>
+                <div class="br-side ${sideClass}">${sideVal}</div>
                 <div class="br-value">${w.usdValue}</div>
                 <div style="display:flex; flex-direction:column; gap:4px">
                     <span style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">${w.impact} IMPACT</span>
@@ -211,7 +212,7 @@ function updateRadarStats(results) {
         }
         
         totalVol += val;
-        if (w.side === 'BUY') buyVol += val;
+        if ((w.side || 'BUY').toUpperCase() === 'BUY') buyVol += val;
         if (val > maxVal) maxVal = val;
     });
 
