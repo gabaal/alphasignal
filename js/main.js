@@ -637,7 +637,8 @@ function initLiveAlphaScroller() {
     if (!scroller) return;
 
     window.updateLiveAlphaScroller = function (data) {
-        if (!scroller) return;
+        const scrollerEl = document.getElementById('alpha-scroller');
+        if (!scrollerEl) return;
         
         const topSignals = Array.isArray(data) ? data : (data && data.signals) ? data.signals : [];
         
@@ -650,10 +651,24 @@ function initLiveAlphaScroller() {
                 return `<span style="margin-right:5rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(price)}</span></span>`;
             }).join('');
             
-            // Triple the content to ensure the scroll-left -50% animation always has a 'tail' to show
-            scroller.innerHTML = html + html + html;
-        } else if (!scroller.innerHTML.includes('ALPHA]')) {
-            scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
+            const newContent = html + html + html;
+            
+            // Only update and kickstart animation if the content has changed
+            if (scrollerEl.innerHTML !== newContent) {
+                // 1. Remove animation class
+                scrollerEl.style.animation = 'none';
+                
+                // 2. Update content
+                scrollerEl.innerHTML = newContent;
+                
+                // 3. Force a reflow (magic step to tell browser to recalculate)
+                void scrollerEl.offsetWidth; 
+                
+                // 4. Re-enable animation
+                scrollerEl.style.animation = ''; 
+            }
+        } else if (!scrollerEl.innerHTML.includes('ALPHA]')) {
+            scrollerEl.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
         }
     };
 
