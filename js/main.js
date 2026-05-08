@@ -639,7 +639,6 @@ function initLiveAlphaScroller() {
     window.updateLiveAlphaScroller = function (data) {
         if (!scroller) return;
         
-        // Handle both raw array and institutional response object
         const topSignals = Array.isArray(data) ? data : (data && data.signals) ? data.signals : [];
         
         if (topSignals.length > 0) {
@@ -648,12 +647,12 @@ function initLiveAlphaScroller() {
                 const color = alpha >= 0 ? 'var(--risk-low)' : 'var(--risk-high)';
                 const dir = alpha >= 0 ? 'LONG' : 'SHORT';
                 const price = s.price || 0;
-                return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(price)}</span></span>`;
+                return `<span style="margin-right:5rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(price)}</span></span>`;
             }).join('');
-            scroller.innerHTML = html + html;
+            
+            // Triple the content to ensure the scroll-left -50% animation always has a 'tail' to show
+            scroller.innerHTML = html + html + html;
         } else if (!scroller.innerHTML.includes('ALPHA]')) {
-            // Only show the "monitoring" message if the scroller is empty/synching
-            // If it already has signals, we KEEP them (sticky ticker) until new ones arrive.
             scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
         }
     };

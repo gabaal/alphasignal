@@ -134,8 +134,18 @@ select:focus {
 .signal-feed { display: flex; align-items: center; gap: 1rem; overflow: hidden; white-space: nowrap; flex: 1; min-width: 0; }
 .feed-label { background: var(--purple); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 900; flex-shrink: 0; z-index: 2; }
 .scroller-container { flex: 1; overflow: hidden; mask-image: linear-gradient(to right, transparent, black 20px); -webkit-mask-image: linear-gradient(to right, transparent, black 20px); display: flex; align-items: center; }
-.scroller { font-family: 'JetBrains Mono'; font-size: 0.85rem; animation: scroll 60s linear infinite; white-space: nowrap; }
-@keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+.scroller { 
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace; 
+    font-size: 0.82rem; 
+    animation: scroll-left 40s linear infinite; 
+    white-space: nowrap; 
+    will-change: transform;
+}
+@keyframes scroll-left { 
+    0% { transform: translateX(0); } 
+    100% { transform: translateX(-50%); } 
+}
 
 /* Top Bar Actions & Groups */
 .top-bar-actions { display: flex; align-items: center; gap: 1rem; }
