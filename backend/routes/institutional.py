@@ -4181,7 +4181,7 @@ class InstitutionalRoutesMixin:
             print(f'[SetupGeneration] {e}')
             self.send_error(500, 'Internal server error')
 
-    def handle_whales(self):
+    def handle_whales_legacy(self):
         results = []
         try:
             from backend.database import redis_client
