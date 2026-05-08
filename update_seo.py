@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import xml.sax.saxutils as saxutils
 
 # Paths
 academy_dir = r'c:\Users\geral\.gemini\antigravity\scratch\alphasignal\academy'
@@ -35,12 +36,16 @@ for v in videos:
     parts = v["duration"].split(":")
     duration_sec = int(parts[0]) * 60 + int(parts[1])
     
+    # Escape XML entities
+    safe_title = saxutils.escape(v["title"])
+    safe_desc = saxutils.escape(v["desc"])
+    
     video_xml.append(f'  <url>')
     video_xml.append(f'    <loc>https://alphasignal.digital/{v["route"]}</loc>')
     video_xml.append(f'    <video:video>')
     video_xml.append(f'      <video:thumbnail_loc>{v["thumb"]}</video:thumbnail_loc>')
-    video_xml.append(f'      <video:title>{v["title"]}</video:title>')
-    video_xml.append(f'      <video:description>{v["desc"]}</video:description>')
+    video_xml.append(f'      <video:title>{safe_title}</video:title>')
+    video_xml.append(f'      <video:description>{safe_desc}</video:description>')
     video_xml.append(f'      <video:player_loc>https://www.youtube.com/embed/{v["youtubeId"]}</video:player_loc>')
     video_xml.append(f'      <video:duration>{duration_sec}</video:duration>')
     video_xml.append(f'      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>')
