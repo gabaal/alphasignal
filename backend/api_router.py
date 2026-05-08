@@ -684,6 +684,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/equity-options-flow', '/api/ai-rebalancer', '/api/signal-history',
                     '/api/alerts', '/api/alerts/badge', '/api/klines', '/api/equity-klines',
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
+                    '/api/whales',
                     '/api/stripe/webhook',
                     '/privacy', '/terms', '/roadmap',
                 ]
@@ -751,6 +752,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_search()
             elif path == '/api/dev/mock-signals':
                 self.handle_mock_signals()
+            elif path == '/api/whales':
+                self.handle_whales()
             elif path == '/api/signals':
                 print(f"[{datetime.now()}] ROUTER HIT: /api/signals explicitly invoked")
                 self.handle_signals()

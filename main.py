@@ -346,7 +346,10 @@ class BinanceLiveStream:
             "method": "SUBSCRIBE",
             "params": [
                 "btcusdt@depth20@100ms",
-                "btcusdt@aggTrade"
+                "btcusdt@aggTrade",
+                "ethusdt@aggTrade",
+                "solusdt@aggTrade",
+                "linkusdt@aggTrade"
             ],
             "id": 1
         }
@@ -355,22 +358,34 @@ class BinanceLiveStream:
             try:
                 async with websockets.connect(self.ws_url) as websocket:
                     await websocket.send(json.dumps(subscribe_msg))
-                    print("[Binance WS] Connected to btcusdt Orderbook and Tape.")
+                    print("[Binance WS] Connected to Multi-Asset Block Radar.")
                     
                     async for message in websocket:
                         data = json.loads(message)
                         if 'bids' in data and 'asks' in data:
-                            bids = [[float(b[0]), float(b[1])] for b in data['bids']]
-                            asks = [[float(a[0]), float(a[1])] for a in data['asks']]
-                            redis_client.set('alphasignal:liquidity', json.dumps({"bids": bids, "asks": asks}))
+                            # We only track BTC depth for the primary liquidity UI
+                            if data.get('s') == 'BTCUSDT' or 'btcusdt' in str(message):
+                                bids = [[float(b[0]), float(b[1])] for b in data['bids']]
+                                asks = [[float(a[0]), float(a[1])] for a in data['asks']]
+                                redis_client.set('alphasignal:liquidity', json.dumps({"bids": bids, "asks": asks}))
+                        
                         if 'e' in data and data['e'] == 'aggTrade':
                             p = float(data['p'])
                             q = float(data['q'])
                             usd = p * q
+                            # WHALE THRESHOLD: $50,000 block trade
                             if usd > 50000:
-                                whale_ev = {"time": data['T'], "price": p, "qty": q, "value": usd, "side": "sell" if data['m'] else "buy"}
+                                ticker = data.get('s', 'BTCUSDT').replace('USDT', '')
+                                whale_ev = {
+                                    "ticker": ticker,
+                                    "time": data['T'], 
+                                    "price": p, 
+                                    "qty": q, 
+                                    "value": usd, 
+                                    "side": "sell" if data['m'] else "buy"
+                                }
                                 redis_client.lpush('alphasignal:whales', json.dumps(whale_ev))
-                                redis_client.ltrim('alphasignal:whales', 0, 49)
+                                redis_client.ltrim('alphasignal:whales', 0, 99) # Keep last 100 blocks
             except Exception as e:
                 print(f"[Binance WS] Error: {e}, retrying in 5s...")
                 await asyncio.sleep(5)

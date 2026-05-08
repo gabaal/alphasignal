@@ -14,6 +14,7 @@ const viewMap = {
     'macro-calendar': renderMacroCalendar,
     'algo-hub': renderAlgoHub,
     'whales': renderWhales,
+    'block-radar': renderBlockRadar,
     regime: renderRegime,
     'global-hub': () => switchView('macro-hub'),
     'macro-hub': renderMacroHub,

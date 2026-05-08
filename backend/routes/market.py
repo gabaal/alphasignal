@@ -522,3 +522,43 @@ class MarketRoutesMixin:
         self.end_headers()
         self.wfile.write(json.dumps({'stripe_publishable_key': STRIPE_PUBLISHABLE_KEY}).encode('utf-8'))
 
+    def handle_whales(self):
+        try:
+            from backend.database import redis_client
+            # Fetch last 100 whale events from Redis list
+            whales_list = redis_client.lrange('alphasignal:whales', 0, 99)
+            results = []
+            for trade_str in whales_list:
+                try:
+                    trade = json.loads(trade_str)
+                    usd = trade['value']
+                    p   = trade['price']
+                    q   = trade['qty']
+                    ticker = trade.get('ticker', 'BTC')
+                    side   = trade.get('side', 'buy')
+                    
+                    # Impact scoring (Institutional Thresholds)
+                    impact = 'EXTREME' if usd > 2000000 else 'HIGH' if usd > 500000 else 'MEDIUM'
+                    
+                    # Format for whales.js
+                    dt = datetime.fromtimestamp(trade['time'] / 1000.0)
+                    results.append({
+                        'ticker': ticker,
+                        'asset': f'{ticker}-USD',
+                        'amount': round(q, 2),
+                        'usdValue': f'${usd / 1000000:.1f}M' if usd >= 1000000 else f'${usd:,.0f}',
+                        'price': p,
+                        'side': side.upper(),
+                        'flow': 'INFLOW' if side == 'buy' else 'OUTFLOW',
+                        'impact': impact,
+                        'timestamp': dt.strftime('%H:%M:%S'),
+                        'hash': str(hash(trade['time']))[:12].replace('-', 'C'),
+                        'from': 'Institutional Accumulation' if side == 'buy' else 'Orderbook Execution',
+                        'to': 'Exchange Liquidity' if side == 'buy' else 'Private Custody'
+                    })
+                except: continue
+            self.send_json({'results': results})
+        except Exception as e:
+            print(f'Whales API Error: {e}')
+            self.send_json({'results': []})
+
