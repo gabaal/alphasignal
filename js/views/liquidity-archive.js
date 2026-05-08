@@ -4,7 +4,8 @@ async function renderLiquidityView(tabs = null) {
         { id: 'walls',        label: 'DEPTH WALLS',       view: 'liquidity', icon: 'bar_chart' },
         { id: 'heatmap',      label: 'HEATMAP',           view: 'liquidity', icon: 'grid_on' },
         { id: 'liquidations', label: 'LIQUIDATION FLUX',  view: 'liquidity', icon: 'warning' },
-        { id: 'volatility',   label: 'VOL SURFACE',       view: 'liquidity', icon: 'ssid_chart' }
+        { id: 'volatility',   label: 'VOL SURFACE',       view: 'liquidity', icon: 'ssid_chart' },
+        { id: 'radar',        label: 'WHALE RADAR',       view: 'liquidity', icon: 'radar' }
     ];
 
     // Track active sub-tab in sessionStorage
@@ -87,11 +88,19 @@ async function renderLiquidityView(tabs = null) {
                         </div>
                     </div>
                 </div>
-                <div class="glass-card" style="padding:1rem;border:1px solid rgba(0,242,255,0.2)">
-                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:0.75rem">- WHALE WATCH</div>
-                    <div id="whale-watch-content" class="whale-watch-list">
-                        <div style="font-size:0.6rem;color:var(--text-dim);text-align:center;padding:10px">Scanning entities...</div>
+                <div id="ai-tape-container" class="glass-card" style="padding:1rem; border:1px solid rgba(139,92,246,0.3); background:linear-gradient(135deg, rgba(139,92,246,0.05), rgba(0,242,255,0.02));">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+                        <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent)">AI TAPE READER</div>
+                        <span class="premium-badge" style="font-size:0.45rem;padding:1px 4px">NEURAL</span>
                     </div>
+                    <div id="ai-tape-reader-content" style="font-size:0.72rem; line-height:1.5; color:var(--text); min-height:100px;">
+                        <div class="skeleton-line" style="width:100%; margin-bottom:8px"></div>
+                        <div class="skeleton-line" style="width:80%; margin-bottom:8px"></div>
+                        <div class="skeleton-line" style="width:90%"></div>
+                    </div>
+                    <button id="ai-tape-refresh-btn" class="intel-action-btn mini outline" style="width:100%; margin-top:1rem; font-size:0.6rem; border-color:rgba(139,92,246,0.5)">
+                        <span class="material-symbols-outlined" style="font-size:12px; margin-right:4px">psychology</span> TRANSLATE TAPE
+                    </button>
                 </div>
             </div>
         </div>
@@ -127,6 +136,48 @@ async function renderLiquidityView(tabs = null) {
         const depthEl = document.getElementById('gomm-depth');
         if (depthEl && data.total_depth) depthEl.textContent = data.total_depth;
     }
+
+    // AI Tape Reader Initialization
+    const initAITapeReader = () => {
+        const btn = document.getElementById('ai-tape-refresh-btn');
+        const box = document.getElementById('ai-tape-reader-content');
+        if (!btn || !box) return;
+
+        btn.onclick = async () => {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-outlined spin" style="font-size:12px; margin-right:4px">sync</span> ANALYZING...`;
+            box.innerHTML = `<div class="skeleton-line" style="width:100%; margin-bottom:8px"></div><div class="skeleton-line" style="width:70%"></div>`;
+
+            try {
+                // Prepare context for AI: Tape + Imbalance + Ticker
+                const context = {
+                    ticker: window.gommTicker,
+                    imbalance: document.getElementById('gomm-imbalance')?.textContent || 'N/A',
+                    tape: (tapeData && tapeData.trades) ? tapeData.trades.slice(0, 10).map(t => `${t.side} ${t.size} @ ${t.price}`) : []
+                };
+
+                const resp = await fetchAPI('/explain-chart', 'POST', {
+                    chart_type: 'tape',
+                    symbol: window.gommTicker,
+                    data: context
+                });
+
+                if (resp && resp.explanation) {
+                    box.innerHTML = `<div style="color:var(--text-dim); font-style:italic; font-size:0.65rem; margin-bottom:8px;">Tactical Overview:</div>${resp.explanation}`;
+                } else {
+                    box.innerHTML = `<div style="color:var(--risk-high); font-size:0.75rem">AI Engine returned an empty insight. Verify your connection or subscription tier.</div>`;
+                }
+            } catch (err) {
+                console.error("[Neural Tape] API Error:", err);
+                const isRateLimit = err.message && (err.message.includes('429') || err.message.toLowerCase().includes('rate limit'));
+                box.innerHTML = `<div style="color:var(--risk-high); font-size:0.75rem">${isRateLimit ? 'Rate limit exceeded (Max 20/min). Slow down.' : 'Neural link failed. Verify API configuration.'}</div>
+                <button onclick="this.closest('.neural-box').querySelector('button').click()" style="margin-top:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-dim); padding:4px 8px; border-radius:4px; font-size:0.6rem; cursor:pointer">RETRY LINK</button>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:12px; margin-right:4px">psychology</span> TRANSLATE TAPE`;
+            }
+        };
+    };
 
     // Sub-view renderers
     function renderWallsMode() {
@@ -505,6 +556,109 @@ async function renderLiquidityView(tabs = null) {
         }, 50);
     }
 
+    function renderRadarMode() {
+        sectionTitle.textContent = 'Whale Watch Block Radar - Institutional Activity Pulse';
+        display.innerHTML = `
+            <div class="card" style="position:relative">
+                <div style="height:450px"><canvas id="gommRadarChart"></canvas></div>
+                <div id="radar-legend" style="display:flex; justify-content:center; gap:1.5rem; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border)">
+                    <div style="display:flex; align-items:center; gap:6px; font-size:0.6rem; color:var(--text-dim)">
+                        <span style="width:8px; height:8px; background:rgba(34,197,94,0.7); border-radius:50%"></span> INFLOW (ACCUMULATION)
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px; font-size:0.6rem; color:var(--text-dim)">
+                        <span style="width:8px; height:8px; background:rgba(239,68,68,0.7); border-radius:50%"></span> OUTFLOW (DISTRIBUTION)
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px; font-size:0.6rem; color:var(--text-dim)">
+                        <span class="material-symbols-outlined" style="font-size:12px">expand</span> BUBBLE SIZE = MARKET IMPACT
+                    </div>
+                </div>
+            </div>`;
+
+        async function updateRadar() {
+            const fresh = await fetchAPI('/whales');
+            if (!fresh || !fresh.results) return;
+
+            const ctx = document.getElementById('gommRadarChart')?.getContext('2d');
+            if (!ctx) return;
+
+            const dataPoints = fresh.results.map(t => {
+                const parts = t.timestamp.split(':');
+                const h = parseInt(parts[0]);
+                const m = parseInt(parts[1]);
+                const s = parseInt(parts[2] || 0);
+                const xVal = h + (m / 60) + (s / 3600);
+                
+                let yVal = 0;
+                if (t.usdValue.includes('M')) {
+                    yVal = parseFloat(t.usdValue.replace('$', '').replace('M', ''));
+                } else {
+                    yVal = parseFloat(t.usdValue.replace('$', '').replace(/,/g, '')) / 1000000;
+                }
+
+                return {
+                    x: xVal,
+                    y: yVal,
+                    r: Math.max(5, Math.min(30, yVal * 8)),
+                    side: t.flow,
+                    impact: t.impact,
+                    ticker: t.asset
+                };
+            });
+
+            if (window._gommRadarChartInst) window._gommRadarChartInst.destroy();
+            window._gommRadarChartInst = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Institutional Blocks',
+                            data: dataPoints,
+                            backgroundColor: c => c.raw.side === 'INFLOW' ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)',
+                            borderColor: c => c.raw.side === 'INFLOW' ? 'rgba(34,197,94,0.8)' : 'rgba(239,68,68,0.8)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => {
+                                    const d = c.raw;
+                                    return [
+                                        `Type: ${d.side}`,
+                                        `Value: $${d.y.toFixed(2)}M`,
+                                        `Impact: ${d.impact}`,
+                                        `Ticker: ${d.ticker}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: { display: true, text: 'Time (UTC Hours)', color: '#666', font: { size: 9 } },
+                            grid: { color: 'rgba(255,255,255,0.03)' },
+                            ticks: { color: '#888', stepSize: 1, callback: v => v + ':00' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Value ($ Millions)', color: '#666', font: { size: 9 } },
+                            grid: { color: 'rgba(255,255,255,0.03)' },
+                            ticks: { color: '#888', callback: v => '$' + v + 'M' }
+                        }
+                    }
+                }
+            });
+        }
+
+        updateRadar();
+        if (window._gommLiveInterval) clearInterval(window._gommLiveInterval);
+        window._gommLiveInterval = setInterval(updateRadar, 15000);
+    }
+
     // Tab switching - update active button styles + render sub-view
     window._gommSwitch = function(mode) {
         // Always clear live poll before switching tabs
@@ -515,12 +669,13 @@ async function renderLiquidityView(tabs = null) {
             const btn = document.getElementById(`gomm-tab-${t.id}`);
             if (btn) btn.className = `intel-action-btn mini ${mode === t.id ? '' : 'outline'}`;
         });
-        const renderers = { walls: renderWallsMode, heatmap: renderHeatmapMode, liquidations: renderLiquidationMode, volatility: renderVolatilityMode };
+        const renderers = { walls: renderWallsMode, heatmap: renderHeatmapMode, liquidations: renderLiquidationMode, volatility: renderVolatilityMode, radar: renderRadarMode };
         if (renderers[mode]) renderers[mode]();
     };
 
     // Render active sub-view
     window._gommSwitch(activeMode);
+    initAITapeReader();
 
     // - Live Whale Watch Poller -
     const WHALE_POLL = 15000; // 15s - hourly backend seed, but last_tx + HFW addr change

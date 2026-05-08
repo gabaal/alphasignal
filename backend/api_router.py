@@ -38,7 +38,7 @@ _RATE_LOCK     = threading.Lock()
 
 _RATE_LIMITS = {
     'auth':    10,   # login / signup - 10 req/min per IP
-    'ai':       6,   # AI analyst / ask-terminal / signal-thesis
+    'ai':       20,  # AI analyst / ask-terminal / signal-thesis
     'default': 600,  # everything else
 }
 
