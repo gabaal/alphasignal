@@ -643,14 +643,9 @@ function initLiveAlphaScroller() {
         const topSignals = Array.isArray(data) ? data : (data && data.signals) ? data.signals : [];
         
         // --- Signal Persistence (Stickiness) ---
-        // If we receive an empty signal list, but we already have signals showing, 
-        // we KEEP the old ones. We only show "MONITORING" if the ticker is empty (Syncing).
         if (topSignals.length === 0) {
             const currentHasAlpha = scrollerEl.innerHTML.includes('ALPHA]');
-            if (currentHasAlpha) {
-                // Keep the current sticky signals.
-                return;
-            }
+            if (currentHasAlpha) return;
         }
 
         if (topSignals.length > 0) {
@@ -668,16 +663,25 @@ function initLiveAlphaScroller() {
                 scrollerEl.style.animation = 'none';
                 scrollerEl.innerHTML = newContent;
                 void scrollerEl.offsetWidth; 
-                scrollerEl.style.animation = ''; 
+                scrollerEl.style.animation = 'scroll-left 40s linear infinite'; 
             }
         } else if (!scrollerEl.innerHTML.includes('MONITORING')) {
             const monitorHtml = '<span style="color:var(--text-dim); letter-spacing:1px; margin-right:5rem">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
             scrollerEl.style.animation = 'none';
             scrollerEl.innerHTML = monitorHtml + monitorHtml;
             void scrollerEl.offsetWidth;
-            scrollerEl.style.animation = '';
+            scrollerEl.style.animation = 'scroll-left 40s linear infinite';
         }
     };
+    
+    // --- Animation Watchdog ---
+    // Ensure the animation NEVER stops even if the browser tries to suspend it
+    setInterval(() => {
+        const scrollerEl = document.getElementById('alpha-scroller');
+        if (scrollerEl && scrollerEl.style.animationName === 'none') {
+            scrollerEl.style.animation = 'scroll-left 40s linear infinite';
+        }
+    }, 5000);
 
     // Initial state until WebSocket pushes first chunk
     scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">SYNCING LIVE ALPHA STREAM...</span>';

@@ -580,22 +580,18 @@ class HarvestService:
         self.interval = interval
         self.running = True
 
-    def _warm_signals_cache(self):
+    def _warm_signals_cache(self, delay=0):
         """Internal trigger to populate Institutional signals cache for the ticker tape."""
         try:
-            # We use a non-blocking background thread to hit the API and warm the cache
             def _trigger():
                 try:
-                    time.sleep(15) # Wait for server to fully bind
-                    print(f"[{datetime.now()}] [Harvester] Warming Signal Cache...")
-                    # We can't easily call the mixin method without a full Request object,
-                    # so we hit the local API endpoint which is already designed to handle this.
-                    # This also validates that the API is responsive.
+                    if delay > 0:
+                        time.sleep(delay)
+                    print(f"[{datetime.now()}] [Harvester] Refreshing Signal Cache...")
                     url = f"http://127.0.0.1:8006/api/signals?refresh=1"
                     requests.get(url, timeout=30)
-                    print(f"[{datetime.now()}] [Harvester] Signal Cache Warmed Successfully.")
                 except Exception as e:
-                    print(f"[Harvester] Signal Warmup Error: {e}")
+                    print(f"[Harvester] Signal Refresh Error: {e}")
             
             threading.Thread(target=_trigger, daemon=True).start()
         except: pass
@@ -609,8 +605,8 @@ class HarvestService:
             time.sleep(2)
         print(f"[{datetime.now()}] Models ready, commencing harvest cycle...")
         
-        # Immediate warmup to populate ticker tape
-        self._warm_signals_cache()
+        # Immediate warmup to populate ticker tape (with 15s safety delay for first run)
+        self._warm_signals_cache(delay=15)
         
         last_regime = None
         while self.running:
