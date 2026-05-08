@@ -642,6 +642,17 @@ function initLiveAlphaScroller() {
         
         const topSignals = Array.isArray(data) ? data : (data && data.signals) ? data.signals : [];
         
+        // --- Signal Persistence (Stickiness) ---
+        // If we receive an empty signal list, but we already have signals showing, 
+        // we KEEP the old ones. We only show "MONITORING" if the ticker is empty (Syncing).
+        if (topSignals.length === 0) {
+            const currentHasAlpha = scrollerEl.innerHTML.includes('ALPHA]');
+            if (currentHasAlpha) {
+                // Keep the current sticky signals.
+                return;
+            }
+        }
+
         if (topSignals.length > 0) {
             const html = topSignals.map(s => {
                 const alpha = s.alpha || 0;
