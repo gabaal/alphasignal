@@ -172,12 +172,13 @@ function renderBlockRadarRows(results) {
     return results.map(w => {
         const isExtreme = w.impact === 'EXTREME';
         const impactPct = w.impact === 'EXTREME' ? 100 : w.impact === 'HIGH' ? 70 : 40;
-        const sideVal = w.side || 'BUY';
+        const sideVal = w.side || (w.flow === 'INFLOW' ? 'BUY' : 'SELL');
         const sideClass = sideVal.toLowerCase();
+        const displayTicker = w.ticker || (w.asset ? w.asset.split('-')[0] : 'BTC');
         
         return `
             <div class="block-radar-row ${isExtreme ? 'extreme' : ''}">
-                <div class="br-ticker">${w.ticker || 'BTC'}</div>
+                <div class="br-ticker">${displayTicker}</div>
                 <div class="br-side ${sideClass}">${sideVal}</div>
                 <div class="br-value">${w.usdValue}</div>
                 <div style="display:flex; flex-direction:column; gap:4px">
@@ -188,7 +189,7 @@ function renderBlockRadarRows(results) {
                 </div>
                 <div class="br-meta">
                     <span style="color:var(--text)">${w.timestamp}</span>
-                    <span style="color:var(--text-dim); font-size:0.55rem">@ ${formatPrice(w.price)}</span>
+                    <span style="color:var(--text-dim); font-size:0.55rem">@ ${w.price ? formatPrice(w.price) : 'Market'}</span>
                 </div>
             </div>
         `;
@@ -235,7 +236,8 @@ function renderRadarHeatmap(results) {
     
     const tickerBuckets = {};
     results.forEach(w => {
-        tickerBuckets[w.ticker] = (tickerBuckets[w.ticker] || 0) + 1;
+        const t = w.ticker || (w.asset ? w.asset.split('-')[0] : 'BTC');
+        tickerBuckets[t] = (tickerBuckets[t] || 0) + 1;
     });
     
     const sorted = Object.entries(tickerBuckets).sort((a,b) => b[1] - a[1]);
