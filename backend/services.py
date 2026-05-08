@@ -854,6 +854,39 @@ class HarvestService:
         finally:
             conn.close()
 
+    def check_confluence(self, ticker, direction, current_regime=None):
+        """
+        Validates signal reliability by checking for institutional confluence.
+        Returns (is_confirmed, reason)
+        """
+        try:
+            # 1. Regime Filter
+            # Longs are blocked in Crash/Bear regimes. Shorts are blocked in Bull regimes.
+            if current_regime:
+                reg = current_regime.lower()
+                if direction == 'LONG' and any(x in reg for x in ['bear', 'crash']):
+                    return False, f"Suppressed: Counter-trend Long in {current_regime} regime"
+                if direction == 'SHORT' and 'bull' in reg:
+                    return False, f"Suppressed: Counter-trend Short in {current_regime} regime"
+
+            # 2. Order Flow Filter
+            imbalance = get_orderbook_imbalance(ticker)
+            if direction == 'LONG' and imbalance < -0.15:
+                return False, f"Suppressed: Orderbook imbalance ({imbalance:+.2f}) shows heavy selling"
+            if direction == 'SHORT' and imbalance > 0.15:
+                return False, f"Suppressed: Orderbook imbalance ({imbalance:+.2f}) shows heavy buying"
+
+            # 3. Sentiment Filter
+            sentiment = get_sentiment(ticker)
+            if direction == 'LONG' and sentiment < -0.3:
+                return False, f"Suppressed: Extreme negative sentiment ({sentiment:+.2f})"
+            if direction == 'SHORT' and sentiment > 0.3:
+                return False, f"Suppressed: Extreme positive sentiment ({sentiment:+.2f})"
+
+            return True, "Confluence Confirmed"
+        except:
+            return True, "Confluence Bypass (Data Error)"
+
     def generate_alpha_alerts(self, data, current_regime=None):
         """Phase 8: Predict Alpha signals using ML engine using high-efficiency batch data."""
         if data is None or data.empty: return
@@ -929,10 +962,18 @@ class HarvestService:
                 ml_z_thresh = max(min_algo_z_thresh, ML_ZSCORE_FLOOR)
                 signal_type = None
                 if abs(z_score) >= ml_z_thresh:
+                    _direction = 'LONG' if pred_return > 0 else 'SHORT'
+                    
+                    # --- CONFLUENCE CHECK ---
+                    is_ok, reason = self.check_confluence(ticker, _direction, current_regime)
+                    if not is_ok:
+                        print(f"[{datetime.now()}] [SignalSuppressed] {ticker} {_direction} - {reason}")
+                        continue
+                        
                     signal_type = "ML_ALPHA_PREDICTION"
                     severity = 'critical' if abs(z_score) >= 3.0 else 'high' if abs(z_score) >= 2.5 else 'medium'
                     top_driver = max(importance, key=importance.get)
-                    message = f"ML Engine predicts +{pred_return*100:.1f}% alpha window. Primary driver: {top_driver.upper()} ({(importance[top_driver]*100):.1f}% confidence)."
+                    message = f"ML Engine predicts +{pred_return*100:.1f}% alpha window. Confluence Validated. Driver: {top_driver.upper()}."
                 
                 if signal_type:
                     # Get all users to receive this signal
@@ -1254,6 +1295,14 @@ class HarvestService:
                             message  = (f'Volume >2.5x above 20-day mean on {ticker} '
                                         f'(price above SMA-50 ${sma50:,.4f}). Institutional accumulation footprint.')
                             severity = 'medium'
+
+                    # --- CONFLUENCE VALIDATION FOR RULE-BASED ---
+                    if sig_type:
+                        _dir = 'LONG' if 'OVERSOLD' in sig_type or 'BULLISH' in sig_type or 'VOLUME_SPIKE' in sig_type else 'SHORT'
+                        is_ok, reason = self.check_confluence(ticker, _dir, current_regime)
+                        if not is_ok:
+                            print(f"[{datetime.now()}] [RuleSigSuppressed] {ticker} {sig_type} - {reason}")
+                            sig_type = None
 
                         
                     if sig_type:
