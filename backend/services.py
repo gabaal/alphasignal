@@ -580,6 +580,26 @@ class HarvestService:
         self.interval = interval
         self.running = True
 
+    def _warm_signals_cache(self):
+        """Internal trigger to populate Institutional signals cache for the ticker tape."""
+        try:
+            # We use a non-blocking background thread to hit the API and warm the cache
+            def _trigger():
+                try:
+                    time.sleep(15) # Wait for server to fully bind
+                    print(f"[{datetime.now()}] [Harvester] Warming Signal Cache...")
+                    # We can't easily call the mixin method without a full Request object,
+                    # so we hit the local API endpoint which is already designed to handle this.
+                    # This also validates that the API is responsive.
+                    url = f"http://127.0.0.1:8006/api/signals?refresh=1"
+                    requests.get(url, timeout=30)
+                    print(f"[{datetime.now()}] [Harvester] Signal Cache Warmed Successfully.")
+                except Exception as e:
+                    print(f"[Harvester] Signal Warmup Error: {e}")
+            
+            threading.Thread(target=_trigger, daemon=True).start()
+        except: pass
+
     def run(self):
         print(f"[{datetime.now()}] Harvester service starting...")
         
@@ -588,6 +608,9 @@ class HarvestService:
         while not ML_ENGINE.models and self.running:
             time.sleep(2)
         print(f"[{datetime.now()}] Models ready, commencing harvest cycle...")
+        
+        # Immediate warmup to populate ticker tape
+        self._warm_signals_cache()
         
         last_regime = None
         while self.running:
@@ -598,6 +621,9 @@ class HarvestService:
                 c.execute("SELECT ticker FROM tracked_tickers")
                 tracked = [r[0] for r in c.fetchall()]
                 conn.close()
+                
+                # Periodically re-warm the signals cache to keep ticker tape fresh
+                self._warm_signals_cache()
                 
                 all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked))
                 print(f"[{datetime.now()}] Harvesting data for {len(all_tickers)} assets...")

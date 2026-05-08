@@ -651,7 +651,9 @@ function initLiveAlphaScroller() {
                 return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(price)}</span></span>`;
             }).join('');
             scroller.innerHTML = html + html;
-        } else {
+        } else if (!scroller.innerHTML.includes('ALPHA]')) {
+            // Only show the "monitoring" message if the scroller is empty/synching
+            // If it already has signals, we KEEP them (sticky ticker) until new ones arrive.
             scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
         }
     };
