@@ -64,6 +64,7 @@ async function renderLiquidityView(tabs = null) {
                 <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
             </button>
         </div>
+        ${window.renderHubTabs ? window.renderHubTabs('liquidity', tabs || window.institutionalHubTabs) : ''}
         ${tabBarHTML}
         <h2 id="gomm-section-title" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem"></h2>
 

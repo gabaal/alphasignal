@@ -61,6 +61,7 @@ const institutionalHubTabs = [
     { id: 'stress', label: 'STRESS LAB', view: 'stress', icon: 'warning_amber' },
     { id: 'tradelab', label: 'TRADE IDEA LAB', view: 'tradelab', icon: 'experiment' },
     { id: 'gex', label: 'DEALER GAMMA', view: 'gex-profile', icon: 'ssid_chart' },
+    { id: 'liquidity', label: 'LIQUIDITY & FLOW', view: 'liquidity', icon: 'waves' },
     { id: 'unlocks', label: 'TOKEN UNLOCKS', view: 'token-unlocks', icon: 'key' },
     { id: 'yield', label: 'YIELD LAB', view: 'yield-lab', icon: 'biotech' },
     { id: 'rebalancer', label: 'AI REBALANCER', view: 'ai-rebalancer', icon: 'smart_toy' },

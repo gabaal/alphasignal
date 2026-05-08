@@ -170,6 +170,70 @@ window.renderGexProfile = async function(tabs = null) {
             <span style="color:#8b5cf6">STRATEGY:</span> ${isPos ? 'Scalp mean-reversion within gamma walls.' : 'Avoid catching knives; wait for pivot reclaim.'}
         `;
 
+        // --- Gamma Sensitivity Matrix Implementation ---
+        const matrixContainer = document.createElement('div');
+        matrixContainer.className = 'glass-card';
+        matrixContainer.style.marginTop = '1.5rem';
+        matrixContainer.style.padding = '1.5rem';
+        matrixContainer.innerHTML = `
+            <div class="card-header" style="margin-bottom:1.5rem">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                    <h3>Gamma Sensitivity Matrix (Projector)</h3>
+                    <span class="label-tag" style="background:rgba(0,242,255,0.1); color:var(--accent)">MODE: REGIME SHIFT PREDICTION</span>
+                </div>
+            </div>
+            <div style="overflow-x:auto">
+                <table style="width:100%; border-collapse:collapse; font-size:0.7rem; font-family:var(--font-mono)">
+                    <thead>
+                        <tr style="color:var(--text-dim); text-align:left; border-bottom:1px solid var(--border)">
+                            <th style="padding:10px">PRICE SHIFT</th>
+                            <th style="padding:10px">PROJECTED PRICE</th>
+                            <th style="padding:10px">EST. NET GEX</th>
+                            <th style="padding:10px">REGIME STATE</th>
+                            <th style="padding:10px">HEDGING DELTA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gex-sensitivity-body"></tbody>
+                </table>
+            </div>
+        `;
+        content.appendChild(matrixContainer);
+
+        const body = document.getElementById('gex-sensitivity-body');
+        const shifts = [-10, -5, -3, -1, 0, 1, 3, 5, 10];
+        
+        shifts.forEach(s => {
+            const projPrice = data.spot * (1 + s/100);
+            
+            // Simulate GEX shift: ATM bell curve moves with price
+            // We approximate this by shifting the original profile's weight
+            let projGex = 0;
+            data.profile.forEach(p => {
+                const dist = (p.strike - projPrice) / projPrice;
+                const base_g = Math.exp(-(dist**2)/(2*0.05**2)) * 1000;
+                let g = base_g;
+                if (p.strike < projPrice) g = -Math.abs(g) * 0.8;
+                else g = Math.abs(g) * 1.1;
+                projGex += g;
+            });
+
+            const isProjPos = projGex >= 0;
+            const regime = isProjPos ? 'STABLE' : 'UNSTABLE';
+            const color = isProjPos ? 'var(--risk-low)' : 'var(--risk-high)';
+            const opacity = s === 0 ? 1 : 0.6;
+            const rowStyle = s === 0 ? 'background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.3)' : '';
+
+            body.innerHTML += `
+                <tr style="${rowStyle}; opacity:${opacity}">
+                    <td style="padding:12px; color:${s < 0 ? 'var(--risk-high)' : s > 0 ? 'var(--risk-low)' : 'white'}">${s > 0 ? '+' : ''}${s}%</td>
+                    <td style="padding:12px">$${projPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
+                    <td style="padding:12px; color:${color}">${(isProjPos ? '+' : '')}${(projGex/1000).toFixed(1)}M</td>
+                    <td style="padding:12px"><span style="background:${color}22; color:${color}; padding:2px 8px; border-radius:4px; font-size:0.6rem; font-weight:900">${regime}</span></td>
+                    <td style="padding:12px; color:var(--text-dim)">${(Math.abs(projGex - totalGex) / 100).toFixed(1)}% Change</td>
+                </tr>
+            `;
+        });
+
     } catch (e) {
         document.getElementById('gex-loading').innerHTML = `<div class="error-msg">GEX Load Failed: ${e.message}</div>`;
     }
