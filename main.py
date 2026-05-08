@@ -147,32 +147,36 @@ class WebSocketServer:
             if message['type'] == 'message':
                 self.broadcast(message['data'])
 
-    def price_publisher_loop(self):
-        """Fetch prices every 5 seconds and publish to WS clients.
-        Every 60s also pre-warms the signal price cache and checks TP/SL crossings.
-        """
-        from backend.database import redis_client
-        from backend.routes.institutional import InstitutionalRoutesMixin
+    def price_harvester_loop(self):
+        """Background thread to fetch prices every 15s without blocking the WS loop."""
         tickers = {'BTC': 'BTC-USD', 'ETH': 'ETH-USD', 'SOL': 'SOL-USD'}
-        use_redis = hasattr(redis_client, 'connection_pool')
-        BULLISH_T = {'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION',
-                     'VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION'}
-        # Track which signals have already been notified (persist in memory until restart)
-        _notified: dict = {}   # {signal_id: 'HIT_TP1'|'HIT_TP2'|'STOPPED'}
-        _last_prewarm = 0.0
-
         while self.running:
             try:
-                import yfinance as yf
-                # - Header prices (every 5s) -
                 for sym, tick in tickers.items():
                     try:
                         info = yf.Ticker(tick).fast_info
                         px = info.get('last_price') or info.get('lastPrice')
                         if px and float(px) > 0:
                             LIVE_PRICES[sym] = round(float(px), 2)
-                    except Exception:
-                        pass
+                    except: pass
+                time.sleep(15)
+            except: time.sleep(5)
+
+    def price_publisher_loop(self):
+        """Fetch prices every 5 seconds and publish to WS clients.
+        Every 60s also pre-warms the signal price cache and checks TP/SL crossings.
+        """
+        from backend.database import redis_client
+        from backend.routes.institutional import InstitutionalRoutesMixin
+        use_redis = hasattr(redis_client, 'connection_pool')
+        BULLISH_T = {'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION',
+                     'VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION'}
+        # Track which signals have already been notified (persist in memory until restart)
+        _notified: dict = {}   # {signal_id: 'HIT_TP1'|'HIT_TP2'|'STOPPED'}
+        _last_prewarm = 0.0
+        
+        while self.running:
+            try:
 
                 try:
                     conn = sqlite3.connect(DB_PATH, timeout=30)
@@ -320,6 +324,7 @@ class WebSocketServer:
         srv.listen(10)
         print(f"[WebSocket] Live price stream on ws://127.0.0.1:{self.PORT}")
         threading.Thread(target=self.redis_subscriber_loop, daemon=True).start()
+        threading.Thread(target=self.price_harvester_loop, daemon=True).start()
         threading.Thread(target=self.price_publisher_loop, daemon=True).start()
         while self.running:
             try:

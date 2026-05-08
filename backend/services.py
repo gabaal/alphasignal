@@ -605,8 +605,8 @@ class HarvestService:
             time.sleep(2)
         print(f"[{datetime.now()}] Models ready, commencing harvest cycle...")
         
-        # Immediate warmup to populate ticker tape (with 15s safety delay for first run)
-        self._warm_signals_cache(delay=15)
+        # Immediate warmup to populate ticker tape
+        self._warm_signals_cache(delay=0)
         
         last_regime = None
         while self.running:
@@ -757,6 +757,7 @@ class HarvestService:
             missing = [t for t in unique_tickers if t not in price_map]
             if missing:
                 try:
+                    import yfinance as yf
                     for t in missing:
                         candidates = [t] + ([t + '-USD'] if '-' not in t else [])
                         for sym in candidates:
