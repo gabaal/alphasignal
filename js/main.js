@@ -636,13 +636,19 @@ function initLiveAlphaScroller() {
     const scroller = document.getElementById('alpha-scroller');
     if (!scroller) return;
 
-    window.updateLiveAlphaScroller = function (topSignals) {
+    window.updateLiveAlphaScroller = function (data) {
         if (!scroller) return;
-        if (Array.isArray(topSignals) && topSignals.length > 0) {
+        
+        // Handle both raw array and institutional response object
+        const topSignals = Array.isArray(data) ? data : (data && data.signals) ? data.signals : [];
+        
+        if (topSignals.length > 0) {
             const html = topSignals.map(s => {
-                const color = s.alpha >= 0 ? 'var(--risk-low)' : 'var(--risk-high)';
-                const dir = s.alpha >= 0 ? 'LONG' : 'SHORT';
-                return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(s.alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(s.price)}</span></span>`;
+                const alpha = s.alpha || 0;
+                const color = alpha >= 0 ? 'var(--risk-low)' : 'var(--risk-high)';
+                const dir = alpha >= 0 ? 'LONG' : 'SHORT';
+                const price = s.price || 0;
+                return `<span style="margin-right:4rem; white-space:nowrap"><strong style="color:var(--text); letter-spacing:1px">${s.ticker}</strong> <span style="color:${color}; font-weight:900">[${dir} ${Math.abs(alpha).toFixed(2)}% ALPHA]</span> <span style="color:var(--text-dim)">@ ${formatPrice(price)}</span></span>`;
             }).join('');
             scroller.innerHTML = html + html;
         } else {
@@ -655,10 +661,15 @@ function initLiveAlphaScroller() {
 
     // Pre-fetch public signals to populate ticker tape immediately before WebSocket/Fallback kicks in
     fetchAPI('/signals').then(data => {
-        if (data && Array.isArray(data) && data.length > 0) {
-            window.updateLiveAlphaScroller(data.slice(0, 10));
+        if (data) {
+            const signals = Array.isArray(data) ? data : (data.signals || []);
+            if (signals.length > 0) {
+                window.updateLiveAlphaScroller(signals.slice(0, 10));
+            }
         }
-    }).catch(e => { });
+    }).catch(e => { 
+        console.warn("[Ticker] Initial fetch failed:", e);
+    });
 }
 
 function initLivePriceStream() {

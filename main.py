@@ -186,7 +186,10 @@ class WebSocketServer:
 
                 try:
                     sc = InstitutionalRoutesMixin._signals_cache
-                    top_alpha = sc['data'][:10] if (sc and sc.get('data')) else []
+                    if sc and sc.get('data') and isinstance(sc['data'], dict):
+                        top_alpha = sc['data'].get('signals', [])[:10]
+                    else:
+                        top_alpha = []
                 except Exception:
                     top_alpha = []
 

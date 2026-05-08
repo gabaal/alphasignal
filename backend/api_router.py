@@ -1394,7 +1394,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         try:
             from backend.routes.institutional import InstitutionalRoutesMixin
             sc = InstitutionalRoutesMixin._signals_cache
-            res['top_alpha'] = sc['data'][:10] if (sc and sc.get('data')) else []
+            # Fix: sc['data'] is an object {"signals": [...], "_market_regime": {...}}
+            if sc and sc.get('data') and isinstance(sc['data'], dict):
+                sigs = sc['data'].get('signals', [])
+                res['top_alpha'] = sigs[:10]
+            else:
+                res['top_alpha'] = []
         except:
             res['top_alpha'] = []
 
