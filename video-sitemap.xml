@@ -1,484 +1,449 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
-    <loc>https://alphasignal.digital/academy/ai-narrative-velocity-sentiment</loc>
+    <loc>https://alphasignal.digital/academy-watch</loc>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://alphasignal.digital/academy/ai-narrative-velocity-sentiment.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/bqOqAI7OD7Y/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/bqOqAI7OD7Y/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Sentiment Analysis in Crypto Masterclass</video:title>
+      <video:description>Learn how to quantify social momentum and front-run hype cycles using advanced sentiment analysis techniques.</video:description>
       <video:player_loc>https://www.youtube.com/embed/bqOqAI7OD7Y</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>800</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/algorithmic-ai-trade-signals</loc>
+    <loc>https://alphasignal.digital/academy/algorithmic-ai-trade-signals.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/wYbf5XwdcPI/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/wYbf5XwdcPI/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>AI for Trading: Algorithmic Signals</video:title>
+      <video:description>Learn how to leverage artificial intelligence and machine learning to generate high-probability trading signals.</video:description>
       <video:player_loc>https://www.youtube.com/embed/wYbf5XwdcPI</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1013</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/bollinger-bands-volatility</loc>
+    <loc>https://alphasignal.digital/academy/bollinger-bands-volatility.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/9q32G8yLxbM/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/9q32G8yLxbM/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Mastering Bollinger Bands with SMB Capital</video:title>
+      <video:description>Learn how professional proprietary traders use Bollinger Bands to identify high-probability mean reversion and breakout ...</video:description>
       <video:player_loc>https://www.youtube.com/embed/9q32G8yLxbM</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>876</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/breakout-trading-strategies</loc>
+    <loc>https://alphasignal.digital/academy/breakout-trading-strategies.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/wpPHULhcsn4/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/wpPHULhcsn4/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Breakout Trading Masterclass</video:title>
+      <video:description>Professional guide to trading volatility breakouts and avoiding fakeouts using order flow.</video:description>
       <video:player_loc>https://www.youtube.com/embed/wpPHULhcsn4</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>495</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/candlestick-patterns</loc>
+    <loc>https://alphasignal.digital/academy/candlestick-patterns.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/khy2uPMdK54/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/khy2uPMdK54/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Candlestick Analysis Masterclass</video:title>
+      <video:description>Learn how to read price action through candlesticks with an institutional perspective on supply and demand.</video:description>
       <video:player_loc>https://www.youtube.com/embed/khy2uPMdK54</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1257</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/capital-sector-rotation</loc>
+    <loc>https://alphasignal.digital/academy/capital-sector-rotation.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/C0BK_Mip9oM/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/C0BK_Mip9oM/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Sector Rotation Masterclass</video:title>
+      <video:description>Learn how to identify and front-run the rotation of capital across different crypto sectors.</video:description>
       <video:player_loc>https://www.youtube.com/embed/C0BK_Mip9oM</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>739</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/cme-futures-gaps-bitcoin</loc>
+    <loc>https://alphasignal.digital/academy/cme-futures-gaps-bitcoin.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/ADSOBbXdzNE/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/ADSOBbXdzNE/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>CME Bitcoin Futures Gaps Masterclass</video:title>
+      <video:description>Learn the mechanics of CME gaps, the arbitrage loop, and institutional weekend risk management.</video:description>
       <video:player_loc>https://www.youtube.com/embed/ADSOBbXdzNE</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>647</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/crypto-liquidations-tracker</loc>
+    <loc>https://alphasignal.digital/academy/crypto-liquidations-tracker.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/rdaZDhciMxI/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/rdaZDhciMxI/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Crypto Liquidations & Open Interest Masterclass</video:title>
+      <video:description>Learn how to track institutional order flow and liquidation levels to identify market reversals.</video:description>
       <video:player_loc>https://www.youtube.com/embed/rdaZDhciMxI</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>754</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/divergence-trading-strategies</loc>
+    <loc>https://alphasignal.digital/academy/divergence-trading-strategies.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/uxNQDwjREuc/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/uxNQDwjREuc/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Divergence Trading Masterclass</video:title>
+      <video:description>Professional guide to identifying and trading regular and hidden divergences in crypto markets.</video:description>
       <video:player_loc>https://www.youtube.com/embed/uxNQDwjREuc</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>556</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/elliott-wave-theory</loc>
+    <loc>https://alphasignal.digital/academy/elliott-wave-theory.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/ZeD60UItVlM/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/ZeD60UItVlM/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Elliott Wave Theory: The Definitive Guide</video:title>
+      <video:description>Master the fractal nature of markets with this institutional Elliott Wave masterclass.</video:description>
       <video:player_loc>https://www.youtube.com/embed/ZeD60UItVlM</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1013</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/fibonacci-retracements-crypto</loc>
+    <loc>https://alphasignal.digital/academy/fibonacci-retracements-crypto.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/Ypj2VTWbrW0/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/Ypj2VTWbrW0/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Fibonacci Masterclass</video:title>
+      <video:description>Learn how professional traders use Fibonacci levels to identify high-probability institutional entry zones.</video:description>
       <video:player_loc>https://www.youtube.com/embed/Ypj2VTWbrW0</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>983</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/fundamental-mvrv-z-score</loc>
+    <loc>https://alphasignal.digital/academy/fundamental-mvrv-z-score.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/JisoL4rz9Wc/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/JisoL4rz9Wc/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Mastering the Bitcoin MVRV Ratio</video:title>
+      <video:description>Learn how to use the MVRV Z-Score to identify macro market extremes and cycle tops/bottoms.</video:description>
       <video:player_loc>https://www.youtube.com/embed/JisoL4rz9Wc</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1227</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/harmonic-patterns-trading</loc>
+    <loc>https://alphasignal.digital/academy/harmonic-patterns-trading.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/zSWK51YNwKs/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/zSWK51YNwKs/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Harmonic Patterns Masterclass</video:title>
+      <video:description>Learn how to trade Gartley, Bat, and Butterfly patterns using institutional execution standards.</video:description>
       <video:player_loc>https://www.youtube.com/embed/zSWK51YNwKs</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1029</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/hidden-markov-market-regimes</loc>
+    <loc>https://alphasignal.digital/academy/hidden-markov-market-regimes.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/bDRtjBsx1ng/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/bDRtjBsx1ng/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Guide to Market Regime Classification</video:title>
+      <video:description>Learn how professional quant desks use probabilistic models to identify shifting market regimes and adapt their trading ...</video:description>
       <video:player_loc>https://www.youtube.com/embed/bDRtjBsx1ng</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>846</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/how-to-set-proper-stop-loss</loc>
+    <loc>https://alphasignal.digital/academy/how-to-set-proper-stop-loss.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/749DyLprirs/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/749DyLprirs/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Risk Management Masterclass</video:title>
+      <video:description>Learn the professional methodology for setting stop losses and managing risk-to-reward ratios.</video:description>
       <video:player_loc>https://www.youtube.com/embed/749DyLprirs</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1105</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/ichimoku-cloud-strategy</loc>
+    <loc>https://alphasignal.digital/academy/ichimoku-cloud-strategy.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/O5oortK3IAE/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/O5oortK3IAE/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Ichimoku Cloud Masterclass</video:title>
+      <video:description>Professional guide to mastering the Ichimoku Kinko Hyo system for trend and momentum analysis.</video:description>
       <video:player_loc>https://www.youtube.com/embed/O5oortK3IAE</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>724</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/importance-of-trading-journal</loc>
+    <loc>https://alphasignal.digital/academy/importance-of-trading-journal.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/0v7L4J5b-n0/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/0v7L4J5b-n0/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Trading Journal Masterclass</video:title>
+      <video:description>Learn how to quantify your edge and audit your performance using institutional-grade trade logging.</video:description>
       <video:player_loc>https://www.youtube.com/embed/0v7L4J5b-n0</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>998</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/institutional-yield-farming</loc>
+    <loc>https://alphasignal.digital/academy/institutional-yield-farming.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/ClnnLI1SClA/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/ClnnLI1SClA/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional DeFi Yield Farming Masterclass</video:title>
+      <video:description>Learn how to optimize risk-adjusted returns and manage liquidity in decentralized finance protocols.</video:description>
       <video:player_loc>https://www.youtube.com/embed/ClnnLI1SClA</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1257</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/mastering-risk-to-reward-ratio</loc>
+    <loc>https://alphasignal.digital/academy/mastering-risk-to-reward-ratio.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/5G1g0w6eW5I/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/5G1g0w6eW5I/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Risk Management Masterclass</video:title>
+      <video:description>Learn the professional methodology for maintaining positive expectancy through asymmetric risk-to-reward ratios.</video:description>
       <video:player_loc>https://www.youtube.com/embed/5G1g0w6eW5I</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>510</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/on-chain-whale-tracking</loc>
+    <loc>https://alphasignal.digital/academy/on-chain-whale-tracking.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/XSJnX9oe_is/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/XSJnX9oe_is/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>On-chain Analytics & Whale Tracking Masterclass</video:title>
+      <video:description>Institutional-grade webinar on mastering the MVRV ratio and other on-chain analytics to identify market extremes.</video:description>
       <video:player_loc>https://www.youtube.com/embed/XSJnX9oe_is</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>541</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/options-flow-dark-pools</loc>
+    <loc>https://alphasignal.digital/academy/options-flow-dark-pools.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/3cM7toFnRTU/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/3cM7toFnRTU/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Options Flow & Dark Pools with SpotGamma</video:title>
+      <video:description>Learn how to track institutional dark pool prints and options flow to identify major market support and resistance level...</video:description>
       <video:player_loc>https://www.youtube.com/embed/3cM7toFnRTU</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>708</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/options-implied-volatility-smile</loc>
+    <loc>https://alphasignal.digital/academy/options-implied-volatility-smile.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/Lza68h8Tlpg/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/Lza68h8Tlpg/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>The Volatility Smile Explained</video:title>
+      <video:description>Learn how to interpret the volatility smile and implied volatility skew for professional options trading.</video:description>
       <video:player_loc>https://www.youtube.com/embed/Lza68h8Tlpg</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1090</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/order-blocks-institutional</loc>
+    <loc>https://alphasignal.digital/academy/order-blocks-institutional.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/f18gazn0nYE/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/f18gazn0nYE/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Order Blocks Masterclass</video:title>
+      <video:description>Learn how to identify institutional supply and demand zones using Order Block mechanics.</video:description>
       <video:player_loc>https://www.youtube.com/embed/f18gazn0nYE</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>510</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/order-book-liquidity-heatmaps</loc>
+    <loc>https://alphasignal.digital/academy/order-book-liquidity-heatmaps.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/DmXeCNPw2g4/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/DmXeCNPw2g4/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Order Book Liquidity Heatmaps Masterclass</video:title>
+      <video:description>Learn how to read institutional liquidity heatmaps and identify where major market participants are positioning their li...</video:description>
       <video:player_loc>https://www.youtube.com/embed/DmXeCNPw2g4</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1227</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/pairs-trading-crypto-arbitrage</loc>
+    <loc>https://alphasignal.digital/academy/pairs-trading-crypto-arbitrage.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/4oa5chIYDcM/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/4oa5chIYDcM/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>The Correlation Matrix & Macro Assets</video:title>
+      <video:description>Learn how to use correlation matrices to identify institutional rotation and hedge directional risk.</video:description>
       <video:player_loc>https://www.youtube.com/embed/4oa5chIYDcM</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>693</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/position-sizing-and-leverage</loc>
+    <loc>https://alphasignal.digital/academy/position-sizing-and-leverage.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/q5UiDAk1740/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/q5UiDAk1740/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Mastering Position Sizing and Risk Management</video:title>
+      <video:description>Professional guide to calculating optimal position sizes, managing leverage, and protecting capital using institutional ...</video:description>
       <video:player_loc>https://www.youtube.com/embed/q5UiDAk1740</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1318</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/price-action-trading-naked</loc>
+    <loc>https://alphasignal.digital/academy/price-action-trading-naked.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/FRHE-ft4dVo/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/FRHE-ft4dVo/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Naked Price Action Masterclass: Reading Institutional Flow</video:title>
+      <video:description>Learn how professional traders read raw market structure and institutional liquidity without relying on lagging indicato...</video:description>
       <video:player_loc>https://www.youtube.com/embed/FRHE-ft4dVo</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>922</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/rsi-macd-momentum-oscillators</loc>
+    <loc>https://alphasignal.digital/academy/rsi-macd-momentum-oscillators.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/t6HCSzlSuNk/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/t6HCSzlSuNk/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Momentum Masterclass: RSI and MACD</video:title>
+      <video:description>Learn how to use RSI and MACD for high-confluence momentum trading.</video:description>
       <video:player_loc>https://www.youtube.com/embed/t6HCSzlSuNk</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>724</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/smart-money-concepts-smc</loc>
+    <loc>https://alphasignal.digital/academy/smart-money-concepts-smc.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/FNUeYlhbXkU/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/FNUeYlhbXkU/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional SMC Masterclass</video:title>
+      <video:description>Learn the core principles of Smart Money Concepts (SMC) including order blocks, liquidity sweeps, and market structure s...</video:description>
       <video:player_loc>https://www.youtube.com/embed/FNUeYlhbXkU</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1379</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/stablecoin-macro-liquidity-flows</loc>
+    <loc>https://alphasignal.digital/academy/stablecoin-macro-liquidity-flows.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/t0GU36MA04k/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/t0GU36MA04k/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Guide to Stablecoin Macro Liquidity</video:title>
+      <video:description>Deep dive into tracking stablecoin supply flows, mint events, and CEX inflows as a leading indicator for Bitcoin market ...</video:description>
       <video:player_loc>https://www.youtube.com/embed/t0GU36MA04k</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1227</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/statistical-mean-reversion-z-scores</loc>
+    <loc>https://alphasignal.digital/academy/statistical-mean-reversion-z-scores.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/c2j-zs8YN3c/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/c2j-zs8YN3c/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Mean Reversion & Z-Scores Masterclass</video:title>
+      <video:description>Advanced guide to trading statistical mean reversion using Z-Scores and standard deviation.</video:description>
       <video:player_loc>https://www.youtube.com/embed/c2j-zs8YN3c</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1273</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/support-and-resistance-fundamentals</loc>
+    <loc>https://alphasignal.digital/academy/support-and-resistance-fundamentals.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/nuVv0ZWUfs4/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/nuVv0ZWUfs4/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Mastering Support and Resistance: The Institutional Framework</video:title>
+      <video:description>Learn how to identify structural supply and demand zones, map volume profile confluence, and avoid retail stop-run traps...</video:description>
       <video:player_loc>https://www.youtube.com/embed/nuVv0ZWUfs4</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1059</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/token-unlocks-supply-dilution</loc>
+    <loc>https://alphasignal.digital/academy/token-unlocks-supply-dilution.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/ZL1bysb2MV0/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/ZL1bysb2MV0/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Guide to Token Unlocks & Supply Shocks</video:title>
+      <video:description>Master the mechanics of vesting cliffs, linear unlocks, and how to identify high-probability short-selling opportunities...</video:description>
       <video:player_loc>https://www.youtube.com/embed/ZL1bysb2MV0</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>739</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/trading-moving-average-crossovers</loc>
+    <loc>https://alphasignal.digital/academy/trading-moving-average-crossovers.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/cSWC2WwbhHE/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/cSWC2WwbhHE/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Moving Averages Masterclass</video:title>
+      <video:description>Learn how to use SMA and EMA crossovers to confirm macro trends in crypto markets.</video:description>
       <video:player_loc>https://www.youtube.com/embed/cSWC2WwbhHE</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>785</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/trading-psychology-fomo-panic</loc>
+    <loc>https://alphasignal.digital/academy/trading-psychology-fomo-panic.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/bEXz7Abf-wM/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/bEXz7Abf-wM/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Trading Psychology Masterclass</video:title>
+      <video:description>Master the emotional extremes of trading: Fear, Greed, and FOMO, with institutional-grade psychological frameworks.</video:description>
       <video:player_loc>https://www.youtube.com/embed/bEXz7Abf-wM</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>815</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/trendlines-and-channels</loc>
+    <loc>https://alphasignal.digital/academy/trendlines-and-channels.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/joPxq3IB8tk/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/joPxq3IB8tk/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Trendlines & Channels Masterclass</video:title>
+      <video:description>Professional guide to drawing trendlines and channels using institutional momentum logic.</video:description>
       <video:player_loc>https://www.youtube.com/embed/joPxq3IB8tk</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>1135</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/understanding-gamma-exposure-gex</loc>
+    <loc>https://alphasignal.digital/academy/understanding-gamma-exposure-gex.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/xWLx3vPfe7U/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/xWLx3vPfe7U/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Market Maker Mechanics: Gamma Exposure (GEX) Decoded</video:title>
+      <video:description>Understand how options market maker hedging drives price volatility and trend acceleration.</video:description>
       <video:player_loc>https://www.youtube.com/embed/xWLx3vPfe7U</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>907</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/volume-profile-market-profile</loc>
+    <loc>https://alphasignal.digital/academy/volume-profile-market-profile.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/uDzqh0c6BeM/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/uDzqh0c6BeM/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Volume Profile: The Auction Process</video:title>
+      <video:description>Master the Volume Profile and Auction Market Theory to identify high-probability institutional zones.</video:description>
       <video:player_loc>https://www.youtube.com/embed/uDzqh0c6BeM</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>968</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/vwap-institutional-execution</loc>
+    <loc>https://alphasignal.digital/academy/vwap-institutional-execution.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/cYN4ZgGvR84/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/cYN4ZgGvR84/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional VWAP Trading Strategy</video:title>
+      <video:description>Learn how institutional desks use Volume Weighted Average Price (VWAP) for execution and mean reversion.</video:description>
       <video:player_loc>https://www.youtube.com/embed/cYN4ZgGvR84</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>556</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
   <url>
-    <loc>https://alphasignal.digital/academy/wyckoff-method-accumulation-distribution</loc>
+    <loc>https://alphasignal.digital/academy/wyckoff-method-accumulation-distribution.html</loc>
     <video:video>
-      <video:thumbnail_loc>https://img.youtube.com/vi/VB52gdM0kLE/maxresdefault.jpg</video:thumbnail_loc>
-      <video:title><![CDATA[AlphaSignal Terminal]]></video:title>
-      <video:description><![CDATA[AlphaSignal (also known as Alpha Signal) is the institutional Bitcoin and crypto intelligence terminal at alphasignal.digital. Features real-time Z-score alpha signals, AI market briefings, Bitcoin spot ETF capital flows, options flow scanner, whale pulse tracking, on-chain analytics (MVRV, SOPR, Puell Multiple, NVT), macro event calendar, portfolio optimizer, market regime classifier, liquidation scanner, CME gap tracker, signal backtester V2, narrative galaxy, and 60+ institutional analytical views.]]></video:description>
+      <video:thumbnail_loc>https://img.youtube.com/vi/VB52gdM0kLE/hqdefault.jpg</video:thumbnail_loc>
+      <video:title>Institutional Wyckoff Method Masterclass</video:title>
+      <video:description>Learn the phases of accumulation and distribution using the Wyckoff methodology.</video:description>
       <video:player_loc>https://www.youtube.com/embed/VB52gdM0kLE</video:player_loc>
-      <video:publication_date>2026-05-02</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-      <video:live>no</video:live>
+      <video:duration>998</video:duration>
+      <video:publication_date>2024-05-01T00:00:00Z</video:publication_date>
     </video:video>
   </url>
 </urlset>

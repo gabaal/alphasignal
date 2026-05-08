@@ -381,6 +381,11 @@ function updateSEOMeta(view) {
         'docs-volume-profile': { title: 'Volume Profile (TPO) - Market Profile Guide | AlphaSignal Docs', desc: 'Documentation for the Volume Profile view. Learn how to interpret Value Area High/Low and Point of Control (POC) for Bitcoin and other assets.' },
         'docs-gex': { title: 'Dealer Gamma Exposure (GEX) - Dynamics Guide | AlphaSignal Docs', desc: 'Documentation for the GEX Profile. Learn to read market maker hedging pressure, zero-gamma levels, and options-driven volatility.' },
 
+        'academy-watch': {
+            title: 'Academy Cinema Hub - Institutional Video Masterclasses',
+            desc: 'Immersive video-first instructional portal for AlphaSignal Academy. 40+ professional masterclasses on quantitative strategy, order flow, on-chain analytics, and risk management.'
+        },
+
         // === MISC ROUTES ===
         'signal': {
             title: 'Live Alpha Signal - Z-Score Intelligence Detail',

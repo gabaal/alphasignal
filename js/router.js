@@ -11,7 +11,7 @@ function switchView(view, pushState = true) {
     // PUBLIC: no auth required
     const isPublicView = (
         view === 'signals' || view === 'home' || view === 'help' ||
-        view === 'command-center' ||
+        view === 'command-center' || view === 'academy-watch' ||
         view?.startsWith('explain-') || view?.startsWith('docs-') || view === 'signal' ||
         view === 'reset-password'
     );

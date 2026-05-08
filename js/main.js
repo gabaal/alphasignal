@@ -42,6 +42,7 @@ const viewMap = {
     alerts: renderAlerts,
     tradelab: renderTradeLab,
     liquidity: renderLiquidityView,
+    'academy-watch': renderAcademyWatch,
     home: renderHome,
     // Legacy explain-* routes - redirect to new docs-* equivalents
     'explain-signals': () => switchView('docs-signals'),

@@ -527,6 +527,24 @@ class MarketRoutesMixin:
             from backend.database import redis_client
             # Fetch last 100 whale events from Redis list
             whales_list = redis_client.lrange('alphasignal:whales', 0, 99)
+            
+            # Fetch recent signals (last 2 hours) to check correlation
+            import sqlite3
+            from backend.database import DB_PATH
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            two_hours_ago = (datetime.now() - timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S')
+            c.execute("SELECT ticker, id, type, direction FROM alerts_history WHERE timestamp >= ? ORDER BY timestamp DESC", (two_hours_ago,))
+            recent_alerts = c.fetchall()
+            conn.close()
+
+            # Map ticker to most recent alert for correlation
+            alert_map = {}
+            for row in recent_alerts:
+                t_key = row[0].replace('-USD', '').replace('-USDT', '')
+                if t_key not in alert_map:
+                    alert_map[t_key] = {'id': row[1], 'type': row[2], 'dir': row[3]}
+
             results = []
             for trade_str in whales_list:
                 try:
@@ -540,6 +558,9 @@ class MarketRoutesMixin:
                     # Impact scoring (Institutional Thresholds)
                     impact = 'EXTREME' if usd > 2000000 else 'HIGH' if usd > 500000 else 'MEDIUM'
                     
+                    # Correlation Check
+                    correlation = alert_map.get(ticker)
+                    
                     # Format for whales.js
                     dt = datetime.fromtimestamp(trade['time'] / 1000.0)
                     results.append({
@@ -551,6 +572,7 @@ class MarketRoutesMixin:
                         'side': side.upper(),
                         'flow': 'INFLOW' if side == 'buy' else 'OUTFLOW',
                         'impact': impact,
+                        'correlation': correlation,
                         'timestamp': dt.strftime('%H:%M:%S'),
                         'hash': str(hash(trade['time']))[:12].replace('-', 'C'),
                         'from': 'Institutional Accumulation' if side == 'buy' else 'Orderbook Execution',

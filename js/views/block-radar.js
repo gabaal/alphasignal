@@ -176,6 +176,13 @@ function renderBlockRadarRows(results) {
         const sideClass = sideVal.toLowerCase();
         const displayTicker = w.ticker || (w.asset ? w.asset.split('-')[0] : 'BTC');
         
+        const convictionHtml = w.correlation ? `
+            <div style="display:flex; align-items:center; gap:4px; cursor:pointer" onclick="openSignalDetail(${w.correlation.id})">
+                <span class="material-symbols-outlined" style="font-size:12px; color:var(--accent); animation: pulse 2s infinite">verified</span>
+                <span style="font-size:0.55rem; font-weight:900; color:var(--accent); letter-spacing:0.5px">HIGH CONVICTION</span>
+            </div>
+        ` : '';
+
         return `
             <div class="block-radar-row ${isExtreme ? 'extreme' : ''}">
                 <div class="br-ticker">${displayTicker}</div>
@@ -186,6 +193,7 @@ function renderBlockRadarRows(results) {
                     <div class="br-impact-meter">
                         <div class="br-impact-bar" style="width:${impactPct}%"></div>
                     </div>
+                    ${convictionHtml}
                 </div>
                 <div class="br-meta">
                     <span style="color:var(--text)">${w.timestamp}</span>

@@ -104,6 +104,7 @@ function renderHelp() {
         },
         { id: 'quant-academy', name: 'Quant Academy (SEO)', icon: 'school', color: '#f472b6', view: 'help',
           docs: [
+            { name: 'Academy Cinema', desc: 'The Institutional Video Masterclass Hub - High-intensity breakdowns.', route: 'academy-watch', icon: 'movie' },
             { name: 'Algo AI Signals', desc: 'Exploiting Algorithmic AI Trade Signals', href: '/academy/algorithmic-ai-trade-signals', icon: 'smart_toy' },
             { name: 'Bollinger Bands', desc: 'Measure price dispersion and volatility channels', href: '/academy/bollinger-bands-volatility', icon: 'animation' },
             { name: 'Breakout Trading', desc: 'Trading volatility compressions', href: '/academy/breakout-trading-strategies', icon: 'open_in_new' },

@@ -373,7 +373,7 @@ class BinanceLiveStream:
                             p = float(data['p'])
                             q = float(data['q'])
                             usd = p * q
-                            # WHALE THRESHOLD: $50,000 block trade
+                            # WHALE THRESHOLD: $50,000 (Institutional Grade)
                             if usd > 50000:
                                 ticker = data.get('s', 'BTCUSDT').replace('USDT', '')
                                 whale_ev = {
