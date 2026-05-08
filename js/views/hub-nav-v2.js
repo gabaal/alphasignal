@@ -77,6 +77,7 @@ const analyticsHubTabs = [
     { id: 'options',       label: 'OPTIONS FLOW',   view: 'options-flow',      icon: 'ssid_chart' },
     { id: 'gex',           label: 'GAMMA EXPOSURE', view: 'gex-profile',       icon: 'bar_chart' },
     { id: 'whales',        label: 'WHALE PULSE',    view: 'whales',            icon: 'waves' },
+    { id: 'block-radar',   label: 'BLOCK RADAR',    view: 'block-radar',       icon: 'biotech' },
     { id: 'velocity',      label: 'CHAIN VELOCITY', view: 'velocity',          icon: 'speed' },
     { id: 'onchain',       label: 'ON-CHAIN STATS', view: 'onchain',           icon: 'link' },
     { id: 'mindshare',     label: 'MINDSHARE',      view: 'mindshare',         icon: 'psychology' },
