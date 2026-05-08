@@ -653,29 +653,25 @@ function initLiveAlphaScroller() {
             
             const newContent = html + html + html;
             
-            // Only update and kickstart animation if the content has changed
             if (scrollerEl.innerHTML !== newContent) {
-                // 1. Remove animation class
                 scrollerEl.style.animation = 'none';
-                
-                // 2. Update content
                 scrollerEl.innerHTML = newContent;
-                
-                // 3. Force a reflow (magic step to tell browser to recalculate)
                 void scrollerEl.offsetWidth; 
-                
-                // 4. Re-enable animation
                 scrollerEl.style.animation = ''; 
             }
-        } else if (!scrollerEl.innerHTML.includes('ALPHA]')) {
-            scrollerEl.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
+        } else if (!scrollerEl.innerHTML.includes('MONITORING')) {
+            const monitorHtml = '<span style="color:var(--text-dim); letter-spacing:1px; margin-right:5rem">MONITORING INSTITUTIONAL STREAMS... NO IMMEDIATE ALPHA DETECTED.</span>';
+            scrollerEl.style.animation = 'none';
+            scrollerEl.innerHTML = monitorHtml + monitorHtml;
+            void scrollerEl.offsetWidth;
+            scrollerEl.style.animation = '';
         }
     };
 
     // Initial state until WebSocket pushes first chunk
     scroller.innerHTML = '<span style="color:var(--text-dim); letter-spacing:1px">SYNCING LIVE ALPHA STREAM...</span>';
 
-    // Pre-fetch public signals to populate ticker tape immediately before WebSocket/Fallback kicks in
+    // Pre-fetch public signals to populate ticker tape immediately
     fetchAPI('/signals').then(data => {
         if (data) {
             const signals = Array.isArray(data) ? data : (data.signals || []);
