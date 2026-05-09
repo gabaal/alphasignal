@@ -399,7 +399,13 @@ function updateSEOMeta(view) {
     };
 
     const fullTitle = `${meta.title} | AlphaSignal - Crypto Intelligence Terminal`;
-    const viewUrl = view === 'home' ? 'https://alphasignal.digital/' : `https://alphasignal.digital/?view=${view}`;
+    
+    // Preserve full query parameters (like &id=...) for canonicals, except on home
+    let viewUrl = 'https://alphasignal.digital/';
+    if (view !== 'home') {
+        const currentSearch = window.location.search;
+        viewUrl = `https://alphasignal.digital/${currentSearch || '?view=' + view}`;
+    }
 
     document.title = fullTitle;
 
@@ -408,8 +414,14 @@ function updateSEOMeta(view) {
     if (metaDesc) metaDesc.setAttribute('content', meta.desc);
 
     // 2. Update Canonical Link
-    const canon = document.getElementById('canonical-link');
-    if (canon) canon.setAttribute('href', viewUrl);
+    let canon = document.getElementById('canonical-link') || document.querySelector('link[rel="canonical"]');
+    if (!canon) {
+        canon = document.createElement('link');
+        canon.id = 'canonical-link';
+        canon.rel = 'canonical';
+        document.head.appendChild(canon);
+    }
+    canon.setAttribute('href', viewUrl);
 
     // 3. Update Social (Open Graph & Twitter)
     const updateAttr = (id, attr, val) => {
