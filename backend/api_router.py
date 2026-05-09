@@ -238,6 +238,20 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     self.send_error_json(str(e))
                 return
+            elif path == '/api/admin/clear-alerts':
+                try:
+                    if post_data.get('password') != '@WatchBottle13@':
+                        return self.send_error_json('Unauthorized', 401)
+                    conn = sqlite3.connect(DB_PATH, timeout=30)
+                    c = conn.cursor()
+                    c.execute("DELETE FROM alerts_history")
+                    count = c.rowcount
+                    conn.commit()
+                    conn.close()
+                    self.send_json({'success': True, 'deleted': count})
+                except Exception as e:
+                    self.send_error_json(str(e))
+                return
             elif path == '/api/auth/login':
                 email_attempt = post_data.get('email', '')
                 # S4: lockout check
