@@ -189,23 +189,54 @@ class MarketRoutesMixin:
 
     def handle_btc(self):
         try:
-            btc = CACHE.download('BTC-USD', period='2d', interval='1d', column='Close')
+            # Attempt to fetch live price for accurate current value
+            live_price = None
+            try:
+                info = yf.Ticker('BTC-USD').fast_info
+                live_price = info.get('last_price') or info.get('lastPrice')
+            except:
+                pass
+
+            # Fetch 5 days of history to have fallback candles in case of glitches
+            btc = CACHE.download('BTC-USD', period='5d', interval='1d', column='Close')
             if isinstance(btc, pd.DataFrame):
                 btc = btc.squeeze()
-            v_curr = btc.iloc[-1]
-            if hasattr(v_curr, 'iloc'):
-                v_curr = v_curr.iloc[0]
-            price = float(v_curr)
+                
             v_prev = btc.iloc[-2]
             if hasattr(v_prev, 'iloc'):
                 v_prev = v_prev.iloc[0]
             prev = float(v_prev)
-            if price == 0:
-                raise ValueError('Price is 0')
-            self.send_json({'price': price, 'change': (price - prev) / prev * 100})
+            
+            # Sanity check: If Yahoo Finance returns a glitched price for BTC (e.g. $0.08)
+            if prev < 1000 and len(btc) >= 3:
+                for i in range(3, len(btc) + 1):
+                    alt_prev = btc.iloc[-i]
+                    if hasattr(alt_prev, 'iloc'):
+                        alt_prev = alt_prev.iloc[0]
+                    if float(alt_prev) > 1000:
+                        prev = float(alt_prev)
+                        break
+
+            # Use live price if available, otherwise latest closed candle
+            if live_price is not None and float(live_price) > 0:
+                price = float(live_price)
+            else:
+                v_curr = btc.iloc[-1]
+                if hasattr(v_curr, 'iloc'):
+                    v_curr = v_curr.iloc[0]
+                price = float(v_curr)
+
+            if price <= 0 or prev <= 0:
+                raise ValueError('Price is 0 or negative')
+                
+            self.send_json({
+                'price': price, 
+                'change': (price - prev) / prev * 100,
+                'prev_close': prev
+            })
         except Exception as e:
             print(f'BTC Error (Using Fallback): {e}')
-            self.send_json({'price': 91450.25, 'change': 1.42})
+            self.send_json({'price': 98274.00, 'change': 1.42, 'prev_close': 96898.00})
 
     def handle_tape(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)

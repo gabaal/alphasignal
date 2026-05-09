@@ -853,7 +853,9 @@ async function initBTCSparkline(_retries) {
             // Always fetch real 24h open in background so % tag is accurate
             if (!_btcOpen24h) {
                 fetch('/api/btc').then(r => r.json()).then(bd => {
-                    if (bd.price && bd.change != null) {
+                    if (bd.prev_close) {
+                        _btcOpen24h = bd.prev_close;
+                    } else if (bd.price && bd.change != null) {
                         _btcOpen24h = bd.price / (1 + bd.change / 100);
                     }
                 }).catch(() => {});
@@ -870,7 +872,7 @@ async function initBTCSparkline(_retries) {
                     latest = bd.price || 0;
                     const chg = bd.change || 0;
                     if (latest > 0) {
-                        prev = latest / (1 + chg / 100);
+                        prev = bd.prev_close || (latest / (1 + chg / 100));
                         _btcOpen24h = prev;  // store real 24h open for accurate % display
                         let seed = Math.floor(latest) % 9999;
                         const rng = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
