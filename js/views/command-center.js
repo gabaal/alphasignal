@@ -385,7 +385,7 @@ async function renderCommandCenter() {
 
         // 6c. Options Max Pain Widget
         try {
-            const painData = await fetchAPI('/options-max-pain?ticker=BTC');
+            const painData = await fetchAPI('/options-max-pain?ticker=BTC&cb=' + Date.now());
             const painVal = document.getElementById('cmd-max-pain-val');
             const painLabel = document.getElementById('cmd-max-pain-label');
             const heatEl = document.getElementById('cmd-liq-heatmap');
