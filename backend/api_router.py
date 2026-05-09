@@ -698,7 +698,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/equity-options-flow', '/api/ai-rebalancer', '/api/signal-history',
                     '/api/alerts', '/api/alerts/badge', '/api/klines', '/api/equity-klines',
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
-                    '/api/whales',
+                    '/api/whales', '/api/gex-profile', '/api/options-max-pain',
                     '/api/stripe/webhook',
                     '/privacy', '/terms', '/roadmap',
                 ]
@@ -825,6 +825,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_setup_generation()
             elif path == '/api/gex-profile':
                 self.handle_gex_profile()
+            elif path == '/api/options-max-pain':
+                self.handle_options_max_pain()
             elif path == '/api/volume-profile':
                 self.handle_volume_profile()
             elif path == '/api/lob-heatmap':

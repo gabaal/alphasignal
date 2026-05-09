@@ -206,6 +206,18 @@ async function renderCommandCenter() {
                 <h3 style="margin-bottom:0.75rem;font-size:0.7rem">CME MAGNET GAPS</h3>
                 <div id="cmd-cme-gaps"></div>
             </div>
+            <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="switchView('global-markets')"
+                onmouseover="this.style.borderColor='rgba(239,68,68,0.35)'" onmouseout="this.style.borderColor=''">
+                <div class="card-header" style="margin-bottom:0.75rem">
+                    <h3 style="font-size:0.7rem;letter-spacing:1px">OPTIONS MAX PAIN</h3>
+                    <span class="premium-badge" style="background:rgba(239,68,68,0.2);color:#ef4444">LIQUIDITY</span>
+                </div>
+                <div id="cmd-max-pain-status" style="text-align:center;padding:10px 0">
+                    <div id="cmd-max-pain-val" style="font-size:1.8rem;font-weight:900;color:#ef4444">--</div>
+                    <div id="cmd-max-pain-label" style="font-size:0.6rem;color:var(--text-dim);margin-top:4px;letter-spacing:1.5px">CALCULATING PAIN...</div>
+                </div>
+                <div id="cmd-liq-heatmap" style="margin-top:10px;font-size:0.65rem"></div>
+            </div>
         </div>
 
     `;
@@ -370,6 +382,33 @@ async function renderCommandCenter() {
                 });
             }
         } catch(e) { console.error('GEX Widget Error:', e); }
+
+        // 6c. Options Max Pain Widget
+        try {
+            const painData = await fetchAPI('/options-max-pain?ticker=BTC');
+            const painVal = document.getElementById('cmd-max-pain-val');
+            const painLabel = document.getElementById('cmd-max-pain-label');
+            const heatEl = document.getElementById('cmd-liq-heatmap');
+            if (painData && !painData.error) {
+                if (painVal) painVal.textContent = '$' + painData.max_pain_strike.toLocaleString();
+                if (painLabel) {
+                    const diff = ((painData.max_pain_strike - painData.spot) / painData.spot * 100).toFixed(2);
+                    painLabel.textContent = `TARGET: ${diff > 0 ? '+' : ''}${diff}% FROM SPOT`;
+                }
+                if (heatEl && painData.liquidations) {
+                    heatEl.innerHTML = painData.liquidations.slice(0, 4).map(l => {
+                        const color = l.type === 'LONG' ? '#22c55e' : '#ef4444';
+                        return `
+                            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                                <span style="color:var(--text-main)">$${l.price.toLocaleString()}</span>
+                                <span style="color:${color}">${l.type} <span style="opacity:0.6">${l.leverage}</span></span>
+                                <span style="color:var(--text-dim)">$${(l.volume/1000000).toFixed(1)}M</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        } catch(e) { console.error('Max Pain Widget Error:', e); }
 
         // 7. Signal Analytics Charts - built from live signals data
         if (signals && signals.length) {

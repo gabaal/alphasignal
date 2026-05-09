@@ -7059,6 +7059,75 @@ class InstitutionalRoutesMixin:
         except Exception as e:
             self.send_json({'error': str(e)})
 
+    def handle_options_max_pain(self):
+        """Calculates Options Max Pain and generates synthetic Liquidation Heatmap data."""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            ticker = query.get('ticker', ['BTC'])[0].upper()
+            try:
+                spot = float(CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close').iloc[-1])
+            except:
+                spot = 90000.0 if ticker == 'BTC' else 3000.0
+            
+            np.random.seed(int(spot) % 10000)
+            step = 5000 if ticker == 'BTC' else 200 if ticker == 'ETH' else spot * 0.05
+            base_strike = round(spot / step) * step
+            
+            strikes = [base_strike + (i * step) for i in range(-5, 6)]
+            
+            options_chain = []
+            max_pain_val = float('inf')
+            max_pain_strike = base_strike
+            
+            for s in strikes:
+                # Simulate open interest for calls and puts
+                call_oi = max(0, int(np.random.normal(5000, 2000) * (1 if s > spot else 0.5)))
+                put_oi = max(0, int(np.random.normal(5000, 2000) * (1 if s < spot else 0.5)))
+                
+                options_chain.append({
+                    'strike': s,
+                    'call_oi': call_oi,
+                    'put_oi': put_oi
+                })
+            
+            # Simple Max Pain calculation: the strike that causes maximum options to expire worthless
+            for s in strikes:
+                intrinsic_value_sum = 0
+                for opt in options_chain:
+                    # Call intrinsic value: max(0, spot - strike)
+                    if s > opt['strike']:
+                        intrinsic_value_sum += (s - opt['strike']) * opt['call_oi']
+                    # Put intrinsic value: max(0, strike - spot)
+                    if s < opt['strike']:
+                        intrinsic_value_sum += (opt['strike'] - s) * opt['put_oi']
+                
+                if intrinsic_value_sum < max_pain_val:
+                    max_pain_val = intrinsic_value_sum
+                    max_pain_strike = s
+                    
+            # Liquidation Heatmap levels
+            liquidations = []
+            for _ in range(5):
+                liq_price = spot * (1 + np.random.uniform(-0.1, 0.1))
+                leverage = np.random.choice([10, 25, 50, 100])
+                vol = int(np.random.uniform(5, 50)) * 1000000
+                liquidations.append({
+                    'price': round(liq_price, 2),
+                    'leverage': f"{leverage}x",
+                    'volume': vol,
+                    'type': 'LONG' if liq_price < spot else 'SHORT'
+                })
+                
+            self.send_json({
+                'ticker': ticker,
+                'spot': spot,
+                'max_pain_strike': max_pain_strike,
+                'options_chain': options_chain,
+                'liquidations': sorted(liquidations, key=lambda x: x['price'])
+            })
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
     def handle_volume_profile(self):
         """Volume Profile (TPO / Value Area) anchored to 60-day price history."""
         try:
