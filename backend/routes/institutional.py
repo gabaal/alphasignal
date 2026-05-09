@@ -6234,7 +6234,7 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             if post_data:
-                c.execute('SELECT z_threshold, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold, discord_webhook, telegram_chat_id, tp1_pct, tp2_pct, sl_pct FROM user_settings WHERE user_email=?', (email,))
+                c.execute('SELECT z_threshold, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold, discord_webhook, telegram_chat_id, tp1_pct, tp2_pct, sl_pct, algo_rsi_oversold, algo_rsi_overbought FROM user_settings WHERE user_email=?', (email,))
                 ext = c.fetchone()
                 
                 z = float(post_data.get('z_threshold', ext[0] if ext and ext[0] is not None else 2.0))
@@ -6249,14 +6249,16 @@ class InstitutionalRoutesMixin:
                 tp1_pct  = max(0.1, float(post_data.get('tp1_pct', ext[9] if ext and ext[9] is not None else 5.0)))
                 tp2_pct  = max(0.1, float(post_data.get('tp2_pct', ext[10] if ext and ext[10] is not None else 10.0)))
                 sl_pct   = max(0.1, float(post_data.get('sl_pct',  ext[11] if ext and ext[11] is not None else 3.0)))
+                rsi_os   = float(post_data.get('algo_rsi_oversold', ext[12] if ext and len(ext)>12 and ext[12] is not None else 30.0))
+                rsi_ob   = float(post_data.get('algo_rsi_overbought', ext[13] if ext and len(ext)>13 and ext[13] is not None else 80.0))
                 
                 enabled_raw = post_data.get('alerts_enabled')
                 enabled = bool(enabled_raw) if enabled_raw is not None else (bool(ext[1]) if ext else True)
                 # Upsert all settings, preserving existing webhook if new one not provided
                 c.execute("""INSERT INTO user_settings (user_email, z_threshold, alerts_enabled, discord_webhook, telegram_chat_id,
                                                          whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold,
-                                                         tp1_pct, tp2_pct, sl_pct)
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                                         tp1_pct, tp2_pct, sl_pct, algo_rsi_oversold, algo_rsi_overbought)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                              ON CONFLICT(user_email) DO UPDATE SET
                                z_threshold        = excluded.z_threshold,
                                alerts_enabled     = excluded.alerts_enabled,
@@ -6268,9 +6270,11 @@ class InstitutionalRoutesMixin:
                                tp1_pct            = excluded.tp1_pct,
                                tp2_pct            = excluded.tp2_pct,
                                sl_pct             = excluded.sl_pct,
+                               algo_rsi_oversold  = excluded.algo_rsi_oversold,
+                               algo_rsi_overbought= excluded.algo_rsi_overbought,
                                discord_webhook    = CASE WHEN excluded.discord_webhook != '' THEN excluded.discord_webhook ELSE discord_webhook END,
                                telegram_chat_id   = CASE WHEN excluded.telegram_chat_id != '' THEN excluded.telegram_chat_id ELSE telegram_chat_id END""",
-                          (email, z, enabled, discord, telegram, whale_t, depeg_t, vol_t, cme_t, rebalance_t, tp1_pct, tp2_pct, sl_pct))
+                          (email, z, enabled, discord, telegram, whale_t, depeg_t, vol_t, cme_t, rebalance_t, tp1_pct, tp2_pct, sl_pct, rsi_os, rsi_ob))
                 conn.commit()
                 # Re-read to confirm
                 c.execute('SELECT discord_webhook, telegram_chat_id FROM user_settings WHERE user_email=?', (email,))
@@ -6297,9 +6301,10 @@ class InstitutionalRoutesMixin:
                 self.send_json({'success': True, 'z_threshold': z, 'has_discord': has_discord, 'has_telegram': has_telegram,
                                 'whale_threshold': whale_t, 'depeg_threshold': depeg_t,
                                 'vol_spike_threshold': vol_t, 'cme_gap_threshold': cme_t, 'rebalance_threshold': rebalance_t,
-                                'tp1_pct': tp1_pct, 'tp2_pct': tp2_pct, 'sl_pct': sl_pct})
+                                'tp1_pct': tp1_pct, 'tp2_pct': tp2_pct, 'sl_pct': sl_pct,
+                                'algo_rsi_oversold': rsi_os, 'algo_rsi_overbought': rsi_ob})
             else:
-                c.execute('SELECT z_threshold, discord_webhook, telegram_chat_id, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold, tp1_pct, tp2_pct, sl_pct FROM user_settings WHERE user_email=?', (email,))
+                c.execute('SELECT z_threshold, discord_webhook, telegram_chat_id, alerts_enabled, whale_threshold, depeg_threshold, vol_spike_threshold, cme_gap_threshold, rebalance_threshold, tp1_pct, tp2_pct, sl_pct, algo_rsi_oversold, algo_rsi_overbought FROM user_settings WHERE user_email=?', (email,))
                 row = c.fetchone()
                 conn.close()
                 if row:
@@ -6321,13 +6326,16 @@ class InstitutionalRoutesMixin:
                         'tp1_pct':            row[9]  if row[9]  is not None else 5.0,
                         'tp2_pct':            row[10] if row[10] is not None else 10.0,
                         'sl_pct':             row[11] if row[11] is not None else 3.0,
+                        'algo_rsi_oversold':  row[12] if len(row)>12 and row[12] is not None else 30.0,
+                        'algo_rsi_overbought':row[13] if len(row)>13 and row[13] is not None else 80.0
                     })
                 else:
                     self.send_json({'z_threshold': 2.0, 'has_discord': False, 'has_telegram': False, 'alerts_enabled': True,
                                     'discord_masked': '', 'telegram_masked': '',
                                     'whale_threshold': 5.0, 'depeg_threshold': 1.0,
                                     'vol_spike_threshold': 2.0, 'cme_gap_threshold': 1.0, 'rebalance_threshold': 2.5,
-                                    'tp1_pct': 5.0, 'tp2_pct': 10.0, 'sl_pct': 3.0})
+                                    'tp1_pct': 5.0, 'tp2_pct': 10.0, 'sl_pct': 3.0,
+                                    'algo_rsi_oversold': 30.0, 'algo_rsi_overbought': 80.0})
         except Exception as e:
             print(f'[AlertSettings] {e}')
             import traceback; traceback.print_exc()

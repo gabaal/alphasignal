@@ -209,6 +209,7 @@ async function renderAlerts(tabs = null) {
     let discMasked  = '', tgMasked = '';
     let whaleSize = 5, depeg = 1.0, volSpike = 2.0, cmeGap = 1.0, rebalance = 2.5;
     let tp1Pct = 5.0, tp2Pct = 10.0, slPct = 3.0;
+    let rsiOs = 30.0, rsiOb = 80.0;
 
     try {
         const stored = localStorage.getItem('alert_settings');
@@ -224,6 +225,8 @@ async function renderAlerts(tabs = null) {
             if (s.tp1Pct !== undefined) tp1Pct = parseFloat(s.tp1Pct);
             if (s.tp2Pct !== undefined) tp2Pct = parseFloat(s.tp2Pct);
             if (s.slPct  !== undefined) slPct  = parseFloat(s.slPct);
+            if (s.rsiOs  !== undefined) rsiOs  = parseFloat(s.rsiOs);
+            if (s.rsiOb  !== undefined) rsiOb  = parseFloat(s.rsiOb);
             if (s.discord) { hasDiscord = true; discMasked = s.discord.substring(0, 20) + '...'; }
             if (s.telegram) { hasTelegram = true; tgMasked = '...' + s.telegram.substring(s.telegram.length - 4); }
         }
@@ -446,6 +449,34 @@ async function renderAlerts(tabs = null) {
                             style="width:100%;accent-color:#ec4899;cursor:pointer">
                         <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
                             <span>0.5%</span><span>10%</span>
+                        </div>
+                    </div>
+
+                    <!-- RSI OVERSOLD -->
+                    <div>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span> RSI OVERSOLD MAX</span>
+                            <span id="rsi-os-val-display" style="color:#22c55e;font-weight:900">${rsiOs.toFixed(1)}</span>
+                        </label>
+                        <input type="range" id="rsi-os-slider" min="10" max="50" step="1" value="${rsiOs}"
+                            oninput="document.getElementById('rsi-os-val-display').textContent=parseFloat(this.value).toFixed(1)"
+                            style="width:100%;accent-color:#22c55e;cursor:pointer">
+                        <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                            <span>10</span><span>50</span>
+                        </div>
+                    </div>
+
+                    <!-- RSI OVERBOUGHT -->
+                    <div>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                            <span> RSI OVERBOUGHT MIN</span>
+                            <span id="rsi-ob-val-display" style="color:#ef4444;font-weight:900">${rsiOb.toFixed(1)}</span>
+                        </label>
+                        <input type="range" id="rsi-ob-slider" min="50" max="95" step="1" value="${rsiOb}"
+                            oninput="document.getElementById('rsi-ob-val-display').textContent=parseFloat(this.value).toFixed(1)"
+                            style="width:100%;accent-color:#ef4444;cursor:pointer">
+                        <div style="display:flex;justify-content:space-between;font-size:0.5rem;color:var(--text-dim);margin-top:3px">
+                            <span>50</span><span>95</span>
                         </div>
                     </div>
                 </div>
@@ -1008,11 +1039,13 @@ window.saveAlertSettings = async function() {
     const tp1    = parseFloat(document.getElementById('tp1-pct-slider')?.value || 5.0);
     const tp2    = parseFloat(document.getElementById('tp2-pct-slider')?.value || 10.0);
     const sl     = parseFloat(document.getElementById('sl-pct-slider')?.value || 3.0);
+    const rsiOs  = parseFloat(document.getElementById('rsi-os-slider')?.value || 30.0);
+    const rsiOb  = parseFloat(document.getElementById('rsi-ob-slider')?.value || 80.0);
 
     localStorage.setItem('alert_settings', JSON.stringify({
         discord, telegram, zThreshold: z, alertsOn: enabled,
         whaleSize: whale, depeg, volSpike: vol, cmeGap: cme, rebalance,
-        tp1Pct: tp1, tp2Pct: tp2, slPct: sl
+        tp1Pct: tp1, tp2Pct: tp2, slPct: sl, rsiOs: rsiOs, rsiOb: rsiOb
     }));
 
     const result = await fetchAPI('/alert-settings', 'POST', {
@@ -1021,7 +1054,8 @@ window.saveAlertSettings = async function() {
         whale_threshold: whale, depeg_threshold: depeg,
         vol_spike_threshold: vol, cme_gap_threshold: cme,
         rebalance_threshold: rebalance,
-        tp1_pct: tp1, tp2_pct: tp2, sl_pct: sl
+        tp1_pct: tp1, tp2_pct: tp2, sl_pct: sl,
+        algo_rsi_oversold: rsiOs, algo_rsi_overbought: rsiOb
     });
 
     if (result?.success) {
