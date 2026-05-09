@@ -190,33 +190,35 @@ async function renderCommandCenter() {
                 <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:0.75rem">6-DIMENSION ML SIGNAL DECOMPOSITION</div>
                 <div style="width:100%;height:520px"><canvas id="cmd-radar-chart" role="img" aria-label="Command center overview radar chart"></canvas></div>
             </div>
-            <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="switchView('gex-profile')"
-                onmouseover="this.style.borderColor='rgba(139,92,246,0.35)'" onmouseout="this.style.borderColor=''">
-                <div class="card-header" style="margin-bottom:0.75rem">
-                    <h3 style="font-size:0.7rem;letter-spacing:1px">DEALER GEX PIVOT</h3>
-                    <span class="premium-badge" style="background:rgba(139,92,246,0.2);color:#a78bfa">DERIVATIVES</span>
+            <div style="display:flex;flex-direction:column;gap:1.5rem;width:100%">
+                <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="switchView('gex-profile')"
+                    onmouseover="this.style.borderColor='rgba(139,92,246,0.35)'" onmouseout="this.style.borderColor=''">
+                    <div class="card-header" style="margin-bottom:0.75rem">
+                        <h3 style="font-size:0.7rem;letter-spacing:1px">DEALER GEX PIVOT</h3>
+                        <span class="premium-badge" style="background:rgba(139,92,246,0.2);color:#a78bfa">DERIVATIVES</span>
+                    </div>
+                    <div id="cmd-gex-status" style="text-align:center;padding:10px 0">
+                        <div id="cmd-gex-val" style="font-size:1.8rem;font-weight:900;color:#8b5cf6">--</div>
+                        <div id="cmd-gex-label" style="font-size:0.6rem;color:var(--text-dim);margin-top:4px;letter-spacing:1.5px">CALCULATING GAMMA...</div>
+                    </div>
+                    <div style="height:60px;margin-top:10px"><canvas id="cmd-gex-spark"></canvas></div>
                 </div>
-                <div id="cmd-gex-status" style="text-align:center;padding:10px 0">
-                    <div id="cmd-gex-val" style="font-size:1.8rem;font-weight:900;color:#8b5cf6">--</div>
-                    <div id="cmd-gex-label" style="font-size:0.6rem;color:var(--text-dim);margin-top:4px;letter-spacing:1.5px">CALCULATING GAMMA...</div>
+                <div class="card">
+                    <h3 style="margin-bottom:0.75rem;font-size:0.7rem">CME MAGNET GAPS</h3>
+                    <div id="cmd-cme-gaps"></div>
                 </div>
-                <div style="height:60px;margin-top:10px"><canvas id="cmd-gex-spark"></canvas></div>
-            </div>
-            <div class="card">
-                <h3 style="margin-bottom:0.75rem;font-size:0.7rem">CME MAGNET GAPS</h3>
-                <div id="cmd-cme-gaps"></div>
-            </div>
-            <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="switchView('global-markets')"
-                onmouseover="this.style.borderColor='rgba(239,68,68,0.35)'" onmouseout="this.style.borderColor=''">
-                <div class="card-header" style="margin-bottom:0.75rem">
-                    <h3 style="font-size:0.7rem;letter-spacing:1px">OPTIONS MAX PAIN</h3>
-                    <span class="premium-badge" style="background:rgba(239,68,68,0.2);color:#ef4444">LIQUIDITY</span>
+                <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="switchView('global-markets')"
+                    onmouseover="this.style.borderColor='rgba(239,68,68,0.35)'" onmouseout="this.style.borderColor=''">
+                    <div class="card-header" style="margin-bottom:0.75rem">
+                        <h3 style="font-size:0.7rem;letter-spacing:1px">OPTIONS MAX PAIN</h3>
+                        <span class="premium-badge" style="background:rgba(239,68,68,0.2);color:#ef4444">LIQUIDITY</span>
+                    </div>
+                    <div id="cmd-max-pain-status" style="text-align:center;padding:10px 0">
+                        <div id="cmd-max-pain-val" style="font-size:1.8rem;font-weight:900;color:#ef4444">--</div>
+                        <div id="cmd-max-pain-label" style="font-size:0.6rem;color:var(--text-dim);margin-top:4px;letter-spacing:1.5px">CALCULATING PAIN...</div>
+                    </div>
+                    <div id="cmd-liq-heatmap" style="margin-top:10px;font-size:0.65rem"></div>
                 </div>
-                <div id="cmd-max-pain-status" style="text-align:center;padding:10px 0">
-                    <div id="cmd-max-pain-val" style="font-size:1.8rem;font-weight:900;color:#ef4444">--</div>
-                    <div id="cmd-max-pain-label" style="font-size:0.6rem;color:var(--text-dim);margin-top:4px;letter-spacing:1.5px">CALCULATING PAIN...</div>
-                </div>
-                <div id="cmd-liq-heatmap" style="margin-top:10px;font-size:0.65rem"></div>
             </div>
         </div>
 
