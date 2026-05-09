@@ -1204,10 +1204,10 @@ class HarvestService:
                 c.execute("SELECT MAX(algo_rsi_oversold), MIN(algo_rsi_overbought) FROM user_settings WHERE alerts_enabled = 1")
                 row = c.fetchone()
                 max_rsi_os = float(row[0]) if row and row[0] is not None else 30.0
-                min_rsi_ob = float(row[1]) if row and row[1] is not None else 70.0
+                min_rsi_ob = float(row[1]) if row and row[1] is not None else 80.0
             except:
                 max_rsi_os = 30.0
-                min_rsi_ob = 70.0
+                min_rsi_ob = 80.0
             
             # Global Exclusions: Ignore Stablecoins (no volatility) and Memecoins (precision/slippage risks).
             STABLECOINS = {
