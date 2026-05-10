@@ -932,6 +932,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_dominance()
             elif path.startswith('/api/regime'):
                 self.handle_regime()
+            elif path.startswith('/api/ohlc'):
+                self.handle_ohlc()
             elif path.startswith('/api/history'):
                 self.handle_history()
             elif path.startswith('/api/benchmark'):

@@ -80,6 +80,7 @@ const viewMap = {
     'cme-gaps': renderCMEGaps,
     'oi-radar': renderOIRadar,
     'command-center': renderCommandCenter,
+    'power-trio': renderPowerTrio,
     'trade-ledger': renderTradeLedger,
     'strategy-report': renderStrategyReport,
     'ask-terminal': renderAskTerminal,

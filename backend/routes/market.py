@@ -208,12 +208,15 @@ class MarketRoutesMixin:
             prev = float(v_prev)
             
             # Sanity check: If Yahoo Finance returns a glitched price for BTC (e.g. $0.08)
-            if prev < 1000 and len(btc) >= 3:
+            # Threshold increased to $10,000 for institutional safety.
+            if prev < 10000 and len(btc) >= 3:
+                print(f"[handle_btc] ALERT: Glitched prev_close detected ({prev}). Searching history...")
                 for i in range(3, len(btc) + 1):
                     alt_prev = btc.iloc[-i]
                     if hasattr(alt_prev, 'iloc'):
                         alt_prev = alt_prev.iloc[0]
-                    if float(alt_prev) > 1000:
+                    if float(alt_prev) > 10000:
+                        print(f"[handle_btc] Recovered prev_close: {alt_prev}")
                         prev = float(alt_prev)
                         break
 

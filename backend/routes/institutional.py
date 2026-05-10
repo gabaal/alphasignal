@@ -3533,7 +3533,40 @@ class InstitutionalRoutesMixin:
             self.send_json(prices)
 
 
+    def handle_ohlc(self):
+        """Return OHLC + Volume arrays for candlestick rendering."""
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        ticker = query.get('ticker', ['BTC-USD'])[0]
+        period = query.get('period', ['60d'])[0]
+        interval = query.get('interval', ['1d'])[0]
+        try:
+            raw = yf.download(ticker, period=period, interval=interval, progress=False, auto_adjust=True)
+            if raw is None or raw.empty:
+                self.send_json({'error': 'No data', 'candles': []})
+                return
+            if isinstance(raw.columns, pd.MultiIndex):
+                raw.columns = raw.columns.get_level_values(0)
+            candles = []
+            for ts, row in raw.iterrows():
+                try:
+                    t = int(ts.timestamp())
+                    candles.append({
+                        'time': t,
+                        'open':  round(float(row['Open']),  6),
+                        'high':  round(float(row['High']),  6),
+                        'low':   round(float(row['Low']),   6),
+                        'close': round(float(row['Close']), 6),
+                        'volume': round(float(row.get('Volume', 0)), 2),
+                    })
+                except Exception:
+                    continue
+            self.send_json({'ticker': ticker, 'candles': candles})
+        except Exception as e:
+            print(f'[OHLC] Error for {ticker}: {e}')
+            self.send_json({'error': str(e), 'candles': []})
+
     def handle_history(self):
+
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticker = query.get('ticker', ['BTC-USD'])[0]
         period = query.get('period', ['60d'])[0]

@@ -108,14 +108,31 @@ class DataCache:
         # Check L2 Cache
         cached = self.get(key)
         if cached is not None:
-            if isinstance(cached, dict) and 'df' in cached:
-                df = pd.read_json(io.StringIO(cached['df']))
-                import ast
-                if len(df.columns) > 0 and isinstance(df.columns[0], str) and df.columns[0].startswith("('") and df.columns[0].endswith("')"):
-                    try:
-                        df.columns = pd.MultiIndex.from_tuples([ast.literal_eval(c) for c in df.columns])
-                    except: pass
-                return df
+            if isinstance(cached, dict):
+                if 'df' in cached:
+                    df = pd.read_json(io.StringIO(cached['df']))
+                    import ast
+                    if len(df.columns) > 0 and isinstance(df.columns[0], str) and df.columns[0].startswith("('") and df.columns[0].endswith("')"):
+                        try:
+                            df.columns = pd.MultiIndex.from_tuples([ast.literal_eval(c) for c in df.columns])
+                        except: pass
+                    # Ticker validation: Ensure we don't return corrupted cross-asset data
+                    if unique_tickers:
+                        # For single-level index, check if any requested ticker is missing or extra ones exist
+                        if not isinstance(df.columns, pd.MultiIndex):
+                            actual_cols = set(df.columns)
+                            req_cols = set(unique_tickers)
+                            if not req_cols.issubset(actual_cols):
+                                print(f"[Cache] Ticker mismatch: requested {req_cols}, got {actual_cols}. Evicting.")
+                                return None
+                    return df
+                elif 'prices' in cached and 'dates' in cached:
+                    # Reconstruct Series
+                    s = pd.Series(cached['prices'], index=pd.to_datetime(cached['dates']))
+                    # Validation for single ticker
+                    if len(unique_tickers) == 1:
+                        s.name = unique_tickers[0]
+                    return s
             return cached
             
         try:
