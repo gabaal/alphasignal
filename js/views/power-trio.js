@@ -237,17 +237,7 @@ async function _buildPowerTrio(ticker) {
             if (c1el.clientWidth > 0) lwChart.resize(c1el.clientWidth, 220);
         });
         window._trioResizeObs.observe(c1el);
-        const candleSeries = lwChart.addCandlestickSeries({
-            upColor:'#4ade80', downColor:'#f87171',
-            borderUpColor:'#4ade80', borderDownColor:'#f87171',
-            wickUpColor:'rgba(74,222,128,0.6)', wickDownColor:'rgba(248,113,113,0.6)',
-        });
-        candleSeries.setData(candles);
-
-        const emaSeries = lwChart.addLineSeries({
-            color:'rgba(125,211,252,0.8)', lineWidth:1.5, priceLineVisible:false, lastValueVisible:false,
-        });
-        emaSeries.setData(emaData);
+        _buildLWChart(lwChart, candles, emaData);
         lwChart.timeScale().fitContent();
 
         _powerTrioCharts._lwMomentum = lwChart;
@@ -534,6 +524,61 @@ function openTrioModal(chartKey) {
 }
 
 // ============================================================
+// SHARED CHART BUILDER — candlesticks + EMA band + volume
+// ============================================================
+function _buildLWChart(chart, candles, emaData) {
+    // 1. Candlesticks
+    const cs = chart.addCandlestickSeries({
+        upColor:'#4ade80', downColor:'#f87171',
+        borderUpColor:'#4ade80', borderDownColor:'#f87171',
+        wickUpColor:'rgba(74,222,128,0.6)', wickDownColor:'rgba(248,113,113,0.6)',
+        priceScaleId: 'right',
+    });
+    cs.setData(candles);
+
+    // 2. EMA-5 centre line
+    const emaLine = chart.addLineSeries({
+        color:'rgba(125,211,252,0.85)', lineWidth:1.5,
+        priceLineVisible:false, lastValueVisible:false,
+        priceScaleId: 'right',
+    });
+    emaLine.setData(emaData);
+
+    // 3. EMA band — upper (EMA × 1.02)
+    const bandUpper = emaData.map(d => ({ time: d.time, value: parseFloat((d.value * 1.02).toFixed(6)) }));
+    const bandLower = emaData.map(d => ({ time: d.time, value: parseFloat((d.value * 0.98).toFixed(6)) }));
+
+    chart.addLineSeries({
+        color:'rgba(139,92,246,0.5)', lineWidth:1, lineStyle:1, // 1 = dashed
+        priceLineVisible:false, lastValueVisible:false, priceScaleId:'right',
+    }).setData(bandUpper);
+
+    chart.addLineSeries({
+        color:'rgba(139,92,246,0.5)', lineWidth:1, lineStyle:1,
+        priceLineVisible:false, lastValueVisible:false, priceScaleId:'right',
+    }).setData(bandLower);
+
+    // 4. Volume histogram — independent scale at bottom 25%
+    chart.applyOptions({
+        leftPriceScale: { visible:false },
+        rightPriceScale: { scaleMargins:{ top:0.1, bottom:0.28 } },
+    });
+    const volSeries = chart.addHistogramSeries({
+        priceScaleId: 'vol',
+        priceFormat: { type:'volume' },
+        color: 'rgba(0,242,255,0.18)',
+    });
+    chart.priceScale('vol').applyOptions({
+        scaleMargins: { top:0.78, bottom:0 },
+    });
+    volSeries.setData(candles.map(c => ({
+        time:  c.time,
+        value: c.volume || 0,
+        color: c.close >= c.open ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.2)',
+    })));
+}
+
+// ============================================================
 // TIMEFRAME / INTERVAL SWITCHER
 // ============================================================
 const _TRIO_PERIOD_MAP = {
@@ -662,14 +707,7 @@ async function _reloadTrioCandles() {
     window._trioResizeObs = new ResizeObserver(() => { if(c1el.clientWidth>0) lwChart.resize(c1el.clientWidth,220); });
     window._trioResizeObs.observe(c1el);
 
-    const cs = lwChart.addCandlestickSeries({
-        upColor:'#4ade80', downColor:'#f87171',
-        borderUpColor:'#4ade80', borderDownColor:'#f87171',
-        wickUpColor:'rgba(74,222,128,0.6)', wickDownColor:'rgba(248,113,113,0.6)',
-    });
-    cs.setData(candles);
-    const es = lwChart.addLineSeries({ color:'rgba(125,211,252,0.8)', lineWidth:1.5, priceLineVisible:false, lastValueVisible:false });
-    es.setData(emaData);
+    _buildLWChart(lwChart, candles, emaData);
     lwChart.timeScale().fitContent();
     _powerTrioCharts._lwMomentum = lwChart;
 
