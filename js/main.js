@@ -81,6 +81,8 @@ const viewMap = {
     'oi-radar': renderOIRadar,
     'command-center': renderCommandCenter,
     'power-trio': renderPowerTrio,
+    'trade-setup': renderTradeSetup,
+    'trade-plan': renderTradePlan,
     'trade-ledger': renderTradeLedger,
     'strategy-report': renderStrategyReport,
     'ask-terminal': renderAskTerminal,
