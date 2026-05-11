@@ -41,7 +41,8 @@ const viewMap = {
     newsroom: renderNewsroom,
     alerts: renderAlerts,
     tradelab: renderTradeLab,
-    liquidity: renderLiquidityView,
+    'liquidity-v2': renderLiquidityView,
+    'liquidity': renderOrderFlow,
     'academy-watch': renderAcademyWatch,
     home: renderHome,
     // Legacy explain-* routes - redirect to new docs-* equivalents

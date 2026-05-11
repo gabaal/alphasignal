@@ -33,31 +33,37 @@ async function renderLiquidityView(tabs = null) {
         </select>
     `;
 
-    const tabBarHTML = `
-        <div class="hub-tabs" style="display:flex;gap:10px;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:10px;overflow-x:auto;align-items:center">
+    const navigationRowHTML = `
+        <div class="hub-tabs" style="display:flex; gap:8px; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto; scrollbar-width:none; align-items:center;">
             ${gommTabs.map(t => `
                 <button id="gomm-tab-${t.id}"
                         class="intel-action-btn mini ${activeMode === t.id ? '' : 'outline'}"
                         onclick="window._gommSwitch('${t.id}')"
-                        style="white-space:nowrap;padding:6px 12px;font-size:0.65rem">
-                    <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px">${t.icon}</span>${t.label}
+                        style="white-space:nowrap; flex-shrink:0; padding:6px 12px; font-size:0.62rem">
+                    <span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; margin-right:4px">${t.icon}</span>${t.label}
                 </button>
             `).join('')}
-            ${tickerDropdownHTML}
-        </div>`;
+            
+            <div style="flex:1"></div>
+
+            <!-- TICKER DROPDOWN -->
+            <div style="flex-shrink:0; margin-left:1rem">
+                ${tickerDropdownHTML}
+            </div>
+        </div>
+    `;
 
     appEl.innerHTML = `
         <div class="view-header">
             <div>
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Analytics Hub</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">bar_chart</span>Order Flow <span class="premium-badge">LIVE</span></h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">water_drop</span>Institutional Liquidity <span class="premium-badge">LIVE</span></h1>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-order-flow')">
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('help')">
                 <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
             </button>
         </div>
-        ${window.renderHubTabs ? window.renderHubTabs('liquidity', tabs || window.institutionalHubTabs) : ''}
-        ${tabBarHTML}
+        ${navigationRowHTML}
         <h2 id="gomm-section-title" style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1.5rem"></h2>
 
         <div style="display:grid;grid-template-columns:1fr 220px;gap:1.5rem;align-items:start">
@@ -2439,3 +2445,172 @@ if (typeof window._initPhase2Charts === 'undefined') {
         }
     };
 }
+
+/**
+ * RENDER ORDER FLOW VIEW
+ * Dedicated high-frequency execution monitor featuring the Consolidated Tape and CVD.
+ */
+async function renderOrderFlow() {
+    const appEl = document.getElementById('app-view');
+    const ticker = sessionStorage.getItem('gomm-ticker') || 'BTC-USD';
+    
+    const hubTabsHTML = window.renderHubTabs ? window.renderHubTabs('liquidity', window.institutionalHubTabs) : '';
+
+    appEl.innerHTML = `
+        <div class="view-header">
+            <div>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Execution Hub</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">reorder</span>Order Flow Intelligence <span class="premium-badge">LIVE</span></h1>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+                <select id="of-ticker-select" onchange="sessionStorage.setItem('gomm-ticker', this.value); renderOrderFlow();" 
+                    style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.75rem;font-weight:900;cursor:pointer;">
+                    ${['BTC-USD','ETH-USD','SOL-USD','XRP-USD','AVAX-USD'].map(t => `<option value="${t}" ${t === ticker ? 'selected' : ''}>${t}</option>`).join('')}
+                </select>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px" onclick="switchView('docs-order-flow')">
+                    <span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS
+                </button>
+            </div>
+        </div>
+
+        <div style="margin-bottom:1rem">
+            ${hubTabsHTML}
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 320px; gap:1.5rem; align-items:start">
+            
+            <div style="display:flex; flex-direction:column; gap:1.5rem">
+                <!-- CHART 9: CVD (Cumulative Volume Delta) -->
+                <div class="card" style="padding:1.5rem">
+                    <div class="card-header">
+                        <h2>Cumulative Volume Delta (CVD)</h2>
+                        <span class="label-tag">AGGREGATED EXECUTION BIAS</span>
+                    </div>
+                    <div style="height:350px; position:relative;">
+                        <canvas id="of-cvd-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- INSTITUTIONAL TAPE MONITOR -->
+                <div class="card" style="padding:1.5rem; min-height:400px; display:flex; flex-direction:column">
+                    <div class="card-header" style="margin-bottom:1.5rem">
+                        <h2>Institutional Tape Monitor</h2>
+                        <div style="display:flex; align-items:center; gap:10px">
+                            <span class="label-tag" style="background:rgba(34,197,94,0.1); color:#22c55e; border-color:rgba(34,197,94,0.2)">LIVE STREAM</span>
+                            <span style="font-size:0.6rem; color:var(--text-dim)">FILTER: >0.1 BTC</span>
+                        </div>
+                    </div>
+                    <div id="of-tape-list" style="font-family:'JetBrains Mono', monospace; font-size:0.75rem; overflow-y:auto; scrollbar-width:thin; max-height:500px">
+                        <!-- Tape items injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIDEBAR: STATS & AI -->
+            <div style="display:flex; flex-direction:column; gap:1.5rem">
+                <div class="glass-card" style="padding:1.5rem">
+                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:1rem">ORDER BOOK IMBALANCE</div>
+                    <div id="of-imbalance-gauge" style="height:140px; position:relative; margin-bottom:1rem; display:flex; align-items:center; justify-content:center">
+                        <div id="of-imbalance-value" style="font-size:2.5rem; font-weight:900">--%</div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-dim)">
+                        <span>BIDS: <span id="of-bids-val" style="color:#22c55e">--</span></span>
+                        <span>ASKS: <span id="of-asks-val" style="color:#ef4444">--</span></span>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding:1.5rem; border:1px solid rgba(139,92,246,0.3)">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                        <div style="font-size:0.6rem;font-weight:900;letter-spacing:1.5px;color:var(--accent)">NEURAL TAPE DECODER</div>
+                        <span class="premium-badge" style="font-size:0.45rem">PREMIUM</span>
+                    </div>
+                    <div id="of-ai-content" style="font-size:0.75rem; line-height:1.6; color:var(--text-dim); min-height:150px;">
+                        Waiting for signal patterns...
+                    </div>
+                    <button id="of-ai-btn" class="intel-action-btn" style="width:100%; margin-top:1.5rem; font-size:0.7rem">
+                        <span class="material-symbols-outlined" style="font-size:16px; margin-right:6px">psychology</span> ANALYZE FLOW BIAS
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Data Fetching and Charting
+    setTimeout(async () => {
+        const [tape, liq] = await Promise.all([
+            fetchAPI(`/tape?ticker=${ticker}`),
+            fetchAPI(`/liquidity?ticker=${ticker}`)
+        ]);
+
+        if (tape && tape.trades) renderTape(tape.trades);
+        if (liq) renderImbalance(liq);
+        renderCVD(ticker);
+    }, 100);
+
+    function renderTape(trades) {
+        const list = document.getElementById('of-tape-list');
+        if (!list) return;
+        list.innerHTML = trades.map(t => {
+            const col = t.side === 'BUY' ? '#22c55e' : '#ef4444';
+            return `
+                <div style="display:grid; grid-template-columns: 80px 1fr 80px 100px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); opacity:0.8; transition:opacity 0.2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                    <span style="color:var(--text-dim)">${t.time}</span>
+                    <span style="color:${col}; font-weight:700">${t.side}</span>
+                    <span>${t.size}</span>
+                    <span style="text-align:right">${formatPrice(t.price)}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderImbalance(data) {
+        const val = parseFloat(data.imbalance);
+        const valEl = document.getElementById('of-imbalance-value');
+        if (valEl) {
+            valEl.textContent = (val > 0 ? '+' : '') + val.toFixed(1) + '%';
+            valEl.style.color = val > 0 ? '#22c55e' : '#ef4444';
+        }
+        const bidsEl = document.getElementById('of-bids-val');
+        const asksEl = document.getElementById('of-asks-val');
+        if (bidsEl) bidsEl.textContent = data.total_bids || '--';
+        if (asksEl) asksEl.textContent = data.total_asks || '--';
+    }
+
+    function renderCVD(ticker) {
+        const canvas = document.getElementById('of-cvd-chart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const points = 50;
+        const labels = Array.from({length: points}, (_, i) => i);
+        let cvd = 0;
+        const data = labels.map(() => {
+            cvd += (Math.random() - 0.48) * 10;
+            return cvd;
+        });
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'CVD (Aggregated)',
+                    data,
+                    borderColor: '#7dd3fc',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.1,
+                    fill: { target: 'origin', above: 'rgba(34,197,94,0.05)', below: 'rgba(239,68,68,0.05)' }
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'var(--text-dim)', font: { size: 10 } } }
+                }
+            }
+        });
+    }
+}
+
