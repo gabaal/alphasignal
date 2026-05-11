@@ -20,19 +20,11 @@ async function renderLiquidityView(tabs = null) {
     };
 
     const cryptoUniverse = [
-        // L1
-        'BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD', 'TON-USD', 'ATOM-USD',
-        'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD', 'SEI-USD',
-        // L2 & BTC layer
-        'OP-USD', 'ALGO-USD', 'STRK-USD', 'STX-USD', 'WBTC-USD',
-        // DeFi
-        'AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 'EIGEN-USD',
-        // AI
-        'FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD',
-        // Memes
-        'DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD',
-        // Other
-        'PYTH-USD'
+        'BTC-USD','ETH-USD','SOL-USD','XRP-USD','ADA-USD','AVAX-USD','DOT-USD','TRX-USD','TON-USD','LINK-USD','ATOM-USD','NEAR-USD',
+        'SEI-USD','INJ-USD','OP-USD','ARB-USD','MATIC-USD','STRK-USD','TIA-USD','SUI-SUD','APT-USD','ALGO-USD','STX-USD',
+        'AAVE-USD','LDO-USD','MKR-USD','CRV-USD','RUNE-USD','SNX-USD','JTO-USD','EIGEN-USD','UNI-USD','COMP-USD','PENDLE-USD',
+        'FET-USD','RENDER-USD','OCEAN-USD','WLD-USD','TAO-USD','AKT-USD','FIL-USD','HNT-USD','PYTH-USD','ONDO-USD',
+        'DOGE-USD','SHIB-USD','PEPE-USD','BONK-USD','WIF-USD','FLOKI-USD','BOME-USD'
     ];
 
     const tickerDropdownHTML = `
