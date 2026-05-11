@@ -526,38 +526,114 @@ async function renderLiquidityView(tabs = null) {
     }
 
     function renderLiquidationMode() {
-        sectionTitle.textContent = 'Liquidation Flux - Derivatives Topography (Liq vs OI)';
+        sectionTitle.textContent = 'Liquidity Pain Map - Institutional Squeeze Zones (Chart 10)';
         if (!liqData || !liqData.clusters) {
             display.innerHTML = `<div class="empty-state">Liquidation data unavailable</div>`;
             return;
         }
-        const sorted = [...liqData.clusters].sort((a, b) => a.price - b.price);
-        display.innerHTML = `<div class="card">
-            <div style="height:420px"><canvas id="gommLiqChart" role="img" aria-label="Liquidity flux chart"></canvas></div>
-            <div style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.5rem; display:flex; flex-direction:column; align-items:center;">
-                <button id="ai-translate-liq-btn" class="setup-generator-btn" style="font-size:0.95rem; padding:12px 40px; font-weight:700; letter-spacing:0.5px;">
-                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English
-                </button>
-                <div id="ai-translate-liq-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:1.15rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
-            </div>
-        </div>`;
+
+        const clusters = liqData.clusters;
+        const currentPrice = data.prices && data.prices.length > 0 ? data.prices[data.prices.length - 1] : 60000;
+        
+        // Sort by price for the vertical Y-axis
+        const sorted = [...clusters].sort((a, b) => b.price - a.price);
+        
+        // Calculate Net Leverage Sentiment
+        const totalLongs = clusters.filter(c => c.side === 'LONG').reduce((acc, c) => acc + c.intensity, 0);
+        const totalShorts = clusters.filter(c => c.side === 'SHORT').reduce((acc, c) => acc + c.intensity, 0);
+        const totalLiq = totalLongs + totalShorts;
+        const longPct = Math.round((totalLongs / totalLiq) * 100);
+        const shortPct = 100 - longPct;
+        const netSentiment = longPct > shortPct ? 'OVER-LEVERAGED LONGS' : 'OVER-LEVERAGED SHORTS';
+        const sentimentColor = longPct > shortPct ? 'var(--risk-high)' : 'var(--accent)';
+
+        display.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+                <!-- LEVERAGE SENTIMENT GAUGE -->
+                <div class="card" style="padding:0.75rem;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02)">
+                    <div style="display:flex;flex-direction:column;gap:2px">
+                        <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;font-weight:900">NET LEVERAGE SENTIMENT</div>
+                        <div style="font-size:0.85rem;font-weight:900;color:${sentimentColor}">${netSentiment}</div>
+                    </div>
+                    <div style="flex:1;max-width:300px;margin:0 2rem;height:12px;background:rgba(255,255,255,0.05);border-radius:10px;position:relative;overflow:hidden">
+                        <div style="position:absolute;left:0;top:0;height:100%;width:${longPct}%;background:linear-gradient(to right, #ef4444, #991b1b);transition:width 1s"></div>
+                        <div style="position:absolute;right:0;top:0;height:100%;width:${shortPct}%;background:linear-gradient(to left, #22c55e, #166534);transition:width 1s"></div>
+                        <div style="position:absolute;left:50%;top:0;height:100%;width:1px;background:white;opacity:0.3"></div>
+                    </div>
+                    <div style="display:flex;gap:1.5rem;font-size:0.7rem;font-weight:900">
+                        <span style="color:#ef4444">${longPct}% LONGS</span>
+                        <span style="color:#22c55e">${shortPct}% SHORTS</span>
+                    </div>
+                </div>
+
+                <!-- PAIN MAP CHART -->
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                        <div style="font-size:0.6rem;color:var(--text-dim);font-weight:900">LIQUIDATION CLUSTERS & SQUEEZE ZONES</div>
+                        <div style="font-size:0.55rem;color:var(--risk-high)">- HIGH PAIN ZONE (CASCADE RISK)</div>
+                    </div>
+                    <div style="height:480px"><canvas id="gommLiqChart"></canvas></div>
+                </div>
+
+                <!-- AI INSIGHT -->
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <button id="ai-translate-liq-btn" class="setup-generator-btn" style="font-size:0.75rem; padding:10px 25px; font-weight:700;">
+                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:8px">auto_awesome</span> ANALYZE SQUEEZE POTENTIAL
+                    </button>
+                    <div id="ai-translate-liq-box" style="display:none; width:100%; margin-top:1rem; padding:1rem; background:rgba(0,242,255,0.05); border:1px solid rgba(0,242,255,0.2); border-radius:8px; font-size:0.85rem; color:var(--text); line-height:1.6; box-sizing:border-box;"></div>
+                </div>
+            </div>`;
+
         setTimeout(() => {
             const ctx = document.getElementById('gommLiqChart')?.getContext('2d');
             if (ctx) {
                 new Chart(ctx, {
                     type: 'bar',
-                    data: { labels: sorted.map(c => parseFloat(c.price).toFixed(0)),
+                    data: {
+                        labels: sorted.map(c => `$${c.price.toLocaleString()}`),
                         datasets: [
-                            { type: 'line', label: 'Est. OI', data: sorted.map((c,i) => 50 + Math.sin(i/2)*20 + c.intensity*5), borderColor: '#7dd3fc', borderWidth: 2, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
-                            { label: 'Short Liq', data: sorted.map(c => c.side === 'SHORT' ? c.intensity * 10 : 0), backgroundColor: 'rgba(34,197,94,0.7)', yAxisID: 'y' },
-                            { label: 'Long Liq',  data: sorted.map(c => c.side === 'LONG'  ? c.intensity * 10 : 0), backgroundColor: 'rgba(239,68,68,0.7)',  yAxisID: 'y' }
+                            {
+                                label: 'Liquidation Intensity',
+                                data: sorted.map(c => c.intensity),
+                                backgroundColor: sorted.map(c => c.side === 'SHORT' ? 'rgba(34,197,94,0.7)' : 'rgba(239,68,68,0.7)'),
+                                hoverBackgroundColor: sorted.map(c => c.side === 'SHORT' ? 'rgba(34,197,94,1)' : 'rgba(239,68,68,1)'),
+                                borderRadius: 4,
+                                barThickness: 12
+                            }
                         ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                    options: {
+                        indexAxis: 'y', // HORIZONTAL
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const c = sorted[context.dataIndex];
+                                        return `${c.side} Liquidation: ${c.intensity.toFixed(1)}M USD`;
+                                    }
+                                }
+                            }
+                        },
                         scales: {
-                            x: { grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Price Level ($)', color: '#666', font: { size: 9 } } },
-                            y:  { type: 'linear', position: 'left',  grid: { color: alphaColor(0.05) }, ticks: { color: '#aaa' }, title: { display: true, text: 'Liquidation Volume', color: '#888', font: { size: 9 } } },
-                            y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#aaa' }, title: { display: true, text: 'Est. OI', color: '#7dd3fc', font: { size: 9 } } }
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#888', font: { size: 9 } },
+                                title: { display: true, text: 'Estimated Liquidation Volume (USD Millions)', color: '#555', font: { size: 9 } }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    color: (context) => {
+                                        const price = sorted[context.index].price;
+                                        // Highlight prices near current price
+                                        return Math.abs(price - currentPrice) / currentPrice < 0.005 ? '#fff' : '#666';
+                                    },
+                                    font: { size: 10, weight: (context) => Math.abs(sorted[context.index].price - currentPrice) / currentPrice < 0.005 ? '900' : 'normal' }
+                                }
+                            }
                         }
                     }
                 });
@@ -568,17 +644,21 @@ async function renderLiquidityView(tabs = null) {
                 btn.addEventListener('click', async (e) => {
                     const box = document.getElementById('ai-translate-liq-box');
                     btn.disabled = true;
-                    btn.innerHTML = `<span class="material-symbols-outlined spin" style="font-size:14px;vertical-align:middle;margin-right:8px">sync</span> Analyzing liquidations...`;
+                    btn.innerHTML = `<span class="material-symbols-outlined spin" style="font-size:14px;vertical-align:middle;margin-right:8px">sync</span> Evaluating cascades...`;
                     box.style.display = 'block';
                     box.innerHTML = `<div class="skeleton-card" style="height:60px"></div>`;
                     try {
                         const resp = await fetchAPI('/explain-chart', 'POST', {
-                            chart_type: 'pulse',
+                            chart_type: 'liquidation',
                             symbol: document.getElementById('liq-search-input')?.value || 'BTC-USD',
-                            data: sorted.map(c => ({ price: c.price, side: c.side, intensity: c.intensity }))
+                            data: {
+                                clusters: sorted,
+                                currentPrice: currentPrice,
+                                sentiment: { longPct, shortPct, netSentiment }
+                            }
                         });
                         if (resp && resp.explanation) {
-                            box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">- AI TACTICAL OVERVIEW</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
+                            box.innerHTML = `<div style="font-size:0.65rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);margin-bottom:8px">- INSTITUTIONAL SQUEEZE ANALYSIS</div><div style="color:var(--text-main)">${resp.explanation.replace(/\n\n/g, '<br><br>')}</div>`;
                         } else {
                             throw new Error('Empty response');
                         }
@@ -586,11 +666,11 @@ async function renderLiquidityView(tabs = null) {
                         box.innerHTML = `<span style="color:var(--risk-high)">AI Engine offline. Configure your API key.</span>`;
                     } finally {
                         btn.disabled = false;
-                        btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px">auto_awesome</span> In Plain English`;
+                        btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:8px">auto_awesome</span> ANALYZE SQUEEZE POTENTIAL`;
                     }
                 });
             }
-        }, 50);
+        }, 100);
     }
 
     function renderVolatilityMode() {
