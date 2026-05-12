@@ -240,9 +240,9 @@ async function renderAlerts(tabs = null) {
 
             <div>
 
-                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Alerts Hub</h2>
+                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Anomaly Intelligence</h2>
 
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">notifications</span>Live Alerts <span class="premium-badge">LIVE</span></h1>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">radar</span>Real-Time Anomaly Scanner <span class="premium-badge">LIVE</span></h1>
 
                 <p style="margin-top:4px;color:var(--text-dim);font-size:0.8rem">Real-time monitoring of statistical outliers, de-peg events, and institutional-scale movements.</p>
 
@@ -1060,7 +1060,7 @@ window.saveAlertSettings = async function() {
 
     if (result?.success) {
 
-        showToast('ALERT SETTINGS', `Saved. Discord: ${result.has_discord ? '\u2713' : '\u2717'}  Telegram: ${result.has_telegram ? '\u2713' : '\u2717'}`, 'success');
+        showToast('ALERT SETTINGS', 'Saved successfully.', 'success');
 
         // Refresh poller sensitivity immediately -- new threshold takes effect on next poll
 
@@ -1102,11 +1102,11 @@ window.testFireAlertSettings = async function() {
 
     if (data?.success) {
 
-        showToast('ALERT CONFIG', 'Test alert dispatched! Check Discord/Telegram.', 'success');
+        showToast('ALERT CONFIG', 'Test alert dispatched successfully!', 'success');
 
     } else {
 
-        showToast('ALERT CONFIG', 'Save your Discord/Telegram credentials first, then test.', 'alert');
+        showToast('ALERT CONFIG', 'Please save your external integration webhooks first.', 'alert');
 
     }
 
