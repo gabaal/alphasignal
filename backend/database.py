@@ -236,6 +236,12 @@ def init_db():
         c.execute("ALTER TABLE alerts_history ADD COLUMN final_roi REAL")
     except: pass
     try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN max_roi REAL DEFAULT 0.0")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN tp1_hit INTEGER DEFAULT 0")
+    except: pass
+    try:
         c.execute("ALTER TABLE alerts_history ADD COLUMN user_email TEXT")
     except: pass
     try:

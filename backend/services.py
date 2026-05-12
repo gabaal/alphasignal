@@ -733,7 +733,7 @@ class HarvestService:
         try:
             # Fetch all active signals (status IS NULL or 'active')
             c.execute("""
-                SELECT id, type, ticker, price, user_email, timestamp
+                SELECT id, type, ticker, price, user_email, timestamp, COALESCE(max_roi, 0.0), COALESCE(tp1_hit, 0)
                 FROM alerts_history
                 WHERE COALESCE(status,'active') = 'active'
             """)
@@ -774,8 +774,9 @@ class HarvestService:
             now_dt  = datetime.utcnow()
             closed  = 0
             expired = 0
-            for sig_id, sig_type, ticker, entry_p, user_email, sig_ts in active_rows:
+            for sig_id, sig_type, ticker, entry_p, user_email, sig_ts, max_roi, tp1_hit in active_rows:
                 expiry_days, tp2_threshold, sl_threshold = NotificationService.get_signal_thresholds(sig_type)
+                tp1_threshold = tp2_threshold / 2.0
 
                 # --- Time-based expiry check FIRST (dynamic) ---
                 # This runs even if we have no current price for the ticker
@@ -800,33 +801,46 @@ class HarvestService:
                 except Exception:
                     pass
 
-                # --- TP2 / Stop Loss check (requires current price) ---
+                # --- TP2 / Stop Loss / Trailing TP1 check (requires current price) ---
                 curr_p = price_map.get(ticker)
                 if not curr_p or not entry_p or entry_p <= 0:
                     continue
                 direction = 1 if (sig_type or '').upper() in BULLISH else -1
                 roi = direction * (curr_p - entry_p) / entry_p * 100
 
-                if roi >= tp2_threshold or roi <= -abs(sl_threshold):
+                # Update max_roi and tp1_hit dynamic high-water marks
+                new_max_roi = max(max_roi, roi)
+                new_tp1_hit = 1 if (tp1_hit or roi >= tp1_threshold) else 0
+                if new_max_roi != max_roi or new_tp1_hit != tp1_hit:
+                    max_roi = new_max_roi
+                    tp1_hit = new_tp1_hit
+                    c.execute("UPDATE alerts_history SET max_roi=?, tp1_hit=? WHERE id=?", (max_roi, tp1_hit, sig_id))
+
+                # Trailing TP1 Logic: If hit TP1 and subsequently loses 20% of max_roi
+                is_tp1_trailing_close = False
+                if tp1_hit and max_roi > 0 and roi <= max_roi * 0.80:
+                    is_tp1_trailing_close = True
+
+                if roi >= tp2_threshold or roi <= -abs(sl_threshold) or is_tp1_trailing_close:
                     final_roi  = round(roi, 2)
                     exit_px    = round(curr_p, 10)
                     c.execute(
                         "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
                         (now_ts, exit_px, final_roi, sig_id)
                     )
-                    is_win  = roi >= tp2_threshold
-                    reason  = 'TP2 HIT' if is_win else 'STOP LOSS'
-                    print(f"[AutoClose] Signal #{sig_id} {ticker} {reason}: ROI={final_roi:+.2f}% entry={entry_p} exit={exit_px}")
+                    is_win  = roi >= tp2_threshold or is_tp1_trailing_close
+                    reason  = 'TP1 TRAILING CLOSE' if is_tp1_trailing_close else ('TP2 HIT' if roi >= tp2_threshold else 'STOP LOSS')
+                    print(f"[AutoClose] Signal #{sig_id} {ticker} {reason}: ROI={final_roi:+.2f}% entry={entry_p} exit={exit_px} (Peak={max_roi:.2f}%)")
                     closed += 1
 
                     # Fire notification in a background thread so it never blocks the DB commit
                     if user_email:
                         def _notify(ue=user_email, tk=ticker, st=sig_type,
-                                    ep=entry_p, xp=exit_px, roi_v=final_roi, win=is_win):
+                                    ep=entry_p, xp=exit_px, roi_v=final_roi, win=is_win, rsn=reason):
                             try:
                                 sym       = tk.replace('-USD', '')
-                                emoji     = '-' if win else '-'
-                                result    = 'TARGET HIT' if win else 'STOP LOSS'
+                                emoji     = '🟢' if win else '🔴'
+                                result    = rsn
                                 color     = 0x22c55e if win else 0xef4444
 
                                 def _fmt(v):
