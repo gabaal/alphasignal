@@ -11,12 +11,12 @@ function switchView(view, pushState = true) {
     // PUBLIC: no auth required
     const isPublicView = (
         view === 'signals' || view === 'home' || view === 'help' ||
-        view === 'command-center' || view === 'academy-watch' ||
+        view === 'academy-watch' ||
         view?.startsWith('explain-') || view?.startsWith('docs-') || view === 'signal' ||
         view === 'reset-password'
     );
     // FREE: login required, no subscription needed
-    const isFreeView = isPublicView || view === 'free-tier' || view === 'my-terminal' || view === 'price-alerts' || view === 'market-brief' || view === 'signal-leaderboard' || view === 'alerts-hub' || view === 'price-alerts-hub' || view === 'leaderboard-hub' || view === 'market-brief-hub' || view === 'power-trio' || view === 'trade-setup' || view === 'trade-plan';
+    const isFreeView = isPublicView || view === 'command-center' || view === 'free-tier' || view === 'my-terminal' || view === 'price-alerts' || view === 'market-brief' || view === 'signal-leaderboard' || view === 'alerts-hub' || view === 'price-alerts-hub' || view === 'leaderboard-hub' || view === 'market-brief-hub' || view === 'power-trio' || view === 'trade-setup' || view === 'trade-plan';
 
     if (!isPublicView && !isPremiumUser) {
         if (!isFreeView) {
