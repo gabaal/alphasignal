@@ -831,7 +831,16 @@ function pushSparklinePrice(price) {
     if (priceEl) priceEl.textContent = '$' + Math.round(price).toLocaleString('en-US');
     if (changeEl) {
         // Prefer the real 24h open set by initBTCSparkline; fall back to buffer start
-        const baseline = _btcOpen24h || (_sparkPriceHistory.length >= 2 ? _sparkPriceHistory[0] : null);
+        let baseline = _btcOpen24h || (_sparkPriceHistory.length >= 2 ? _sparkPriceHistory[0] : null);
+        // Self-heal phantom baseline mismatch if discrepancy is > 10% from live stream
+        if (baseline && Math.abs(price - baseline) / baseline > 0.10) {
+            fetch('/api/btc').then(r => r.json()).then(bd => {
+                if (bd.prev_close) _btcOpen24h = bd.prev_close;
+                else if (bd.price && bd.change != null) _btcOpen24h = bd.price / (1 + bd.change / 100);
+            }).catch(() => {});
+            // Temporarily use rolling start as baseline until API response heals _btcOpen24h
+            if (_sparkPriceHistory.length >= 2) baseline = _sparkPriceHistory[0];
+        }
         if (baseline) {
             const pct  = ((price - baseline) / baseline * 100).toFixed(2);
             const isUp = price >= baseline;
@@ -892,15 +901,13 @@ async function initBTCSparkline(_retries) {
                 prices.push(latest);
             }
             // Always fetch real 24h open in background so % tag is accurate
-            if (!_btcOpen24h) {
-                fetch('/api/btc').then(r => r.json()).then(bd => {
-                    if (bd.prev_close) {
-                        _btcOpen24h = bd.prev_close;
-                    } else if (bd.price && bd.change != null) {
-                        _btcOpen24h = bd.price / (1 + bd.change / 100);
-                    }
-                }).catch(() => {});
-            }
+            fetch('/api/btc').then(r => r.json()).then(bd => {
+                if (bd.prev_close) {
+                    _btcOpen24h = bd.prev_close;
+                } else if (bd.price && bd.change != null) {
+                    _btcOpen24h = bd.price / (1 + bd.change / 100);
+                }
+            }).catch(() => {});
         }
 
 
