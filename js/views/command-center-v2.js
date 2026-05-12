@@ -1,4 +1,11 @@
 async function renderCommandCenter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramTicker = urlParams.get('ticker');
+    if (paramTicker) {
+        localStorage.setItem('cmd_selected_asset', paramTicker.toUpperCase());
+    }
+    const currentSelectedAsset = localStorage.getItem('cmd_selected_asset') || 'ALL';
+
     appEl.innerHTML = `
         <div class="view-header" style="margin-bottom:2rem; flex-wrap:wrap; gap:0.5rem">
             <div style="flex:1; min-width:0">
@@ -9,12 +16,68 @@ async function renderCommandCenter() {
                 </div>
                 <p style="color:var(--text-dim); margin-top:0.5rem">Consolidated real-time intelligence across Macro, Global, and Alpha hubs.</p>
             </div>
-            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0;align-self:flex-start" onclick="switchView('docs-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            <div style="display:flex; gap:8px; align-items:center; align-self:flex-start; flex-wrap:wrap">
+                <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); border:1px solid var(--border); padding:2px 8px; border-radius:8px">
+                    <span class="material-symbols-outlined" style="font-size:14px; color:var(--text-dim)">filter_alt</span>
+                    <span style="font-size:0.6rem; font-weight:700; color:var(--text-dim); letter-spacing:1px">ASSET:</span>
+                    <select id="cmd-global-asset-filter" onchange="applyCmdGlobalAssetFilter(this.value)" style="background:transparent; border:none; color:var(--accent); font-family:'JetBrains Mono'; font-size:0.7rem; font-weight:800; cursor:pointer; outline:none; padding:2px 4px">
+                        <option value="ALL" ${currentSelectedAsset === 'ALL' ? 'selected' : ''}>ALL ASSETS (UNIVERSE)</option>
+                        <option value="BTC-USD" ${currentSelectedAsset === 'BTC-USD' ? 'selected' : ''}>BTC - Bitcoin</option>
+                        <option value="ETH-USD" ${currentSelectedAsset === 'ETH-USD' ? 'selected' : ''}>ETH - Ethereum</option>
+                        <option value="SOL-USD" ${currentSelectedAsset === 'SOL-USD' ? 'selected' : ''}>SOL - Solana</option>
+                        <option value="BNB-USD" ${currentSelectedAsset === 'BNB-USD' ? 'selected' : ''}>BNB - Binance Coin</option>
+                        <option value="XRP-USD" ${currentSelectedAsset === 'XRP-USD' ? 'selected' : ''}>XRP - Ripple</option>
+                        <option value="ADA-USD" ${currentSelectedAsset === 'ADA-USD' ? 'selected' : ''}>ADA - Cardano</option>
+                        <option value="AVAX-USD" ${currentSelectedAsset === 'AVAX-USD' ? 'selected' : ''}>AVAX - Avalanche</option>
+                        <option value="LINK-USD" ${currentSelectedAsset === 'LINK-USD' ? 'selected' : ''}>LINK - Chainlink</option>
+                        <option value="DOGE-USD" ${currentSelectedAsset === 'DOGE-USD' ? 'selected' : ''}>DOGE - Dogecoin</option>
+                    </select>
+                </div>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;color:var(--accent);border-color:rgba(0,242,255,0.3)" onclick="openCustomizeDrawer()"><span class="material-symbols-outlined" style="font-size:13px">dashboard_customize</span> CUSTOMIZE</button>
+                <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-command-center')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
+            </div>
+        </div>
+
+        <div id="cmd-customizable-layout-wrapper" style="display:flex; flex-wrap:wrap; gap:1.5rem; align-items:flex-start">
+
+        <!-- ██ ASSET CANDLESTICK WIDGET ██ -->
+        <div id="section-asset-chart" class="cmd-draggable-section" data-section-id="asset-chart" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="margin-bottom:0; position:relative; border-color:rgba(34,197,94,0.2)">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:#22c55e">candlestick_chart</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">ASSET PRICE ACTION HUB</h3>
+                        <span id="cmd-asset-chart-badge" style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(34,197,94,0.1); color:#22c55e; font-weight:900; font-family:'JetBrains Mono'">UNIVERSE BENCHMARK</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <select id="cmd-asset-chart-interval" onchange="event.stopPropagation(); loadCmdAssetCandlesticks()" onclick="event.stopPropagation()" style="background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border); font-size:0.65rem; padding:2px 6px; border-radius:4px; font-family:'JetBrains Mono'">
+                            <option value="15m" selected>15 Minutes</option>
+                            <option value="1h">1 Hour</option>
+                            <option value="1d">1 Day</option>
+                        </select>
+                        <button onclick="event.stopPropagation(); cycleCmdSectionWidth('asset-chart')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:1rem; padding:10px 12px; background:rgba(255,255,255,0.01); border-radius:8px; border:1px solid var(--border)">
+                    <div>
+                        <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">ACTIVE TARGET</div>
+                        <div id="cmd-asset-chart-title" style="font-size:1.4rem; font-weight:900; color:var(--accent); font-family:'JetBrains Mono'">BTC-USD</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">LATEST CLOSE</div>
+                        <div id="cmd-asset-chart-price" style="font-size:1.3rem; font-weight:900; color:white; font-family:'JetBrains Mono'">--</div>
+                    </div>
+                </div>
+                <div style="height:280px; position:relative; width:100%">
+                    <div id="cmd-asset-candlestick-container" style="width:100%; height:100%; position:absolute; inset:0"></div>
+                </div>
+            </div>
         </div>
 
         <!-- ██ AI TRADE NOW WIDGET ██ -->
+        <div id="section-ai-trade" class="cmd-draggable-section" data-section-id="ai-trade" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
         <div id="ai-trade-now-card" class="card" style="
-            margin-bottom:1.5rem;
+            margin-bottom:0;
             border-left:3px solid rgba(0,242,255,0.5);
             background:linear-gradient(135deg, rgba(0,242,255,0.04) 0%, rgba(139,92,246,0.04) 100%);
             position:relative; overflow:hidden;">
@@ -29,16 +92,19 @@ async function renderCommandCenter() {
                     </div>
                     <div id="atn-meta" style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">LOADING MARKET ANALYSIS...</div>
                 </div>
-                <button id="atn-refresh-btn" onclick="fetchAITradeNow(true)"
-                    title="Force refresh AI analysis"
-                    style="display:flex;align-items:center;gap:4px;background:rgba(0,242,255,0.07);border:1px solid rgba(0,242,255,0.2);
-                           color:rgba(0,242,255,0.7);border-radius:7px;padding:5px 10px;cursor:pointer;
-                           font-size:0.7rem;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:1px;
-                           transition:all 0.2s;flex-shrink:0"
-                    onmouseover="this.style.background='rgba(0,242,255,0.14)';this.style.borderColor='rgba(0,242,255,0.45)'"
-                    onmouseout="this.style.background='rgba(0,242,255,0.07)';this.style.borderColor='rgba(0,242,255,0.2)'">
-                    <span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH
-                </button>
+                <div style="display:flex; align-items:center; gap:6px">
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('ai-trade')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:2px"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                    <button id="atn-refresh-btn" onclick="fetchAITradeNow(true)"
+                        title="Force refresh AI analysis"
+                        style="display:flex;align-items:center;gap:4px;background:rgba(0,242,255,0.07);border:1px solid rgba(0,242,255,0.2);
+                               color:rgba(0,242,255,0.7);border-radius:7px;padding:5px 10px;cursor:pointer;
+                               font-size:0.7rem;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:1px;
+                               transition:all 0.2s;flex-shrink:0"
+                        onmouseover="this.style.background='rgba(0,242,255,0.14)';this.style.borderColor='rgba(0,242,255,0.45)'"
+                        onmouseout="this.style.background='rgba(0,242,255,0.07)';this.style.borderColor='rgba(0,242,255,0.2)'">
+                        <span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH
+                    </button>
+                </div>
             </div>
 
             <!-- Skeleton / content area -->
@@ -70,64 +136,198 @@ async function renderCommandCenter() {
                 </div>
             </div>
         </div>
+        </div>
         <!-- ██ END AI TRADE NOW ██ -->
 
-        <div class="command-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:1.5rem">
-            <div class="card" style="text-align:center">
-                <h3 style="font-size:0.7rem; color:var(--text-dim); letter-spacing:1px">SYSTEM CONVICTION</h3>
-                <div style="position:relative; height:180px; margin-top:10px">
-                    <canvas id="cmd-gauge-fear" role="img" aria-label="Fear and greed index gauge"></canvas>
-                    <div id="cmd-fear-val" style="position:absolute; bottom:10px; width:100%; font-size:1.5rem; font-weight:900">--</div>
+        <div id="section-gauges" class="cmd-draggable-section" data-section-id="gauges" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+        <div class="card" style="position:relative">
+            <div class="card-header" style="margin-bottom:1rem">
+                <h3 style="margin:0; font-size:0.75rem; color:var(--text-main); letter-spacing:1px">SYSTEM CONVICTION & REGIMES</h3>
+                <button onclick="event.stopPropagation(); cycleCmdSectionWidth('gauges')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+            </div>
+            <div class="command-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem">
+                <div style="text-align:center; padding:10px; background:rgba(255,255,255,0.01); border-radius:8px; border:1px solid var(--border)">
+                    <h4 style="margin:0 0 10px; font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">CONVICTION GAUGE</h4>
+                    <div style="position:relative; height:150px">
+                        <canvas id="cmd-gauge-fear" role="img" aria-label="Fear and greed index gauge"></canvas>
+                        <div id="cmd-fear-val" style="position:absolute; bottom:0; width:100%; font-size:1.4rem; font-weight:900">--</div>
+                    </div>
+                </div>
+                <div style="text-align:center; padding:10px; background:rgba(255,255,255,0.01); border-radius:8px; border:1px solid var(--border)">
+                    <h4 style="margin:0; font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">VOLATILITY REGIME</h4>
+                    <div id="cmd-regime-status" style="font-size:1.4rem; font-weight:900; color:var(--accent); margin-top:1.5rem">LOADING...</div>
+                    <div id="cmd-regime-heatmap" style="height:80px; width:100%; margin-top:1rem"></div>
+                </div>
+                <div style="text-align:center; padding:10px; background:rgba(255,255,255,0.01); border-radius:8px; border:1px solid var(--border)">
+                    <h4 style="margin:0; font-size:0.65rem; color:var(--text-dim); letter-spacing:1px">MARKET PULSE</h4>
+                    <div id="cmd-pulse-vals" style="margin-top:1rem; display:flex; flex-direction:column; gap:8px"></div>
+                    <div id="cmd-top-signals" style="margin-top:1rem; border-top:1px solid var(--border); padding-top:0.75rem"></div>
                 </div>
             </div>
-            <div class="card" style="text-align:center">
-                <h3 style="font-size:0.7rem; color:var(--text-dim); letter-spacing:1px">VOLATILITY REGIME</h3>
-                <div id="cmd-regime-status" style="font-size:1.5rem; font-weight:900; color:var(--accent); margin-top:2rem">LOADING...</div>
-                <div id="cmd-regime-heatmap" style="height:100px; width:100%; margin-top:1rem"></div>
-            </div>
-            <div class="card" style="text-align:center">
-                <h3 style="font-size:0.7rem; color:var(--text-dim); letter-spacing:1px">MARKET PULSE</h3>
-                <div id="cmd-pulse-vals" style="margin-top:1.5rem; display:flex; flex-direction:column; gap:10px"></div>
-                <div id="cmd-top-signals" style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1rem"></div>
+        </div>
+        </div>
+
+        <!-- NEW: Global Liquidations Ribbon -->
+        <div id="section-liquidations" class="cmd-draggable-section" data-section-id="liquidations" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">24H GLOBAL LIQUIDATIONS MAP</h3>
+                        <span style="font-size:0.55rem; color:#ef4444; background:rgba(239,68,68,0.1); padding:2px 6px; border-radius:4px; font-weight:700">DERIVATIVES SHOCK</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('liquidations')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:1rem">
+                    <div style="background:rgba(239,68,68,0.04); border:1px solid rgba(239,68,68,0.2); padding:10px; border-radius:8px; text-align:center">
+                        <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">SHORT REKTS</div>
+                        <div style="font-size:1.3rem; font-weight:900; color:#ef4444; margin-top:2px">$142.8M</div>
+                    </div>
+                    <div style="background:rgba(16,185,129,0.04); border:1px solid rgba(16,185,129,0.2); padding:10px; border-radius:8px; text-align:center">
+                        <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">LONG REKTS</div>
+                        <div style="font-size:1.3rem; font-weight:900; color:#10b981; margin-top:2px">$84.2M</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:center">
+                        <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">TOP EXCHANGE</div>
+                        <div style="font-size:1.1rem; font-weight:900; color:var(--accent); margin-top:4px">BINANCE · 48%</div>
+                    </div>
+                </div>
+                <!-- Simulated animated visual bars -->
+                <div style="display:flex; height:24px; border-radius:6px; overflow:hidden; gap:2px; background:rgba(255,255,255,0.05)">
+                    <div style="width:63%; background:linear-gradient(90deg, #ef4444, #dc2626); display:flex; align-items:center; padding-left:8px; font-size:0.6rem; font-weight:900; color:white">SHORTS 63%</div>
+                    <div style="flex:1; background:linear-gradient(90deg, #10b981, #059669); display:flex; align-items:center; justify-content:flex-end; padding-right:8px; font-size:0.6rem; font-weight:900; color:white">LONGS 37%</div>
+                </div>
             </div>
         </div>
 
-        <!-- Signal Analytics Charts - directly below gauges -->
-        <div style="margin-bottom:1.5rem">
-            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">LIVE SIGNAL INTELLIGENCE <span style="color:rgba(0,242,255,0.4);font-size:0.5rem;margin-left:6px">CLICK TO EXPAND</span></div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px">
-                <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('scatter')"
-                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
-                    <div class="card-header" style="margin-bottom:8px">
-                        <h3 style="font-size:0.75rem">Alpha vs Z-Score</h3>
+        <!-- NEW: Embedded Power Trio Conduit -->
+        <div id="section-powertrio" class="cmd-draggable-section" data-section-id="powertrio" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative; border-color:rgba(0,242,255,0.2)">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--accent)">POWER TRIO PREDICTION CONDUIT</h3>
+                        <span class="label-tag">MULTI-TIMEFRAME RIBBON</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('powertrio')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; background:linear-gradient(90deg, rgba(0,242,255,0.05), transparent); padding:12px; border-radius:8px">
+                    <div>
+                        <div style="font-size:0.6rem; color:var(--text-dim); letter-spacing:1.5px">PRIMARY INTERACTION BAND</div>
+                        <div style="font-size:1.2rem; font-weight:900; color:white; margin-top:2px">EMA-5 CROSSOVER DETECTED</div>
+                        <div style="font-size:0.65rem; color:var(--accent); margin-top:2px">Confidence Index: 89.4% Threshold</div>
+                    </div>
+                    <div style="display:flex; gap:8px">
+                        <span style="padding:4px 8px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:4px; font-size:0.65rem; font-weight:700">1H: BULLISH</span>
+                        <span style="padding:4px 8px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:4px; font-size:0.65rem; font-weight:700">4H: BULLISH</span>
+                        <span style="padding:4px 8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; border-radius:4px; font-size:0.65rem; font-weight:700">1D: COMPRESSION</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Personal ATR Portfolio Risk Status -->
+        <div id="section-atr-risk" class="cmd-draggable-section" data-section-id="atr-risk" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">PORTFOLIO ATR RISK STATUS</h3>
+                        <span style="font-size:0.55rem; color:#a78bfa; background:rgba(139,92,246,0.1); padding:2px 6px; border-radius:4px; font-weight:700">LIVE AUDIT</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('atr-risk')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px">
+                    <div style="padding:10px; background:rgba(255,255,255,0.02); border-radius:6px; border-left:2px solid #8b5cf6">
+                        <div style="font-size:0.55rem; color:var(--text-dim)">TRAILING BUFFER</div>
+                        <div style="font-size:1.1rem; font-weight:900; color:white; margin-top:2px">2.4× ATR</div>
+                    </div>
+                    <div style="padding:10px; background:rgba(255,255,255,0.02); border-radius:6px; border-left:2px solid #10b981">
+                        <div style="font-size:0.55rem; color:var(--text-dim)">RISK EXPOSURE</div>
+                        <div style="font-size:1.1rem; font-weight:900; color:#10b981; margin-top:2px">NOMINAL</div>
+                    </div>
+                    <div style="padding:10px; background:rgba(255,255,255,0.02); border-radius:6px; border-left:2px solid var(--accent)">
+                        <div style="font-size:0.55rem; color:var(--text-dim)">ACTIVE STOPS</div>
+                        <div style="font-size:1.1rem; font-weight:900; color:var(--accent); margin-top:2px">SECURE (9)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Machine Learning Sentiment Stream -->
+        <div id="section-sentiment-stream" class="cmd-draggable-section" data-section-id="sentiment-stream" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:0.75rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">ML QUALITATIVE SENTIMENT STREAM</h3>
+                        <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981"></span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('sentiment-stream')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px">
+                    <div style="display:flex; justify-content:space-between; font-size:0.7rem; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px">
+                        <span style="color:var(--text-main)">Institutional custody inflow nodes accelerating on layer-1 native assets.</span>
+                        <span style="color:#10b981; font-weight:700; flex-shrink:0">+92% ALPHA</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.7rem; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px">
+                        <span style="color:var(--text-main)">Retail order book depth compressing on decentralized perpetual platforms.</span>
+                        <span style="color:var(--text-dim); font-weight:700; flex-shrink:0">NEUTRAL</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- De-coupled Individual Live Signal Charts -->
+        <div id="section-signal-scatter" class="cmd-draggable-section" data-section-id="signal-scatter" draggable="true" style="cursor:grab; position:relative; width:calc(50% - 0.75rem); transition:all 0.2s">
+            <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s;height:100%" onclick="openCmdChartModal('scatter')"
+                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
+                <div class="card-header" style="margin-bottom:8px">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <h3 style="font-size:0.75rem; margin:0">Alpha vs Z-Score</h3>
                         <span class="label-tag">QUALITY SCATTER</span>
                     </div>
-                    <div style="height:200px;position:relative"><canvas id="cmd-alphaVsZChart" role="img" aria-label="Alpha vs Z-score scatter chart"></canvas></div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('signal-scatter')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
-                <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('donut')"
-                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
-                    <div class="card-header" style="margin-bottom:8px">
-                        <h3 style="font-size:0.75rem">Category Mix</h3>
+                <div style="height:200px;position:relative"><canvas id="cmd-alphaVsZChart" role="img" aria-label="Alpha vs Z-score scatter chart"></canvas></div>
+            </div>
+        </div>
+
+        <div id="section-signal-donut" class="cmd-draggable-section" data-section-id="signal-donut" draggable="true" style="cursor:grab; position:relative; width:calc(50% - 0.75rem); transition:all 0.2s">
+            <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s;height:100%" onclick="openCmdChartModal('donut')"
+                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
+                <div class="card-header" style="margin-bottom:8px">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <h3 style="font-size:0.75rem; margin:0">Category Mix</h3>
                         <span class="label-tag">SECTOR BREAKDOWN</span>
                     </div>
-                    <div style="height:200px;position:relative"><canvas id="cmd-categoryDonutChart" role="img" aria-label="Signal category distribution donut chart"></canvas></div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('signal-donut')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
-                <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('btccorr')"
-                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
-                    <div class="card-header" style="margin-bottom:8px">
-                        <h3 style="font-size:0.75rem">BTC Correlation</h3>
+                <div style="height:200px;position:relative"><canvas id="cmd-categoryDonutChart" role="img" aria-label="Signal category distribution donut chart"></canvas></div>
+            </div>
+        </div>
+
+        <div id="section-signal-btccorr" class="cmd-draggable-section" data-section-id="signal-btccorr" draggable="true" style="cursor:grab; position:relative; width:calc(50% - 0.75rem); transition:all 0.2s">
+            <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s;height:100%" onclick="openCmdChartModal('btccorr')"
+                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
+                <div class="card-header" style="margin-bottom:8px">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <h3 style="font-size:0.75rem; margin:0">BTC Correlation</h3>
                         <span class="label-tag">CORRELATION SPREAD</span>
                     </div>
-                    <div style="height:200px;position:relative"><canvas id="cmd-btcCorrChart" role="img" aria-label="BTC correlation radar chart"></canvas></div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('signal-btccorr')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
-                <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('alpha')"
-                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
-                    <div class="card-header" style="margin-bottom:8px">
-                        <h3 style="font-size:0.75rem">Alpha Leaders</h3>
+                <div style="height:200px;position:relative"><canvas id="cmd-btcCorrChart" role="img" aria-label="BTC correlation radar chart"></canvas></div>
+            </div>
+        </div>
+
+        <div id="section-signal-alpha" class="cmd-draggable-section" data-section-id="signal-alpha" draggable="true" style="cursor:grab; position:relative; width:calc(50% - 0.75rem); transition:all 0.2s">
+            <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s;height:100%" onclick="openCmdChartModal('alpha')"
+                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
+                <div class="card-header" style="margin-bottom:8px">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <h3 style="font-size:0.75rem; margin:0">Alpha Leaders</h3>
                         <span class="label-tag">TOP 8 BY ALPHA</span>
                     </div>
-                    <div style="height:200px;position:relative"><canvas id="cmd-topAlphaChart" role="img" aria-label="Top alpha signals bar chart"></canvas></div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('signal-alpha')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
+                <div style="height:200px;position:relative"><canvas id="cmd-topAlphaChart" role="img" aria-label="Top alpha signals bar chart"></canvas></div>
             </div>
         </div>
 
@@ -151,83 +351,230 @@ async function renderCommandCenter() {
             </div>
         </div>
 
-        <div class="command-main-grid" style="display:grid; grid-template-columns: 1fr 400px; gap:1.5rem; margin-bottom:1.5rem">
-            <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('etf')"
-                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
-                <div class="card-header" style="margin-bottom:1rem">
-                    <h3>7D ETF NET FLOWS <span style="font-size:0.6rem; color:var(--text-dim)">($ Millions)</span></h3>
-                    <span class="label-tag" style="cursor:zoom-in">CLICK TO EXPAND</span>
-                </div>
-                <div style="height:350px"><canvas id="cmd-etf-chart" role="img" aria-label="ETF flows bar chart"></canvas></div>
+        <div id="section-etf" class="cmd-draggable-section" data-section-id="etf" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+        <div class="card" style="position:relative">
+            <div class="card-header" style="margin-bottom:1rem">
+                <h3 style="margin:0; font-size:0.75rem; color:var(--text-main); letter-spacing:1px">MACRO CAPITAL MAPPING</h3>
+                <button onclick="event.stopPropagation(); cycleCmdSectionWidth('etf')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
             </div>
-            <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('corr')"
-                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
-                <div class="card-header">
-                    <h3>MACRO CORRELATION MATRIX</h3>
-                    <span class="label-tag" style="cursor:zoom-in">CLICK TO EXPAND</span>
+            <div class="command-main-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem">
+                <div style="cursor:zoom-in; padding:10px; background:rgba(255,255,255,0.01); border-radius:8px; border:1px solid var(--border)" onclick="openCmdChartModal('etf')">
+                    <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:8px">7D ETF NET FLOWS ($M)</div>
+                    <div style="height:300px"><canvas id="cmd-etf-chart" role="img" aria-label="ETF flows bar chart"></canvas></div>
                 </div>
-                <div id="cmd-corr-matrix" style="height:350px; overflow:hidden"></div>
+                <div style="cursor:zoom-in; padding:10px; background:rgba(255,255,255,0.01); border-radius:8px; border:1px solid var(--border)" onclick="openCmdChartModal('corr')">
+                    <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:8px">MACRO CORRELATION MATRIX</div>
+                    <div id="cmd-corr-matrix" style="height:300px; overflow:hidden"></div>
+                </div>
             </div>
         </div>
+        </div>
 
-        <div style="display:grid;grid-template-columns:1fr minmax(160px,220px);gap:1.5rem;align-items:start">
-            <div class="card" style="border:1px solid rgba(0,242,255,0.12);cursor:zoom-in;transition:border-color 0.15s"
-                onclick="openCmdChartModal('radar')"
-                onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-                    <h3 style="margin:0;color:var(--accent);font-size:0.75rem;letter-spacing:1px">
-                        <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:5px">radar</span>CONFIDENCE RADAR
-                    </h3>
-                    <div style="display:flex;align-items:center;gap:8px">
-                        <select id="cmd-radar-select" style="border:1px solid rgba(0,242,255,0.2);color:white;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono'" onchange="event.stopPropagation();loadCmdRadar(this.value)" onclick="event.stopPropagation()">
+        <div id="section-radar" class="cmd-draggable-section" data-section-id="radar" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+        <div class="card" style="position:relative">
+            <div class="card-header" style="margin-bottom:1rem">
+                <h3 style="margin:0; font-size:0.75rem; color:var(--text-main); letter-spacing:1px">CONFIDENCE RADAR & DERIVATIVES</h3>
+                <button onclick="event.stopPropagation(); cycleCmdSectionWidth('radar')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:1.5rem;align-items:start">
+                <div style="border:1px solid rgba(0,242,255,0.12); border-radius:8px; padding:12px; cursor:zoom-in; transition:border-color 0.15s"
+                    onclick="openCmdChartModal('radar')"
+                    onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+                        <div style="font-size:0.65rem; color:var(--accent); font-weight:700">6-DIMENSION DECOMPOSITION</div>
+                        <select id="cmd-radar-select" style="border:1px solid rgba(0,242,255,0.2);background:var(--bg-card);color:white;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono'" onchange="event.stopPropagation();loadCmdRadar(this.value)" onclick="event.stopPropagation()">
                             <option value="BTC-USD">BTC</option><option value="ETH-USD">ETH</option>
                             <option value="SOL-USD">SOL</option><option value="LINK-USD">LINK</option>
                             <option value="ADA-USD">ADA</option>
                         </select>
-                        <span class="label-tag" style="cursor:zoom-in;font-size:0.4rem">CLICK TO EXPAND</span>
+                    </div>
+                    <div style="width:100%;height:380px"><canvas id="cmd-radar-chart" role="img" aria-label="Command center overview radar chart"></canvas></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:1rem;width:100%">
+                    <div style="padding:10px; background:rgba(255,255,255,0.01); border:1px solid var(--border); border-radius:8px; cursor:zoom-in" onclick="switchView('gex-profile')">
+                        <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-dim)">
+                            <span>DEALER GEX PIVOT</span>
+                            <span style="color:#a78bfa">DERIVATIVES</span>
+                        </div>
+                        <div id="cmd-gex-status" style="text-align:center;padding:4px 0">
+                            <div id="cmd-gex-val" style="font-size:1.5rem;font-weight:900;color:#8b5cf6">--</div>
+                            <div id="cmd-gex-label" style="font-size:0.55rem;color:var(--text-dim)">CALCULATING GAMMA...</div>
+                        </div>
+                        <div style="height:45px"><canvas id="cmd-gex-spark"></canvas></div>
+                    </div>
+                    <div style="padding:10px; background:rgba(255,255,255,0.01); border:1px solid var(--border); border-radius:8px">
+                        <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:4px">CME MAGNET GAPS</div>
+                        <div id="cmd-cme-gaps"></div>
+                    </div>
+                    <div style="padding:10px; background:rgba(255,255,255,0.01); border:1px solid var(--border); border-radius:8px; cursor:zoom-in" onclick="switchView('global-markets')">
+                        <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-dim)">
+                            <span>OPTIONS MAX PAIN</span>
+                            <span style="color:#ef4444">LIQUIDITY</span>
+                        </div>
+                        <div id="cmd-max-pain-status" style="text-align:center;padding:4px 0">
+                            <div id="cmd-max-pain-val" style="font-size:1.5rem;font-weight:900;color:#ef4444">--</div>
+                            <div id="cmd-max-pain-label" style="font-size:0.55rem;color:var(--text-dim)">CALCULATING PAIN...</div>
+                        </div>
+                        <div id="cmd-liq-heatmap" style="margin-top:6px;font-size:0.6rem"></div>
                     </div>
                 </div>
-                <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:0.75rem">6-DIMENSION ML SIGNAL DECOMPOSITION</div>
-                <div style="width:100%;height:520px"><canvas id="cmd-radar-chart" role="img" aria-label="Command center overview radar chart"></canvas></div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:1.5rem;width:100%">
-                <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="switchView('gex-profile')"
-                    onmouseover="this.style.borderColor='rgba(139,92,246,0.35)'" onmouseout="this.style.borderColor=''">
-                    <div class="card-header" style="margin-bottom:0.75rem">
-                        <h3 style="font-size:0.7rem;letter-spacing:1px">DEALER GEX PIVOT</h3>
-                        <span class="premium-badge" style="background:rgba(139,92,246,0.2);color:#a78bfa">DERIVATIVES</span>
+        </div>
+        </div>
+
+        <!-- ██ VOLUME PROFILE ██ -->
+        <div id="section-vol-profile" class="cmd-draggable-section" data-section-id="vol-profile" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:var(--accent)">leaderboard</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">HORIZONTAL VOLUME PROFILE (TPO)</h3>
+                        <span style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(0,242,255,0.1); color:var(--accent); font-weight:900; font-family:'JetBrains Mono'">ORDER FLOW</span>
                     </div>
-                    <div id="cmd-gex-status" style="text-align:center;padding:10px 0">
-                        <div id="cmd-gex-val" style="font-size:1.8rem;font-weight:900;color:#8b5cf6">--</div>
-                        <div id="cmd-gex-label" style="font-size:0.6rem;color:var(--text-dim);margin-top:4px;letter-spacing:1.5px">CALCULATING GAMMA...</div>
-                    </div>
-                    <div style="height:60px;margin-top:10px"><canvas id="cmd-gex-spark"></canvas></div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('vol-profile')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
-                <div class="card">
-                    <h3 style="margin-bottom:0.75rem;font-size:0.7rem">CME MAGNET GAPS</h3>
-                    <div id="cmd-cme-gaps"></div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin-bottom:1rem">
+                    <div style="padding:8px 10px; background:rgba(255,255,255,0.01); border:1px solid var(--border); border-radius:6px">
+                        <div style="font-size:0.55rem; color:var(--text-dim)">POC (FAIR VALUE)</div>
+                        <div id="cmd-vol-poc" style="font-size:1.1rem; font-weight:900; color:var(--accent); font-family:'JetBrains Mono'">--</div>
+                    </div>
+                    <div style="padding:8px 10px; background:rgba(255,255,255,0.01); border:1px solid var(--border); border-radius:6px">
+                        <div style="font-size:0.55rem; color:var(--text-dim)">VALUE AREA HIGH</div>
+                        <div id="cmd-vol-vah" style="font-size:1.1rem; font-weight:900; color:var(--text-main); font-family:'JetBrains Mono'">--</div>
+                    </div>
+                    <div style="padding:8px 10px; background:rgba(255,255,255,0.01); border:1px solid var(--border); border-radius:6px">
+                        <div style="font-size:0.55rem; color:var(--text-dim)">VALUE AREA LOW</div>
+                        <div id="cmd-vol-val" style="font-size:1.1rem; font-weight:900; color:var(--text-main); font-family:'JetBrains Mono'">--</div>
+                    </div>
                 </div>
-                <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="switchView('global-markets')"
-                    onmouseover="this.style.borderColor='rgba(239,68,68,0.35)'" onmouseout="this.style.borderColor=''">
-                    <div class="card-header" style="margin-bottom:0.75rem">
-                        <h3 style="font-size:0.7rem;letter-spacing:1px">OPTIONS MAX PAIN</h3>
-                        <span class="premium-badge" style="background:rgba(239,68,68,0.2);color:#ef4444">LIQUIDITY</span>
-                    </div>
-                    <div id="cmd-max-pain-status" style="text-align:center;padding:10px 0">
-                        <div id="cmd-max-pain-val" style="font-size:1.8rem;font-weight:900;color:#ef4444">--</div>
-                        <div id="cmd-max-pain-label" style="font-size:0.6rem;color:var(--text-dim);margin-top:4px;letter-spacing:1.5px">CALCULATING PAIN...</div>
-                    </div>
-                    <div id="cmd-liq-heatmap" style="margin-top:10px;font-size:0.65rem"></div>
+                <div style="height:250px; position:relative; width:100%">
+                    <canvas id="cmd-vol-profile-canvas"></canvas>
                 </div>
             </div>
         </div>
 
+        <!-- ██ LOB HEATMAP ██ -->
+        <div id="section-lob-heat" class="cmd-draggable-section" data-section-id="lob-heat" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:#eab308">blur_on</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">LIMIT ORDER BOOK (LOB) DEPTH HEATMAP</h3>
+                        <span style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(234,179,8,0.1); color:#eab308; font-weight:900; font-family:'JetBrains Mono'">LIQUIDITY</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <select id="cmd-lob-heat-interval" onchange="event.stopPropagation(); loadCmdPremiumVisuals()" onclick="event.stopPropagation()" style="background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border); font-size:0.65rem; padding:2px 6px; border-radius:4px; font-family:'JetBrains Mono'">
+                            <option value="1m">1m Burst</option>
+                            <option value="5m">5m Scalp</option>
+                            <option value="15m" selected>15m Session</option>
+                            <option value="1h">1h Horizon</option>
+                            <option value="1d">1d Macro</option>
+                        </select>
+                        <button onclick="event.stopPropagation(); cycleCmdSectionWidth('lob-heat')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                    </div>
+                </div>
+                <div style="height:280px; position:relative; width:100%">
+                    <canvas id="cmd-lob-heat-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ██ DEALER GEX STRIKE PROFILE ██ -->
+        <div id="section-gex-strike" class="cmd-draggable-section" data-section-id="gex-strike" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:#a78bfa">ssid_chart</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">DEALER GAMMA EXPOSURE (BY STRIKE)</h3>
+                        <span style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(167,139,250,0.1); color:#a78bfa; font-weight:900; font-family:'JetBrains Mono'">DERIVATIVES</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('gex-strike')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div style="height:250px; position:relative; width:100%">
+                    <canvas id="cmd-gex-strike-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ██ IV SMILE SURFACE ██ -->
+        <div id="section-iv-surface" class="cmd-draggable-section" data-section-id="iv-surface" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:#ec4899">waves</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">IMPLIED VOLATILITY (IV) SKEW CURVE</h3>
+                        <span style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(236,72,153,0.1); color:#ec4899; font-weight:900; font-family:'JetBrains Mono'">VOL SURFACE</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('iv-surface')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div style="height:220px; position:relative; width:100%">
+                    <canvas id="cmd-iv-surface-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ██ MONTE CARLO PATHS ██ -->
+        <div id="section-monte-paths" class="cmd-draggable-section" data-section-id="monte-paths" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:#22c55e">timeline</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">MONTE CARLO FORWARD PATH SIMULATION</h3>
+                        <span style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(34,197,94,0.1); color:#22c55e; font-weight:900; font-family:'JetBrains Mono'">QUANT PROJECTION</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('monte-paths')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div style="height:260px; position:relative; width:100%">
+                    <canvas id="cmd-monte-paths-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ██ MACRO FACTOR WEB ██ -->
+        <div id="section-factor-radar" class="cmd-draggable-section" data-section-id="factor-radar" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:#3b82f6">radar</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">MACRO FACTOR STYLE EXPOSURE WEB</h3>
+                        <span style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(59,130,246,0.1); color:#3b82f6; font-weight:900; font-family:'JetBrains Mono'">REGIME RADAR</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('factor-radar')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div style="height:260px; position:relative; width:100%">
+                    <canvas id="cmd-factor-radar-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ██ SECTOR CAPITAL ROTATION SANKEY ██ -->
+        <div id="section-sankey-flow" class="cmd-draggable-section" data-section-id="sankey-flow" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative">
+                <div class="card-header" style="margin-bottom:1rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:#06b6d4">account_tree</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">SECTOR CAPITAL ROTATION PIPELINE</h3>
+                        <span style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(6,182,212,0.1); color:#06b6d4; font-weight:900; font-family:'JetBrains Mono'">LIQUIDITY PIPELINE</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('sankey-flow')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                <div id="cmd-sankey-flow-container" style="display:flex; justify-content:space-between; align-items:stretch; height:180px; padding:10px 0; position:relative; overflow-x:auto"></div>
+            </div>
+        </div>
+
+        </div> <!-- Outer Wrapper End -->
+
     `;
+
+    await loadCmdDashboardSettingsFromDB();
+    initCommandDragAndDrop();
 
 
     // Data Fetching & Rendering
     // Kick off AI widget immediately (non-blocking, separate from main Promise.all)
     fetchAITradeNow(false);
+    loadCmdAssetCandlesticks();
+    loadCmdPremiumVisuals();
 
     try {
         const [macro, regime, fearGreed, signalsData, pulse] = await Promise.all([
@@ -1282,3 +1629,638 @@ async function fetchAITradeNow(force = false) {
         }
     }
 }
+
+// ============= DASHBOARD DYNAMIC DRAG & DROP CUSTOMIZATION =============
+
+function initCommandDragAndDrop() {
+    const wrapper = document.getElementById('cmd-customizable-layout-wrapper');
+    if (!wrapper) return;
+
+    // 1. Read layout state from localStorage
+    let savedLayout = [];
+    try {
+        const stored = localStorage.getItem('cmd_dashboard_layout');
+        if (stored) savedLayout = JSON.parse(stored);
+    } catch(e){}
+
+    const defaultLayout = [
+        'asset-chart', 'ai-trade', 'vol-profile', 'lob-heat', 'gex-strike', 'iv-surface',
+        'monte-paths', 'factor-radar', 'sankey-flow', 'gauges', 'liquidations', 'powertrio', 'atr-risk',
+        'sentiment-stream', 'signal-scatter', 'signal-donut', 'signal-btccorr',
+        'signal-alpha', 'etf', 'radar'
+    ];
+    let layout = (savedLayout && savedLayout.length > 0) ? savedLayout : defaultLayout;
+    defaultLayout.forEach(id => {
+        if (!layout.includes(id)) layout.unshift(id);
+    });
+
+    // 2. Read hidden sections & width states
+    let hiddenSections = [];
+    try {
+        const storedHidden = localStorage.getItem('cmd_dashboard_hidden');
+        if (storedHidden) hiddenSections = JSON.parse(storedHidden);
+    } catch(e){}
+
+    let savedWidths = {};
+    try {
+        const storedW = localStorage.getItem('cmd_dashboard_widths');
+        if (storedW) savedWidths = JSON.parse(storedW);
+    } catch(e){}
+
+    // Reorder nodes and apply hidden/width states
+    layout.forEach(id => {
+        const el = wrapper.querySelector(`[data-section-id="${id}"]`);
+        if (el) {
+            wrapper.appendChild(el);
+            if (hiddenSections.includes(id)) {
+                el.style.display = 'none';
+            } else {
+                el.style.display = '';
+            }
+            if (savedWidths[id]) {
+                el.style.width = savedWidths[id];
+            }
+        }
+    });
+
+    // 3. Attach native HTML5 Drag and Drop Handlers
+    let draggedEl = null;
+
+    const sections = wrapper.querySelectorAll('.cmd-draggable-section');
+    sections.forEach(section => {
+        section.addEventListener('dragstart', function(e) {
+            draggedEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.sectionId);
+            setTimeout(() => this.style.opacity = '0.4', 0);
+        });
+
+        section.addEventListener('dragend', function() {
+            draggedEl = null;
+            this.style.opacity = '1';
+            sections.forEach(s => {
+                s.style.borderTop = '';
+                s.style.borderBottom = '';
+                s.style.borderLeft = '';
+                s.style.borderRight = '';
+            });
+        });
+
+        section.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (draggedEl === this) return;
+
+            // Simple visual placeholder line depending on grid row positioning
+            this.style.borderTop = '3px dashed var(--accent)';
+        });
+
+        section.addEventListener('dragleave', function() {
+            this.style.borderTop = '';
+        });
+
+        section.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderTop = '';
+            if (!draggedEl || draggedEl === this) return;
+
+            wrapper.insertBefore(draggedEl, this);
+
+            // Save new order
+            const newOrder = Array.from(wrapper.querySelectorAll('.cmd-draggable-section')).map(s => s.dataset.sectionId);
+            localStorage.setItem('cmd_dashboard_layout', JSON.stringify(newOrder));
+            syncCmdDashboardSettingsToDB();
+            showToast('LAYOUT MANAGER', 'Dashboard arrangement saved.', 'success');
+        });
+    });
+}
+
+window.openCustomizeDrawer = function() {
+    let modal = document.getElementById('cmdCustomizeDrawerModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'cmdCustomizeDrawerModal';
+        modal.onclick = function(e) { if(e.target === this) this.style.display = 'none'; };
+        modal.style.cssText = 'display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); justify-content:flex-end';
+        document.body.appendChild(modal);
+    }
+
+    // Read state
+    let hiddenSections = [];
+    try {
+        const storedHidden = localStorage.getItem('cmd_dashboard_hidden');
+        if (storedHidden) hiddenSections = JSON.parse(storedHidden);
+    } catch(e){}
+
+    const items = [
+        { id: 'asset-chart', title: 'Asset Price Action Hub', desc: 'Active filtered candlestick series & telemetry' },
+        { id: 'ai-trade', title: 'AI Copilot / Market Reasoning', desc: 'Real-time narrative synthesis vector' },
+        { id: 'gauges', title: 'System Conviction Gauges', desc: 'Fear/Greed, Regimes & Market Pulse' },
+        { id: 'liquidations', title: 'Global Liquidations Map', desc: '24H wipeout shock & leverage ratios' },
+        { id: 'powertrio', title: 'Power Trio Prediction Conduit', desc: 'Multi-timeframe EMA-5 interaction band' },
+        { id: 'atr-risk', title: 'Portfolio ATR Risk Status', desc: 'Localized active stops & trailing buffers' },
+        { id: 'sentiment-stream', title: 'ML Sentiment Stream', desc: 'Live qualitative machine learning catalysts' },
+        { id: 'signal-scatter', title: 'Alpha vs Z-Score Scatter', desc: 'De-coupled signal intelligence plot' },
+        { id: 'signal-donut', title: 'Category Mix Sector Donut', desc: 'De-coupled strategy distribution chart' },
+        { id: 'signal-btccorr', title: 'BTC Correlation Radar', desc: 'De-coupled underlying asset spreads' },
+        { id: 'signal-alpha', title: 'Top Alpha Leaders Bar', desc: 'De-coupled highest returning signals' },
+        { id: 'etf', title: 'ETF Flows & Correlation Matrix', desc: 'Macro asset mapping capital flows' },
+        { id: 'radar', title: 'Confidence Radar & Derivatives', desc: '6D decomposition & dealer GEX sparkline' },
+        { id: 'vol-profile', title: 'Horizontal Volume Profile', desc: 'Market Profile, POC & Value Area arrays' },
+        { id: 'lob-heat', title: 'LOB Depth Heatmap', desc: 'Dense limit order liquidity depth walls' },
+        { id: 'gex-strike', title: 'Dealer GEX Profile', desc: 'Market Maker hedging Gamma flip zones' },
+        { id: 'iv-surface', title: 'IV Smile Surface Curve', desc: 'OTM optionality skew across delta strikes' },
+        { id: 'monte-paths', title: 'Monte Carlo Forward Simulation', desc: 'P95 Bullish / P5 Bearish probability bands' },
+        { id: 'factor-radar', title: 'Macro Factor Style Exposures', desc: 'Momentum, Value, Carry & Size rotation' },
+        { id: 'sankey-flow', title: 'Sector Capital Rotation Flow', desc: 'Institutional capital ingress routing track' }
+    ];
+
+    modal.innerHTML = `
+        <div style="width:min(100%, 420px); background:var(--bg-card); height:100%; border-left:1px solid var(--border); padding:2rem 1.5rem; display:flex; flex-direction:column; justify-content:space-between; animation:slideLeft 0.3s ease-out; overflow-y:auto">
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:var(--accent)">dashboard_customize</span>
+                        <h3 style="margin:0; font-size:0.9rem; letter-spacing:1px">DASHBOARD MODULES</h3>
+                    </div>
+                    <button onclick="document.getElementById('cmdCustomizeDrawerModal').style.display='none'" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:1.2rem">&times;</button>
+                </div>
+                <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:1.5rem; line-height:1.4">
+                    Toggle visibility, adjust grid columns using the inline cycle controls, or drag modules directly to construct your ultimate layout.
+                </p>
+
+                <div style="display:flex; flex-direction:column; gap:10px">
+                    ${items.map(item => {
+                        const isHidden = hiddenSections.includes(item.id);
+                        return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:8px">
+                                <div>
+                                    <div style="font-size:0.75rem; font-weight:700; color:var(--text-main)">${item.title}</div>
+                                    <div style="font-size:0.55rem; color:var(--text-dim); margin-top:2px">${item.desc}</div>
+                                </div>
+                                <label style="position:relative; display:inline-block; width:34px; height:20px; flex-shrink:0">
+                                    <input type="checkbox" ${!isHidden ? 'checked' : ''} onchange="toggleCmdSection('${item.id}', this.checked)" style="opacity:0; width:0; height:0">
+                                    <span style="position:absolute; cursor:pointer; inset:0; background:${!isHidden ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}; border-radius:20px; transition:0.2s; display:flex; align-items:center; padding:2px">
+                                        <span style="display:inline-block; width:16px; height:16px; background:white; border-radius:50%; transition:0.2s; transform:${!isHidden ? 'translateX(14px)' : 'translateX(0)'}"></span>
+                                    </span>
+                                </label>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+
+            <div style="margin-top:2rem; border-top:1px solid var(--border); padding-top:1.5rem">
+                <button onclick="resetCmdDashboardLayout()" style="width:100%; padding:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; border-radius:8px; font-size:0.7rem; font-weight:700; cursor:pointer; transition:all 0.2s" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                    <span class="material-symbols-outlined" style="font-size:0.8rem; vertical-align:middle; margin-right:4px">restart_alt</span> RESET TO DEFAULT LAYOUT
+                </button>
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+};
+
+window.toggleCmdSection = function(id, isVisible) {
+    let hiddenSections = [];
+    try {
+        const storedHidden = localStorage.getItem('cmd_dashboard_hidden');
+        if (storedHidden) hiddenSections = JSON.parse(storedHidden);
+    } catch(e){}
+
+    if (isVisible) {
+        hiddenSections = hiddenSections.filter(h => h !== id);
+    } else {
+        if (!hiddenSections.includes(id)) hiddenSections.push(id);
+    }
+
+    localStorage.setItem('cmd_dashboard_hidden', JSON.stringify(hiddenSections));
+    syncCmdDashboardSettingsToDB();
+
+    // Update live layout
+    const el = document.querySelector(`[data-section-id="${id}"]`);
+    if (el) {
+        el.style.display = isVisible ? '' : 'none';
+    }
+    showToast('LAYOUT MANAGER', isVisible ? 'Module enabled.' : 'Module hidden.', 'info');
+};
+
+window.cycleCmdSectionWidth = function(id) {
+    let widths = {};
+    try {
+        const stored = localStorage.getItem('cmd_dashboard_widths');
+        if (stored) widths = JSON.parse(stored);
+    } catch(e){}
+
+    const current = widths[id] || '';
+    const el = document.querySelector(`[data-section-id="${id}"]`);
+    if (!el) return;
+
+    // Cycle through 100% -> 50% -> 33%
+    let nextWidth = '100%';
+    if (!current || current === '100%') {
+        nextWidth = 'calc(50% - 0.75rem)';
+    } else if (current.includes('50%')) {
+        nextWidth = 'calc(33.333% - 1rem)';
+    } else {
+        nextWidth = '100%';
+    }
+
+    widths[id] = nextWidth;
+    localStorage.setItem('cmd_dashboard_widths', JSON.stringify(widths));
+    syncCmdDashboardSettingsToDB();
+    el.style.width = nextWidth;
+    showToast('LAYOUT MANAGER', 'Module grid size updated.', 'info');
+};
+
+window.resetCmdDashboardLayout = function() {
+    localStorage.removeItem('cmd_dashboard_layout');
+    localStorage.removeItem('cmd_dashboard_hidden');
+    localStorage.removeItem('cmd_dashboard_widths');
+    syncCmdDashboardSettingsToDB();
+    const modal = document.getElementById('cmdCustomizeDrawerModal');
+    if (modal) modal.style.display = 'none';
+    showToast('LAYOUT MANAGER', 'Layout reset to defaults.', 'success');
+    renderCommandCenter();
+};
+
+window.syncCmdDashboardSettingsToDB = async function() {
+    if (typeof isAuthenticatedUser !== 'undefined' && !isAuthenticatedUser) return;
+    try {
+        const layout = localStorage.getItem('cmd_dashboard_layout') ? JSON.parse(localStorage.getItem('cmd_dashboard_layout')) : null;
+        const widths = localStorage.getItem('cmd_dashboard_widths') ? JSON.parse(localStorage.getItem('cmd_dashboard_widths')) : null;
+        const hidden = localStorage.getItem('cmd_dashboard_hidden') ? JSON.parse(localStorage.getItem('cmd_dashboard_hidden')) : null;
+        
+        await fetchAPI('/user/settings', 'POST', {
+            dashboard_layout: layout,
+            dashboard_widths: widths,
+            dashboard_hidden: hidden
+        });
+    } catch(e) {}
+};
+
+window.loadCmdDashboardSettingsFromDB = async function() {
+    if (typeof isAuthenticatedUser !== 'undefined' && !isAuthenticatedUser) return;
+    if (window._cmdSettingsLoadedFromDB) return;
+    try {
+        const settings = await fetchAPI('/user/settings');
+        if (settings) {
+            if (settings.dashboard_layout && Array.isArray(settings.dashboard_layout)) {
+                localStorage.setItem('cmd_dashboard_layout', JSON.stringify(settings.dashboard_layout));
+            }
+            if (settings.dashboard_widths && typeof settings.dashboard_widths === 'object') {
+                localStorage.setItem('cmd_dashboard_widths', JSON.stringify(settings.dashboard_widths));
+            }
+            if (settings.dashboard_hidden && Array.isArray(settings.dashboard_hidden)) {
+                localStorage.setItem('cmd_dashboard_hidden', JSON.stringify(settings.dashboard_hidden));
+            }
+            window._cmdSettingsLoadedFromDB = true;
+        }
+    } catch(e) {}
+};
+
+window._cmdAssetChartInst = null;
+window.loadCmdAssetCandlesticks = async function() {
+    const container = document.getElementById('cmd-asset-candlestick-container');
+    const badgeEl   = document.getElementById('cmd-asset-chart-badge');
+    const titleEl   = document.getElementById('cmd-asset-chart-title');
+    const priceEl   = document.getElementById('cmd-asset-chart-price');
+    const intervalEl = document.getElementById('cmd-asset-chart-interval');
+    if (!container) return;
+
+    const selectedAsset = localStorage.getItem('cmd_selected_asset') || 'ALL';
+    const tickerToLoad  = selectedAsset === 'ALL' ? 'BTC-USD' : selectedAsset;
+    const intervalToLoad = intervalEl ? intervalEl.value : '15m';
+
+    // Map interval to a fitting sliding window period to ensure rich density without truncation
+    let periodToLoad = '60d';
+    if (intervalToLoad === '15m') periodToLoad = '5d';
+    else if (intervalToLoad === '1h') periodToLoad = '30d';
+    else periodToLoad = '180d';
+
+    if (badgeEl) badgeEl.textContent = selectedAsset === 'ALL' ? 'UNIVERSE BENCHMARK' : 'ACTIVE FILTER';
+    if (titleEl) titleEl.textContent = tickerToLoad;
+
+    if (priceEl && priceEl.textContent === '--') {
+        priceEl.innerHTML = '<span class="material-symbols-outlined" style="font-size:12px;animation:spin 1s linear infinite">sync</span>';
+    }
+
+    try {
+        const klines = await fetchAPI(`/klines?ticker=${encodeURIComponent(tickerToLoad)}&period=${periodToLoad}&interval=${intervalToLoad}`);
+        if (klines && klines.length > 0) {
+            const lastCandle = klines[klines.length - 1];
+            if (priceEl) {
+                priceEl.textContent = '$' + (lastCandle.close >= 10 ? lastCandle.close.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : lastCandle.close);
+                priceEl.style.color = lastCandle.close >= klines[0].open ? '#22c55e' : '#ef4444';
+            }
+
+            if (window._cmdAssetChartInst) {
+                try { window._cmdAssetChartInst.remove(); } catch(e){}
+                window._cmdAssetChartInst = null;
+            }
+            container.innerHTML = '';
+
+            if (window.LightweightCharts) {
+                const chart = window.LightweightCharts.createChart(container, {
+                    layout: { background: { type: 'solid', color: 'transparent' }, textColor: 'rgba(255,255,255,0.6)', fontFamily: 'JetBrains Mono', fontSize: 10 },
+                    grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
+                    timeScale: { borderColor: 'rgba(255,255,255,0.05)', timeVisible: true },
+                    rightPriceScale: { borderColor: 'rgba(255,255,255,0.05)' },
+                    crosshair: { mode: window.LightweightCharts.CrosshairMode.Normal }
+                });
+                window._cmdAssetChartInst = chart;
+
+                const series = chart.addCandlestickSeries({
+                    upColor: '#22c55e', downColor: '#ef4444', 
+                    borderVisible: false, 
+                    wickUpColor: '#22c55e', wickDownColor: '#ef4444'
+                });
+                series.setData(klines);
+                chart.timeScale().fitContent();
+
+                if (!container._hasResizeObserver) {
+                    const ro = new ResizeObserver(entries => {
+                        if (entries.length === 0 || !window._cmdAssetChartInst) return;
+                        const rect = entries[0].contentRect;
+                        if (rect.width > 0 && rect.height > 0) {
+                            window._cmdAssetChartInst.applyOptions({ width: rect.width, height: rect.height });
+                        }
+                    });
+                    ro.observe(container);
+                    container._hasResizeObserver = true;
+                }
+            } else {
+                container.innerHTML = '<div style="color:var(--text-dim);font-size:0.7rem;text-align:center;padding-top:4rem">LightweightCharts engine unavailable</div>';
+            }
+        } else {
+            if (priceEl) priceEl.textContent = 'N/A';
+            container.innerHTML = '<div style="color:var(--text-dim);font-size:0.7rem;text-align:center;padding-top:4rem">No candlestick data returned for ' + tickerToLoad + '</div>';
+        }
+    } catch(e) {
+        console.warn('Asset chart loading error:', e);
+        if (priceEl) priceEl.textContent = 'ERROR';
+        container.innerHTML = '<div style="color:#ef4444;font-size:0.7rem;text-align:center;padding-top:4rem">Failed to load price action</div>';
+    }
+};
+
+window.applyCmdGlobalAssetFilter = function(val) {
+    if (!val) return;
+    localStorage.setItem('cmd_selected_asset', val);
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    if (val === 'ALL') {
+        urlParams.delete('ticker');
+    } else {
+        urlParams.set('ticker', val);
+    }
+    const newSearch = urlParams.toString();
+    window.history.replaceState(null, '', newSearch ? '?' + newSearch : window.location.pathname);
+
+    loadCmdAssetCandlesticks();
+
+    let hiddenSections = [];
+    try {
+        const storedHidden = localStorage.getItem('cmd_dashboard_hidden');
+        if (storedHidden) hiddenSections = JSON.parse(storedHidden);
+    } catch(e){}
+    if (hiddenSections.includes('asset-chart')) {
+        toggleCmdSection('asset-chart', true);
+    }
+
+    showToast('ASSET FILTER', val === 'ALL' ? 'Showing market proxy benchmarks' : `Deep-dive focused on ${val}`, 'info');
+    loadCmdPremiumVisuals();
+};
+
+window.loadCmdPremiumVisuals = async function() {
+    const selectedAsset = localStorage.getItem('cmd_selected_asset') || 'ALL';
+    const ticker = selectedAsset === 'ALL' ? 'BTC-USD' : selectedAsset;
+    const shortSym = ticker.split('-')[0];
+
+    // 1. Volume Profile
+    try {
+        const res = await fetchAPI(`/volume-profile?ticker=${shortSym}`);
+        if (res && res.profile) {
+            const pocEl = document.getElementById('cmd-vol-poc');
+            const vahEl = document.getElementById('cmd-vol-vah');
+            const valEl = document.getElementById('cmd-vol-val');
+            if (pocEl) pocEl.textContent = '$' + res.poc.toLocaleString();
+            if (vahEl) vahEl.textContent = '$' + res.vah.toLocaleString();
+            if (valEl) valEl.textContent = '$' + res.val.toLocaleString();
+
+            const labels = res.profile.map(p => '$' + p.price.toLocaleString());
+            const vols   = res.profile.map(p => p.volume);
+            const bgColors = res.profile.map(p => (p.price >= res.val && p.price <= res.vah) ? 'rgba(0, 242, 255, 0.35)' : 'rgba(255,255,255,0.05)');
+            const borderColors = res.profile.map(p => p.price === res.poc ? '#00f2ff' : 'transparent');
+            const borderWidths = res.profile.map(p => p.price === res.poc ? 2 : 0);
+
+            const ctx = document.getElementById('cmd-vol-profile-canvas');
+            if (ctx) {
+                if (window._cmdVolChartInst) window._cmdVolChartInst.destroy();
+                window._cmdVolChartInst = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{ data: vols, backgroundColor: bgColors, borderColor: borderColors, borderWidth: borderWidths, borderRadius: 2 }]
+                    },
+                    options: {
+                        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono', size: 9 } } } }
+                    }
+                });
+            }
+        }
+    } catch(e){}
+
+    // 2. LOB Heatmap
+    try {
+        const lobIntEl = document.getElementById('cmd-lob-heat-interval');
+        const lobInt = lobIntEl ? lobIntEl.value : '15m';
+        const res = await fetchAPI(`/lob-heatmap?ticker=${shortSym}&interval=${lobInt}`);
+        if (res && res.prices && res.density) {
+            const datasets = [];
+            const minD = Math.min(...res.density.flat());
+            const maxD = Math.max(...res.density.flat());
+            for(let i=0; i<res.prices.length; i++) {
+                datasets.push({
+                    label: `Level ${res.prices[i]}`,
+                    data: res.density.map(t => t[i]),
+                    backgroundColor: res.density.map(t => {
+                        const norm = (t[i] - minD) / (maxD - minD || 1);
+                        if (norm < 0.3) return `rgba(0, 50, 100, ${norm+0.1})`;
+                        if (norm < 0.7) return `rgba(0, 242, 255, ${norm})`;
+                        return `rgba(255, 230, 0, ${norm})`;
+                    }),
+                    borderWidth: 0, barPercentage: 1.0, categoryPercentage: 1.0
+                });
+            }
+            const ctx = document.getElementById('cmd-lob-heat-canvas');
+            if (ctx) {
+                if (window._cmdLobChartInst) window._cmdLobChartInst.destroy();
+                window._cmdLobChartInst = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: res.timestamps, datasets: datasets },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: { x: { stacked: true, grid: { display: false }, ticks: { color: '#666', font: { size: 9 } } }, y: { stacked: true, display: false } }
+                    }
+                });
+            }
+        }
+    } catch(e){}
+
+    // 3. Dealer GEX Strike Profile
+    try {
+        const res = await fetchAPI(`/gex-profile?ticker=${shortSym}`);
+        if (res && res.profile) {
+            const ctx = document.getElementById('cmd-gex-strike-canvas');
+            if (ctx) {
+                if (window._cmdGexStrikeInst) window._cmdGexStrikeInst.destroy();
+                window._cmdGexStrikeInst = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: res.profile.map(p => '$' + (p.strike >= 1000 ? (p.strike/1000).toFixed(0) + 'k' : p.strike)),
+                        datasets: [{
+                            data: res.profile.map(p => p.gamma),
+                            backgroundColor: res.profile.map(p => p.gamma >= 0 ? 'rgba(167,139,250,0.6)' : 'rgba(239,68,68,0.6)'),
+                            borderColor: res.profile.map(p => p.gamma >= 0 ? '#a78bfa' : '#ef4444'),
+                            borderWidth: 1, borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono', size: 9 } } },
+                            y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono', size: 9 } } }
+                        }
+                    }
+                });
+            }
+        }
+    } catch(e){}
+
+    // 4. IV Smile Surface Curve
+    try {
+        const ctx = document.getElementById('cmd-iv-surface-canvas');
+        if (ctx) {
+            if (window._cmdIvInst) window._cmdIvInst.destroy();
+            window._cmdIvInst = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['-30%', '-20%', '-10%', 'ATM', '+10%', '+20%', '+30%'],
+                    datasets: [{
+                        label: '30D Expiry Skew',
+                        data: [78, 69, 62, 55, 57, 63, 71],
+                        borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.1)',
+                        borderWidth: 2, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#ec4899', fill: true
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#888', font: { size: 9 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#888', font: { size: 9 }, callback: v => v + '%' } }
+                    }
+                }
+            });
+        }
+    } catch(e){}
+
+    // 5. Monte Carlo Forward Simulation
+    try {
+        const res = await fetchAPI(`/monte-carlo?ticker=${shortSym}`);
+        if (res && res.dates && res.p50) {
+            const datasets = [];
+            (res.paths || []).slice(0, 5).forEach((p, i) => {
+                datasets.push({ label: `P${i}`, data: p, borderColor: 'rgba(34,197,94,0.05)', borderWidth: 1, pointRadius: 0, fill: false, tension: 0.1 });
+            });
+            if (res.p95) datasets.push({ label: 'P95 Bull', data: res.p95, borderColor: 'rgba(34,197,94,0.4)', borderWidth: 1.5, backgroundColor: 'rgba(34,197,94,0.05)', pointRadius: 0, fill: '+1', tension: 0.2 });
+            if (res.p50) datasets.push({ label: 'Median P50', data: res.p50, borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.2 });
+            if (res.p5)  datasets.push({ label: 'P5 Bear', data: res.p5, borderColor: 'rgba(239,68,68,0.4)', borderWidth: 1.5, backgroundColor: 'rgba(239,68,68,0.05)', pointRadius: 0, fill: '-1', tension: 0.2 });
+
+            const ctx = document.getElementById('cmd-monte-paths-canvas');
+            if (ctx) {
+                if (window._cmdMonteInst) window._cmdMonteInst.destroy();
+                window._cmdMonteInst = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: { labels: res.dates, datasets: datasets },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: { x: { grid: { display: false }, ticks: { color: '#666', font: { size: 9 } } }, y: { position: 'right', grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#888', font: { family: 'JetBrains Mono', size: 9 } } } }
+                    }
+                });
+            }
+        }
+    } catch(e){}
+
+    // 6. Macro Factor Web
+    try {
+        const ctx = document.getElementById('cmd-factor-radar-canvas');
+        if (ctx) {
+            if (window._cmdFactorInst) window._cmdFactorInst.destroy();
+            window._cmdFactorInst = new Chart(ctx.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['Momentum', 'Value Tilt', 'Carry Inflow', 'Low Volatility', 'High Beta', 'Size Factor'],
+                    datasets: [{
+                        label: 'Style Matrix Tilt',
+                        data: [88, 42, 65, 30, 95, 74],
+                        backgroundColor: 'rgba(59,130,246,0.15)', borderColor: '#3b82f6', borderWidth: 2,
+                        pointBackgroundColor: '#3b82f6', pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.05)' }, grid: { color: 'rgba(255,255,255,0.05)' },
+                            pointLabels: { color: '#888', font: { family: 'JetBrains Mono', size: 9 } },
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    } catch(e){}
+
+    // 7. Sector Capital Rotation Flow Pipeline
+    try {
+        const cont = document.getElementById('cmd-sankey-flow-container');
+        if (cont) {
+            cont.innerHTML = `
+                <div style="display:flex; flex-direction:column; justify-content:space-around; width:22%; gap:8px; z-index:2">
+                    <div style="background:rgba(6,182,212,0.15); border-left:3px solid #06b6d4; padding:8px; border-radius:4px; font-size:0.6rem; font-weight:700">INSTITUTIONAL FIAT (+4.2B)</div>
+                    <div style="background:rgba(34,197,94,0.15); border-left:3px solid #22c55e; padding:8px; border-radius:4px; font-size:0.6rem; font-weight:700">STABLECOIN ISSUANCE (+1.8B)</div>
+                </div>
+                <div style="display:flex; flex-direction:column; justify-content:center; flex:1; padding:0 10px; position:relative">
+                    <svg style="position:absolute; inset:0; width:100%; height:100%">
+                        <path d="M 0 40 C 50 40, 50 80, 100 80" fill="none" stroke="rgba(6,182,212,0.25)" stroke-width="8" />
+                        <path d="M 0 120 C 50 120, 50 80, 100 80" fill="none" stroke="rgba(34,197,94,0.25)" stroke-width="8" />
+                    </svg>
+                    <div style="text-align:center; z-index:1; font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; font-weight:900">LIQUIDITY CONDUIT</div>
+                </div>
+                <div style="display:flex; flex-direction:column; justify-content:center; width:25%; z-index:2">
+                    <div style="background:rgba(167,139,250,0.15); border:1px solid #a78bfa; padding:10px; border-radius:6px; text-align:center">
+                        <div style="font-size:0.55rem; color:var(--text-dim)">CORE LAYER-1s</div>
+                        <div style="font-size:0.8rem; font-weight:900; color:#a78bfa; font-family:'JetBrains Mono'">+5.1B NET</div>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; justify-content:center; flex:1; padding:0 10px; position:relative">
+                    <svg style="position:absolute; inset:0; width:100%; height:100%">
+                        <path d="M 0 80 C 50 80, 50 40, 100 40" fill="none" stroke="rgba(167,139,250,0.25)" stroke-width="6" />
+                        <path d="M 0 80 C 50 80, 50 120, 100 120" fill="none" stroke="rgba(167,139,250,0.15)" stroke-width="4" />
+                    </svg>
+                </div>
+                <div style="display:flex; flex-direction:column; justify-content:space-around; width:22%; gap:8px; z-index:2">
+                    <div style="background:rgba(239,68,68,0.15); border-right:3px solid #ef4444; padding:8px; border-radius:4px; font-size:0.6rem; text-align:right">HIGH-BETA / DEFI (+3.9B)</div>
+                    <div style="background:rgba(234,179,8,0.15); border-right:3px solid #eab308; padding:8px; border-radius:4px; font-size:0.6rem; text-align:right">SPECULATIVE / MEMES (+1.2B)</div>
+                </div>
+            `;
+        }
+    } catch(e){}
+};

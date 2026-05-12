@@ -699,6 +699,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/alerts', '/api/alerts/badge', '/api/klines', '/api/equity-klines',
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
                     '/api/whales', '/api/gex-profile', '/api/options-max-pain',
+                    '/api/volume-profile', '/api/lob-heatmap', '/api/oi-funding-heatmap',
+                    '/api/volatility-surface', '/api/monte-carlo', '/api/factor-web', '/api/sankey',
                     '/api/stripe/webhook',
                     '/privacy', '/terms', '/roadmap',
                 ]

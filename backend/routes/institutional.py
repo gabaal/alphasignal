@@ -7239,6 +7239,15 @@ class InstitutionalRoutesMixin:
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             ticker = query.get('ticker', ['BTC'])[0].upper()
+            interval = query.get('interval', ['10m'])[0].lower()
+            
+            interval_mins = 10
+            if interval == '1m': interval_mins = 1
+            elif interval == '5m': interval_mins = 5
+            elif interval == '15m': interval_mins = 15
+            elif interval == '1h': interval_mins = 60
+            elif interval == '4h': interval_mins = 240
+            elif interval == '1d': interval_mins = 1440
             
             # We generate a 2D array of liquidity density across Price and Time
             try:
@@ -7247,7 +7256,8 @@ class InstitutionalRoutesMixin:
                 spot = 90000.0
                 
             ticker_hash = sum(ord(c) for c in ticker)
-            np.random.seed(int(time.time() // 600) + ticker_hash)  # Unique per ticker, updates every 10 min
+            interval_hash = sum(ord(c) for c in interval)
+            np.random.seed(int(time.time() // 600) + ticker_hash + interval_hash)  # Unique per ticker & interval scale
             
             num_time_steps = 30
             num_levels = 20
@@ -7283,8 +7293,9 @@ class InstitutionalRoutesMixin:
 
             self.send_json({
                 'ticker': ticker,
+                'interval': interval,
                 'prices': [round(p, 2) for p in prices],
-                'timestamps': [(datetime.now() - timedelta(minutes=10 * (num_time_steps - i))).strftime('%H:%M') for i in range(num_time_steps)],
+                'timestamps': [(datetime.now() - timedelta(minutes=interval_mins * (num_time_steps - i))).strftime('%H:%M' if interval_mins < 1440 else '%m-%d') for i in range(num_time_steps)],
                 'density': heatmap
             })
         except Exception as e:
