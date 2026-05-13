@@ -41,16 +41,18 @@ class DataCache:
         # L3 (Supabase Primary)
         cloud_data = SupabaseClient.query("cache_store", filters=f"key=eq.{key}")
         if cloud_data:
-            exp_val = cloud_data[0].get('expires_at')
-            try:
-                exp = float(exp_val) if exp_val is not None else float('inf')
-            except ValueError:
-                exp = float('inf')
-                
-            if exp > time.time():
-                data = json.loads(cloud_data[0]['value'])
-                self._cache[key] = (data, time.time())
-                return data
+            for item in cloud_data:
+                if item.get('key') == key:
+                    exp_val = item.get('expires_at')
+                    try:
+                        exp = float(exp_val) if exp_val is not None else float('inf')
+                    except ValueError:
+                        exp = float('inf')
+                        
+                    if exp > time.time():
+                        data = json.loads(item['value'])
+                        self._cache[key] = (data, time.time())
+                        return data
 
         return None
 
@@ -124,6 +126,15 @@ class DataCache:
                             req_cols = set(unique_tickers)
                             if not req_cols.issubset(actual_cols):
                                 print(f"[Cache] Ticker mismatch: requested {req_cols}, got {actual_cols}. Evicting.")
+                                if key in self._cache:
+                                    del self._cache[key]
+                                try:
+                                    conn = sqlite3.connect(DB_PATH, timeout=30)
+                                    c = conn.cursor()
+                                    c.execute("DELETE FROM cache_store WHERE key = ?", (key,))
+                                    conn.commit()
+                                    conn.close()
+                                except: pass
                                 return None
                     return df
                 elif 'prices' in cached and 'dates' in cached:

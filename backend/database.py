@@ -360,6 +360,15 @@ def init_db():
     try:
         c.execute("ALTER TABLE user_settings ADD COLUMN trade_size_usd REAL DEFAULT 100.0")
     except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN dashboard_layout TEXT")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN dashboard_widths TEXT")
+    except: pass
+    try:
+        c.execute("ALTER TABLE user_settings ADD COLUMN dashboard_hidden TEXT")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS exchange_keys (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_email TEXT NOT NULL,

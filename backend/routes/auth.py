@@ -185,20 +185,24 @@ class AuthRoutesMixin:
         if self.command == 'GET':
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1), algo_webhook, exchange_name, native_execution_enabled, trade_size_usd FROM user_settings WHERE user_email = ?', (email,))
+            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1), algo_webhook, exchange_name, native_execution_enabled, trade_size_usd, dashboard_layout, dashboard_widths, dashboard_hidden FROM user_settings WHERE user_email = ?', (email,))
             row = c.fetchone()
             conn.close()
             if row:
                 self.send_json({
                     'discord_webhook': row[0], 'telegram_webhook': row[1], 'telegram_chat_id': row[2], 
                     'alerts_enabled': bool(row[3]), 'digest_enabled': bool(row[4]), 'algo_webhook': row[5] or '',
-                    'exchange_name': row[6] or '', 'native_execution_enabled': bool(row[7]), 'trade_size_usd': row[8] if row[8] is not None else 100.0
+                    'exchange_name': row[6] or '', 'native_execution_enabled': bool(row[7]), 'trade_size_usd': row[8] if row[8] is not None else 100.0,
+                    'dashboard_layout': json.loads(row[9]) if row[9] else None,
+                    'dashboard_widths': json.loads(row[10]) if row[10] else None,
+                    'dashboard_hidden': json.loads(row[11]) if row[11] else None
                 })
             else:
                 self.send_json({
                     'discord_webhook': '', 'telegram_webhook': '', 'telegram_chat_id': '', 
                     'alerts_enabled': True, 'digest_enabled': True, 'algo_webhook': '',
-                    'exchange_name': '', 'native_execution_enabled': False, 'trade_size_usd': 100.0
+                    'exchange_name': '', 'native_execution_enabled': False, 'trade_size_usd': 100.0,
+                    'dashboard_layout': None, 'dashboard_widths': None, 'dashboard_hidden': None
                 })
         elif self.command == 'POST':
             if post_data is None:
@@ -209,7 +213,7 @@ class AuthRoutesMixin:
             c = conn.cursor()
 
             # Fetch existing to merge
-            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1), algo_webhook, exchange_name, native_execution_enabled, trade_size_usd FROM user_settings WHERE user_email = ?', (email,))
+            c.execute('SELECT discord_webhook, telegram_webhook, telegram_chat_id, alerts_enabled, COALESCE(digest_enabled, 1), algo_webhook, exchange_name, native_execution_enabled, trade_size_usd, dashboard_layout, dashboard_widths, dashboard_hidden FROM user_settings WHERE user_email = ?', (email,))
             row = c.fetchone()
             
             if row:
@@ -222,6 +226,9 @@ class AuthRoutesMixin:
                 exchange_name = row[6] if row[6] is not None else ''
                 native_execution_enabled = row[7] if row[7] is not None else 0
                 trade_size_usd = row[8] if row[8] is not None else 100.0
+                dashboard_layout = row[9]
+                dashboard_widths = row[10]
+                dashboard_hidden = row[11]
             else:
                 discord    = ''
                 telegram   = ''
@@ -232,6 +239,9 @@ class AuthRoutesMixin:
                 exchange_name = ''
                 native_execution_enabled = 0
                 trade_size_usd = 100.0
+                dashboard_layout = None
+                dashboard_widths = None
+                dashboard_hidden = None
 
             if 'discord_webhook' in post_data:
                 discord = post_data['discord_webhook']
@@ -254,11 +264,17 @@ class AuthRoutesMixin:
                     trade_size_usd = float(post_data['trade_size_usd'])
                 except:
                     pass
+            if 'dashboard_layout' in post_data:
+                dashboard_layout = json.dumps(post_data['dashboard_layout']) if post_data['dashboard_layout'] is not None else None
+            if 'dashboard_widths' in post_data:
+                dashboard_widths = json.dumps(post_data['dashboard_widths']) if post_data['dashboard_widths'] is not None else None
+            if 'dashboard_hidden' in post_data:
+                dashboard_hidden = json.dumps(post_data['dashboard_hidden']) if post_data['dashboard_hidden'] is not None else None
 
             # First ensure row exists
             c.execute('''INSERT OR IGNORE INTO user_settings (user_email, alerts_enabled) VALUES (?, ?)''', (email, enabled))
             # Then update all fields
-            c.execute('''UPDATE user_settings SET discord_webhook=?, telegram_webhook=?, telegram_chat_id=?, alerts_enabled=?, digest_enabled=?, algo_webhook=?, exchange_name=?, native_execution_enabled=?, trade_size_usd=? WHERE user_email=?''', (discord, telegram, tg_chat_id, enabled, digest_on, algo_hook, exchange_name, native_execution_enabled, trade_size_usd, email))
+            c.execute('''UPDATE user_settings SET discord_webhook=?, telegram_webhook=?, telegram_chat_id=?, alerts_enabled=?, digest_enabled=?, algo_webhook=?, exchange_name=?, native_execution_enabled=?, trade_size_usd=?, dashboard_layout=?, dashboard_widths=?, dashboard_hidden=? WHERE user_email=?''', (discord, telegram, tg_chat_id, enabled, digest_on, algo_hook, exchange_name, native_execution_enabled, trade_size_usd, dashboard_layout, dashboard_widths, dashboard_hidden, email))
             conn.commit()
             conn.close()
             self.send_json({'success': True})
