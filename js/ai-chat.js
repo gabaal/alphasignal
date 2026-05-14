@@ -371,7 +371,7 @@ function initFloatingAIChat() {
             ctx.lob_heatmap = {
                 chart: 'Limit Order Book (LOB) Depth Heatmap',
                 interval: lobInterval ? lobInterval.value : '5m',
-                description: 'Shows liquidity density across price levels over time. Bright yellow = heavy walls, cyan = moderate, teal = thin.'
+                description: 'Shows liquidity density across price levels over time. Bright yellow = heavy institutional walls, cyan = moderate, teal = thin/fast-moving.'
             };
         }
 
@@ -379,25 +379,59 @@ function initFloatingAIChat() {
         if (window._cmdGexStrikeInst) {
             ctx.gex_profile = {
                 chart: 'Dealer Gamma Exposure (GEX) by Strike',
-                description: 'Positive bars = long gamma (dealers stabilise price). Negative bars = short gamma (dealers amplify moves).'
+                description: 'Positive bars = long gamma (dealers stabilise price near these strikes). Negative bars = short gamma (dealers amplify moves, more volatile).'
             };
         }
 
-        // 6. IV Surface context
-        if (window._cmdIvSurfaceInst) {
+        // 6. IV Skew Curve context (actual global name: _cmdIvInst)
+        if (window._cmdIvInst) {
             ctx.iv_surface = {
                 chart: 'Implied Volatility (IV) Skew Curve',
                 description: 'Shows IV smile across strikes. Skew toward puts = fear/downside hedging. Skew toward calls = FOMO/upside bets.'
             };
         }
 
-        // 7. Radar chart context
+        // 7. Volume Profile
+        if (window._cmdVolChartInst) {
+            ctx.volume_profile = {
+                chart: 'Volume Profile (TPO / Value Area)',
+                description: 'Horizontal volume histogram. POC = highest volume price level (strong magnet). VAH/VAL = value area high/low (institutional range).'
+            };
+        }
+
+        // 8. Monte Carlo Paths
+        if (window._cmdMonteInst) {
+            ctx.monte_carlo = {
+                chart: 'Monte Carlo Price Path Simulation',
+                description: 'Simulates thousands of possible future price paths based on current volatility. Wide fan = high uncertainty, narrow = low.'
+            };
+        }
+
+        // 9. Factor Analysis
+        if (window._cmdFactorInst) {
+            ctx.factor_analysis = {
+                chart: 'Multi-Factor Attribution Analysis',
+                description: 'Breaks down return drivers across momentum, value, volatility, and correlation factors.'
+            };
+        }
+
+        // 10. Live BTC Sparkline
+        if (typeof _btcSparkChartInst !== 'undefined' && _btcSparkChartInst) {
+            ctx.btc_sparkline = { chart: 'BTC Live Price Sparkline', description: 'Real-time BTC price ticker with recent price history.' };
+        }
+
+        // 11. Radar chart context
         if (window._cmdRadarData) {
             ctx.signal_radar = {
                 chart: 'Alpha Signal Radar',
                 ticker: window._cmdRadarData.ticker,
                 values: window._cmdRadarData.values
             };
+        }
+
+        // 12. Asset price chart
+        if (window._cmdAssetChartInst) {
+            ctx.asset_chart = { chart: 'TradingView Asset Price Chart', description: 'Live OHLC candlestick chart for the currently selected asset.' };
         }
 
         return ctx;
