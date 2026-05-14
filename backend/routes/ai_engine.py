@@ -218,15 +218,15 @@ class AIEngineRoutesMixin:
             if page_ctx.get('live_prices'):
                 prices = ', '.join([f"{k.replace('-USD','')}: ${v:,.2f}" if isinstance(v, (int,float)) else f"{k.replace('-USD','')}: {v}" for k,v in page_ctx['live_prices'].items()])
                 lines.append(f"Live Prices: {prices}")
-            for chart_key in ['lob_heatmap', 'gex_profile', 'iv_surface']:
-                if page_ctx.get(chart_key):
-                    c_data = page_ctx[chart_key]
-                    lines.append(f"Visible Chart: {c_data.get('chart','')}" + (f" ({c_data.get('interval','')} interval)" if c_data.get('interval') else ""))
-                    lines.append(f"  → {c_data.get('description','')}")
-            if page_ctx.get('signal_radar'):
-                sr = page_ctx['signal_radar']
-                lines.append(f"Signal Radar loaded for: {sr.get('ticker','')}")
-            lines.append("Use this context to give page-aware answers. If the user asks 'what is this chart?', refer to the visible charts above.</terminal_page_context>")
+            # Primary chart = the one most visible in the user's viewport
+            primary = page_ctx.get('primary_chart')
+            if primary:
+                lines.append(f"Chart currently in view: {primary.get('chart','')}" + (f" ({primary.get('interval','')} interval)" if primary.get('interval') else ""))
+                lines.append(f"  → {primary.get('description','')}")
+                lines.append("If the user asks 'what is this chart?' or 'is this bullish?', they are referring to the chart listed above.")
+            if page_ctx.get('signal_radar_ticker'):
+                lines.append(f"Signal Radar loaded for: {page_ctx['signal_radar_ticker']}")
+            lines.append("</terminal_page_context>")
             page_ctx_str = '\n'.join(lines)
 
         system_prompt = (

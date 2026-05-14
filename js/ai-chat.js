@@ -365,73 +365,105 @@ function initFloatingAIChat() {
             if (Object.keys(priceSnap).length) ctx.live_prices = priceSnap;
         }
 
-        // 4. LOB Heatmap context
-        if (window._cmdLobChartInst) {
-            const lobInterval = document.getElementById('cmd-lob-heat-interval');
-            ctx.lob_heatmap = {
+        // 4. Detect MOST VISIBLE chart in viewport
+        // Maps canvas element ID -> chart description
+        const chartRegistry = [
+            {
+                id: 'cmd-lob-heat-canvas',
+                instance: () => window._cmdLobChartInst,
                 chart: 'Limit Order Book (LOB) Depth Heatmap',
-                interval: lobInterval ? lobInterval.value : '5m',
-                description: 'Shows liquidity density across price levels over time. Bright yellow = heavy institutional walls, cyan = moderate, teal = thin/fast-moving.'
-            };
-        }
-
-        // 5. GEX Strike Profile context
-        if (window._cmdGexStrikeInst) {
-            ctx.gex_profile = {
+                getExtra: () => {
+                    const sel = document.getElementById('cmd-lob-heat-interval');
+                    return { interval: sel ? sel.value : '5m' };
+                },
+                description: 'Shows liquidity density across price levels over time. Bright yellow = heavy institutional walls, cyan = moderate, teal = thin/fast-moving zones.'
+            },
+            {
+                id: 'cmd-gex-strike-canvas',
+                instance: () => window._cmdGexStrikeInst,
                 chart: 'Dealer Gamma Exposure (GEX) by Strike',
-                description: 'Positive bars = long gamma (dealers stabilise price near these strikes). Negative bars = short gamma (dealers amplify moves, more volatile).'
-            };
-        }
-
-        // 6. IV Skew Curve context (actual global name: _cmdIvInst)
-        if (window._cmdIvInst) {
-            ctx.iv_surface = {
+                description: 'Positive bars = long gamma (dealers stabilise price near these strikes). Negative bars = short gamma (dealers amplify moves, expect more volatile price action).'
+            },
+            {
+                id: 'cmd-iv-surface-canvas',
+                instance: () => window._cmdIvInst,
                 chart: 'Implied Volatility (IV) Skew Curve',
-                description: 'Shows IV smile across strikes. Skew toward puts = fear/downside hedging. Skew toward calls = FOMO/upside bets.'
-            };
-        }
-
-        // 7. Volume Profile
-        if (window._cmdVolChartInst) {
-            ctx.volume_profile = {
+                description: 'IV smile across strikes. Skew toward puts = fear/downside hedging by institutions. Skew toward calls = FOMO/upside bets building.'
+            },
+            {
+                id: 'cmd-vol-profile-canvas',
+                instance: () => window._cmdVolChartInst,
                 chart: 'Volume Profile (TPO / Value Area)',
-                description: 'Horizontal volume histogram. POC = highest volume price level (strong magnet). VAH/VAL = value area high/low (institutional range).'
-            };
-        }
-
-        // 8. Monte Carlo Paths
-        if (window._cmdMonteInst) {
-            ctx.monte_carlo = {
+                description: 'Horizontal volume histogram. POC = highest volume node (strong price magnet). VAH/VAL = value area boundaries where 70% of trading occurs.'
+            },
+            {
+                id: 'cmd-monte-canvas',
+                instance: () => window._cmdMonteInst,
                 chart: 'Monte Carlo Price Path Simulation',
-                description: 'Simulates thousands of possible future price paths based on current volatility. Wide fan = high uncertainty, narrow = low.'
-            };
-        }
-
-        // 9. Factor Analysis
-        if (window._cmdFactorInst) {
-            ctx.factor_analysis = {
+                description: 'Simulates thousands of possible future price paths from current volatility inputs. Wide fan = high uncertainty. Tight convergence = low vol regime.'
+            },
+            {
+                id: 'cmd-factor-canvas',
+                instance: () => window._cmdFactorInst,
                 chart: 'Multi-Factor Attribution Analysis',
-                description: 'Breaks down return drivers across momentum, value, volatility, and correlation factors.'
-            };
-        }
-
-        // 10. Live BTC Sparkline
-        if (typeof _btcSparkChartInst !== 'undefined' && _btcSparkChartInst) {
-            ctx.btc_sparkline = { chart: 'BTC Live Price Sparkline', description: 'Real-time BTC price ticker with recent price history.' };
-        }
-
-        // 11. Radar chart context
-        if (window._cmdRadarData) {
-            ctx.signal_radar = {
+                description: 'Decomposes return drivers across momentum, value, volatility, liquidity, and correlation factors. Longer bars = stronger factor influence.'
+            },
+            {
+                id: 'cmd-radar-chart',
+                instance: () => window._cmdRadarData,
                 chart: 'Alpha Signal Radar',
-                ticker: window._cmdRadarData.ticker,
-                values: window._cmdRadarData.values
+                getExtra: () => ({ ticker: window._cmdRadarData?.ticker }),
+                description: 'Multi-dimensional signal strength radar for the selected asset. Larger polygon area = stronger overall signal conviction.'
+            },
+            {
+                id: 'cmd-btc-spark',
+                instance: () => typeof _btcSparkChartInst !== 'undefined' ? _btcSparkChartInst : null,
+                chart: 'BTC Live Price Sparkline',
+                description: 'Real-time BTC price feed with trailing price history, live bid/ask overlay, and volume-weighted color coding.'
+            },
+            {
+                id: 'cmd-asset-chart',
+                instance: () => window._cmdAssetChartInst,
+                chart: 'TradingView Candlestick Chart',
+                description: 'Live OHLC candlestick chart for the currently selected asset with volume overlay.'
+            }
+        ];
+
+        // Score each chart by how visible it is in the viewport
+        const viewportMid = window.innerHeight / 2;
+        let bestScore = -Infinity;
+        let primaryChart = null;
+
+        for (const entry of chartRegistry) {
+            if (!entry.instance()) continue; // chart not loaded
+            const el = document.getElementById(entry.id);
+            if (!el) continue;
+            const rect = el.getBoundingClientRect();
+            // Skip if not visible at all
+            if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+            // Score: how much of the element is in the viewport, weighted toward center
+            const visibleTop = Math.max(rect.top, 0);
+            const visibleBottom = Math.min(rect.bottom, window.innerHeight);
+            const visibleHeight = visibleBottom - visibleTop;
+            const centerDist = Math.abs(((visibleTop + visibleBottom) / 2) - viewportMid);
+            const score = visibleHeight - centerDist * 0.5;
+            if (score > bestScore) {
+                bestScore = score;
+                primaryChart = entry;
+            }
+        }
+
+        if (primaryChart) {
+            ctx.primary_chart = {
+                chart: primaryChart.chart,
+                description: primaryChart.description,
+                ...(primaryChart.getExtra ? primaryChart.getExtra() : {})
             };
         }
 
-        // 12. Asset price chart
-        if (window._cmdAssetChartInst) {
-            ctx.asset_chart = { chart: 'TradingView Asset Price Chart', description: 'Live OHLC candlestick chart for the currently selected asset.' };
+        // Still include radar data values if available (useful for AI analysis)
+        if (window._cmdRadarData) {
+            ctx.signal_radar_ticker = window._cmdRadarData.ticker;
         }
 
         return ctx;
