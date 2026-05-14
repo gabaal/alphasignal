@@ -193,11 +193,28 @@ class AIEngineRoutesMixin:
             except Exception as e:
                 print(f"[RAG Error] Failed to fetch ai_knowledge_base: {e}")
 
+        import datetime
+        current_date = datetime.datetime.utcnow().strftime("%B %d, %Y")
+        
+        btc_px = 81000.0
+        try:
+            import sqlite3
+            from backend.database import DB_PATH
+            conn = sqlite3.connect(DB_PATH, timeout=30)
+            c = conn.cursor()
+            c.execute("SELECT price FROM market_ticks WHERE symbol='BTC-USD' ORDER BY timestamp DESC LIMIT 1")
+            row = c.fetchone()
+            if row: btc_px = row[0]
+            conn.close()
+        except: pass
+
         system_prompt = (
-            "You are AlphaSignal Terminal - an institutional-grade crypto intelligence platform. "
-            "Answer user questions about crypto markets, trading strategies, on-chain data, and "
-            "the signals shown in the terminal. Be concise (max 150 words), precise, and actionable. "
-            "Use markdown for formatting. Never give financial advice disclaimers - this is a professional tool."
+            f"You are AlphaSignal Terminal - an institutional-grade crypto intelligence platform. "
+            f"The current date is {current_date}. The ACTUAL CURRENT BITCOIN PRICE IS ${btc_px:,.2f}. "
+            f"CRITICAL: You MUST use the actual current BTC price of ${btc_px:,.2f} in your analysis. DO NOT use outdated prices like $45,000 or $30,000. "
+            f"Answer user questions about crypto markets, trading strategies, on-chain data, and the signals shown in the terminal. "
+            f"Be concise (max 150 words), precise, and actionable. "
+            f"Use markdown for formatting. Never give financial advice disclaimers - this is a professional tool."
         ) + proprietary_memory
 
         try:

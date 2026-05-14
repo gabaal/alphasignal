@@ -1,0 +1,380 @@
+// AlphaSignal Floating AI Assistant ("Ask Alpha")
+
+document.addEventListener('DOMContentLoaded', () => {
+    initFloatingAIChat();
+});
+
+// Fallback if already loaded
+if (document.readyState === 'complete') {
+    initFloatingAIChat();
+}
+
+function initFloatingAIChat() {
+    if (document.getElementById('alpha-ai-chat-fab')) return; // Already initialized
+
+    // Inject CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        /* Floating Action Button */
+        #alpha-ai-chat-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #00a896);
+            box-shadow: 0 4px 20px rgba(0, 242, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9999;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+        }
+        
+        #alpha-ai-chat-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0, 242, 255, 0.6);
+        }
+
+        #alpha-ai-chat-fab .material-symbols-outlined {
+            color: #000;
+            font-size: 28px;
+        }
+
+        /* Pulse Ring */
+        #alpha-ai-chat-fab::before {
+            content: '';
+            position: absolute;
+            top: -4px; right: -4px; bottom: -4px; left: -4px;
+            border-radius: 50%;
+            border: 1px solid var(--accent);
+            animation: pulse-ring 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            80%, 100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        /* Chat Window */
+        #alpha-ai-chat-window {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            width: 360px;
+            max-width: calc(100vw - 48px);
+            height: 500px;
+            max-height: calc(100vh - 120px);
+            background: rgba(13, 17, 23, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 242, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.95);
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+
+        #alpha-ai-chat-window.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Header */
+        .ai-chat-header {
+            padding: 16px;
+            background: linear-gradient(90deg, rgba(0, 242, 255, 0.05), transparent);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ai-chat-header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: white;
+            letter-spacing: 1px;
+        }
+
+        .ai-status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--risk-low, #22c55e);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--risk-low, #22c55e);
+        }
+
+        .close-chat-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .close-chat-btn:hover { color: white; }
+
+        /* Messages Area */
+        .ai-chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+
+        .chat-msg {
+            max-width: 85%;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            padding: 12px 16px;
+            border-radius: 12px;
+            position: relative;
+            animation: msg-in 0.3s ease-out;
+        }
+
+        @keyframes msg-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-msg.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top-left-radius: 4px;
+            color: var(--text-main);
+        }
+
+        .chat-msg.user {
+            align-self: flex-end;
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            border-top-right-radius: 4px;
+            color: white;
+        }
+
+        /* Input Area */
+        .ai-chat-input-area {
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .ai-chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 10px 16px;
+            color: white;
+            font-size: 0.8rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .ai-chat-input:focus {
+            border-color: rgba(0, 242, 255, 0.5);
+        }
+
+        .ai-chat-send-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .ai-chat-send-btn:hover {
+            transform: scale(1.05);
+            background: #00e0ec;
+        }
+
+        .ai-chat-send-btn .material-symbols-outlined {
+            font-size: 18px;
+        }
+        
+        .chat-typing {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+        .chat-typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .chat-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .chat-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Inject HTML
+    const fabHtml = `
+        <div id="alpha-ai-chat-fab" title="Ask Alpha AI">
+            <span class="material-symbols-outlined">smart_toy</span>
+        </div>
+        <div id="alpha-ai-chat-window">
+            <div class="ai-chat-header">
+                <div class="ai-chat-header-title">
+                    <div class="ai-status-dot"></div>
+                    ALPHA SIGNAL AI
+                </div>
+                <button class="close-chat-btn" id="close-chat-btn">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="ai-chat-messages" id="ai-chat-messages">
+                <div class="chat-msg bot">
+                    <div style="font-weight:900; color:var(--accent); margin-bottom:6px; font-size:0.7rem; letter-spacing:1px">SYSTEM READY</div>
+                    How can I assist with your macro analysis or institutional flow tracking today?
+                </div>
+            </div>
+            <div class="ai-chat-input-area">
+                <input type="text" class="ai-chat-input" id="ai-chat-input" placeholder="Ask about BTC trend, macro..." />
+                <button class="ai-chat-send-btn" id="ai-chat-send-btn">
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = fabHtml;
+    document.body.appendChild(wrapper);
+
+    // Logic
+    const fab = document.getElementById('alpha-ai-chat-fab');
+    const chatWindow = document.getElementById('alpha-ai-chat-window');
+    const closeBtn = document.getElementById('close-chat-btn');
+    const sendBtn = document.getElementById('ai-chat-send-btn');
+    const inputField = document.getElementById('ai-chat-input');
+    const messagesContainer = document.getElementById('ai-chat-messages');
+
+    let isOpen = false;
+
+    const toggleChat = () => {
+        isOpen = !isOpen;
+        if (isOpen) {
+            chatWindow.classList.add('active');
+            inputField.focus();
+        } else {
+            chatWindow.classList.remove('active');
+        }
+    };
+
+    fab.addEventListener('click', toggleChat);
+    closeBtn.addEventListener('click', toggleChat);
+
+    const appendMessage = (text, sender, isHtml = false) => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `chat-msg ${sender}`;
+        
+        // Basic markdown bold parsing
+        const parsedText = text.replace(/\*\*(.*?)\*\*/g, '<strong style="color:white">$1</strong>');
+        
+        if (sender === 'bot') {
+            const prefix = `<div style="font-weight:900; color:var(--accent); margin-bottom:6px; font-size:0.7rem; letter-spacing:1px">ALPHA AI</div>`;
+            if (isHtml) msgDiv.innerHTML = prefix + parsedText;
+            else msgDiv.innerHTML = prefix + parsedText.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&lt;strong style="color:white"&gt;/g, '<strong style="color:white">').replace(/&lt;\/strong&gt;/g, '</strong>');
+        } else {
+            msgDiv.textContent = text;
+        }
+        
+        messagesContainer.appendChild(msgDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
+
+    const showTypingIndicator = () => {
+        const indicator = document.createElement('div');
+        indicator.className = 'chat-msg bot';
+        indicator.id = 'typing-indicator';
+        indicator.innerHTML = `
+            <div class="chat-typing">
+                <div class="chat-typing-dot"></div>
+                <div class="chat-typing-dot"></div>
+                <div class="chat-typing-dot"></div>
+            </div>
+        `;
+        messagesContainer.appendChild(indicator);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
+
+    const removeTypingIndicator = () => {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+    };
+
+    const handleSend = async () => {
+        const text = inputField.value.trim();
+        if (!text) return;
+
+        appendMessage(text, 'user');
+        inputField.value = '';
+        showTypingIndicator();
+
+        try {
+            // Call the real backend endpoint
+            const res = await fetchAPI('/ask-terminal', 'POST', { query: text });
+            removeTypingIndicator();
+            
+            if (res && res.answer) {
+                appendMessage(res.answer, 'bot', true);
+            } else if (res && res.error) {
+                appendMessage(`[System Error] ${res.error}`, 'bot');
+            } else {
+                appendMessage("AI Engine is currently offline. Please try again later.", 'bot');
+            }
+        } catch (e) {
+            removeTypingIndicator();
+            appendMessage("Connection failed. Neural network unreachable.", 'bot');
+        }
+    };
+
+    sendBtn.addEventListener('click', handleSend);
+    inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSend();
+    });
+
+    // We modified appendMessage above to support raw HTML (since backend might return markdown parsed to HTML or formatted strings)
+    // Actually, let's redefine appendMessage here to ensure it uses innerHTML safely if we pass true for isHtml
+    
+    // Replace appendMessage logic globally for this scope
+}

@@ -7224,7 +7224,8 @@ class InstitutionalRoutesMixin:
             interval_hash = sum(ord(c) for c in interval)
             np.random.seed(int(time.time() // 600) + ticker_hash + interval_hash)  # Unique per ticker & interval scale
             
-            num_time_steps = 30
+            # Scale time steps based on interval - finer intervals show more columns
+            num_time_steps = 60 if interval_mins <= 1 else 48 if interval_mins <= 5 else 36 if interval_mins <= 15 else 30
             num_levels = 20
             
             # Price grid (-10% from spot)

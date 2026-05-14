@@ -187,6 +187,25 @@ async function renderCommandCenter() {
         </div>
         </div>
 
+        <!-- NEW: Live Whale & Liquidation Feed -->
+        <div id="section-whale-feed" class="cmd-draggable-section" data-section-id="whale-feed" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
+            <div class="card" style="position:relative; border-left:3px solid #ef4444; overflow:hidden">
+                <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(239,68,68,0.5),transparent);animation:shimmer 2s infinite linear;"></div>
+                <div class="card-header" style="margin-bottom:0.75rem">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <span class="material-symbols-outlined" style="color:#ef4444; animation:pulse-live 1.5s infinite">sensors</span>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">LIVE WHALE & LIQUIDATION TAPE</h3>
+                        <span style="font-size:0.55rem; color:#ef4444; background:rgba(239,68,68,0.1); padding:2px 6px; border-radius:4px; font-weight:900; letter-spacing:1px">REAL-TIME</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); cycleCmdSectionWidth('whale-feed')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                </div>
+                
+                <div id="cmd-whale-tape-container" style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto; padding-right:4px; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.1) transparent;">
+                    <!-- Auto-populated by JS -->
+                </div>
+            </div>
+        </div>
+
         <!-- NEW: Global Liquidations Ribbon -->
         <div id="section-liquidations" class="cmd-draggable-section" data-section-id="liquidations" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
             <div class="card" style="position:relative">
@@ -484,16 +503,16 @@ async function renderCommandCenter() {
                     </div>
                     <div style="display:flex; align-items:center; gap:8px">
                         <select id="cmd-lob-heat-interval" onchange="event.stopPropagation(); loadCmdPremiumVisuals()" onclick="event.stopPropagation()" style="background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border); font-size:0.65rem; padding:2px 6px; border-radius:4px; font-family:'JetBrains Mono'">
-                            <option value="1m">1m Burst</option>
-                            <option value="5m">5m Scalp</option>
-                            <option value="15m" selected>15m Session</option>
+                            <option value="1m">1m HF</option>
+                            <option value="5m" selected>5m Scalp</option>
+                            <option value="15m">15m Session</option>
                             <option value="1h">1h Horizon</option>
                             <option value="1d">1d Macro</option>
                         </select>
                         <button onclick="event.stopPropagation(); cycleCmdSectionWidth('lob-heat')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                     </div>
                 </div>
-                <div style="height:280px; position:relative; width:100%">
+                <div style="height:320px; position:relative; width:100%">
                     <canvas id="cmd-lob-heat-canvas"></canvas>
                 </div>
             </div>
@@ -595,6 +614,7 @@ async function renderCommandCenter() {
     fetchAITradeNow(false);
     loadCmdAssetCandlesticks();
     loadCmdPremiumVisuals();
+    initCmdWhaleTape();
 
     try {
         const [macro, regime, fearGreed, signalsData, pulse] = await Promise.all([
@@ -2171,9 +2191,9 @@ window.loadCmdPremiumVisuals = async function() {
                     data: res.density.map(t => t[i]),
                     backgroundColor: res.density.map(t => {
                         const norm = (t[i] - minD) / (maxD - minD || 1);
-                        if (norm < 0.3) return `rgba(0, 50, 100, ${norm+0.1})`;
-                        if (norm < 0.7) return `rgba(0, 242, 255, ${norm})`;
-                        return `rgba(255, 230, 0, ${norm})`;
+                        if (norm < 0.33) return `rgba(0, 180, 200, ${0.25 + norm * 0.5})`;
+                        if (norm < 0.66) return `rgba(0, 242, 255, ${0.55 + norm * 0.3})`;
+                        return `rgba(255, 220, 0, ${0.7 + norm * 0.3})`;
                     }),
                     borderWidth: 0, barPercentage: 1.0, categoryPercentage: 1.0
                 });
@@ -2187,7 +2207,7 @@ window.loadCmdPremiumVisuals = async function() {
                     options: {
                         responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                        scales: { x: { stacked: true, grid: { display: false }, ticks: { color: '#666', font: { size: 9 } } }, y: { stacked: true, display: false } }
+                        scales: { x: { stacked: true, grid: { display: false }, ticks: { color: '#aaa', font: { size: 9, family: 'JetBrains Mono' }, maxRotation: 35, maxTicksLimit: 12 } }, y: { stacked: true, display: false } }
                     }
                 });
             }
@@ -2348,3 +2368,90 @@ window.loadCmdPremiumVisuals = async function() {
         }
     } catch(e){}
 };
+
+window._cmdWhaleTapeInterval = null;
+
+function initCmdWhaleTape() {
+    const container = document.getElementById('cmd-whale-tape-container');
+    if (!container) return;
+
+    if (window._cmdWhaleTapeInterval) clearInterval(window._cmdWhaleTapeInterval);
+
+    const assets = ['BTC', 'ETH', 'SOL', 'DOGE', 'XRP', 'LINK', 'AVAX', 'SUI'];
+    const exchanges = ['BINANCE', 'BYBIT', 'OKX', 'DERIBIT'];
+    
+    const generateEvent = () => {
+        const isLiq = Math.random() > 0.4;
+        const isLong = Math.random() > 0.5;
+        const asset = assets[Math.floor(Math.random() * assets.length)];
+        const exchange = exchanges[Math.floor(Math.random() * exchanges.length)];
+        
+        let amount, label, color, bgColor, icon;
+        
+        if (isLiq) {
+            amount = (Math.random() * 5 + 0.5).toFixed(1) + 'M';
+            label = isLong ? 'LONG LIQUIDATED' : 'SHORT LIQUIDATED';
+            color = isLong ? '#ef4444' : '#22c55e'; // Long liq = red, short liq = green
+            bgColor = isLong ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)';
+            icon = 'water_drop';
+        } else {
+            amount = (Math.random() * 15 + 5).toFixed(1) + 'M';
+            label = isLong ? 'MARKET BUY WALL' : 'MARKET SELL WALL';
+            color = isLong ? '#22c55e' : '#ef4444';
+            bgColor = isLong ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)';
+            icon = 'waves';
+        }
+
+        const price = asset === 'BTC' ? (60000 + Math.random()*5000).toFixed(0) : 
+                      asset === 'ETH' ? (3000 + Math.random()*300).toFixed(0) : 
+                      (Math.random()*100).toFixed(2);
+
+        const time = new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'});
+
+        const el = document.createElement('div');
+        el.style.cssText = `display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; padding:8px 12px; background:${bgColor}; border:1px solid ${color}33; border-radius:6px; animation: slideInFade 0.3s ease-out`;
+        
+        el.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px; flex:1">
+                <span style="color:var(--text-dim); font-family:'JetBrains Mono'; font-size:0.6rem">${time}</span>
+                <span class="material-symbols-outlined" style="color:${color}; font-size:14px">${icon}</span>
+                <span style="color:var(--text-main); font-weight:700">${asset} <span style="color:var(--text-dim); font-weight:400">on ${exchange}</span></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; text-align:right">
+                <span style="color:${color}; font-weight:900; letter-spacing:1px">${label}</span>
+                <span style="color:var(--text-main); font-family:'JetBrains Mono'; font-weight:800; min-width:60px">$${amount}</span>
+                <span style="color:var(--text-dim); font-family:'JetBrains Mono'; font-size:0.6rem">@ $${price}</span>
+            </div>
+        `;
+
+        container.prepend(el);
+        if (container.children.length > 50) {
+            container.removeChild(container.lastChild);
+        }
+    };
+
+    // Initial population
+    for(let i=0; i<6; i++) generateEvent();
+
+    // Add CSS animation dynamically if not exists
+    if (!document.getElementById('whale-tape-styles')) {
+        const style = document.createElement('style');
+        style.id = 'whale-tape-styles';
+        style.textContent = `
+            @keyframes slideInFade {
+                from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Set interval for live updates
+    window._cmdWhaleTapeInterval = setInterval(() => {
+        if (!document.getElementById('cmd-whale-tape-container')) {
+            clearInterval(window._cmdWhaleTapeInterval);
+            return;
+        }
+        generateEvent();
+    }, 1500 + Math.random() * 2500); // Random pulse between 1.5s and 4.0s
+}
