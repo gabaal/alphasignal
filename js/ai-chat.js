@@ -342,6 +342,67 @@ function initFloatingAIChat() {
         if (indicator) indicator.remove();
     };
 
+    // --- Page Context Collector ---
+    function gatherPageContext() {
+        const ctx = {};
+
+        // 1. Current view (from URL path)
+        const path = window.location.pathname.replace('/', '') || 'home';
+        ctx.current_view = path || 'home';
+
+        // 2. Active ticker (command center stores in localStorage)
+        ctx.active_ticker =
+            localStorage.getItem('cmd_selected_asset') ||
+            localStorage.getItem('cmd_radar_ticker') ||
+            'BTC-USD';
+
+        // 3. Live prices snapshot (if available)
+        if (window.livePrices) {
+            const priceSnap = {};
+            ['BTC-USD','ETH-USD','SOL-USD'].forEach(t => {
+                if (window.livePrices[t]) priceSnap[t] = window.livePrices[t];
+            });
+            if (Object.keys(priceSnap).length) ctx.live_prices = priceSnap;
+        }
+
+        // 4. LOB Heatmap context
+        if (window._cmdLobChartInst) {
+            const lobInterval = document.getElementById('cmd-lob-heat-interval');
+            ctx.lob_heatmap = {
+                chart: 'Limit Order Book (LOB) Depth Heatmap',
+                interval: lobInterval ? lobInterval.value : '5m',
+                description: 'Shows liquidity density across price levels over time. Bright yellow = heavy walls, cyan = moderate, teal = thin.'
+            };
+        }
+
+        // 5. GEX Strike Profile context
+        if (window._cmdGexStrikeInst) {
+            ctx.gex_profile = {
+                chart: 'Dealer Gamma Exposure (GEX) by Strike',
+                description: 'Positive bars = long gamma (dealers stabilise price). Negative bars = short gamma (dealers amplify moves).'
+            };
+        }
+
+        // 6. IV Surface context
+        if (window._cmdIvSurfaceInst) {
+            ctx.iv_surface = {
+                chart: 'Implied Volatility (IV) Skew Curve',
+                description: 'Shows IV smile across strikes. Skew toward puts = fear/downside hedging. Skew toward calls = FOMO/upside bets.'
+            };
+        }
+
+        // 7. Radar chart context
+        if (window._cmdRadarData) {
+            ctx.signal_radar = {
+                chart: 'Alpha Signal Radar',
+                ticker: window._cmdRadarData.ticker,
+                values: window._cmdRadarData.values
+            };
+        }
+
+        return ctx;
+    }
+
     const handleSend = async () => {
         const text = inputField.value.trim();
         if (!text) return;
@@ -351,8 +412,8 @@ function initFloatingAIChat() {
         showTypingIndicator();
 
         try {
-            // Call the real backend endpoint
-            const res = await fetchAPI('/ask-terminal', 'POST', { query: text });
+            const pageContext = gatherPageContext();
+            const res = await fetchAPI('/ask-terminal', 'POST', { query: text, page_context: pageContext });
             removeTypingIndicator();
             
             if (res && res.answer) {

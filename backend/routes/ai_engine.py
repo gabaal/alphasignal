@@ -208,6 +208,27 @@ class AIEngineRoutesMixin:
             conn.close()
         except: pass
 
+        # --- Build Page Context Block (from frontend snapshot) ---
+        page_ctx = post_data.get('page_context', {})
+        page_ctx_str = ""
+        if page_ctx:
+            lines = ["\n\n<terminal_page_context>"]
+            lines.append(f"Current View: {page_ctx.get('current_view', 'unknown')}")
+            lines.append(f"Active Ticker: {page_ctx.get('active_ticker', 'BTC-USD')}")
+            if page_ctx.get('live_prices'):
+                prices = ', '.join([f"{k.replace('-USD','')}: ${v:,.2f}" if isinstance(v, (int,float)) else f"{k.replace('-USD','')}: {v}" for k,v in page_ctx['live_prices'].items()])
+                lines.append(f"Live Prices: {prices}")
+            for chart_key in ['lob_heatmap', 'gex_profile', 'iv_surface']:
+                if page_ctx.get(chart_key):
+                    c_data = page_ctx[chart_key]
+                    lines.append(f"Visible Chart: {c_data.get('chart','')}" + (f" ({c_data.get('interval','')} interval)" if c_data.get('interval') else ""))
+                    lines.append(f"  → {c_data.get('description','')}")
+            if page_ctx.get('signal_radar'):
+                sr = page_ctx['signal_radar']
+                lines.append(f"Signal Radar loaded for: {sr.get('ticker','')}")
+            lines.append("Use this context to give page-aware answers. If the user asks 'what is this chart?', refer to the visible charts above.</terminal_page_context>")
+            page_ctx_str = '\n'.join(lines)
+
         system_prompt = (
             f"You are AlphaSignal Terminal - an institutional-grade crypto intelligence platform. "
             f"The current date is {current_date}. The ACTUAL CURRENT BITCOIN PRICE IS ${btc_px:,.2f}. "
@@ -215,7 +236,7 @@ class AIEngineRoutesMixin:
             f"Answer user questions about crypto markets, trading strategies, on-chain data, and the signals shown in the terminal. "
             f"Be concise (max 150 words), precise, and actionable. "
             f"Use markdown for formatting. Never give financial advice disclaimers - this is a professional tool."
-        ) + proprietary_memory
+        ) + page_ctx_str + proprietary_memory
 
         try:
             resp = client.chat.completions.create(
