@@ -30,7 +30,7 @@ async function renderPowerTrio(ticker) {
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
             <label style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px">ASSET</label>
             <select id="power-trio-select"
-                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);
+                style="background:${alphaColor(0.05)};border:1px solid ${alphaColor(0.12)};
                        border-radius:8px;color:var(--text-main);padding:6px 12px;font-size:0.8rem;
                        font-family:inherit;cursor:pointer;min-width:130px"
                 onchange="renderPowerTrio(this.value)">
@@ -52,8 +52,8 @@ async function renderPowerTrio(ticker) {
                     <h3 id="trio-c1-title" style="margin:0;font-size:0.85rem">Price + ML Alpha Window</h3>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px">
-                    <span style="font-size:0.55rem;color:rgba(255,255,255,0.25);letter-spacing:1px">CLICK TO EXPAND</span>
-                    <span class="material-symbols-outlined" style="font-size:14px;color:rgba(255,255,255,0.25)">zoom_in</span>
+                    <span style="font-size:0.55rem;color:${alphaColor(0.25)};letter-spacing:1px">CLICK TO EXPAND</span>
+                    <span class="material-symbols-outlined" style="font-size:14px;color:${alphaColor(0.25)}">zoom_in</span>
                     <span id="trio-c1-badge" style="font-size:0.6rem;padding:2px 8px;border-radius:4px;background:rgba(0,242,255,0.1);color:var(--accent);font-weight:700;border:1px solid rgba(0,242,255,0.2)">LOADING</span>
                 </div>
             </div>
@@ -64,11 +64,11 @@ async function renderPowerTrio(ticker) {
                     ${['1W','1M','60D','3M','6M'].map(p => `
                     <button onclick="event.stopPropagation();_setTrioPeriod('${p}')" id="trio-p-${p}"
                         style="font-size:0.6rem;font-weight:700;letter-spacing:1px;padding:4px 10px;
-                               border-radius:6px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;
+                               border-radius:6px;border:1px solid ${alphaColor(0.1)};cursor:pointer;
                                font-family:inherit;transition:all 0.15s;
-                               background:${p==='60D'?'rgba(0,242,255,0.15)':'rgba(255,255,255,0.04)'};
-                               color:${p==='60D'?'var(--accent)':'rgba(255,255,255,0.5)'};
-                               border-color:${p==='60D'?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'}">
+                               background:${p==='60D'?'rgba(0,242,255,0.15)':alphaColor(0.04)};
+                               color:${p==='60D'?'var(--accent)':alphaColor(0.5)};
+                               border-color:${p==='60D'?'rgba(0,242,255,0.4)':alphaColor(0.1)}">
                         ${p}
                     </button>`).join('')}
                 </div>
@@ -77,17 +77,17 @@ async function renderPowerTrio(ticker) {
                     ${['15M','1H','1D'].map(iv => `
                     <button onclick="event.stopPropagation();_setTrioInterval('${iv}')" id="trio-i-${iv}"
                         style="font-size:0.6rem;font-weight:700;letter-spacing:1px;padding:4px 10px;
-                               border-radius:6px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;
+                               border-radius:6px;border:1px solid ${alphaColor(0.1)};cursor:pointer;
                                font-family:inherit;transition:all 0.15s;
-                               background:${iv==='1H'?'rgba(0,242,255,0.15)':'rgba(255,255,255,0.04)'};
-                               color:${iv==='1H'?'var(--accent)':'rgba(255,255,255,0.5)'};
-                               border-color:${iv==='1H'?'rgba(0,242,255,0.4)':'rgba(255,255,255,0.1)'}">
+                               background:${iv==='1H'?'rgba(0,242,255,0.15)':alphaColor(0.04)};
+                               color:${iv==='1H'?'var(--accent)':alphaColor(0.5)};
+                               border-color:${iv==='1H'?'rgba(0,242,255,0.4)':alphaColor(0.1)}">
                         ${iv}
                     </button>`).join('')}
                 </div>
             </div>
             <div id="trio-chart-momentum" style="width:100%;height:220px"></div>
-            <div id="trio-c1-stats" style="display:flex;gap:16px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)"></div>
+            <div id="trio-c1-stats" style="display:flex;gap:16px;margin-top:12px;padding-top:10px;border-top:1px solid ${alphaColor(0.05)}"></div>
         </div>
     </div><!-- end row 1 -->
 
@@ -104,15 +104,15 @@ async function renderPowerTrio(ticker) {
                     <h3 style="margin:0;font-size:0.85rem">Order Book Imbalance</h3>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px">
-                    <span style="font-size:0.55rem;color:rgba(255,255,255,0.25);letter-spacing:1px">CLICK TO EXPAND</span>
-                    <span class="material-symbols-outlined" style="font-size:14px;color:rgba(255,255,255,0.25)">zoom_in</span>
+                    <span style="font-size:0.55rem;color:${alphaColor(0.25)};letter-spacing:1px">CLICK TO EXPAND</span>
+                    <span class="material-symbols-outlined" style="font-size:14px;color:${alphaColor(0.25)}">zoom_in</span>
                     <span id="trio-c2-badge" style="font-size:0.6rem;padding:2px 8px;border-radius:4px;background:rgba(139,92,246,0.1);color:#a78bfa;font-weight:700;border:1px solid rgba(139,92,246,0.2)">LIVE</span>
                 </div>
             </div>
             <div style="position:relative;height:220px">
                 <canvas id="trio-chart-liquidity"></canvas>
             </div>
-            <div id="trio-c2-stats" style="display:flex;gap:16px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)"></div>
+            <div id="trio-c2-stats" style="display:flex;gap:16px;margin-top:12px;padding-top:10px;border-top:1px solid ${alphaColor(0.05)}"></div>
         </div>
 
         <!-- CHART 3: BTC Correlation -->
@@ -125,15 +125,15 @@ async function renderPowerTrio(ticker) {
                     <h3 style="margin:0;font-size:0.85rem">Rolling BTC Correlation</h3>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px">
-                    <span style="font-size:0.55rem;color:rgba(255,255,255,0.25);letter-spacing:1px">CLICK TO EXPAND</span>
-                    <span class="material-symbols-outlined" style="font-size:14px;color:rgba(255,255,255,0.25)">zoom_in</span>
+                    <span style="font-size:0.55rem;color:${alphaColor(0.25)};letter-spacing:1px">CLICK TO EXPAND</span>
+                    <span class="material-symbols-outlined" style="font-size:14px;color:${alphaColor(0.25)}">zoom_in</span>
                     <span id="trio-c3-badge" style="font-size:0.6rem;padding:2px 8px;border-radius:4px;background:rgba(74,222,128,0.1);color:#4ade80;font-weight:700;border:1px solid rgba(74,222,128,0.2)">30D</span>
                 </div>
             </div>
             <div style="position:relative;height:220px">
                 <canvas id="trio-chart-correlation"></canvas>
             </div>
-            <div id="trio-c3-stats" style="display:flex;gap:16px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)"></div>
+            <div id="trio-c3-stats" style="display:flex;gap:16px;margin-top:12px;padding-top:10px;border-top:1px solid ${alphaColor(0.05)}"></div>
         </div>
     </div><!-- end row 2 -->
 
@@ -226,11 +226,11 @@ async function _buildPowerTrio(ticker) {
         const lwChart = LightweightCharts.createChart(c1el, {
             width: c1el.clientWidth,
             height: 220,
-            layout: { background:{color:'transparent'}, textColor:'rgba(255,255,255,0.4)' },
-            grid: { vertLines:{color:'rgba(255,255,255,0.04)'}, horzLines:{color:'rgba(255,255,255,0.04)'} },
+            layout: { background:{color:'transparent'}, textColor:alphaColor(0.4) },
+            grid: { vertLines:{color:alphaColor(0.04)}, horzLines:{color:alphaColor(0.04)} },
             crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-            rightPriceScale: { borderColor:'rgba(255,255,255,0.08)' },
-            timeScale: { borderColor:'rgba(255,255,255,0.08)', timeVisible:true, secondsVisible:false },
+            rightPriceScale: { borderColor:alphaColor(0.08) },
+            timeScale: { borderColor:alphaColor(0.08), timeVisible:true, secondsVisible:false },
         });
         // Keep chart width synced with container
         if (window._trioResizeObs) window._trioResizeObs.disconnect();
@@ -299,8 +299,8 @@ async function _buildPowerTrio(ticker) {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: c => ` ${c.parsed.y >= 0 ? 'Bid' : 'Ask'}: ${Math.abs(c.parsed.y).toFixed(2)}%` }}},
                 scales: {
-                    x: { grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(255,255,255,0.35)',font:{size:9}, maxRotation:0, maxTicksLimit:8} },
-                    y: { grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{size:9}}, border:{dash:[4,4]} }
+                    x: { grid:{color:alphaColor(0.04)}, ticks:{color:alphaColor(0.35),font:{size:9}, maxRotation:0, maxTicksLimit:8} },
+                    y: { grid:{color:alphaColor(0.05)}, ticks:{color:alphaColor(0.4),font:{size:9}}, border:{dash:[4,4]} }
                 }
             }
         };
@@ -363,8 +363,8 @@ async function _buildPowerTrio(ticker) {
                 responsive:true, maintainAspectRatio:false,
                 plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => ` ρ = ${c.parsed.y}` }}},
                 scales:{
-                    x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(255,255,255,0.35)',font:{size:9},maxRotation:0,maxTicksLimit:8} },
-                    y:{ min:-1, max:1, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{size:9}}, border:{dash:[4,4]} }
+                    x:{ grid:{color:alphaColor(0.04)}, ticks:{color:alphaColor(0.35),font:{size:9},maxRotation:0,maxTicksLimit:8} },
+                    y:{ min:-1, max:1, grid:{color:alphaColor(0.05)}, ticks:{color:alphaColor(0.4),font:{size:9}}, border:{dash:[4,4]} }
                 }
             }
         };
@@ -394,7 +394,7 @@ async function _buildPowerTrio(ticker) {
         and the 10-day rolling BTC correlation is
         <strong style="color:#7dd3fc">currently tracking at the computed level</strong>.
         <br><br>
-        <span style="color:rgba(255,255,255,0.4);font-size:0.75rem">
+        <span style="color:${alphaColor(0.4)};font-size:0.75rem">
             Trader note: When correlation drops below 0.4 and order imbalance is bid-dominant simultaneously,
             that is the highest-probability <strong style="color:#4ade80">relative strength entry</strong> in this terminal.
         </span>
@@ -431,8 +431,8 @@ function _trioChartOptions(y2Id) {
         interaction:{ mode:'index', intersect:false },
         plugins:{ legend:{display:false}, tooltip:{} },
         scales:{
-            x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(255,255,255,0.35)',font:{size:9},maxRotation:0,maxTicksLimit:8} },
-            y:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(255,255,255,0.4)',font:{size:9}}, border:{dash:[4,4]}, position:'left' },
+            x:{ grid:{color:alphaColor(0.04)}, ticks:{color:alphaColor(0.35),font:{size:9},maxRotation:0,maxTicksLimit:8} },
+            y:{ grid:{color:alphaColor(0.05)}, ticks:{color:alphaColor(0.4),font:{size:9}}, border:{dash:[4,4]}, position:'left' },
             y2:{ display:false, position:'right' }
         }
     };
@@ -468,19 +468,19 @@ function openTrioModal(chartKey) {
                     <h2 style="margin:0;font-size:1rem;font-weight:600;color:var(--text-main)">${meta.title}</h2>
                 </div>
                 <button onclick="document.getElementById('trio-zoom-modal').remove()"
-                    style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+                    style="background:${alphaColor(0.05)};border:1px solid ${alphaColor(0.1)};border-radius:8px;
                            color:var(--text-dim);cursor:pointer;padding:6px 14px;font-size:0.75rem;font-family:inherit;
                            display:flex;align-items:center;gap:6px"
-                    onmouseover="this.style.background='rgba(255,255,255,0.1)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                    onmouseover="this.style.background=alphaColor(0.1)"
+                    onmouseout="this.style.background=alphaColor(0.05)">
                     <span class="material-symbols-outlined" style="font-size:14px">close</span> CLOSE
                 </button>
             </div>
             <div id="trio-modal-chart" style="width:100%;height:500px;position:relative">
                 ${meta.type === 'candlestick' ? '' : '<canvas id="trio-modal-canvas"></canvas>'}
             </div>
-            <div style="display:flex;gap:20px;padding:12px 0;border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06)">${statsHTML}</div>
-            <div style="padding:12px 16px;border-radius:8px;background:rgba(255,255,255,0.03);border-left:3px solid ${accentLeft}">
+            <div style="display:flex;gap:20px;padding:12px 0;border-top:1px solid ${alphaColor(0.06)};border-bottom:1px solid ${alphaColor(0.06)}">${statsHTML}</div>
+            <div style="padding:12px 16px;border-radius:8px;background:${alphaColor(0.03)};border-left:3px solid ${accentLeft}">
                 <div style="font-size:0.55rem;letter-spacing:2px;color:${meta.accentColor};font-weight:700;margin-bottom:6px">HOW TO READ THIS CHART</div>
                 <p style="margin:0;font-size:0.8rem;color:var(--text-dim);line-height:1.7">${meta.note}</p>
             </div>
@@ -498,11 +498,11 @@ function openTrioModal(chartKey) {
             const lwm = LightweightCharts.createChart(chartEl, {
                 width: chartEl.clientWidth,
                 height: 500,
-                layout: { background:{color:'transparent'}, textColor:'rgba(255,255,255,0.5)' },
-                grid: { vertLines:{color:'rgba(255,255,255,0.04)'}, horzLines:{color:'rgba(255,255,255,0.04)'} },
+                layout: { background:{color:'transparent'}, textColor:alphaColor(0.5) },
+                grid: { vertLines:{color:alphaColor(0.04)}, horzLines:{color:alphaColor(0.04)} },
                 crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-                rightPriceScale: { borderColor:'rgba(255,255,255,0.1)' },
-                timeScale: { borderColor:'rgba(255,255,255,0.1)', timeVisible:true, secondsVisible:false },
+                rightPriceScale: { borderColor:alphaColor(0.1) },
+                timeScale: { borderColor:alphaColor(0.1), timeVisible:true, secondsVisible:false },
             });
             const cs = lwm.addCandlestickSeries({
                 upColor:'#4ade80', downColor:'#f87171',
@@ -611,17 +611,17 @@ function _trioHighlightButtons() {
         const btn = document.getElementById(`trio-p-${p}`);
         if (!btn) return;
         const active = p === activePKey;
-        btn.style.background    = active ? 'rgba(0,242,255,0.15)' : 'rgba(255,255,255,0.04)';
-        btn.style.color         = active ? 'var(--accent)' : 'rgba(255,255,255,0.5)';
-        btn.style.borderColor   = active ? 'rgba(0,242,255,0.4)' : 'rgba(255,255,255,0.1)';
+        btn.style.background    = active ? 'rgba(0,242,255,0.15)' : alphaColor(0.04);
+        btn.style.color         = active ? 'var(--accent)' : alphaColor(0.5);
+        btn.style.borderColor   = active ? 'rgba(0,242,255,0.4)' : alphaColor(0.1);
     });
     intervals.forEach(iv => {
         const btn = document.getElementById(`trio-i-${iv}`);
         if (!btn) return;
         const active = iv === activeIKey;
-        btn.style.background    = active ? 'rgba(0,242,255,0.15)' : 'rgba(255,255,255,0.04)';
-        btn.style.color         = active ? 'var(--accent)' : 'rgba(255,255,255,0.5)';
-        btn.style.borderColor   = active ? 'rgba(0,242,255,0.4)' : 'rgba(255,255,255,0.1)';
+        btn.style.background    = active ? 'rgba(0,242,255,0.15)' : alphaColor(0.04);
+        btn.style.color         = active ? 'var(--accent)' : alphaColor(0.5);
+        btn.style.borderColor   = active ? 'rgba(0,242,255,0.4)' : alphaColor(0.1);
     });
 }
 
@@ -698,11 +698,11 @@ async function _reloadTrioCandles() {
     // Build chart
     const lwChart = LightweightCharts.createChart(c1el, {
         width: c1el.clientWidth, height: 220,
-        layout: { background:{color:'transparent'}, textColor:'rgba(255,255,255,0.4)' },
-        grid: { vertLines:{color:'rgba(255,255,255,0.04)'}, horzLines:{color:'rgba(255,255,255,0.04)'} },
+        layout: { background:{color:'transparent'}, textColor:alphaColor(0.4) },
+        grid: { vertLines:{color:alphaColor(0.04)}, horzLines:{color:alphaColor(0.04)} },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        rightPriceScale: { borderColor:'rgba(255,255,255,0.08)' },
-        timeScale: { borderColor:'rgba(255,255,255,0.08)', timeVisible:true, secondsVisible:false },
+        rightPriceScale: { borderColor:alphaColor(0.08) },
+        timeScale: { borderColor:alphaColor(0.08), timeVisible:true, secondsVisible:false },
     });
     if (window._trioResizeObs) window._trioResizeObs.disconnect();
     window._trioResizeObs = new ResizeObserver(() => { if(c1el.clientWidth>0) lwChart.resize(c1el.clientWidth,220); });

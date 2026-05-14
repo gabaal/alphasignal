@@ -50,12 +50,32 @@ async function renderCommandCenter() {
                         <span id="cmd-asset-chart-badge" style="font-size:0.55rem; padding:2px 6px; border-radius:4px; background:rgba(34,197,94,0.1); color:#22c55e; font-weight:900; font-family:'JetBrains Mono'">UNIVERSE BENCHMARK</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px">
-                        <select id="cmd-asset-chart-interval" onchange="event.stopPropagation(); loadCmdAssetCandlesticks()" onclick="event.stopPropagation()" style="background:var(--bg-card); color:var(--text-dim); border:1px solid var(--border); font-size:0.65rem; padding:2px 6px; border-radius:4px; font-family:'JetBrains Mono'">
-                            <option value="15m" selected>15 Minutes</option>
-                            <option value="1h">1 Hour</option>
-                            <option value="1d">1 Day</option>
-                        </select>
                         <button onclick="event.stopPropagation(); cycleCmdSectionWidth('asset-chart')" title="Cycle module grid width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
+                    </div>
+                </div>
+                <!-- Timeframe & Interval toolbar -->
+                <div onclick="event.stopPropagation()" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px">
+                    <div id="cmd-asset-period-bar" style="display:flex;gap:4px">
+                        ${['1W','1M','60D','3M','6M'].map(p => `
+                        <button onclick="event.stopPropagation(); window._setCmdAssetPeriod('${p}')" id="cmd-p-${p}"
+                            style="font-size:0.6rem;font-weight:700;letter-spacing:1px;padding:4px 10px;
+                                   border-radius:6px;border:1px solid ${p==='60D'?alphaColor(0.4):alphaColor(0.06)};cursor:pointer;
+                                   font-family:inherit;transition:all 0.15s;
+                                   background:${p==='60D'?'rgba(0,242,255,0.15)':'transparent'};
+                                   color:${p==='60D'?'var(--accent)':alphaColor(0.5)};">
+                            ${p}
+                        </button>`).join('')}
+                    </div>
+                    <div id="cmd-asset-interval-bar" style="display:flex;gap:4px">
+                        ${['15M','1H','1D'].map(iv => `
+                        <button onclick="event.stopPropagation(); window._setCmdAssetInterval('${iv}')" id="cmd-i-${iv}"
+                            style="font-size:0.6rem;font-weight:700;letter-spacing:1px;padding:4px 10px;
+                                   border-radius:6px;border:1px solid ${iv==='1H'?alphaColor(0.4):alphaColor(0.06)};cursor:pointer;
+                                   font-family:inherit;transition:all 0.15s;
+                                   background:${iv==='1H'?'rgba(0,242,255,0.15)':'transparent'};
+                                   color:${iv==='1H'?'var(--accent)':alphaColor(0.5)};">
+                            ${iv}
+                        </button>`).join('')}
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:1rem; padding:10px 12px; background:rgba(255,255,255,0.01); border-radius:8px; border:1px solid var(--border)">
@@ -1920,23 +1940,87 @@ window.loadCmdDashboardSettingsFromDB = async function() {
 };
 
 window._cmdAssetChartInst = null;
+window._cmdAssetPeriod = '60d';
+window._cmdAssetInterval = '1h';
+
+// Compatibility maps matching power-trio
+const _CMD_TRIO_PERIOD_MAP = {
+    '1W':  { yf: '7d',  label: '1 Week' },
+    '1M':  { yf: '30d', label: '1 Month' },
+    '60D': { yf: '60d', label: '60 Days' },
+    '3M':  { yf: '3mo', label: '3 Months' },
+    '6M':  { yf: '6mo', label: '6 Months' },
+};
+const _CMD_TRIO_INTERVAL_MAP = {
+    '15M': '15m',
+    '1H':  '1h',
+    '1D':  '1d',
+};
+const _CMD_TRIO_COMPAT = {
+    '15m': ['7d','30d','60d'],
+    '1h':  ['7d','30d','60d','3mo'],
+    '1d':  ['7d','30d','60d','3mo','6mo'],
+};
+
+window._highlightCmdAssetButtons = function() {
+    const periods   = ['1W','1M','60D','3M','6M'];
+    const intervals = ['15M','1H','1D'];
+    const activePKey = Object.keys(_CMD_TRIO_PERIOD_MAP).find(k => _CMD_TRIO_PERIOD_MAP[k].yf === window._cmdAssetPeriod) || '60D';
+    const activeIKey = Object.keys(_CMD_TRIO_INTERVAL_MAP).find(k => _CMD_TRIO_INTERVAL_MAP[k] === window._cmdAssetInterval) || '1H';
+
+    periods.forEach(p => {
+        const btn = document.getElementById(`cmd-p-${p}`);
+        if (!btn) return;
+        const active = p === activePKey;
+        btn.style.background    = active ? 'rgba(0,242,255,0.15)' : 'transparent';
+        btn.style.color         = active ? 'var(--accent)' : alphaColor(0.5);
+        btn.style.borderColor   = active ? alphaColor(0.4) : alphaColor(0.06);
+    });
+    intervals.forEach(iv => {
+        const btn = document.getElementById(`cmd-i-${iv}`);
+        if (!btn) return;
+        const active = iv === activeIKey;
+        btn.style.background    = active ? 'rgba(0,242,255,0.15)' : 'transparent';
+        btn.style.color         = active ? 'var(--accent)' : alphaColor(0.5);
+        btn.style.borderColor   = active ? alphaColor(0.4) : alphaColor(0.06);
+    });
+};
+
+window._setCmdAssetPeriod = function(key) {
+    const yfPeriod = _CMD_TRIO_PERIOD_MAP[key]?.yf;
+    if (!yfPeriod) return;
+    window._cmdAssetPeriod = yfPeriod;
+    if (!_CMD_TRIO_COMPAT[window._cmdAssetInterval]?.includes(yfPeriod)) {
+        window._cmdAssetInterval = '1d';
+    }
+    window._highlightCmdAssetButtons();
+    loadCmdAssetCandlesticks();
+};
+
+window._setCmdAssetInterval = function(key) {
+    const yfInterval = _CMD_TRIO_INTERVAL_MAP[key];
+    if (!yfInterval) return;
+    window._cmdAssetInterval = yfInterval;
+    if (!_CMD_TRIO_COMPAT[yfInterval]?.includes(window._cmdAssetPeriod)) {
+        window._cmdAssetPeriod = _CMD_TRIO_COMPAT[yfInterval].at(-1);
+    }
+    window._highlightCmdAssetButtons();
+    loadCmdAssetCandlesticks();
+};
+
 window.loadCmdAssetCandlesticks = async function() {
     const container = document.getElementById('cmd-asset-candlestick-container');
     const badgeEl   = document.getElementById('cmd-asset-chart-badge');
     const titleEl   = document.getElementById('cmd-asset-chart-title');
     const priceEl   = document.getElementById('cmd-asset-chart-price');
-    const intervalEl = document.getElementById('cmd-asset-chart-interval');
     if (!container) return;
+
+    window._highlightCmdAssetButtons();
 
     const selectedAsset = localStorage.getItem('cmd_selected_asset') || 'ALL';
     const tickerToLoad  = selectedAsset === 'ALL' ? 'BTC-USD' : selectedAsset;
-    const intervalToLoad = intervalEl ? intervalEl.value : '15m';
-
-    // Map interval to a fitting sliding window period to ensure rich density without truncation
-    let periodToLoad = '60d';
-    if (intervalToLoad === '15m') periodToLoad = '5d';
-    else if (intervalToLoad === '1h') periodToLoad = '30d';
-    else periodToLoad = '180d';
+    const intervalToLoad = window._cmdAssetInterval;
+    const periodToLoad = window._cmdAssetPeriod;
 
     if (badgeEl) badgeEl.textContent = selectedAsset === 'ALL' ? 'UNIVERSE BENCHMARK' : 'ACTIVE FILTER';
     if (titleEl) titleEl.textContent = tickerToLoad;
@@ -1962,10 +2046,10 @@ window.loadCmdAssetCandlesticks = async function() {
 
             if (window.LightweightCharts) {
                 const chart = window.LightweightCharts.createChart(container, {
-                    layout: { background: { type: 'solid', color: 'transparent' }, textColor: 'rgba(255,255,255,0.6)', fontFamily: 'JetBrains Mono', fontSize: 10 },
-                    grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
-                    timeScale: { borderColor: 'rgba(255,255,255,0.05)', timeVisible: true },
-                    rightPriceScale: { borderColor: 'rgba(255,255,255,0.05)' },
+                    layout: { background: { type: 'solid', color: 'transparent' }, textColor: alphaColor(0.6), fontFamily: 'JetBrains Mono', fontSize: 10 },
+                    grid: { vertLines: { color: alphaColor(0.03) }, horzLines: { color: alphaColor(0.03) } },
+                    timeScale: { borderColor: alphaColor(0.05), timeVisible: true },
+                    rightPriceScale: { borderColor: alphaColor(0.05) },
                     crosshair: { mode: window.LightweightCharts.CrosshairMode.Normal }
                 });
                 window._cmdAssetChartInst = chart;
