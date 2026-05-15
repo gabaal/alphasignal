@@ -1305,8 +1305,11 @@ async function renderSignalArchive(tabs = null) {
                 const actionColor = isBear ? '#ef4444' : isBull ? '#22c55e' : '#94a3b8';
                 const actionBg    = isBear ? 'rgba(239,68,68,0.12)' : isBull ? 'rgba(34,197,94,0.12)' : 'rgba(148,163,184,0.08)';
 
-                // --- TP / SL levels derived from entry price (10% TP, 3% SL) ---
-                const TP_PCT = 10, SL_PCT = 3;
+                // --- TP / SL levels derived from user settings (stored in localStorage) ---
+                const settings = JSON.parse(localStorage.getItem('alert_settings') || '{}');
+                const TP_PCT = settings.tp1Pct || 5; 
+                const SL_PCT = settings.slPct || 3;
+
                 const entryPx = parseFloat(s.entry) || 0;
                 let tpPrice = null, slPrice = null;
                 if (entryPx > 0) {
@@ -1850,10 +1853,43 @@ async function renderSignalArchive(tabs = null) {
         const SC        = {ACTIVE:'#60a5fa',HIT_TP1:'#22c55e',HIT_TP2:'#16a34a',STOPPED:'#ef4444',CLOSED:'#94a3b8'};
         const SI        = {ACTIVE:'\u26a1',HIT_TP1:'\uD83C\uDFAF',HIT_TP2:'\uD83C\uDFC6',STOPPED:'\uD83D\uDED1',CLOSED:'\uD83D\uDD12'};
         const sc        = SC[s.state] || '#60a5fa';
-        const entry     = Number(s.entry || 0);
-        const tp2px     = entry > 0 ? formatPrice(entry * 1.10) : '-';
-        const tp1px     = entry > 0 ? formatPrice(entry * 1.05) : '-';
-        const slpx      = entry > 0 ? formatPrice(entry * 0.97) : '-';
+        const settings = JSON.parse(localStorage.getItem('alert_settings') || '{}');
+        const tp1Pct = settings.tp1Pct || 5;
+        const tp2Pct = settings.tp2Pct || 10;
+        const slPct  = settings.slPct  || 3;
+
+        const BULLISH_T = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION','FUNDING_SPIKE_NEGATIVE']);
+        const BEARISH_T = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT','FUNDING_SPIKE_EXTREME_LONG','FUNDING_SPIKE_HIGH_LONG']);
+        
+        const sigType  = (s.type || '').toUpperCase();
+        const isBull   = BULLISH_T.has(sigType);
+        const isBear   = BEARISH_T.has(sigType);
+
+        const entry    = Number(s.entry || 0);
+        let tp1Price = null, tp2Price = null, slPrice = null;
+        let tp1Label = '+5%', tp2Label = '+10%', slLabel = '-3%';
+
+        if (entry > 0) {
+            if (isBear) {
+                tp1Price = entry * (1 - tp1Pct / 100);
+                tp2Price = entry * (1 - tp2Pct / 100);
+                slPrice  = entry * (1 + slPct / 100);
+                tp1Label = `-${tp1Pct}%`;
+                tp2Label = `-${tp2Pct}%`;
+                slLabel  = `+${slPct}%`;
+            } else {
+                tp1Price = entry * (1 + tp1Pct / 100);
+                tp2Price = entry * (1 + tp2Pct / 100);
+                slPrice  = entry * (1 - slPct / 100);
+                tp1Label = `+${tp1Pct}%`;
+                tp2Label = `+${tp2Pct}%`;
+                slLabel  = `-${slPct}%`;
+            }
+        }
+
+        const tp2px     = tp2Price ? formatPrice(tp2Price) : '-';
+        const tp1px     = tp1Price ? formatPrice(tp1Price) : '-';
+        const slpx      = slPrice ? formatPrice(slPrice) : '-';
         const sym       = s.ticker.replace('-USD','');
         const tsStr     = (s.timestamp||'').replace('T',' ').slice(0,16);
         const closedStr = (s.closed_at||'').slice(0,16);
@@ -1890,9 +1926,9 @@ async function renderSignalArchive(tabs = null) {
           </div>
           <div style="margin-bottom:1.2rem">
             <div style="font-size:.5rem;font-weight:900;letter-spacing:2px;color:#6b7280;margin-bottom:8px">SIGNAL LEVELS</div>
-            <div class="sdw-tp" style="background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.2)"><span style="color:#16a34a;font-weight:900;min-width:36px">TP2</span><span style="color:#6b7280">+10%</span><span style="margin-left:auto;color:#16a34a;font-family:monospace">${tp2px}</span></div>
-            <div class="sdw-tp" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15)"><span style="color:#22c55e;font-weight:900;min-width:36px">TP1</span><span style="color:#6b7280">+5%</span><span style="margin-left:auto;color:#22c55e;font-family:monospace">${tp1px}</span></div>
-            <div class="sdw-tp" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15)"><span style="color:#ef4444;font-weight:900;min-width:36px">SL</span><span style="color:#6b7280">-3%</span><span style="margin-left:auto;color:#ef4444;font-family:monospace">${slpx}</span></div>
+            <div class="sdw-tp" style="background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.2)"><span style="color:#16a34a;font-weight:900;min-width:36px">TP2</span><span style="color:#6b7280">${tp2Label}</span><span style="margin-left:auto;color:#16a34a;font-family:monospace">${tp2px}</span></div>
+            <div class="sdw-tp" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15)"><span style="color:#22c55e;font-weight:900;min-width:36px">TP1</span><span style="color:#6b7280">${tp1Label}</span><span style="margin-left:auto;color:#22c55e;font-family:monospace">${tp1px}</span></div>
+            <div class="sdw-tp" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15)"><span style="color:#ef4444;font-weight:900;min-width:36px">SL</span><span style="color:#6b7280">${slLabel}</span><span style="margin-left:auto;color:#ef4444;font-family:monospace">${slpx}</span></div>
           </div>
           ${thesisHtml}
           <div style="margin-bottom:1.5rem">
