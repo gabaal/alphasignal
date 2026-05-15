@@ -801,12 +801,14 @@ function initLivePriceStream() {
                         const alertsOn = typeof _pollerSettings !== 'undefined' ? _pollerSettings.alerts_enabled : true;
 
                         // Resolve plain-language action from payload or type inference
+                        const _isFunding = d.type && d.type.includes('FUNDING');
                         const _action   = d.action || (d.type && (d.type.includes('BULL') || d.type.includes('OVERSOLD') || d.type.includes('VOLUME')) ? 'BUY / LONG' :
-                                          d.type && (d.type.includes('BEAR') || d.type.includes('OVERBOUGHT')) ? 'SELL / SHORT' : 'WATCH');
+                                          d.type && (d.type.includes('BEAR') || d.type.includes('OVERBOUGHT')) ? 'SELL / SHORT' : 
+                                          _isFunding ? 'FUNDING ANOMALY' : 'WATCH');
                         const _isBuy    = _action.startsWith('BUY');
                         const _isSell   = _action.startsWith('SELL');
-                        const _actionColor = _isBuy ? '#22c55e' : _isSell ? '#ef4444' : '#94a3b8';
-                        const _actionEmoji = _isBuy ? '🟢' : _isSell ? '🔴' : '⚪';
+                        const _actionColor = _isBuy ? '#22c55e' : _isSell ? '#ef4444' : _isFunding ? '#bc13fe' : '#94a3b8';
+                        const _actionEmoji = _isBuy ? '🟢' : _isSell ? '🔴' : _isFunding ? '📊' : '⚪';
                         const _fmtP = v => { const n = parseFloat(v); if (!n || n <= 0) return null; return n >= 1 ? '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}) : '$' + n.toPrecision(5); };
                         const _tpStr = _fmtP(d.tp_price);
                         const _slStr = _fmtP(d.sl_price);
@@ -816,12 +818,18 @@ function initLivePriceStream() {
                                 ? Math.abs(parseFloat(d.predicted_return)) * 100
                                 : Math.abs(parseFloat(d.z_score ?? 0));
                             const userThresh = typeof _pollerSettings !== 'undefined' ? _pollerSettings.z_threshold : 2.0;
-                            if (predReturn >= userThresh || d.severity === 'critical' || d.severity === 'high') {
+                            
+                            // Funding spikes and critical severity bypass the z-threshold filter
+                            if (predReturn >= userThresh || d.severity === 'critical' || d.severity === 'high' || _isFunding) {
                                 showSignalToast({
+                                    id: d.id,
                                     ticker: d.ticker || d.signal_type || 'SIGNAL',
-                                    direction: _isBuy ? 'LONG' : _isSell ? 'SHORT' : 'ALERT',
+                                    type: d.type || d.signal_type || 'ALPHA_DETECTED',
+                                    direction: _isBuy ? 'LONG' : _isSell ? 'SHORT' : _isFunding ? 'FUNDING' : 'ALERT',
                                     z_score: d.z_score ?? null,
-                                    predicted_return: d.predicted_return ?? null
+                                    predicted_return: d.predicted_return ?? null,
+                                    severity: d.severity || 'medium',
+                                    content: d.content || d.message || 'Institutional alpha detected'
                                 });
                             }
                         } else if (!window.isPremiumUser) {

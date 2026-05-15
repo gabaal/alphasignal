@@ -759,8 +759,9 @@ function _checkFundingSpikes(fundingMap) {
         if (now - (window._fundingAlertTs[key] || 0) < COOLDOWN_MS) return;
         window._fundingAlertTs[key] = now;
 
-        // Fire custom styled toast
-        _showFundingToast(asset, rate, icon, color, bg, msg);
+        // B15 FIX: Legacy transient toast disabled. 
+        // Funding Spikes are now persisted in backend /alerts-history and broadcast via WebSocket.
+        // _showFundingToast(asset, rate, icon, color, bg, msg);
     });
 }
 

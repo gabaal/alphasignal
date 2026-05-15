@@ -192,9 +192,12 @@ function showSignalToast(signal) {
     const ticker = (signal.ticker || signal.asset || 'BTC').toUpperCase();
     const zscore = signal.z_score != null ? parseFloat(signal.z_score).toFixed(2) : null;
     const isLong = dir === 'LONG' || dir === 'BUY';
-    const dirColor = isLong ? '#00d4aa' : '#ef4444';
-    const dirArrow = isLong ? '🟢' : '🔴';
-    const dirBg   = isLong ? 'rgba(0,212,170,0.12)' : 'rgba(239,68,68,0.12)';
+    const isShort = dir === 'SHORT' || dir === 'SELL';
+    const isFunding = dir === 'FUNDING';
+    
+    const dirColor = isLong ? '#00d4aa' : isShort ? '#ef4444' : isFunding ? '#bc13fe' : '#94a3b8';
+    const dirBg   = isLong ? 'rgba(0,212,170,0.12)' : isShort ? 'rgba(239,68,68,0.12)' : isFunding ? 'rgba(188,19,254,0.12)' : 'rgba(148,163,184,0.12)';
+    const dirLabel = isFunding ? 'FUNDING ANOMALY' : 'NEW SIGNAL DETECTED';
 
     const toast = document.createElement('div');
     toast.className = 'toast signal-toast';
@@ -209,21 +212,29 @@ function showSignalToast(signal) {
         this.remove();
     };
     toast.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="width:8px;height:8px;border-radius:50%;background:${dirColor};box-shadow:0 0 8px ${dirColor};flex-shrink:0;animation:pulse-live 1.2s infinite"></div>
-            <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:${dirColor}">NEW SIGNAL DETECTED</span>
-            <span style="margin-left:auto;font-size:1rem;cursor:pointer;opacity:0.4;color:#fff" onclick="this.closest('.toast').remove()">-</span>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:8px;height:8px;border-radius:50%;background:${dirColor};box-shadow:0 0 10px ${dirColor};flex-shrink:0;animation:pulse-live 1.2s infinite"></div>
+            <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:${dirColor}">${dirLabel}</span>
+            <span style="margin-left:auto;font-size:1rem;cursor:pointer;opacity:0.4;color:#fff;line-height:1" onclick="this.closest('.toast').remove()">-</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
-            <div style="background:${alphaColor(0.07)};border:1px solid ${alphaColor(0.12)};border-radius:8px;padding:6px 12px;font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0">${ticker}</div>
+        
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <div style="background:${alphaColor(0.1)};border:1px solid ${alphaColor(0.2)};border-radius:8px;padding:8px 14px;font-size:1.1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0">${ticker}</div>
+            <div style="background:${dirColor}22; border:1px solid ${dirColor}44; color:${dirColor}; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-weight:900; letter-spacing:1px">${dir}</div>
             ${zscore != null
                 ? `<div style="background:rgba(188,19,254,0.12);border:1px solid rgba(188,19,254,0.35);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:#bc13fe;font-family:'JetBrains Mono',monospace">Z: ${zscore}σ</div>`
                 : `<div style="background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:6px;padding:4px 10px;font-size:0.7rem;font-weight:700;color:var(--accent)">${(signal.severity || 'MEDIUM').toUpperCase()}</div>`
             }
         </div>
-        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-            <span style="font-size:0.65rem;color:${alphaColor(0.4)};flex:1">High-confidence alpha detected by ML engine</span>
-            <button style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1));border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 10px;border-radius:6px;font-size:0.6rem;font-weight:900;cursor:pointer;letter-spacing:1px;white-space:nowrap">DEEP DIVE →</button>
+
+        <div style="font-size:0.65rem; font-weight:900; color:var(--accent); letter-spacing:1.5px; margin-bottom:6px; text-transform:uppercase">${(signal.type || 'ALPHA_DETECTED').replace(/_/g, ' ')}</div>
+        
+        <div style="font-size:0.75rem; color:${alphaColor(0.85)}; line-height:1.5; margin-bottom:14px; border-left:2px solid ${dirColor}44; padding-left:10px">
+            ${signal.content || 'High-confidence alpha detected by machine learning engine. Momentum profile suggests institutional accumulation.'}
+        </div>
+
+        <div style="display:flex; justify-content:flex-end">
+            <button style="background:linear-gradient(135deg,rgba(0,212,170,0.25),rgba(0,212,170,0.1)); border:1px solid rgba(0,212,170,0.4); color:#00d4aa; padding:6px 14px; border-radius:8px; font-size:0.65rem; font-weight:900; cursor:pointer; letter-spacing:1px; transition:all 0.2s" onmouseover="this.style.background='rgba(0,212,170,0.3)'" onmouseout="this.style.background='rgba(0,212,170,0.2)'">DEEP DIVE →</button>
         </div>
     `;
 

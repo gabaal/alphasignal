@@ -12,7 +12,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 import yfinance as yf
 from .database import DB_PATH, UNIVERSE
-from .caching import CACHE
+from .caching import CACHE, BCACHE
 INFO_CACHE = {}
 def get_ticker_name(ticker):
     if ticker in INFO_CACHE: return INFO_CACHE[ticker]
@@ -620,6 +620,9 @@ class HarvestService:
                 
                 # Periodically re-warm the signals cache to keep ticker tape fresh
                 self._warm_signals_cache()
+
+                # Phase 9: Real-time Funding Spike Persistence
+                self.check_funding_spikes()
                 
                 all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked))
                 print(f"[{datetime.now()}] Harvesting data for {len(all_tickers)} assets...")
@@ -1617,6 +1620,101 @@ class HarvestService:
         c.execute("DELETE FROM orderbook_snapshots WHERE timestamp < datetime('now', '-1 day')")
         conn.commit()
         conn.close()
+
+    def check_funding_spikes(self):
+        """Fetches current funding rates and persists alerts for extreme movements (Institutional Audit)."""
+        try:
+            core_assets = ['BTC', 'ETH', 'SOL', 'LINK', 'ADA', 'BNB', 'XRP', 'DOGE']
+            galaxy = [
+                'AVAX', 'DOT', 'MATIC', 'NEAR', 'RNDR', 'INJ', 'APT', 'OP', 'ARB', 'SUI', 
+                'SEI', 'TIA', 'FET', 'STX', 'IMX', 'LDO', 'MNT', 'PEPE', 'SHIB', 'WIF', 
+                'TON', 'FIL', 'ICP', 'RUNE', 'GALA', 'FTM', 'AR', 'AAVE', 'MKR', 'TAO', 
+                'ONDO', 'WLD', 'JUP', 'PYTH', 'JTO', 'ORDI'
+            ]
+            assets = core_assets + galaxy
+            symbols = [f'{a}USDT' for a in assets]
+            
+            # Use cached premium index if available (30s TTL in BCACHE)
+            items = BCACHE.fetch('fapi:premium', 'ALL', 'https://fapi.binance.com/fapi/v1/premiumIndex', timeout=5)
+            if not items: return
+            
+            conn = sqlite3.connect(DB_PATH, timeout=30)
+            c = conn.cursor()
+            
+            # Thresholds aligned with js/views/signals.js institutional standards
+            THRESH_EXTREME = 0.10
+            THRESH_HIGH    = 0.05
+            THRESH_NEG     = -0.03
+            
+            for item in items:
+                sym = item.get('symbol', '')
+                raw_rate = item.get('lastFundingRate')
+                if sym in symbols and raw_rate is not None:
+                    asset = sym.replace('USDT', '')
+                    rate = float(raw_rate) * 100
+                    
+                    sig_type = None
+                    severity = 'medium'
+                    message = ""
+                    
+                    if rate >= THRESH_EXTREME:
+                        sig_type = 'EXTREME_LONG_FUNDING'
+                        severity = 'critical'
+                        message = f"Institutional Longs paying {rate:.4f}% every 8h. Contradictory signal risk."
+                    elif rate >= THRESH_HIGH:
+                        sig_type = 'HIGH_LONG_FUNDING'
+                        severity = 'high'
+                        message = f"Significant Long bias detected ({rate:.4f}%). Crowded trade risk."
+                    elif rate <= THRESH_NEG:
+                        sig_type = 'NEGATIVE_FUNDING'
+                        severity = 'high'
+                        message = f"Extreme Short bias ({rate:.4f}%). Short-squeeze risk elevated."
+                        
+                    if sig_type:
+                        # Database Cooldown: 1 hour per asset/type to avoid audit log bloat
+                        c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND timestamp > datetime('now', '-1 hours')", (asset, sig_type))
+                        if c.fetchone(): continue
+                        
+                        ts_str = datetime.now().isoformat()
+                        
+                        # Get all users to ensure institutional audit trail persists for everyone
+                        c.execute("SELECT user_email, alerts_enabled FROM user_settings")
+                        users = c.fetchall()
+                        
+                        for email, alerts_enabled in users:
+                            # Record in DB for institutional archive (regardless of toggle)
+                            c.execute(
+                                "INSERT INTO alerts_history (type, ticker, message, severity, price, timestamp, user_email, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                                (sig_type, asset, message, severity, 0.0, ts_str, email, 'INSTITUTIONAL')
+                            )
+                            alert_id = c.lastrowid
+                            
+                            # Push to Discord / Telegram ONLY if enabled
+                            if alerts_enabled:
+                                NOTIFY.push_webhook(email, f"FUNDING SPIKE: {asset}", message, embed_color=0xbc13fe if severity == 'critical' else 0x00f2ff)
+                        
+                        # Broadcast to UI (WebSocket) - global broadcast
+                        if self.ws_server:
+                            try:
+                                self.ws_server.broadcast(json.dumps({
+                                    'type': 'new_alert',
+                                    'data': {
+                                        'id': 0, # Virtual ID for broadcast
+                                        'type': sig_type,
+                                        'ticker': asset,
+                                        'title': f"📊 FUNDING SPIKE: {asset}",
+                                        'content': message,
+                                        'severity': severity,
+                                        'price': 0.0,
+                                        'timestamp': ts_str
+                                    }
+                                }))
+                            except: pass
+                        
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"[{datetime.now()}] [Harvester] Funding Spike Error: {e}")
 
     def stop(self):
         self.running = False
