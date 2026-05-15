@@ -4707,6 +4707,12 @@ class InstitutionalRoutesMixin:
                 if NON_CRYPTO:
                     base_where += f" AND ah.ticker NOT IN ({','.join(['?']*len(NON_CRYPTO))})"
                     params.extend(NON_CRYPTO)
+                
+                # Filter out informational anomalies from the Signals Archive (only show alpha-predictive signals)
+                base_where += (" AND ah.type NOT LIKE '%FUNDING%'"
+                               " AND ah.type NOT LIKE '%DEPEG%'"
+                               " AND ah.type NOT LIKE '%CME_GAP%'"
+                               " AND ah.type NOT LIKE '%REBALANCE%'")
                     
                 count_params = list(params)
             else:
@@ -4723,6 +4729,13 @@ class InstitutionalRoutesMixin:
                 else:
                     base_where  = "WHERE ah.timestamp > datetime('now', ?)"
                     params      = [f'-{f_days} day']
+                
+                # Filter out informational anomalies from the Signals Archive
+                base_where += (" AND ah.type NOT LIKE '%FUNDING%'"
+                               " AND ah.type NOT LIKE '%DEPEG%'"
+                               " AND ah.type NOT LIKE '%CME_GAP%'"
+                               " AND ah.type NOT LIKE '%REBALANCE%'")
+
                 count_params = list(params)
 
             if f_ticker:
