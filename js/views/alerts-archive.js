@@ -234,6 +234,32 @@ async function renderAlerts(tabs = null) {
 
 
 
+    // Inject tooltip styles once
+    if (!document.getElementById('as-tooltip-styles')) {
+        const s = document.createElement('style');
+        s.id = 'as-tooltip-styles';
+        s.textContent = `
+            .as-tip { position:relative; display:inline-flex; align-items:center; cursor:help; }
+            .as-tip-icon { font-size:0.75rem; color:var(--accent); opacity:0.6; margin-left:5px; font-family:'Material Symbols Outlined'; transition:opacity 0.2s; user-select:none; }
+            .as-tip:hover .as-tip-icon { opacity:1; }
+            .as-tip-box {
+                visibility:hidden; opacity:0;
+                position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+                background:rgba(10,14,24,0.97); border:1px solid rgba(0,212,170,0.25);
+                color:#cbd5e1; font-size:0.65rem; font-weight:400; line-height:1.55;
+                padding:10px 14px; border-radius:10px; width:240px;
+                box-shadow:0 8px 32px rgba(0,0,0,0.5);
+                pointer-events:none; transition:opacity 0.18s, visibility 0.18s;
+                z-index:9999; white-space:normal;
+            }
+            .as-tip-box strong { color:#00d4aa; font-weight:900; font-size:0.6rem; letter-spacing:1px; display:block; margin-bottom:4px; text-transform:uppercase; }
+            .as-tip-box em { color:#ffd700; font-style:normal; font-weight:700; }
+            .as-tip:hover .as-tip-box { visibility:visible; opacity:1; }
+            .as-tip-box::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:rgba(0,212,170,0.25); }
+        `;
+        document.head.appendChild(s);
+    }
+
     appEl.innerHTML = `
 
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -290,9 +316,14 @@ async function renderAlerts(tabs = null) {
 
             <div style="margin-bottom:1.2rem">
 
-                <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:8px">
+                <label style="font-size:0.6rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
 
-                    <span> ALERT SENSITIVITY -- MIN. PREDICTED RETURN</span>
+                    <span style="display:flex;align-items:center"> ALERT SENSITIVITY
+                        <span class="as-tip">
+                            <span class="as-tip-icon">info</span>
+                            <span class="as-tip-box"><strong>Alert Sensitivity</strong>Sets the minimum predicted return an asset must show before an alert is triggered.<br><br>⬅ <em>Lower</em> = more alerts, lower conviction signals included.<br>➡ <em>Higher</em> = fewer alerts, only high-conviction moves.<br><br>Default: <em>2.0%</em></span>
+                        </span>
+                    </span>
 
                     <span id="z-val-display" style="color:#ffd700;font-weight:900">${zThreshold.toFixed(1)}%</span>
 
@@ -330,9 +361,14 @@ async function renderAlerts(tabs = null) {
 
                     <div>
 
-                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
 
-                            <span> WHALE TXN MIN SIZE</span>
+                            <span style="display:flex;align-items:center"> WHALE TXN
+                                <span class="as-tip">
+                                    <span class="as-tip-icon">info</span>
+                                    <span class="as-tip-box"><strong>Whale Transaction Min Size</strong>Minimum USD value of an on-chain transaction to trigger a whale alert. Filters out smaller retail movements.<br><br>⬅ <em>Lower ($1M)</em> = more alerts, catches smaller whale moves.<br>➡ <em>Higher ($50M)</em> = only massive institutional-scale flows.<br><br>Default: <em>$5M</em></span>
+                                </span>
+                            </span>
 
                             <span id="whale-val-display" style="color:#7dd3fc;font-weight:900">${whaleSize}M</span>
 
@@ -358,9 +394,14 @@ async function renderAlerts(tabs = null) {
 
                     <div>
 
-                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
 
-                            <span> DE-PEG THRESHOLD</span>
+                            <span style="display:flex;align-items:center"> DE-PEG
+                                <span class="as-tip">
+                                    <span class="as-tip-icon">info</span>
+                                    <span class="as-tip-box"><strong>Stablecoin De-Peg Threshold</strong>How far a stablecoin (USDT, USDC, DAI etc.) must deviate from $1.00 before an alert fires. A de-peg is a systemic risk indicator.<br><br>⬅ <em>Lower (0.1%)</em> = alerts on very minor deviations — high noise.<br>➡ <em>Higher (5%)</em> = only severe de-peg crises.<br><br>Default: <em>1.0%</em></span>
+                                </span>
+                            </span>
 
                             <span id="depeg-val-display" style="color:#ef4444;font-weight:900">${depeg.toFixed(1)}%</span>
 
@@ -386,11 +427,16 @@ async function renderAlerts(tabs = null) {
 
                     <div>
 
-                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
 
-                            <span> VOL SPIKE MIN -</span>
+                            <span style="display:flex;align-items:center"> VOL SPIKE
+                                <span class="as-tip">
+                                    <span class="as-tip-icon">info</span>
+                                    <span class="as-tip-box"><strong>Volume Spike Multiplier</strong>Triggers when trading volume exceeds this multiple of the 30-day average. Detects unusual buying or selling pressure before price moves.<br><br>⬅ <em>Lower (1×)</em> = alerts on any above-average volume.<br>➡ <em>Higher (5×)</em> = only extreme volume surges.<br><br>Default: <em>2×</em></span>
+                                </span>
+                            </span>
 
-                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">${volSpike.toFixed(1)}-</span>
+                            <span id="vol-val-display" style="color:#f59e0b;font-weight:900">${volSpike.toFixed(1)}×</span>
 
                         </label>
 
@@ -414,11 +460,16 @@ async function renderAlerts(tabs = null) {
 
                     <div>
 
-                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
 
-                            <span> CME GAP MIN SIZE</span>
+                            <span style="display:flex;align-items:center"> CME GAP
+                                <span class="as-tip">
+                                    <span class="as-tip-icon">info</span>
+                                    <span class="as-tip-box"><strong>CME Gap Minimum Size</strong>Alerts when Bitcoin's price opens with a gap vs. where CME futures closed on Friday. Gaps frequently act as price magnets.<br><br>⬅ <em>Lower (0.1%)</em> = alerts on very small gaps — more frequent.<br>➡ <em>Higher (5%)</em> = only significant gap-up/gap-down events.<br><br>Default: <em>1.0%</em></span>
+                                </span>
+                            </span>
 
-                            <span id="cme-val-display" style="color:#8b5cf6;font-weight:900">${depeg.toFixed(1)}%</span>
+                            <span id="cme-val-display" style="color:#8b5cf6;font-weight:900">${cmeGap.toFixed(1)}%</span>
 
                         </label>
 
@@ -440,8 +491,13 @@ async function renderAlerts(tabs = null) {
 
                     <!-- Portfolio Rebalance -->
                     <div>
-                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                            <span> PORTFOLIO REBALANCE</span>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                            <span style="display:flex;align-items:center"> REBALANCE
+                                <span class="as-tip">
+                                    <span class="as-tip-icon">info</span>
+                                    <span class="as-tip-box"><strong>Portfolio Rebalance Trigger</strong>Minimum predicted return required before the AI recommends rebalancing your portfolio into a new asset allocation.<br><br>⬅ <em>Lower (0.5%)</em> = more frequent rebalance recommendations.<br>➡ <em>Higher (10%)</em> = only act on very strong predicted moves.<br><br>Default: <em>2.5%</em></span>
+                                </span>
+                            </span>
                             <span id="rebalance-val-display" style="color:#ec4899;font-weight:900">${rebalance.toFixed(1)}%</span>
                         </label>
                         <input type="range" id="rebalance-threshold-slider" min="0.5" max="10" step="0.1" value="${rebalance}" aria-label="Portfolio rebalance predicted return threshold" aria-valuemin="0.5" aria-valuemax="10" aria-valuenow="${rebalance}"
@@ -454,8 +510,13 @@ async function renderAlerts(tabs = null) {
 
                     <!-- RSI OVERSOLD -->
                     <div>
-                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                            <span> RSI OVERSOLD MAX</span>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                            <span style="display:flex;align-items:center"> RSI OVERSOLD
+                                <span class="as-tip">
+                                    <span class="as-tip-icon">info</span>
+                                    <span class="as-tip-box"><strong>RSI Oversold Threshold</strong>Triggers a bullish alert when an asset's RSI drops below this level, signalling potential exhaustion of selling pressure and a long setup.<br><br>⬅ <em>Lower (10)</em> = only extreme capitulation events — fewer alerts.<br>➡ <em>Higher (50)</em> = broader oversold definition — more alerts.<br><br>Default: <em>30</em></span>
+                                </span>
+                            </span>
                             <span id="rsi-os-val-display" style="color:#22c55e;font-weight:900">${rsiOs.toFixed(1)}</span>
                         </label>
                         <input type="range" id="rsi-os-slider" min="10" max="50" step="1" value="${rsiOs}"
@@ -468,8 +529,13 @@ async function renderAlerts(tabs = null) {
 
                     <!-- RSI OVERBOUGHT -->
                     <div>
-                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                            <span> RSI OVERBOUGHT MIN</span>
+                        <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                            <span style="display:flex;align-items:center"> RSI OVERBOUGHT
+                                <span class="as-tip">
+                                    <span class="as-tip-icon">info</span>
+                                    <span class="as-tip-box"><strong>RSI Overbought Threshold</strong>Triggers a bearish/short alert when an asset's RSI climbs above this level, signalling overextension and potential reversal risk.<br><br>⬅ <em>Lower (50)</em> = broadly overbought — many alerts, lower conviction.<br>➡ <em>Higher (95)</em> = only extreme momentum peaks — rare, high conviction.<br><br>Default: <em>80</em></span>
+                                </span>
+                            </span>
                             <span id="rsi-ob-val-display" style="color:#ef4444;font-weight:900">${rsiOb.toFixed(1)}</span>
                         </label>
                         <input type="range" id="rsi-ob-slider" min="50" max="95" step="1" value="${rsiOb}"
@@ -488,8 +554,13 @@ async function renderAlerts(tabs = null) {
 
                         <!-- TP1 -->
                         <div>
-                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                                <span>TP1 (L1)</span>
+                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                                <span style="display:flex;align-items:center">TP1 (L1)
+                                    <span class="as-tip">
+                                        <span class="as-tip-icon">info</span>
+                                        <span class="as-tip-box"><strong>Take Profit 1 — Level 1</strong>The first profit target. A signal is marked "TP1 Hit" in the archive when price moves this % in the signal direction.<br><br>⬅ <em>Lower</em> = TP1 hits more frequently, smaller gains logged.<br>➡ <em>Higher</em> = TP1 requires a larger move to confirm.<br><br>Default: <em>5%</em></span>
+                                    </span>
+                                </span>
                                 <span id="tp1-val-display" style="color:#22c55e;font-weight:900">${tp1Pct.toFixed(1)}%</span>
                             </label>
                             <input type="range" id="tp1-pct-slider" min="1" max="20" step="0.5" value="${tp1Pct}"
@@ -502,8 +573,13 @@ async function renderAlerts(tabs = null) {
 
                         <!-- TP2 -->
                         <div>
-                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                                <span>TP2 (L2)</span>
+                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                                <span style="display:flex;align-items:center">TP2 (L2)
+                                    <span class="as-tip">
+                                        <span class="as-tip-icon">info</span>
+                                        <span class="as-tip-box"><strong>Take Profit 2 — Level 2</strong>The extended profit target. A signal is marked "TP2 Hit" when price reaches this % gain. Represents a full trend continuation.<br><br>⬅ <em>Lower</em> = TP2 marked more frequently.<br>➡ <em>Higher (30%)</em> = only strong trend continuations qualify.<br><br>Default: <em>10%</em></span>
+                                    </span>
+                                </span>
                                 <span id="tp2-val-display" style="color:#00f2ff;font-weight:900">${tp2Pct.toFixed(1)}%</span>
                             </label>
                             <input type="range" id="tp2-pct-slider" min="1" max="30" step="0.5" value="${tp2Pct}"
@@ -516,8 +592,13 @@ async function renderAlerts(tabs = null) {
 
                         <!-- Stop Loss -->
                         <div>
-                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:6px">
-                                <span>STOP LOSS</span>
+                            <label style="font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                                <span style="display:flex;align-items:center">STOP LOSS
+                                    <span class="as-tip">
+                                        <span class="as-tip-icon">info</span>
+                                        <span class="as-tip-box"><strong>Stop Loss Threshold</strong>A signal is marked "Stopped Out" in the archive if price moves this % against the signal direction before hitting TP1. Used for signal leaderboard P&L accuracy.<br><br>⬅ <em>Lower (0.5%)</em> = tight stops, more losses recorded, higher precision.<br>➡ <em>Higher (15%)</em> = wide stops, fewer stopped-out signals.<br><br>Default: <em>3%</em></span>
+                                    </span>
+                                </span>
                                 <span id="sl-val-display" style="color:#ef4444;font-weight:900">${slPct.toFixed(1)}%</span>
                             </label>
                             <input type="range" id="sl-pct-slider" min="0.5" max="15" step="0.5" value="${slPct}"
