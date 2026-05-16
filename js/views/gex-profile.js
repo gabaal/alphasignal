@@ -3,14 +3,18 @@
  * Advanced Dealer Gamma Exposure (GEX) and Hedging Dynamics.
  */
 
-window.renderGexProfile = async function(tabs = null) {
+window.renderGexProfile = async function(tabs = null, container = null) {
     if (!tabs) tabs = window.analyticsHubTabs; // Default fallback
     
     // Check if we are in the Institutional Hub or Analytics Hub to highlight correct tab bar
     const activeHub = window.location.pathname.includes('institutional') ? 'institutional' : 'analytics';
     const hubTabs = activeHub === 'institutional' ? window.institutionalHubTabs : window.analyticsHubTabs;
 
-    appEl.innerHTML = `
+    // Use provided container (e.g. deriv-display) or fall back to full-page appEl
+    const targetEl = container || appEl;
+    const showHubTabs = !container; // only show hub tabs when NOT embedded
+
+    targetEl.innerHTML = `
         <div class="view-header">
             <div>
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Derivatives Intelligence</h2>
@@ -28,7 +32,7 @@ window.renderGexProfile = async function(tabs = null) {
                 </button>
             </div>
         </div>
-        ${renderHubTabs('gex', hubTabs)}
+        ${showHubTabs ? renderHubTabs('gex', hubTabs) : ''}
 
         <div id="gex-loading" style="padding:4rem;text-align:center"><div class="loader"></div></div>
         
