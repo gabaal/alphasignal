@@ -705,6 +705,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/footprint',
                     '/api/orderbook',
                     '/api/tape',
+                    '/api/liquidation-map',
                     '/api/stripe/webhook',
                     '/privacy', '/terms', '/roadmap',
                 ]

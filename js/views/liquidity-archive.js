@@ -2799,9 +2799,10 @@ async function renderOrderFlow() {
     
     // Sub-tabs for Order Flow hub
     const orderFlowTabs = [
-        { id: 'cvd-tape',    label: 'CVD / TAPE',      icon: 'reorder' },
-        { id: 'footprint',   label: 'FOOTPRINT CANDLES', icon: 'grid_view' },
-        { id: 'lob-heatmap', label: 'LOB HEATMAP',      icon: 'blur_on' }
+        { id: 'cvd-tape',        label: 'CVD / TAPE',        icon: 'reorder' },
+        { id: 'footprint',       label: 'FOOTPRINT CANDLES', icon: 'grid_view' },
+        { id: 'lob-heatmap',     label: 'LOB HEATMAP',       icon: 'blur_on' },
+        { id: 'liquidation-map', label: 'LIQUIDATION MAP',   icon: 'crisis_alert' }
     ];
 
     let activeMode = sessionStorage.getItem('of-mode') || 'cvd-tape';
@@ -2860,6 +2861,8 @@ async function renderOrderFlow() {
         renderFootprintMode(display, ticker);
     } else if (activeMode === 'lob-heatmap') {
         renderLOBHeatmapMode(display, ticker);
+    } else if (activeMode === 'liquidation-map') {
+        renderLiquidationMapMode(display, ticker);
     }
 }
 
@@ -3223,4 +3226,137 @@ async function renderLOBHeatmapMode(display, ticker) {
         console.error('LOB Heatmap Error:', e);
     }
 }
+
+async function renderLiquidationMapMode(display, ticker) {
+    const symbol = ticker.replace('-', '').replace('USD', 'USDT');
+
+    display.innerHTML = '<div class="card" style="padding:1.5rem;">' +
+        '<div class="card-header" style="margin-bottom:1.5rem">' +
+            '<div>' +
+                '<h2>Liquidation Cluster Map</h2>' +
+                '<div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px">LEVERAGED POSITION HEAT — STOP HUNT & SQUEEZE ZONES</div>' +
+            '</div>' +
+            '<div style="display:flex; gap:16px; align-items:center">' +
+                '<div style="display:flex; align-items:center; gap:6px"><div style="width:10px; height:10px; background:#ef4444; border-radius:50%"></div>' +
+                '<span style="font-size:0.65rem; color:var(--text-dim)">LONG LIQUIDATIONS</span></div>' +
+                '<div style="display:flex; align-items:center; gap:6px"><div style="width:10px; height:10px; background:#22c55e; border-radius:50%"></div>' +
+                '<span style="font-size:0.65rem; color:var(--text-dim)">SHORT LIQUIDATIONS</span></div>' +
+            '</div>' +
+        '</div>' +
+        '<div style="height:520px; position:relative;"><canvas id="liq-map-canvas"></canvas></div>' +
+        '<div id="liq-map-stats" style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1.5rem; padding:1rem; background:rgba(255,255,255,0.02); border-radius:8px"></div>' +
+    '</div>';
+
+    try {
+        const data = await fetchAPI('/liquidation-map?symbol=' + symbol);
+        const canvas = document.getElementById('liq-map-canvas');
+        if (!canvas || !data || !data.length) {
+            if (canvas) canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:0.8rem">No liquidation data available for ' + ticker + '</div>';
+            return;
+        }
+
+        // Group into $10 price buckets
+        const buys = {}, sells = {};
+        let minP = Infinity, maxP = -Infinity;
+        data.forEach(d => {
+            const bucket = Math.round(d.price / 10) * 10;
+            minP = Math.min(minP, bucket);
+            maxP = Math.max(maxP, bucket);
+            if (d.side === 'buy') buys[bucket]  = (buys[bucket]  || 0) + d.size;
+            else                  sells[bucket] = (sells[bucket] || 0) + d.size;
+        });
+
+        const labels   = [];
+        for (let p = minP; p <= maxP; p += 10) labels.push(p);
+        const buyData  = labels.map(p => buys[p]  || 0);
+        const sellData = labels.map(p => sells[p] || 0);
+
+        const currentPrice  = data[data.length - 1].price;
+        const currentBucket = Math.round(currentPrice / 10) * 10;
+
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: labels.map(p => '$' + p.toLocaleString()),
+                datasets: [
+                    {
+                        label: 'Long Liquidations (price drops)',
+                        data: sellData,
+                        backgroundColor: 'rgba(239,68,68,0.65)',
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        borderRadius: 2,
+                    },
+                    {
+                        label: 'Short Liquidations (price rises)',
+                        data: buyData,
+                        backgroundColor: 'rgba(34,197,94,0.65)',
+                        borderColor: '#22c55e',
+                        borderWidth: 1,
+                        borderRadius: 2,
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 600 },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => items[0].label,
+                            label: (item) => item.dataset.label + ': ' + item.raw.toFixed(2) + ' notional'
+                        },
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        borderColor: 'rgba(0,242,255,0.4)',
+                        borderWidth: 1,
+                        titleColor: '#00f2ff',
+                        bodyColor: 'rgba(255,255,255,0.8)',
+                        padding: 12
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        ticks: { color: 'var(--text-dim)', font: { size: 9 } },
+                        title: { display: true, text: 'NOTIONAL LIQUIDATION SIZE', color: 'var(--text-dim)', font: { size: 9 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.03)' },
+                        ticks: {
+                            color: (ctx) => {
+                                const lbl = parseInt(ctx.tick.label.replace(/[$,]/g, ''));
+                                return Math.abs(lbl - currentBucket) <= 10 ? '#facc15' : 'rgba(255,255,255,0.4)';
+                            },
+                            font: { size: 8 },
+                            maxTicksLimit: 25
+                        }
+                    }
+                }
+            }
+        });
+
+        // Stats bar
+        const totalLong  = sellData.reduce((a, b) => a + b, 0);
+        const totalShort = buyData.reduce((a, b) => a + b, 0);
+        const topLongP   = labels[sellData.indexOf(Math.max(...sellData))];
+        const topShortP  = labels[buyData.indexOf(Math.max(...buyData))];
+
+        document.getElementById('liq-map-stats').innerHTML =
+            '<div style="text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:4px">LONG LIQ TOTAL</div>' +
+            '<div style="font-size:1rem;font-weight:900;color:#ef4444">' + totalLong.toFixed(1) + ' BTC</div></div>' +
+            '<div style="text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:4px">SHORT LIQ TOTAL</div>' +
+            '<div style="font-size:1rem;font-weight:900;color:#22c55e">' + totalShort.toFixed(1) + ' BTC</div></div>' +
+            '<div style="text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:4px">HEAVIEST LONG CLUSTER</div>' +
+            '<div style="font-size:1rem;font-weight:900;color:#ef4444">' + (topLongP || '—') + '</div></div>' +
+            '<div style="text-align:center"><div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:4px">HEAVIEST SHORT CLUSTER</div>' +
+            '<div style="font-size:1rem;font-weight:900;color:#22c55e">' + (topShortP || '—') + '</div></div>';
+
+    } catch (e) {
+        console.error('Liquidation Map Error:', e);
+    }
+}
+
 
