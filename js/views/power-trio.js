@@ -239,6 +239,7 @@ async function _buildPowerTrio(ticker) {
         });
         window._trioResizeObs.observe(c1el);
         _buildLWChart(lwChart, candles, emaData);
+        const avwapData = _computeAVWAP(candles);
         lwChart.timeScale().fitContent();
 
         _powerTrioCharts._lwMomentum = lwChart;
@@ -259,7 +260,7 @@ async function _buildPowerTrio(ticker) {
             title: 'Alpha-Momentum: OHLC Candlestick + EMA-5',
             accentColor: 'rgba(0,242,255,0.9)',
             statsEl: 'trio-c1-stats',
-            note: '60 days of hourly candles (~1,440 bars). Green = bullish hour, red = bearish hour. The cyan EMA-5 line is the short-term momentum signal — price sustained above it confirms trend continuation.'
+            note: '60 days of hourly candles (~1,440 bars). Green = bullish hour, red = bearish hour. The cyan EMA-5 is the momentum signal. The gold AVWAP line anchors to peak volume — price above AVWAP = institutional buyers in control; below = distribution.'
         };
 
         const pct30 = candles.length>1 ? ((lastC.close - candles[0].close)/candles[0].close*100).toFixed(1) : '—';
@@ -269,7 +270,9 @@ async function _buildPowerTrio(ticker) {
             _statChip(sym, formatPrice(livePrice), 'var(--accent)') +
             _statChip('60D', (pct30>=0?'+':'')+pct30+'%', parseFloat(pct30)>=0?'#4ade80':'#f87171') +
             _statChip('RANGE', formatPrice(Math.min(...candles.map(c=>c.low))) + ' – ' + formatPrice(Math.max(...candles.map(c=>c.high))), '#a78bfa') +
-            _statChip('EMA-5', formatPrice(emaData.at(-1)?.value), '#7dd3fc');
+            _statChip('EMA-5', formatPrice(emaData.at(-1)?.value), '#7dd3fc') +
+            _statChip('AVWAP', formatPrice(avwapData.at(-1)?.value), 'rgba(251,191,36,0.9)');
+        document.getElementById('trio-c1-title').textContent = 'Price + EMA-5 + AVWAP';
     } else if (c1el) {
         c1el.innerHTML = '<div style="color:var(--text-dim);font-size:0.75rem;padding:2rem;text-align:center">lightweight-charts not loaded</div>';
     }
@@ -577,6 +580,94 @@ function _buildLWChart(chart, candles, emaData) {
         value: c.volume || 0,
         color: c.close >= c.open ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.2)',
     })));
+
+    // 5. Anchored VWAP — anchors to the highest-volume candle (peak institutional activity)
+    const avwapData = _computeAVWAP(candles);
+    if (avwapData.length) {
+        const avwapSeries = chart.addLineSeries({
+            color: 'rgba(251,191,36,0.9)',   // gold
+            lineWidth: 1.5,
+            lineStyle: 0,                     // solid
+            priceLineVisible: false,
+            lastValueVisible: true,
+            title: 'AVWAP',
+            priceScaleId: 'right',
+        });
+        avwapSeries.setData(avwapData);
+
+        // Upper/lower AVWAP bands (±1 std dev)
+        const avwapBands = _computeAVWAPBands(candles, avwapData);
+        chart.addLineSeries({
+            color: 'rgba(251,191,36,0.3)', lineWidth: 1, lineStyle: 2,
+            priceLineVisible: false, lastValueVisible: false, priceScaleId: 'right',
+        }).setData(avwapBands.upper);
+        chart.addLineSeries({
+            color: 'rgba(251,191,36,0.3)', lineWidth: 1, lineStyle: 2,
+            priceLineVisible: false, lastValueVisible: false, priceScaleId: 'right',
+        }).setData(avwapBands.lower);
+    }
+
+    return avwapData; // return for stat chip usage
+}
+
+// ============================================================
+// ANCHORED VWAP HELPERS
+// ============================================================
+
+/**
+ * Compute Anchored VWAP from the highest-volume candle in the dataset.
+ * Formula: AVWAP[i] = Σ(typical_price[j] × volume[j]) / Σ(volume[j])
+ *          for j from anchor_index to i
+ * Returns [{time, value}] for LightweightCharts.
+ */
+function _computeAVWAP(candles) {
+    if (!candles || candles.length < 2) return [];
+
+    // Find anchor = highest-volume candle
+    let anchorIdx = 0;
+    let maxVol = 0;
+    candles.forEach((c, i) => {
+        const v = c.volume || 0;
+        if (v > maxVol) { maxVol = v; anchorIdx = i; }
+    });
+
+    // Compute running VWAP from anchor
+    let cumTpv = 0, cumVol = 0;
+    const result = [];
+    for (let i = anchorIdx; i < candles.length; i++) {
+        const c  = candles[i];
+        const tp = (c.high + c.low + c.close) / 3; // typical price
+        const v  = c.volume || 1;
+        cumTpv  += tp * v;
+        cumVol  += v;
+        result.push({ time: c.time, value: parseFloat((cumTpv / cumVol).toFixed(6)) });
+    }
+    return result;
+}
+
+/**
+ * Compute ±1 standard deviation bands around AVWAP.
+ * Returns { upper: [{time, value}], lower: [{time, value}] }
+ */
+function _computeAVWAPBands(candles, avwapData) {
+    if (!avwapData || avwapData.length < 2) return { upper: [], lower: [] };
+
+    const anchorIdx = candles.length - avwapData.length;
+    let cumVar = 0, cumVol = 0;
+    const upper = [], lower = [];
+
+    for (let i = 0; i < avwapData.length; i++) {
+        const c  = candles[anchorIdx + i];
+        const tp = (c.high + c.low + c.close) / 3;
+        const v  = c.volume || 1;
+        const vwap = avwapData[i].value;
+        cumVar  += Math.pow(tp - vwap, 2) * v;
+        cumVol  += v;
+        const std = Math.sqrt(cumVar / cumVol);
+        upper.push({ time: c.time, value: parseFloat((vwap + std).toFixed(6)) });
+        lower.push({ time: c.time, value: parseFloat((vwap - std).toFixed(6)) });
+    }
+    return { upper, lower };
 }
 
 // ============================================================
@@ -726,7 +817,9 @@ async function _reloadTrioCandles() {
         _statChip(sym, formatPrice(livePrice), 'var(--accent)') +
         _statChip(_TRIO_PERIOD_MAP[Object.keys(_TRIO_PERIOD_MAP).find(k=>_TRIO_PERIOD_MAP[k].yf===_trioPeriod)]?.label||_trioPeriod, (pct>=0?'+':'')+pct+'%', parseFloat(pct)>=0?'#4ade80':'#f87171') +
         _statChip('RANGE', formatPrice(Math.min(...candles.map(c=>c.low)))+' – '+formatPrice(Math.max(...candles.map(c=>c.high))), '#a78bfa') +
-        _statChip('EMA-5', formatPrice(emaData.at(-1)?.value), '#7dd3fc');
+        _statChip('EMA-5', formatPrice(emaData.at(-1)?.value), '#7dd3fc') +
+        _statChip('AVWAP', formatPrice(_computeAVWAP(candles).at(-1)?.value), 'rgba(251,191,36,0.9)');
+
 
     // Update modal config
     _powerTrioConfigs.momentum = { type:'candlestick', candles, emaData, title:`Alpha-Momentum: OHLC ${_trioInterval.toUpperCase()} · ${_trioPeriod.toUpperCase()}`, accentColor:'rgba(0,242,255,0.9)', statsEl:'trio-c1-stats', note:`${_trioPeriod} of ${_trioInterval} candles. Green = bullish, red = bearish. Cyan EMA-5 is the short-term momentum signal.` };
