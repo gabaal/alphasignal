@@ -53,12 +53,12 @@ async function renderHome() {
             <section style="padding:2rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
                 <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2rem;text-align:center">
                     ${[
-                        ['60+', 'Analytical Views'],
-                        ['50+', 'Tracked Assets'],
-                        ['8', 'Intelligence Hubs'],
+                        ['80+', 'Analytical Views'],
+                        ['60+', 'Tracked Assets'],
+                        ['10', 'Intelligence Hubs'],
                         ['24/7', 'Live Data Feeds'],
                         ['GPT-4o', 'AI Engine'],
-                        ['Real-Time', 'Options Flow']
+                        ['Real-Time', 'Derivatives Flow']
                     ].map(([val, label]) => `
                         <div>
                             <div style="font-size:2rem;font-weight:900;color:var(--accent);line-height:1">${val}</div>
@@ -72,19 +72,21 @@ async function renderHome() {
             <!-- ===== HUB GRID ===== -->
             <section class="features-showcase">
                 <div class="section-title-wrap">
-                    <h2>8 Institutional Intelligence Hubs</h2>
-                    <p>Every hub provides a suite of live analytical views, AI synthesis, and institutional data - all unified under a single terminal.</p>
+                    <h2>10 Institutional Intelligence Hubs</h2>
+                    <p>Every hub provides a suite of live analytical views, AI synthesis, and institutional data — all unified under a single terminal.</p>
                 </div>
                 <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;padding:0 2rem">
                     ${[
-                        { icon: 'public', hub: 'global-hub', name: 'Global Markets Hub', desc: 'Bitcoin Spot ETF flows, liquidation cascades, open interest radar, and CME gap analysis. The complete institutional window into global crypto capital.', badge: 'LIVE', views: ['ETF Flows', 'Liquidations', 'OI Radar', 'CME Gaps'] },
+                        { icon: 'public', hub: 'etf-flows', name: 'Global Markets Hub', desc: 'Bitcoin Spot ETF flows, liquidation cascades, open interest radar, and CME gap analysis. The complete institutional window into global crypto capital flows.', badge: 'LIVE', views: ['ETF Flows', 'Liquidations', 'OI Radar', 'CME Gaps'] },
                         { icon: 'monitoring', hub: 'macro-hub', name: 'Macro Intel Hub', desc: 'AI market briefing, capital flows, sector rotation, correlation matrix, macro event calendar with historical BTC impact scores, and market regime classification.', badge: 'AI', views: ['Briefing', 'Capital Flows', 'Sector Rotation', 'Macro Calendar', 'Regime'] },
                         { icon: 'electric_bolt', hub: 'alpha-hub', name: 'Alpha Strategy Hub', desc: 'Z-score signal intelligence, ML alpha engine, multi-factor alpha scoring, strategy lab, signal backtester v2, signal archive, and narrative galaxy.', badge: 'ML', views: ['Signals', 'Alpha Score', 'Strategy Lab', 'Backtester', 'Narrative'] },
-                        { icon: 'key', hub: 'institutional-hub', name: 'Institutional Hub', desc: 'Token unlock schedule, DeFi yield lab, Monte Carlo portfolio optimizer with AI rebalancing, and AI-assisted trade idea lab with one-click execution.', badge: 'NEW', views: ['Token Unlocks', 'Yield Lab', 'Portfolio Optimizer', 'Trade Idea Lab'] },
-                        { icon: 'analytics', hub: 'analytics-hub', name: 'Market Analytics Hub', desc: 'Whale pulse tracker, cross-chain velocity engine, real MVRV/SOPR on-chain data, Deribit options flow scanner, and AI-tagged newsroom.', badge: 'ON-CHAIN', views: ['Whale Pulse', 'Chain Velocity', 'On-Chain', 'Options Flow', 'Newsroom'] },
-                        { icon: 'assignment', hub: 'audit-hub', name: 'Audit & Performance Hub', desc: 'Persistent institutional trade ledger, AI thesis archive, performance dashboard with monthly P&L calendar, and BTC benchmark comparison.', badge: 'AUDIT', views: ['Trade Ledger', 'Performance Dashboard'] },
-                        { icon: 'shield_with_heart', hub: 'risk-hub', name: 'Risk & Stress Hub', desc: 'Real-time risk matrix for position sizing, tail-risk stress lab with macro scenario modelling, and Z-score volatility regime overlay.', badge: 'RISK', views: ['Risk Matrix', 'Stress Lab'] },
-                        { icon: 'candlestick_chart', hub: 'advanced-charting', name: 'Advanced Charting', desc: 'TradingView professional integration, funding rate heatmap, 3D volatility surface, tape imbalance histogram, and CVD charting with multi-timeframe overlays.', badge: 'PRO', views: ['TradingView', 'Funding Heatmap', '3D Vol Surface', 'CVD Chart'] }
+                        { icon: 'key', hub: 'institutional-hub', name: 'Institutional Hub', desc: 'Token unlock schedule, DeFi yield lab, Monte Carlo portfolio optimizer, AI rebalancer, dealer gamma exposure, and AI-assisted trade idea lab with 1-click execution.', badge: 'PRO', views: ['Token Unlocks', 'Yield Lab', 'Portfolio Optimizer', 'AI Rebalancer', 'Trade Idea Lab'] },
+                        { icon: 'analytics', hub: 'analytics-hub', name: 'Market Analytics Hub', desc: 'Whale pulse tracker, cross-chain velocity engine, real MVRV/SOPR on-chain data, AI-tagged newsroom, and live correlation matrix.', badge: 'ON-CHAIN', views: ['Whale Pulse', 'Chain Velocity', 'On-Chain', 'Newsroom', 'Correlation'] },
+                        { icon: 'candlestick_chart', hub: 'derivatives', name: 'Derivatives Intelligence Hub', desc: 'Funding rate heatmap across 44 perps, Deribit options flow scanner, GEX profile, 3D implied volatility surface with ±1σ bands, and options max pain with liquidation clusters.', badge: 'LIVE', views: ['Funding Heatmap', 'Options Flow', 'GEX Profile', 'Vol Surface', 'Max Pain'] },
+                        { icon: 'waterfall_chart', hub: 'liquidity', name: 'Order Flow Hub', desc: 'Institutional order book depth, bid/ask tape imbalance, CVD charting, volume profile (TPO/Value Area), and market microstructure analysis across multiple timeframes.', badge: 'PRO', views: ['Order Book', 'Tape Imbalance', 'CVD Chart', 'Volume Profile'] },
+                        { icon: 'assignment', hub: 'audit-hub', name: 'Audit & Performance Hub', desc: 'Persistent institutional trade ledger, AI thesis archive, performance dashboard with monthly P&L calendar, and BTC benchmark comparison.', badge: 'AUDIT', views: ['Trade Ledger', 'Performance Dashboard', 'P&L Calendar'] },
+                        { icon: 'shield_with_heart', hub: 'risk', name: 'Risk & Stress Hub', desc: 'Real-time risk matrix for dynamic position sizing, tail-risk stress lab with macro scenario modelling, and Z-score volatility regime overlay.', badge: 'RISK', views: ['Risk Matrix', 'Stress Lab', 'Regime Overlay'] },
+                        { icon: 'bar_chart', hub: 'power-trio', name: 'Advanced Charting', desc: 'Power Trio institutional charts with Anchored VWAP, EMA-5 momentum bands, rolling BTC correlation decoupling, and order book imbalance — plus TradingView integration.', badge: 'PRO', views: ['Power Trio', 'Anchored VWAP', 'BTC Correlation', 'TradingView'] }
                     ].map(h => `
                         <div class="f-card" onclick="switchView('${h.hub}')" style="display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden">
                             <div style="display:flex;align-items:center;justify-content:space-between">
@@ -329,7 +331,7 @@ async function renderHome() {
                 <div style="max-width:700px;margin:0 auto">
                     <span class="material-symbols-outlined" style="font-size:3rem;color:var(--accent);margin-bottom:1rem;display:block">radar</span>
                     <h2 style="font-size:2.5rem;font-weight:900;letter-spacing:-1px;margin-bottom:1rem">Start Trading with Institutional Intelligence</h2>
-                    <p style="color:var(--text-dim);font-size:1.1rem;line-height:1.6;margin-bottom:2.5rem">60+ live analytical views. 8 intelligence hubs. AI-powered signals. Zero compromise on data quality.</p>
+                    <p style="color:var(--text-dim);font-size:1.1rem;line-height:1.6;margin-bottom:2.5rem">80+ live analytical views. 10 intelligence hubs. AI-powered signals. Zero compromise on data quality.</p>
                     <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
                         <button class="intel-action-btn large secondary" onclick="switchView('help')" style="font-size:0.9rem;padding:14px 32px">
                             <span class="material-symbols-outlined" style="margin-right:8px">menu_book</span> VIEW DOCUMENTATION
