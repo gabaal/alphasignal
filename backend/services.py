@@ -997,13 +997,42 @@ class HarvestService:
                     min_algo_z_thresh = 2.0
 
                 # 3. Decision Logic: Alert if absolute Z-Score > min_algo_z_thresh
-                # ML signals use a floor (2.0) to reduce false positives.
-                ML_ZSCORE_FLOOR = 2.0
+                # ML signals use a floor (2.5) to reduce false positives.
+                ML_ZSCORE_FLOOR = 2.5
                 ml_z_thresh = max(min_algo_z_thresh, ML_ZSCORE_FLOOR)
                 signal_type = None
                 if abs(z_score) >= ml_z_thresh:
                     _direction = 'LONG' if pred_return > 0 else 'SHORT'
-                    
+
+                    # ── Quality Filter 1: Minimum predicted return ────────────────
+                    # Signals below ±2% expected move are noise — below transaction
+                    # costs and indistinguishable from random. Hard floor.
+                    ML_MIN_PRED_RETURN = 0.02  # 2%
+                    if abs(pred_return) < ML_MIN_PRED_RETURN:
+                        print(f"[SignalFilter] {ticker} suppressed — pred_return "
+                              f"{pred_return*100:.2f}% below {ML_MIN_PRED_RETURN*100:.0f}% floor")
+                        continue
+
+                    # ── Quality Filter 2: SMA-50 trend alignment ─────────────────
+                    # LONGs only in confirmed uptrends (price > SMA-50).
+                    # SHORTs only in confirmed downtrends (price < SMA-50).
+                    # Counter-trend signals are the primary source of losses.
+                    try:
+                        if len(hist_df) >= 50:
+                            sma50 = float(hist_df['Close'].rolling(50).mean().iloc[-1])
+                            above_sma50 = curr_p > sma50
+                            if _direction == 'LONG' and not above_sma50:
+                                print(f"[SignalFilter] {ticker} LONG suppressed — "
+                                      f"price {curr_p:.4f} below SMA-50 {sma50:.4f} (downtrend)")
+                                continue
+                            if _direction == 'SHORT' and above_sma50:
+                                print(f"[SignalFilter] {ticker} SHORT suppressed — "
+                                      f"price {curr_p:.4f} above SMA-50 {sma50:.4f} (uptrend)")
+                                continue
+                    except Exception as _sma_e:
+                        pass  # If SMA calc fails, allow signal through
+                    # ─────────────────────────────────────────────────────────────
+
                     # --- CONFLUENCE CHECK ---
                     is_ok, reason = self.check_confluence(ticker, _direction, current_regime)
                     if not is_ok:
@@ -1013,7 +1042,7 @@ class HarvestService:
                     signal_type = "ML_ALPHA_PREDICTION"
                     severity = 'critical' if abs(z_score) >= 3.0 else 'high' if abs(z_score) >= 2.5 else 'medium'
                     top_driver = max(importance, key=importance.get)
-                    message = f"ML Engine predicts +{pred_return*100:.1f}% alpha window. Confluence Validated. Driver: {top_driver.upper()}."
+                    message = f"ML Engine predicts {pred_return*100:+.1f}% alpha window. Confluence Validated. Driver: {top_driver.upper()}."
                 
                 if signal_type:
                     # Get all users to receive this signal
