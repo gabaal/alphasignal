@@ -2799,8 +2799,9 @@ async function renderOrderFlow() {
     
     // Sub-tabs for Order Flow hub
     const orderFlowTabs = [
-        { id: 'cvd-tape',  label: 'CVD / TAPE',      icon: 'reorder' },
-        { id: 'footprint', label: 'FOOTPRINT CANDLES', icon: 'grid_view' }
+        { id: 'cvd-tape',    label: 'CVD / TAPE',      icon: 'reorder' },
+        { id: 'footprint',   label: 'FOOTPRINT CANDLES', icon: 'grid_view' },
+        { id: 'lob-heatmap', label: 'LOB HEATMAP',      icon: 'blur_on' }
     ];
 
     let activeMode = sessionStorage.getItem('of-mode') || 'cvd-tape';
@@ -2857,6 +2858,8 @@ async function renderOrderFlow() {
         renderCVDTapeMode(display, ticker);
     } else if (activeMode === 'footprint') {
         renderFootprintMode(display, ticker);
+    } else if (activeMode === 'lob-heatmap') {
+        renderLOBHeatmapMode(display, ticker);
     }
 }
 
@@ -3105,5 +3108,119 @@ async function renderFootprintMode(display, ticker) {
     
     // Auto-update every 60 seconds
     window._footprintInterval = setInterval(updateFootprint, 60000);
+}
+
+async function renderLOBHeatmapMode(display, ticker) {
+    display.innerHTML = `
+        <div class="card" style="padding:1.5rem;">
+            <div class="card-header" style="margin-bottom:1.5rem">
+                <div>
+                    <h2>LOB Liquidity Density Heatmap</h2>
+                    <div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px">LIMIT ORDER BOOK CLUSTERING & SPOOFING DETECTION</div>
+                </div>
+                <div style="display:flex; gap:10px">
+                    <select id="lob-interval" class="mini-select" onchange="renderLOBHeatmapMode(document.getElementById('order-flow-display'), '${ticker}')">
+                        <option value="1m">1M SCALE</option>
+                        <option value="5m">5M SCALE</option>
+                        <option value="15m" selected>15M SCALE</option>
+                        <option value="1h">1H SCALE</option>
+                    </select>
+                </div>
+            </div>
+            <div id="lob-canvas-wrapper" style="position:relative; height:550px; background:rgba(0,0,0,0.4); border-radius:12px; border:1px solid rgba(255,255,255,0.05); overflow:hidden;">
+                <canvas id="lob-heatmap-canvas"></canvas>
+                <div id="lob-tooltip" style="position:absolute; pointer-events:none; background:rgba(0,0,0,0.9); color:#fff; padding:8px 12px; border-radius:6px; font-size:0.7rem; border:1px solid var(--accent); display:none; z-index:100; box-shadow:0 10px 20px rgba(0,0,0,0.5)"></div>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; padding:1rem; background:rgba(255,255,255,0.02); border-radius:8px">
+                <div style="display:flex; gap:20px; align-items:center">
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <div style="width:12px; height:12px; background:#00f2ff; border-radius:2px"></div>
+                        <span style="font-size:0.65rem; color:var(--text-dim)">HIGH LIQUIDITY (WALLS)</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <div style="width:12px; height:12px; background:#bc13fe; opacity:0.3; border-radius:2px"></div>
+                        <span style="font-size:0.65rem; color:var(--text-dim)">LOW DENSITY</span>
+                    </div>
+                </div>
+                <div style="font-size:0.6rem; color:var(--text-dim); font-style:italic">Updating via WebSocket depth stream...</div>
+            </div>
+        </div>
+    `;
+
+    const interval = document.getElementById('lob-interval')?.value || '15m';
+    
+    try {
+        const data = await fetchAPI('/lob-heatmap?ticker=' + ticker + '&interval=' + interval);
+        const canvas = document.getElementById('lob-heatmap-canvas');
+        const wrapper = document.getElementById('lob-canvas-wrapper');
+        const tooltip = document.getElementById('lob-tooltip');
+        if (!canvas || !data || !data.density) return;
+
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        
+        const rect = wrapper.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        ctx.scale(dpr, dpr);
+
+        const rows = data.density[0].length; // Prices
+        const cols = data.density.length;    // Time steps
+        
+        const cellW = rect.width / cols;
+        const cellH = rect.height / rows;
+
+        // Draw Heatmap
+        for (let c = 0; c < cols; c++) {
+            for (let r = 0; r < rows; r++) {
+                const val = data.density[c][r];
+                const alpha = Math.min(1, val / 150);
+                const hue = 280 - (alpha * 100); // 280 Purple -> 180 Cyan
+                ctx.fillStyle = 'hsla(' + hue + ', 100%, 50%, ' + (0.1 + alpha * 0.9) + ')';
+                ctx.fillRect(c * cellW, (rows - 1 - r) * cellH, cellW - 1, cellH - 1);
+            }
+        }
+
+        // Draw Price Labels (Y-Axis)
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = "9px 'JetBrains Mono'";
+        for (let r = 0; r < rows; r += 4) {
+            ctx.fillText(data.prices[r], 10, (rows - 1 - r) * cellH + 12);
+        }
+
+        // Draw Time Labels (X-Axis)
+        for (let c = 0; c < cols; c += 8) {
+            ctx.fillText(data.timestamps[c], c * cellW + 4, rect.height - 10);
+        }
+
+        // Interactive Tooltip
+        wrapper.onmousemove = (e) => {
+            const cIdx = Math.floor(e.offsetX / cellW);
+            const rIdx = rows - 1 - Math.floor(e.offsetY / cellH);
+            
+            if (data.density[cIdx] && data.density[cIdx][rIdx] !== undefined) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.offsetX + 15) + 'px';
+                tooltip.style.top = (e.offsetY + 15) + 'px';
+                tooltip.innerHTML = 
+                    '<div style="font-weight:900; color:var(--accent); margin-bottom:4px">' + data.prices[rIdx] + '</div>' +
+                    '<div style="display:flex; justify-content:space-between; gap:20px">' +
+                        '<span>LIQUIDITY:</span>' +
+                        '<span style="font-weight:900">' + data.density[cIdx][rIdx].toFixed(1) + ' ' + ticker.split('-')[0] + '</span>' +
+                    '</div>' +
+                    '<div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px">TIME: ' + data.timestamps[cIdx] + '</div>';
+            } else {
+                tooltip.style.display = 'none';
+            }
+        };
+        
+        wrapper.onmouseleave = () => tooltip.style.display = 'none';
+
+    } catch (e) {
+        console.error('LOB Heatmap Error:', e);
+    }
 }
 
