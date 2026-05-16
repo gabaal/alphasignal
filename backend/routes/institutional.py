@@ -4580,21 +4580,21 @@ class InstitutionalRoutesMixin:
 
             scored = []
             for i, r in enumerate(raw):
-                # Scale composite into 30 - 100 range
-                scaled = 30 + ((raw_composites[i] - c_min) / c_span) * 70
+                # Scale composite into 15 - 100 range (wider spread = fewer false highs)
+                scaled = 15 + ((raw_composites[i] - c_min) / c_span) * 85
                 score = max(0, min(100, int(round(scaled))))
 
                 lstm_conf = min(98, max(45, int(score * 0.97 + 2)))
                 xgb_conf  = min(96, max(42, int(score * 0.93 + 4)))
-                consensus = 'HIGH' if score >= 75 else 'MEDIUM' if score >= 50 else 'LOW'
+                consensus = 'HIGH' if score >= 85 else 'MEDIUM' if score >= 60 else 'LOW'
 
                 scored.append({
                     'ticker':       r['ticker'].replace('-USD', '') if len(r['ticker']) > 8 else r['ticker'],
                     'sector':       r['sector'],
                     'score':        score,
                     'price':        r['price'],
-                    'grade':        'A' if score >= 80 else 'B' if score >= 60 else 'C' if score >= 40 else 'D',
-                    'signal':       'STRONG BUY' if score >= 80 else 'BUY' if score >= 65 else 'NEUTRAL' if score >= 45 else 'CAUTION',
+                    'grade':        'A' if score >= 88 else 'B' if score >= 75 else 'C' if score >= 50 else 'D',
+                    'signal':       'STRONG BUY' if score >= 88 else 'BUY' if score >= 75 else 'NEUTRAL' if score >= 50 else 'CAUTION',
                     'reasons':      r['reasons'],
                     'lstm_conf':    lstm_conf,
                     'xgb_conf':     xgb_conf,
