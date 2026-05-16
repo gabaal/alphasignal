@@ -1040,6 +1040,41 @@ class HarvestService:
                         _z = round(z_score, 2)
                         _alpha = round(pred_return * 100, 2)
                         _cat = next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
+
+                        # ── Signal Reversal Gate ──────────────────────────────────────
+                        # If an active signal exists in the OPPOSITE direction for this
+                        # ticker+user, auto-close it before opening the new one.
+                        # Prevents conflicting long+short positions on the same asset.
+                        _BULLISH_TYPES = {
+                            'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','MACD_CROSS_UP',
+                            'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
+                            'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
+                            'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
+                        }
+                        try:
+                            c.execute(
+                                "SELECT id, type, price FROM alerts_history "
+                                "WHERE ticker=? AND user_email=? AND COALESCE(status,'active')='active'",
+                                (ticker, target_email)
+                            )
+                            for ex_id, ex_type, ex_entry in c.fetchall():
+                                ex_is_long = ex_type in _BULLISH_TYPES
+                                new_is_long = _direction == 'LONG'
+                                if ex_is_long != new_is_long:
+                                    # Conflicting direction — auto-close at current price
+                                    ex_roi = round(
+                                        (1 if ex_is_long else -1) * (curr_p - ex_entry) / ex_entry * 100, 2
+                                    ) if ex_entry and ex_entry > 0 else 0.0
+                                    c.execute(
+                                        "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                                        (datetime.now().isoformat(), round(curr_p, 10), ex_roi, ex_id)
+                                    )
+                                    print(f"[SignalReversal] Auto-closed {ex_type} #{ex_id} on {ticker} "
+                                          f"(ROI={ex_roi:+.2f}%) — superseded by new {_direction} signal")
+                        except Exception as _rev_e:
+                            print(f"[SignalReversal] Error checking conflicts for {ticker}: {_rev_e}")
+                        # ─────────────────────────────────────────────────────────────
+
                         c.execute(
                             "INSERT INTO alerts_history "
                             "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category, user_email) "
