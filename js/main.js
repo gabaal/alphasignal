@@ -43,6 +43,7 @@ const viewMap = {
     tradelab: renderTradeLab,
     'liquidity-v2': renderLiquidityView,
     'liquidity': renderOrderFlow,
+    'derivatives': renderDerivativesHub,
     'academy-watch': renderAcademyWatch,
     home: renderHome,
     // Legacy explain-* routes - redirect to new docs-* equivalents
