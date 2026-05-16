@@ -700,7 +700,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
                     '/api/whales', '/api/gex-profile', '/api/options-max-pain',
                     '/api/volume-profile', '/api/lob-heatmap', '/api/oi-funding-heatmap',
+                    '/api/global-liquidity-heatmap',
                     '/api/volatility-surface', '/api/monte-carlo', '/api/factor-web', '/api/sankey',
+                    '/api/footprint',
+                    '/api/orderbook',
+                    '/api/tape',
                     '/api/stripe/webhook',
                     '/privacy', '/terms', '/roadmap',
                 ]
@@ -815,6 +819,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_liquidity()
             elif path == '/api/liquidity-history':
                 self.handle_liquidity_history()
+            elif path == '/api/global-liquidity-heatmap' or path.startswith('/api/global-liquidity-heatmap'):
+                self.handle_global_liquidity_heatmap()
+            elif path == '/api/oi-funding-heatmap':
+                self.handle_oi_funding_heatmap()
+            elif path.startswith('/api/footprint'):
+                self.handle_footprint_candles()
             elif path == '/api/equity-klines':
                 self.handle_equity_klines()
             elif path.startswith('/api/klines'):
@@ -833,8 +843,6 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_volume_profile()
             elif path == '/api/lob-heatmap':
                 self.handle_lob_heatmap()
-            elif path == '/api/oi-funding-heatmap':
-                self.handle_oi_funding_heatmap()
             elif path == '/api/whales':
                 self.handle_whales()
             elif path.startswith('/api/liquidation-map'):

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alphasignal-v1.80-pwa';
+const CACHE_NAME = 'alphasignal-v1.81-pwa';
 
 // Core shell files to pre-cache
 const SHELL_FILES = [

@@ -720,3 +720,35 @@ def fetch_github_commits(ticker_sym: str) -> int:
         print(f'[GitHub/{sym}] {e}')
     _set(cache_key, 50, ttl=3600)
     return 50
+# - Bybit REST - Order Book Depth -
+def fetch_bybit_depth(symbol: str = 'BTCUSDT', limit: int = 50) -> dict:
+    """Real limit order book snapshots from Bybit V5 - cached 2s."""
+    cache_key = f'bybit_depth_{symbol}_{limit}'
+    cached = _get(cache_key)
+    if cached is not None:
+        return cached
+    try:
+        # Bybit V5 API: /v5/market/orderbook
+        # category: spot, linear, inverse
+        r = requests.get(
+            'https://api.bybit.com/v5/market/orderbook',
+            params={'category': 'spot', 'symbol': symbol, 'limit': limit},
+            timeout=3
+        )
+        if r.status_code == 200:
+            data = r.json()
+            if data.get('retCode') == 0:
+                result = data.get('result', {})
+                # Normalize result to match Binance format roughly for easier consumption
+                # Binance: {"bids": [[p, q], ...], "asks": [[p, q], ...]}
+                # Bybit: {"b": [[p, q], ...], "a": [[p, q], ...]}
+                normalized = {
+                    'bids': result.get('b', []),
+                    'asks': result.get('a', []),
+                    'ts': result.get('ts')
+                }
+                _set(cache_key, normalized, ttl=2)
+                return normalized
+    except Exception as e:
+        print(f'[BybitDepth] {e}')
+    return {}

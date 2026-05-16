@@ -3,8 +3,10 @@ async function renderLiquidityView(tabs = null) {
     const gommTabs = [
         { id: 'walls',        label: 'DEPTH WALLS',       view: 'liquidity', icon: 'bar_chart' },
         { id: 'heatmap',      label: 'HEATMAP',           view: 'liquidity', icon: 'grid_on' },
+        { id: 'global',       label: 'GLOBAL HEATMAP',    view: 'liquidity', icon: 'public' },
         { id: 'liquidations', label: 'LIQUIDATION FLUX',  view: 'liquidity', icon: 'warning' },
         { id: 'volatility',   label: 'VOL SURFACE',       view: 'liquidity', icon: 'ssid_chart' },
+        { id: 'oi-funding-heatmap', label: 'OI / FUNDING HEATMAP', view: 'liquidity', icon: 'payments' },
         { id: 'radar',        label: 'WHALE RADAR',       view: 'liquidity', icon: 'radar' }
     ];
 
@@ -754,6 +756,303 @@ async function renderLiquidityView(tabs = null) {
         }, 50);
     }
 
+    function renderGlobalHeatmapMode(skipHTML = false) {
+        sectionTitle.textContent = 'Global Aggregated Heatmap - Binance + Bybit L2 Depth';
+        
+        if (!skipHTML) {
+            display.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+                <div class="card" style="padding-bottom:0">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim)">L2 LIQUIDITY GRAVITY MAP (5M RESOLUTION)</div>
+                        <div style="display:flex;gap:10px;align-items:center;font-size:0.55rem;color:var(--text-dim)">
+                            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;background:rgba(0,255,163,0.6);border-radius:2px"></span>Binance</span>
+                            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;background:rgba(255,177,0,0.6);border-radius:2px"></span>Bybit</span>
+                        </div>
+                    </div>
+                    <div style="position:relative;height:450px;width:100%;background:#050510" id="global-heatmap-container">
+                        <canvas id="globalHeatCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%"></canvas>
+                        <canvas id="globalHeatChart" style="position:absolute;top:0;left:0;width:100%;height:100%"></canvas>
+                        <div id="global-heatmap-loading" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); z-index:20;">
+                            <div class="skeleton-line" style="width:120px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        }
+
+        setTimeout(async () => {
+            try {
+                const globalData = await fetchAPI(`/global-liquidity-heatmap?ticker=${window.gommTicker}&cb=${Date.now()}`);
+                const loadingEl = document.getElementById('global-heatmap-loading');
+                if (loadingEl) loadingEl.style.display = 'none';
+
+                if (!globalData || !globalData.history) {
+                    document.getElementById('global-heatmap-container').innerHTML = `<div class="empty-state">Global depth data unavailable</div>`;
+                    return;
+                }
+
+                // Update metrics
+                if (globalData.metrics) {
+                    const depthEl = document.getElementById('gomm-depth');
+                    if (depthEl) depthEl.textContent = globalData.metrics.total_depth;
+                    
+                    const imbEl = document.getElementById('gomm-imbalance');
+                    if (imbEl) {
+                        imbEl.textContent = globalData.metrics.imbalance;
+                        imbEl.style.color = globalData.metrics.imbalance.startsWith('+') ? 'var(--risk-low)' : 'var(--risk-high)';
+                    }
+                }
+
+                const container = document.getElementById('global-heatmap-container');
+                const heatCanvas = document.getElementById('globalHeatCanvas');
+                if (!heatCanvas) return; // Tab switched
+                
+                const ctx = heatCanvas.getContext('2d');
+                
+                const walls = globalData.walls || [];
+                const history = globalData.history || [];
+                const prices = history.map(h => h.close);
+                const labels = history.map(h => h.time);
+                
+                heatCanvas.width = container.clientWidth;
+                heatCanvas.height = container.clientHeight;
+                const w = heatCanvas.width;
+                const h = heatCanvas.height;
+
+                // 1. Smart Focus: Only include walls within 2% of price to avoid "squashing"
+                const currentPrice = prices[prices.length - 1];
+                const nearbyWalls = walls.filter(w => Math.abs(w.price - currentPrice) / currentPrice < 0.02);
+                const wallPrices = nearbyWalls.map(w => w.price);
+                
+                let maxP = Math.max(...prices, ...wallPrices) * 1.005;
+                let minP = Math.min(...prices, ...wallPrices) * 0.995;
+                
+                if (maxP === minP) { maxP *= 1.02; minP *= 0.98; }
+                const priceRange = maxP - minP;
+
+                ctx.clearRect(0, 0, w, h);
+
+                // Group walls into bins - Institutional Resolution ($25 for BTC)
+                const curTicker = window.gommTicker || 'BTC-USD';
+                const binSize = curTicker.includes('BTC') ? 25 : (curTicker.includes('ETH') ? 2 : 0.5); 
+                const bins = {};
+
+                walls.forEach(wall => {
+                    const binPrice = Math.floor(wall.price / binSize) * binSize;
+                    const key = `${wall.exchange}_${binPrice}`;
+                    if (!bins[key]) bins[key] = { price: binPrice, size: 0, exchange: wall.exchange };
+                    bins[key].size += wall.size;
+                });
+
+                const sortedBins = Object.values(bins).sort((a, b) => b.size - a.size);
+                const topBinPrices = new Set(sortedBins.slice(0, 8).map(b => b.price));
+                let lastLabelY = -100;
+
+                // Render Volumetric Clouds
+                Object.values(bins).forEach(bin => {
+                    const y = h - ((bin.price - minP) / priceRange) * h;
+                    if (y < -50 || y > h + 50) return; // Draw slightly off-screen for smooth transitions
+
+                    const normalizedSize = Math.min(1, bin.size / (curTicker.includes('BTC') ? 10 : 50));
+                    const baseColor = bin.exchange === 'Binance' ? '0, 255, 163' : '255, 177, 0';
+                    
+                    // Horizontal Gradient (Time decay)
+                    const hGrad = ctx.createLinearGradient(w * 0.2, 0, w, 0);
+                    hGrad.addColorStop(0, `rgba(${baseColor}, 0)`);
+                    hGrad.addColorStop(0.7, `rgba(${baseColor}, ${normalizedSize * 0.4})`);
+                    hGrad.addColorStop(1, `rgba(${baseColor}, ${normalizedSize * 0.8})`);
+
+                    // 2. Volumetric Thickness (Thicker is better)
+                    const thickness = 20 + (normalizedSize * 60); 
+                    
+                    // Vertical Gradient for the "Cloud" feel
+                    const vGrad = ctx.createLinearGradient(0, y - thickness/2, 0, y + thickness/2);
+                    vGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                    vGrad.addColorStop(0.5, `rgba(${baseColor}, ${normalizedSize * 0.5})`);
+                    vGrad.addColorStop(1, 'rgba(0,0,0,0)');
+
+                    ctx.fillStyle = hGrad;
+                    ctx.filter = 'blur(15px)';
+                    ctx.fillRect(0, y - thickness/2, w, thickness);
+                    ctx.filter = 'none';
+                    
+                    // Institutional core
+                    ctx.fillStyle = `rgba(${baseColor}, ${normalizedSize * 0.6})`;
+                    ctx.fillRect(w * 0.6, y - 1.5, w * 0.4, 3);
+
+                    // 3. Collision-Aware Labeling (Inboard Placement)
+                    if (topBinPrices.has(bin.price) && bin.size > (curTicker.includes('BTC') ? 0.5 : 10)) {
+                        let labelY = y;
+                        // Stagger logic to prevent vertical overlap
+                        if (Math.abs(labelY - lastLabelY) < 16) {
+                            labelY = lastLabelY + 16;
+                        }
+                        
+                        const labelText = `${bin.size.toFixed(1)} ${curTicker.split('-')[0]}`;
+                        const labelColor = bin.exchange === 'Binance' ? '#00ffa3' : '#ffb100';
+                        
+                        ctx.font = '900 11px Roboto';
+                        const textWidth = ctx.measureText(labelText).width;
+                        
+                        // Draw small background for legibility
+                        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                        ctx.fillRect(w - 70 - textWidth, labelY - 10, textWidth + 10, 14);
+                        
+                        // Draw Label
+                        ctx.fillStyle = labelColor;
+                        ctx.textAlign = 'left';
+                        ctx.fillText(labelText, w - 65 - textWidth, labelY);
+                        
+                        lastLabelY = labelY;
+                    }
+                });
+
+                // Render Price Chart over it using Chart.js
+                const heatChartCtx = document.getElementById('globalHeatChart').getContext('2d');
+                if (window._globalHeatChartInst) window._globalHeatChartInst.destroy();
+                window._globalHeatChartInst = new Chart(heatChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Price',
+                            data: prices,
+                            borderColor: '#ffffff',
+                            borderWidth: 2.5,
+                            pointRadius: 0,
+                            tension: 0.1,
+                            shadowBlur: 15,
+                            shadowColor: 'rgba(255,255,255,0.5)'
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        animation: { duration: 0 }, // Instant update for live feel
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: (c) => `Price: $${c.parsed.y.toLocaleString()}`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { display: false },
+                            y: { 
+                                position: 'right', 
+                                min: minP, 
+                                max: maxP, 
+                                grid: { color: 'rgba(255,255,255,0.05)', drawTicks: false }, 
+                                ticks: { color: '#fff', font:{size:10, weight:'900'} } 
+                            }
+                        }
+                    }
+                });
+
+                // Managed interval (Prevents exponential growth)
+                if (window._gommLiveInterval) clearInterval(window._gommLiveInterval);
+                window._gommLiveInterval = setInterval(async () => {
+                    if (document.getElementById('globalHeatCanvas')) {
+                        // Data refresh
+                        const globalData = await fetchAPI(`/global-liquidity-heatmap?ticker=${window.gommTicker}&cb=${Date.now()}`);
+                        if (globalData && globalData.history && document.getElementById('globalHeatCanvas')) {
+                             // Re-render only if still on the tab
+                             renderGlobalHeatmapMode(true);
+                        }
+                    } else {
+                        clearInterval(window._gommLiveInterval);
+                    }
+                }, 10000); // 10s refresh
+
+            } catch (err) {
+                console.error("Global Heatmap Render Error:", err);
+            }
+        }, 100);
+    }
+
+    function renderOIFundingHeatmapMode() {
+        sectionTitle.textContent = 'Global Funding & Open Interest Heatmap - Institutional Metrics';
+        
+        display.innerHTML = `
+            <div id="oi-funding-container" style="display:flex;flex-direction:column;gap:1rem;">
+                <div class="institutional-data-header" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: #fff; font-size: 11px; letter-spacing: 1px; margin: 0;">GLOBAL FUTURES HEATMAP</h3>
+                        <div style="color: #666; font-size: 9px; margin-top: 4px;">Top 15 institutional assets - Real-time Binance FAPI aggregation</div>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; background: rgba(239, 68, 68, 0.7); border-radius: 2px;"></div> <span style="font-size: 8px; color: #888;">OVERHEATED</span></div>
+                        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; background: rgba(34, 211, 238, 0.7); border-radius: 2px;"></div> <span style="font-size: 8px; color: #888;">SHORT SQUEEZE</span></div>
+                    </div>
+                </div>
+                <div id="oi-funding-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px; min-height: 400px;">
+                    <div class="loading-spinner-container"><div class="loading-spinner"></div></div>
+                </div>
+            </div>
+        `;
+
+        const grid = document.getElementById('oi-funding-grid');
+        if (!grid) return;
+
+        async function updateHeatmap() {
+            try {
+                const resp = await fetchAPI('/oi-funding-heatmap');
+                if (!resp || !resp.assets) return;
+
+                const grid = document.getElementById('oi-funding-grid');
+                if (!grid) return;
+
+                grid.innerHTML = resp.assets.map(asset => {
+                    const f = asset.funding;
+                    let heatColor = 'rgba(255,255,255,0.03)';
+                    let borderColor = 'rgba(255,255,255,0.05)';
+                    
+                    if (f > 0.015) { heatColor = 'rgba(239, 68, 68, 0.15)'; borderColor = 'rgba(239, 68, 68, 0.3)'; }
+                    if (f > 0.03) { heatColor = 'rgba(239, 68, 68, 0.35)'; borderColor = 'rgba(239, 68, 68, 0.6)'; }
+                    if (f < 0.005) { heatColor = 'rgba(34, 211, 238, 0.15)'; borderColor = 'rgba(34, 211, 238, 0.3)'; }
+                    if (f < 0) { heatColor = 'rgba(34, 211, 238, 0.35)'; borderColor = 'rgba(34, 211, 238, 0.6)'; }
+
+                    return `
+                        <div class="oi-card" style="background: ${heatColor}; border: 1px solid ${borderColor}; padding: 18px; border-radius: 8px; transition: all 0.3s ease;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="color: #fff; font-weight: 900; font-size: 14px; letter-spacing: 0.5px;">${asset.symbol}</span>
+                                <span style="color: ${asset.priceChange >= 0 ? '#22c55e' : '#ef4444'}; font-size: 11px; font-weight: bold; font-family: monospace;">
+                                    ${asset.priceChange >= 0 ? '+' : ''}${asset.priceChange.toFixed(2)}%
+                                </span>
+                            </div>
+                            <div style="font-size: 20px; color: #fff; font-weight: 900; margin-bottom: 8px; font-family: 'Outfit';">$${asset.price.toLocaleString()}</div>
+                            
+                            <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; display: flex; justify-content: space-between; align-items: flex-end;">
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    <span style="color: #666; font-size: 7px; font-weight: 900; letter-spacing: 1px;">8H FUNDING</span>
+                                    <span style="color: ${f >= 0 ? '#fff' : '#22d3ee'}; font-size: 12px; font-weight: 900; font-family: monospace;">${f.toFixed(4)}%</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="color: #666; font-size: 7px; font-weight: 900; letter-spacing: 1px; display: block; margin-bottom: 4px;">SENTIMENT</span>
+                                    <span style="color: ${f > 0.015 ? '#ef4444' : (f < 0.005 ? '#22d3ee' : '#aaa')}; font-size: 10px; font-weight: 900; letter-spacing: 0.5px;">
+                                        ${f > 0.03 ? 'OVERHEATED' : (f > 0.015 ? 'BULLISH' : (f < 0 ? 'SQUEEZE!' : 'NEUTRAL'))}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error("OI Funding Heatmap Error:", err);
+            }
+        }
+
+        updateHeatmap();
+        if (window._gommLiveInterval) clearInterval(window._gommLiveInterval);
+        window._gommLiveInterval = setInterval(updateHeatmap, 10000);
+    }
+
+
     function renderRadarMode() {
         sectionTitle.textContent = 'Whale Watch Block Radar - Institutional Activity Pulse';
         display.innerHTML = `
@@ -867,7 +1166,15 @@ async function renderLiquidityView(tabs = null) {
             const btn = document.getElementById(`gomm-tab-${t.id}`);
             if (btn) btn.className = `intel-action-btn mini ${mode === t.id ? '' : 'outline'}`;
         });
-        const renderers = { walls: renderWallsMode, heatmap: renderHeatmapMode, liquidations: renderLiquidationMode, volatility: renderVolatilityMode, radar: renderRadarMode };
+        const renderers = { 
+            walls: renderWallsMode, 
+            heatmap: renderHeatmapMode, 
+            global: renderGlobalHeatmapMode,
+            liquidations: renderLiquidationMode, 
+            volatility: renderVolatilityMode, 
+            'oi-funding-heatmap': renderOIFundingHeatmapMode,
+            radar: renderRadarMode 
+        };
         if (renderers[mode]) renderers[mode]();
     };
 
@@ -2490,6 +2797,31 @@ async function renderOrderFlow() {
     const appEl = document.getElementById('app-view');
     const ticker = sessionStorage.getItem('gomm-ticker') || 'BTC-USD';
     
+    // Sub-tabs for Order Flow hub
+    const orderFlowTabs = [
+        { id: 'cvd-tape',  label: 'CVD / TAPE',      icon: 'reorder' },
+        { id: 'footprint', label: 'FOOTPRINT CANDLES', icon: 'grid_view' }
+    ];
+
+    let activeMode = sessionStorage.getItem('of-mode') || 'cvd-tape';
+
+    window._ofSwitch = function(mode) {
+        sessionStorage.setItem('of-mode', mode);
+        renderOrderFlow();
+    };
+
+    const navigationRowHTML = `
+        <div class="of-sub-tabs" style="display:flex; gap:10px; margin-bottom:2rem; border-bottom:1px solid rgba(125,211,252,0.15); padding-bottom:12px; overflow-x:auto; scrollbar-width:none; align-items:center;">
+            ${orderFlowTabs.map(t => `
+                <button class="intel-action-btn ${activeMode === t.id ? '' : 'outline'}"
+                        onclick="window._ofSwitch('${t.id}')"
+                        style="white-space:nowrap; flex-shrink:0; padding:8px 16px; font-size:0.7rem; display:flex; align-items:center; gap:6px; border-radius:8px; font-weight:900">
+                    <span class="material-symbols-outlined" style="font-size:16px">${t.icon}</span>${t.label}
+                </button>
+            `).join('')}
+        </div>
+    `;
+
     const hubTabsHTML = window.renderHubTabs ? window.renderHubTabs('liquidity', window.institutionalHubTabs) : '';
 
     appEl.innerHTML = `
@@ -2513,8 +2845,24 @@ async function renderOrderFlow() {
             ${hubTabsHTML}
         </div>
 
+        ${navigationRowHTML}
+
+        <div id="order-flow-display" style="min-height:600px">
+            <!-- Modes injected here -->
+        </div>
+    `;
+
+    const display = document.getElementById('order-flow-display');
+    if (activeMode === 'cvd-tape') {
+        renderCVDTapeMode(display, ticker);
+    } else if (activeMode === 'footprint') {
+        renderFootprintMode(display, ticker);
+    }
+}
+
+async function renderCVDTapeMode(display, ticker) {
+    display.innerHTML = `
         <div style="display:grid; grid-template-columns: 1fr 320px; gap:1.5rem; align-items:start">
-            
             <div style="display:flex; flex-direction:column; gap:1.5rem">
                 <!-- CHART 9: CVD (Cumulative Volume Delta) -->
                 <div class="card" style="padding:1.5rem">
@@ -2648,5 +2996,114 @@ async function renderOrderFlow() {
             }
         });
     }
+}
+
+async function renderFootprintMode(display, ticker) {
+    display.innerHTML = `
+        <div class="card" style="padding:1.5rem; overflow-x:auto;">
+            <div class="card-header" style="margin-bottom:1.5rem">
+                <h2>Footprint (Bid/Ask) Candles</h2>
+                <div style="display:flex; align-items:center; gap:10px">
+                    <span class="label-tag" style="background:rgba(34,197,94,0.1); color:#22c55e; border-color:rgba(34,197,94,0.2)">1M RESOLUTION</span>
+                    <span style="font-size:0.6rem; color:var(--text-dim)">INSTITUTIONAL BINNING: ${ticker.includes('BTC') ? '$10' : '$1'}</span>
+                </div>
+            </div>
+            <div id="footprint-canvas-container" style="display:flex; gap:24px; min-height:650px; padding:20px; align-items:flex-end; background:rgba(0,0,0,0.2); border-radius:12px; border:1px solid rgba(255,255,255,0.03);">
+                <div class="loading-spinner-container"><div class="loading-spinner"></div></div>
+            </div>
+            
+            <div style="display:flex; justify-content:center; gap:30px; margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.02); border-radius:8px">
+                <div style="display:flex; flex-direction:column; align-items:center">
+                    <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">BID VOLUME</div>
+                    <div style="color:#ef4444; font-weight:900; font-size:0.8rem">SELLER AGGRESSION</div>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center">
+                    <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:4px">ASK VOLUME</div>
+                    <div style="color:#22c55e; font-weight:900; font-size:0.8rem">BUYER AGGRESSION</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    if (window._footprintInterval) clearInterval(window._footprintInterval);
+    
+    const updateFootprint = async () => {
+        try {
+            const data = await fetchAPI(`/footprint?ticker=${ticker}`);
+            const container = document.getElementById('footprint-canvas-container');
+            if (!container || !data || !data.candles) return;
+            
+            container.innerHTML = '';
+        
+        data.candles.slice(-10).forEach(candle => {
+            const candleEl = document.createElement('div');
+            candleEl.style.display = 'flex';
+            candleEl.style.flexDirection = 'column';
+            candleEl.style.gap = '3px';
+            candleEl.style.minWidth = '140px';
+            candleEl.style.background = 'rgba(255,255,255,0.02)';
+            candleEl.style.border = '1px solid rgba(255,255,255,0.05)';
+            candleEl.style.borderRadius = '8px';
+            candleEl.style.padding = '12px 8px';
+            candleEl.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+            
+            const timeStr = new Date(candle.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            let levelsHTML = '';
+            const maxVol = Math.max(...Object.values(candle.levels).map(v => v.buy + v.sell));
+            
+            Object.entries(candle.levels).forEach(([price, vol]) => {
+                const total = vol.buy + vol.sell;
+                const buyPct = (vol.buy / total) * 100;
+                const sellPct = (vol.sell / total) * 100;
+                
+                const isPointOfControl = total === maxVol;
+                
+                levelsHTML += `
+                    <div style="display:grid; grid-template-columns: 45px 1fr 45px; gap:8px; font-family:'JetBrains Mono', monospace; font-size:10px; position:relative; background:${isPointOfControl ? 'rgba(0,242,255,0.12)' : 'transparent'}; border-bottom:1px solid rgba(255,255,255,0.03); padding:6px 4px; align-items:center;">
+                        <!-- BID (SELLERS) -->
+                        <div style="text-align:right; color:#ff4d4d; position:relative; z-index:2; font-weight:800; font-size:9px">
+                            ${vol.sell.toFixed(1)}
+                            <div style="position:absolute; top:0; right:-4px; height:100%; width:${sellPct}%; background:rgba(239, 68, 68, 0.4); z-index:-1; border-radius:2px"></div>
+                        </div>
+                        
+                        <!-- PRICE -->
+                        <div style="text-align:center; color:rgba(255,255,255,0.9); font-size:9px; font-weight:600; border-left:1px solid rgba(255,255,255,0.1); border-right:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); padding:0 4px">
+                            ${parseFloat(price).toFixed(ticker.includes('BTC') ? 0 : 1)}
+                        </div>
+
+                        <!-- ASK (BUYERS) -->
+                        <div style="text-align:left; color:#00ff66; position:relative; z-index:2; font-weight:800; font-size:9px">
+                            ${vol.buy.toFixed(1)}
+                            <div style="position:absolute; top:0; left:-4px; height:100%; width:${buyPct}%; background:rgba(34, 197, 94, 0.4); z-index:-1; border-radius:2px"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            candleEl.innerHTML = `
+                <div style="flex:1; display:flex; flex-direction:column; justify-content:center; overflow-y:auto; max-height:550px; padding:2px;">
+                    ${levelsHTML}
+                </div>
+                <div style="text-align:center; margin-top:14px; border-top:2px solid rgba(255,255,255,0.1); padding-top:12px; background:rgba(0,0,0,0.2); border-radius:0 0 8px 8px">
+                    <div style="font-size:0.8rem; font-weight:900; color:var(--text); letter-spacing:1px">${timeStr}</div>
+                    <div style="font-size:0.65rem; font-weight:800; color:${candle.close >= candle.open ? '#00ff66' : '#ff4d4d'}; letter-spacing:1.5px; margin-top:4px; text-transform:uppercase">
+                        ${candle.close >= candle.open ? 'Bullish' : 'Bearish'}
+                    </div>
+                </div>
+            `;
+            container.appendChild(candleEl);
+        });
+
+        } catch (e) {
+            console.error("Footprint Render Error:", e);
+        }
+    };
+
+    // Initial render
+    await updateFootprint();
+    
+    // Auto-update every 60 seconds
+    window._footprintInterval = setInterval(updateFootprint, 60000);
 }
 

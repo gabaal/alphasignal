@@ -3,7 +3,8 @@ import json, urllib.parse, base64, hashlib, random, traceback, sqlite3, time, st
 from backend.routes.realdata import (
     fetch_defi_llama_chains, fetch_binance_trades, fetch_volume_by_hour,
     fetch_funding_rate_history, fetch_deribit_iv, fetch_deribit_iv_surface,
-    fetch_github_commits, fetch_binance_klines, fetch_retail_fomo, fetch_binance_depth
+    fetch_github_commits, fetch_binance_klines, fetch_retail_fomo, fetch_binance_depth,
+    fetch_bybit_depth
 )
 import yfinance as yf
 import numpy as np
@@ -3956,6 +3957,225 @@ class InstitutionalRoutesMixin:
         except Exception as e:
             print(f"[{datetime.now()}] Liquidity History API Error: {e}")
             self.send_error_json(str(e))
+            
+    def handle_global_liquidity_heatmap(self):
+        """Aggregated cross-exchange (Binance, Bybit) L2 depth heatmap."""
+        print(f"[{datetime.now()}] DEBUG: handle_global_liquidity_heatmap started for {self.path}", flush=True)
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            ticker = query.get('ticker', ['BTC-USD'])[0].upper()
+            
+            # Normalize symbol for exchanges
+            sym = ticker.replace('-USD', 'USDT').replace('-', '')
+            if not sym.endswith('USDT'): sym += 'USDT'
+            
+            # Fetch from Binance (cached 2s) - Deep book fetch
+            binance_depth = fetch_binance_depth(sym, limit=500)
+            # Fetch from Bybit (cached 2s)
+            bybit_depth = fetch_bybit_depth(sym, limit=500)
+            
+            # Aggregate walls
+            aggregated_walls = []
+            
+            # Process Binance
+            for b in binance_depth.get('bids', []):
+                aggregated_walls.append({
+                    'exchange': 'Binance',
+                    'price': float(b[0]),
+                    'size': float(b[1]),
+                    'side': 'bid'
+                })
+            for a in binance_depth.get('asks', []):
+                aggregated_walls.append({
+                    'exchange': 'Binance',
+                    'price': float(a[0]),
+                    'size': float(a[1]),
+                    'side': 'ask'
+                })
+                
+            # Process Bybit
+            for b in bybit_depth.get('bids', []):
+                aggregated_walls.append({
+                    'exchange': 'Bybit',
+                    'price': float(b[0]),
+                    'size': float(b[1]),
+                    'side': 'bid'
+                })
+            for a in bybit_depth.get('asks', []):
+                aggregated_walls.append({
+                    'exchange': 'Bybit',
+                    'price': float(a[0]),
+                    'size': float(a[1]),
+                    'side': 'ask'
+                })
+                
+            # Fetch OHLC history for the heatmap overlay base
+            # Use 5m intervals for better resolution in the heatmap
+            history = fetch_binance_klines(sym, '5m', 100)
+            
+            # Calculate metrics
+            total_bid_depth = sum(w['size'] for w in aggregated_walls if w['side'] == 'bid')
+            total_ask_depth = sum(w['size'] for w in aggregated_walls if w['side'] == 'ask')
+            imbalance = round((total_bid_depth - total_ask_depth) / (total_bid_depth + total_ask_depth) * 100, 1) if total_bid_depth + total_ask_depth > 0 else 0
+            
+            base_sym = ticker.split('-')[0]
+            
+            self.send_json({
+                'ticker': ticker,
+                'walls': aggregated_walls,
+                'history': history,
+                'metrics': {
+                    'total_depth': f"{round(total_bid_depth + total_ask_depth, 2):,} {base_sym}",
+                    'imbalance': f"{('+' if imbalance > 0 else '')}{imbalance}%",
+                    'exchanges': ['Binance', 'Bybit'],
+                    'primary_source': 'Aggregated L2'
+                }
+            })
+            
+        except Exception as e:
+            print(f'[{datetime.now()}] Global Heatmap API Error: {e}')
+            traceback.print_exc()
+            self.send_error_json(str(e))
+
+
+    def handle_oi_funding_heatmap(self):
+        """Cross-asset heatmap of Funding Rates and Open Interest changes."""
+        try:
+            # Top 15 liquid assets
+            symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 
+                       'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'TRXUSDT', 'LINKUSDT',
+                       'DOTUSDT', 'MATICUSDT', 'LTCUSDT', 'BCHUSDT', 'SHIBUSDT']
+            
+            # Fetch all funding rates from Binance FAPI
+            r = requests.get('https://fapi.binance.com/fapi/v1/premiumIndex', timeout=5)
+            if r.status_code != 200:
+                raise Exception("Failed to fetch funding rates")
+            all_premium = r.json()
+            funding_map = {item['symbol']: float(item['lastFundingRate']) * 100 for item in all_premium}
+            
+            # Fetch 24h ticker for price change
+            r = requests.get('https://fapi.binance.com/fapi/v1/ticker/24hr', timeout=5)
+            ticker_data = r.json()
+            price_map = {item['symbol']: float(item['priceChangePercent']) for item in ticker_data}
+            curr_price_map = {item['symbol']: float(item['lastPrice']) for item in ticker_data}
+
+            data = []
+            for s in symbols:
+                funding = funding_map.get(s, 0)
+                price_change = price_map.get(s, 0)
+                curr_price = curr_price_map.get(s, 0)
+                
+                # Normalize funding "heat" for visualization
+                # Neutral is 0.01% (0.01)
+                data.append({
+                    'symbol': s.replace('USDT', ''),
+                    'funding': round(funding, 4),
+                    'priceChange': round(price_change, 2),
+                    'price': curr_price
+                })
+            
+            self.send_json({
+                'timestamp': int(datetime.now().timestamp()),
+                'assets': data
+            })
+            
+        except Exception as e:
+            print(f'[{datetime.now()}] OI/Funding Heatmap API Error: {e}')
+            self.send_error_json(str(e))
+
+    def handle_footprint_candles(self):
+        """GET /api/footprint - Binned bid/ask volume for high-frequency execution analysis."""
+        try:
+            parsed = urllib.parse.urlparse(self.path)
+            query = urllib.parse.parse_qs(parsed.query)
+            ticker = query.get('ticker', ['BTC-USD'])[0]
+            symbol = ticker.replace('-', '').replace('USD', 'USDT')
+            
+            # Fetch most recent trades first to ensure synchronization with clock time
+            all_trades = []
+            target_minutes = 15 # Fetch slightly more than needed
+            cutoff_time = int((datetime.now() - timedelta(minutes=target_minutes)).timestamp() * 1000)
+            
+            # Initial fetch: get the absolute latest trades
+            url = f'https://fapi.binance.com/fapi/v1/aggTrades?symbol={symbol}&limit=1000'
+            r = requests.get(url, timeout=5)
+            if r.status_code == 200:
+                batch = r.json()
+                if batch:
+                    all_trades = batch
+                    first_id = batch[0]['a']
+                    
+                    # If the earliest trade in this batch is still too recent, fetch backwards
+                    for _ in range(3): # Max 3 more batches (4000 trades total)
+                        if batch[0]['T'] < cutoff_time:
+                            break
+                        
+                        prev_url = f'https://fapi.binance.com/fapi/v1/aggTrades?symbol={symbol}&limit=1000&fromId={max(0, first_id - 1000)}'
+                        r_prev = requests.get(prev_url, timeout=5)
+                        if r_prev.status_code != 200: break
+                        
+                        batch = r_prev.json()
+                        if not batch: break
+                        
+                        all_trades = batch + all_trades
+                        first_id = batch[0]['a']
+
+            if not all_trades:
+                raise Exception("No trade data available for this ticker.")
+            
+            bins = {} 
+            for t in all_trades:
+                price = float(t['p'])
+                qty = float(t['q'])
+                ts = int(t['T'] // 60000) * 60000 # 1m bin
+                
+                if ts not in bins:
+                    bins[ts] = {
+                        'time': ts,
+                        'open': price, 'high': price, 'low': price, 'close': price,
+                        'total_vol': 0,
+                        'buy_vol': 0,
+                        'sell_vol': 0,
+                        'levels': {} # price -> { buy: 0, sell: 0 }
+                    }
+                
+                b = bins[ts]
+                b['high'] = max(b['high'], price)
+                b['low'] = min(b['low'], price)
+                b['close'] = price
+                b['total_vol'] += qty
+                
+                # Dynamic resolution
+                res = 10 if 'BTC' in symbol else (1 if 'ETH' in symbol else 0.5)
+                p_bin = round(price / res) * res
+                
+                if p_bin not in b['levels']:
+                    b['levels'][p_bin] = {'buy': 0, 'sell': 0}
+                
+                if t['m']: # Seller hit BID
+                    b['sell_vol'] += qty
+                    b['levels'][p_bin]['sell'] += qty
+                else: # Buyer hit ASK
+                    b['buy_vol'] += qty
+                    b['levels'][p_bin]['buy'] += qty
+            
+            # Convert to sorted list and clean up levels for JSON
+            sorted_bins = sorted(bins.values(), key=lambda x: x['time'])
+            for b in sorted_bins:
+                # Convert numeric keys to strings for JSON stability if needed, 
+                # but dict is fine. Let's just sort levels.
+                b['levels'] = dict(sorted(b['levels'].items(), reverse=True))
+
+            self.send_json({
+                'ticker': ticker,
+                'candles': sorted_bins,
+                'resolution': '1m'
+            })
+            
+        except Exception as e:
+            print(f'[{datetime.now()}] Footprint API Error: {e}')
+            self.send_error_json(str(e))
+
 
     def handle_whales_entity(self):
         """Derive institutional flow metrics from Binance futures volume delta."""
@@ -7276,47 +7496,6 @@ class InstitutionalRoutesMixin:
                 'prices': [round(p, 2) for p in prices],
                 'timestamps': [(datetime.now() - timedelta(minutes=interval_mins * (num_time_steps - i))).strftime('%H:%M' if interval_mins < 1440 else '%m-%d') for i in range(num_time_steps)],
                 'density': heatmap
-            })
-        except Exception as e:
-            self.send_json({'error': str(e)})
-
-    def handle_oi_funding_heatmap(self):
-        """Open Interest x Funding Rate 2D Heatmap Matrix."""
-        try:
-            # We will use top 10 assets
-            assets = ['BTC', 'ETH', 'SOL', 'XRP', 'AVAX', 'LINK', 'ADA', 'DOGE', 'BNB', 'DOT']
-            
-            np.random.seed(int(time.time() // 3600))  # update hourly
-            
-            days = 14
-            dates = [(datetime.now() - timedelta(days=days - i)).strftime('%m-%d') for i in range(days)]
-            
-            heatmap = []
-            for asset in assets:
-                row = []
-                # Assign a base state to each asset
-                base_funding = np.random.uniform(-0.02, 0.05)
-                momentum = np.random.uniform(-0.005, 0.01)
-                
-                for d in range(days):
-                    # Funding rate drifts
-                    f_rate = base_funding + (d * momentum) + np.random.normal(0, 0.01)
-                    # OI multiplier (1.0 = avg, 2.0 = high OI)
-                    oi_scale = 1.0 + (d * 0.05) if momentum > 0 else 1.5 - (d * 0.05)
-                    
-                    # We combine them into a single "Stress Score"
-                    # positive = heavily long biased + high OI
-                    # negative = heavily short biased + high OI
-                    stress = f_rate * oi_scale * 10
-                    row.append(round(stress, 2))
-                heatmap.append({
-                    'asset': asset,
-                    'scores': row
-                })
-                
-            self.send_json({
-                'dates': dates,
-                'heatmap': heatmap
             })
         except Exception as e:
             self.send_json({'error': str(e)})
