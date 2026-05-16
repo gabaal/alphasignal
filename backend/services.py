@@ -1032,14 +1032,23 @@ class HarvestService:
                             continue
                             
                         enabled_users.append(target_email)
-                        
-                        # Per-user anti-spam: skip if this user already has this ticker in last 1h
-                        c.execute("SELECT id FROM alerts_history WHERE ticker=? AND user_email=? AND timestamp > datetime('now', '-1 hours')", (ticker, target_email))
-                        if c.fetchone(): continue
+
                         _direction = 'LONG' if pred_return > 0 else 'SHORT'
                         _z = round(z_score, 2)
                         _alpha = round(pred_return * 100, 2)
                         _cat = next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
+
+                        # Per-user anti-spam: suppress only if the SAME direction
+                        # already fired for this ticker in the last 1h.
+                        # Opposite-direction signals (reversals) always pass through
+                        # so they are saved to the archive and trigger the reversal gate.
+                        c.execute(
+                            "SELECT id FROM alerts_history "
+                            "WHERE ticker=? AND user_email=? AND direction=? "
+                            "AND timestamp > datetime('now', '-1 hours')",
+                            (ticker, target_email, _direction)
+                        )
+                        if c.fetchone(): continue
 
                         # ── Signal Reversal Gate ──────────────────────────────────────
                         # If an active signal exists in the OPPOSITE direction for this
