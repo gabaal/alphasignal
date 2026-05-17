@@ -3,6 +3,22 @@
  * Advanced Dealer Gamma Exposure (GEX) and Hedging Dynamics.
  */
 
+// Full asset galaxy for GEX / Max Pain / Vol Surface dropdowns
+const _DERIV_GALAXY = [
+    // Core
+    'BTC','ETH','SOL','XRP','ADA','AVAX','DOT','LINK','BNB','DOGE',
+    // L1 / L2
+    'TRX','TON','NEAR','ATOM','OP','ARB','MATIC','SUI','APT','TIA','SEI','STX','INJ','ALGO',
+    // DeFi
+    'AAVE','MKR','UNI','CRV','COMP','LDO','SNX','PENDLE','RUNE','JTO','EIGEN',
+    // AI / Data
+    'FET','RENDER','OCEAN','WLD','TAO','AKT',
+    // Storage / Infra
+    'FIL','HNT','PYTH','ONDO',
+    // Memes
+    'SHIB','PEPE','BONK','WIF','FLOKI','BOME',
+];
+
 window.renderGexProfile = async function(tabs = null, container = null) {
     if (!tabs) tabs = window.analyticsHubTabs; // Default fallback
     
@@ -14,6 +30,8 @@ window.renderGexProfile = async function(tabs = null, container = null) {
     const targetEl = container || appEl;
     const showHubTabs = !container; // only show hub tabs when NOT embedded
 
+    const prevTicker = document.getElementById('gex-ticker-select')?.value || 'BTC';
+
     targetEl.innerHTML = `
         <div class="view-header">
             <div>
@@ -23,9 +41,7 @@ window.renderGexProfile = async function(tabs = null, container = null) {
             </div>
             <div style="display:flex;gap:10px;align-items:center">
                 <select id="gex-ticker-select" onchange="renderGexProfile()" style="background:var(--bg-input);border:1px solid var(--border);color:white;padding:6px 12px;border-radius:8px;font-family:var(--font-mono);font-size:0.75rem">
-                    <option value="BTC">BTC-USD</option>
-                    <option value="ETH">ETH-USD</option>
-                    <option value="SOL">SOL-USD</option>
+                    ${_DERIV_GALAXY.map(s => `<option value="${s}"${s===prevTicker?' selected':''}>${s}-USD</option>`).join('')}
                 </select>
                 <button class="intel-action-btn mini outline" onclick="switchView('docs-gex')">
                     <span class="material-symbols-outlined" style="font-size:14px">help</span> DOCS

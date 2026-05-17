@@ -1599,24 +1599,30 @@ class InstitutionalRoutesMixin:
         self.send_json({'ticker': ticker, 'fundingRate': round(funding, 4), 'openInterest': oi, 'oiChange': round(oi_change, 2), 'liquidations24h': liquidations, 'longShortRatio': round(ls_ratio, 2)})
 
     def handle_volatility_surface(self):
-        """Serve full IV surface grid from Deribit live options data."""
+        """Serve full IV surface grid from Deribit live options data.
+        BTC / ETH / SOL -> live Deribit.  All other assets -> parametric
+        fallback using that asset's own realised volatility from yfinance.
+        """
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             ticker  = query.get('ticker', ['BTC-USD'])[0]
             sym     = ticker.replace('-USD', '').upper()
-            currency = 'ETH' if 'ETH' in sym else 'BTC'
+            _DERIBIT_NATIVE = {'BTC', 'ETH', 'SOL'}
+            currency = sym if sym in _DERIBIT_NATIVE else None
+            yf_ticker = ticker if '-' in ticker else f'{sym}-USD'
 
-            # -- Try live Deribit grid ------------------------------------------
-            surface = fetch_deribit_iv_surface(currency)
-            if surface.get('source') == 'deribit_live' and surface.get('iv_grid'):
-                self.send_json(surface)
-                return
+            # -- Try live Deribit grid (only for natively listed assets) --------
+            if currency:
+                surface = fetch_deribit_iv_surface(currency)
+                if surface.get('source') == 'deribit_live' and surface.get('iv_grid'):
+                    self.send_json(surface)
+                    return
 
             # -- Fallback: generate parametric smile from realised vol ---------
             import yfinance as _yf
             rv = 60.0
             try:
-                hist = _yf.Ticker(ticker).history(period='30d')
+                hist = _yf.Ticker(yf_ticker).history(period='30d')
                 if not hist.empty:
                     rets = hist['Close'].pct_change().dropna()
                     rv   = float(rets.std()) * (365 ** 0.5) * 100
@@ -1642,7 +1648,7 @@ class InstitutionalRoutesMixin:
                 grid.append(row)
 
             self.send_json({
-                'currency':       currency,
+                'currency':       currency or sym,   # use sym for non-Deribit assets
                 'underlying':     None,
                 'moneyness_axis': money_steps,
                 'expiry_labels':  expiry_labels,

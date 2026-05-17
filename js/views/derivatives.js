@@ -266,9 +266,9 @@ async function renderVolSurfaceInDeriv(display) {
                 '<div><h2>Implied Volatility Surface</h2>' +
                 '<div style="font-size:0.6rem;color:var(--text-dim);margin-top:4px">MONEYNESS × EXPIRY × IMPLIED VOL (DERIBIT / PARAMETRIC FALLBACK)</div></div>' +
                 '<div style="display:flex;align-items:center;gap:10px">' +
-                    '<select id="vol-surf-sym" onchange="sessionStorage.setItem(\'vol-surf-sym\',this.value);renderVolSurfaceInDeriv(document.getElementById(\'deriv-display\'))" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:0.75rem">' +
-                        ['BTC','ETH','SOL'].map(s => '<option value="' + s + '"' + (s === sym ? ' selected' : '') + '>' + s + '</option>').join('') +
-                    '</select>' +
+                '<select id="vol-surf-sym" onchange="sessionStorage.setItem(\'vol-surf-sym\',this.value);renderVolSurfaceInDeriv(document.getElementById(\'deriv-display\'))" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:0.75rem">' +
+                    (typeof _DERIV_GALAXY !== 'undefined' ? _DERIV_GALAXY : ['BTC','ETH','SOL']).map(s => '<option value="' + s + '"' + (s === sym ? ' selected' : '') + '>' + s + '</option>').join('') +
+                '</select>' +
                     '<span id="vol-surf-src" style="font-size:0.6rem;color:var(--text-dim)"></span>' +
                 '</div>' +
             '</div>' +
@@ -399,7 +399,7 @@ async function renderMaxPainInDeriv(display) {
                 '<div><h2>Options Max Pain</h2>' +
                 '<div style="font-size:0.6rem;color:var(--text-dim);margin-top:4px">STRIKE WHERE MAXIMUM OPTIONS CONTRACTS EXPIRE WORTHLESS</div></div>' +
                 '<select id="max-pain-sym" onchange="sessionStorage.setItem(\'max-pain-sym\',this.value);renderMaxPainInDeriv(document.getElementById(\'deriv-display\'))" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:0.75rem">' +
-                    ['BTC','ETH','SOL'].map(s => '<option value="' + s + '"' + (s === sym ? ' selected' : '') + '>' + s + '</option>').join('') +
+                    (typeof _DERIV_GALAXY !== 'undefined' ? _DERIV_GALAXY : ['BTC','ETH','SOL']).map(s => '<option value="' + s + '"' + (s === sym ? ' selected' : '') + '>' + s + '</option>').join('') +
                 '</select>' +
             '</div>' +
             '<div id="max-pain-content"><div style="text-align:center;padding:3rem"><div class="loader" style="margin:0 auto"></div></div></div>' +
