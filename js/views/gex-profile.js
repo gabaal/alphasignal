@@ -40,7 +40,7 @@ window.renderGexProfile = async function(tabs = null, container = null) {
                 <p>Analyzing market maker hedging obligations. High GEX suppresses volatility (Magnets), Negative GEX amplifies cascades.</p>
             </div>
             <div style="display:flex;gap:10px;align-items:center">
-                <select id="gex-ticker-select" onchange="renderGexProfile()" style="background:var(--bg-input);border:1px solid var(--border);color:white;padding:6px 12px;border-radius:8px;font-family:var(--font-mono);font-size:0.75rem">
+                <select id="gex-ticker-select" onchange="(function(){ const _c = document.getElementById('deriv-display'); renderGexProfile(null, _c || null); })()" style="background:var(--bg-input);border:1px solid var(--border);color:white;padding:6px 12px;border-radius:8px;font-family:var(--font-mono);font-size:0.75rem">
                     ${_DERIV_GALAXY.map(s => `<option value="${s}"${s===prevTicker?' selected':''}>${s}-USD</option>`).join('')}
                 </select>
                 <button class="intel-action-btn mini outline" onclick="switchView('docs-gex')">
