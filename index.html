@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
@@ -189,8 +189,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 @keyframes scroll-left-landing { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes scroll-left-global { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 </style>
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
+    <link rel="stylesheet" href="styles.css?v=2.80" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="styles.css?v=2.80"></noscript>
     <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
     <!-- Fonts: non-render-blocking - inline critical CSS handles skeleton -->
     <link rel="preload" as="style"
@@ -687,9 +687,9 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
 
                 <div style="text-align:center;margin-top:1.5rem;opacity:0.5">
                     <a href="/privacy" style="font-size:0.65rem;color:var(--text-dim);text-decoration:none;letter-spacing:1px">PRIVACY POLICY</a>
-                    <span style="color:var(--text-dim);margin:0 0.5rem;font-size:0.6rem">•</span>
+                    <span style="color:var(--text-dim);margin:0 0.5rem;font-size:0.6rem">â€¢</span>
                     <a href="/terms" style="font-size:0.65rem;color:var(--text-dim);text-decoration:none;letter-spacing:1px">TERMS OF SERVICE</a>
-                    <span style="color:var(--text-dim);margin:0 0.5rem;font-size:0.6rem">•</span>
+                    <span style="color:var(--text-dim);margin:0 0.5rem;font-size:0.6rem">â€¢</span>
                     <a href="/roadmap" style="font-size:0.65rem;color:var(--text-dim);text-decoration:none;letter-spacing:1px">PUBLIC ROADMAP</a>
                 </div>
             </div>
@@ -781,14 +781,14 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
-    <script src="js/utils.js?v=2.67" defer></script>
-    <script src="js/auth.js?v=2.67" defer></script>
-    <script src="js/core.js?v=2.67" defer></script>
-    <script src="js/heatmap_engine.js?v=2.67" defer></script>
-    <script src="js/charts.js?v=2.67" defer></script>
+    <script src="js/utils.js?v=2.80" defer></script>
+    <script src="js/auth.js?v=2.80" defer></script>
+    <script src="js/core.js?v=2.80" defer></script>
+    <script src="js/heatmap_engine.js?v=2.80" defer></script>
+    <script src="js/charts.js?v=2.80" defer></script>
     <!-- views/ modules (split from views.js) - hub-nav must load first -->
-    <script src="js/views/hub-nav-v2.js?v=2.67" defer></script>
-    <script src="js/views/global-markets.js?v=2.67" defer></script>
+    <script src="js/views/hub-nav-v2.js?v=2.80" defer></script>
+    <script src="js/views/global-markets.js?v=2.80" defer></script>
     <!-- Global helpers: defined inline so service-worker/version caching never breaks them -->
     <script>
     window.addToWatchlist_quick = window.addToWatchlist_quick || async function(ticker) {
@@ -805,51 +805,51 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
         }
     };
     </script>
-    <script src="js/views/signals.js?v=2.67" defer></script>
-    <script src="js/views/performance.js?v=2.67" defer></script>
-    <script src="js/views/macro-intel.js?v=2.67" defer></script>
-    <script src="js/views/whales.js?v=2.67" defer></script>
-    <script src="js/views/block-radar.js?v=2.67" defer></script>
+    <script src="js/views/signals.js?v=2.80" defer></script>
+    <script src="js/views/performance.js?v=2.80" defer></script>
+    <script src="js/views/macro-intel.js?v=2.80" defer></script>
+    <script src="js/views/whales.js?v=2.80" defer></script>
+    <script src="js/views/block-radar.js?v=2.80" defer></script>
 
-    <script src="js/views/macro-analytics.js?v=2.67" defer></script>
-    <script src="js/views/strategy.js?v=2.67" defer></script>
-    <script src="js/views/portfolio.js?v=2.67" defer></script>
-    <script src="js/views/narrative.js?v=2.67" defer></script>
-    <script src="js/views/trade-lab.js?v=2.67" defer></script>
-    <script src="js/views/audit.js?v=2.67" defer></script>
-    <script src="js/views/liquidity-archive.js?v=2.69" defer></script>
-    <script src="js/views/gex-profile.js?v=2.67" defer></script>
-    <script src="js/views/volume-profile.js?v=2.67" defer></script>
-    <script src="js/views/alerts-archive.js?v=2.67" defer></script>
-    <script src="js/views/onchain.js?v=2.67" defer></script>
-    <script src="js/views/command-center-v2.js?v=2.67" defer></script>
-    <script src="js/views/power-trio.js?v=2.67" defer></script>
-    <script src="js/views/trade-setup.js?v=2.68" defer></script>
-    <script src="js/views/trade-plan.js?v=2.68" defer></script>
-    <script src="js/views/home.js?v=2.67" defer></script>
-    <script src="js/views/algo-hub.js?v=2.67"></script>
-    <script src="js/views/algo-params.js?v=2.67" defer></script>
-    <script src="js/views/explain.js?v=2.67" defer></script>
-    <script src="js/views/my-terminal.js?v=2.67"></script>
-    <script src="js/views/signal-permalink.js?v=2.67" defer></script>
-    <script src="js/views/onboarding.js?v=2.67" defer></script>
-    <script src="js/views/price-alerts.js?v=2.67" defer></script>
-    <script src="js/views/signal-leaderboard.js?v=2.67" defer></script>
-    <script src="js/views/market-brief.js?v=2.67" defer></script>
-    <script src="js/views/exchange-keys.js?v=2.67" defer></script>
-    <script src="js/views/webhooks.js?v=2.67" defer></script>
+    <script src="js/views/macro-analytics.js?v=2.80" defer></script>
+    <script src="js/views/strategy.js?v=2.80" defer></script>
+    <script src="js/views/portfolio.js?v=2.80" defer></script>
+    <script src="js/views/narrative.js?v=2.80" defer></script>
+    <script src="js/views/trade-lab.js?v=2.80" defer></script>
+    <script src="js/views/audit.js?v=2.80" defer></script>
+    <script src="js/views/liquidity-archive.js?v=2.80" defer></script>
+    <script src="js/views/gex-profile.js?v=2.80" defer></script>
+    <script src="js/views/volume-profile.js?v=2.80" defer></script>
+    <script src="js/views/alerts-archive.js?v=2.80" defer></script>
+    <script src="js/views/onchain.js?v=2.80" defer></script>
+    <script src="js/views/command-center-v2.js?v=2.80" defer></script>
+    <script src="js/views/power-trio.js?v=2.80" defer></script>
+    <script src="js/views/trade-setup.js?v=2.80" defer></script>
+    <script src="js/views/trade-plan.js?v=2.80" defer></script>
+    <script src="js/views/home.js?v=2.80" defer></script>
+    <script src="js/views/algo-hub.js?v=2.80"></script>
+    <script src="js/views/algo-params.js?v=2.80" defer></script>
+    <script src="js/views/explain.js?v=2.80" defer></script>
+    <script src="js/views/my-terminal.js?v=2.80"></script>
+    <script src="js/views/signal-permalink.js?v=2.80" defer></script>
+    <script src="js/views/onboarding.js?v=2.80" defer></script>
+    <script src="js/views/price-alerts.js?v=2.80" defer></script>
+    <script src="js/views/signal-leaderboard.js?v=2.80" defer></script>
+    <script src="js/views/market-brief.js?v=2.80" defer></script>
+    <script src="js/views/exchange-keys.js?v=2.80" defer></script>
+    <script src="js/views/webhooks.js?v=2.80" defer></script>
     <!-- Docs + Export utilities -->
-    <script src="js/docs-a.js?v=2.67" defer></script>
-    <script src="js/docs-b.js?v=2.67" defer></script>
-    <script src="js/docs-c.js?v=2.67" defer></script>
-    <script src="js/export.js?v=2.67" defer></script>
-    <script src="js/seo-meta.js?v=2.67" defer></script>
-    <script src="js/views/academy_videos_data.js?v=2.67" defer></script>
-    <script src="js/views/academy-watch.js?v=2.67" defer></script>
-    <script src="js/views/derivatives.js?v=2.69" defer></script>
-    <script src="js/main.js?v=2.67" defer></script>
-    <script src="js/router.js?v=2.67" defer></script>
-    <script src="js/ai-chat.js?v=2.67" defer></script>
+    <script src="js/docs-a.js?v=2.80" defer></script>
+    <script src="js/docs-b.js?v=2.80" defer></script>
+    <script src="js/docs-c.js?v=2.80" defer></script>
+    <script src="js/export.js?v=2.80" defer></script>
+    <script src="js/seo-meta.js?v=2.80" defer></script>
+    <script src="js/views/academy_videos_data.js?v=2.80" defer></script>
+    <script src="js/views/academy-watch.js?v=2.80" defer></script>
+    <script src="js/views/derivatives.js?v=2.80" defer></script>
+    <script src="js/main.js?v=2.80" defer></script>
+    <script src="js/router.js?v=2.80" defer></script>
+    <script src="js/ai-chat.js?v=2.80" defer></script>
 
     <!-- Notification Settings Modal -->
     <!-- Notification Settings Modal -->
@@ -1125,6 +1125,19 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

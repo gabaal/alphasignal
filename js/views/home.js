@@ -12,330 +12,201 @@ async function renderHome() {
 
     appEl.innerHTML = `
         <div class="landing-page">
-            <div class="landing-bg-overlay" aria-hidden="true"></div>
+            <div class="lp-grid-bg" aria-hidden="true"></div>
+            <div class="lp-radial" aria-hidden="true"></div>
 
-            <!-- ===== HERO ===== -->
-            <section class="hero-section">
-                <div class="hero-content">
-                    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1.5rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">
-                        <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite"></span>
-                        LIVE INSTITUTIONAL TERMINAL &mdash; v2.10
-                    </div>
-                    <h1>Institutional Intelligence Terminal. <span>Live.</span></h1>
-                    <p class="hero-subtitle">
-                        AlphaSignal is a multi-hub institutional intelligence terminal for Bitcoin, crypto, and macro markets. Real-time Z-score signals, KeyVault 1-Click execution, AI portfolio rebalancing, options flow, whale tracking, and 60+ analytical views - translated into Plain English by AI, verified by institutional order flow.
-                    </p>
-                    <div class="hero-actions">
-                        ${!isAuthenticatedUser ? `
-                        <button class="intel-action-btn large" onclick="showAuth(true)" style="background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(0,242,255,0.1));border-color:rgba(34,197,94,0.5);color:#22c55e" title="Create a free account">
-                            <span class="material-symbols-outlined" style="margin-right:8px">person_add</span> JOIN FREE
-                        </button>` : `
-                        <button class="intel-action-btn large secondary" onclick="switchView('my-terminal')" title="My Terminal - Watchlist & Positions">
-                            <span class="material-symbols-outlined" style="margin-right:8px">account_circle</span> MY TERMINAL
-                        </button>`}
-                        <button class="intel-action-btn large secondary" onclick="switchView('command-center')" title="View Dashboard" aria-label="Dashboard">
-                            <span class="material-symbols-outlined" style="margin-right:8px">dashboard</span> DASHBOARD
-                        </button>
-                    </div>
-
-                    <!-- Live Mini-Stats: populated after page renders via async hydration -->
-                    <div id="home-stats-chips" style="margin-top:2rem;display:flex;flex-wrap:wrap;gap:12px"></div>
-                </div>
-                <div class="hero-visual">
-                    <div class="hero-img-wrapper" id="hero-img-mount">
-                        ${!preservedHeroImg ? `<img id="lcp-hero-img" src="terminal_interface_mockup.png" alt="AlphaSignal Institutional Terminal Interface" class="hero-img" width="800" height="450" loading="eager" fetchpriority="high">` : ''}
-                        <div class="hero-img-glow"></div>
+            <!-- HERO -->
+            <section class="lp-hero">
+                <div class="lp-hero-left">
+                    <div class="lp-badge"><span class="lp-badge-dot"></span>TERMINAL LIVE &mdash; v2.10</div>
+                    <h1 class="lp-h1">The market tells a story.<br><em>Most dashboards miss it.</em></h1>
+                    <p class="lp-sub">AlphaSignal reads institutional order flow, options positioning, on-chain activity, and ML signal convergence -- and tells you what it actually means, in plain English.</p>
+                    <div class="lp-actions">
+                        ${!isAuthenticatedUser
+                            ? `<button class="lp-btn-primary" onclick="showAuth(true)"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>START FREE</button>`
+                            : `<button class="lp-btn-primary" onclick="switchView('my-terminal')"><span class="material-symbols-outlined" style="font-size:18px">account_circle</span>MY TERMINAL</button>`}
+                        <button class="lp-btn-ghost" onclick="switchView('command-center')"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>OPEN DASHBOARD</button>
                     </div>
                 </div>
-            </section>
-
-            <!-- ===== STATS BAR ===== -->
-            <section style="padding:2rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
-                <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2rem;text-align:center">
-                    ${[
-                        ['80+', 'Analytical Views'],
-                        ['60+', 'Tracked Assets'],
-                        ['10', 'Intelligence Hubs'],
-                        ['24/7', 'Live Data Feeds'],
-                        ['GPT-4o', 'AI Engine'],
-                        ['Real-Time', 'Derivatives Flow']
-                    ].map(([val, label]) => `
-                        <div>
-                            <div style="font-size:2rem;font-weight:900;color:var(--accent);line-height:1">${val}</div>
-                            <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">${label}</div>
+                <div class="lp-terminal">
+                    <div class="lp-term-bar">
+                        <span class="lp-term-dot" style="background:#f87171"></span>
+                        <span class="lp-term-dot" style="background:#fb923c"></span>
+                        <span class="lp-term-dot" style="background:#4ade80"></span>
+                        <span style="font-size:0.6rem;color:var(--text-dim);margin-left:8px;font-family:'JetBrains Mono',monospace">alphasignal -- live terminal</span>
+                    </div>
+                    <div class="lp-term-body">
+                        <div class="lp-term-row"><span class="lp-term-label">BTC/USD</span><span class="lp-term-val acc" id="lp-btc-price">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">ETH/USD</span><span class="lp-term-val acc" id="lp-eth-price">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">BTC FUNDING (8h)</span><span class="lp-term-val" id="lp-funding">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">FEAR &amp; GREED</span><span class="lp-term-val" id="lp-fg">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">REGIME</span><span class="lp-term-val" id="lp-oi">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">ACTIVE SIGNALS</span><span class="lp-term-val acc" id="lp-sigs">loading...</span></div>
+                        <div class="lp-term-signal" id="lp-top-signal">
+                            <div class="lp-term-signal-label">TOP Z-SCORE SIGNAL</div>
+                            <div class="lp-term-signal-val" id="lp-ts-val">--</div>
+                            <div class="lp-term-signal-sub" id="lp-ts-sub">awaiting data...</div>
                         </div>
-                    `).join('')}
-                    <div id="home-wr-stat"></div>
+                    </div>
                 </div>
             </section>
 
-            <!-- ===== HUB GRID ===== -->
-            <section class="features-showcase">
-                <div class="section-title-wrap">
-                    <h2>10 Institutional Intelligence Hubs</h2>
-                    <p>Every hub provides a suite of live analytical views, AI synthesis, and institutional data — all unified under a single terminal.</p>
+            <!-- TICKER TAPE -->
+            <div class="lp-tape" id="lp-tape-wrap">
+                <div class="lp-tape-inner" id="lp-tape-inner">
+                    ${Array(2).fill([
+                        ['BTC DOMINANCE','--'],['ETH GAS','--'],['BTC FUNDING','--'],
+                        ['FEAR &amp; GREED','--'],['SIGNALS LIVE','--'],['TOP ALPHA','--'],
+                        ['TOP SIGNAL','--'],['REGIME','--'],['MEMPOOL','--'],['SOL FUNDING','--']
+                    ].map(([l,v])=>`<span class="lp-tape-item"><span class="lbl">${l}</span><span id="tape-${l.replace(/\W/g,'')}">${v}</span></span>`).join('')).join('')}
                 </div>
-                <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;padding:0 2rem">
-                    ${[
-                        { icon: 'public', hub: 'etf-flows', name: 'Global Markets Hub', desc: 'Bitcoin Spot ETF flows, liquidation cascades, open interest radar, and CME gap analysis. The complete institutional window into global crypto capital flows.', badge: 'LIVE', views: ['ETF Flows', 'Liquidations', 'OI Radar', 'CME Gaps'] },
-                        { icon: 'monitoring', hub: 'macro-hub', name: 'Macro Intel Hub', desc: 'AI market briefing, capital flows, sector rotation, correlation matrix, macro event calendar with historical BTC impact scores, and market regime classification.', badge: 'AI', views: ['Briefing', 'Capital Flows', 'Sector Rotation', 'Macro Calendar', 'Regime'] },
-                        { icon: 'electric_bolt', hub: 'alpha-hub', name: 'Alpha Strategy Hub', desc: 'Z-score signal intelligence, ML alpha engine, multi-factor alpha scoring, strategy lab, signal backtester v2, signal archive, and narrative galaxy.', badge: 'ML', views: ['Signals', 'Alpha Score', 'Strategy Lab', 'Backtester', 'Narrative'] },
-                        { icon: 'key', hub: 'institutional-hub', name: 'Institutional Hub', desc: 'Token unlock schedule, DeFi yield lab, Monte Carlo portfolio optimizer, AI rebalancer, dealer gamma exposure, and AI-assisted trade idea lab with 1-click execution.', badge: 'PRO', views: ['Token Unlocks', 'Yield Lab', 'Portfolio Optimizer', 'AI Rebalancer', 'Trade Idea Lab'] },
-                        { icon: 'analytics', hub: 'analytics-hub', name: 'Market Analytics Hub', desc: 'Whale pulse tracker, cross-chain velocity engine, real MVRV/SOPR on-chain data, AI-tagged newsroom, and live correlation matrix.', badge: 'ON-CHAIN', views: ['Whale Pulse', 'Chain Velocity', 'On-Chain', 'Newsroom', 'Correlation'] },
-                        { icon: 'candlestick_chart', hub: 'derivatives', name: 'Derivatives Intelligence Hub', desc: 'Funding rate heatmap across 44 perps, Deribit options flow scanner, GEX profile, 3D implied volatility surface with ±1σ bands, and options max pain with liquidation clusters.', badge: 'LIVE', views: ['Funding Heatmap', 'Options Flow', 'GEX Profile', 'Vol Surface', 'Max Pain'] },
-                        { icon: 'waterfall_chart', hub: 'liquidity', name: 'Order Flow Hub', desc: 'Institutional order book depth, bid/ask tape imbalance, CVD charting, volume profile (TPO/Value Area), and market microstructure analysis across multiple timeframes.', badge: 'PRO', views: ['Order Book', 'Tape Imbalance', 'CVD Chart', 'Volume Profile'] },
-                        { icon: 'assignment', hub: 'audit-hub', name: 'Audit & Performance Hub', desc: 'Persistent institutional trade ledger, AI thesis archive, performance dashboard with monthly P&L calendar, and BTC benchmark comparison.', badge: 'AUDIT', views: ['Trade Ledger', 'Performance Dashboard', 'P&L Calendar'] },
-                        { icon: 'shield_with_heart', hub: 'risk', name: 'Risk & Stress Hub', desc: 'Real-time risk matrix for dynamic position sizing, tail-risk stress lab with macro scenario modelling, and Z-score volatility regime overlay.', badge: 'RISK', views: ['Risk Matrix', 'Stress Lab', 'Regime Overlay'] },
-                        { icon: 'bar_chart', hub: 'power-trio', name: 'Advanced Charting', desc: 'Power Trio institutional charts with Anchored VWAP, EMA-5 momentum bands, rolling BTC correlation decoupling, and order book imbalance — plus TradingView integration.', badge: 'PRO', views: ['Power Trio', 'Anchored VWAP', 'BTC Correlation', 'TradingView'] }
-                    ].map(h => `
-                        <div class="f-card" onclick="switchView('${h.hub}')" style="display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden">
-                            <div style="display:flex;align-items:center;justify-content:space-between">
-                                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--accent)">${h.icon}</span>
-                                <span style="font-size:0.55rem;font-weight:900;letter-spacing:2px;padding:3px 8px;border-radius:100px;background:rgba(0,242,255,0.1);color:var(--accent);border:1px solid rgba(0,242,255,0.2)">${h.badge}</span>
+            </div>
+
+            <!-- STORY 1: Signal intelligence -->
+            <section class="lp-narrative">
+                <div class="lp-story lp-reveal">
+                    <div class="lp-story-text">
+                        <div class="lp-story-eyebrow">SIGNAL INTELLIGENCE</div>
+                        <h2 class="lp-story-h2">A Z-score above +2.0 means the market has moved <em>two standard deviations</em> from its own baseline.</h2>
+                        <p class="lp-story-p">Most traders see a chart. AlphaSignal sees a deviation score across 50+ assets -- then ranks them, tags the regime, and writes the thesis. The signal hits before the narrative does.</p>
+                        <button class="lp-story-link" onclick="switchView('alpha-hub')">OPEN SIGNAL HUB <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></button>
+                    </div>
+                    <div class="lp-story-visual">
+                        <div class="lp-signal-demo">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div><div class="lp-signal-ticker" id="lp-demo-ticker">BTC-USD</div><div class="lp-signal-type">LONG &middot; ML CONFIRMED</div></div>
+                                <span style="font-size:0.55rem;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.25);border-radius:100px;padding:3px 10px;font-weight:700">LIVE</span>
                             </div>
-                            <h3 style="font-size:0.9rem;margin:0">${h.name}</h3>
-                            <p style="font-size:0.75rem;color:var(--text-dim);line-height:1.6;margin:0;flex:1">${h.desc}</p>
-                            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
-                                ${h.views.map(v => `<span style="font-size:0.55rem;background:${alphaColor(0.05)};border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-dim)">${v}</span>`).join('')}
+                            <div class="lp-signal-z" id="lp-demo-z">+2.84</div>
+                            <div class="lp-signal-meta">
+                                <div class="lp-signal-meta-item"><div class="lp-signal-meta-label">ML CONFIDENCE</div><div class="lp-signal-meta-val" id="lp-demo-conf">81%</div></div>
+                                <div class="lp-signal-meta-item"><div class="lp-signal-meta-label">REGIME</div><div class="lp-signal-meta-val" id="lp-demo-regime">TRENDING</div></div>
+                                <div class="lp-signal-meta-item"><div class="lp-signal-meta-label">OI CHANGE</div><div class="lp-signal-meta-val pos" id="lp-demo-oi">+4.2%</div></div>
+                                <div class="lp-signal-meta-item"><div class="lp-signal-meta-label">FUNDING</div><div class="lp-signal-meta-val pos" id="lp-demo-fund">+0.012%</div></div>
+                            </div>
+                            <div class="lp-thesis"><div class="lp-thesis-label">AI THESIS</div><span id="lp-demo-thesis">Spot demand outpacing perp open interest growth -- suggests organic buying rather than leveraged positioning. Funding positive but not overheated.</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STORY 2: Derivatives -->
+                <div class="lp-story reverse lp-reveal">
+                    <div class="lp-story-text">
+                        <div class="lp-story-eyebrow">DERIVATIVES INTELLIGENCE</div>
+                        <h2 class="lp-story-h2">Dealers hedge their gamma exposure. <em>That hedging moves the market.</em></h2>
+                        <p class="lp-story-p">The Gamma Exposure profile shows where market makers are forced to buy and sell as spot price moves. High positive GEX = price magnet. Negative GEX = amplified swings. Most people learn this years into trading. It's on the dashboard.</p>
+                        <button class="lp-story-link" onclick="switchView('derivatives')">OPEN DERIVATIVES HUB <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></button>
+                    </div>
+                    <div class="lp-story-visual">
+                        <div class="lp-gex-bar-wrap">
+                            <div class="lp-gex-current-line">
+                                <span class="lp-gex-current-label">SPOT</span>
+                                <span class="lp-gex-current-price" id="lp-gex-spot">$Ã¢â‚¬â€</span>
+                                <span style="font-size:0.55rem;color:var(--text-dim);margin-left:4px">GEX PROFILE</span>
+                            </div>
+                            ${[
+                                ['+5%','rgba(74,222,128,0.7)',72],
+                                ['+3%','rgba(74,222,128,0.5)',91],
+                                ['+1%','rgba(74,222,128,0.35)',58],
+                                ['ATM','rgba(125,211,252,0.9)',100,'font-weight:900;color:var(--accent)'],
+                                ['-1%','rgba(248,113,113,0.35)',44],
+                                ['-3%','rgba(248,113,113,0.6)',67],
+                                ['-5%','rgba(248,113,113,0.4)',38],
+                            ].map(([s,c,w,extra=''])=>`
+                                <div class="lp-gex-row">
+                                    <span class="lp-gex-strike" style="${extra}">${s}</span>
+                                    <div class="lp-gex-bar-outer"><div class="lp-gex-bar" style="width:${w}%;background:${c}"></div></div>
+                                    <span class="lp-gex-val">${w}M</span>
+                                </div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STORY 3: Funding/Heatmap -->
+                <div class="lp-story lp-reveal">
+                    <div class="lp-story-text">
+                        <div class="lp-story-eyebrow">PERPETUALS FLOW</div>
+                        <h2 class="lp-story-h2">Funding rate is how the market taxes leverage. <em>Watch who's paying whom.</em></h2>
+                        <p class="lp-story-p">When perpetual futures trade at a premium to spot, longs pay shorts. When everyone is long and paying a premium, the setup for a squeeze is already building. The funding heatmap tracks this across 44 perp markets simultaneously.</p>
+                        <button class="lp-story-link" onclick="switchView('derivatives')">VIEW FUNDING HEATMAP <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></button>
+                    </div>
+                    <div class="lp-story-visual">
+                        <div style="padding:1.25rem">
+                            <div style="font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:1rem">FUNDING RATE HEATMAP -- 44 PERPS</div>
+                            <div class="lp-heat-grid">
+                                ${['BTC','ETH','SOL','BNB','XRP','ADA','DOGE','AVAX',
+                                   'LINK','DOT','MATIC','UNI','ATOM','LTC','BCH','FIL',
+                                   'APT','ARB','OP','INJ','TIA','SUI','SEI','JUP',
+                                   'WIF','BONK','PEPE','FLOKI','SHIB','MEME','BOME','DOGS'].map(t=>{
+                                    const v = (Math.sin(t.charCodeAt(0)*7+t.charCodeAt(t.length-1))*0.05).toFixed(4);
+                                    const pos = parseFloat(v)>=0;
+                                    const intensity = Math.min(Math.abs(parseFloat(v))/0.05,1);
+                                    const bg = pos
+                                        ? `rgba(74,222,128,${0.1+intensity*0.5})`
+                                        : `rgba(248,113,113,${0.1+intensity*0.5})`;
+                                    return `<div class="lp-heat-cell" style="background:${bg};color:${pos?'#4ade80':'#f87171'}" title="${t}: ${v}%">${t.slice(0,3)}</div>`;
+                                }).join('')}
+                            </div>
+                            <div style="display:flex;justify-content:space-between;margin-top:0.75rem;font-size:0.55rem;color:var(--text-dim)">
+                                <span style="color:#f87171">&#9632; SHORT PAYS</span>
+                                <span>LIVE FUNDING</span>
+                                <span style="color:#4ade80">&#9632; LONG PAYS</span>
                             </div>
                         </div>
-                    `).join('')}
-                </div>
-            </section>
-                </div>
-            </section>
-
-            <!-- ===== CONVICTION DIALS ===== -->
-            <section class="system-dials-section" style="padding:4rem 2rem;max-width:1400px;margin:0 auto;border-top:1px solid var(--border)">
-                <div class="section-title-wrap" style="text-align:center;margin-bottom:3rem">
-                    <h2>Live System Conviction Dials</h2>
-                    <p style="color:var(--text-dim);font-size:1rem;margin-top:0.5rem">Analog institutional indicators tracking global market psychology and blockchain network stress.</p>
-                </div>
-                <div class="dials-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:3rem">
-                    <div class="glass-card" style="padding:2rem;text-align:center;border-radius:20px">
-                        <h3 style="color:var(--accent);font-size:1rem;letter-spacing:1px;margin-bottom:1rem">FEAR & GREED</h3>
-                        <div style="position:relative;width:100%;height:200px;border-radius:16px;overflow:hidden"><canvas id="gauge-fear" role="img" aria-label="Fear and greed index gauge"></canvas></div>
-                        <p style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem">Composite sentiment from volume, volatility, social data, and dominance shifts</p>
-                    </div>
-                    <div class="glass-card" style="padding:2rem;text-align:center;border-radius:20px">
-                        <h3 style="color:var(--accent);font-size:1rem;letter-spacing:1px;margin-bottom:1rem">NETWORK CONGESTION</h3>
-                        <div style="position:relative;width:100%;height:200px;border-radius:16px;overflow:hidden"><canvas id="gauge-congestion" role="img" aria-label="Network congestion gauge"></canvas></div>
-                        <p style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem">Bitcoin mempool utilisation and fee rate velocity - a proxy for institutional urgency</p>
-                    </div>
-                    <div class="glass-card" style="padding:2rem;text-align:center;border-radius:20px">
-                        <h3 style="color:var(--accent);font-size:1rem;letter-spacing:1px;margin-bottom:1rem">RETAIL FOMO</h3>
-                        <div style="position:relative;width:100%;height:200px;border-radius:16px;overflow:hidden"><canvas id="gauge-fomo" role="img" aria-label="Retail FOMO index gauge"></canvas></div>
-                        <p id="fomo-source-note" style="font-size:0.7rem;color:var(--text-dim);margin-top:0.5rem">Google Trends + social search volume divergence from institutional accumulation patterns</p>
-                    </div>
-                </div>
-                <div style="text-align:center;margin-top:2rem">
-                    <button class="intel-action-btn outline" onclick="switchView('command-center')">
-                        <span class="material-symbols-outlined" style="margin-right:8px;vertical-align:middle">dashboard</span>VIEW DASHBOARD
-                    </button>
-                </div>
-            </section>
-
-            <!-- ===== PHASE 20 FEATURE SPOTLIGHT ===== -->
-            <section style="padding:4rem 2rem;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(139,92,246,0.04),rgba(0,0,0,0.4))">
-                <div style="max-width:1200px;margin:0 auto">
-                    <div style="text-align:center;margin-bottom:3rem">
-                        <span style="font-size:0.6rem;font-weight:900;letter-spacing:3px;color:#8b5cf6;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:100px;padding:4px 14px">RETENTION &amp; GROWTH SUITE</span>
-                        <h2 style="margin-top:1.5rem">Built for Traders Who Stay</h2>
-                        <p style="color:var(--text-dim)">My Terminal, real-time price alerts, signal permalinks, and full PWA mobile support - all live and production-ready. Data quality hardened to institutional grade with server-side caching and live data feeds across 60+ views.</p>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem">
-                        ${[
-                            { icon: 'account_circle', view: 'my-terminal', color: '#00f2ff', title: 'My Terminal - Personal Hub', desc: 'Persistent watchlist with live prices, % since added performance tracking, and positions tracker with live P&L. Your signals, your targets, your terminal.' },
-                            { icon: 'gavel', view: 'exchange-keys', color: '#22c55e', title: 'KeyVault 1-Click Execution', desc: 'Institutional-grade secure storage for your exchange API keys. Execute AI-generated signals instantly with 1-click trade routing directly from the terminal.' },
-                            { icon: 'language', view: 'ask-terminal', color: '#8b5cf6', title: 'Plain English AI', desc: 'Demystify complex institutional data. Our integrated AI translators distill high-density market analytics into actionable, plain English insights across all terminal modules.' },
-                            { icon: 'webhook', view: 'webhooks', color: '#f59e0b', title: 'Integrations Hub', desc: 'Connect AlphaSignal directly to your infrastructure with custom Webhooks and Telegram/Discord bots, enabling automated strategy execution and alerting pipelines.' }
-                        ].map(f => `
-                            <div class="glass-card" onclick="switchView('${f.view}')" style="cursor:pointer;padding:1.5rem;border:1px solid ${alphaColor(0.05)};transition:all 0.2s"
-                                 onmouseover="this.style.borderColor='${f.color}';this.style.background=alphaColor(0.02)"
-                                 onmouseout="this.style.borderColor=alphaColor(0.05);this.style.background=''">
-                                <span class="material-symbols-outlined" style="font-size:2rem;color:${f.color};margin-bottom:1rem;display:block">${f.icon}</span>
-                                <h3 style="font-size:0.85rem;margin-bottom:0.5rem;color:#fff">${f.title}</h3>
-                                <p style="font-size:0.75rem;color:var(--text-dim);line-height:1.6">${f.desc}</p>
-                                <div style="margin-top:1rem;font-size:0.6rem;color:${f.color};letter-spacing:1px">OPEN VIEW -</div>
-                            </div>
-                        `).join('')}
                     </div>
                 </div>
             </section>
 
-
-            <!-- ===== HOW IT WORKS ===== -->
-            <section style="padding:4rem 2rem;border-top:1px solid var(--border)">
-                <div style="max-width:1200px;margin:0 auto">
-                    <div style="text-align:center;margin-bottom:3rem">
-                        <h2>How AlphaSignal Works</h2>
-                        <p style="color:var(--text-dim)">A four-layer intelligence pipeline from raw market data to actionable institutional signals.</p>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem;position:relative">
-                        ${[
-                            { step:'01', icon:'database', title:'Data Ingestion', desc:'Real-time OHLCV, on-chain data, social sentiment, ETF flows, and options market feeds aggregated from 15+ institutional sources.' },
-                            { step:'02', icon:'model_training', title:'ML Signal Engine', desc:'LSTM-based ML models generate Z-score deviations, regime classifications, and forward return predictions across 50+ assets.' },
-                            { step:'03', icon:'smart_toy', title:'AI Synthesis', desc:'GPT-4o-mini synthesises cross-hub intelligence into daily institutional memos, trade thesis documents, and portfolio rebalancing logic.' },
-                            { step:'04', icon:'radar', title:'Signal Delivery', desc:'Actionable signals delivered via terminal views, Discord/Telegram webhooks, and the institutional trade ledger with full audit trail.' }
-                        ].map((s,i) => `
-                            <div style="text-align:center;position:relative">
-                                ${i < 3 ? '<div style="position:absolute;top:2rem;right:-1rem;width:2rem;height:2px;background:linear-gradient(90deg,var(--accent),transparent);display:none"></div>' : ''}
-                                <div style="width:60px;height:60px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;background:rgba(0,242,255,0.05)">
-                                    <span class="material-symbols-outlined" style="color:var(--accent)">${s.icon}</span>
-                                </div>
-                                <div style="font-size:0.6rem;color:var(--accent);letter-spacing:3px;margin-bottom:0.5rem">STEP ${s.step}</div>
-                                <h3 style="font-size:0.85rem;margin-bottom:0.5rem">${s.title}</h3>
-                                <p style="font-size:0.75rem;color:var(--text-dim);line-height:1.6">${s.desc}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== SEO CONTENT ===== -->
-            <section class="seo-content-extra" style="padding:4rem 2rem;border-top:1px solid var(--border);">
-                <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4rem">
-                    <div>
-                        <h2 style="color:var(--accent);margin-bottom:1.5rem;font-size:1.3rem">The AlphaSignal Advantage</h2>
-                        <p style="color:var(--text-dim);line-height:1.8;margin-bottom:1.5rem">In the fast-moving digital asset market, professional traders require more than just price action. <strong>AlphaSignal</strong> bridges the gap between retail noise and institutional intelligence. Our proprietary <strong>alpha synthesis</strong> engine tracks thousands of data points across <strong>Bitcoin</strong> on-chain flows, exchange liquidity, ETF capital, and social sentiment to deliver a high-conviction <strong>signal</strong> for every market regime.</p>
-                        <p style="color:var(--text-dim);line-height:1.8">Whether you are validating a new <strong>strategy</strong> in the Backtester or monitoring live <strong>options flow</strong> on Deribit, our terminal provides the statistical depth needed to outperform any benchmark.</p>
-                    </div>
-                    <div>
-                        <h2 style="color:var(--accent);margin-bottom:1.5rem;font-size:1.3rem">Institutional Data. Zero Compromise.</h2>
-                        <p style="color:var(--text-dim);line-height:1.8;margin-bottom:1.5rem">AlphaSignal sources market data from regulated venues: <strong>CME</strong> futures gaps, <strong>Deribit</strong> options, <strong>Glassnode-class</strong> on-chain metrics via CoinGecko and Blockchain.info, and daily spot <strong>ETF AUM</strong> data from BlackRock, Fidelity, and ARK. Every data point is timestamped, provenance-tagged, and available for institutional audit.</p>
-                        <p style="color:var(--text-dim);line-height:1.8">Protecting capital is the foundation of institutional success. AlphaSignal's <strong>risk</strong> suite offers real-time <strong>stress testing</strong> and correlation matrices to identify systemic decoupling before it impacts your portfolio.</p>
-                    </div>
-                    <div>
-                        <h2 style="color:var(--accent);margin-bottom:1.5rem;font-size:1.3rem">AI-First Architecture</h2>
-                        <p style="color:var(--text-dim);line-height:1.8;margin-bottom:1.5rem">At the core of AlphaSignal is an <strong>AI-first</strong> analytical philosophy. Our <strong>ML Alpha Engine</strong> uses LSTM-class architectures trained on 2+ years of multi-asset price, volume, and sentiment data. Every signal is accompanied by a <strong>neural confidence score</strong> and a <strong>GPT-generated trade thesis</strong> memo.</p>
-                        <p style="color:var(--text-dim);line-height:1.8">The <strong>Ask Terminal</strong> AI assistant has full context of all terminal modules, allowing institutional teams to query methodology, interpret signals, and generate on-demand research briefs in under 5 seconds.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== FAQ ===== -->
-            <section class="faq-section" style="padding:4rem 2rem;border-top:1px solid var(--border)">
-                <div style="max-width:900px;margin:0 auto">
-                    <h2 style="text-align:center;margin-bottom:3rem">Frequently Asked Questions</h2>
-                    <div style="display:flex;flex-direction:column;gap:1.5rem">
-                        ${[
-                            { q: 'How does AlphaSignal calculate Alpha?', a: 'Alpha is calculated using a rolling Z-score deviation of returns relative to a Bitcoin (BTC) benchmark, adjusted for institutional volume and order flow magnitude. A Z-score > +2.0 indicates a statistically significant positive deviation from the benchmark - the core of our signal generation logic.' },
-                            { q: 'What makes the Options Flow Scanner different?', a: 'AlphaSignal\'s Options Flow Scanner sources live data directly from the Deribit API - the world\'s largest crypto options exchange by volume. We compute Put/Call ratio, Max Pain strike, ATM Implied Volatility, and the full IV smile across all strikes, providing a complete options intelligence view unavailable in standard retail terminals.' },
-                            { q: 'How does the AI Portfolio Rebalancer work?', a: 'The AI Rebalancer uses Monte Carlo simulation to model 10,000 portfolio scenarios across your current holdings. It then applies Markowitz Efficient Frontier optimisation constrained by your ML signal confidence scores, and generates a GPT-4 rebalancing memo explaining the rationale. All recommended trades are convertible to execution tickets in the Trade Ledger.' },
-                            { q: 'What data sources power the Macro Event Calendar?', a: 'The calendar aggregates FOMC, CPI, NFP, and PCE schedules from the Federal Reserve, Bureau of Labor Statistics, and Bureau of Economic Analysis. Each event is scored for historical BTC impact using 2 years of real price data via yfinance, allowing you to see the median move and directional bias for each event type.' },
-                            { q: 'Is this terminal suitable for automated strategies?', a: 'Yes. AlphaSignal is designed for strategy validation and systematised execution. The Signal Archive and Backtester V2 allow you to verify historical performance across different market regimes. The Trade Idea Lab and Trade Ledger support structured execution workflows, and the institutional API provides programmatic data access for quant desks intent on integrating AlphaSignal intelligence into automated systems.' },
-                            { q: 'Can I use AlphaSignal on mobile?', a: 'Yes. AlphaSignal is a Progressive Web App (PWA) installable on iOS and Android. Navigate to the terminal on your mobile browser and select "Add to Home Screen" for a full native-app experience. The interface is fully responsive across all viewport sizes.' }
-                        ].map(faq => `
-                            <div class="faq-item glass-card" style="padding:1.5rem">
-                                <h4 style="color:var(--text);margin-bottom:0.75rem;font-size:0.9rem;display:flex;align-items:center;gap:8px">
-                                    <span class="material-symbols-outlined" style="color:var(--accent);font-size:1rem">help_outline</span>
-                                    ${faq.q}
-                                </h4>
-                                <p style="color:var(--text-dim);font-size:0.85rem;line-height:1.7;margin:0">${faq.a}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== PRICING ===== -->
-            <section id="pricing" style="padding:5rem 2rem;border-top:1px solid var(--border);">
-                <div style="max-width:900px;margin:0 auto;text-align:center">
-                    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.2);border-radius:100px;padding:4px 14px;margin-bottom:1rem;font-size:0.65rem;letter-spacing:2px;color:var(--accent)">SIMPLE PRICING</div>
-                    <h2 style="font-size:2.2rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:0.75rem">Institutional Intelligence.<br><span style="color:var(--accent)">One Flat Fee.</span></h2>
-                    <p style="color:var(--text-dim);font-size:1rem;margin-bottom:3rem;max-width:500px;margin-left:auto;margin-right:auto">No seat fees. No data surcharges. Every hub, every signal, every AI feature - all included.</p>
-
+            <!-- PRICING -->
+            <section id="pricing" style="padding:5rem 2rem;border-top:1px solid var(--border)">
+                <div style="max-width:860px;margin:0 auto;text-align:center">
+                    <div class="lp-badge" style="margin-bottom:1.5rem">PRICING</div>
+                    <h2 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;letter-spacing:-1px;margin-bottom:0.75rem">Pick a tier.<br><span style="color:var(--accent)">Both are serious.</span></h2>
+                    <p style="color:var(--text-dim);margin-bottom:3rem;font-size:0.95rem">No hidden fees. No data surcharges. Cancel any time.</p>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;text-align:left">
-
-                        <!-- FREE TIER -->
-                        <div style="background:${alphaColor(0.03)};border:1px solid var(--border);border-radius:16px;padding:2rem;display:flex;flex-direction:column">
-                            <div style="font-size:0.65rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:0.5rem">FREE</div>
-                            <div style="font-size:2.5rem;font-weight:900;margin-bottom:0.25rem">$0<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
-                            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:2rem">No credit card required</div>
-                            <div style="flex:1;display:flex;flex-direction:column;gap:12px;margin-bottom:2rem">
-                                ${[
-                                    ['check','Live Signal Feed (50 assets)'],
-                                    ['check','Fear & Greed + Conviction Dials'],
-                                    ['check','Basic Z-Score Signals'],
-                                    ['check','Market Pulse Bar (BTC/ETH/SOL)'],
-                                    ['check','Public Documentation Hub'],
-                                    ['close','Strategy Backtester V2'],
-                                    ['close','Options Flow Scanner'],
-                                    ['close','On-Chain Intelligence Hub'],
-                                    ['close','AI Portfolio Rebalancer'],
-                                    ['close','Discord/Telegram Alerts'],
-                                    ['close','Monte Carlo Simulator'],
-                                ].map(([icon, label]) => `
-                                <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem;color:${icon==='check'?'var(--text)':'var(--text-dim)'}">
-                                    <span class="material-symbols-outlined" style="font-size:1rem;color:${icon==='check'?'var(--risk-low)':alphaColor(0.2)}">${icon}</span>
-                                    ${label}
-                                </div>`).join('')}
+                        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:16px;padding:2rem;display:flex;flex-direction:column">
+                            <div style="font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);font-weight:700;margin-bottom:0.5rem">FREE</div>
+                            <div style="font-size:2.5rem;font-weight:900;margin-bottom:1.5rem">$0<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:2rem">
+                                ${['Live signal feed (50 assets)','Z-score signal dashboard','Fear & Greed + conviction dials','Market pulse bar','Public docs hub'].map(l=>`
+                                <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem">
+                                    <span class="material-symbols-outlined" style="font-size:1rem;color:#4ade80">check</span>${l}</div>`).join('')}
+                                ${['Strategy backtester','Options flow scanner','On-chain hub','AI portfolio rebalancer','Discord/Telegram alerts'].map(l=>`
+                                <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem;color:var(--text-dim)">
+                                    <span class="material-symbols-outlined" style="font-size:1rem;color:rgba(255,255,255,0.1)">close</span>${l}</div>`).join('')}
                             </div>
-                            <button class="intel-action-btn" style="width:100%;background:${alphaColor(0.04)};border-color:var(--border);color:var(--text-dim)" onclick="switchView('signals')">
-                                START FREE
-                            </button>
+                            <button class="lp-btn-ghost" style="width:100%;justify-content:center" onclick="switchView('signals')">START FREE</button>
                         </div>
-
-                        <!-- PRO TIER -->
-                        <div style="background:linear-gradient(135deg,rgba(0,242,255,0.07),rgba(139,92,246,0.05));border:1px solid rgba(125,211,252,0.25);border-radius:16px;padding:2rem;display:flex;flex-direction:column;position:relative;box-shadow:0 0 40px rgba(0,242,255,0.08)">
+                        <div style="background:linear-gradient(135deg,rgba(125,211,252,0.07),rgba(139,92,246,0.05));border:1px solid rgba(125,211,252,0.25);border-radius:16px;padding:2rem;display:flex;flex-direction:column;position:relative;box-shadow:0 0 40px rgba(125,211,252,0.06)">
                             <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:rgba(125,211,252,0.12);color:var(--accent);font-size:0.6rem;font-weight:900;letter-spacing:2px;padding:4px 16px;border-radius:100px;white-space:nowrap">MOST POPULAR</div>
-                            <div style="font-size:0.65rem;letter-spacing:2px;color:var(--accent);font-weight:700;margin-bottom:0.5rem">PRO</div>
+                            <div style="font-size:0.6rem;letter-spacing:2px;color:var(--accent);font-weight:700;margin-bottom:0.5rem">PRO</div>
                             <div style="font-size:2.5rem;font-weight:900;margin-bottom:0.25rem;color:var(--accent)">$7.99<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
-                            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:2rem">Cancel anytime - Billed monthly</div>
-                            <div style="flex:1;display:flex;flex-direction:column;gap:12px;margin-bottom:2rem">
-                                ${[
-                                    'Everything in Free',
-                                    'Strategy Backtester V2 (15 strategies)',
-                                    'AI Portfolio Rebalancer (Monte Carlo)',
-                                    'Options Flow Scanner (Deribit live)',
-                                    'On-Chain Hub (MVRV, SOPR, NVT)',
-                                    'Whale Pulse + Wallet Attribution',
-                                    'Macro Calendar + AI Market Briefing',
-                                    'Discord & Telegram Alert Webhooks',
-                                    'AI Trade Thesis Generator',
-                                    'Strategy Compare (all 15 strategies)',
-                                    'Multi-Ticker Backtest Comparison',
-                                    'Full PDF Research Report Export',
-                                ].map(label => `
-                                <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem;color:var(--text)">
-                                    <span class="material-symbols-outlined" style="font-size:1rem;color:var(--risk-low)">check_circle</span>
-                                    ${label}
-                                </div>`).join('')}
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:1.5rem">Cancel anytime</div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:2rem">
+                                ${['Everything in Free','Strategy backtester V2','AI portfolio rebalancer (Monte Carlo)','Options flow scanner (Deribit live)','On-chain hub (MVRV, SOPR, NVT)','Whale pulse + wallet attribution','Macro calendar + AI briefing','Discord & Telegram webhooks','AI trade thesis generator','Full PDF research export'].map(l=>`
+                                <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem">
+                                    <span class="material-symbols-outlined" style="font-size:1rem;color:#4ade80">check_circle</span>${l}</div>`).join('')}
                             </div>
-                            <button class="intel-action-btn large" style="width:100%;background:linear-gradient(90deg,rgba(0,242,255,0.15),rgba(139,92,246,0.1));border-color:var(--accent);font-size:0.85rem" onclick="typeof handleSubscribe !== 'undefined' ? handleSubscribe() : switchView('signals')">
-                                <span class="material-symbols-outlined" style="margin-right:8px">bolt</span>
-                                UNLOCK PRO - $7.99/MO
+                            <button class="lp-btn-primary" style="width:100%;justify-content:center" onclick="typeof handleSubscribe!=='undefined'?handleSubscribe():switchView('signals')">
+                                <span class="material-symbols-outlined" style="font-size:18px">bolt</span>UNLOCK PRO &mdash; $7.99/MO
                             </button>
-                            <div style="text-align:center;margin-top:0.75rem;font-size:0.65rem;color:var(--text-dim)">Secure payment via Stripe - Instant access</div>
+                            <div style="text-align:center;margin-top:0.75rem;font-size:0.65rem;color:var(--text-dim)">Secure payment via Stripe &middot; Instant access</div>
                         </div>
-
-                    </div>
-
-                    <!-- Reassurance bar -->
-                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;margin-top:3rem">
-                        ${[
-                            ['lock','Bank-grade encryption'],
-                            ['cancel','Cancel anytime'],
-                            ['verified','No hidden fees'],
-                            ['support_agent','Telegram support'],
-                        ].map(([icon, label]) => `
-                        <div style="display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--text-dim)">
-                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">${icon}</span>${label}
-                        </div>`).join('')}
                     </div>
                 </div>
             </section>
 
-            <!-- ===== CTA FOOTER ===== -->
-            <section style="padding:5rem 2rem;text-align:center;border-top:1px solid var(--border);background:linear-gradient(135deg,rgba(0,242,255,0.04),rgba(0,0,0,0.5))">
-                <div style="max-width:700px;margin:0 auto">
-                    <span class="material-symbols-outlined" style="font-size:3rem;color:var(--accent);margin-bottom:1rem;display:block">radar</span>
-                    <h2 style="font-size:2.5rem;font-weight:900;letter-spacing:-1px;margin-bottom:1rem">Start Trading with Institutional Intelligence</h2>
-                    <p style="color:var(--text-dim);font-size:1.1rem;line-height:1.6;margin-bottom:2.5rem">80+ live analytical views. 10 intelligence hubs. AI-powered signals. Zero compromise on data quality.</p>
-                    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-                        <button class="intel-action-btn large secondary" onclick="switchView('help')" style="font-size:0.9rem;padding:14px 32px">
-                            <span class="material-symbols-outlined" style="margin-right:8px">menu_book</span> VIEW DOCUMENTATION
-                        </button>
+            <!-- CTA -->
+            <section class="lp-cta lp-reveal">
+                <div class="lp-cta-inner">
+                    <div class="lp-cta-pre">THE EDGE IS IN THE DATA</div>
+                    <h2 class="lp-cta-h2">Stop reading about the market.<br><em>Start reading it.</em></h2>
+                    <p class="lp-cta-sub">80+ live views. Real institutional data. AI that explains what it means rather than what you want to hear.</p>
+                    <div class="lp-cta-actions">
+                        ${!isAuthenticatedUser
+                            ? `<button class="lp-btn-primary" onclick="showAuth(true)"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>JOIN FREE</button>`
+                            : `<button class="lp-btn-primary" onclick="switchView('command-center')"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>OPEN DASHBOARD</button>`}
+                        <button class="lp-btn-ghost" onclick="switchView('help')"><span class="material-symbols-outlined" style="font-size:18px">menu_book</span>DOCUMENTATION</button>
                     </div>
                 </div>
             </section>
@@ -343,77 +214,109 @@ async function renderHome() {
         </div>
     `;
 
-    // Inject the preserved LCP image back into the DOM
-    if (preservedHeroImg) {
-        const mount = document.getElementById('hero-img-mount');
-        if (mount) mount.insertBefore(preservedHeroImg, mount.firstChild);
-    }
-
-    // Gauges need dials data - wire up placeholder canvases now, hydrate in background
-    // (gauge canvases are already in the DOM from the innerHTML above)
-
-    // --- Phase 2: fetch live data in background, hydrate without re-rendering ---
+    // --- Phase 2: hydrate live data into terminal panel, tape, signal demo ---
     Promise.allSettled([
         fetchAPI('/system-dials'),
         fetchAPI('/signals'),
         fetchAPI('/signal-leaderboard')
-    ]).then(([dialsData, signalData, lbData]) => {
-        // Only hydrate if the home view is still active (user hasn't navigated away)
-        if (!document.getElementById('home-stats-chips')) return;
+    ]).then(([dialsRes, sigsRes, lbRes]) => {
+        if (!document.getElementById('lp-btc-price')) return;
+        const dials = dialsRes.value?.dials || null;
+        // Handle both plain array and { signals: [] } envelope
+        const _raw  = sigsRes.value;
+        const sigs  = Array.isArray(_raw) ? _raw : (_raw?.signals || []);
+        const top   = sigs[0] || null;
+        const fg    = dials?.fear_greed?.value ?? null;
+        const fgLabel = fg === null ? '--' : fg > 60 ? `${Math.round(fg)} GREED` : fg < 40 ? `${Math.round(fg)} FEAR` : `${Math.round(fg)} NEUTRAL`;
+        const fgColor = fg === null ? 'var(--text-dim)' : fg > 60 ? '#4ade80' : fg < 40 ? '#f87171' : '#fb923c';
 
-        const liveDials = dialsData.status === 'fulfilled' && dialsData.value?.dials ? dialsData.value.dials : null;
-        const liveSigs  = signalData.status === 'fulfilled' && Array.isArray(signalData.value) ? signalData.value : [];
-        const liveLb    = lbData.status === 'fulfilled' && lbData.value ? lbData.value : null;
-        const liveTop   = liveSigs[0] || null;
-        const lbRows    = liveLb?.rows || liveLb?.leaderboard || liveLb?.data || [];
-        const lbTotal   = lbRows.length;
-        const liveWR    = lbTotal > 0
-            ? Math.round(lbRows.reduce((a, r) => a + (r.win_rate ?? r.winRate ?? 0), 0) / lbTotal)
-            : null;
-        const liveColor = liveWR === null ? '#94a3b8' : liveWR >= 60 ? '#22c55e' : liveWR >= 45 ? '#f59e0b' : '#ef4444';
+        // Terminal rows
+        const set = (id, html, color) => { const el = document.getElementById(id); if (el) { el.innerHTML = html; if (color) el.style.color = color; } };
+        set('lp-sigs', sigs.length > 0 ? sigs.length : '--');
+        set('lp-fg', fgLabel, fgColor);
+        set('lp-funding', '--'); // updated by funding-rates callback below
 
-        // Patch stat chips
-        const chipsEl = document.getElementById('home-stats-chips');
-        if (chipsEl) {
-            chipsEl.innerHTML = liveTop ? `
-                <div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
-                    <span style="color:var(--text-dim);letter-spacing:1px">TOP SIGNAL</span>
-                    <span style="color:var(--accent);font-weight:800;margin-left:8px">${liveTop.ticker || 'BTC-USD'}</span>
-                    <span style="color:${parseFloat(liveTop.zScore) > 0 ? 'var(--risk-low)' : 'var(--risk-high)'};margin-left:6px">Z ${parseFloat(liveTop.zScore || 0).toFixed(2)}</span>
-                </div>
-                <div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
-                    <span style="color:var(--text-dim);letter-spacing:1px">SIGNALS LIVE</span>
-                    <span style="color:var(--accent);font-weight:800;margin-left:8px">${liveSigs.length}</span>
-                </div>
-                ${liveDials ? `<div style="background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.15);border-radius:8px;padding:8px 16px;font-size:0.7rem">
-                    <span style="color:var(--text-dim);letter-spacing:1px">FEAR &amp; GREED</span>
-                    <span style="color:var(--accent);font-weight:800;margin-left:8px">${Math.round(liveDials.fear_greed?.value || 50)}</span>
-                </div>` : ''}
-                ${liveWR !== null ? `
-                <div onclick="switchView('alerts-hub')" style="cursor:pointer;background:rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.08);border:1px solid rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.25);border-radius:8px;padding:8px 16px;font-size:0.7rem;transition:all 0.15s" onmouseover="this.style.background='rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.15)'" onmouseout="this.style.background='rgba(${liveColor==='#22c55e'?'34,197,94':'251,146,60'},0.08)'">
-                    <span style="color:var(--text-dim);letter-spacing:1px">SIGNAL WIN RATE</span>
-                    <span style="color:${liveColor};font-weight:900;font-size:0.85rem;margin-left:8px">${liveWR}%</span>
-                    <span style="color:var(--text-dim);font-size:0.6rem;margin-left:4px">${lbTotal} signals -</span>
-                </div>` : ''}
-            ` : '';
+        // Regime extraction (must be before if(top) block)
+        const regimeRaw = _raw?._market_regime || top?.regime || null;
+        const regimeStr = typeof regimeRaw === 'string' ? regimeRaw : (regimeRaw?.label || regimeRaw?.regime || null);
+        if (regimeStr) set('lp-oi', regimeStr);
+
+        // Top signal card
+        if (top) {
+            const z = parseFloat(top.zScore || 0);
+            const zCol = z > 0 ? '#4ade80' : '#f87171';
+            set('lp-demo-ticker', top.ticker || 'BTC-USD');
+            const zEl = document.getElementById('lp-demo-z');
+            if (zEl) { zEl.textContent = (z >= 0 ? '+' : '') + z.toFixed(2); zEl.style.color = zCol; }
+            set('lp-demo-conf', top.alpha != null ? (top.alpha >= 0 ? '+' : '') + parseFloat(top.alpha).toFixed(2) + '%' : '--');
+            set('lp-demo-regime', regimeStr || top?.category || '--');
+            set('lp-ts-val', `${top.ticker || 'BTC'} Z: ${(z >= 0 ? '+' : '') + z.toFixed(2)}`, zCol);
+            set('lp-ts-sub', top.signal || (z > 0 ? 'LONG signal confirmed' : 'SHORT signal confirmed'));
         }
 
-        // Patch stats-bar win rate
-        const wrStatEl = document.getElementById('home-wr-stat');
-        if (wrStatEl && liveWR !== null) {
-            wrStatEl.innerHTML = `
-                <div onclick="switchView('alerts-hub')" style="cursor:pointer" title="View Signal Leaderboard">
-                    <div style="font-size:2rem;font-weight:900;color:${liveColor};line-height:1">${liveWR}%</div>
-                    <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;margin-top:4px">Signal Win Rate</div>
-                </div>`;
-        }
+        // Fetch BTC/ETH spot prices
+        Promise.allSettled([
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd').then(r=>r.json())
+        ]).then(([priceRes]) => {
+            if (priceRes.status === 'fulfilled' && priceRes.value) {
+                const p = priceRes.value;
+                const fmt = n => '$' + Number(n).toLocaleString('en-US', {maximumFractionDigits:0});
+                set('lp-btc-price', fmt(p.bitcoin?.usd || 0));
+                set('lp-eth-price', fmt(p.ethereum?.usd || 0));
+                set('lp-gex-spot', fmt(p.bitcoin?.usd || 0));
+            }
+        });
 
-        // Draw conviction gauges now data is available
-        if (liveDials) {
-            renderSystemGauge('gauge-fear',       liveDials.fear_greed.value,        'rgba(239, 68, 68, 0.8)', 'rgba(34, 197, 94, 0.8)');
-            renderSystemGauge('gauge-congestion', liveDials.network_congestion.value, 'rgba(34, 197, 94, 0.8)', 'rgba(239, 68, 68, 0.8)');
-            renderSystemGauge('gauge-fomo',       liveDials.retail_fomo.value,        'rgba(0, 242, 255, 0.8)', 'rgba(168, 85, 247, 0.8)');
+        // Tape hydration helper
+        const setTape = (key, val) => {
+            const clean = key.replace(/\W/g, '');
+            document.querySelectorAll(`#tape-${clean}`).forEach(el => el.textContent = val);
+        };
+        if (top) {
+            const z = parseFloat(top.zScore || 0);
+            setTape('TOPSIGNAL', `${top.ticker.replace('-USD','')} Z:${z>=0?'+':''}${z.toFixed(1)}`);
         }
+        if (fg !== null) setTape('FEAR &amp; GREED', Math.round(fg) + ' ' + (fg > 60 ? 'GREED' : fg < 40 ? 'FEAR' : 'NEUTRAL'));
+        if (regimeStr) setTape('REGIME', regimeStr);
+        if (sigs.length) setTape('SIGNALSLIVE', sigs.length);
+        if (top?.alpha != null) setTape('TOPALPHA', (top.alpha >= 0 ? '+' : '') + parseFloat(top.alpha).toFixed(2) + '%');
+        const netCong = dials?.network_congestion?.value;
+        if (netCong != null) setTape('MEMPOOL', Math.round(netCong) + '%');
+
+        // Fetch funding rates + BTC dominance in parallel
+        Promise.allSettled([
+            fetchAPI('/funding-rates').catch(() => null),
+            fetch('https://api.coingecko.com/api/v3/global').then(r => r.json()).catch(() => null)
+        ]).then(([frRes, cgRes]) => {
+            if (frRes.status === 'fulfilled' && frRes.value?.rows) {
+                const rows = frRes.value.rows;
+                const find = asset => rows.find(r => r.asset?.toUpperCase() === asset)?.current;
+                const fmt = v => v != null ? (v >= 0 ? '+' : '') + parseFloat(v).toFixed(4) + '%' : '--';
+                // Also update terminal panel BTC funding row
+                const btcFund = find('BTC');
+                if (btcFund != null) set('lp-funding', (btcFund >= 0 ? '+' : '') + parseFloat(btcFund).toFixed(4) + '%', btcFund >= 0 ? '#4ade80' : '#f87171');
+                setTape('BTCFUNDING', fmt(find('BTC')));
+                setTape('SOLFUNDING', fmt(find('SOL')));
+                setTape('ETHGAS', fmt(find('ETH')));
+                // OI from rows if available
+                const btcRow = rows.find(r => r.asset?.toUpperCase() === 'BTC');
+                const ethRow = rows.find(r => r.asset?.toUpperCase() === 'ETH');
+                if (btcRow?.oi_change != null) setTape('BTCOICHG', (btcRow.oi_change >= 0 ? '+' : '') + btcRow.oi_change.toFixed(1) + '%');
+                if (ethRow?.oi_change != null) setTape('ETHOICHG', (ethRow.oi_change >= 0 ? '+' : '') + ethRow.oi_change.toFixed(1) + '%');
+            }
+            if (cgRes.status === 'fulfilled' && cgRes.value?.data) {
+                const dom = cgRes.value.data.market_cap_percentage?.btc;
+                if (dom != null) setTape('BTCDOMINANCE', dom.toFixed(1) + '%');
+            }
+        });
+
+        // Scroll-reveal observer
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.lp-reveal').forEach(el => observer.observe(el));
     });
+
 }
+
 
