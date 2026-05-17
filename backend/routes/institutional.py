@@ -7258,10 +7258,25 @@ class InstitutionalRoutesMixin:
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             ticker = query.get('ticker', ['BTC'])[0].upper()
+            yf_ticker = f'{ticker}-USD'
+
+            # Robust spot price lookup: fast_info is a single lightweight API call
+            spot = None
             try:
-                spot = float(CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close').iloc[-1])
-            except:
-                spot = 90000.0 if ticker == 'BTC' else 3000.0
+                spot = float(yf.Ticker(yf_ticker).fast_info['last_price'])
+            except Exception:
+                pass
+            if not spot or spot <= 0:
+                try:
+                    h = yf.Ticker(yf_ticker).history(period='1d', interval='1h')
+                    if not h.empty:
+                        spot = float(h['Close'].dropna().iloc[-1])
+                except Exception:
+                    pass
+            if not spot or spot <= 0:
+                _FALLBACKS = {'BTC': 90000.0, 'ETH': 3200.0, 'SOL': 155.0, 'XRP': 0.55,
+                              'BNB': 600.0, 'ADA': 0.45, 'DOGE': 0.12, 'AVAX': 30.0}
+                spot = _FALLBACKS.get(ticker, 10.0)
 
             # Seed on ticker string hash — avoids seed collisions for assets with similar/tiny prices
             np.random.seed(abs(hash(ticker)) % (2**31))
@@ -7300,10 +7315,25 @@ class InstitutionalRoutesMixin:
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             ticker = query.get('ticker', ['BTC'])[0].upper()
+            yf_ticker = f'{ticker}-USD'
+
+            # Robust spot price lookup
+            spot = None
             try:
-                spot = float(CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close').iloc[-1])
-            except:
-                spot = 90000.0 if ticker == 'BTC' else 3000.0
+                spot = float(yf.Ticker(yf_ticker).fast_info['last_price'])
+            except Exception:
+                pass
+            if not spot or spot <= 0:
+                try:
+                    h = yf.Ticker(yf_ticker).history(period='1d', interval='1h')
+                    if not h.empty:
+                        spot = float(h['Close'].dropna().iloc[-1])
+                except Exception:
+                    pass
+            if not spot or spot <= 0:
+                _FALLBACKS = {'BTC': 90000.0, 'ETH': 3200.0, 'SOL': 155.0, 'XRP': 0.55,
+                              'BNB': 600.0, 'ADA': 0.45, 'DOGE': 0.12, 'AVAX': 30.0}
+                spot = _FALLBACKS.get(ticker, 10.0)
 
             # Seed on ticker string hash — unique per asset regardless of price magnitude
             np.random.seed(abs(hash(ticker + '_mp')) % (2**31))
