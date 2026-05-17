@@ -511,6 +511,8 @@ function openTrioModal(chartKey) {
                 upColor:'#4ade80', downColor:'#f87171',
                 borderUpColor:'#4ade80', borderDownColor:'#f87171',
                 wickUpColor:'rgba(74,222,128,0.6)', wickDownColor:'rgba(248,113,113,0.6)',
+                lastValueVisible: false,
+                priceLineVisible: false,
             });
             cs.setData(meta.candles);
             const es = lwm.addLineSeries({ color:'rgba(125,211,252,0.8)', lineWidth:1.5, priceLineVisible:false, lastValueVisible:false });
@@ -531,12 +533,14 @@ function openTrioModal(chartKey) {
 // SHARED CHART BUILDER — candlesticks + EMA band + volume
 // ============================================================
 function _buildLWChart(chart, candles, emaData) {
-    // 1. Candlesticks
+    // 1. Candlesticks — hide lastValueVisible to avoid stacking with AVWAP label
     const cs = chart.addCandlestickSeries({
         upColor:'#4ade80', downColor:'#f87171',
         borderUpColor:'#4ade80', borderDownColor:'#f87171',
         wickUpColor:'rgba(74,222,128,0.6)', wickDownColor:'rgba(248,113,113,0.6)',
         priceScaleId: 'right',
+        lastValueVisible: false,   // AVWAP label is the authoritative price anchor
+        priceLineVisible: false,   // remove the dashed last-price line too
     });
     cs.setData(candles);
 
@@ -570,15 +574,18 @@ function _buildLWChart(chart, candles, emaData) {
     const volSeries = chart.addHistogramSeries({
         priceScaleId: 'vol',
         priceFormat: { type:'volume' },
-        color: 'rgba(0,242,255,0.18)',
+        color: 'rgba(0,242,255,0.5)',
+        lastValueVisible: false,   // hide volume label on right axis
+        priceLineVisible: false,
     });
     chart.priceScale('vol').applyOptions({
         scaleMargins: { top:0.78, bottom:0 },
+        visible: false,            // hide the vol axis scale — keeps right axis clean
     });
     volSeries.setData(candles.map(c => ({
         time:  c.time,
         value: c.volume || 0,
-        color: c.close >= c.open ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.2)',
+        color: c.close >= c.open ? 'rgba(74,222,128,0.7)' : 'rgba(248,113,113,0.65)',
     })));
 
     // 5. Anchored VWAP — anchors to the highest-volume candle (peak institutional activity)

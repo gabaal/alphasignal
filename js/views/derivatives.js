@@ -142,9 +142,16 @@ async function renderFundingHeatmap(display) {
                 label     = 'NEUTRAL';
             }
 
-            return '<div style="background:' + bg + ';border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px 14px;cursor:default;transition:transform 0.15s;' + isLive + '" ' +
-                    'onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
-                '<div style="font-size:0.85rem;font-weight:900;letter-spacing:1px;color:var(--text);margin-bottom:6px">' + sym + (r.live ? '' : ' <span style="font-size:0.45rem;color:var(--text-dim)">SYN</span>') + '</div>' +
+            const ticker = sym + '-USD';
+            return '<div style="background:' + bg + ';border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px 14px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;' + isLive + '" ' +
+                    'onclick="openDetail(\'' + ticker + '\',\'EXCHANGE\',0,0,0,\'60d\',false)" ' +
+                    'title="Click to open ' + sym + ' Intelligence" ' +
+                    'onmouseover="this.style.transform=\'scale(1.03)\';this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.4)\'" ' +
+                    'onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'none\'">' +
+                '<div style="font-size:0.85rem;font-weight:900;letter-spacing:1px;color:var(--text);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">' +
+                    '<span>' + sym + (r.live ? '' : ' <span style="font-size:0.45rem;color:var(--text-dim)">SYN</span>') + '</span>' +
+                    '<span class="material-symbols-outlined" style="font-size:13px;color:rgba(0,242,255,0.5)">open_in_new</span>' +
+                '</div>' +
                 '<div style="font-size:1.1rem;font-weight:900;color:' + textColor + ';font-family:\'JetBrains Mono\'">' + (rate >= 0 ? '+' : '') + pct + '%</div>' +
                 '<div style="font-size:0.55rem;color:rgba(255,255,255,0.4);margin-top:2px">' + (rate >= 0 ? '+' : '') + annual + '% ann.</div>' +
                 '<div style="font-size:0.55rem;font-weight:800;letter-spacing:1px;color:' + textColor + ';margin-top:8px;opacity:0.9">' + label + '</div>' +
