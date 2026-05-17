@@ -126,7 +126,8 @@ window.renderGexProfile = async function(tabs = null, container = null) {
         // Find Pivot (closest strike to zero-crossing or ATM)
         const pivot = data.spot; // Simplified for synthetic
         
-        document.getElementById('gex-pivot').textContent = '$' + pivot.toLocaleString();
+        document.getElementById('gex-pivot').textContent = data.spot >= 1000 ? '$' + Number(data.spot.toFixed(0)).toLocaleString() :
+            data.spot >= 1 ? '$' + data.spot.toFixed(2) : '$' + data.spot.toPrecision(4);
         const totalEl = document.getElementById('gex-total');
         totalEl.textContent = (isPos ? '+' : '') + (totalGex / 1000).toFixed(1) + 'M';
         totalEl.style.color = isPos ? '#00d4aa' : '#ef4444';
@@ -135,15 +136,27 @@ window.renderGexProfile = async function(tabs = null, container = null) {
         regimeEl.textContent = isPos ? 'STABLE REGIME (VOL DAMPENING)' : 'UNSTABLE REGIME (VOL AMPLIFYING)';
         regimeEl.style.color = isPos ? '#00d4aa' : '#ef4444';
         
-        const gravity = Math.abs(data.profile.find(p => Math.abs(p.strike - data.spot) < 1000)?.gamma || 0);
+        // Gravity proximity: use 5% of spot as the ATM window (works for any price magnitude)
+        const atmWindow = data.spot * 0.06;
+        const gravity = Math.abs(data.profile.find(p => Math.abs(p.strike - data.spot) < atmWindow)?.gamma || data.profile[7]?.gamma || 0);
         document.getElementById('gex-gravity').textContent = (gravity / 100).toFixed(1) + '%';
+
+        // Smart label formatter — handles BTC ($80k) down to PEPE ($0.0000001)
+        const fmtStrike = v => {
+            if (v >= 1e6)  return '$' + (v / 1e6).toFixed(2) + 'M';
+            if (v >= 1000) return '$' + (v / 1000).toFixed(1) + 'k';
+            if (v >= 1)    return '$' + v.toFixed(2);
+            if (v >= 0.01) return '$' + v.toFixed(4);
+            if (v >= 1e-4) return '$' + v.toFixed(6);
+            return '$' + v.toExponential(3);
+        };
 
         // Render Chart
         const ctx = document.getElementById('gexProfileChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: data.profile.map(p => '$' + (p.strike / 1000).toFixed(0) + 'k'),
+                labels: data.profile.map(p => fmtStrike(p.strike)),
                 datasets: [{
                     label: 'Gamma Exposure',
                     data: data.profile.map(p => p.gamma),

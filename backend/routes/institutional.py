@@ -7262,36 +7262,35 @@ class InstitutionalRoutesMixin:
                 spot = float(CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close').iloc[-1])
             except:
                 spot = 90000.0 if ticker == 'BTC' else 3000.0
-            
-            # Generate deterministic synthetic gamma based on spot price modulo
-            np.random.seed(int(spot) % 10000)
-            
-            # 15 strike bands
-            step = 5000 if ticker == 'BTC' else 200 if ticker == 'ETH' else spot * 0.05
+
+            # Seed on ticker string hash — avoids seed collisions for assets with similar/tiny prices
+            np.random.seed(abs(hash(ticker)) % (2**31))
+
+            # Strike step: 5% of spot for any asset; special-cased for BTC/ETH to round nicely
+            step = 5000 if ticker == 'BTC' else 200 if ticker == 'ETH' else max(spot * 0.05, 1e-8)
             base_strike = round(spot / step) * step
-            
             strikes = [base_strike + (i * step) for i in range(-7, 8)]
-            
+
             profile = []
-            for s in strikes:
+            for idx, s in enumerate(strikes):
                 dist = (s - spot) / spot
-                # Gamma is normally higher near ATM, but large walls act as magnets
-                base_g = np.exp(-(dist**2)/(2*0.05**2)) * 1000  # ATM bell curve
-                noise = np.random.normal(0, 200)
-                
-                # Introduce deterministic "walls"
-                if int(s) % (step * 3) == 0:
+                # ATM bell-curve base gamma; amplitude proportional to spot so bars are always visible
+                base_g = np.exp(-(dist**2) / (2 * 0.05**2)) * 1000
+                # Noise proportional to ATM gamma — avoids fixed-200 noise dominating small assets
+                noise = np.random.normal(0, max(base_g * 0.2, 50))
+
+                # Deterministic walls every 3rd strike (use index, not float modulo)
+                if idx % 3 == 0:
                     base_g *= 2.5
-                
+
                 gamma = base_g + noise
-                # Skew puts vs calls
                 if s < spot:
-                    gamma = -abs(gamma) * 0.8  # Negative gamma for lower strikes
-                if s > spot:
-                    gamma = abs(gamma) * 1.1   # Positive gamma for higher strikes
-                    
-                profile.append({'strike': s, 'gamma': round(gamma, 2)})
-            
+                    gamma = -abs(gamma) * 0.8
+                elif s > spot:
+                    gamma =  abs(gamma) * 1.1
+
+                profile.append({'strike': round(s, 10), 'gamma': round(gamma, 2)})
+
             self.send_json({'ticker': ticker, 'spot': spot, 'profile': profile})
         except Exception as e:
             self.send_json({'error': str(e)})
@@ -7305,54 +7304,43 @@ class InstitutionalRoutesMixin:
                 spot = float(CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close').iloc[-1])
             except:
                 spot = 90000.0 if ticker == 'BTC' else 3000.0
-            
-            np.random.seed(int(spot) % 10000)
-            step = 5000 if ticker == 'BTC' else 200 if ticker == 'ETH' else spot * 0.05
+
+            # Seed on ticker string hash — unique per asset regardless of price magnitude
+            np.random.seed(abs(hash(ticker + '_mp')) % (2**31))
+            step = 5000 if ticker == 'BTC' else 200 if ticker == 'ETH' else max(spot * 0.05, 1e-8)
             base_strike = round(spot / step) * step
-            
             strikes = [base_strike + (i * step) for i in range(-5, 6)]
-            
+
             options_chain = []
             max_pain_val = float('inf')
             max_pain_strike = base_strike
-            
+
             for s in strikes:
-                # Simulate open interest for calls and puts
                 call_oi = max(0, int(np.random.normal(5000, 2000) * (1 if s > spot else 0.5)))
-                put_oi = max(0, int(np.random.normal(5000, 2000) * (1 if s < spot else 0.5)))
-                
-                options_chain.append({
-                    'strike': s,
-                    'call_oi': call_oi,
-                    'put_oi': put_oi
-                })
-            
-            # Simple Max Pain calculation: the strike that causes maximum options to expire worthless
+                put_oi  = max(0, int(np.random.normal(5000, 2000) * (1 if s < spot else 0.5)))
+                options_chain.append({'strike': round(s, 10), 'call_oi': call_oi, 'put_oi': put_oi})
+
             for s in strikes:
                 intrinsic_value_sum = 0
                 for opt in options_chain:
-                    # Call intrinsic value: max(0, spot - strike)
                     if s > opt['strike']:
                         intrinsic_value_sum += (s - opt['strike']) * opt['call_oi']
-                    # Put intrinsic value: max(0, strike - spot)
                     if s < opt['strike']:
                         intrinsic_value_sum += (opt['strike'] - s) * opt['put_oi']
-                
                 if intrinsic_value_sum < max_pain_val:
                     max_pain_val = intrinsic_value_sum
                     max_pain_strike = s
-                    
-            # Liquidation Heatmap levels
+
             liquidations = []
             for _ in range(5):
                 liq_price = spot * (1 + np.random.uniform(-0.1, 0.1))
-                leverage = np.random.choice([10, 25, 50, 100])
-                vol = int(np.random.uniform(5, 50)) * 1000000
+                leverage  = np.random.choice([10, 25, 50, 100])
+                vol       = int(np.random.uniform(5, 50)) * 1000000
                 liquidations.append({
-                    'price': round(liq_price, 2),
-                    'leverage': f"{leverage}x",
-                    'volume': vol,
-                    'type': 'LONG' if liq_price < spot else 'SHORT'
+                    'price':    round(liq_price, 8),
+                    'leverage': f'{leverage}x',
+                    'volume':   vol,
+                    'type':     'LONG' if liq_price < spot else 'SHORT'
                 })
                 
             self.send_json({
