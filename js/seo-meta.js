@@ -400,11 +400,22 @@ function updateSEOMeta(view) {
 
     const fullTitle = `${meta.title} | AlphaSignal - Crypto Intelligence Terminal`;
     
-    // Preserve full query parameters (like &id=...) for canonicals, except on home
-    let viewUrl = 'https://alphasignal.digital/';
-    if (view !== 'home') {
-        const currentSearch = window.location.search;
-        viewUrl = `https://alphasignal.digital/${currentSearch || '?view=' + view}`;
+    // Build a clean path-based canonical — never use ?view= query params.
+    // Google treats /?view=signals as a variant of / (the root), causing all
+    // SPA views to be flagged as "Alternate page with proper canonical tag".
+    const BASE = 'https://alphasignal.digital';
+    let viewUrl = BASE + '/';
+
+    if (view !== 'home' && view !== 'landing') {
+        // pSEO asset landing: preserve /asset/BTC style paths
+        const path = window.location.pathname.replace(/\/$/, '');
+        if (path && path !== '/' && !path.includes('index.html')) {
+            // Already on a clean path (e.g. /asset/BTC or /signal/123)
+            viewUrl = BASE + path;
+        } else {
+            // SPA route — build canonical from the view key
+            viewUrl = `${BASE}/${view}`;
+        }
     }
 
     document.title = fullTitle;
