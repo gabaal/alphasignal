@@ -8319,3 +8319,100 @@ class InstitutionalRoutesMixin:
         except Exception as e:
             import traceback; traceback.print_exc()
             self.send_json({'error': str(e)})
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # SIGNAL NOTES (Trade Journal)
+    # GET  /api/signal-notes?signal_id=X  → returns note for that signal
+    # POST /api/signal-notes              → upsert note (JSON body)
+    # DELETE /api/signal-notes?signal_id=X → delete note
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def handle_signal_notes_get(self):
+        auth_info = self.is_authenticated()
+        if not auth_info:
+            self.send_json({'error': 'Unauthorized'}, 401); return
+        email = auth_info.get('email', '')
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            signal_id = query.get('signal_id', [None])[0]
+            if not signal_id:
+                self.send_json({'error': 'signal_id required'}, 400); return
+            with sqlite3.connect(DB_PATH, timeout=10) as conn:
+                conn.row_factory = sqlite3.Row
+                c = conn.cursor()
+                c.execute(
+                    'SELECT * FROM signal_notes WHERE signal_id=? AND user_email=?',
+                    (int(signal_id), email)
+                )
+                row = c.fetchone()
+            if row:
+                self.send_json({'note': dict(row)})
+            else:
+                self.send_json({'note': None})
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            self.send_json({'error': str(e)}, 500)
+
+    def handle_signal_notes_post(self):
+        auth_info = self.is_authenticated()
+        if not auth_info:
+            self.send_json({'error': 'Unauthorized'}, 401); return
+        email = auth_info.get('email', '')
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            body = json.loads(self.rfile.read(length))
+            signal_id   = int(body.get('signal_id', 0))
+            ticker      = body.get('ticker', '')
+            thesis      = body.get('thesis', '')
+            conviction  = int(body.get('conviction', 0))
+            entry_note  = body.get('entry_note')
+            target_note = body.get('target_note')
+            stop_note   = body.get('stop_note')
+            tags        = body.get('tags', '')
+            outcome     = body.get('outcome', '')
+            if not signal_id:
+                self.send_json({'error': 'signal_id required'}, 400); return
+            with sqlite3.connect(DB_PATH, timeout=10) as conn:
+                conn.execute(
+                    '''INSERT INTO signal_notes
+                       (signal_id, user_email, ticker, thesis, conviction,
+                        entry_note, target_note, stop_note, tags, outcome, updated_at)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+                       ON CONFLICT(signal_id, user_email) DO UPDATE SET
+                           thesis=excluded.thesis,
+                           conviction=excluded.conviction,
+                           entry_note=excluded.entry_note,
+                           target_note=excluded.target_note,
+                           stop_note=excluded.stop_note,
+                           tags=excluded.tags,
+                           outcome=excluded.outcome,
+                           updated_at=CURRENT_TIMESTAMP''',
+                    (signal_id, email, ticker, thesis, conviction,
+                     entry_note, target_note, stop_note, tags, outcome)
+                )
+                conn.commit()
+            self.send_json({'ok': True})
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            self.send_json({'error': str(e)}, 500)
+
+    def handle_signal_notes_delete(self):
+        auth_info = self.is_authenticated()
+        if not auth_info:
+            self.send_json({'error': 'Unauthorized'}, 401); return
+        email = auth_info.get('email', '')
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            signal_id = query.get('signal_id', [None])[0]
+            if not signal_id:
+                self.send_json({'error': 'signal_id required'}, 400); return
+            with sqlite3.connect(DB_PATH, timeout=10) as conn:
+                conn.execute(
+                    'DELETE FROM signal_notes WHERE signal_id=? AND user_email=?',
+                    (int(signal_id), email)
+                )
+                conn.commit()
+            self.send_json({'ok': True})
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            self.send_json({'error': str(e)}, 500)

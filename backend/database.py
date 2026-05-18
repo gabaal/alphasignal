@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sqlite3
 import requests
 import stripe
@@ -467,6 +467,22 @@ def init_db():
         title TEXT NOT NULL,
         content TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS signal_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        signal_id INTEGER NOT NULL,
+        user_email TEXT NOT NULL,
+        ticker TEXT,
+        thesis TEXT,
+        conviction INTEGER DEFAULT 0,
+        entry_note REAL,
+        target_note REAL,
+        stop_note REAL,
+        tags TEXT,
+        outcome TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(signal_id, user_email)
     )''')
     conn.commit()
     conn.close()

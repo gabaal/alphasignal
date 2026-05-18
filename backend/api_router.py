@@ -126,6 +126,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
                 q_id = query.get('id', [None])[0]
                 self.handle_ai_knowledge_delete(auth_info, q_id or item_id)
+            elif path.startswith('/api/signal-notes'):
+                self.handle_signal_notes_delete()
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -427,6 +429,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_alert_settings(post_data)
             elif path == '/api/trade-ledger':
                 self.handle_trade_ledger(post_data)
+            elif path == '/api/signal-notes':
+                self.handle_signal_notes_post()
             elif path == '/api/settings/test-telegram':
                 self.handle_test_telegram(post_data)
             elif path == '/api/portfolio/execute':
@@ -804,6 +808,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_signal_suppression_log()
             elif path == '/api/near-miss':
                 self.handle_near_miss()
+            elif path == '/api/signal-notes':
+                self.handle_signal_notes_get()
             elif path == '/api/macro-calendar':
                 self.handle_macro_calendar()
             elif path == '/api/capital-rotation':

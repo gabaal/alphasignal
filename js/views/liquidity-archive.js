@@ -2007,6 +2007,7 @@ async function renderSignalArchive(tabs = null) {
                     <td data-label="ACTIONS" style="padding:8px 12px;text-align:center;white-space:nowrap" onclick="event.stopPropagation()">
                         <button onclick="openDetail('${s.ticker}','CRYPTO');event.stopPropagation()" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
                         <button onclick="showSignalDetail(null,'${s.ticker}');event.stopPropagation()" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="AI Analysis">AI</button>
+                        <button id="jbtn-${s.id}" onclick="window._openJournalModal(${s.id},'${s.ticker}');event.stopPropagation()" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Trade Journal">📓</button>
                         ${s.state === 'CLOSED'
                             ? `<button onclick="window._archiveReopenSignal(${s.id},this);event.stopPropagation()" style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.3);color:#94a3b8;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">REOPEN</button>`
                             : `<button onclick="window._archiveCloseSignal(${s.id},this);event.stopPropagation()" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700">CLOSE</button>`
@@ -2389,6 +2390,151 @@ async function renderSignalArchive(tabs = null) {
     window.loadData = loadData; // expose for RESET button
 
     // - Signal Close / Reopen handlers -
+    // ── Trade Journal Modal ──────────────────────────────────────────────────
+    window._openJournalModal = async function(signalId, ticker) {
+        // Remove any existing modal
+        const existing = document.getElementById('journal-modal-overlay');
+        if (existing) existing.remove();
+
+        // Build the modal shell immediately so there's no delay
+        const overlay = document.createElement('div');
+        overlay.id = 'journal-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+        overlay.innerHTML = `
+        <div style="background:var(--bg-card,#0f172a);border:1px solid rgba(245,158,11,0.3);border-radius:16px;padding:2rem;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);position:relative">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#f59e0b,transparent);border-radius:16px 16px 0 0"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem">
+                <div>
+                    <div style="font-size:0.5rem;font-weight:900;letter-spacing:2px;color:#f59e0b;margin-bottom:4px">📓 TRADE JOURNAL</div>
+                    <div style="font-size:1rem;font-weight:900;color:var(--text-main,#f1f5f9)">${ticker.replace('-USD','')}</div>
+                </div>
+                <button onclick="document.getElementById('journal-modal-overlay').remove()" style="background:none;border:none;color:var(--text-dim);font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:6px" title="Close">✕</button>
+            </div>
+
+            <!-- Conviction -->
+            <div style="margin-bottom:1.2rem">
+                <label style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:6px">CONVICTION</label>
+                <div id="jm-stars" style="display:flex;gap:6px">
+                    ${[1,2,3,4,5].map(n => `<button data-star="${n}" onclick="window._jmSetStars(${n})" style="font-size:1.4rem;background:none;border:none;cursor:pointer;opacity:0.3;transition:opacity 0.15s;padding:0">★</button>`).join('')}
+                </div>
+            </div>
+
+            <!-- Thesis -->
+            <div style="margin-bottom:1.2rem">
+                <label style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:6px">THESIS</label>
+                <textarea id="jm-thesis" rows="4" placeholder="Why are you taking this trade? What's the setup, catalyst, and invalidation level?" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-main,#f1f5f9);border-radius:8px;padding:10px 12px;font-size:0.75rem;font-family:inherit;resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
+            </div>
+
+            <!-- Price levels -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1.2rem">
+                <div>
+                    <label style="font-size:0.48rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:5px">ENTRY</label>
+                    <input type="number" id="jm-entry" step="any" placeholder="Price" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-main,#f1f5f9);border-radius:6px;padding:7px 10px;font-size:0.72rem;font-family:monospace;box-sizing:border-box">
+                </div>
+                <div>
+                    <label style="font-size:0.48rem;font-weight:900;letter-spacing:1.5px;color:#22c55e;display:block;margin-bottom:5px">TARGET</label>
+                    <input type="number" id="jm-target" step="any" placeholder="TP" style="width:100%;background:rgba(34,197,94,0.04);border:1px solid rgba(34,197,94,0.2);color:#22c55e;border-radius:6px;padding:7px 10px;font-size:0.72rem;font-family:monospace;box-sizing:border-box">
+                </div>
+                <div>
+                    <label style="font-size:0.48rem;font-weight:900;letter-spacing:1.5px;color:#ef4444;display:block;margin-bottom:5px">STOP</label>
+                    <input type="number" id="jm-stop" step="any" placeholder="SL" style="width:100%;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.2);color:#ef4444;border-radius:6px;padding:7px 10px;font-size:0.72rem;font-family:monospace;box-sizing:border-box">
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div style="margin-bottom:1.2rem">
+                <label style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:6px">TAGS <span style="font-weight:400;opacity:0.5">(comma separated)</span></label>
+                <input type="text" id="jm-tags" placeholder="e.g. breakout, high-conviction, macro-driven" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-main,#f1f5f9);border-radius:6px;padding:8px 12px;font-size:0.72rem;box-sizing:border-box">
+            </div>
+
+            <!-- Outcome notes -->
+            <div style="margin-bottom:1.6rem">
+                <label style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:6px">OUTCOME / POST-TRADE NOTES</label>
+                <textarea id="jm-outcome" rows="2" placeholder="What happened? What did you learn?" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-main,#f1f5f9);border-radius:8px;padding:10px 12px;font-size:0.75rem;font-family:inherit;resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex;gap:10px;align-items:center">
+                <button id="jm-save" onclick="window._jmSave(${signalId},'${ticker}')" style="flex:1;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;border-radius:8px;padding:10px;font-size:0.72rem;font-weight:900;cursor:pointer;letter-spacing:1px">SAVE NOTE</button>
+                <button id="jm-delete" onclick="window._jmDelete(${signalId})" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:8px;padding:10px 16px;font-size:0.72rem;font-weight:900;cursor:pointer;display:none">DELETE</button>
+                <button onclick="document.getElementById('journal-modal-overlay').remove()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);border-radius:8px;padding:10px 16px;font-size:0.72rem;font-weight:700;cursor:pointer">CANCEL</button>
+            </div>
+            <div id="jm-status" style="text-align:center;font-size:0.65rem;margin-top:10px;color:var(--text-dim);min-height:18px"></div>
+        </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+        // Star helper
+        window._jmConviction = 0;
+        window._jmSetStars = function(n) {
+            window._jmConviction = n;
+            document.querySelectorAll('#jm-stars button').forEach(b => {
+                b.style.opacity = parseInt(b.dataset.star) <= n ? '1' : '0.25';
+                b.style.color   = parseInt(b.dataset.star) <= n ? '#f59e0b' : '';
+            });
+        };
+
+        // Load existing note
+        try {
+            const res = await fetchAPI(`/signal-notes?signal_id=${signalId}`);
+            const note = res?.note;
+            if (note) {
+                document.getElementById('jm-thesis').value  = note.thesis  || '';
+                document.getElementById('jm-tags').value    = note.tags    || '';
+                document.getElementById('jm-outcome').value = note.outcome  || '';
+                if (note.entry_note)  document.getElementById('jm-entry').value  = note.entry_note;
+                if (note.target_note) document.getElementById('jm-target').value = note.target_note;
+                if (note.stop_note)   document.getElementById('jm-stop').value   = note.stop_note;
+                if (note.conviction)  window._jmSetStars(note.conviction);
+                document.getElementById('jm-delete').style.display = '';
+            }
+        } catch(e) { /* no note yet */ }
+    };
+
+    window._jmSave = async function(signalId, ticker) {
+        const btn = document.getElementById('jm-save');
+        const status = document.getElementById('jm-status');
+        btn.textContent = 'SAVING…'; btn.disabled = true;
+        try {
+            await fetch('/api/signal-notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    signal_id:   signalId,
+                    ticker:      ticker,
+                    thesis:      document.getElementById('jm-thesis').value.trim(),
+                    conviction:  window._jmConviction || 0,
+                    entry_note:  parseFloat(document.getElementById('jm-entry').value)  || null,
+                    target_note: parseFloat(document.getElementById('jm-target').value) || null,
+                    stop_note:   parseFloat(document.getElementById('jm-stop').value)   || null,
+                    tags:        document.getElementById('jm-tags').value.trim(),
+                    outcome:     document.getElementById('jm-outcome').value.trim(),
+                })
+            });
+            // Amber-highlight the row button
+            const jbtn = document.getElementById(`jbtn-${signalId}`);
+            if (jbtn) { jbtn.style.color = '#f59e0b'; jbtn.style.borderColor = 'rgba(245,158,11,0.5)'; }
+            document.getElementById('jm-delete').style.display = '';
+            status.textContent = '✓ Saved'; status.style.color = '#22c55e';
+            btn.textContent = 'SAVE NOTE'; btn.disabled = false;
+            setTimeout(() => { if (status) status.textContent = ''; }, 2500);
+        } catch(e) {
+            status.textContent = 'Save failed: ' + e.message; status.style.color = '#ef4444';
+            btn.textContent = 'SAVE NOTE'; btn.disabled = false;
+        }
+    };
+
+    window._jmDelete = async function(signalId) {
+        if (!confirm('Delete this journal note?')) return;
+        try {
+            await fetch(`/api/signal-notes?signal_id=${signalId}`, { method: 'DELETE', credentials: 'include' });
+            const jbtn = document.getElementById(`jbtn-${signalId}`);
+            if (jbtn) { jbtn.style.color = '#94a3b8'; jbtn.style.borderColor = 'rgba(245,158,11,0.25)'; }
+            document.getElementById('journal-modal-overlay')?.remove();
+        } catch(e) { alert('Delete failed: ' + e.message); }
+    };
+
     // Guard set: prevents duplicate API calls if the button is somehow clicked twice
     const _closingInFlight = new Set();
     window._archiveCloseSignal = async function(id, btn) {
