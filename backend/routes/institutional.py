@@ -8353,14 +8353,15 @@ class InstitutionalRoutesMixin:
             import traceback; traceback.print_exc()
             self.send_json({'error': str(e)}, 500)
 
-    def handle_signal_notes_post(self):
+    def handle_signal_notes_post(self, body=None):
         auth_info = self.is_authenticated()
         if not auth_info:
             self.send_json({'error': 'Unauthorized'}, 401); return
         email = auth_info.get('email', '')
         try:
-            length = int(self.headers.get('Content-Length', 0))
-            body = json.loads(self.rfile.read(length))
+            if body is None:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length)) if length > 0 else {}
             signal_id   = int(body.get('signal_id', 0))
             ticker      = body.get('ticker', '')
             thesis      = body.get('thesis', '')

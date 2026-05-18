@@ -430,7 +430,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             elif path == '/api/trade-ledger':
                 self.handle_trade_ledger(post_data)
             elif path == '/api/signal-notes':
-                self.handle_signal_notes_post()
+                self.handle_signal_notes_post(post_data)
             elif path == '/api/settings/test-telegram':
                 self.handle_test_telegram(post_data)
             elif path == '/api/portfolio/execute':
