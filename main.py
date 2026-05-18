@@ -51,7 +51,7 @@ except ImportError:
 # --- INJECTED BACKEND MODULES ---
 from backend.database import load_env, PORT, SUPABASE_URL, SUPABASE_KEY, SUPABASE_HEADERS, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, SupabaseClient, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, DB_PATH, init_db, redis_client
 from backend.caching import DataCache, CACHE
-from backend.services import NotificationService, MLAlphaEngine, PortfolioSimulator, HarvestService, get_sentiment, get_sentiment_batch, get_orderbook_imbalance, NOTIFY, ML_ENGINE, PORTFOLIO_SIM
+from backend.services import NotificationService, MLAlphaEngine, PortfolioSimulator, HarvestService, IntradayRescanService, get_sentiment, get_sentiment_batch, get_orderbook_imbalance, NOTIFY, ML_ENGINE, PORTFOLIO_SIM
 
 
 
@@ -444,6 +444,12 @@ if __name__ == "__main__":
     h_thread = threading.Thread(target=harvester.run, daemon=True)
     print("Starting background Harvester thread...", flush=True)
     h_thread.start()
+
+    # Start Intraday Rescan: re-checks near-miss tickers every 5 min for MTF flip
+    intraday_rescan = IntradayRescanService(ws_server=ws_server)
+    ir_thread = threading.Thread(target=intraday_rescan.run, daemon=True)
+    print("Starting Intraday Rescan fast-loop (5-min MTF re-evaluation)...", flush=True)
+    ir_thread.start()
 
     # Start ML Alpha Engine Training
     ml_thread = threading.Thread(target=ML_ENGINE.run_training_loop, daemon=True)

@@ -714,6 +714,48 @@ def _log_suppression(ticker, direction, gate, reason, z_score=None, pred_return=
         print(f"[SuppressLog] DB write error: {_e}")
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# NEAR-MISS CACHE — tickers that passed z-score + pred_return + SMA50 but
+# were killed by MTF.  The IntradayRescanService re-evaluates these every 5 min.
+# Structure: { ticker: { direction, z_score, pred_return, price, severity,
+#                         signal_type, message, category, ts, users } }
+# Entries expire after NEAR_MISS_TTL_SECS to avoid stale setups.
+# ─────────────────────────────────────────────────────────────────────────────
+NEAR_MISS_TTL_SECS = 4 * 3600   # 4 hours
+_near_miss_cache: dict = {}
+_near_miss_lock  = threading.Lock()
+
+def _bank_near_miss(ticker, direction, z_score, pred_return, price,
+                    severity, signal_type, message, category, enabled_users):
+    """Store a near-miss entry so the fast loop can re-evaluate it."""
+    with _near_miss_lock:
+        _near_miss_cache[ticker] = {
+            'direction':    direction,
+            'z_score':      z_score,
+            'pred_return':  pred_return,
+            'price':        price,
+            'severity':     severity,
+            'signal_type':  signal_type,
+            'message':      message,
+            'category':     category,
+            'ts':           time.time(),
+            'users':        enabled_users,
+        }
+    print(f"[NearMiss] Banked {ticker} {direction} for fast-loop rescan "
+          f"(z={z_score:.2f}, pr={pred_return*100:.2f}%)")
+
+def _expire_near_miss():
+    """Remove entries older than NEAR_MISS_TTL_SECS."""
+    now = time.time()
+    with _near_miss_lock:
+        stale = [k for k, v in _near_miss_cache.items()
+                 if now - v['ts'] > NEAR_MISS_TTL_SECS]
+        for k in stale:
+            del _near_miss_cache[k]
+    if stale:
+        print(f"[NearMiss] Expired {len(stale)} stale entries: {stale}")
+
+
 class HarvestService:
     def __init__(self, cache, ws_server=None, interval=1800):  # 30-min harvest cycle
         self.cache = cache
@@ -1290,6 +1332,11 @@ class HarvestService:
                                 z_score=z_score, pred_return=pred_return,
                                 mtf_score=_mtf_score, price=curr_p
                             )
+                            # Bank into near-miss cache for 5-min fast rescan
+                            _bank_near_miss(
+                                ticker, _direction, z_score, pred_return, curr_p,
+                                severity, signal_type, message, _cat, enabled_users
+                            )
                             continue
 
                         # Promote/demote severity based on confluence
@@ -1309,6 +1356,9 @@ class HarvestService:
                              datetime.now().isoformat(), _z, _alpha, _direction, _cat, target_email,
                              _mtf_score, json.dumps(_mtf_detail))
                         )
+                        # Signal fired — remove from near-miss cache to prevent double-fire
+                        with _near_miss_lock:
+                            _near_miss_cache.pop(ticker, None)
 
                     # Record Prediction Metadata (once, globally)
                     c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
@@ -1982,6 +2032,191 @@ class HarvestService:
         self.running = False
 
 
-NOTIFY = NotificationService()
-ML_ENGINE = MLAlphaEngine()
+NOTIFY        = NotificationService()
+ML_ENGINE     = MLAlphaEngine()
 PORTFOLIO_SIM = PortfolioSimulator()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# INTRADAY RESCAN SERVICE
+# Every RESCAN_INTERVAL_SECS (default 300 = 5 min) re-evaluates any ticker
+# that was banked in _near_miss_cache by the slow harvest loop.
+# Only MTF confluence is re-fetched (cheap: two yfinance 1H calls per ticker).
+# If the score flips ≥ 20, the full signal is fired through the existing
+# notification pipeline (Telegram, webhook, DB insert) — no ML re-run needed.
+# ─────────────────────────────────────────────────────────────────────────────
+class IntradayRescanService:
+    RESCAN_INTERVAL_SECS = 300   # 5 minutes
+
+    def __init__(self, ws_server=None):
+        self.running   = True
+        self.ws_server = ws_server
+
+    def _fire_signal(self, ticker, entry):
+        """Insert the signal into DB and dispatch all configured notifications."""
+        direction   = entry['direction']
+        z_score     = entry['z_score']
+        pred_return = entry['pred_return']
+        price       = entry['price']
+        severity    = entry['severity']
+        signal_type = entry['signal_type']
+        message     = entry['message']
+        category    = entry['category']
+        users       = entry['users']
+
+        # Refresh price — entry['price'] may be up to 4h stale
+        try:
+            info = yf.Ticker(ticker).fast_info
+            px   = info.get('last_price') or info.get('lastPrice')
+            if px and float(px) > 0:
+                price = round(float(px), 8)
+        except Exception:
+            pass  # use cached price if live fetch fails
+
+        try:
+            conn = sqlite3.connect(DB_PATH, timeout=30)
+            c    = conn.cursor()
+
+            _mtf_score, _mtf_detail = compute_mtf_confluence(ticker, direction)
+            _z     = round(z_score, 2)
+            _alpha = round(pred_return * 100, 2)
+            _cat   = category
+
+            # Severity adjustment based on live MTF score
+            if _mtf_score >= 75:
+                severity = 'critical'
+            elif _mtf_score >= 50:
+                severity = severity if severity in ('critical', 'high') else 'high'
+            elif _mtf_score < 35:
+                severity = 'medium'
+
+            inserted = 0
+            for target_email in users:
+                # Anti-spam: skip if same direction already fired in the last hour
+                c.execute(
+                    "SELECT id FROM alerts_history "
+                    "WHERE ticker=? AND user_email=? AND direction=? "
+                    "AND timestamp > datetime('now', '-1 hours')",
+                    (ticker, target_email, direction)
+                )
+                if c.fetchone():
+                    continue
+
+                c.execute(
+                    "INSERT INTO alerts_history "
+                    "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category, user_email, mtf_score, mtf_detail) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (signal_type,
+                     ticker,
+                     f"[Intraday Rescan] {message}",
+                     severity,
+                     price,
+                     datetime.now().isoformat(),
+                     _z, _alpha, direction, _cat,
+                     target_email,
+                     _mtf_score, json.dumps(_mtf_detail))
+                )
+                inserted += 1
+
+            conn.commit()
+            conn.close()
+
+            if inserted > 0:
+                print(f"[IntradayRescan] ✅ FIRED {signal_type} {direction} on {ticker} "
+                      f"(MTF={_mtf_score}, z={_z}, pr={_alpha:+.2f}%) "
+                      f"→ {inserted} user(s)")
+
+                # Notify via all configured channels (same as slow-loop)
+                threading.Thread(
+                    target=notify_watchlist_users,
+                    args=(ticker, signal_type,
+                          f"[Intraday Rescan] {message}",
+                          severity, price),
+                    daemon=True
+                ).start()
+
+                try:
+                    with sqlite3.connect(DB_PATH, timeout=30) as alert_conn:
+                        alert_c = alert_conn.cursor()
+                        alert_c.execute(
+                            "SELECT user_email, z_threshold FROM user_settings "
+                            "WHERE alerts_enabled = 1"
+                        )
+                        for (ue, uz) in alert_c.fetchall():
+                            if abs(z_score) >= float(uz or 2.0):
+                                NOTIFY.send(ue, ticker, signal_type,
+                                            f"[Intraday Rescan] {message}",
+                                            severity, price)
+                except Exception as _ne:
+                    print(f"[IntradayRescan] Notify error: {_ne}")
+
+                # Broadcast to WS clients so the live tape refreshes immediately
+                if self.ws_server:
+                    try:
+                        self.ws_server.broadcast(json.dumps({
+                            'type':        'new_signal',
+                            'ticker':      ticker,
+                            'direction':   direction,
+                            'signal_type': signal_type,
+                            'severity':    severity,
+                            'price':       price,
+                            'mtf_score':   _mtf_score,
+                            'source':      'intraday_rescan',
+                        }))
+                    except Exception:
+                        pass
+
+                # Remove from near-miss cache — signal has fired
+                with _near_miss_lock:
+                    _near_miss_cache.pop(ticker, None)
+
+        except Exception as e:
+            print(f"[IntradayRescan] Fire error for {ticker}: {e}")
+
+    def _rescan_cycle(self):
+        """One pass: re-evaluate all near-miss tickers."""
+        _expire_near_miss()
+
+        with _near_miss_lock:
+            snapshot = dict(_near_miss_cache)
+
+        if not snapshot:
+            return
+
+        print(f"[IntradayRescan] Rescanning {len(snapshot)} near-miss ticker(s): "
+              f"{list(snapshot.keys())}")
+
+        for ticker, entry in snapshot.items():
+            try:
+                mtf_score, mtf_detail = compute_mtf_confluence(ticker, entry['direction'])
+                print(f"[IntradayRescan] {ticker} {entry['direction']}: "
+                      f"MTF={mtf_score} (need≥20) "
+                      f"detail={mtf_detail}")
+
+                if mtf_score >= 20:
+                    self._fire_signal(ticker, entry)
+                else:
+                    # Update suppression log with latest score so the UI shows improvement
+                    _log_suppression(
+                        ticker, entry['direction'], 'MTF_CONFLUENCE',
+                        f"[Rescan] MTF={mtf_score}/100 still below threshold — detail: {mtf_detail}",
+                        z_score=entry['z_score'],
+                        pred_return=entry['pred_return'],
+                        mtf_score=mtf_score,
+                        price=entry['price'],
+                    )
+            except Exception as e:
+                print(f"[IntradayRescan] Error rescanning {ticker}: {e}")
+
+    def run(self):
+        print(f"[IntradayRescan] Fast-loop started — rescanning near-miss tickers "
+              f"every {self.RESCAN_INTERVAL_SECS}s", flush=True)
+        while self.running:
+            try:
+                self._rescan_cycle()
+            except Exception as e:
+                print(f"[IntradayRescan] Cycle error: {e}")
+            time.sleep(self.RESCAN_INTERVAL_SECS)
+
+    def stop(self):
+        self.running = False
