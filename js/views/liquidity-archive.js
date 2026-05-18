@@ -1631,6 +1631,7 @@ async function renderSignalArchive(tabs = null) {
                         <tbody id="sl-tbody"><tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading...</td></tr></tbody>
                     </table>
                 </div>`;
+            _sl_redraw();
         } catch(e) {
             container.innerHTML = `<div style="padding:2rem;color:#ef4444;font-size:0.75rem">Failed to load suppression log: ${e.message}</div>`;
         }
