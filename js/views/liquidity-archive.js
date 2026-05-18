@@ -2415,7 +2415,7 @@ async function renderSignalArchive(tabs = null) {
             <div style="margin-bottom:1.2rem">
                 <label style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:6px">CONVICTION</label>
                 <div id="jm-stars" style="display:flex;gap:6px">
-                    ${[1,2,3,4,5].map(n => `<button data-star="${n}" onclick="window._jmSetStars(${n})" style="font-size:1.4rem;background:none;border:none;cursor:pointer;opacity:0.3;transition:opacity 0.15s;padding:0">★</button>`).join('')}
+                    ${[1,2,3,4,5].map(n => `<button data-star="${n}" onclick="window._jmSetStars(${n})" style="font-size:1.4rem;background:none;border:none;cursor:pointer;color:#f59e0b;opacity:0.25;transition:opacity 0.15s;padding:0">★</button>`).join('')}
                 </div>
             </div>
 
@@ -2469,8 +2469,9 @@ async function renderSignalArchive(tabs = null) {
         window._jmSetStars = function(n) {
             window._jmConviction = n;
             document.querySelectorAll('#jm-stars button').forEach(b => {
-                b.style.opacity = parseInt(b.dataset.star) <= n ? '1' : '0.25';
-                b.style.color   = parseInt(b.dataset.star) <= n ? '#f59e0b' : '';
+                const active = parseInt(b.dataset.star) <= n;
+                b.style.opacity = active ? '1' : '0.25';
+                b.style.color   = '#f59e0b';
             });
         };
 
