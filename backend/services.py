@@ -411,16 +411,133 @@ class MLAlphaEngine:
             features = ['return_1d', 'return_5d', 'RSI_14', 'MACD', 'BB_pos', 'Vol_1d_change', 'Sentiment_Score', 'Order_Imbalance']
             X_live = df[features].iloc[[-1]]
             pred_return = self.models[ticker].predict(X_live)[0]
-            
+
+            # Real confidence: std dev of individual tree predictions, inverted & normalised.
+            # Tighter tree agreement → lower std → higher confidence.
+            try:
+                tree_preds = np.array([est.predict(X_live)[0] for est in self.models[ticker].estimators_])
+                tree_std   = float(np.std(tree_preds))
+                # Scale: std of ~0 → 0.99, std of ~0.05+ → ~0.35
+                raw_conf   = max(0.0, 1.0 - (tree_std / 0.05))
+                confidence = round(float(np.clip(raw_conf, 0.35, 0.99)), 2)
+            except Exception:
+                confidence = 0.60  # safe fallback if estimators unavailable
+
             return {
                 "predicted_return": float(pred_return),
-                "confidence": 0.75,
+                "confidence": confidence,
                 "feature_importance": self.feature_importance[ticker]
             }
         except:
             return None
 
 ML_ENGINE = MLAlphaEngine()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MULTI-TIMEFRAME CONFLUENCE ENGINE
+# Returns (score: int 0-100, detail: dict)
+# score ≥ 75 → CRITICAL confluence   |   score < 20 → suppress signal
+# ─────────────────────────────────────────────────────────────────────────────
+def compute_mtf_confluence(ticker: str, signal_direction: str) -> tuple:
+    """
+    Fetch 1H and 4H candles for ticker, compute EMA-5 bias + RSI-14 for each,
+    compare with the 1D direction (from the harvester signal), return a
+    0-100 confluence score and a per-TF detail dict.
+    """
+    is_long = signal_direction.upper() == 'LONG'
+
+    def _ema5_bias(closes):
+        """Returns ('bullish'|'bearish'|'neutral', crossover_bool)."""
+        if closes is None or len(closes) < 6:
+            return 'neutral', False
+        k = 2 / 6
+        ema = float(closes[0])
+        ema_arr = [ema]
+        for c in closes[1:]:
+            ema = float(c) * k + ema * (1 - k)
+            ema_arr.append(ema)
+        last_c, last_e = float(closes[-1]), ema_arr[-1]
+        prev_c, prev_e = float(closes[-2]), ema_arr[-2]
+        crossed_up   = prev_c <= prev_e and last_c > last_e
+        crossed_down = prev_c >= prev_e and last_c < last_e
+        bias = 'bullish' if last_c > last_e else 'bearish'
+        return bias, crossed_up or crossed_down
+
+    def _rsi14(closes):
+        """Returns RSI-14 as a float."""
+        if closes is None or len(closes) < 15:
+            return 50.0
+        deltas = np.diff(np.array(closes, dtype=float))
+        gains  = np.where(deltas > 0, deltas, 0.0)
+        losses = np.where(deltas < 0, -deltas, 0.0)
+        avg_g  = np.mean(gains[-14:])
+        avg_l  = np.mean(losses[-14:])
+        if avg_l == 0:
+            return 100.0
+        return round(100 - 100 / (1 + avg_g / avg_l), 2)
+
+    def _fetch_closes(period, interval):
+        try:
+            data = CACHE.download(ticker, period=period, interval=interval)
+            if data is None or (hasattr(data, 'empty') and data.empty):
+                return None
+            def _col(df, field):
+                if field in df.columns:
+                    return df[field]
+                if isinstance(df.columns, pd.MultiIndex):
+                    matches = [c for c in df.columns if c[0] == field]
+                    if matches:
+                        s = df[matches[0]]
+                        return s.squeeze() if isinstance(s, pd.DataFrame) else s
+                matches = [c for c in df.columns if field.lower() in str(c).lower()]
+                if matches:
+                    s = df[matches[0]]
+                    return s.squeeze() if isinstance(s, pd.DataFrame) else s
+                return None
+            s = _col(data, 'Close')
+            if s is None:
+                return None
+            if isinstance(s, pd.DataFrame):
+                s = s.iloc[:, 0]
+            return s.dropna().values.flatten().astype(float)
+        except Exception:
+            return None
+
+    detail = {'1h': 'neutral', '4h': 'neutral', '1d': signal_direction.lower()}
+    score  = 33  # 1D always contributes — it's what fired the signal
+
+    # 1H analysis
+    closes_1h = _fetch_closes('7d', '1h')
+    if closes_1h is not None and len(closes_1h) >= 15:
+        bias_1h, cross_1h = _ema5_bias(closes_1h)
+        rsi_1h = _rsi14(closes_1h)
+        detail['1h'] = bias_1h
+        if (is_long and bias_1h == 'bullish') or (not is_long and bias_1h == 'bearish'):
+            score += 33
+            if cross_1h:
+                score += 8   # fresh crossover bonus
+        # Extreme RSI confirms timing
+        if is_long and rsi_1h < 40:
+            score += 5
+        elif not is_long and rsi_1h > 60:
+            score += 5
+
+    # 4H analysis
+    closes_4h = _fetch_closes('30d', '4h')
+    if closes_4h is not None and len(closes_4h) >= 15:
+        bias_4h, cross_4h = _ema5_bias(closes_4h)
+        rsi_4h = _rsi14(closes_4h)
+        detail['4h'] = bias_4h
+        if (is_long and bias_4h == 'bullish') or (not is_long and bias_4h == 'bearish'):
+            score += 33
+            if cross_4h:
+                score += 8
+        if is_long and rsi_4h < 45:
+            score += 5
+        elif not is_long and rsi_4h > 55:
+            score += 5
+
+    return min(score, 100), detail
 
 class PortfolioSimulator:
     def __init__(self):
@@ -572,6 +689,30 @@ class PortfolioSimulator:
                 time.sleep(3600)
 
 PORTFOLIO_SIM = PortfolioSimulator()
+
+# ─────────────────────────────────────────────────────────────
+# SIGNAL SUPPRESSION AUDIT LOGGER
+# Writes every killed signal to signal_suppression_log so the full
+# pipeline is auditable without reading server stdout.
+# ─────────────────────────────────────────────────────────────
+def _log_suppression(ticker, direction, gate, reason, z_score=None, pred_return=None, mtf_score=None, price=None):
+    """Write a suppressed-signal record to signal_suppression_log (fire-and-forget)."""
+    print(f"[Suppressed|{gate}] {ticker} {direction} — {reason}")
+    try:
+        with sqlite3.connect(DB_PATH, timeout=5) as _sc:
+            _sc.execute(
+                "INSERT INTO signal_suppression_log "
+                "(ticker, direction, gate, reason, z_score, pred_return, mtf_score, price) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (ticker, direction, gate, reason,
+                 round(float(z_score), 4) if z_score is not None else None,
+                 round(float(pred_return), 6) if pred_return is not None else None,
+                 int(mtf_score) if mtf_score is not None else None,
+                 round(float(price), 8) if price is not None else None)
+            )
+    except Exception as _e:
+        print(f"[SuppressLog] DB write error: {_e}")
+
 
 class HarvestService:
     def __init__(self, cache, ws_server=None, interval=1800):  # 30-min harvest cycle
@@ -927,6 +1068,12 @@ class HarvestService:
         except:
             return True, "Confluence Bypass (Data Error)"
 
+
+# ── End of module-level _log_suppression ──────────────────────────────────────
+# generate_alpha_alerts is a HarvestService METHOD — defined below inside the class.
+# Python reads this file top-to-bottom; HarvestService was opened at line ~693 and
+# remains open. The 4-space indent below correctly attaches this method to it.
+
     def generate_alpha_alerts(self, data, current_regime=None):
         """Phase 8: Predict Alpha signals using ML engine using high-efficiency batch data."""
         if data is None or data.empty: return
@@ -1009,8 +1156,12 @@ class HarvestService:
                     # costs and indistinguishable from random. Hard floor.
                     ML_MIN_PRED_RETURN = 0.02  # 2%
                     if abs(pred_return) < ML_MIN_PRED_RETURN:
-                        print(f"[SignalFilter] {ticker} suppressed — pred_return "
-                              f"{pred_return*100:.2f}% below {ML_MIN_PRED_RETURN*100:.0f}% floor")
+                        _log_suppression(
+                            ticker, 'LONG' if pred_return > 0 else 'SHORT',
+                            'PRED_RETURN_FLOOR',
+                            f"pred_return {pred_return*100:.2f}% below {ML_MIN_PRED_RETURN*100:.0f}% floor",
+                            z_score=z_score, pred_return=pred_return, price=curr_p
+                        )
                         continue
 
                     # ── Quality Filter 2: SMA-50 trend alignment ─────────────────
@@ -1022,12 +1173,18 @@ class HarvestService:
                             sma50 = float(hist_df['Close'].rolling(50).mean().iloc[-1])
                             above_sma50 = curr_p > sma50
                             if _direction == 'LONG' and not above_sma50:
-                                print(f"[SignalFilter] {ticker} LONG suppressed — "
-                                      f"price {curr_p:.4f} below SMA-50 {sma50:.4f} (downtrend)")
+                                _log_suppression(
+                                    ticker, _direction, 'SMA50_TREND',
+                                    f"price {curr_p:.4f} below SMA-50 {sma50:.4f} (downtrend)",
+                                    z_score=z_score, pred_return=pred_return, price=curr_p
+                                )
                                 continue
                             if _direction == 'SHORT' and above_sma50:
-                                print(f"[SignalFilter] {ticker} SHORT suppressed — "
-                                      f"price {curr_p:.4f} above SMA-50 {sma50:.4f} (uptrend)")
+                                _log_suppression(
+                                    ticker, _direction, 'SMA50_TREND',
+                                    f"price {curr_p:.4f} above SMA-50 {sma50:.4f} (uptrend)",
+                                    z_score=z_score, pred_return=pred_return, price=curr_p
+                                )
                                 continue
                     except Exception as _sma_e:
                         pass  # If SMA calc fails, allow signal through
@@ -1036,7 +1193,10 @@ class HarvestService:
                     # --- CONFLUENCE CHECK ---
                     is_ok, reason = self.check_confluence(ticker, _direction, current_regime)
                     if not is_ok:
-                        print(f"[{datetime.now()}] [SignalSuppressed] {ticker} {_direction} - {reason}")
+                        _log_suppression(
+                            ticker, _direction, 'CONFLUENCE_CHECK', reason,
+                            z_score=z_score, pred_return=pred_return, price=curr_p
+                        )
                         continue
                         
                     signal_type = "ML_ALPHA_PREDICTION"
@@ -1113,12 +1273,41 @@ class HarvestService:
                             print(f"[SignalReversal] Error checking conflicts for {ticker}: {_rev_e}")
                         # ─────────────────────────────────────────────────────────────
 
+                        # ── Multi-Timeframe Confluence Check ──────────────────────
+                        # Compute confluence score before writing to DB.
+                        # Signals with score < 20 (single TF, contradicted by others)
+                        # are suppressed to keep the archive high-quality.
+                        try:
+                            _mtf_score, _mtf_detail = compute_mtf_confluence(ticker, _direction)
+                        except Exception as _mtf_e:
+                            print(f"[MTF] Confluence error for {ticker}: {_mtf_e}")
+                            _mtf_score, _mtf_detail = 33, {'1h': 'neutral', '4h': 'neutral', '1d': _direction.lower()}
+
+                        if _mtf_score < 20:
+                            _log_suppression(
+                                ticker, _direction, 'MTF_CONFLUENCE',
+                                f"MTF score {_mtf_score}/100 — TF detail: {_mtf_detail}",
+                                z_score=z_score, pred_return=pred_return,
+                                mtf_score=_mtf_score, price=curr_p
+                            )
+                            continue
+
+                        # Promote/demote severity based on confluence
+                        if _mtf_score >= 75:
+                            severity = 'critical'
+                        elif _mtf_score >= 50:
+                            severity = severity if severity in ('critical', 'high') else 'high'
+                        elif _mtf_score < 35:
+                            severity = 'medium'
+                        # ──────────────────────────────────────────────────────────
+
                         c.execute(
                             "INSERT INTO alerts_history "
-                            "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category, user_email) "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category, user_email, mtf_score, mtf_detail) "
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             (signal_type, ticker, message, severity, curr_p,
-                             datetime.now().isoformat(), _z, _alpha, _direction, _cat, target_email)
+                             datetime.now().isoformat(), _z, _alpha, _direction, _cat, target_email,
+                             _mtf_score, json.dumps(_mtf_detail))
                         )
 
                     # Record Prediction Metadata (once, globally)

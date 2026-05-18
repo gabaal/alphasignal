@@ -38,6 +38,54 @@ async function renderCommandCenter() {
             </div>
         </div>
 
+        <div id="cmd-onboarding-banner" style="position:relative;margin-bottom:2rem;border-radius:14px;overflow:hidden;border:1px solid rgba(0,242,255,0.2);background:linear-gradient(120deg,rgba(0,242,255,0.07) 0%,rgba(139,92,246,0.08) 50%,rgba(0,242,255,0.04) 100%)">
+            <!-- Glow strip -->
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,242,255,0.6),rgba(139,92,246,0.6),transparent)"></div>
+
+            <div style="padding:24px 28px 20px">
+                <!-- Title row -->
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <span class="material-symbols-outlined" style="font-size:28px;color:var(--accent)">dashboard_customize</span>
+                        <div>
+                            <div style="font-size:0.95rem;font-weight:900;letter-spacing:1px;color:var(--text-main);line-height:1.2">Your Command Center is Fully Configurable</div>
+                            <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px">Showing core execution panels by default — build your own layout in seconds.</div>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('cmd-onboarding-banner').style.display='none';localStorage.setItem('cmd_banner_dismissed','1')" style="background:none;border:1px solid rgba(255,255,255,0.12);color:var(--text-dim);border-radius:8px;padding:5px 14px;font-size:0.6rem;cursor:pointer;font-weight:700;white-space:nowrap;flex-shrink:0;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(0,242,255,0.35)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='var(--text-dim)'">DISMISS ✕</button>
+                </div>
+
+                <!-- Feature pills row -->
+                <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+                    <div style="display:flex;align-items:center;gap:8px;background:rgba(0,242,255,0.06);border:1px solid rgba(0,242,255,0.18);border-radius:8px;padding:8px 14px">
+                        <span class="material-symbols-outlined" style="font-size:16px;color:var(--accent)">open_with</span>
+                        <div>
+                            <div style="font-size:0.6rem;font-weight:800;color:var(--text-main);letter-spacing:0.5px">DRAG TO REORDER</div>
+                            <div style="font-size:0.55rem;color:var(--text-dim)">Grab any panel header</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:8px;padding:8px 14px">
+                        <span class="material-symbols-outlined" style="font-size:16px;color:#8b5cf6">aspect_ratio</span>
+                        <div>
+                            <div style="font-size:0.6rem;font-weight:800;color:var(--text-main);letter-spacing:0.5px">CLICK ⤢ TO RESIZE</div>
+                            <div style="font-size:0.55rem;color:var(--text-dim)">Half or full width</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:8px 14px">
+                        <span class="material-symbols-outlined" style="font-size:16px;color:#f59e0b">visibility</span>
+                        <div>
+                            <div style="font-size:0.6rem;font-weight:800;color:var(--text-main);letter-spacing:0.5px">SHOW / HIDE MODULES</div>
+                            <div style="font-size:0.55rem;color:var(--text-dim)">17 panels available</div>
+                        </div>
+                    </div>
+                    <button onclick="openCustomizeDrawer()" style="display:flex;align-items:center;gap:8px;background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.35);border-radius:8px;padding:8px 18px;cursor:pointer;transition:all 0.2s;margin-left:auto" onmouseover="this.style.background='rgba(0,242,255,0.18)'" onmouseout="this.style.background='rgba(0,242,255,0.1)'">
+                        <span class="material-symbols-outlined" style="font-size:16px;color:var(--accent)">tune</span>
+                        <span style="font-size:0.65rem;font-weight:900;color:var(--accent);letter-spacing:1px">OPEN CUSTOMIZE</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="cmd-customizable-layout-wrapper" style="display:flex; flex-wrap:wrap; gap:1.5rem; align-items:flex-start">
 
         <!-- ██ ASSET CANDLESTICK WIDGET ██ -->
@@ -216,24 +264,24 @@ async function renderCommandCenter() {
                     </div>
                     <button onclick="event.stopPropagation(); cycleCmdSectionWidth('liquidations')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:1rem">
+                <div id="cmd-liq-stats" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:1rem">
                     <div style="background:rgba(239,68,68,0.04); border:1px solid rgba(239,68,68,0.2); padding:10px; border-radius:8px; text-align:center">
                         <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">SHORT REKTS</div>
-                        <div style="font-size:1.3rem; font-weight:900; color:#ef4444; margin-top:2px">$142.8M</div>
+                        <div id="cmd-liq-short" style="font-size:1.3rem; font-weight:900; color:#ef4444; margin-top:2px">—</div>
                     </div>
                     <div style="background:rgba(16,185,129,0.04); border:1px solid rgba(16,185,129,0.2); padding:10px; border-radius:8px; text-align:center">
                         <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">LONG REKTS</div>
-                        <div style="font-size:1.3rem; font-weight:900; color:#10b981; margin-top:2px">$84.2M</div>
+                        <div id="cmd-liq-long" style="font-size:1.3rem; font-weight:900; color:#10b981; margin-top:2px">—</div>
                     </div>
                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:10px; border-radius:8px; text-align:center">
-                        <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">TOP EXCHANGE</div>
-                        <div style="font-size:1.1rem; font-weight:900; color:var(--accent); margin-top:4px">BINANCE · 48%</div>
+                        <div style="font-size:0.55rem; color:var(--text-dim); letter-spacing:1px">LONG/SHORT RATIO</div>
+                        <div id="cmd-liq-ratio" style="font-size:1.1rem; font-weight:900; color:var(--accent); margin-top:4px">—</div>
                     </div>
                 </div>
-                <!-- Simulated animated visual bars -->
+                <!-- Live animated bar -->
                 <div style="display:flex; height:24px; border-radius:6px; overflow:hidden; gap:2px; background:rgba(255,255,255,0.05)">
-                    <div style="width:63%; background:linear-gradient(90deg, #ef4444, #dc2626); display:flex; align-items:center; padding-left:8px; font-size:0.6rem; font-weight:900; color:white">SHORTS 63%</div>
-                    <div style="flex:1; background:linear-gradient(90deg, #10b981, #059669); display:flex; align-items:center; justify-content:flex-end; padding-right:8px; font-size:0.6rem; font-weight:900; color:white">LONGS 37%</div>
+                    <div id="cmd-liq-bar-short" style="width:50%; background:linear-gradient(90deg, #ef4444, #dc2626); display:flex; align-items:center; padding-left:8px; font-size:0.6rem; font-weight:900; color:white; transition:width 0.6s ease">SHORTS —%</div>
+                    <div id="cmd-liq-bar-long" style="flex:1; background:linear-gradient(90deg, #10b981, #059669); display:flex; align-items:center; justify-content:flex-end; padding-right:8px; font-size:0.6rem; font-weight:900; color:white">LONGS —%</div>
                 </div>
             </div>
         </div>
@@ -248,16 +296,16 @@ async function renderCommandCenter() {
                     </div>
                     <button onclick="event.stopPropagation(); cycleCmdSectionWidth('powertrio')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
-                <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; background:linear-gradient(90deg, rgba(0,242,255,0.05), transparent); padding:12px; border-radius:8px">
+                <div id="cmd-powertrio-conduit" style="display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; background:linear-gradient(90deg, rgba(0,242,255,0.05), transparent); padding:12px; border-radius:8px">
                     <div>
                         <div style="font-size:0.6rem; color:var(--text-dim); letter-spacing:1.5px">PRIMARY INTERACTION BAND</div>
-                        <div style="font-size:1.2rem; font-weight:900; color:white; margin-top:2px">EMA-5 CROSSOVER DETECTED</div>
-                        <div style="font-size:0.65rem; color:var(--accent); margin-top:2px">Confidence Index: 89.4% Threshold</div>
+                        <div id="cmd-pt-label" style="font-size:1.2rem; font-weight:900; color:white; margin-top:2px">LOADING…</div>
+                        <div id="cmd-pt-conf" style="font-size:0.65rem; color:var(--accent); margin-top:2px">Calculating…</div>
                     </div>
-                    <div style="display:flex; gap:8px">
-                        <span style="padding:4px 8px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:4px; font-size:0.65rem; font-weight:700">1H: BULLISH</span>
-                        <span style="padding:4px 8px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:4px; font-size:0.65rem; font-weight:700">4H: BULLISH</span>
-                        <span style="padding:4px 8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; border-radius:4px; font-size:0.65rem; font-weight:700">1D: COMPRESSION</span>
+                    <div id="cmd-pt-badges" style="display:flex; gap:8px">
+                        <span style="padding:4px 8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-dim); border-radius:4px; font-size:0.65rem; font-weight:700">1H: —</span>
+                        <span style="padding:4px 8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-dim); border-radius:4px; font-size:0.65rem; font-weight:700">4H: —</span>
+                        <span style="padding:4px 8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-dim); border-radius:4px; font-size:0.65rem; font-weight:700">1D: —</span>
                     </div>
                 </div>
             </div>
@@ -295,20 +343,13 @@ async function renderCommandCenter() {
             <div class="card" style="position:relative">
                 <div class="card-header" style="margin-bottom:0.75rem">
                     <div style="display:flex; align-items:center; gap:8px">
-                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">ML QUALITATIVE SENTIMENT STREAM</h3>
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">ACTIVE SIGNALS · MTF CONFLUENCE</h3>
                         <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981"></span>
                     </div>
                     <button onclick="event.stopPropagation(); cycleCmdSectionWidth('sentiment-stream')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:8px">
-                    <div style="display:flex; justify-content:space-between; font-size:0.7rem; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px">
-                        <span style="color:var(--text-main)">Institutional custody inflow nodes accelerating on layer-1 native assets.</span>
-                        <span style="color:#10b981; font-weight:700; flex-shrink:0">+92% ALPHA</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.7rem; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px">
-                        <span style="color:var(--text-main)">Retail order book depth compressing on decentralized perpetual platforms.</span>
-                        <span style="color:var(--text-dim); font-weight:700; flex-shrink:0">NEUTRAL</span>
-                    </div>
+                <div id="cmd-sentiment-stream-list" style="display:flex; flex-direction:column; gap:8px">
+                    <div style="padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; font-size:0.7rem; color:var(--text-dim)">Loading live signal sentiment…</div>
                 </div>
             </div>
         </div>
@@ -608,6 +649,12 @@ async function renderCommandCenter() {
     await loadCmdDashboardSettingsFromDB();
     initCommandDragAndDrop();
 
+    // Hide onboarding banner if previously dismissed
+    if (localStorage.getItem('cmd_banner_dismissed') === '1') {
+        const banner = document.getElementById('cmd-onboarding-banner');
+        if (banner) banner.style.display = 'none';
+    }
+
 
     // Data Fetching & Rendering
     // Kick off AI widget immediately (non-blocking, separate from main Promise.all)
@@ -615,6 +662,10 @@ async function renderCommandCenter() {
     loadCmdAssetCandlesticks();
     loadCmdPremiumVisuals();
     initCmdWhaleTape();
+    // Live-data hydration for previously hardcoded widgets
+    loadCmdLiquidations();
+    loadCmdPowerTrioConduit();
+    loadCmdSentimentStream();
 
     try {
         const [macro, regime, fearGreed, signalsData, pulse] = await Promise.all([
@@ -1683,11 +1734,13 @@ function initCommandDragAndDrop() {
         if (stored) savedLayout = JSON.parse(stored);
     } catch(e){}
 
+    // Default layout order — spotlight sections first
     const defaultLayout = [
-        'asset-chart', 'ai-trade', 'vol-profile', 'lob-heat', 'gex-strike', 'iv-surface',
-        'monte-paths', 'factor-radar', 'sankey-flow', 'gauges', 'liquidations', 'powertrio', 'atr-risk',
+        'whale-feed', 'liquidations', 'lob-heat', 'vol-profile',
+        'asset-chart', 'ai-trade', 'gauges', 'powertrio', 'atr-risk',
         'sentiment-stream', 'signal-scatter', 'signal-donut', 'signal-btccorr',
-        'signal-alpha', 'etf', 'radar'
+        'signal-alpha', 'etf', 'radar', 'gex-strike', 'iv-surface',
+        'monte-paths', 'factor-radar', 'sankey-flow'
     ];
     let layout = (savedLayout && savedLayout.length > 0) ? savedLayout : defaultLayout;
     defaultLayout.forEach(id => {
@@ -1695,10 +1748,24 @@ function initCommandDragAndDrop() {
     });
 
     // 2. Read hidden sections & width states
+    //    First-time visitors get a curated default — only the 3 execution
+    //    panels are visible until the user customises.
+    const CMD_DEFAULT_HIDDEN = [
+        'asset-chart', 'ai-trade', 'gauges', 'powertrio', 'atr-risk',
+        'sentiment-stream', 'signal-scatter', 'signal-donut', 'signal-btccorr',
+        'signal-alpha', 'etf', 'radar', 'gex-strike', 'iv-surface',
+        'monte-paths', 'factor-radar', 'sankey-flow'
+    ];
     let hiddenSections = [];
     try {
         const storedHidden = localStorage.getItem('cmd_dashboard_hidden');
-        if (storedHidden) hiddenSections = JSON.parse(storedHidden);
+        if (storedHidden !== null) {
+            hiddenSections = JSON.parse(storedHidden);
+        } else {
+            // First visit — apply the default
+            hiddenSections = CMD_DEFAULT_HIDDEN;
+            localStorage.setItem('cmd_dashboard_hidden', JSON.stringify(hiddenSections));
+        }
     } catch(e){}
 
     let savedWidths = {};
@@ -1882,8 +1949,29 @@ window.toggleCmdSection = function(id, isVisible) {
     if (el) {
         el.style.display = isVisible ? '' : 'none';
     }
+
+    // ── Live toggle skin update ─────────────────────────────────────────────
+    // The drawer renders toggle track + thumb as inline-styled <span>s.
+    // Find the checkbox for this section id and update its sibling spans.
+    const modal = document.getElementById('cmdCustomizeDrawerModal');
+    if (modal) {
+        const checkbox = modal.querySelector(`input[onchange*="'${id}'"]`);
+        if (checkbox) {
+            const track = checkbox.nextElementSibling;          // outer span (track)
+            const thumb = track ? track.firstElementChild : null; // inner span (thumb)
+            if (track) {
+                track.style.background = isVisible ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
+            }
+            if (thumb) {
+                thumb.style.transform = isVisible ? 'translateX(14px)' : 'translateX(0)';
+            }
+        }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     showToast('LAYOUT MANAGER', isVisible ? 'Module enabled.' : 'Module hidden.', 'info');
 };
+
 
 window.cycleCmdSectionWidth = function(id) {
     let widths = {};
@@ -2455,3 +2543,190 @@ function initCmdWhaleTape() {
         generateEvent();
     }, 1500 + Math.random() * 2500); // Random pulse between 1.5s and 4.0s
 }
+
+// ============================================================
+// LIVE LIQUIDATIONS WIDGET — Binance FAPI L/S ratio
+// ============================================================
+async function loadCmdLiquidations() {
+    try {
+        // Binance FAPI: global long/short account ratio for BTC
+        const url = 'https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=1h&limit=1';
+        const resp = await fetch(url, { signal: AbortSignal.timeout(5000) }).catch(() => null);
+        if (!resp || !resp.ok) throw new Error('FAPI unavailable');
+        const data = await resp.json();
+        const latest = Array.isArray(data) ? data[0] : data;
+        if (!latest) throw new Error('No data');
+
+        const longPct  = parseFloat(latest.longAccount  || latest.longAccountRatio  || 0.5) * 100;
+        const shortPct = parseFloat(latest.shortAccount || latest.shortAccountRatio || 0.5) * 100;
+        const ratio    = parseFloat(latest.longShortRatio || (longPct / Math.max(shortPct, 0.01))).toFixed(2);
+
+        const shortEl  = document.getElementById('cmd-liq-short');
+        const longEl   = document.getElementById('cmd-liq-long');
+        const ratioEl  = document.getElementById('cmd-liq-ratio');
+        const barShort = document.getElementById('cmd-liq-bar-short');
+        const barLong  = document.getElementById('cmd-liq-bar-long');
+
+        if (shortEl)  shortEl.textContent  = shortPct.toFixed(1) + '% SHORT';
+        if (longEl)   longEl.textContent   = longPct.toFixed(1)  + '% LONG';
+        if (ratioEl)  ratioEl.textContent  = 'L/S: ' + ratio;
+        if (barShort) { barShort.style.width = shortPct.toFixed(1) + '%'; barShort.textContent = 'SHORTS ' + shortPct.toFixed(1) + '%'; }
+        if (barLong)  { barLong.textContent  = 'LONGS '  + longPct.toFixed(1)  + '%'; }
+    } catch (e) {
+        // Graceful fallback — show as data source unavailable, not fake numbers
+        const shortEl = document.getElementById('cmd-liq-short');
+        if (shortEl) shortEl.textContent = 'FAPI OFFLINE';
+        console.warn('[CmdLiquidations] ' + e.message);
+    }
+}
+
+// ============================================================
+// LIVE POWER TRIO CONDUIT — real EMA-5 crossover per timeframe
+// ============================================================
+async function loadCmdPowerTrioConduit() {
+    const ticker = (localStorage.getItem('cmd_selected_asset') || 'BTC-USD');
+    const sym = ticker.replace('-USD', '');
+
+    function ema5Label(candles) {
+        if (!candles || candles.length < 6) return { label: 'INSUFFICIENT DATA', bias: 'neutral', crossover: false };
+        const k = 2 / 6;
+        let ema = candles[0].close;
+        const emaArr = [ema];
+        for (let i = 1; i < candles.length; i++) {
+            ema = candles[i].close * k + ema * (1 - k);
+            emaArr.push(ema);
+        }
+        const lastClose = candles.at(-1).close;
+        const lastEma   = emaArr.at(-1);
+        const prevClose = candles.at(-2).close;
+        const prevEma   = emaArr.at(-2);
+        const crossedUp   = prevClose <= prevEma && lastClose > lastEma;
+        const crossedDown = prevClose >= prevEma && lastClose < lastEma;
+        const above = lastClose > lastEma;
+        const bias  = above ? 'bullish' : 'bearish';
+        const label = crossedUp ? 'EMA-5 CROSS UP' : crossedDown ? 'EMA-5 CROSS DOWN' : above ? 'ABOVE EMA-5' : 'BELOW EMA-5';
+        return { label, bias, crossover: crossedUp || crossedDown };
+    }
+
+    function tfBadgeHtml(tf, bias) {
+        const bull = bias === 'bullish';
+        const bg   = bull ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+        const bd   = bull ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)';
+        const col  = bull ? '#10b981' : '#ef4444';
+        const lbl  = bull ? 'BULLISH' : 'BEARISH';
+        return `<span style="padding:4px 8px;background:${bg};border:1px solid ${bd};color:${col};border-radius:4px;font-size:0.65rem;font-weight:700">${tf}: ${lbl}</span>`;
+    }
+
+    try {
+        const [h1Data, h4Data, d1Data] = await Promise.all([
+            fetchAPI(`/ohlc?ticker=${encodeURIComponent(ticker)}&period=7d&interval=1h`).catch(() => null),
+            fetchAPI(`/ohlc?ticker=${encodeURIComponent(ticker)}&period=30d&interval=4h`).catch(() => null),
+            fetchAPI(`/ohlc?ticker=${encodeURIComponent(ticker)}&period=60d&interval=1d`).catch(() => null),
+        ]);
+
+        const h1  = ema5Label(h1Data?.candles);
+        const h4  = ema5Label(h4Data?.candles);
+        const d1  = ema5Label(d1Data?.candles);
+
+        const labelEl  = document.getElementById('cmd-pt-label');
+        const confEl   = document.getElementById('cmd-pt-conf');
+        const badgesEl = document.getElementById('cmd-pt-badges');
+
+        // Primary label = 1H crossover if it just happened, else 4H, else 1D status
+        const primary = h1.crossover ? h1 : h4.crossover ? h4 : d1;
+        if (labelEl) labelEl.textContent = sym + ' · ' + primary.label;
+        if (labelEl) labelEl.style.color = primary.bias === 'bullish' ? '#4ade80' : '#f87171';
+
+        // Confluence count
+        const bullCount = [h1, h4, d1].filter(x => x.bias === 'bullish').length;
+        const confStr   = bullCount === 3 ? 'FULL CONFLUENCE · 3/3 BULLISH'
+                        : bullCount === 2 ? '2/3 TF BULLISH'
+                        : bullCount === 1 ? '1/3 TF BULLISH'
+                        : 'FULL CONFLUENCE · 3/3 BEARISH';
+        if (confEl) confEl.textContent = confStr;
+
+        if (badgesEl) badgesEl.innerHTML = tfBadgeHtml('1H', h1.bias) + tfBadgeHtml('4H', h4.bias) + tfBadgeHtml('1D', d1.bias);
+    } catch (e) {
+        const labelEl = document.getElementById('cmd-pt-label');
+        if (labelEl) labelEl.textContent = 'DATA UNAVAILABLE';
+        console.warn('[CmdPowerTrioConduit]', e);
+    }
+}
+
+// ============================================================
+// LIVE SENTIMENT STREAM — top signals with alpha + sentiment
+// ============================================================
+async function loadCmdSentimentStream() {
+    const el = document.getElementById('cmd-sentiment-stream-list');
+    if (!el) return;
+    try {
+        // Pull from signal-history (active signals) — carries mtf_score + mtf_detail
+        const data = await fetchAPI('/signal-history?state=active&limit=6&sort_col=date&sort_dir=desc');
+        const signals = data?.data || [];
+        if (!signals.length) throw new Error('No active signals');
+
+        const BULLISH = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','MACD_CROSS_UP',
+            'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT',
+            'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM']);
+
+        el.innerHTML = signals.map(s => {
+            const isBull   = BULLISH.has((s.type || '').toUpperCase());
+            const roi      = parseFloat(s.return || 0);
+            const roiCol   = roi >= 0 ? '#10b981' : '#ef4444';
+            const ticker   = (s.ticker || '').replace('-USD', '');
+            const sigType  = (s.type || '').replace(/_/g, ' ');
+            const dirCol   = isBull ? '#10b981' : '#ef4444';
+            const dirLbl   = isBull ? '▲ LONG' : '▼ SHORT';
+
+            // MTF badge renderer
+            const mtf   = s.mtf_detail;
+            const score = s.mtf_score;
+            const hasMtf = mtf != null || score != null;
+
+            const tfPill = (label, val) => {
+                const agrees = val && ((isBull && val === 'bullish') || (!isBull && val === 'bearish'));
+                const neutral = !val || val === 'neutral';
+                const c   = neutral ? '#64748b' : agrees ? '#22c55e' : '#ef4444';
+                const bg  = neutral ? 'rgba(100,116,139,0.08)' : agrees ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+                const bdr = neutral ? 'rgba(100,116,139,0.2)' : agrees ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+                const ico = neutral ? '—' : (val === 'bullish' ? '▲' : '▼');
+                return `<span style="display:inline-flex;align-items:center;gap:1px;background:${bg};border:1px solid ${bdr};color:${c};padding:1px 5px;border-radius:3px;font-size:0.48rem;font-weight:800;letter-spacing:0.5px">${label}<span style="font-size:0.5rem">${ico}</span></span>`;
+            };
+
+            const scorePct  = score ?? 0;
+            const scoreCol  = scorePct >= 75 ? '#22c55e' : scorePct >= 50 ? '#00f2ff' : scorePct >= 33 ? '#f59e0b' : '#ef4444';
+
+            const mtfHTML = hasMtf ? `
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+                    <div style="display:flex;gap:2px">
+                        ${tfPill('1H', mtf ? mtf['1h'] : null)}
+                        ${tfPill('4H', mtf ? mtf['4h'] : null)}
+                        ${tfPill('1D', mtf ? mtf['1d'] : null)}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px">
+                        <div style="width:40px;height:2px;background:rgba(255,255,255,0.08);border-radius:1px;overflow:hidden">
+                            <div style="width:${scorePct}%;height:100%;background:${scoreCol}"></div>
+                        </div>
+                        <span style="font-size:0.45rem;color:${scoreCol};font-weight:700;font-family:'JetBrains Mono'">${scorePct}</span>
+                    </div>
+                </div>` : `<div style="flex-shrink:0;width:70px"></div>`;
+
+            return `
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.7rem;padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:6px;gap:8px;border-left:2px solid ${dirCol}22">
+                    <div style="min-width:0;flex:1">
+                        <div style="display:flex;align-items:center;gap:5px">
+                            <span style="font-weight:900;color:var(--text-main)">${ticker}</span>
+                            <span style="color:${dirCol};font-size:0.5rem;font-weight:700">${dirLbl}</span>
+                        </div>
+                        <div style="color:var(--text-dim);font-size:0.55rem;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sigType}</div>
+                    </div>
+                    ${mtfHTML}
+                    <span style="color:${roiCol};font-weight:900;flex-shrink:0;font-family:'JetBrains Mono';font-size:0.68rem">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</span>
+                </div>`;
+        }).join('');
+    } catch (e) {
+        if (el) el.innerHTML = '<div style="padding:8px 12px;font-size:0.7rem;color:var(--text-dim)">Signal data unavailable</div>';
+        console.warn('[CmdSentimentStream]', e);
+    }
+}
+

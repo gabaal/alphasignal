@@ -4849,6 +4849,58 @@ class InstitutionalRoutesMixin:
             print(f'Notifications Error: {e}')
             self.send_json({'notifications': [], 'unread': 0})
 
+    def handle_signal_suppression_log(self):
+        """GET /api/signal-suppression-log — last N suppressed signals with gate breakdown."""
+        auth_info = self.is_authenticated()
+        if not auth_info:
+            self.send_json({'error': 'Unauthorized'}, 401); return
+        try:
+            query  = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            limit  = min(int(query.get('limit', [200])[0]), 500)
+            gate   = query.get('gate', [None])[0]
+
+            with sqlite3.connect(DB_PATH, timeout=15) as conn:
+                conn.row_factory = sqlite3.Row
+                c = conn.cursor()
+                if gate:
+                    c.execute(
+                        "SELECT * FROM signal_suppression_log WHERE gate = ? "
+                        "ORDER BY timestamp DESC LIMIT ?", (gate.upper(), limit)
+                    )
+                else:
+                    c.execute(
+                        "SELECT * FROM signal_suppression_log "
+                        "ORDER BY timestamp DESC LIMIT ?", (limit,)
+                    )
+                rows = c.fetchall()
+
+                # Gate breakdown counts
+                c.execute(
+                    "SELECT gate, COUNT(*) as cnt FROM signal_suppression_log "
+                    "GROUP BY gate ORDER BY cnt DESC"
+                )
+                breakdown = [{'gate': r['gate'], 'count': r['cnt']} for r in c.fetchall()]
+
+            data = []
+            for r in rows:
+                data.append({
+                    'id':          r['id'],
+                    'timestamp':   r['timestamp'],
+                    'ticker':      r['ticker'],
+                    'direction':   r['direction'],
+                    'gate':        r['gate'],
+                    'reason':      r['reason'],
+                    'z_score':     r['z_score'],
+                    'pred_return': r['pred_return'],
+                    'mtf_score':   r['mtf_score'],
+                    'price':       r['price'],
+                })
+
+            self.send_json({'data': data, 'breakdown': breakdown, 'total': len(data)})
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            self.send_json({'error': str(e)}, 500)
+
     def handle_signal_history(self):
         """Return alerts_history filtered to the authenticated user's signals."""
         # Require valid session - archive is per-user
@@ -5022,7 +5074,8 @@ class InstitutionalRoutesMixin:
                     SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
                            ah.price, ah.timestamp,
                            COALESCE(ah.status, 'active') AS status,
-                           ah.closed_at, ah.exit_price, ah.final_roi
+                           ah.closed_at, ah.exit_price, ah.final_roi,
+                           ah.mtf_score, ah.mtf_detail
                     FROM alerts_history ah
                     {base_where}
                     ORDER BY ah.timestamp DESC
@@ -5034,7 +5087,8 @@ class InstitutionalRoutesMixin:
                     SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
                            ah.price, ah.timestamp,
                            COALESCE(ah.status, 'active') AS status,
-                           ah.closed_at, ah.exit_price, ah.final_roi
+                           ah.closed_at, ah.exit_price, ah.final_roi,
+                           ah.mtf_score, ah.mtf_detail
                     FROM alerts_history ah
                     {base_where}
                     {order_clause}
@@ -5127,7 +5181,7 @@ class InstitutionalRoutesMixin:
                        'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
 
             results = []
-            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, exit_px, stored_roi in rows:
+            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, exit_px, stored_roi, mtf_score_raw, mtf_detail_raw in rows:
                 roi   = 0.0
                 state = 'ACTIVE'
                 curr_p = price_map.get(ticker)  # live price for this ticker
@@ -5189,6 +5243,13 @@ class InstitutionalRoutesMixin:
                 except Exception:
                     pass
 
+                # Parse MTF data
+                try:
+                    _mtf_score = int(mtf_score_raw) if mtf_score_raw is not None else None
+                    _mtf_detail = json.loads(mtf_detail_raw) if mtf_detail_raw else None
+                except Exception:
+                    _mtf_score, _mtf_detail = None, None
+
                 results.append({
                     'id':         row_id,
                     'type':       sig_type,
@@ -5206,6 +5267,8 @@ class InstitutionalRoutesMixin:
                     'expires_in_str': expires_in_str,
                     'exit_price': round(float(exit_px), 10) if exit_px else None,
                     'final_roi':  round(float(stored_roi), 2) if stored_roi is not None else None,
+                    'mtf_score':  _mtf_score,
+                    'mtf_detail': _mtf_detail,
                 })
 
 
@@ -7387,73 +7450,129 @@ class InstitutionalRoutesMixin:
         """Volume Profile (TPO / Value Area) anchored to 60-day price history."""
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            ticker = query.get('ticker', ['BTC'])[0].upper()
-            
+            raw_ticker = query.get('ticker', ['BTC'])[0].upper()
+            # Accept both 'BTC' and 'BTC-USD'
+            ticker = raw_ticker if '-USD' in raw_ticker or '-' in raw_ticker else f'{raw_ticker}-USD'
+
             try:
-                data = CACHE.download(f'{ticker}-USD', period='60d', interval='1h')
-                # Resolve column names (yfinance MultiIndex flattens to strings like "('Close', 'BTC-USD')" in JSON cache)
-                close_col = next((c for c in data.columns if 'Close' in str(c)), 'Close')
-                vol_col = next((c for c in data.columns if 'Volume' in str(c)), 'Volume')
-                closes = data[close_col].dropna().values.flatten()
-                volumes = data[vol_col].dropna().values.flatten()
+                data = CACHE.download(ticker, period='60d', interval='1h')
+                if data is None or (hasattr(data, 'empty') and data.empty):
+                    raise ValueError(f'No OHLCV data returned for {ticker}')
+
+                # ── Robust MultiIndex column resolver ──────────────────────
+                # yfinance ≥0.2 returns MultiIndex columns: (field, ticker)
+                # yfinance <0.2 / single-ticker returns plain string columns
+                def _col(df, field):
+                    """Return a flat Series for 'field' regardless of column format."""
+                    # 1. Direct match (single-ticker, no MultiIndex)
+                    if field in df.columns:
+                        return df[field]
+                    # 2. MultiIndex tuple: ('Close', 'BTC-USD')
+                    if isinstance(df.columns, pd.MultiIndex):
+                        matches = [c for c in df.columns if c[0] == field]
+                        if matches:
+                            s = df[matches[0]]
+                            return s.squeeze() if isinstance(s, pd.DataFrame) else s
+                    # 3. Stringified MultiIndex: "('Close', 'BTC-USD')"
+                    matches = [c for c in df.columns if str(c).startswith(f"('{field}'") or str(c).startswith(f'("{field}"')]
+                    if matches:
+                        s = df[matches[0]]
+                        return s.squeeze() if isinstance(s, pd.DataFrame) else s
+                    # 4. Case-insensitive substring
+                    matches = [c for c in df.columns if field.lower() in str(c).lower()]
+                    if matches:
+                        s = df[matches[0]]
+                        return s.squeeze() if isinstance(s, pd.DataFrame) else s
+                    return None
+
+                close_series = _col(data, 'Close')
+                vol_series   = _col(data, 'Volume')
+
+                if close_series is None or len(close_series) < 10:
+                    raise ValueError(f'Insufficient close data for {ticker}')
+
+                # Ensure we have a 1-D Series
+                if isinstance(close_series, pd.DataFrame):
+                    close_series = close_series.iloc[:, 0]
+
+                # Align volumes to close index so zip() always has matching pairs
+                if vol_series is not None and len(vol_series) > 0:
+                    if isinstance(vol_series, pd.DataFrame):
+                        vol_series = vol_series.iloc[:, 0]
+                    vol_series = vol_series.reindex(close_series.index, fill_value=0)
+                else:
+                    vol_series = pd.Series(np.ones(len(close_series)), index=close_series.index)
+
+                # Drop NaN closes; keep volume in sync
+                mask    = close_series.notna()
+                closes  = close_series[mask].values.flatten().astype(float)
+                volumes = vol_series[mask].values.flatten().astype(float)
+
             except Exception as e:
                 import traceback
                 traceback.print_exc()
                 self.send_json({'error': f'No data: {str(e)}'})
                 return
-            
+
             if len(closes) == 0:
                 self.send_json({'error': 'No data'})
                 return
-                
+
             min_p, max_p = np.min(closes), np.max(closes)
+            if min_p == max_p:
+                self.send_json({'error': 'Price range is zero — insufficient variance'})
+                return
+
             bins = np.linspace(min_p, max_p, 40)
-            
-            profile = np.zeros(len(bins)-1)
+            profile = np.zeros(len(bins) - 1)
+
             for c, v in zip(closes, volumes):
                 idx = np.digitize(c, bins) - 1
-                idx = min(max(idx, 0), len(profile)-1)
+                idx = min(max(idx, 0), len(profile) - 1)
                 profile[idx] += v
-                
-            poc_idx = np.argmax(profile)
-            poc_price = (bins[poc_idx] + bins[poc_idx+1]) / 2
-            
-            # Value Area (70% of volume)
-            tot_vol = np.sum(profile)
-            target_vol = tot_vol * 0.7
-            current_vol = profile[poc_idx]
+
+            poc_idx   = int(np.argmax(profile))
+            poc_price = (bins[poc_idx] + bins[poc_idx + 1]) / 2
+
+            # Value Area: expand from POC until 70% of total volume is captured
+            tot_vol      = float(np.sum(profile))
+            target_vol   = tot_vol * 0.7
+            current_vol  = float(profile[poc_idx])
             up_idx, down_idx = poc_idx + 1, poc_idx - 1
-            
+
             while current_vol < target_vol and (up_idx < len(profile) or down_idx >= 0):
-                v_up = profile[up_idx] if up_idx < len(profile) else -1
-                v_down = profile[down_idx] if down_idx >= 0 else -1
-                
+                v_up   = float(profile[up_idx])   if up_idx   < len(profile) else -1.0
+                v_down = float(profile[down_idx])  if down_idx >= 0           else -1.0
                 if v_up > v_down:
-                    current_vol += v_up
-                    up_idx += 1
+                    current_vol += v_up;  up_idx   += 1
                 else:
-                    current_vol += v_down
-                    down_idx -= 1
-                    
-            vah = bins[min(up_idx, len(bins)-1)]
-            val = bins[max(down_idx, 0)]
-            
-            res = []
-            for i in range(len(profile)):
-                res.append({
-                    'price': round((bins[i] + bins[i+1]) / 2, 2),
-                    'volume': float(profile[i])
-                })
-                
+                    current_vol += v_down; down_idx -= 1
+
+            vah = float(bins[min(up_idx,   len(bins) - 1)])
+            val = float(bins[max(down_idx, 0)])
+
+            # Normalise volumes to millions for cleaner display
+            vol_scale = 1e6 if tot_vol > 1e6 else 1.0
+            res = [
+                {
+                    'price':  round((bins[i] + bins[i + 1]) / 2, 2),
+                    'volume': round(float(profile[i]) / vol_scale, 4)
+                }
+                for i in range(len(profile))
+            ]
+
             self.send_json({
-                'ticker': ticker,
-                'spot': float(closes[-1]),
-                'poc': round(float(poc_price), 2),
-                'vah': round(float(vah), 2),
-                'val': round(float(val), 2),
-                'profile': res
+                'ticker':  ticker,
+                'spot':    round(float(closes[-1]), 2),
+                'poc':     round(float(poc_price), 2),
+                'vah':     round(float(vah), 2),
+                'val':     round(float(val), 2),
+                'profile': res,
+                'vol_unit': 'M' if vol_scale == 1e6 else 'raw',
+                'source':   'yfinance_1h_60d'
             })
         except Exception as e:
+            import traceback; traceback.print_exc()
             self.send_json({'error': str(e)})
 
     def handle_lob_heatmap(self):

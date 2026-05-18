@@ -241,6 +241,32 @@ def init_db():
     try:
         c.execute("ALTER TABLE alerts_history ADD COLUMN tp1_hit INTEGER DEFAULT 0")
     except: pass
+    # Migration: Multi-Timeframe confluence score and per-TF detail
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN mtf_score REAL")
+    except: pass
+    try:
+        c.execute("ALTER TABLE alerts_history ADD COLUMN mtf_detail TEXT")
+    except: pass
+
+    # Signal suppression audit log — every killed signal lands here with reason
+    c.execute('''CREATE TABLE IF NOT EXISTS signal_suppression_log (
+        id        INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        ticker    TEXT,
+        direction TEXT,
+        gate      TEXT,
+        reason    TEXT,
+        z_score   REAL,
+        pred_return REAL,
+        mtf_score REAL,
+        price     REAL
+    )''')
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_ssl_ts ON signal_suppression_log(timestamp DESC)")
+    except: pass
+
+
     try:
         c.execute("ALTER TABLE alerts_history ADD COLUMN user_email TEXT")
     except: pass

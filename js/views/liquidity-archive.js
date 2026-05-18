@@ -1339,13 +1339,16 @@ async function renderSignalArchive(tabs = null) {
         <div id="archive-state-tabs" style="display:flex;gap:6px;margin-bottom:1rem;align-items:center">
             <span style="font-size:0.5rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-right:4px">VIEW:</span>
             <button id="atab-active" onclick="window._setArchiveState('active')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(74,222,128,0.5);background:rgba(74,222,128,0.12);color:#4ade80;cursor:pointer;letter-spacing:1px;transition:all 0.15s">
-                - ACTIVE
+                ● ACTIVE
             </button>
             <button id="atab-all" onclick="window._setArchiveState('all')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
                 ALL
             </button>
             <button id="atab-closed" onclick="window._setArchiveState('closed')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
                 CLOSED
+            </button>
+            <button id="atab-suppressed" onclick="window._setArchiveState('suppressed')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.06);color:#f59e0b;cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Signals that were filtered out — useful to diagnose why signals are rare">
+                ⚡ SUPPRESSED
             </button>
         </div>
 
@@ -1452,20 +1455,113 @@ async function renderSignalArchive(tabs = null) {
         stateFilter = state;
         // Restyle tabs
         const styles = {
-            active: { border:'rgba(74,222,128,0.5)',  bg:'rgba(74,222,128,0.12)',  color:'#4ade80' },
-            all:    { border:'rgba(0,242,255,0.5)',   bg:'rgba(0,242,255,0.12)',   color:'var(--accent)' },
-            closed: { border:'rgba(148,163,184,0.4)', bg:'rgba(148,163,184,0.08)', color:'#94a3b8' },
+            active:     { border:'rgba(74,222,128,0.5)',   bg:'rgba(74,222,128,0.12)',   color:'#4ade80' },
+            all:        { border:'rgba(0,242,255,0.5)',    bg:'rgba(0,242,255,0.12)',    color:'var(--accent)' },
+            closed:     { border:'rgba(148,163,184,0.4)',  bg:'rgba(148,163,184,0.08)', color:'#94a3b8' },
+            suppressed: { border:'rgba(245,158,11,0.5)',   bg:'rgba(245,158,11,0.1)',   color:'#f59e0b' },
         };
-        ['active','all','closed'].forEach(s => {
+        ['active','all','closed','suppressed'].forEach(s => {
             const btn = document.getElementById('atab-' + s);
             if (!btn) return;
             const isActive = s === state;
-            btn.style.border    = '1px solid ' + (isActive ? styles[s].border : alphaColor(0.1));
+            btn.style.border     = '1px solid ' + (isActive ? styles[s].border : alphaColor(0.1));
             btn.style.background = isActive ? styles[s].bg : alphaColor(0.03);
-            btn.style.color     = isActive ? styles[s].color : 'var(--text-dim)';
+            btn.style.color      = isActive ? styles[s].color : 'var(--text-dim)';
         });
-        loadData(1);
+
+        if (state === 'suppressed') {
+            _renderSuppressionLog();
+        } else {
+            // Restore normal archive view
+            const af = document.getElementById('archive-filters');
+            if (af) af.style.display = '';
+            loadData(1);
+        }
     };
+
+    async function _renderSuppressionLog() {
+        const container = document.getElementById('archive-table-container');
+        if (!container) return;
+        // Hide filters — not applicable here
+        const af = document.getElementById('archive-filters');
+        if (af) af.style.display = 'none';
+
+        container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.75rem">Loading suppression log…</div>`;
+        try {
+            const data = await fetchAPI('/signal-suppression-log?limit=200');
+            if (!data || !data.data) throw new Error('No data');
+
+            const GATE_META = {
+                PRED_RETURN_FLOOR: { label: 'Pred Return Too Low',  color: '#f59e0b', icon: 'trending_down' },
+                SMA50_TREND:       { label: 'Counter-Trend (SMA50)',color: '#ef4444', icon: 'show_chart' },
+                CONFLUENCE_CHECK:  { label: 'Confluence Failed',    color: '#8b5cf6', icon: 'hub' },
+                MTF_CONFLUENCE:    { label: 'MTF Score < 20',       color: '#06b6d4', icon: 'layers' },
+            };
+
+            // Gate breakdown pills
+            const breakdownHTML = (data.breakdown || []).map(b => {
+                const m = GATE_META[b.gate] || { label: b.gate, color: '#94a3b8', icon: 'block' };
+                return `<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 14px">
+                    <span class="material-symbols-outlined" style="font-size:14px;color:${m.color}">${m.icon}</span>
+                    <div>
+                        <div style="font-size:0.6rem;font-weight:800;color:${m.color}">${m.label}</div>
+                        <div style="font-size:0.7rem;font-weight:900;color:var(--text-main)">${b.count} killed</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Table rows
+            const rowsHTML = data.data.length === 0
+                ? `<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text-dim)">No suppressed signals yet — log starts filling after the next harvest cycle.</td></tr>`
+                : data.data.map(r => {
+                    const m   = GATE_META[r.gate] || { label: r.gate, color:'#94a3b8', icon:'block' };
+                    const dir = r.direction === 'LONG' ? {col:'#22c55e', lbl:'▲ L'} : {col:'#ef4444', lbl:'▼ S'};
+                    const ts  = r.timestamp ? r.timestamp.slice(0,16).replace('T',' ') : '—';
+                    const pr  = r.pred_return != null ? (r.pred_return * 100).toFixed(2) + '%' : '—';
+                    const z   = r.z_score != null ? parseFloat(r.z_score).toFixed(2) : '—';
+                    const mtf = r.mtf_score != null ? r.mtf_score : '—';
+                    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
+                        <td style="padding:10px 8px;font-size:0.65rem;color:var(--text-dim);white-space:nowrap">${ts}</td>
+                        <td style="padding:10px 8px;font-weight:900;color:var(--text-main);font-size:0.75rem">${(r.ticker||'').replace('-USD','')}</td>
+                        <td style="padding:10px 8px"><span style="color:${dir.col};font-size:0.6rem;font-weight:900">${dir.lbl}</span></td>
+                        <td style="padding:10px 8px"><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(${m.color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',')},0.1);border:1px solid ${m.color}44;color:${m.color};padding:2px 8px;border-radius:4px;font-size:0.55rem;font-weight:800"><span class="material-symbols-outlined" style="font-size:11px">${m.icon}</span>${m.label}</span></td>
+                        <td style="padding:10px 8px;font-size:0.6rem;color:var(--text-dim);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.reason||''}">${r.reason||'—'}</td>
+                        <td style="padding:10px 8px;font-family:'JetBrains Mono';font-size:0.65rem;color:${parseFloat(z||0)>=2.5?'#22c55e':'#f59e0b'}">${z}</td>
+                        <td style="padding:10px 8px;font-family:'JetBrains Mono';font-size:0.65rem;color:${mtf!=='—'&&mtf<20?'#ef4444':'var(--text-dim)'}">${mtf}</td>
+                    </tr>`;
+                }).join('');
+
+            container.innerHTML = `
+                <div style="margin-bottom:1.2rem">
+                    <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">SUPPRESSION BREAKDOWN — ALL TIME</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">${breakdownHTML}</div>
+                </div>
+                <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:12px">
+                    Showing last <strong style="color:var(--text-main)">${data.total}</strong> suppressed signals. 
+                    Signals enter this log when they pass the Z-Score gate but are killed by a quality filter.
+                    Signals that never reached Z ≥ 2.5 don't appear here — they were never evaluated.
+                </div>
+                <div style="overflow-x:auto">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.7rem">
+                        <thead>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.08)">
+                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">TIME</th>
+                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">TICKER</th>
+                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">DIR</th>
+                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">GATE KILLED AT</th>
+                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">REASON</th>
+                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">Z-SCORE</th>
+                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">MTF</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rowsHTML}</tbody>
+                    </table>
+                </div>`;
+        } catch(e) {
+            container.innerHTML = `<div style="padding:2rem;color:#ef4444;font-size:0.75rem">Failed to load suppression log: ${e.message}</div>`;
+        }
+    }
+
 
     // - Sort state lives OUTSIDE loadData so it persists across page navigation -
     let sortCol = null;
@@ -1688,6 +1784,39 @@ async function renderSignalArchive(tabs = null) {
                             ${dirArrow} ${dirLabel}
                         </span>
                     </td>
+                    <td data-label="MTF" style="padding:8px 12px;text-align:center;white-space:nowrap">
+                    ${(() => {
+                        const mtf = s.mtf_detail;
+                        const score = s.mtf_score;
+                        if (!mtf && score == null) return '<span style="color:var(--text-dim);opacity:0.4;font-size:0.6rem">—</span>';
+                        const tfColor = (v, dir) => {
+                            const isBullDir = isBull;
+                            if (!v || v === 'neutral') return { c:'#64748b', bg:'rgba(100,116,139,0.1)', bdr:'rgba(100,116,139,0.25)' };
+                            const agrees = (isBullDir && v === 'bullish') || (!isBullDir && v === 'bearish');
+                            return agrees
+                                ? { c:'#22c55e', bg:'rgba(34,197,94,0.12)', bdr:'rgba(34,197,94,0.35)' }
+                                : { c:'#ef4444', bg:'rgba(239,68,68,0.12)', bdr:'rgba(239,68,68,0.35)' };
+                        };
+                        const pill = (label, val) => {
+                            const {c,bg,bdr} = tfColor(val);
+                            const icon = (!val || val==='neutral') ? '—' : (val==='bullish' ? '▲' : '▼');
+                            return `<span style="display:inline-flex;align-items:center;gap:2px;background:${bg};border:1px solid ${bdr};color:${c};padding:2px 6px;border-radius:4px;font-size:0.52rem;font-weight:800;letter-spacing:0.5px">${label}<span style="font-size:0.55rem">${icon}</span></span>`;
+                        };
+                        const scorePct = score ?? 0;
+                        const scoreColor = scorePct >= 75 ? '#22c55e' : scorePct >= 50 ? '#00f2ff' : scorePct >= 33 ? '#f59e0b' : '#ef4444';
+                        return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                            <div style="display:flex;gap:3px">
+                                ${pill('1H', mtf ? mtf['1h'] : null)}
+                                ${pill('4H', mtf ? mtf['4h'] : null)}
+                                ${pill('1D', mtf ? mtf['1d'] : null)}
+                            </div>
+                            <div style="width:52px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden">
+                                <div style="width:${scorePct}%;height:100%;background:${scoreColor};transition:width 0.4s"></div>
+                            </div>
+                            <span style="font-size:0.48rem;color:${scoreColor};font-weight:700;font-family:var(--font-mono)">${scorePct}/100</span>
+                        </div>`;
+                    })()}
+                    </td>
                     <td data-label="ACTIONS" style="padding:8px 12px;text-align:center;white-space:nowrap" onclick="event.stopPropagation()">
                         <button onclick="openDetail('${s.ticker}','CRYPTO');event.stopPropagation()" style="background:none;border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="Open Chart">CHART</button>
                         <button onclick="showSignalDetail(null,'${s.ticker}');event.stopPropagation()" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:4px;padding:2px 7px;font-size:0.55rem;cursor:pointer;font-weight:700;margin-right:4px" title="AI Analysis">AI</button>
@@ -1761,6 +1890,7 @@ async function renderSignalArchive(tabs = null) {
                 ${aTH('state','STATE','center')}
                 ${aTH('date','DATE','left')}
                 ${aTH('direction','DIRECTION','center')}
+                <th style="text-align:center;padding:8px 12px;color:var(--text-dim);white-space:nowrap">MTF</th>
                 <th style="text-align:center;padding:8px 12px;color:var(--text-dim)">ACTIONS</th>
             `;
         }
