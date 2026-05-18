@@ -1482,13 +1482,12 @@ async function renderSignalArchive(tabs = null) {
     async function _renderSuppressionLog() {
         const container = document.getElementById('archive-table-container');
         if (!container) return;
-        // Hide filters — not applicable here
         const af = document.getElementById('archive-filters');
         if (af) af.style.display = 'none';
 
         container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.75rem">Loading suppression log…</div>`;
         try {
-            const data = await fetchAPI('/signal-suppression-log?limit=200');
+            const data = await fetchAPI('/signal-suppression-log?limit=500');
             if (!data || !data.data) throw new Error('No data');
 
             const GATE_META = {
@@ -1498,56 +1497,136 @@ async function renderSignalArchive(tabs = null) {
                 MTF_CONFLUENCE:    { label: 'MTF Score < 20',       color: '#06b6d4', icon: 'layers' },
             };
 
-            // Gate breakdown pills
-            const breakdownHTML = (data.breakdown || []).map(b => {
-                const m = GATE_META[b.gate] || { label: b.gate, color: '#94a3b8', icon: 'block' };
-                return `<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 14px">
-                    <span class="material-symbols-outlined" style="font-size:14px;color:${m.color}">${m.icon}</span>
-                    <div>
-                        <div style="font-size:0.6rem;font-weight:800;color:${m.color}">${m.label}</div>
-                        <div style="font-size:0.7rem;font-weight:900;color:var(--text-main)">${b.count} killed</div>
-                    </div>
-                </div>`;
-            }).join('');
+            let _sl_sort    = { col: 'timestamp', dir: 'desc' };
+            let _sl_filters = { ticker: '', gate: '', direction: '', range: '24h' };
+            const allRows   = data.data;
 
-            // Table rows
-            const rowsHTML = data.data.length === 0
-                ? `<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text-dim)">No suppressed signals yet — log starts filling after the next harvest cycle.</td></tr>`
-                : data.data.map(r => {
+            function _sl_filter(rows) {
+                const now = Date.now();
+                const rangeMs = { '1h': 3600e3, '4h': 14400e3, '24h': 86400e3, '7d': 604800e3, 'all': Infinity };
+                const ms = rangeMs[_sl_filters.range] ?? Infinity;
+                return rows.filter(r => {
+                    if (_sl_filters.ticker && !(r.ticker||'').toUpperCase().includes(_sl_filters.ticker.toUpperCase())) return false;
+                    if (_sl_filters.gate && r.gate !== _sl_filters.gate) return false;
+                    if (_sl_filters.direction && r.direction !== _sl_filters.direction) return false;
+                    if (ms < Infinity && (now - new Date(r.timestamp).getTime()) > ms) return false;
+                    return true;
+                });
+            }
+
+            function _sl_sortFn(rows) {
+                const { col, dir } = _sl_sort;
+                return [...rows].sort((a, b) => {
+                    let av = a[col], bv = b[col];
+                    if (['z_score','mtf_score','pred_return'].includes(col)) { av = parseFloat(av)||0; bv = parseFloat(bv)||0; }
+                    return av < bv ? (dir==='asc'?-1:1) : av > bv ? (dir==='asc'?1:-1) : 0;
+                });
+            }
+
+            window._sl_thClick = function(col) {
+                if (_sl_sort.col === col) _sl_sort.dir = _sl_sort.dir === 'asc' ? 'desc' : 'asc';
+                else { _sl_sort.col = col; _sl_sort.dir = 'desc'; }
+                _sl_redraw();
+            };
+            window._sl_filterChange = function() {
+                _sl_filters.ticker    = document.getElementById('sl-f-ticker')?.value.trim() || '';
+                _sl_filters.gate      = document.getElementById('sl-f-gate')?.value || '';
+                _sl_filters.direction = document.getElementById('sl-f-dir')?.value || '';
+                _sl_filters.range     = document.getElementById('sl-f-range')?.value || 'all';
+                _sl_redraw();
+            };
+
+            function _sl_th(label, col) {
+                const active = _sl_sort.col === col;
+                const arrow  = active ? (_sl_sort.dir === 'asc' ? ' ↑' : ' ↓') : '';
+                const color  = active ? 'var(--accent)' : 'var(--text-dim)';
+                return `<th onclick="window._sl_thClick('${col}')" style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:${color};font-weight:900;cursor:pointer;white-space:nowrap;user-select:none;transition:color 0.15s">${label}${arrow}</th>`;
+            }
+
+            function _sl_redraw() {
+                const filtered = _sl_sortFn(_sl_filter(allRows));
+                const count = document.getElementById('sl-count');
+                if (count) count.textContent = `${filtered.length} / ${allRows.length}`;
+
+                const thead = document.getElementById('sl-thead');
+                if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid rgba(255,255,255,0.08)">
+                    ${_sl_th('TIME','timestamp')}${_sl_th('TICKER','ticker')}${_sl_th('DIR','direction')}
+                    ${_sl_th('GATE','gate')}${_sl_th('REASON','reason')}
+                    ${_sl_th('Z-SCORE','z_score')}${_sl_th('MTF','mtf_score')}</tr>`;
+
+                const tbody = document.getElementById('sl-tbody');
+                if (!tbody) return;
+                if (!filtered.length) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text-dim)">No matching suppressed signals.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = filtered.map(r => {
                     const m   = GATE_META[r.gate] || { label: r.gate, color:'#94a3b8', icon:'block' };
                     const dir = r.direction === 'LONG' ? {col:'#22c55e', lbl:'▲ L'} : {col:'#ef4444', lbl:'▼ S'};
                     const ts  = r.timestamp ? r.timestamp.slice(0,16).replace('T',' ') : '—';
-                    const pr  = r.pred_return != null ? (r.pred_return * 100).toFixed(2) + '%' : '—';
-                    const z   = r.z_score != null ? parseFloat(r.z_score).toFixed(2) : '—';
+                    const z   = r.z_score   != null ? parseFloat(r.z_score).toFixed(2)  : '—';
                     const mtf = r.mtf_score != null ? r.mtf_score : '—';
-                    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
-                        <td style="padding:10px 8px;font-size:0.65rem;color:var(--text-dim);white-space:nowrap">${ts}</td>
-                        <td style="padding:10px 8px;font-weight:900;color:var(--text-main);font-size:0.75rem">${(r.ticker||'').replace('-USD','')}</td>
-                        <td style="padding:10px 8px"><span style="color:${dir.col};font-size:0.6rem;font-weight:900">${dir.lbl}</span></td>
-                        <td style="padding:10px 8px"><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(${m.color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',')},0.1);border:1px solid ${m.color}44;color:${m.color};padding:2px 8px;border-radius:4px;font-size:0.55rem;font-weight:800"><span class="material-symbols-outlined" style="font-size:11px">${m.icon}</span>${m.label}</span></td>
-                        <td style="padding:10px 8px;font-size:0.6rem;color:var(--text-dim);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.reason||''}">${r.reason||'—'}</td>
-                        <td style="padding:10px 8px;font-family:'JetBrains Mono';font-size:0.65rem;color:${parseFloat(z||0)>=2.5?'#22c55e':'#f59e0b'}">${z}</td>
-                        <td style="padding:10px 8px;font-family:'JetBrains Mono';font-size:0.65rem;color:${mtf!=='—'&&mtf<20?'#ef4444':'var(--text-dim)'}">${mtf}</td>
+                    const hex = m.color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',');
+                    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s" onmouseover="this.style.background='rgba(255,255,255,0.025)'" onmouseout="this.style.background=''">
+                        <td style="padding:9px 8px;font-size:0.62rem;color:var(--text-dim);white-space:nowrap">${ts}</td>
+                        <td style="padding:9px 8px;font-weight:900;color:var(--text-main);font-size:0.75rem">${(r.ticker||'').replace('-USD','')}</td>
+                        <td style="padding:9px 8px"><span style="color:${dir.col};font-size:0.6rem;font-weight:900">${dir.lbl}</span></td>
+                        <td style="padding:9px 8px"><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(${hex},0.1);border:1px solid ${m.color}44;color:${m.color};padding:2px 8px;border-radius:4px;font-size:0.55rem;font-weight:800"><span class="material-symbols-outlined" style="font-size:11px">${m.icon}</span>${m.label}</span></td>
+                        <td style="padding:9px 8px;font-size:0.6rem;color:var(--text-dim);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.reason||'').replace(/"/g,"'")}">${r.reason||'—'}</td>
+                        <td style="padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:${parseFloat(z||0)>=2.5?'#22c55e':'#f59e0b'}">${z}</td>
+                        <td style="padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:${mtf!=='—'&&mtf<20?'#ef4444':'var(--text-dim)'}">${mtf}</td>
                     </tr>`;
                 }).join('');
+            }
+
+            const breakdownHTML = (data.breakdown||[]).map(b => {
+                const m = GATE_META[b.gate] || { label: b.gate, color:'#94a3b8', icon:'block' };
+                return `<div onclick="document.getElementById('sl-f-gate').value='${b.gate}';window._sl_filterChange()" title="Click to filter" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 14px;cursor:pointer;transition:border-color 0.15s" onmouseover="this.style.borderColor='${m.color}66'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+                    <span class="material-symbols-outlined" style="font-size:14px;color:${m.color}">${m.icon}</span>
+                    <div><div style="font-size:0.6rem;font-weight:800;color:${m.color}">${m.label}</div>
+                    <div style="font-size:0.7rem;font-weight:900;color:var(--text-main)">${b.count} killed</div></div>
+                </div>`;
+            }).join('');
+
+            const iS = `background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-main);padding:6px 10px;border-radius:6px;font-size:0.68rem;outline:none;font-family:inherit;transition:border-color 0.15s`;
+            const lS = `font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px;display:block`;
 
             container.innerHTML = `
-                <div style="margin-bottom:1.2rem">
-                    <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">SUPPRESSION BREAKDOWN — ALL TIME</div>
+                <div style="margin-bottom:1rem">
+                    <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">GATE BREAKDOWN — ALL TIME <span style="font-weight:400;font-size:0.6rem">(click to filter)</span></div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap">${breakdownHTML}</div>
                 </div>
-                <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:12px">
-                    Showing last <strong style="color:var(--text-main)">${data.total}</strong> suppressed signals. 
-                    Signals enter this log when they pass the Z-Score gate but are killed by a quality filter.
-                    Signals that never reached Z ≥ 2.5 don't appear here — they were never evaluated.
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem;padding:12px 16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px">
+                    <div><label style="${lS}">TICKER</label>
+                        <input id="sl-f-ticker" placeholder="BTC, ETH…" style="${iS};width:90px" oninput="window._sl_filterChange()"></div>
+                    <div><label style="${lS}">GATE</label>
+                        <select id="sl-f-gate" style="${iS};width:160px" onchange="window._sl_filterChange()">
+                            <option value="">All Gates</option>
+                            <option value="MTF_CONFLUENCE">MTF Confluence</option>
+                            <option value="PRED_RETURN_FLOOR">Pred Return Floor</option>
+                            <option value="SMA50_TREND">SMA50 Trend</option>
+                            <option value="CONFLUENCE_CHECK">Confluence Check</option>
+                        </select></div>
+                    <div><label style="${lS}">DIRECTION</label>
+                        <select id="sl-f-dir" style="${iS};width:100px" onchange="window._sl_filterChange()">
+                            <option value="">Both</option>
+                            <option value="LONG">▲ Long</option>
+                            <option value="SHORT">▼ Short</option>
+                        </select></div>
+                    <div><label style="${lS}">TIME RANGE</label>
+                        <select id="sl-f-range" style="${iS};width:110px" onchange="window._sl_filterChange()">
+                            <option value="1h">Last 1h</option>
+                            <option value="4h">Last 4h</option>
+                            <option value="24h" selected>Last 24h</option>
+                            <option value="7d">Last 7d</option>
+                            <option value="all">All Time</option>
+                        </select></div>
+                    <div style="margin-left:auto;font-size:0.65rem;color:var(--text-dim);align-self:center">
+                        Showing <strong id="sl-count" style="color:var(--text-main)">—</strong> results
+                    </div>
                 </div>
                 <div style="overflow-x:auto">
                     <table style="width:100%;border-collapse:collapse;font-size:0.7rem">
-                        <thead>
-                            <tr style="border-bottom:1px solid rgba(255,255,255,0.08)">
-                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">TIME</th>
-                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">TICKER</th>
-                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">DIR</th>
                                 <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">GATE KILLED AT</th>
                                 <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">REASON</th>
                                 <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">Z-SCORE</th>
