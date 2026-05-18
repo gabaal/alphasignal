@@ -1,4 +1,4 @@
-async function renderLiquidityView(tabs = null) {
+﻿async function renderLiquidityView(tabs = null) {
     // Standard hub tab setup - 4 sub-views as tabs
     const gommTabs = [
         { id: 'walls',        label: 'DEPTH WALLS',       view: 'liquidity', icon: 'bar_chart' },
@@ -1627,13 +1627,8 @@ async function renderSignalArchive(tabs = null) {
                 </div>
                 <div style="overflow-x:auto">
                     <table style="width:100%;border-collapse:collapse;font-size:0.7rem">
-                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">GATE KILLED AT</th>
-                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">REASON</th>
-                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">Z-SCORE</th>
-                                <th style="padding:8px;text-align:left;font-size:0.5rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900">MTF</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rowsHTML}</tbody>
+                        <thead id="sl-thead"></thead>
+                        <tbody id="sl-tbody"><tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading...</td></tr></tbody>
                     </table>
                 </div>`;
         } catch(e) {
