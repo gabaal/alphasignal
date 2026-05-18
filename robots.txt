@@ -1,15 +1,93 @@
 User-agent: *
 Allow: /
 
-# Block internal auth and API routes - not indexable content
+# ── Block API routes (not indexable content) ────────────────────────────────
 Disallow: /api/
+
+# ── Block query-parameter variants (waste crawl budget) ─────────────────────
 Disallow: /?auth=
 Disallow: /?reset=
 Disallow: /?token=
-
-# Block duplicate query param routes that waste crawl budget
 Disallow: /?debug=
 Disallow: /?test=
+Disallow: /?session_id=
+
+# ── Block auth-gated SPA views (cause "Page with redirect" in GSC) ───────────
+# These routes require login and JS-redirect unauthenticated visitors/bots.
+# Blocking them eliminates the 102-page redirect issue in Search Console.
+Disallow: /command-center
+Disallow: /my-terminal
+Disallow: /portfolio
+Disallow: /portfolio-optimizer
+Disallow: /alerts
+Disallow: /price-alerts
+Disallow: /price-alerts-hub
+Disallow: /tradelab
+Disallow: /trade-ledger
+Disallow: /performance-dashboard
+Disallow: /audit-hub
+Disallow: /ai-rebalancer
+Disallow: /ask-terminal
+Disallow: /signals
+Disallow: /alpha-score
+Disallow: /strategy-lab
+Disallow: /backtester-v2
+Disallow: /signal-archive
+Disallow: /signal-leaderboard
+Disallow: /leaderboard-hub
+Disallow: /market-brief
+Disallow: /market-brief-hub
+Disallow: /alerts-hub
+Disallow: /heatmap
+Disallow: /liquidity
+Disallow: /lob-heatmap
+Disallow: /volume-profile
+Disallow: /gex-profile
+Disallow: /advanced-charting
+Disallow: /whales
+Disallow: /velocity
+Disallow: /onchain
+Disallow: /options-flow
+Disallow: /newsroom
+Disallow: /mindshare
+Disallow: /etf-flows
+Disallow: /liquidations
+Disallow: /oi-radar
+Disallow: /cme-gaps
+Disallow: /macro
+Disallow: /macro-calendar
+Disallow: /macro-hub
+Disallow: /correlation-matrix
+Disallow: /regime
+Disallow: /briefing
+Disallow: /flow
+Disallow: /rotation
+Disallow: /risk
+Disallow: /stress
+Disallow: /risk-hub
+Disallow: /token-unlocks
+Disallow: /yield-lab
+Disallow: /narrative
+Disallow: /global-hub
+Disallow: /alpha-hub
+Disallow: /analytics-hub
+Disallow: /institutional-hub
+Disallow: /tradingview-hub
+Disallow: /custom-analytics
+Disallow: /backtest
+Disallow: /catalysts
+Disallow: /help
+
+# ── Allow public content ─────────────────────────────────────────────────────
+Allow: /asset/
+Allow: /signal/
+Allow: /academy/
+Allow: /academy-watch
+Allow: /docs-
+Allow: /privacy
+Allow: /terms
+Allow: /roadmap
+Allow: /sitemap.xml
 
 Sitemap: https://alphasignal.digital/sitemap.xml
 Sitemap: https://alphasignal.digital/video-sitemap.xml
