@@ -808,6 +808,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_signal_suppression_log()
             elif path == '/api/near-miss':
                 self.handle_near_miss()
+            elif path == '/api/signal-notes/all':
+                self.handle_signal_notes_all()
             elif path == '/api/signal-notes':
                 self.handle_signal_notes_get()
             elif path == '/api/macro-calendar':

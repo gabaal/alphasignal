@@ -8353,6 +8353,32 @@ class InstitutionalRoutesMixin:
             import traceback; traceback.print_exc()
             self.send_json({'error': str(e)}, 500)
 
+    def handle_signal_notes_all(self):
+        """Return all notes for the authenticated user, joined with signal state/ROI."""
+        auth_info = self.is_authenticated()
+        if not auth_info:
+            self.send_json({'error': 'Unauthorized'}, 401); return
+        email = auth_info.get('email', '')
+        try:
+            with sqlite3.connect(DB_PATH, timeout=10) as conn:
+                conn.row_factory = sqlite3.Row
+                c = conn.cursor()
+                c.execute('''
+                    SELECT sn.*,
+                           ah.status  AS signal_state,
+                           ah.final_roi
+                    FROM signal_notes sn
+                    LEFT JOIN alerts_history ah ON ah.id = sn.signal_id
+                    WHERE sn.user_email = ?
+                    ORDER BY sn.updated_at DESC
+                ''', (email,))
+                rows = [dict(r) for r in c.fetchall()]
+            self.send_json({'notes': rows})
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            self.send_json({'error': str(e)}, 500)
+
+
     def handle_signal_notes_post(self, body=None):
         auth_info = self.is_authenticated()
         if not auth_info:

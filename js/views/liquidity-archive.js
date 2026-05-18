@@ -1353,6 +1353,9 @@ async function renderSignalArchive(tabs = null) {
             <button id="atab-warming" onclick="window._setArchiveState('warming')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(16,185,129,0.4);background:rgba(16,185,129,0.06);color:#10b981;cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Tickers warming up — passed z-score but awaiting MTF alignment">
                 🔥 WARMING
             </button>
+            <button id="atab-journal" onclick="window._setArchiveState('journal')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.06);color:#f59e0b;cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Your annotated trade journal">
+                📓 JOURNAL
+            </button>
         </div>
 
         <div id="archive-filters" class="glass-card" style="margin-bottom:1.5rem;padding:1.2rem;display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap">
@@ -1463,8 +1466,9 @@ async function renderSignalArchive(tabs = null) {
             closed:     { border:'rgba(148,163,184,0.4)',  bg:'rgba(148,163,184,0.08)', color:'#94a3b8' },
             suppressed: { border:'rgba(245,158,11,0.5)',   bg:'rgba(245,158,11,0.1)',   color:'#f59e0b' },
             warming:    { border:'rgba(16,185,129,0.5)',   bg:'rgba(16,185,129,0.1)',   color:'#10b981' },
+            journal:    { border:'rgba(245,158,11,0.5)',   bg:'rgba(245,158,11,0.1)',   color:'#f59e0b' },
         };
-        ['active','all','closed','suppressed','warming'].forEach(s => {
+        ['active','all','closed','suppressed','warming','journal'].forEach(s => {
             const btn = document.getElementById('atab-' + s);
             if (!btn) return;
             const isActive = s === state;
@@ -1477,6 +1481,8 @@ async function renderSignalArchive(tabs = null) {
             _renderSuppressionLog();
         } else if (state === 'warming') {
             _renderNearMiss();
+        } else if (state === 'journal') {
+            _renderJournalView();
         } else {
             // Restore normal archive view
             const af = document.getElementById('archive-filters');
@@ -1589,6 +1595,159 @@ async function renderSignalArchive(tabs = null) {
         } catch(e) {
             container.innerHTML = `<div style="padding:2rem;color:#ef4444;font-size:0.75rem">Failed to load warming tickers: ${e.message}</div>`;
         }
+    }
+
+    // ── Journal Summary View ─────────────────────────────────────────────────
+    async function _renderJournalView() {
+        const container = document.getElementById('archive-table-container');
+        if (!container) return;
+        const af = document.getElementById('archive-filters');
+        if (af) af.style.display = 'none';
+
+        container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.75rem">Loading journal…</div>`;
+
+        let notes = [];
+        try {
+            const res = await fetchAPI('/signal-notes/all');
+            notes = res?.notes || [];
+        } catch(e) {
+            container.innerHTML = `<div style="padding:2rem;color:#ef4444;font-size:0.75rem">Failed to load journal: ${e.message}</div>`;
+            return;
+        }
+
+        if (!notes.length) {
+            container.innerHTML = `<div style="padding:3rem;text-align:center">
+                <div style="font-size:2rem;margin-bottom:1rem">📓</div>
+                <div style="font-size:0.9rem;font-weight:700;color:var(--text-main);margin-bottom:6px">No journal notes yet</div>
+                <div style="font-size:0.72rem;color:var(--text-dim)">Click the 📓 button on any signal row in the archive to start your trade journal.</div>
+            </div>`;
+            return;
+        }
+
+        // ── Summary stats ────────────────────────────────────────────────────
+        const total    = notes.length;
+        const avgConv  = (notes.reduce((s,n) => s + (n.conviction||0), 0) / total).toFixed(1);
+        const withROI  = notes.filter(n => n.final_roi != null);
+        const winners  = withROI.filter(n => n.final_roi > 0).length;
+        const winRate  = withROI.length ? Math.round(winners / withROI.length * 100) : null;
+        const avgROI   = withROI.length ? (withROI.reduce((s,n)=>s+n.final_roi,0)/withROI.length).toFixed(2) : null;
+
+        // ── Tag cloud ────────────────────────────────────────────────────────
+        const allTags = notes.flatMap(n => (n.tags||'').split(',').map(t=>t.trim()).filter(Boolean));
+        const tagCounts = {};
+        allTags.forEach(t => { tagCounts[t] = (tagCounts[t]||0)+1; });
+        const topTags = Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+        let activeTag = null;
+        let activeConv = 0;
+
+        const render = () => {
+            let filtered = notes;
+            if (activeTag) filtered = filtered.filter(n => (n.tags||'').includes(activeTag));
+            if (activeConv) filtered = filtered.filter(n => (n.conviction||0) >= activeConv);
+
+            const rows = filtered.map(n => {
+                const stars = '★'.repeat(n.conviction||0) + '☆'.repeat(5-(n.conviction||0));
+                const roi   = n.final_roi != null ? `<span style="color:${n.final_roi>=0?'#22c55e':'#ef4444'};font-weight:700">${n.final_roi>=0?'+':''}${n.final_roi}%</span>` : '<span style="color:var(--text-dim)">—</span>';
+                const state = n.signal_state || '—';
+                const stateColor = state==='HIT_TP1'||state==='HIT_TP2' ? '#22c55e' : state==='STOPPED' ? '#ef4444' : state==='ACTIVE' ? '#4ade80' : '#94a3b8';
+                const thesis = (n.thesis||'').length > 80 ? n.thesis.substring(0,80)+'…' : (n.thesis||'—');
+                const tags   = (n.tags||'').split(',').map(t=>t.trim()).filter(Boolean).map(t=>`<span style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:#f59e0b;padding:1px 6px;border-radius:10px;font-size:0.5rem;font-weight:700">${t}</span>`).join(' ');
+                const date   = (n.updated_at||'').substring(0,10);
+                const entry  = n.entry_note  ? `<span style="color:var(--text-dim);font-size:0.6rem">E: <span style="font-family:monospace">${n.entry_note}</span></span>` : '';
+                const tp     = n.target_note ? `<span style="color:#22c55e;font-size:0.6rem">TP: <span style="font-family:monospace">${n.target_note}</span></span>` : '';
+                const sl     = n.stop_note   ? `<span style="color:#ef4444;font-size:0.6rem">SL: <span style="font-family:monospace">${n.stop_note}</span></span>` : '';
+
+                return `<tr onclick="window._openJournalModal(${n.signal_id},'${n.ticker}')" style="cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s" onmouseover="this.style.background='rgba(245,158,11,0.04)'" onmouseout="this.style.background=''">
+                    <td style="padding:10px 12px;font-weight:900;color:var(--accent)">${(n.ticker||'').replace('-USD','')}</td>
+                    <td style="padding:10px 12px;color:#f59e0b;letter-spacing:1px;font-size:0.8rem">${stars}</td>
+                    <td style="padding:10px 12px;color:var(--text-dim);font-size:0.68rem;max-width:240px">${thesis}</td>
+                    <td style="padding:10px 12px"><div style="display:flex;flex-direction:column;gap:2px">${[entry,tp,sl].filter(Boolean).join('<br>')}</div></td>
+                    <td style="padding:10px 12px"><div style="display:flex;gap:3px;flex-wrap:wrap">${tags||'—'}</div></td>
+                    <td style="padding:10px 12px;text-align:center"><span style="background:${stateColor}22;color:${stateColor};padding:2px 8px;border-radius:10px;font-size:0.55rem;font-weight:700">${state}</span></td>
+                    <td style="padding:10px 12px;text-align:right">${roi}</td>
+                    <td style="padding:10px 12px;color:var(--text-dim);font-size:0.65rem;white-space:nowrap">${date}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('jv-table-body').innerHTML = rows || `<tr><td colspan="8" style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.72rem">No notes match this filter.</td></tr>`;
+            document.getElementById('jv-count').textContent = `${filtered.length} note${filtered.length!==1?'s':''}`;
+        };
+
+        container.innerHTML = `
+        <div style="padding:1rem 0">
+            <!-- Summary strip -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem">
+                ${[
+                    ['TOTAL NOTES', total, '#f59e0b'],
+                    ['AVG CONVICTION', avgConv + '★', '#f59e0b'],
+                    ['WIN RATE', winRate != null ? winRate+'%' : '—', winRate>=60?'#22c55e':winRate>=40?'#f59e0b':'#ef4444'],
+                    ['AVG ROI', avgROI != null ? (avgROI>=0?'+':'')+avgROI+'%' : '—', avgROI>=0?'#22c55e':'#ef4444'],
+                ].map(([label,val,col])=>`
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(245,158,11,0.15);border-radius:10px;padding:1rem;text-align:center">
+                    <div style="font-size:0.45rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-bottom:6px">${label}</div>
+                    <div style="font-size:1.3rem;font-weight:900;color:${col}">${val}</div>
+                </div>`).join('')}
+            </div>
+
+            <!-- Filters row -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1rem">
+                <span style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">TAGS:</span>
+                ${topTags.map(([tag,cnt])=>`
+                <button data-tag="${tag}" onclick="window._jvTagFilter('${tag}')" style="font-size:0.55rem;font-weight:700;padding:3px 10px;border-radius:12px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.06);color:#f59e0b;cursor:pointer;transition:all 0.15s" title="${cnt} notes">${tag} <span style="opacity:0.6">${cnt}</span></button>`).join('')}
+                <span style="margin-left:8px;font-size:0.5rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim)">MIN ★:</span>
+                ${[0,1,2,3,4,5].map(n=>`<button data-conv="${n}" onclick="window._jvConvFilter(${n})" style="font-size:0.55rem;font-weight:700;padding:3px 8px;border-radius:12px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.06);color:#f59e0b;cursor:pointer">${n||'ALL'}${n?'★':''}</button>`).join('')}
+                <span id="jv-count" style="margin-left:auto;font-size:0.6rem;color:var(--text-dim);font-weight:700"></span>
+                <button onclick="window._jvExportCSV()" style="font-size:0.55rem;font-weight:900;padding:4px 12px;border-radius:8px;border:1px solid rgba(0,242,255,0.3);background:rgba(0,242,255,0.06);color:var(--accent);cursor:pointer;letter-spacing:1px">⬇ CSV</button>
+            </div>
+
+            <!-- Table -->
+            <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:0.72rem">
+                <thead>
+                    <tr style="border-bottom:1px solid rgba(245,158,11,0.2)">
+                        ${['TICKER','CONV','THESIS','LEVELS','TAGS','STATE','ROI','UPDATED'].map(h=>`<th style="padding:8px 12px;font-size:0.45rem;font-weight:900;letter-spacing:1.5px;color:var(--text-dim);text-align:left;white-space:nowrap">${h}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody id="jv-table-body"></tbody>
+            </table>
+            </div>
+        </div>`;
+
+        // ── Filter handlers ──────────────────────────────────────────────────
+        window._jvTagFilter = function(tag) {
+            activeTag = activeTag === tag ? null : tag;
+            document.querySelectorAll('[data-tag]').forEach(b => {
+                const on = b.dataset.tag === activeTag;
+                b.style.background = on ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.06)';
+                b.style.borderColor = on ? 'rgba(245,158,11,0.7)' : 'rgba(245,158,11,0.3)';
+            });
+            render();
+        };
+        window._jvConvFilter = function(n) {
+            activeConv = n;
+            document.querySelectorAll('[data-conv]').forEach(b => {
+                const on = parseInt(b.dataset.conv) === n;
+                b.style.background = on ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.06)';
+                b.style.borderColor = on ? 'rgba(245,158,11,0.7)' : 'rgba(245,158,11,0.3)';
+            });
+            render();
+        };
+        window._jvExportCSV = function() {
+            const filtered = notes.filter(n =>
+                (!activeTag || (n.tags||'').includes(activeTag)) &&
+                (!activeConv || (n.conviction||0) >= activeConv)
+            );
+            const header = ['ticker','conviction','thesis','entry','target','stop','tags','outcome','signal_state','final_roi','updated_at'];
+            const rows = filtered.map(n => header.map(k => `"${(n[k]||'').toString().replace(/"/g,'""')}"`).join(','));
+            const csv = [header.join(','), ...rows].join('\n');
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            a.download = 'alphasignal_journal_' + new Date().toISOString().substring(0,10) + '.csv';
+            a.click();
+        };
+
+        render();
     }
 
     async function _renderSuppressionLog() {
