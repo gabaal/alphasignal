@@ -1,4 +1,4 @@
-﻿async function renderLiquidityView(tabs = null) {
+async function renderLiquidityView(tabs = null) {
     // Standard hub tab setup - 4 sub-views as tabs
     const gommTabs = [
         { id: 'walls',        label: 'DEPTH WALLS',       view: 'liquidity', icon: 'bar_chart' },
@@ -1350,6 +1350,9 @@ async function renderSignalArchive(tabs = null) {
             <button id="atab-suppressed" onclick="window._setArchiveState('suppressed')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.06);color:#f59e0b;cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Signals that were filtered out — useful to diagnose why signals are rare">
                 ⚡ SUPPRESSED
             </button>
+            <button id="atab-warming" onclick="window._setArchiveState('warming')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(16,185,129,0.4);background:rgba(16,185,129,0.06);color:#10b981;cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Tickers warming up — passed z-score but awaiting MTF alignment">
+                🔥 WARMING
+            </button>
         </div>
 
         <div id="archive-filters" class="glass-card" style="margin-bottom:1.5rem;padding:1.2rem;display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap">
@@ -1459,8 +1462,9 @@ async function renderSignalArchive(tabs = null) {
             all:        { border:'rgba(0,242,255,0.5)',    bg:'rgba(0,242,255,0.12)',    color:'var(--accent)' },
             closed:     { border:'rgba(148,163,184,0.4)',  bg:'rgba(148,163,184,0.08)', color:'#94a3b8' },
             suppressed: { border:'rgba(245,158,11,0.5)',   bg:'rgba(245,158,11,0.1)',   color:'#f59e0b' },
+            warming:    { border:'rgba(16,185,129,0.5)',   bg:'rgba(16,185,129,0.1)',   color:'#10b981' },
         };
-        ['active','all','closed','suppressed'].forEach(s => {
+        ['active','all','closed','suppressed','warming'].forEach(s => {
             const btn = document.getElementById('atab-' + s);
             if (!btn) return;
             const isActive = s === state;
@@ -1471,6 +1475,8 @@ async function renderSignalArchive(tabs = null) {
 
         if (state === 'suppressed') {
             _renderSuppressionLog();
+        } else if (state === 'warming') {
+            _renderNearMiss();
         } else {
             // Restore normal archive view
             const af = document.getElementById('archive-filters');
@@ -1478,6 +1484,112 @@ async function renderSignalArchive(tabs = null) {
             loadData(1);
         }
     };
+
+    async function _renderNearMiss() {
+        const container = document.getElementById('archive-table-container');
+        if (!container) return;
+        const af = document.getElementById('archive-filters');
+        if (af) af.style.display = 'none';
+
+        container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text-dim);font-size:0.75rem">Loading warming tickers…</div>`;
+        try {
+            const data = await fetchAPI('/near-miss');
+            if (!data) throw new Error('No response');
+
+            const items = data.data || [];
+
+            if (!items.length) {
+                container.innerHTML = `
+                    <div style="padding:3rem;text-align:center">
+                        <div style="font-size:2rem;margin-bottom:1rem">🔥</div>
+                        <div style="font-weight:900;color:var(--text-main);margin-bottom:8px">No Warming Tickers</div>
+                        <div style="font-size:0.72rem;color:var(--text-dim);max-width:400px;margin:0 auto;line-height:1.6">
+                            Tickers appear here when they pass the Z-Score + predicted return gates
+                            but are waiting for MTF confluence to align. The 5-min fast-loop rescans
+                            them automatically and fires the signal when ready.
+                        </div>
+                        <div style="margin-top:1.5rem;font-size:0.65rem;color:var(--text-dim)">
+                            Next rescan: <strong style="color:#10b981">within 5 minutes</strong>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            const fmtAge = s => {
+                if (s < 60)  return `${s}s ago`;
+                if (s < 3600) return `${Math.floor(s/60)}m ago`;
+                return `${Math.floor(s/3600)}h ${Math.floor((s%3600)/60)}m ago`;
+            };
+
+            const cards = items.map(item => {
+                const dirCol  = item.direction === 'LONG' ? '#22c55e' : '#ef4444';
+                const dirLbl  = item.direction === 'LONG' ? '▲ LONG' : '▼ SHORT';
+                const zCol    = item.z_score >= 3.0 ? '#22c55e' : item.z_score >= 2.5 ? '#f59e0b' : '#94a3b8';
+                const prCol   = item.pred_return > 0 ? '#22c55e' : '#ef4444';
+                const urgency = item.age_secs < 300 ? 'NEW' : item.age_secs < 1800 ? 'ACTIVE' : 'WAITING';
+                const urgCol  = urgency === 'NEW' ? '#22c55e' : urgency === 'ACTIVE' ? '#f59e0b' : '#94a3b8';
+                const ticker  = (item.ticker || '').replace('-USD','');
+
+                return `
+                <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:1.2rem 1.4rem;display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap;transition:border-color 0.2s;position:relative;overflow:hidden"
+                     onmouseover="this.style.borderColor='rgba(16,185,129,0.5)'" onmouseout="this.style.borderColor='rgba(16,185,129,0.2)'">
+                    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#10b981,transparent);opacity:0.4"></div>
+                    <div style="min-width:56px;text-align:center">
+                        <div style="font-size:1.1rem;font-weight:900;color:var(--text-main);letter-spacing:-0.5px">${ticker}</div>
+                        <div style="font-size:0.55rem;margin-top:2px;color:${urgCol};font-weight:800;letter-spacing:1px">${urgency}</div>
+                    </div>
+                    <div style="width:1px;height:40px;background:rgba(255,255,255,0.08)"></div>
+                    <div style="display:flex;gap:1.2rem;flex-wrap:wrap;flex:1">
+                        <div>
+                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">DIRECTION</div>
+                            <div style="font-size:0.72rem;font-weight:900;color:${dirCol}">${dirLbl}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">Z-SCORE</div>
+                            <div style="font-size:0.72rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:${zCol}">${item.z_score}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">PRED RETURN</div>
+                            <div style="font-size:0.72rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:${prCol}">${item.pred_return > 0 ? '+' : ''}${item.pred_return}%</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">SIGNAL TYPE</div>
+                            <div style="font-size:0.62rem;font-weight:700;color:var(--text-main)">${(item.signal_type||'').replace(/_/g,' ')}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">WAITING</div>
+                            <div style="font-size:0.62rem;color:var(--text-dim)">${fmtAge(item.age_secs)}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;min-width:80px">
+                        <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:4px">AWAITING</div>
+                        <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);color:#06b6d4;padding:3px 8px;border-radius:4px;font-size:0.55rem;font-weight:800">
+                            <span class="material-symbols-outlined" style="font-size:11px">layers</span>MTF FLIP
+                        </div>
+                        <div style="font-size:0.52rem;color:var(--text-dim);margin-top:6px">
+                            Rescan in <strong style="color:#10b981">&lt;5 min</strong>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = `
+                <div style="margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between">
+                    <div>
+                        <div style="font-size:0.55rem;font-weight:900;letter-spacing:2px;color:#10b981;margin-bottom:4px">🔥 WARMING TICKERS — LIVE</div>
+                        <div style="font-size:0.68rem;color:var(--text-dim)">
+                            ${items.length} ticker${items.length !== 1 ? 's' : ''} passed Z-Score + Pred Return gates and are awaiting MTF confluence.
+                            The fast-loop re-evaluates every <strong style="color:var(--text-main)">5 minutes</strong> and fires the signal automatically when aligned.
+                        </div>
+                    </div>
+                    <button onclick="window._setArchiveState('warming')" style="font-size:0.6rem;font-weight:800;padding:5px 12px;border-radius:8px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.08);color:#10b981;cursor:pointer">↻ Refresh</button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px">${cards}</div>`;
+
+        } catch(e) {
+            container.innerHTML = `<div style="padding:2rem;color:#ef4444;font-size:0.75rem">Failed to load warming tickers: ${e.message}</div>`;
+        }
+    }
 
     async function _renderSuppressionLog() {
         const container = document.getElementById('archive-table-container');

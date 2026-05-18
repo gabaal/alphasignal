@@ -802,6 +802,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_signal_history()
             elif path == '/api/signal-suppression-log':
                 self.handle_signal_suppression_log()
+            elif path == '/api/near-miss':
+                self.handle_near_miss()
             elif path == '/api/macro-calendar':
                 self.handle_macro_calendar()
             elif path == '/api/capital-rotation':

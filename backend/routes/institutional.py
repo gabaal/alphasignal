@@ -4901,6 +4901,45 @@ class InstitutionalRoutesMixin:
             import traceback; traceback.print_exc()
             self.send_json({'error': str(e)}, 500)
 
+    def handle_near_miss(self):
+        """GET /api/near-miss — live in-memory near-miss cache (warming tickers).
+        Returns tickers that passed z-score + pred_return + SMA50 but are awaiting
+        MTF confluence flip. Populated by HarvestService, consumed by IntradayRescanService.
+        """
+        auth_info = self.is_authenticated()
+        if not auth_info:
+            self.send_json({'error': 'Unauthorized'}, 401); return
+        try:
+            from backend.services import _near_miss_cache, _near_miss_lock, NEAR_MISS_TTL_SECS
+            import time as _time
+            now = _time.time()
+            with _near_miss_lock:
+                snapshot = dict(_near_miss_cache)
+
+            items = []
+            for ticker, entry in snapshot.items():
+                age_secs = int(now - entry['ts'])
+                items.append({
+                    'ticker':       ticker,
+                    'direction':    entry['direction'],
+                    'z_score':      round(float(entry['z_score']), 2),
+                    'pred_return':  round(float(entry['pred_return']) * 100, 2),
+                    'price':        entry['price'],
+                    'severity':     entry['severity'],
+                    'signal_type':  entry['signal_type'],
+                    'category':     entry['category'],
+                    'age_secs':     age_secs,
+                    'expires_secs': max(0, NEAR_MISS_TTL_SECS - age_secs),
+                    'banked_at':    entry.get('ts', 0),
+                })
+            # Sort by z_score descending — highest conviction first
+            items.sort(key=lambda x: x['z_score'], reverse=True)
+            self.send_json({'data': items, 'count': len(items)})
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            self.send_json({'error': str(e)}, 500)
+
+
     def handle_signal_history(self):
         """Return alerts_history filtered to the authenticated user's signals."""
         # Require valid session - archive is per-user
