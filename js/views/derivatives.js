@@ -22,22 +22,26 @@ function renderDerivativesHub() {
         renderDerivativesHub();
     };
 
-    const navHTML = '<div style="display:flex; gap:10px; margin-bottom:2rem; border-bottom:1px solid rgba(125,211,252,0.15); padding-bottom:12px; overflow-x:auto; scrollbar-width:none;">' +
+    const navHTML = '<div class="hub-tabs" style="display:flex; gap:8px; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto; scrollbar-width:none; align-items:center;">' +
         derivativesTabs.map(t =>
-            '<button class="intel-action-btn ' + (activeMode === t.id ? '' : 'outline') + '"' +
+            '<button id="deriv-tab-' + t.id + '"' +
+            ' class="intel-action-btn mini ' + (activeMode === t.id ? '' : 'outline') + '"' +
             ' onclick="window._derivSwitch(\'' + t.id + '\')"' +
-            ' style="white-space:nowrap; flex-shrink:0; padding:8px 16px; font-size:0.7rem; display:flex; align-items:center; gap:6px; border-radius:8px; font-weight:900">' +
-            '<span class="material-symbols-outlined" style="font-size:16px">' + t.icon + '</span>' + t.label +
+            ' style="white-space:nowrap; flex-shrink:0; padding:6px 12px; font-size:0.62rem">' +
+            '<span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; margin-right:4px">' + t.icon + '</span>' + t.label +
             '</button>'
         ).join('') +
     '</div>';
 
     appEl.innerHTML =
-        '<div class="view-header">' +
+        '<div class="view-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">' +
             '<div>' +
                 '<h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Execution Hub</h2>' +
                 '<h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">candlestick_chart</span>Derivatives Intelligence <span class="premium-badge">LIVE</span></h1>' +
             '</div>' +
+            '<button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView(\'docs-derivatives\')">' +
+                '<span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS' +
+            '</button>' +
         '</div>' +
         '<div style="margin-bottom:1rem">' + navHTML + '</div>' +
         '<div id="deriv-display" style="min-height:600px"></div>';

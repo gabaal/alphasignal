@@ -640,41 +640,231 @@ function renderDocsViewIntegrations() {
     });
 }
 
-// ============= LIQUIDITY & ORDER FLOW =============
+// ============= EXECUTION HUB — ORDER FLOW =============
 function renderDocsViewOrderFlow() {
     renderViewDocPage({
-        hub: 'Liquidity & Order Flow', hubIcon: 'bar_chart', hubColor: '#00f2ff',
-        title: 'Liquidity Dashboard', viewId: 'liquidity',
-        summary: 'Real-time order flow analysis using the Global Order Market Microstructure (GOMM) model. Reveals where institutional liquidity is positioned, identifying high-probability trade locations.',
+        hub: 'Execution Hub', hubIcon: 'swap_vert', hubColor: '#00f2ff',
+        title: 'Order Flow Intelligence', viewId: 'liquidity',
+        relatedDocs: [
+            { name: 'CVD / Tape', route: 'docs-cvd-tape', icon: 'receipt' },
+            { name: 'Footprint Candles', route: 'docs-footprint-candles', icon: 'view_column' },
+            { name: 'LOB Heatmap', route: 'docs-lob-execution', icon: 'grid_on' },
+            { name: 'Liquidation Map', route: 'docs-liquidation-map', icon: 'local_fire_department' },
+        ],
+        summary: 'The Execution Hub consolidates four real-time order flow modules: CVD/Tape, Footprint Candles, LOB Heatmap, and Liquidation Map. Together they reveal where institutional aggression is occurring and where forced liquidations are clustered — the two most reliable leading indicators of intraday price direction.',
         components: [
             {
-                name: 'Aggregated Order Book Depth', type: 'CHART', icon: 'stacked_bar_chart',
-                description: 'Aggregated order book across Binance, Bybit, OKX, and Coinbase showing cumulative bid and ask depth in BTC equivalent. Updated every 250ms. X-axis shows price distance from mid (0.1% increments). Y-axis = cumulative volume.',
-                howToRead: 'Steep curves on the bid side = strong support. Steep curves on the ask side = strong resistance. A cliff on either side = thin liquidity ahead - high slippage risk if price reaches that level.',
+                name: 'CVD / Execution Tape', type: 'FEED', icon: 'receipt',
+                description: 'Cumulative Volume Delta (CVD) tracks the running total of buy-minus-sell volume. The Execution Tape feeds live large prints (>50 BTC equivalent). CVD rising = net buying pressure. Tape dominated by aggressive buys = institutional accumulation in progress.',
+                howToRead: 'Rising CVD + price flat = absorption; bullish breakout imminent. Falling CVD + rising price = distribution into strength; be cautious. Tape prints >0.1% impact = significant institutional order.',
                 signals: [
-                    'Bid curve 3x steeper than ask = significant buy imbalance; upward price pressure building',
-                    'Sudden curve flattening on bids = large bid wall lifted; support removed; risk off',
-                    'Symmetric curves = balanced market; wait for an imbalance to form before trading'
+                    'CVD making new highs while price consolidates = coiled spring; breakout likely upward',
+                    'Three consecutive large sell prints on tape = motivated institutional distribution',
+                    'CVD diverging from price for >2 hours = trend exhaustion; reversal probable'
                 ]
             },
             {
-                name: 'Execution Tape Feed', type: 'FEED', icon: 'receipt',
-                description: 'Live tape of large individual market orders executing (threshold: >50 BTC / >500 ETH). Each entry shows: timestamp, asset, size, direction (BUY/SELL), exchange, and the price impact (% move caused by single order).',
-                howToRead: 'Large buy orders (green) = institutional aggression. Large sell orders (red) = motivated sellers who need immediate fills. Orders causing >0.1% price impact are significant.',
+                name: 'Footprint Candles (Bid/Ask)', type: 'CHART', icon: 'view_column',
+                description: 'Each candle is divided into price levels showing exact bid volume (sells hitting bids) vs ask volume (buys lifting asks) at each tick. Unfinished auctions (imbalanced footprints) act as magnets for future price.',
+                howToRead: 'Look for imbalance columns — one side overwhelmingly larger than the other at a specific price level. These are "unfilled" institutional orders. Price tends to return to these levels.',
                 signals: [
-                    '3+ large buy orders within 5 minutes from different exchanges = coordinated institutional accumulation',
-                    'Large sell orders clustering at same price = algo or institutional distribution at a target level',
-                    'No large trades for >30 minutes = calm before a storm; directional break likely'
+                    'Stacked ask imbalances above current price = institutions defending a ceiling; fade the level',
+                    'Bid imbalance at a low = trapped shorts covering; support confirmed',
+                    'High volume at doji close = absorption candle; directional move follows'
                 ]
             },
             {
-                name: 'Institutional Liquidity Heatmap', type: 'CHART', icon: 'whatshot',
-                description: 'A time x price heatmap of order book liquidity over the past 4 hours (updated every 5 minutes). Bright zones = high historical order book density at that price level = institutional interest. Dark zones = thin liquidity.',
-                howToRead: 'Bright horizontal lines = price levels where institutions have consistently placed orders. These act as magnetic levels. Dark corridors = price will move rapidly through these zones.',
+                name: 'LOB Heatmap (Level 2)', type: 'CHART', icon: 'grid_on',
+                description: 'Time-series heatmap of the Level 2 order book. Bright horizontal bands = resting institutional limit orders. Dark zones = thin liquidity. The heatmap updates every 250ms.',
+                howToRead: 'Bright band above current price = sell wall / resistance. Bright band below = buy wall / support. Bands that suddenly disappear were spoofed — do not rely on them for directional decisions.',
                 signals: [
-                    'Approaching a bright horizontal band = institutional orders resting; expect slowing or reversal',
-                    'Dark corridor between current price and target = fast path to target; breakout trades work well here',
-                    'Bright band being cleared repeatedly = liquidity absorption; strong directional move likely to follow'
+                    'Persistent bright band surviving multiple tests = genuine institutional interest; trade the bounce',
+                    'Band disappearing as price approaches = spoof; do not trade the level',
+                    'Multiple stacked bands below price = layered support; bullish structure'
+                ]
+            },
+            {
+                name: 'Liquidation Map', type: 'CHART', icon: 'local_fire_department',
+                description: 'Plots estimated liquidation clusters at various price levels based on open interest and leverage distribution. High-density clusters act as price magnets — longs get liquidated driving price down, shorts get liquidated driving price up.',
+                howToRead: 'Cluster above current price = short squeeze target. Cluster below = long liquidation cascade risk. When price approaches a dense cluster, accelerated moves are probable.',
+                signals: [
+                    'Dense cluster 2-3% above current price = likely short squeeze target; consider long',
+                    'Dense cluster below current price + declining CVD = long liquidation cascade risk; reduce longs',
+                    'Multiple clusters on both sides = compression zone; large directional move pending'
+                ]
+            }
+        ]
+    });
+}
+
+// ============= DERIVATIVES HUB =============
+function renderDocsViewDerivatives() {
+    renderViewDocPage({
+        hub: 'Execution Hub', hubIcon: 'candlestick_chart', hubColor: '#c084fc',
+        title: 'Derivatives Intelligence', viewId: 'derivatives',
+        relatedDocs: [
+            { name: 'Options Flow', route: 'docs-options-flow', icon: 'ssid_chart' },
+            { name: 'GEX Profile', route: 'docs-gex', icon: 'bar_chart_4_bars' },
+            { name: 'LOB Heatmap', route: 'docs-lob-heatmap', icon: 'grid_on' },
+        ],
+        summary: 'Five-tab derivatives dashboard covering Funding Rate Heatmap, Options Flow, GEX Profile, Volatility Surface, and Max Pain. Institutional derivatives positioning provides the most reliable leading indicators of directional bias.',
+        components: [
+            {
+                name: 'Funding Rate Heatmap', type: 'CHART', icon: 'local_fire_department',
+                description: 'Cross-asset funding rate heatmap across Binance, Bybit, and OKX perpetual futures. Colour-coded from deep red (extreme negative funding — shorts paying longs) to deep green (extreme positive — longs paying shorts).',
+                howToRead: 'Extreme positive funding (>0.1%) = market over-leveraged long; funding rate reversion or price drop likely. Extreme negative funding = over-leveraged short; short squeeze probable.',
+                signals: [
+                    'Funding >0.1% across 3+ assets simultaneously = systemic over-leveraging; reduce longs',
+                    'Funding turning negative while price rises = shorts fighting the trend; squeeze accelerates',
+                    'Funding near zero = balanced market; trend moves are more reliable in this state'
+                ]
+            },
+            {
+                name: 'GEX Profile (Gamma Exposure)', type: 'CHART', icon: 'bar_chart_4_bars',
+                description: 'Dealer gamma exposure by strike price. Positive GEX = dealers long gamma (dampen moves). Negative GEX = dealers short gamma (amplify moves). The zero-gamma level is the volatility inflection point.',
+                howToRead: 'Price in a positive GEX zone = rangebound, mean-reverting. Price in negative GEX zone = trending, volatile. The zero-gamma level acts as a magnet and then a volatility gateway once crossed.',
+                signals: [
+                    'Price approaching zero-gamma from positive GEX zone = breakout imminent; increase position size',
+                    'Price in deep negative GEX = trend following mode; do not fade moves',
+                    'Large positive GEX at round number = strong pin risk into expiry'
+                ]
+            },
+            {
+                name: 'Volatility Surface', type: 'CHART', icon: 'view_in_ar',
+                description: '3D implied volatility surface across strike and expiry. Reveals term structure, skew, and the overall IV landscape institutional options traders are pricing.',
+                howToRead: 'Upward sloping term structure = market calm, far-dated uncertainty. Inverted term structure = immediate fear. Left-skewed smile = put premium elevated, institutions hedging downside.',
+                signals: [
+                    'IV surface inverting (near-term IV > far-term) = panic hedging; reduce risk',
+                    'IV smile flattening = vol compression; breakout setting up',
+                    'Right-skewed smile = institutional call buying; bullish directional bias'
+                ]
+            },
+            {
+                name: 'Max Pain Level', type: 'WIDGET', icon: 'crisis_alert',
+                description: 'The price at which the maximum number of options contracts (calls + puts combined) expire worthless, causing maximum financial loss to options buyers. Market makers have incentive to pin price near this level into expiry.',
+                howToRead: 'Expiry approaching + price far from max pain = gravitational pull toward max pain level likely. Use max pain as a price target for the expiry week, not a long-term directional call.',
+                signals: [
+                    'Price >10% above max pain 3 days before expiry = price likely to drift back toward max pain',
+                    'Max pain aligning with major technical level = double confirmation; high-conviction pin zone',
+                    'Max pain shifting significantly from prior week = options market reassessing directional bias'
+                ]
+            }
+        ]
+    });
+}
+
+// ============= LIQUIDITY DEPTH HUB =============
+function renderDocsViewLiquidityDepth() {
+    renderViewDocPage({
+        hub: 'Analytics Hub', hubIcon: 'water_drop', hubColor: '#00f2ff',
+        title: 'Institutional Liquidity', viewId: 'liquidity-v2',
+        relatedDocs: [
+            { name: 'Order Flow', route: 'docs-order-flow', icon: 'swap_vert' },
+            { name: 'LOB Heatmap', route: 'docs-lob-heatmap', icon: 'grid_on' },
+            { name: 'Liquidations', route: 'docs-liquidations', icon: 'local_fire_department' },
+        ],
+        summary: 'The Institutional Liquidity hub visualises depth walls, real-time order book heatmaps, global exchange aggregation, liquidation flux, volatility surface, and OI/Funding overlays across the full crypto universe.',
+        components: [
+            {
+                name: 'Depth Walls', type: 'CHART', icon: 'bar_chart',
+                description: 'Cumulative bid and ask depth profile for the selected ticker, aggregated across Binance, Bybit, OKX, and Coinbase. The stepped area chart shows total liquidity on each side at 0.1% price increments from mid.',
+                howToRead: 'A steep bid wall 1-2% below price = institutional buy wall. A steep ask wall 1-2% above = distribution zone. Global Imbalance stat in the sidebar shows net directional pressure.',
+                signals: [
+                    'Bid curve 3x steeper than ask curve = strong institutional buy interest',
+                    'Ask wall collapses as price approaches = real resistance removed; breakout likely',
+                    'Both sides thin = low liquidity asset; widen stops to account for slippage'
+                ]
+            },
+            {
+                name: 'OI / Funding Heatmap', type: 'CHART', icon: 'payments',
+                description: 'Cross-asset overview of Open Interest and perpetual funding rates. OI rising with positive funding = leveraged longs building. OI rising with negative funding = leveraged shorts building. Both indicate potential for a sharp squeeze.',
+                howToRead: 'Read OI direction and funding sign together. Rising OI + neutral funding = organic spot accumulation (strong signal). Rising OI + extreme funding = leveraged crowded trade; mean reversion risk.',
+                signals: [
+                    'OI rising sharply + funding flipping from negative to positive = short squeeze in progress',
+                    'OI declining + funding moderating = position unwind; low conviction environment',
+                    'OI at all-time high + funding extreme = maximum crowded trade; reversion imminent'
+                ]
+            },
+            {
+                name: 'Whale Radar', type: 'CHART', icon: 'radar',
+                description: 'Radar overlay showing large-wallet activity by address cluster across the selected asset. Spike in radar = whale-scale order detected. Direction of spike correlates with accumulation or distribution behaviour.',
+                howToRead: 'Radar spike with price rising = institutional buying confirmed. Spike with price flat = accumulation before move. Persistent radar activity = sustained institutional interest in this asset.',
+                signals: [
+                    'Radar spike coinciding with low CVD = hidden accumulation via dark pool or OTC',
+                    'No radar activity despite price move = retail-driven move; lower reliability',
+                    'Radar + LOB bid wall + positive CVD = three-factor confluence; highest conviction long'
+                ]
+            }
+        ]
+    });
+}
+
+// ============= CORRELATION MATRIX =============
+function renderDocsViewCorrelationMatrix() {
+    renderViewDocPage({
+        hub: 'Macro Intelligence Hub', hubIcon: 'grid_on', hubColor: '#7dd3fc',
+        title: 'Correlation Matrix', viewId: 'correlation-matrix',
+        relatedDocs: [
+            { name: 'Capital Flows', route: 'docs-capital-flows', icon: 'currency_exchange' },
+            { name: 'Market Regime', route: 'docs-regime', icon: 'layers' },
+            { name: 'Sector Rotation', route: 'docs-rotation', icon: 'sync_alt' },
+        ],
+        summary: 'Cross-asset Pearson correlation heatmap across selectable baskets (Core Crypto, Crypto + Equities, DeFi Basket, Macro Cross-Asset). Identifies which assets are moving in tandem vs independently — critical for portfolio diversification and regime confirmation.',
+        components: [
+            {
+                name: 'Correlation Heatmap Grid', type: 'CHART', icon: 'grid_on',
+                description: 'N×N colour grid where each cell shows the Pearson correlation coefficient (-1 to +1) between the row and column asset over 60 rolling days. Cyan = positive correlation (assets move together). Red = negative correlation (assets move inversely). Opacity = strength.',
+                howToRead: 'Diagonal is always +1 (asset vs itself). Focus on off-diagonal cells. A crypto basket where all cells are cyan at >0.7 = high-beta correlated market — BTC dominates. Red cells between BTC and DXY = dollar weakness tailwind for crypto.',
+                signals: [
+                    'All crypto cells >0.8 = beta market; no diversification benefit across alts',
+                    'BTC/SPX correlation dropping toward zero = BTC finding own narrative; strongest bull signal',
+                    'DeFi assets decorrelating from BTC = sector rotation starting; move capital to DeFi'
+                ]
+            },
+            {
+                name: 'Basket Selector', type: 'WIDGET', icon: 'tune',
+                description: 'Four pre-built baskets: Core Crypto (5 assets), Crypto + Equities (6 assets including MARA, COIN, MSTR), DeFi Basket (6 assets including AAVE, UNI, LINK), Macro Cross-Asset (BTC + Treasuries + Gold + DXY).',
+                howToRead: 'Switch to Macro Cross-Asset to understand whether crypto is being driven by macro factors (dollar strength, yield movements) or internal demand. High BTC/DXY negative correlation = dollar-driven moves.',
+                signals: [
+                    'Macro basket: BTC/10Y correlation turning positive = rising yields hurting crypto; reduce longs',
+                    'Macro basket: BTC/Gold correlation rising = flight-to-safety narrative benefiting BTC',
+                    'DeFi basket: AAVE/UNI correlation dropping below 0.5 = sector fragmentation; pick individual names'
+                ]
+            }
+        ]
+    });
+}
+
+// ============= CAPITAL FLOWS =============
+function renderDocsViewCapitalFlows() {
+    renderViewDocPage({
+        hub: 'Macro Intelligence Hub', hubIcon: 'currency_exchange', hubColor: '#7dd3fc',
+        title: 'Capital Flows', viewId: 'flow',
+        relatedDocs: [
+            { name: 'ETF Flows', route: 'docs-etf-flows', icon: 'account_balance' },
+            { name: 'Correlation Matrix', route: 'docs-correlation-matrix', icon: 'grid_on' },
+            { name: 'Market Regime', route: 'docs-regime', icon: 'layers' },
+        ],
+        summary: 'Tracks velocity of institutional capital entering the crypto ecosystem via Spot ETF flows, net exchange attribution, and sector momentum. The most reliable confirming signal for any directional thesis — smart money must show up here for a move to sustain.',
+        components: [
+            {
+                name: 'Spot ETF Flow Attribution', type: 'CHART', icon: 'account_balance',
+                description: 'Daily net inflow/outflow bars for major BTC Spot ETFs (IBIT, FBTC, ARKB, BITB). Each bar shows net institutional capital movement per fund per day. A rising cumulative net flow line confirms sustained institutional accumulation.',
+                howToRead: 'Consecutive positive bars across multiple ETFs = coordinated institutional accumulation. IBIT positive while others flat = BlackRock-only demand (highest quality institutional signal). Net flow line turning down after uptrend = distribution beginning.',
+                signals: [
+                    'All four ETFs positive same day = coordinated institutional accumulation; highest conviction',
+                    'IBIT positive, all others negative = BlackRock-only; still valid bullish signal',
+                    'Cumulative line rolling over after 10+ positive days = distribution phase; reduce longs'
+                ]
+            },
+            {
+                name: 'US Yield Curve Monitor', type: 'CHART', icon: 'show_chart',
+                description: '365-day rolling time series of 2Y, 10Y, and 30Y US Treasury yields with the 2Y/10Y spread plotted on a secondary axis. An inverted yield curve (2Y > 10Y) historically precedes economic slowdown and risk-off episodes that eventually reach crypto.',
+                howToRead: 'Deepening inversion (spread more negative) = macro deterioration risk building. Curve normalising (spread moving toward zero or positive) = end of tightening cycle — historically bullish for risk assets including crypto.',
+                signals: [
+                    '2Y/10Y spread inverting further = institutional macro risk-off building; favour BTC over alts',
+                    'Curve re-steepening after inversion = end of tightening; historically precedes crypto bull market',
+                    '10Y yield rising sharply = risk-free rate rising; negative for high-beta assets'
                 ]
             }
         ]

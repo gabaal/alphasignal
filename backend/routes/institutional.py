@@ -3544,8 +3544,20 @@ class InstitutionalRoutesMixin:
         period = query.get('period', ['60d'])[0]
         raw_data = CACHE.download(ticker, period=period, column='Close')
         if raw_data is None or (hasattr(raw_data, 'empty') and raw_data.empty):
-            self.send_json({'ticker': ticker, 'history': [], 'summary': f'Awaiting synchronization for {ticker}. Institutional flow monitoring active.', 'metrics': {'market_cap': 'TBD', 'vol_24h': 'TBD', 'dominance': 'TBD'}, 'recent_catalysts': ['Terminal sync in progress'], 'timeline': []})
-            return
+            # Cache miss — fall back to direct yfinance fetch so uncached assets (e.g. WLD) still render
+            try:
+                _fb = yf.download(ticker, period=period, interval='1d', progress=False, auto_adjust=True)
+                if _fb is not None and not _fb.empty:
+                    if isinstance(_fb.columns, pd.MultiIndex):
+                        _fb.columns = _fb.columns.get_level_values(0)
+                    raw_data = _fb[['Close']].rename(columns={'Close': ticker}) if 'Close' in _fb.columns else _fb.iloc[:, :1]
+                else:
+                    self.send_json({'ticker': ticker, 'history': [], 'summary': f'Awaiting synchronization for {ticker}. Institutional flow monitoring active.', 'metrics': {'market_cap': 'TBD', 'vol_24h': 'TBD', 'dominance': 'TBD'}, 'recent_catalysts': ['Terminal sync in progress'], 'timeline': []})
+                    return
+            except Exception as _e:
+                print(f'[handle_history] yfinance fallback failed for {ticker}: {_e}')
+                self.send_json({'ticker': ticker, 'history': [], 'summary': f'Awaiting synchronization for {ticker}. Institutional flow monitoring active.', 'metrics': {'market_cap': 'TBD', 'vol_24h': 'TBD', 'dominance': 'TBD'}, 'recent_catalysts': ['Terminal sync in progress'], 'timeline': []})
+                return
         data = raw_data.squeeze()
         if isinstance(data, pd.DataFrame):
             data = data.iloc[:, 0]

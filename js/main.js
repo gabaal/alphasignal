@@ -181,6 +181,15 @@ const viewMap = {
     'docs-lob-heatmap': typeof renderDocsViewLOBHeatmap !== 'undefined' ? renderDocsViewLOBHeatmap : () => { },
     'docs-gex': typeof renderDocsViewGEX !== 'undefined' ? renderDocsViewGEX : () => { },
     'docs-volume-profile': typeof renderDocsViewVolumeProfile !== 'undefined' ? renderDocsViewVolumeProfile : () => { },
+    // ---- New docs: Execution Hub decoupled views ----
+    'docs-derivatives': typeof renderDocsViewDerivatives !== 'undefined' ? renderDocsViewDerivatives : () => renderHelp(),
+    'docs-liquidity-depth': typeof renderDocsViewLiquidityDepth !== 'undefined' ? renderDocsViewLiquidityDepth : () => renderHelp(),
+    'docs-correlation-matrix': typeof renderDocsViewCorrelationMatrix !== 'undefined' ? renderDocsViewCorrelationMatrix : () => renderHelp(),
+    'docs-capital-flows': typeof renderDocsViewCapitalFlows !== 'undefined' ? renderDocsViewCapitalFlows : () => renderHelp(),
+    // ---- New hub overview docs (P5) ----
+    'docs-hub-execution': typeof renderDocsViewOrderFlow !== 'undefined' ? renderDocsViewOrderFlow : () => renderHelp(),
+    'docs-hub-derivatives': typeof renderDocsViewDerivatives !== 'undefined' ? renderDocsViewDerivatives : () => renderHelp(),
+    'docs-hub-liquidity': typeof renderDocsViewLiquidityDepth !== 'undefined' ? renderDocsViewLiquidityDepth : () => renderHelp(),
     'gex-profile': typeof renderGexProfile !== 'undefined' ? renderGexProfile : () => { },
     'volume-profile': typeof renderVolumeProfile !== 'undefined' ? renderVolumeProfile : () => { },
     'lob-heatmap': typeof renderLobHeatmap !== 'undefined' ? renderLobHeatmap : () => { },

@@ -851,6 +851,13 @@ async function renderOptionsFlow(tabs = null) {
                 <button class="intel-action-btn mini outline" style="width:auto;padding:4px 10px;font-size:0.6rem;display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="switchView('docs-options-flow')"><span class="material-symbols-outlined" style="font-size:13px">help</span> DOCS</button>
             </div>
         </div>
+        <div style="margin-bottom:1rem;padding:10px 14px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-left:3px solid #c084fc;border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span class="material-symbols-outlined" style="color:#c084fc;font-size:18px;flex-shrink:0">info</span>
+            <span style="font-size:0.7rem;color:var(--text-dim);flex:1">Options Flow is also available as the primary tab in the <b style="color:#c084fc">Derivatives Intelligence Hub</b> — with Funding Heatmap, GEX, Vol Surface and Max Pain all in one place.</span>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 12px;font-size:0.6rem;flex-shrink:0;border-color:rgba(192,132,252,0.4);color:#c084fc" onclick="switchView('derivatives')">
+                <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;margin-right:4px">open_in_new</span>GO TO DERIVATIVES HUB
+            </button>
+        </div>
         ${renderHubTabs('options', tabs)}
             <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 1rem">Institutional Options Flow Scanner</h2>
         <div style="margin-bottom:0.5rem">
@@ -1410,179 +1417,8 @@ window.runAIRebalancerView = async function() {
 };
 
 
-async function renderMacroCalendar(tabs = null) {
-    if (!tabs) tabs = macroHubTabs;
-    appEl.innerHTML = `
-        <div class="view-header">
-            <div>
-                <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Macro Intelligence Hub</h2>
-                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">event_note</span>Macro Event Calendar <span class="premium-badge">LIVE</span></h1>
-            </div>
-            <p>Upcoming FOMC, CPI, NFP, PCE dates with historical BTC impact scoring from real price data.</p>
-        </div>
-        ${renderHubTabs('calendar', tabs)}
-
-            <!-- Advanced Macro Regime Trackers -->
-            <div id="macro-regime-widgets" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-top:20px; margin-bottom:2rem;">
-                <div class="glass-card" style="padding:1.5rem">
-                    <div class="card-header">
-                        <h3>CME FedWatch Target Rate</h3>
-                        <span class="label-tag">CENTRAL BANK PROXY</span>
-                        <span id="fedwatch-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
-                    </div>
-                    <div style="font-size:3rem;font-weight:900;color:var(--accent);margin:20px 0 10px;display:flex;align-items:flex-end;gap:10px">
-                        <span id="live-fed-rate">--</span><span style="font-size:1.5rem;color:var(--text-dim);margin-bottom:8px">%</span>
-                    </div>
-                    <div style="font-size:0.75rem; color:var(--text-dim)">
-                        Implied target interest rate based on real-time pricing of ZQ=F (30-Day Fed Funds Futures).
-                    </div>
-                </div>
-
-                <div class="glass-card" style="padding:1.5rem">
-                    <div class="card-header">
-                        <h3>Bitcoin / DXY Correlation</h3>
-                        <span class="label-tag">GLOBAL LIQUIDITY</span>
-                        <span id="dxy-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
-                    </div>
-                    <div style="font-size:2.5rem;font-weight:900;color:#ef4444;margin:20px 0 10px;display:flex;align-items:center;gap:15px">
-                        <span id="live-dxy-corr">--</span>
-                        <div id="dxy-momentum-bar" style="height:40px;width:100px;background:linear-gradient(90deg, #ef4444, transparent);border-radius:20px;opacity:0.3"></div>
-                    </div>
-                    <div style="font-size:0.75rem; color:var(--text-dim)" id="live-dxy-desc">
-                        Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.
-                    </div>
-                </div>
-
-                <div class="glass-card" style="padding:1.5rem">
-                    <div class="card-header">
-                        <h3>HMM Market Regime</h3>
-                        <span class="label-tag">PROBABILISTIC</span>
-                        <span id="hmm-regime-badge" style="font-size:0.5rem;font-weight:900;letter-spacing:1.5px;padding:2px 8px;border-radius:100px;background:rgba(148,163,184,0.1);color:#94a3b8;margin-left:8px">LOADING-</span>
-                    </div>
-                    <div id="live-hmm-label" style="font-size:2rem;font-weight:900;color:var(--accent);margin:20px 0 10px;text-transform:uppercase">
-                        --
-                    </div>
-                    <div style="font-size:0.75rem; color:var(--text-dim)" id="live-hmm-desc">
-                        Gaussian Hidden Markov Model classification based on 250d volatility/return clusters.
-                    </div>
-                </div>
-            </div>
-            <h2 style="font-size:0.75rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:1rem 0 -0.5rem">Macro Event Calendar</h2>
-        <div id="macro-cal-loading" style="text-align:center;padding:3rem"><div class="loader" style="margin:0 auto"></div></div>
-        <div id="macro-cal-content" style="display:none"></div>
-    `;
-
-    setTimeout(async () => {
-        try {
-            const mrData = await fetchAPI('/macro-regime');
-            if (mrData && !mrData.error) {
-                const fedBadge = document.getElementById('fedwatch-badge');
-                if (fedBadge) { fedBadge.textContent = '- LIVE CME'; fedBadge.style.color = '#22c55e'; fedBadge.style.background = 'rgba(34,197,94,0.12)'; }
-                
-                const dxyBadge = document.getElementById('dxy-badge');
-                if (dxyBadge) { dxyBadge.textContent = '- LIVE DXY'; dxyBadge.style.color = '#ef4444'; dxyBadge.style.background = 'rgba(239,68,68,0.12)'; }
-
-                const fedEl = document.getElementById('live-fed-rate');
-                if (fedEl) fedEl.textContent = mrData.implied_fed_rate.toFixed(3);
-
-                const corrEl = document.getElementById('live-dxy-corr');
-                if (corrEl) {
-                    corrEl.textContent = mrData.btc_dxy_correlation_90d.toFixed(3);
-                    corrEl.style.color = mrData.btc_dxy_correlation_90d < -0.5 ? '#ef4444' : (mrData.btc_dxy_correlation_90d > 0.5 ? '#22c55e' : '#8b5cf6');
-                }
-                
-                const dxyDesc = document.getElementById('live-dxy-desc');
-                if (dxyDesc) dxyDesc.innerHTML = `<span style="font-weight:900;color:${mrData.btc_dxy_correlation_90d < -0 ? '#ef4444' : '#22c55e'}">${mrData.status.toUpperCase()}</span> - Rolling 90-Day Pearson correlation mapping Bitcoin sensitivity against the US Dollar Index.`;
-
-                // HMM Integration
-                const hmmLabel = document.getElementById('live-hmm-label');
-                const hmmBadge = document.getElementById('hmm-regime-badge');
-                const hmmDesc = document.getElementById('live-hmm-desc');
-                if (hmmLabel && mrData.hmm_label) {
-                    hmmLabel.textContent = mrData.hmm_label;
-                    let color = '#fbbf24'; // Compression
-                    if (mrData.hmm_label === 'Risk-On') color = '#22c55e';
-                    if (mrData.hmm_label === 'Dislocation') color = '#ef4444';
-                    hmmLabel.style.color = color;
-                    
-                    if (hmmBadge) {
-                        hmmBadge.textContent = `- ${Math.round(mrData.hmm_confidence * 100)}% CONFIDENCE`;
-                        hmmBadge.style.color = color;
-                        hmmBadge.style.background = color + '22';
-                    }
-                    if (hmmDesc) {
-                        hmmDesc.innerHTML = `Gaussian Hidden Markov Model classification. Current confidence: <b>${(mrData.hmm_confidence * 100).toFixed(1)}%</b>`;
-                    }
-                }
-            }
-        } catch(e) { console.error('Macro regime error', e); }
-    }, 100);
-
-    try {
-        const data = await fetchAPI('/macro-calendar');
-        document.getElementById('macro-cal-loading').style.display = 'none';
-        const calEl = document.getElementById('macro-cal-content');
-        if (!data || !data.events || !data.events.length) {
-            calEl.innerHTML = '<div class="error-msg">No upcoming macro events in window.</div>';
-            calEl.style.display = 'block'; return;
-        }
-        const typeColors = { FOMC: '#ef4444', CPI: '#f97316', NFP: '#22c55e', PCE: '#a78bfa', REBALANCE: '#60a5fa' };
-        const tierBg = { HIGH: alphaColor(0.04), MEDIUM: alphaColor(0.03), LOW: alphaColor(0.02) };
-
-        calEl.innerHTML = `
-            <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:1rem">Updated ${data.updated} &middot; Showing next 90 days</div>
-            <div style="display:flex;flex-direction:column;gap:12px">
-                ${data.events.map(ev => {
-                    const clr = typeColors[ev.type] || '#9ca3af';
-                    const bg  = tierBg[ev.tier] || tierBg.LOW;
-                    const dDir = ev.median_btc >= 0 ? '+' : '';
-                    const moves6 = (ev.hist_moves || []).slice(-6);
-                    const barMax = Math.max(...moves6.map(Math.abs), 1);
-                    const barsHtml = moves6.map(m => {
-                        const w = Math.abs(m) / barMax * 100;
-                        const c = m >= 0 ? '#22c55e' : '#ef4444';
-                        return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-                            <div style="width:60px;text-align:right;font-size:0.55rem;color:var(--text-dim)">${m >= 0 ? '+' : ''}${m}%</div>
-                            <div style="flex:1;height:6px;background:${alphaColor(0.06)};border-radius:3px;overflow:hidden">
-                                <div style="width:${w}%;height:100%;background:${c};border-radius:3px"></div>
-                            </div>
-                        </div>`;
-                    }).join('');
-
-                    return `
-                    <div style="background:${bg};border:1px solid ${clr}33;border-left:3px solid ${clr};border-radius:10px;padding:1.2rem;display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start">
-                        <div style="min-width:90px;text-align:center">
-                            <div style="font-size:1.8rem;font-weight:900;color:${ev.days_until <= 7 ? '#ef4444' : ev.days_until <= 21 ? '#ffd700' : 'var(--text)'}">${ev.days_until === 0 ? 'TODAY' : ev.days_until + 'd'}</div>
-                            <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px">${ev.date}</div>
-                            <div style="margin-top:8px;padding:3px 8px;border-radius:6px;background:${clr}22;color:${clr};font-size:0.55rem;font-weight:900;letter-spacing:1px">${ev.type}</div>
-                        </div>
-                        <div style="flex:1;min-width:200px">
-                            <div style="font-size:0.9rem;font-weight:800;color:var(--text);margin-bottom:4px">${ev.event}</div>
-                            <div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
-                                <span style="font-size:0.65rem;color:var(--text-dim)">Median BTC move: <b style="color:${ev.median_btc >= 0 ? '#22c55e' : '#ef4444'}">${dDir}${ev.median_btc}%</b></span>
-                                <span style="font-size:0.65rem;color:var(--text-dim)">Avg volatility: <b style="color:#8b5cf6">${ev.avg_vol}%</b></span>
-                                <span style="font-size:0.65rem;color:var(--text-dim)">Bull bias: <b style="color:#ffd700">${ev.bull_bias}%</b></span>
-                            </div>
-                            <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:6px">LAST 6 INSTANCES &mdash; BTC DAY-OF MOVE</div>
-                            ${barsHtml}
-                        </div>
-                        <div style="text-align:center;min-width:80px">
-                            <div style="font-size:0.55rem;color:var(--text-dim);margin-bottom:4px">IMPACT SCORE</div>
-                            <div style="font-size:2rem;font-weight:900;color:${ev.impact_score >= 70 ? '#ef4444' : ev.impact_score >= 40 ? '#ffd700' : '#22c55e'}">${ev.impact_score}</div>
-                            <div style="font-size:0.55rem;padding:2px 8px;border-radius:6px;background:${ev.tier==='HIGH'?'rgba(239,68,68,0.15)':ev.tier==='MEDIUM'?'rgba(255,215,0,0.1)':'rgba(34,197,94,0.1)'};color:${ev.tier==='HIGH'?'#ef4444':ev.tier==='MEDIUM'?'#ffd700':'#22c55e'};font-weight:700">${ev.tier}</div>
-                        </div>
-                    </div>`;
-                }).join('')}
-            </div>
-        `;
-        calEl.style.display = 'block';
-    } catch(e) {
-        const el = document.getElementById('macro-cal-content');
-        if (el) { el.innerHTML = `<div class="error-msg">Calendar Error: ${e.message}</div>`; el.style.display = 'block'; }
-        const ld = document.getElementById('macro-cal-loading');
-        if (ld) ld.style.display = 'none';
-    }
-}
+// NOTE: renderMacroCalendar is defined in macro-intel.js (canonical version).
+// This duplicate was removed to prevent silent function overwrite at runtime.
 
 // ================================================================
 // Phase 17-A: Test fire alert helper + modal settings loader
@@ -1590,6 +1426,7 @@ async function renderMacroCalendar(tabs = null) {
 async function testFireAlert() {
     const z = parseFloat(document.getElementById('z-threshold-slider')?.value || 2.0);
     showToast('ALERT CONFIG', 'Sending test notification...', 'info');
+
     const data = await fetchAPI('/alert-settings', 'POST', { z_threshold: z, test_fire: true });
     if (data && data.success) {
         showToast('ALERT CONFIG', 'Test alert dispatched! Check Discord/Telegram.', 'success');
@@ -1852,4 +1689,4 @@ async function renderCustomAnalytics(tabs) {
         });
     });
     Object.values(containers).forEach(cn => { if (cn) ro.observe(cn); });
-}
+}

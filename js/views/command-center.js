@@ -72,7 +72,7 @@ async function renderCommandCenter() {
         </div>
         <!-- ██ END AI TRADE NOW ██ -->
 
-        <div class="command-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:1.5rem">
+        <div class="command-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:2.5rem; margin-bottom:2.5rem">
             <div class="card" style="text-align:center">
                 <h3 style="font-size:0.7rem; color:var(--text-dim); letter-spacing:1px">SYSTEM CONVICTION</h3>
                 <div style="position:relative; height:180px; margin-top:10px">
@@ -93,9 +93,9 @@ async function renderCommandCenter() {
         </div>
 
         <!-- Signal Analytics Charts - directly below gauges -->
-        <div style="margin-bottom:1.5rem">
-            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1rem">LIVE SIGNAL INTELLIGENCE <span style="color:rgba(0,242,255,0.4);font-size:0.5rem;margin-left:6px">CLICK TO EXPAND</span></div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px">
+        <div style="margin-bottom:2.5rem">
+            <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:1.25rem">LIVE SIGNAL INTELLIGENCE <span style="color:rgba(0,242,255,0.4);font-size:0.5rem;margin-left:6px">CLICK TO EXPAND</span></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:24px">
                 <div class="card" style="padding:1rem;cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('scatter')"
                     onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                     <div class="card-header" style="margin-bottom:8px">
@@ -151,7 +151,7 @@ async function renderCommandCenter() {
             </div>
         </div>
 
-        <div class="command-main-grid" style="display:grid; grid-template-columns: 1fr 400px; gap:1.5rem; margin-bottom:1.5rem">
+        <div class="command-main-grid" style="display:grid; grid-template-columns: 1fr 400px; gap:2.5rem; margin-bottom:2.5rem">
             <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="openCmdChartModal('etf')"
                 onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
                 <div class="card-header" style="margin-bottom:1rem">
@@ -170,7 +170,7 @@ async function renderCommandCenter() {
             </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr minmax(160px,220px);gap:1.5rem;align-items:start">
+        <div style="display:grid;grid-template-columns:1fr minmax(160px,220px);gap:2.5rem;align-items:start">
             <div class="card" style="border:1px solid rgba(0,242,255,0.12);cursor:zoom-in;transition:border-color 0.15s"
                 onclick="openCmdChartModal('radar')"
                 onmouseover="this.style.borderColor='rgba(0,242,255,0.35)'" onmouseout="this.style.borderColor=''">
@@ -190,7 +190,7 @@ async function renderCommandCenter() {
                 <div style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:0.75rem">6-DIMENSION ML SIGNAL DECOMPOSITION</div>
                 <div style="width:100%;height:520px"><canvas id="cmd-radar-chart" role="img" aria-label="Command center overview radar chart"></canvas></div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:1.5rem;width:100%">
+            <div style="display:flex;flex-direction:column;gap:2.5rem;width:100%">
                 <div class="card" style="cursor:zoom-in;transition:border-color 0.15s" onclick="switchView('gex-profile')"
                     onmouseover="this.style.borderColor='rgba(139,92,246,0.35)'" onmouseout="this.style.borderColor=''">
                     <div class="card-header" style="margin-bottom:0.75rem">

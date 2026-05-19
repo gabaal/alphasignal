@@ -49,6 +49,14 @@ window.renderGexProfile = async function(tabs = null, container = null) {
             </div>
         </div>
         ${showHubTabs ? renderHubTabs('gex', hubTabs) : ''}
+        ${showHubTabs ? `
+        <div style="margin-bottom:1rem;padding:10px 14px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-left:3px solid #8b5cf6;border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span class="material-symbols-outlined" style="color:#8b5cf6;font-size:18px;flex-shrink:0">hub</span>
+            <span style="font-size:0.7rem;color:var(--text-dim);flex:1">GEX Profile is also embedded in the <b style="color:#8b5cf6">Derivatives Intelligence Hub</b> alongside Funding Heatmap, Options Flow, Vol Surface and Max Pain.</span>
+            <button class="intel-action-btn mini outline" style="width:auto;padding:4px 12px;font-size:0.6rem;flex-shrink:0;border-color:rgba(139,92,246,0.4);color:#8b5cf6" onclick="switchView('derivatives')">
+                <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;margin-right:4px">open_in_new</span>DERIVATIVES HUB
+            </button>
+        </div>` : ''}
 
         <div id="gex-loading" style="padding:4rem;text-align:center"><div class="loader"></div></div>
         
