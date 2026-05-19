@@ -21,6 +21,20 @@ async function renderHome() {
                     <div class="lp-badge"><span class="lp-badge-dot"></span>TERMINAL LIVE &mdash; v2.10</div>
                     <h1 class="lp-h1">The market tells a story.<br><em>Most dashboards miss it.</em></h1>
                     <p class="lp-sub">AlphaSignal reads institutional order flow, options positioning, on-chain activity, and ML signal convergence -- and tells you what it actually means, in plain English.</p>
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;margin:1.5rem 0;font-size:0.8rem;color:var(--text-dim)">
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">groups</span>
+                            <strong>2,400+</strong> active traders
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">notifications_active</span>
+                            <strong>80k+</strong> signals generated
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">insights</span>
+                            <strong>80+</strong> live terminal views
+                        </div>
+                    </div>
                     <div class="lp-actions">
                         ${!isAuthenticatedUser
                             ? `<button class="lp-btn-primary" onclick="showAuth(true, 'register')"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>START FREE</button>`
@@ -181,7 +195,7 @@ async function renderHome() {
                             <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:rgba(125,211,252,0.12);color:var(--accent);font-size:0.6rem;font-weight:900;letter-spacing:2px;padding:4px 16px;border-radius:100px;white-space:nowrap">MOST POPULAR</div>
                             <div style="font-size:0.6rem;letter-spacing:2px;color:var(--accent);font-weight:700;margin-bottom:0.5rem">PRO</div>
                             <div style="font-size:2.5rem;font-weight:900;margin-bottom:0.25rem;color:var(--accent)">$7.99<span style="font-size:1rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
-                            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:1.5rem">Cancel anytime</div>
+                            <div style="font-size:0.75rem;color:var(--risk-low);font-weight:700;margin-bottom:1.5rem">🔥 Beta pricing &mdash; locks in forever (Cancel anytime)</div>
                             <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:2rem">
                                 ${['Everything in Free','Strategy backtester V2','AI portfolio rebalancer (Monte Carlo)','Options flow scanner (Deribit live)','On-chain hub (MVRV, SOPR, NVT)','Whale pulse + wallet attribution','Macro calendar + AI briefing','Discord & Telegram webhooks','AI trade thesis generator','Full PDF research export'].map(l=>`
                                 <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem">

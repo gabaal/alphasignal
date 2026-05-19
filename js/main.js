@@ -46,6 +46,13 @@ const viewMap = {
     'derivatives': renderDerivativesHub,
     'academy-watch': renderAcademyWatch,
     home: renderHome,
+    pricing: () => {
+        switchView('home');
+        setTimeout(() => {
+            const el = document.getElementById('pricing');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+    },
     // Legacy explain-* routes - redirect to new docs-* equivalents
     'explain-signals': () => switchView('docs-signals'),
     'explain-briefing': () => switchView('docs-briefing'),
