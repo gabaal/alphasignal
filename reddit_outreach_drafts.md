@@ -62,9 +62,9 @@
 ---
 
 ## 3. Subreddit: r/Daytrading
-**Post Link:** https://www.reddit.com/r/Daytrading/comments/1tfqdr5/software_sunday_share_your_trading_software_tools/
+**Post Link:** https://www.reddit.com/r/Daytrading/comments/1thxnmg/trading_days_like_these_recent_ones_are_blowing/
 **Draft Comment:**
-"Happy Software Sunday! I wanted to share a project I’ve been building over the last few months: **AlphaSignal** (https://alphasignal.digital). I was tired of lagging indicators and wanted a tool that tracks institutional-grade data in real-time. It streams live order book depth, calculates Z-score volatility anomalies, and tracks funding rate extremes across major crypto pairs (for instance, right now it’s flagging an extreme negative funding rate of -0.0733% on WLD and -0.0455% on INJ, signaling massive short-squeeze risk). It also runs a local ML alpha engine that updates predictions every minute. Would love to get some feedback from other builders/traders here on the UI and features!"
+"You're definitely not alone. Choppy, mean-reverting regimes are the graveyard for new day traders because standard breakout or trend-following strategies get constantly stopped out with zero follow-through. When the S&P 500 starts range-bound trading, buying breakout points is just feeding the market-makers. The key is identifying the market regime and tracking volatility Z-scores in real-time to adjust your position sizing. I actually built a live dashboard that computes real-time Z-scores and monitors regime shifts (https://alphasignal.digital) to prevent myself from overtrading during low-conviction windows. If you're trading SPY/SPX, keep an eye on options implied volatility versus realized ATR—it helps you see when breakouts have zero volume backing them."
 
 ---
 
