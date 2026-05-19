@@ -261,16 +261,8 @@ async function handleAuth(isSignup) {
     
     if (res && (res.success || res.access_token)) {
         if (isSignup) {
-            errorEl.textContent = "SUCCESS: Check email for confirmation, then sign in below.";
-            errorEl.classList.remove('hidden');
-            errorEl.style.color = "var(--risk-low)";
-            // Switch modal to Sign In mode so user can log in immediately after confirming
-            const btnLabel   = document.getElementById('auth-btn-label');
-            const toggleLink = document.getElementById('toggle-auth');
-            const pwField    = document.getElementById('auth-password');
-            if (btnLabel)   btnLabel.textContent = 'SIGN IN';
-            if (toggleLink) toggleLink.textContent = 'Create account';
-            if (pwField)    pwField.setAttribute('autocomplete', 'current-password');
+            // Automatically sign in the user using the same credentials they registered with
+            return await handleAuth(false);
         } else {
             showAuth(false);
             await checkAuthStatus();
