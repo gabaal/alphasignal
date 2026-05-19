@@ -641,12 +641,19 @@ async function handleAuth(isSignup) {
     
     if (res && (res.success || res.access_token)) {
         if (isSignup) {
-            errorEl.textContent = "SUCCESS: Check email for confirmation.";
-            errorEl.classList.remove('hidden');
-            errorEl.style.color = "var(--risk-low)";
+            // Auto-login: call login endpoint immediately with the same credentials
+            return await handleAuth(false);
         } else {
             showAuth(false);
-            location.reload();
+            showPaywall(false); // Never show paywall on fresh login/registration
+            await checkAuthStatus(); // Sync auth state BEFORE router runs
+            if (window._postLoginAction === 'subscribe') {
+                delete window._postLoginAction;
+                setTimeout(() => handleSubscribe(), 400);
+                return true;
+            }
+            switchView('command-center');
+            setTimeout(() => window.maybeShowOnboarding?.(), 600);
         }
         return true;
     } else {

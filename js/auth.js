@@ -265,7 +265,8 @@ async function handleAuth(isSignup) {
             return await handleAuth(false);
         } else {
             showAuth(false);
-            await checkAuthStatus();
+            showPaywall(false); // Ensure paywall is never visible for a fresh login/registration
+            await checkAuthStatus(); // Must run before switchView so router sees authenticated state
             // Post-login action: go straight to Stripe if flagged by UNLOCK PRO
             if (window._postLoginAction === 'subscribe') {
                 delete window._postLoginAction;
