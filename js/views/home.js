@@ -23,7 +23,7 @@ async function renderHome() {
                     <p class="lp-sub">AlphaSignal reads institutional order flow, options positioning, on-chain activity, and ML signal convergence -- and tells you what it actually means, in plain English.</p>
                     <div class="lp-actions">
                         ${!isAuthenticatedUser
-                            ? `<button class="lp-btn-primary" onclick="showAuth(true)"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>START FREE</button>`
+                            ? `<button class="lp-btn-primary" onclick="showAuth(true, 'register')"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>START FREE</button>`
                             : `<button class="lp-btn-primary" onclick="switchView('my-terminal')"><span class="material-symbols-outlined" style="font-size:18px">account_circle</span>MY TERMINAL</button>`}
                         <button class="lp-btn-ghost" onclick="switchView('command-center')"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>OPEN DASHBOARD</button>
                     </div>
@@ -187,7 +187,7 @@ async function renderHome() {
                                 <div style="display:flex;align-items:center;gap:10px;font-size:0.8rem">
                                     <span class="material-symbols-outlined" style="font-size:1rem;color:#4ade80">check_circle</span>${l}</div>`).join('')}
                             </div>
-                            <button class="lp-btn-primary" style="width:100%;justify-content:center" onclick="typeof handleSubscribe!=='undefined'?handleSubscribe():switchView('signals')">
+                            <button class="lp-btn-primary" style="width:100%;justify-content:center" onclick="showAuthForPro()">
                                 <span class="material-symbols-outlined" style="font-size:18px">bolt</span>UNLOCK PRO &mdash; $7.99/MO
                             </button>
                             <div style="text-align:center;margin-top:0.75rem;font-size:0.65rem;color:var(--text-dim)">Secure payment via Stripe &middot; Instant access</div>
@@ -204,7 +204,7 @@ async function renderHome() {
                     <p class="lp-cta-sub">80+ live views. Real institutional data. AI that explains what it means rather than what you want to hear.</p>
                     <div class="lp-cta-actions">
                         ${!isAuthenticatedUser
-                            ? `<button class="lp-btn-primary" onclick="showAuth(true)"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>JOIN FREE</button>`
+                            ? `<button class="lp-btn-primary" onclick="showAuth(true, 'register')"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>JOIN FREE</button>`
                             : `<button class="lp-btn-primary" onclick="switchView('command-center')"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>OPEN DASHBOARD</button>`}
                         <button class="lp-btn-ghost" onclick="switchView('help')"><span class="material-symbols-outlined" style="font-size:18px">menu_book</span>DOCUMENTATION</button>
                     </div>

@@ -169,11 +169,10 @@ function showPaywall(visible) {
     }
 }
 
-function showAuth(visible) {
+function showAuth(visible, mode = 'login') {
     // pSEO: Never show the login wall for search engine landing pages
     if (visible && window._isPSEOLanding) {
         console.log('[pSEO] Suppressed showAuth(true) for landing page visitor.');
-        // Always ensure layout is visible and loader is gone for pSEO visitors
         const overlay = document.getElementById('auth-overlay');
         const layout = document.querySelector('.layout');
         if (overlay) overlay.classList.add('hidden');
@@ -185,12 +184,25 @@ function showAuth(visible) {
 
     const overlay = document.getElementById('auth-overlay');
     const layout = document.querySelector('.layout');
-    
+
     if (visible) {
         overlay.classList.remove('hidden');
         if (layout) {
             layout.classList.add('hidden');
             layout.style.filter = 'blur(10px)';
+        }
+        // Set modal to the correct tab mode
+        const btnLabel    = document.getElementById('auth-btn-label');
+        const toggleLink  = document.getElementById('toggle-auth');
+        const pwField     = document.getElementById('auth-password');
+        if (mode === 'register') {
+            if (btnLabel)   btnLabel.textContent = 'REGISTER';
+            if (toggleLink) toggleLink.textContent = 'Sign in';
+            if (pwField)    pwField.setAttribute('autocomplete', 'new-password');
+        } else {
+            if (btnLabel)   btnLabel.textContent = 'SIGN IN';
+            if (toggleLink) toggleLink.textContent = 'Create account';
+            if (pwField)    pwField.setAttribute('autocomplete', 'current-password');
         }
     } else {
         overlay.classList.add('hidden');
@@ -198,7 +210,6 @@ function showAuth(visible) {
             layout.classList.remove('hidden');
             layout.style.filter = 'none';
         }
-        // Dismiss the initial loading screen
         const loader = document.getElementById('app-loader');
         if (loader) {
             loader.style.opacity = '0';
@@ -209,12 +220,27 @@ function showAuth(visible) {
 
 /**
  * showAuthForSignup — used by the pSEO teaser modal's JOIN FREE button.
- * Temporarily clears the pSEO guard so the sign-in modal can open,
- * even on pages where showAuth(true) is normally suppressed.
+ * Opens in register mode so new users land on the Create Account form.
  */
 function showAuthForSignup() {
-    window._isPSEOLanding = false; // lift the pSEO suppression
-    showAuth(true);
+    window._isPSEOLanding = false;
+    showAuth(true, 'register');
+}
+
+/**
+ * showAuthForPro — called by UNLOCK PRO button on the landing page.
+ * Opens auth modal in register mode and sets a post-login flag to
+ * automatically trigger Stripe checkout once the user is authenticated.
+ */
+function showAuthForPro() {
+    // If already logged in, go straight to checkout
+    if (isAuthenticatedUser) {
+        handleSubscribe();
+        return;
+    }
+    window._isPSEOLanding = false;
+    window._postLoginAction = 'subscribe'; // checked in handleAuth
+    showAuth(true, 'register');
 }
 
 async function handleAuth(isSignup) {
@@ -235,12 +261,25 @@ async function handleAuth(isSignup) {
     
     if (res && (res.success || res.access_token)) {
         if (isSignup) {
-            errorEl.textContent = "SUCCESS: Check email for confirmation.";
+            errorEl.textContent = "SUCCESS: Check email for confirmation, then sign in below.";
             errorEl.classList.remove('hidden');
             errorEl.style.color = "var(--risk-low)";
+            // Switch modal to Sign In mode so user can log in immediately after confirming
+            const btnLabel   = document.getElementById('auth-btn-label');
+            const toggleLink = document.getElementById('toggle-auth');
+            const pwField    = document.getElementById('auth-password');
+            if (btnLabel)   btnLabel.textContent = 'SIGN IN';
+            if (toggleLink) toggleLink.textContent = 'Create account';
+            if (pwField)    pwField.setAttribute('autocomplete', 'current-password');
         } else {
             showAuth(false);
             await checkAuthStatus();
+            // Post-login action: go straight to Stripe if flagged by UNLOCK PRO
+            if (window._postLoginAction === 'subscribe') {
+                delete window._postLoginAction;
+                setTimeout(() => handleSubscribe(), 400);
+                return true;
+            }
             // Show onboarding for first-time users (localStorage flag prevents repeat)
             setTimeout(() => window.maybeShowOnboarding?.(), 600);
             // Land in Dashboard after login
