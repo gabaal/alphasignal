@@ -664,7 +664,7 @@ async function renderCommandCenter() {
     initCmdWhaleTape();
     // Live-data hydration for previously hardcoded widgets
     loadCmdLiquidations();
-    if (window.isPremiumUser) loadCmdPowerTrioConduit();
+    loadCmdPowerTrioConduit();
     loadCmdSentimentStream();
 
     try {
@@ -2584,14 +2584,20 @@ async function loadCmdLiquidations() {
 // LIVE POWER TRIO CONDUIT — real EMA-5 crossover per timeframe
 // ============================================================
 async function loadCmdPowerTrioConduit() {
-    // Premium-only data — do not call API for free users (would return 402 and trigger paywall)
+    // Premium-only data — render locked state for free users, never call /api/ohlc
     if (!window.isPremiumUser) {
-        const labelEl  = document.getElementById('cmd-pt-label');
-        const confEl   = document.getElementById('cmd-pt-conf');
-        const badgesEl = document.getElementById('cmd-pt-badges');
-        if (labelEl)  { labelEl.textContent = 'INSTITUTIONAL TIER REQUIRED'; labelEl.style.color = 'var(--text-dim)'; }
-        if (confEl)   confEl.textContent = 'Upgrade to unlock multi-timeframe confluence analysis';
-        if (badgesEl) badgesEl.innerHTML = '<span style="font-size:0.65rem;color:var(--text-dim)">Power Trio Charts · Institutional Access</span>';
+        const container = document.getElementById('cmd-powertrio-conduit');
+        if (container) {
+            container.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;padding:4px 0;width:100%">
+                    <span class="material-symbols-outlined" style="font-size:1.6rem;color:var(--text-dim);opacity:0.5">lock</span>
+                    <div>
+                        <div style="font-size:0.75rem;font-weight:900;color:var(--text-dim);letter-spacing:1px">POWER TRIO · INSTITUTIONAL ONLY</div>
+                        <div style="font-size:0.65rem;color:var(--text-dim);margin-top:3px">Multi-timeframe EMA-5 confluence analysis is available on the Institutional plan.</div>
+                    </div>
+                    <button onclick="showPaywall(true)" style="margin-left:auto;flex-shrink:0;padding:6px 14px;background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.3);color:var(--accent);border-radius:6px;font-size:0.6rem;font-weight:900;letter-spacing:1px;cursor:pointer">UPGRADE →</button>
+                </div>`;
+        }
         return;
     }
     const ticker = (localStorage.getItem('cmd_selected_asset') || 'BTC-USD');
