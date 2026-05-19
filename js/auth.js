@@ -280,12 +280,10 @@ async function handleAuth(isSignup) {
                 setTimeout(() => handleSubscribe(), 400);
                 return true;
             }
+            // Land in Dashboard after login immediately
+            switchView('command-center');
             // Show onboarding for first-time users (localStorage flag prevents repeat)
             setTimeout(() => window.maybeShowOnboarding?.(), 600);
-            // Land in Dashboard after login
-            if (!window.maybeShowOnboarding || localStorage.getItem('alphasignal_onboarded')) {
-                switchView('command-center');
-            }
         }
         return true;
     } else {

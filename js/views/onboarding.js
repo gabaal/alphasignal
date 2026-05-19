@@ -211,5 +211,7 @@ window.finishOnboarding = async function(skipped = false) {
     if (tickers.length > 0) {
         showToast('Watchlist ready!', `${tickers.length} asset${tickers.length > 1 ? 's' : ''} added to your terminal`, 'success');
         switchView('my-terminal');
+    } else {
+        switchView('command-center');
     }
 };
