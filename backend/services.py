@@ -1246,7 +1246,7 @@ class HarvestService:
                 # Get minimum algo_z_threshold across all users (don't gate on alerts_enabled
                 # — signal evaluation should happen regardless of notification preferences)
                 try:
-                    c.execute("SELECT MIN(COALESCE(algo_z_threshold, z_threshold, 2.0)) FROM user_settings")
+                    c.execute("SELECT MIN(COALESCE(algo_z_threshold, z_threshold, 0.5)) FROM user_settings")
                     _min_z = c.fetchone()[0]
                     min_algo_z_thresh = float(_min_z) if _min_z is not None else 0.5
                 except:
