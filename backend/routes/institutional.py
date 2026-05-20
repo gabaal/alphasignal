@@ -8111,7 +8111,7 @@ class InstitutionalRoutesMixin:
             c = conn.cursor()
 
             # Get the target user email
-            c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
+            c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled != 0 AND user_email IS NOT NULL")
             users = [r[0] for r in c.fetchall()]
 
             if not users:

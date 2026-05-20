@@ -182,7 +182,7 @@ class NotificationService:
             c = conn.cursor()
             c.execute(
                 "SELECT discord_webhook, telegram_chat_id, COALESCE(telegram_alerts_enabled, 1) "
-                "FROM user_settings WHERE user_email = ? AND alerts_enabled = 1",
+                "FROM user_settings WHERE user_email = ? AND alerts_enabled != 0",
                 (user_email,)
             )
             row = c.fetchone()
@@ -923,7 +923,7 @@ class HarvestService:
                             except: pass
                         conn = sqlite3.connect(DB_PATH, timeout=30)
                         c = conn.cursor()
-                        c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1")
+                        c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled != 0")
                         all_users = c.fetchall()
                         conn.close()
                         for (email,) in all_users:
@@ -1311,7 +1311,7 @@ class HarvestService:
                     try:
                         with sqlite3.connect(DB_PATH, timeout=30) as ue_conn:
                             ue_c = ue_conn.cursor()
-                            ue_c.execute("SELECT user_email, COALESCE(algo_z_threshold, z_threshold, 2.0) FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
+                            ue_c.execute("SELECT user_email, COALESCE(algo_z_threshold, z_threshold, 0.5) FROM user_settings WHERE alerts_enabled != 0 AND user_email IS NOT NULL")
                             enabled_users_data = ue_c.fetchall()
                     except:
                         enabled_users_data = []
@@ -1436,7 +1436,7 @@ class HarvestService:
                             with sqlite3.connect(DB_PATH, timeout=30) as alert_conn:
                                 alert_c = alert_conn.cursor()
                                 # Include algo_webhook and native execution fields in the query
-                                alert_c.execute("SELECT user_email, z_threshold, algo_webhook, exchange_name, exchange_api_key, exchange_api_secret, native_execution_enabled, trade_size_usd FROM user_settings WHERE alerts_enabled = 1")
+                                alert_c.execute("SELECT user_email, z_threshold, algo_webhook, exchange_name, exchange_api_key, exchange_api_secret, native_execution_enabled, trade_size_usd FROM user_settings WHERE alerts_enabled != 0")
                                 for row in alert_c.fetchall():
                                     target_email = row[0]
                                     user_z_thresh = float(row[1]) if row[1] else 2.0
@@ -1594,7 +1594,7 @@ class HarvestService:
             
             # Query global RSI extremes to ensure we calculate for the widest possible net
             try:
-                c.execute("SELECT MAX(algo_rsi_oversold), MIN(algo_rsi_overbought) FROM user_settings WHERE alerts_enabled = 1")
+                c.execute("SELECT MAX(algo_rsi_oversold), MIN(algo_rsi_overbought) FROM user_settings WHERE alerts_enabled != 0")
                 row = c.fetchone()
                 max_rsi_os = float(row[0]) if row and row[0] is not None else 30.0
                 min_rsi_ob = float(row[1]) if row and row[1] is not None else 80.0
@@ -1766,7 +1766,7 @@ class HarvestService:
             try:
                 with sqlite3.connect(DB_PATH, timeout=30) as ue_conn2:
                     ue_c2 = ue_conn2.cursor()
-                    ue_c2.execute("SELECT user_email FROM user_settings WHERE alerts_enabled = 1 AND user_email IS NOT NULL")
+                    ue_c2.execute("SELECT user_email FROM user_settings WHERE alerts_enabled != 0 AND user_email IS NOT NULL")
                     rule_users = [r[0] for r in ue_c2.fetchall()]
             except:
                 rule_users = []
@@ -1806,7 +1806,7 @@ class HarvestService:
                                                    u.native_execution_enabled, u.trade_size_usd
                                             FROM user_settings u
                                             LEFT JOIN exchange_keys e ON u.user_email = e.user_email AND UPPER(u.exchange_name) = UPPER(e.exchange)
-                                            WHERE u.alerts_enabled = 1""")
+                                            WHERE u.alerts_enabled != 0""")
                         for row in notify_c.fetchall():
                             (n_email, n_z, n_whale, n_depeg, n_vol, n_cme, n_rsi_os, n_rsi_ob,
                              exch_name, exch_key, exch_sec, nat_en, trd_sz) = row
@@ -2204,7 +2204,7 @@ class IntradayRescanService:
                         alert_c = alert_conn.cursor()
                         alert_c.execute(
                             "SELECT user_email, z_threshold FROM user_settings "
-                            "WHERE alerts_enabled = 1"
+                            "WHERE alerts_enabled != 0"
                         )
                         for (ue, uz) in alert_c.fetchall():
                             if abs(z_score) >= float(uz or 2.0):
