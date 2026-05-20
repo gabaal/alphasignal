@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings('ignore', message='X has feature names', category=UserWarning)
 import json
 import os
 try:
