@@ -13,6 +13,10 @@ from sklearn.ensemble import RandomForestRegressor
 import yfinance as yf
 from .database import DB_PATH, UNIVERSE
 from .caching import CACHE, BCACHE
+
+# ── Module-level blocklist: tickers that cause Yahoo 404/delisted errors ──
+DELISTED = {'DOT-USD', 'INJ-USD', 'WLD-USD', 'GALA', 'GALA-USD', 'DOT', 'INJ', 'WLD'}
+
 INFO_CACHE = {}
 def get_ticker_name(ticker):
     if ticker in INFO_CACHE: return INFO_CACHE[ticker]
@@ -356,7 +360,6 @@ class MLAlphaEngine:
         tracked = [r[0] for r in c.fetchall()]
         conn.close()
         
-        DELISTED = {'DOT-USD', 'INJ-USD', 'WLD-USD', 'GALA', 'GALA-USD', 'DOT', 'INJ', 'WLD'}
         all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked) - DELISTED)
         # Batch download all tickers for 2 years to avoid slow sequential downloads and Yahoo Finance crumb errors
         print(f"[{datetime.now()}] MLAlphaEngine: Downloading batch data for {len(all_tickers)} tickers...", flush=True)
@@ -751,20 +754,27 @@ PORTFOLIO_SIM = PortfolioSimulator()
 def _log_suppression(ticker, direction, gate, reason, z_score=None, pred_return=None, mtf_score=None, price=None):
     """Write a suppressed-signal record to signal_suppression_log (fire-and-forget)."""
     print(f"[Suppressed|{gate}] {ticker} {direction} — {reason}")
-    try:
-        with sqlite3.connect(DB_PATH, timeout=5) as _sc:
-            _sc.execute(
-                "INSERT INTO signal_suppression_log "
-                "(ticker, direction, gate, reason, z_score, pred_return, mtf_score, price) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (ticker, direction, gate, reason,
-                 round(float(z_score), 4) if z_score is not None else None,
-                 round(float(pred_return), 6) if pred_return is not None else None,
-                 int(mtf_score) if mtf_score is not None else None,
-                 round(float(price), 8) if price is not None else None)
-            )
-    except Exception as _e:
-        print(f"[SuppressLog] DB write error: {_e}")
+    def _write():
+        for attempt in range(3):
+            try:
+                with sqlite3.connect(DB_PATH, timeout=30) as _sc:
+                    _sc.execute(
+                        "INSERT INTO signal_suppression_log "
+                        "(ticker, direction, gate, reason, z_score, pred_return, mtf_score, price) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        (ticker, direction, gate, reason,
+                         round(float(z_score), 4) if z_score is not None else None,
+                         round(float(pred_return), 6) if pred_return is not None else None,
+                         int(mtf_score) if mtf_score is not None else None,
+                         round(float(price), 8) if price is not None else None)
+                    )
+                return  # success
+            except Exception as _e:
+                if attempt < 2:
+                    time.sleep(0.5 * (attempt + 1))  # 0.5s, 1.0s backoff
+                else:
+                    print(f"[SuppressLog] DB write failed after 3 attempts: {_e}")
+    threading.Thread(target=_write, daemon=True).start()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -861,7 +871,6 @@ class HarvestService:
                 self.check_funding_spikes()
                 
                 # Filter out delisted tickers that cause repeated Yahoo 404 errors
-                DELISTED = {'DOT-USD', 'INJ-USD', 'WLD-USD', 'GALA', 'GALA-USD', 'DOT', 'INJ', 'WLD'}
                 all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked) - DELISTED)
                 print(f"[{datetime.now()}] Harvesting data for {len(all_tickers)} assets...")
                 

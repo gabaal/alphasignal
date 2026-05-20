@@ -437,6 +437,18 @@ if __name__ == "__main__":
     ws_thread = threading.Thread(target=ws_server.run, daemon=True)
     ws_thread.start()
 
+    # Clean delisted tickers from tracked_tickers to stop yfinance 404 spam
+    try:
+        from backend.services import DELISTED
+        _clean_conn = sqlite3.connect(DB_PATH, timeout=30)
+        _clean_c = _clean_conn.cursor()
+        for _dead in DELISTED:
+            _clean_c.execute("DELETE FROM tracked_tickers WHERE ticker = ?", (_dead,))
+        _clean_conn.commit()
+        _clean_conn.close()
+    except Exception as _e:
+        print(f"[Boot] tracked_tickers cleanup skipped: {_e}")
+
     # SEED CACHE FOR PORTFOLIO OPTIMIZATION (Ensure data is ready for Rebalance Advisory)
     print("Seeding Institutional Portfolio Cache...", flush=True)
     for asset in ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD', 'ADA-USD']:
