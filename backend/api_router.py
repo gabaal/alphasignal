@@ -609,7 +609,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             except: pass
 
     def do_GET(self):
-        print(f"[{datetime.now()}] !!! INCOMING_GET: {self.path} !!!", flush=True)
+
         if self.path == '/ws':
             self._proxy_websocket()
             return
@@ -658,7 +658,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 super().do_GET()
                 return
 
-        print(f"[{datetime.now()}] DEBUG: do_GET hit for path: {self.path}", flush=True)
+
         # S2: rate limit GET requests (AI endpoints get stricter limit)
         ip = self.client_address[0]
         if self.path.startswith('/api/') and not _rate_check(ip, self.path):
@@ -684,7 +684,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     print(f'[{datetime.now()}] FULFILLMENT ERROR: {e}')
             path = path.rstrip('/')
-            print(f"[{datetime.now()}] DEBUG_PATH: '{path}'")
+
             auth_info = None
             if path.startswith('/api/'):
                 public_routes = [
@@ -780,7 +780,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             elif path == '/api/whales':
                 self.handle_whales()
             elif path == '/api/signals':
-                print(f"[{datetime.now()}] ROUTER HIT: /api/signals explicitly invoked")
+
+
                 self.handle_signals()
             elif path == '/api/btc':
                 self.handle_btc()
@@ -1061,31 +1062,31 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 # Semantic Clean URL Routing & SPA Fallback
                 safe_path = path.lstrip('/')
                 
-                print(f"DEBUGGING ROUTER: safe_path={safe_path}", flush=True)
+
                 
                 if '.' not in safe_path and safe_path != "":
                     if safe_path == "academy":
                         self.path = "/academy/index.html"
-                        print(f"DEBUGGING ROUTER: set self.path={self.path} (Academy Hub)", flush=True)
+
                     elif safe_path == "privacy":
                         self.path = "/privacy.html"
-                        print(f"DEBUGGING ROUTER: set self.path={self.path} (Privacy Policy)", flush=True)
+
                     elif safe_path == "terms":
                         self.path = "/terms.html"
-                        print(f"DEBUGGING ROUTER: set self.path={self.path} (Terms of Service)", flush=True)
+
                     elif safe_path == "roadmap":
                         self.path = "/roadmap.html"
-                        print(f"DEBUGGING ROUTER: set self.path={self.path} (Public Roadmap)", flush=True)
+
                     else:
                         html_target = f"{safe_path}.html"
-                        print(f"DEBUGGING ROUTER: html_target={html_target}, exists={os.path.exists(html_target)}", flush=True)
+
                         if os.path.exists(html_target):
                             self.path = f"/{html_target}"
-                            print(f"DEBUGGING ROUTER: set self.path={self.path}", flush=True)
+
                         else:
                             self.path = "/index.html"
                 
-                print(f"DEBUGGING ROUTER: Calling super().do_GET() with self.path={self.path}", flush=True)
+
                 super().do_GET()
         except Exception as e:
             print(f'[{datetime.now()}] Global do_GET error: {e}', flush=True)
