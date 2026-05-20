@@ -1173,7 +1173,9 @@ class HarvestService:
 
     def generate_alpha_alerts(self, data, current_regime=None):
         """Phase 8: Predict Alpha signals using ML engine using high-efficiency batch data."""
-        if data is None or data.empty: return
+        if data is None or data.empty: 
+            print(f"[{datetime.now()}] MLAlphaEngine: SKIP - data is None/empty", flush=True)
+            return
         
         print(f"[{datetime.now()}] MLAlphaEngine: Generating Predictive Alpha alerts...")
         conn = sqlite3.connect(DB_PATH, timeout=30)
@@ -1185,6 +1187,8 @@ class HarvestService:
             all_tickers = data.columns.get_level_values(1).unique()
         else:
             all_tickers = [data.name] if hasattr(data, 'name') else []
+
+        print(f"[{datetime.now()}] MLAlphaEngine: data shape={data.shape}, MultiIndex={isinstance(data.columns, pd.MultiIndex)}, tickers={len(all_tickers)}, models={len(ML_ENGINE.models)}", flush=True)
 
         for ticker in all_tickers:
             # Global Exclusions: Ignore Stablecoins (no volatility) and Memecoins (precision/slippage risks)
