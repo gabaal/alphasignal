@@ -1243,19 +1243,10 @@ class HarvestService:
                 
                 if np.isnan(z_score): z_score = 0.0
 
-                # Get minimum algo_z_threshold across all users (don't gate on alerts_enabled
-                # — signal evaluation should happen regardless of notification preferences)
-                try:
-                    c.execute("SELECT MIN(COALESCE(algo_z_threshold, z_threshold, 0.5)) FROM user_settings")
-                    _min_z = c.fetchone()[0]
-                    min_algo_z_thresh = float(_min_z) if _min_z is not None else 0.5
-                except:
-                    min_algo_z_thresh = 0.5
-
-                # 3. Decision Logic: Alert if absolute Z-Score > min_algo_z_thresh
-                # ML signals use a floor (0.5) to reduce false positives.
+                # Signal EVALUATION always uses the ML floor (0.5).
+                # User-specific z_threshold only gates NOTIFICATION delivery downstream.
                 ML_ZSCORE_FLOOR = 0.5
-                ml_z_thresh = max(min_algo_z_thresh, ML_ZSCORE_FLOOR)
+                ml_z_thresh = ML_ZSCORE_FLOOR
                 signal_type = None
                 _sample_z.append((ticker, round(z_score, 3), round(ml_z_thresh, 2)))
                 if abs(z_score) >= ml_z_thresh:
