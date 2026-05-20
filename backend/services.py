@@ -365,8 +365,8 @@ class MLAlphaEngine:
         
         for ticker in all_tickers:
             try:
-                df = yf.download(ticker, period='2y', interval='1d', progress=False)
-                if df.empty or len(df) < 100: continue
+                df = CACHE.download(ticker, period='2y', interval='1d')
+                if df is None or df.empty or len(df) < 100: continue
                 
                 if isinstance(df.columns, pd.MultiIndex):
                     df.columns = [c[0] for c in df.columns]
