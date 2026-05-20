@@ -38,6 +38,10 @@ class DataCache:
                     return data
         except: pass
 
+        # Transient keys (sentiment, downloaded historical price batches) do not need Supabase roundtrips
+        if key.startswith("sentiment:") or key.startswith("dl:"):
+            return None
+
         # L3 (Supabase Primary)
         cloud_data = SupabaseClient.query("cache_store", filters=f"key=eq.{key}")
         if cloud_data:
@@ -68,7 +72,9 @@ class DataCache:
             conn.close()
         except: pass
         
-        # Sync to Cloud L3 via background thread to avoid blocking
+        # Sync to Cloud L3 via background thread to avoid blocking (skip transient keys)
+        if key.startswith("sentiment:") or key.startswith("dl:"):
+            return
         def sync():
             SupabaseClient.upsert("cache_store", {
                 "key": key,
@@ -96,6 +102,7 @@ class DataCache:
             conn.close()
         except: pass
         
+        payloads = [p for p in payloads if not (p['key'].startswith("sentiment:") or p['key'].startswith("dl:"))]
         if payloads:
             def sync_batch():
                 SupabaseClient.upsert_batch("cache_store", payloads)

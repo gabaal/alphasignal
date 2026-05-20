@@ -465,10 +465,10 @@ class InstitutionalRoutesMixin:
         """Return real Binance FAPI funding rates for expanded universe."""
         core_assets = ['BTC', 'ETH', 'SOL', 'LINK', 'ADA', 'BNB', 'XRP', 'DOGE']
         galaxy = [
-            'AVAX', 'DOT', 'MATIC', 'NEAR', 'RNDR', 'INJ', 'APT', 'OP', 'ARB', 'SUI', 
+            'AVAX', 'MATIC', 'NEAR', 'RNDR', 'APT', 'OP', 'ARB', 'SUI', 
             'SEI', 'TIA', 'FET', 'STX', 'IMX', 'LDO', 'MNT', 'PEPE', 'SHIB', 'WIF', 
-            'TON', 'FIL', 'ICP', 'RUNE', 'GALA', 'FTM', 'AR', 'AAVE', 'MKR', 'TAO', 
-            'ONDO', 'WLD', 'JUP', 'PYTH', 'JTO', 'ORDI'
+            'TON', 'FIL', 'ICP', 'RUNE', 'FTM', 'AR', 'AAVE', 'MKR', 'TAO', 
+            'ONDO', 'JUP', 'PYTH', 'JTO', 'ORDI'
         ]
         assets = core_assets + galaxy
         symbols = [f'{a}USDT' for a in assets]
@@ -2368,6 +2368,13 @@ class InstitutionalRoutesMixin:
         universe_tickers = [t for cat, sub in UNIVERSE.items() if cat not in ('EQUITIES', 'TREASURY') for t in sub]
         all_tickers = sorted(list(set(universe_tickers + tracked) - NON_CRYPTO))
         results = []
+        sentiments = {}
+        try:
+            from backend.services import get_sentiment_batch
+            sentiments = get_sentiment_batch(all_tickers)
+        except Exception as e:
+            print(f"Error fetching sentiment batch: {e}")
+
         try:
             data = CACHE.download(all_tickers, period='60d', interval='1d', column='Close')
             # Extract BTC from the SAME batch download so index formats match exactly
@@ -2428,7 +2435,7 @@ class InstitutionalRoutesMixin:
                             category = cat
                             break
                     # Phase 3: Sentiment
-                    score = get_sentiment(ticker)
+                    score = sentiments.get(ticker, 0.0)
                     sentiment = 'Bullish' if score > 0.1 else 'Bearish' if score < -0.1 else 'Neutral'
 
                     results.append({

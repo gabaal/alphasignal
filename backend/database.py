@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sqlite3
 import requests
 import stripe
@@ -149,12 +149,12 @@ UNIVERSE = {
                  'BITB', 'HODL', 'BTCO', 'EZBC'],                  # added: Bitwise, VanEck, Invesco, Franklin
     'EQUITIES': [],          # crypto-correlated tech
     'DEFI':     ['AAVE-USD', 'LDO-USD', 'MKR-USD', 'CRV-USD', 'RUNE-USD', 'SNX-USD', 'JTO-USD', 'EIGEN-USD'],
-    'L1':       ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD', 'DOT-USD',
-                 'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'INJ-USD', 'XRP-USD',
+    'L1':       ['BTC-USD', 'ETH-USD', 'SOL-USD', 'ADA-USD', 'AVAX-USD',
+                 'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'XRP-USD',
                  'SEI-USD'],
     'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD',
                  'WBTC-USD'],                            # added: Wrapped BTC
-    'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD', 'WLD-USD'],
+    'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD'],
     'MEMES':    ['DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD'],
     'PYTH':     ['PYTH-USD'],
 }

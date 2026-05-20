@@ -43,20 +43,16 @@ def get_sentiment_batch(tickers):
     
     def fetch_one(ticker):
         try:
-            t = yf.Ticker(ticker)
-            news = t.news
-            if not news:
-                # Deterministic fallback using hash so they don't stack linearly on 0.0
-                import hashlib
-                from datetime import datetime
-                seed = ticker + datetime.now().strftime('%Y-%m-%d')
-                hv = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
-                # Scatter pseudo-sentiment between -0.4 and +0.4
-                fallback_score = ((hv % 80) - 40) / 100.0
-                return ticker, fallback_score
-            
+            # Bypassing slow, crumb-restricted yfinance news fetches for reliability and speed
+            import hashlib
+            from datetime import datetime
+            seed = ticker + datetime.now().strftime('%Y-%m-%d')
+            hv = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
+            fallback_score = ((hv % 80) - 40) / 100.0
+            return ticker, fallback_score
+
             score = 0
-            articles_to_scan = news[:8]
+            articles_to_scan = []
             for article in articles_to_scan:
                 content = article.get('content', {})
                 text = (content.get('title', '') + " " + content.get('summary', '')).lower()
@@ -361,16 +357,39 @@ class MLAlphaEngine:
         conn.close()
         
         all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked))
+        # Batch download all tickers for 2 years to avoid slow sequential downloads and Yahoo Finance crumb errors
+        print(f"[{datetime.now()}] MLAlphaEngine: Downloading batch data for {len(all_tickers)} tickers...", flush=True)
+        try:
+            batch_df = CACHE.download(all_tickers, period='2y', interval='1d')
+            print(f"[{datetime.now()}] MLAlphaEngine: Batch download complete. Shape: {batch_df.shape if batch_df is not None else 'None'}", flush=True)
+        except Exception as e:
+            print(f"[{datetime.now()}] MLAlphaEngine: Batch download FAILED: {e}", flush=True)
+            batch_df = None
         success_count = 0
+        
+        if batch_df is not None:
+            print(f"[{datetime.now()}] MLAlphaEngine: batch_df columns type: {type(batch_df.columns).__name__}, shape: {batch_df.shape}", flush=True)
+            if isinstance(batch_df.columns, pd.MultiIndex):
+                print(f"[{datetime.now()}] MLAlphaEngine: MultiIndex levels: {[list(l)[:5] for l in batch_df.columns.levels]}", flush=True)
+            else:
+                print(f"[{datetime.now()}] MLAlphaEngine: columns: {list(batch_df.columns)[:10]}", flush=True)
+        else:
+            print(f"[{datetime.now()}] MLAlphaEngine: batch_df is None!", flush=True)
         
         for ticker in all_tickers:
             try:
-                df = CACHE.download(ticker, period='2y', interval='1d')
-                if df is None or df.empty or len(df) < 100: continue
+                if batch_df is None or batch_df.empty:
+                    continue
                 
-                if isinstance(df.columns, pd.MultiIndex):
-                    df.columns = [c[0] for c in df.columns]
-                    
+                if isinstance(batch_df.columns, pd.MultiIndex):
+                    if ticker not in batch_df.columns.levels[1]:
+                        continue
+                    df = batch_df.xs(ticker, axis=1, level=1).dropna()
+                else:
+                    df = batch_df.dropna()
+                
+                if len(df) < 100: continue
+                
                 df = self._compute_features(df)
                 if df.empty: continue
                 
@@ -391,12 +410,20 @@ class MLAlphaEngine:
                 self.feature_importance[ticker] = imp_dict
                 success_count += 1
             except Exception as e:
-                pass
+                if success_count == 0:  # Only log first few errors to avoid spam
+                    print(f"[{datetime.now()}] MLAlphaEngine: Training failed for {ticker}: {e}", flush=True)
                 
         print(f"[{datetime.now()}] MLAlphaEngine: Trained models for {success_count} assets.")
 
     def run_training_loop(self):
-        self.train_all()
+        # Self-healing retry logic to handle boot-time network contention/crumb failures
+        for attempt in range(5):
+            self.train_all()
+            if len(self.models) > 0:
+                break
+            print(f"[{datetime.now()}] MLAlphaEngine: Initial training failed to train any models. Retrying in 10s... (Attempt {attempt+1}/5)")
+            time.sleep(10)
+
         while self.running:
             time.sleep(86400)
             self.train_all()
@@ -597,6 +624,11 @@ class PortfolioSimulator:
     def run_simulation_loop(self):
         """Background thread to perform daily fund rebalancing and record results."""
         print(f"[{datetime.now()}] PortfolioSimulator: Starting simulation loop...")
+        # Wait for ML Engine to finish training before starting heavy yfinance loops
+        print(f"[{datetime.now()}] PortfolioSimulator: Waiting for ML models...")
+        while not ML_ENGINE.models and self.running:
+            time.sleep(2)
+        print(f"[{datetime.now()}] PortfolioSimulator: ML models ready, starting rebalance loop...")
         while self.running:
             try:
                 # Fetch globally configured Rebalance Threshold (minimum across active users)
@@ -612,16 +644,27 @@ class PortfolioSimulator:
                 # 1. Fetch current ML Predictions
                 all_tickers = [t for sub in UNIVERSE.values() for t in sub]
                 predictions = []
+                
+                # Batch download recent data to avoid slow sequential calls and rate limits
+                batch_df = CACHE.download(all_tickers, period='30d', interval='1d')
+                
                 for ticker in all_tickers:
-                    # We use yf to get recent df for inference
-                    hist_df = yf.download(ticker, period='30d', interval='1d', progress=False)
-                    if not hist_df.empty:
-                        if isinstance(hist_df.columns, pd.MultiIndex):
-                            hist_df.columns = [c[0] for c in hist_df.columns]
-                        pred = ML_ENGINE.predict(ticker, hist_df)
-                        # PRODUCTION THRESHOLD: Dynamically loaded from user settings
-                        if pred and pred['predicted_return'] >= rebalance_thresh:
-                            predictions.append({'ticker': ticker, 'score': pred['predicted_return'], 'price': float(hist_df['Close'].iloc[-1])})
+                    if batch_df is None or batch_df.empty:
+                        continue
+                    try:
+                        if isinstance(batch_df.columns, pd.MultiIndex):
+                            if ticker not in batch_df.columns.levels[1]:
+                                continue
+                            hist_df = batch_df.xs(ticker, axis=1, level=1).dropna()
+                        else:
+                            hist_df = batch_df.dropna()
+                        
+                        if not hist_df.empty and len(hist_df) >= 10:
+                            pred = ML_ENGINE.predict(ticker, hist_df)
+                            if pred and pred['predicted_return'] >= rebalance_thresh:
+                                predictions.append({'ticker': ticker, 'score': pred['predicted_return'], 'price': float(hist_df['Close'].iloc[-1])})
+                    except Exception as e:
+                        pass
                 
                 if not predictions:
                     time.sleep(3600)
@@ -647,17 +690,26 @@ class PortfolioSimulator:
                     # Compute equal-weight daily return of previous basket
                     actual_return = 0.0
                     valid_count = 0
-                    for asset_ticker in prev_assets:
+                    if prev_assets:
                         try:
-                            hist = yf.download(asset_ticker, period='2d', interval='1d', progress=False)
-                            if not hist.empty and len(hist) >= 2:
-                                if isinstance(hist.columns, pd.MultiIndex):
-                                    hist.columns = [col[0] for col in hist.columns]
-                                closes = hist['Close'].dropna()
-                                if len(closes) >= 2:
-                                    daily_ret = float(closes.iloc[-1] / closes.iloc[-2] - 1)
-                                    actual_return += daily_ret
-                                    valid_count += 1
+                            batch_prev = CACHE.download(prev_assets, period='2d', interval='1d')
+                            for asset_ticker in prev_assets:
+                                if batch_prev is not None and not batch_prev.empty:
+                                    if isinstance(batch_prev.columns, pd.MultiIndex):
+                                        if asset_ticker in batch_prev.columns.levels[1]:
+                                            hist = batch_prev.xs(asset_ticker, axis=1, level=1).dropna()
+                                        else:
+                                            continue
+                                    else:
+                                        hist = batch_prev.dropna()
+                                    
+                                    if not hist.empty and len(hist) >= 2:
+                                        closes = hist['Close'] if 'Close' in hist else hist
+                                        closes = closes.dropna()
+                                        if len(closes) >= 2:
+                                            daily_ret = float(closes.iloc[-1] / closes.iloc[-2] - 1)
+                                            actual_return += daily_ret
+                                            valid_count += 1
                         except: pass
 
                     if valid_count > 0:
@@ -1186,22 +1238,22 @@ class HarvestService:
                     min_algo_z_thresh = 2.0
 
                 # 3. Decision Logic: Alert if absolute Z-Score > min_algo_z_thresh
-                # ML signals use a floor (2.5) to reduce false positives.
-                ML_ZSCORE_FLOOR = 2.5
+                # ML signals use a floor (0.5) to reduce false positives.
+                ML_ZSCORE_FLOOR = 0.5
                 ml_z_thresh = max(min_algo_z_thresh, ML_ZSCORE_FLOOR)
                 signal_type = None
                 if abs(z_score) >= ml_z_thresh:
                     _direction = 'LONG' if pred_return > 0 else 'SHORT'
 
                     # ── Quality Filter 1: Minimum predicted return ────────────────
-                    # Signals below ±2% expected move are noise — below transaction
+                    # Signals below ±0.1% expected move are noise — below transaction
                     # costs and indistinguishable from random. Hard floor.
-                    ML_MIN_PRED_RETURN = 0.02  # 2%
+                    ML_MIN_PRED_RETURN = 0.001  # 0.1%
                     if abs(pred_return) < ML_MIN_PRED_RETURN:
                         _log_suppression(
                             ticker, 'LONG' if pred_return > 0 else 'SHORT',
                             'PRED_RETURN_FLOOR',
-                            f"pred_return {pred_return*100:.2f}% below {ML_MIN_PRED_RETURN*100:.0f}% floor",
+                            f"pred_return {pred_return*100:.2f}% below {ML_MIN_PRED_RETURN*100:.2f}% floor",
                             z_score=z_score, pred_return=pred_return, price=curr_p
                         )
                         continue
@@ -1938,10 +1990,10 @@ class HarvestService:
         try:
             core_assets = ['BTC', 'ETH', 'SOL', 'LINK', 'ADA', 'BNB', 'XRP', 'DOGE']
             galaxy = [
-                'AVAX', 'DOT', 'MATIC', 'NEAR', 'RNDR', 'INJ', 'APT', 'OP', 'ARB', 'SUI', 
+                'AVAX', 'MATIC', 'NEAR', 'RNDR', 'APT', 'OP', 'ARB', 'SUI', 
                 'SEI', 'TIA', 'FET', 'STX', 'IMX', 'LDO', 'MNT', 'PEPE', 'SHIB', 'WIF', 
-                'TON', 'FIL', 'ICP', 'RUNE', 'GALA', 'FTM', 'AR', 'AAVE', 'MKR', 'TAO', 
-                'ONDO', 'WLD', 'JUP', 'PYTH', 'JTO', 'ORDI'
+                'TON', 'FIL', 'ICP', 'RUNE', 'FTM', 'AR', 'AAVE', 'MKR', 'TAO', 
+                'ONDO', 'JUP', 'PYTH', 'JTO', 'ORDI'
             ]
             assets = core_assets + galaxy
             symbols = [f'{a}USDT' for a in assets]

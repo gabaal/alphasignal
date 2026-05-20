@@ -20,6 +20,14 @@ import struct
 import hashlib
 import base64
 import requests
+# Global timeout patch for all requests (including yfinance/urllib3) to prevent thread hangs
+original_request = requests.Session.request
+def request_with_timeout(self, method, url, *args, **kwargs):
+    if 'timeout' not in kwargs:
+        kwargs['timeout'] = 15
+    return original_request(self, method, url, *args, **kwargs)
+requests.Session.request = request_with_timeout
+
 from datetime import datetime, timedelta
 import random
 import traceback
