@@ -1243,13 +1243,14 @@ class HarvestService:
                 
                 if np.isnan(z_score): z_score = 0.0
 
-                # Get minimum algo_z_threshold across all active users
+                # Get minimum algo_z_threshold across all users (don't gate on alerts_enabled
+                # — signal evaluation should happen regardless of notification preferences)
                 try:
-                    c.execute("SELECT MIN(COALESCE(algo_z_threshold, z_threshold, 2.0)) FROM user_settings WHERE alerts_enabled = 1")
+                    c.execute("SELECT MIN(COALESCE(algo_z_threshold, z_threshold, 2.0)) FROM user_settings")
                     _min_z = c.fetchone()[0]
-                    min_algo_z_thresh = float(_min_z) if _min_z is not None else 2.0
+                    min_algo_z_thresh = float(_min_z) if _min_z is not None else 0.5
                 except:
-                    min_algo_z_thresh = 2.0
+                    min_algo_z_thresh = 0.5
 
                 # 3. Decision Logic: Alert if absolute Z-Score > min_algo_z_thresh
                 # ML signals use a floor (0.5) to reduce false positives.
