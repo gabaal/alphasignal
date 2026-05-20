@@ -1189,10 +1189,12 @@ class HarvestService:
             all_tickers = [data.name] if hasattr(data, 'name') else []
 
         print(f"[{datetime.now()}] MLAlphaEngine: data shape={data.shape}, MultiIndex={isinstance(data.columns, pd.MultiIndex)}, tickers={len(all_tickers)}, models={len(ML_ENGINE.models)}", flush=True)
+        # Diagnostic counters
+        _gate = {'excluded': 0, 'short_data': 0, 'no_predict': 0, 'low_z': 0, 'evaluated': 0}
+        _sample_z = []
 
         for ticker in all_tickers:
             # Global Exclusions: Ignore Stablecoins (no volatility) and Memecoins (precision/slippage risks)
-            # NEW: explicitly ignore non-crypto traditional Equities and Treasury companies
             NON_CRYPTO_EXCLUSIONS = set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', []))
             
             STABLECOINS = {
@@ -1204,6 +1206,7 @@ class HarvestService:
                 'SHIB-USD','PEPE-USD','FLOKI-USD','BONK-USD','DOGE-USD','WIF-USD'
             }
             if ticker in STABLECOINS or ticker in MEMECOINS or ticker in NON_CRYPTO_EXCLUSIONS:
+                _gate['excluded'] += 1
                 continue
 
             try:
@@ -1213,14 +1216,18 @@ class HarvestService:
                 else:
                     hist_df = data.dropna()
                 
-                if len(hist_df) < 30: continue
+                if len(hist_df) < 30:
+                    _gate['short_data'] += 1
+                    continue
                 
                 # Ensure predictable column mapping for ML features
                 curr_p = float(hist_df['Close'].iloc[-1]) if 'Close' in hist_df.columns else 0.0
                 
                 # 2. Run Inference using the ML Engine
                 prediction = ML_ENGINE.predict(ticker, hist_df)
-                if not prediction: continue
+                if not prediction:
+                    _gate['no_predict'] += 1
+                    continue
                 
                 pred_return = prediction['predicted_return']
                 importance = prediction['feature_importance']
@@ -1249,7 +1256,9 @@ class HarvestService:
                 ML_ZSCORE_FLOOR = 0.5
                 ml_z_thresh = max(min_algo_z_thresh, ML_ZSCORE_FLOOR)
                 signal_type = None
+                _sample_z.append((ticker, round(z_score, 3), round(ml_z_thresh, 2)))
                 if abs(z_score) >= ml_z_thresh:
+                    _gate['evaluated'] += 1
                     _direction = 'LONG' if pred_return > 0 else 'SHORT'
 
                     # ── Quality Filter 1: Minimum predicted return ────────────────
@@ -1569,6 +1578,10 @@ class HarvestService:
             except Exception as e:
                 print(f"Prediction loop error for {ticker}: {e}")
                 continue
+
+        # Gate summary
+        _top_z = sorted(_sample_z, key=lambda x: abs(x[1]), reverse=True)[:5]
+        print(f"[{datetime.now()}] MLAlphaEngine GATES: {_gate} | threshold={ml_z_thresh if '_sample_z' else '?'} | top_z={_top_z}", flush=True)
 
         # Commit ML prediction inserts first so _generate_rule_based_signals'
         # anti-spam SELECT (same connection) can see them and skip duplicates.
