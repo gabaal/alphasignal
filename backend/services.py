@@ -356,7 +356,8 @@ class MLAlphaEngine:
         tracked = [r[0] for r in c.fetchall()]
         conn.close()
         
-        all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked))
+        DELISTED = {'DOT-USD', 'INJ-USD', 'WLD-USD', 'GALA', 'GALA-USD', 'DOT', 'INJ', 'WLD'}
+        all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked) - DELISTED)
         # Batch download all tickers for 2 years to avoid slow sequential downloads and Yahoo Finance crumb errors
         print(f"[{datetime.now()}] MLAlphaEngine: Downloading batch data for {len(all_tickers)} tickers...", flush=True)
         try:
@@ -859,7 +860,9 @@ class HarvestService:
                 # Phase 9: Real-time Funding Spike Persistence
                 self.check_funding_spikes()
                 
-                all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked))
+                # Filter out delisted tickers that cause repeated Yahoo 404 errors
+                DELISTED = {'DOT-USD', 'INJ-USD', 'WLD-USD', 'GALA', 'GALA-USD', 'DOT', 'INJ', 'WLD'}
+                all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked) - DELISTED)
                 print(f"[{datetime.now()}] Harvesting data for {len(all_tickers)} assets...")
                 
                 # Fetch as a batch only

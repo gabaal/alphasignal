@@ -1,7 +1,9 @@
-import warnings
-warnings.filterwarnings('ignore', message='X has feature names', category=UserWarning)
-import json
 import os
+os.environ['PYTHONWARNINGS'] = 'ignore'
+import warnings
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', category=FutureWarning)
+import json
 try:
     from dotenv import load_dotenv
     load_dotenv()
