@@ -1316,21 +1316,19 @@ class HarvestService:
                     message = f"ML Engine predicts {pred_return*100:+.1f}% alpha window. Confluence Validated. Driver: {top_driver.upper()}."
                 
                 if signal_type:
-                    # Get all users to receive this signal
+                    # Get all enabled users — signals are written for everyone.
+                    # algo_z_threshold only gates notification delivery (see push_webhook below),
+                    # matching the behaviour of rule-based signals (_dispatch_rule_signal).
                     try:
                         with sqlite3.connect(DB_PATH, timeout=30) as ue_conn:
                             ue_c = ue_conn.cursor()
-                            ue_c.execute("SELECT user_email, COALESCE(algo_z_threshold, z_threshold, 0.5) FROM user_settings WHERE alerts_enabled != 0 AND user_email IS NOT NULL")
+                            ue_c.execute("SELECT user_email FROM user_settings WHERE alerts_enabled != 0 AND user_email IS NOT NULL")
                             enabled_users_data = ue_c.fetchall()
                     except:
                         enabled_users_data = []
 
                     enabled_users = []
-                    for (target_email, user_algo_z) in enabled_users_data:
-                        # Apply Gatekeeper: individual algo_z_threshold dictates signal generation
-                        if abs(z_score) < max(float(user_algo_z), ML_ZSCORE_FLOOR):
-                            continue
-                            
+                    for (target_email,) in enabled_users_data:
                         enabled_users.append(target_email)
 
                         _direction = 'LONG' if pred_return > 0 else 'SHORT'
