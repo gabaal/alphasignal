@@ -2015,6 +2015,7 @@ async function renderSignalArchive(tabs = null) {
                 case 'state':     return (s.state || '').toUpperCase();
                 case 'date':      return s.timestamp || '';
                 case 'direction': {
+                    if (s.direction) return s.direction.toUpperCase() === 'LONG' ? 0 : s.direction.toUpperCase() === 'SHORT' ? 1 : 2;
                     const t = (s.type||'').toUpperCase();
                     return BULLISH_TYPES.has(t) ? 0 : BEARISH_TYPES.has(t) ? 1 : 2;
                 }
@@ -2040,8 +2041,8 @@ async function renderSignalArchive(tabs = null) {
             sortedData(d).forEach(s => { window._archiveSignals[String(s.id)] = s; });
             return sortedData(d).map(s => {
                 const sigType  = (s.type || '').toUpperCase();
-                const isBull   = BULLISH_TYPES.has(sigType);
-                const isBear   = BEARISH_TYPES.has(sigType);
+                const isBull   = s.direction ? s.direction.toUpperCase() === 'LONG' : BULLISH_TYPES.has(sigType);
+                const isBear   = s.direction ? s.direction.toUpperCase() === 'SHORT' : BEARISH_TYPES.has(sigType);
                 const dirLabel = isBull ? 'BULLISH' : isBear ? 'BEARISH' : 'NEUTRAL';
                 const dirArrow = isBull ? '-' : isBear ? '-' : '-';
                 const dirColor = isBull ? '#22c55e' : isBear ? '#ef4444' : '#94a3b8';
@@ -2351,14 +2352,14 @@ async function renderSignalArchive(tabs = null) {
                         closed:  s.closed  ?? 0,
                         avg_roi: s.avg_roi != null ? parseFloat(s.avg_roi) : null,
                         total:   s.total   ?? 0,
-                        isBull:  BULLISH_T.has(type)
+                        isBull:  type === 'ML_ALPHA_PREDICTION' ? null : BULLISH_T.has(type)
                     };
                 });
             } else {
                 // Fallback: compute from current page rows
                 (pageData || []).forEach(s => {
                     const t = (s.type || 'UNKNOWN').toUpperCase();
-                    if (!byType[t]) byType[t] = { wins:0, losses:0, active:0, closed:0, avg_roi:null, total:0, roiSum:0, roiCount:0, isBull: BULLISH_T.has(t) };
+                    if (!byType[t]) byType[t] = { wins:0, losses:0, active:0, closed:0, avg_roi:null, total:0, roiSum:0, roiCount:0, isBull: t === 'ML_ALPHA_PREDICTION' ? null : BULLISH_T.has(t) };
                     byType[t].total++;
                     if (s.state === 'HIT_TP1' || s.state === 'HIT_TP2') byType[t].wins++;
                     else if (s.state === 'STOPPED') byType[t].losses++;
@@ -2406,9 +2407,11 @@ async function renderSignalArchive(tabs = null) {
                     }
                     const avgRoi   = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '+' : '') + parseFloat(s.avg_roi).toFixed(2) + '%' : '--';
                     const avgColor = s.avg_roi != null ? (parseFloat(s.avg_roi) >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
-                    const badge    = s.isBull
-                        ? '<span style="font-size:0.5rem;background:rgba(34,197,94,0.12);color:#22c55e;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">LONG</span>'
-                        : '<span style="font-size:0.5rem;background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">SHORT</span>';
+                    const badge    = s.isBull === null
+                        ? '<span style="font-size:0.5rem;background:rgba(139,92,246,0.12);color:#a78bfa;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">DUAL</span>'
+                        : (s.isBull
+                            ? '<span style="font-size:0.5rem;background:rgba(34,197,94,0.12);color:#22c55e;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">LONG</span>'
+                            : '<span style="font-size:0.5rem;background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">SHORT</span>');
                     return `<tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.15s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                         <td style="padding:12px 14px;font-weight:700;font-size:0.85rem;white-space:nowrap">
                             <span style="color:var(--text)">${type.replace(/_/g,' ')}</span>${badge}
@@ -2792,8 +2795,8 @@ async function renderSignalArchive(tabs = null) {
         const BEARISH_T = new Set(['ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT','FUNDING_SPIKE_EXTREME_LONG','FUNDING_SPIKE_HIGH_LONG']);
         
         const sigType  = (s.type || '').toUpperCase();
-        const isBull   = BULLISH_T.has(sigType);
-        const isBear   = BEARISH_T.has(sigType);
+        const isBull   = s.direction ? s.direction.toUpperCase() === 'LONG' : BULLISH_T.has(sigType);
+        const isBear   = s.direction ? s.direction.toUpperCase() === 'SHORT' : BEARISH_T.has(sigType);
 
         const entry    = Number(s.entry || 0);
         let tp1Price = null, tp2Price = null, slPrice = null;

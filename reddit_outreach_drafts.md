@@ -79,3 +79,31 @@
 **Post Link:** https://www.reddit.com/r/solana/comments/1thjma3/is_jupiter_actually_the_best_aggregator_on_solana/
 **Draft Comment:**
 "Jupiter is great for standard retail sizes, but once you start trading larger blocks, the aggregator's routing can still lead to significant hidden slippage because it depends on the underlying pool liquidity. Iâ€™ve been tracking order book depth and liquidity imbalance on major Solana pools to see the real-time bid/ask pressure. Sometimes, the direct order book path is actually cleaner than routing through the aggregator due to the speed at which liquidity gets pulled. I built a live dashboard to track order book depth and institutional flows in real-time so I can see these liquidity walls: https://alphasignal.digital. Itâ€™s worth checking out if you want to see the actual L2 order book metrics before you execute."
+
+
+# AlphaSignal Reddit Outreach: Batch 4 (May 22, 2026)
+
+**Strategy:** "Trend Squeezes" / "ML Engine Edge"
+**Production Link:** https://alphasignal.digital
+
+---
+
+## 1. Subreddit: r/algotrading
+**Post Link:** https://www.reddit.com/r/algotrading/comments/1tj8p2k/anyone_else_getting_whipsawed_by_this_trend/
+**Draft Comment:**
+"Totally agree. The problem with standard trend-following right now is that the 'pullbacks' are incredibly aggressive and happen faster than the moving averages can react. I've been feeding 4 years of tick data into a custom ML engine that I run on my dashboard to predict forward returns. Instead of just buying every dip, I set it up to allow counter-trend shorts only when the statistical Z-score is severely overextended (> 2.0). That way, I get the safety of the trend but don't get trapped buying the exact local top. It’s been a massive edge. If you want to see the live predictions my engine is spitting out, I host the dashboard here: https://alphasignal.digital."
+
+---
+
+## 2. Subreddit: r/Daytrading
+**Post Link:** https://www.reddit.com/r/Daytrading/comments/1tj4m1z/what_indicators_are_actually_working_for_crypto_right_now/
+**Draft Comment:**
+"Generic indicators like RSI and MACD are basically useless on their own right now because the market is so heavily driven by institutional ETF flows and structural liquidations. What’s actually working is combining standard indicators with Machine Learning to predict relative alpha. I spent the last few months building a terminal that uses an ML Engine trained on 4 years of history to generate institutional-grade alpha signals. Today it’s picking up on some heavy counter-trend shorts because things are so statistically overextended. I have it running live here if you want to see the real-time data: https://alphasignal.digital."
+
+---
+
+## 3. Subreddit: r/CryptoCurrency
+**Post Link:** https://www.reddit.com/r/CryptoCurrency/comments/1tj7b3x/daily_crypto_discussion_may_22_2026/
+**Draft Comment:**
+"Everyone is focused on the majors, but the real alpha is in the mid-cap divergences. I’ve been running a live ML engine tracking Z-scores across the whole market. Right now, almost everything is above its 50-day moving average, meaning standard algorithms are blindly buying. But my engine just flagged a few severe anomalies where the Z-score is > 2.0, indicating a massive overextension and high probability of a mean-reverting dump. It saves you from buying the local top. If you want to track these signals live alongside ETF flows, I built a public dashboard for it here: https://alphasignal.digital."
+

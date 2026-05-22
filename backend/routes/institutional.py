@@ -4989,11 +4989,7 @@ class InstitutionalRoutesMixin:
                 'severity':  "CASE LOWER(COALESCE(ah.severity,'')) WHEN 'critical' THEN 3 WHEN 'high' THEN 2 WHEN 'medium' THEN 1 ELSE 0 END",
                 'entry':     'ah.price',
                 'date':      'ah.timestamp',
-                'direction': ("CASE WHEN ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',"
-                              "'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT',"
-                              "'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION') THEN 0 "
-                              "WHEN ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
-                              "'REGIME_BEAR','ALPHA_DIVERGENCE_SHORT') THEN 1 ELSE 2 END"),
+                'direction': "CASE WHEN ah.direction = 'LONG' THEN 0 WHEN ah.direction = 'SHORT' THEN 1 ELSE 2 END",
             }
             order_expr = SORT_MAP.get(sort_col, 'ah.timestamp')
             order_clause = f'ORDER BY {order_expr} {sort_dir.upper()}'
@@ -5085,9 +5081,9 @@ class InstitutionalRoutesMixin:
                 params.append(f_severity.lower());  count_params.append(f_severity.lower())
             if f_direction:
                 if f_direction == 'bullish':
-                    base_where  += " AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
+                    base_where  += " AND (ah.direction = 'LONG' OR (ah.direction IS NULL AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')))"
                 elif f_direction == 'bearish':
-                    base_where  += " AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
+                    base_where  += " AND (ah.direction = 'SHORT' OR (ah.direction IS NULL AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')))"
             # Save the base query sans state filter for the overall stats
             summary_where = base_where
             summary_params = list(params)
@@ -5133,7 +5129,7 @@ class InstitutionalRoutesMixin:
                            ah.price, ah.timestamp,
                            COALESCE(ah.status, 'active') AS status,
                            ah.closed_at, ah.exit_price, ah.final_roi,
-                           ah.mtf_score, ah.mtf_detail
+                           ah.mtf_score, ah.mtf_detail, ah.direction
                     FROM alerts_history ah
                     {base_where}
                     ORDER BY ah.timestamp DESC
@@ -5146,7 +5142,7 @@ class InstitutionalRoutesMixin:
                            ah.price, ah.timestamp,
                            COALESCE(ah.status, 'active') AS status,
                            ah.closed_at, ah.exit_price, ah.final_roi,
-                           ah.mtf_score, ah.mtf_detail
+                           ah.mtf_score, ah.mtf_detail, ah.direction
                     FROM alerts_history ah
                     {base_where}
                     {order_clause}
@@ -5239,7 +5235,7 @@ class InstitutionalRoutesMixin:
                        'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
 
             results = []
-            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, exit_px, stored_roi, mtf_score_raw, mtf_detail_raw in rows:
+            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, exit_px, stored_roi, mtf_score_raw, mtf_detail_raw, direction_val in rows:
                 roi   = 0.0
                 state = 'ACTIVE'
                 curr_p = price_map.get(ticker)  # live price for this ticker
@@ -5255,7 +5251,10 @@ class InstitutionalRoutesMixin:
                         roi    = round(float(stored_roi), 2) if stored_roi is not None else 0.0
 
                 elif entry_p and entry_p > 0 and curr_p and curr_p > 0:
-                    direction = 1 if sig_type in BULLISH else -1
+                    if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
+                        direction = 1 if direction_val.upper() == 'LONG' else -1
+                    else:
+                        direction = 1 if sig_type in BULLISH else -1
                     roi   = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
                     curr_p = round(curr_p, 10)
                     # Use per-user thresholds
@@ -5327,6 +5326,7 @@ class InstitutionalRoutesMixin:
                     'final_roi':  round(float(stored_roi), 2) if stored_roi is not None else None,
                     'mtf_score':  _mtf_score,
                     'mtf_detail': _mtf_detail,
+                    'direction':  direction_val.upper() if direction_val and direction_val.upper() in ('LONG', 'SHORT') else ('LONG' if sig_type in BULLISH else 'SHORT'),
                 })
 
 
@@ -5384,12 +5384,12 @@ class InstitutionalRoutesMixin:
                     by_type_params.append(f_type)
                 if f_direction:
                     if f_direction == 'bullish':
-                        by_type_where += (" AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',"
+                        by_type_where += (" AND (ah.direction = 'LONG' OR (ah.direction IS NULL AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',"
                                           "'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT',"
-                                          "'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')")
+                                          "'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')))")
                     elif f_direction == 'bearish':
-                        by_type_where += (" AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
-                                          "'REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')")
+                        by_type_where += (" AND (ah.direction = 'SHORT' OR (ah.direction IS NULL AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
+                                          "'REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')))")
 
                 c2_cur.execute(f"""
                     SELECT
