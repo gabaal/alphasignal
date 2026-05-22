@@ -1277,14 +1277,15 @@ class HarvestService:
                         if len(hist_df) >= 50:
                             sma50 = float(hist_df['Close'].rolling(50).mean().iloc[-1])
                             above_sma50 = curr_p > sma50
-                            if _direction == 'LONG' and not above_sma50:
+                            is_extreme = abs(z_score) >= 2.0
+                            if _direction == 'LONG' and not above_sma50 and not is_extreme:
                                 _log_suppression(
                                     ticker, _direction, 'SMA50_TREND',
                                     f"price {curr_p:.4f} below SMA-50 {sma50:.4f} (downtrend)",
                                     z_score=z_score, pred_return=pred_return, price=curr_p
                                 )
                                 continue
-                            if _direction == 'SHORT' and above_sma50:
+                            if _direction == 'SHORT' and above_sma50 and not is_extreme:
                                 _log_suppression(
                                     ticker, _direction, 'SMA50_TREND',
                                     f"price {curr_p:.4f} above SMA-50 {sma50:.4f} (uptrend)",
