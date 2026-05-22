@@ -498,18 +498,17 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_response(401); self.end_headers(); return
                 try:
                     sig_id = int(path.split('/')[3])
-                    conn = sqlite3.connect(DB_PATH, timeout=30)
-                    c = conn.cursor()
                     from datetime import datetime as _dt
-                    # Fetch entry price + type to compute final ROI at close time
-                    c.execute("SELECT price, type, ticker, user_email FROM alerts_history WHERE id=?", (sig_id,))
-                    sig_row = c.fetchone()
                     exit_px = None; final_roi = None
+                    # Fetch entry price + type to compute final ROI at close time
+                    with sqlite3.connect(DB_PATH, timeout=30) as conn:
+                        c = conn.cursor()
+                        c.execute("SELECT price, type, ticker, user_email FROM alerts_history WHERE id=?", (sig_id,))
+                        sig_row = c.fetchone()
                     if sig_row:
                         entry_p, sig_type, ticker, sig_owner = sig_row
                         # Security: only the owning user (or legacy NULL-owner) can close
                         if sig_owner and sig_owner != auth_info.get('email'):
-                            conn.close()
                             self.send_response(403)
                             self.send_header('Content-Type', 'application/json')
                             self.send_header('Access-Control-Allow-Origin', '*')
@@ -538,13 +537,17 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         if exit_px and entry_p and entry_p > 0:
                             direction = 1 if (sig_type or '').upper() in BULLISH_T else -1
                             final_roi = round(direction * (exit_px - entry_p) / entry_p * 100, 2)
-                    c.execute("UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
-                              (_dt.utcnow().isoformat(), exit_px, final_roi, sig_id))
-                    conn.commit(); conn.close()
+                    with sqlite3.connect(DB_PATH, timeout=30) as conn:
+                        c = conn.cursor()
+                        c.execute("UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                                  (_dt.utcnow().isoformat(), exit_px, final_roi, sig_id))
+                        conn.commit()
                     InstitutionalRoutesMixin._sig_history_cache.clear()
                     self.send_json({'success': True, 'id': sig_id, 'state': 'CLOSED',
                                     'exit_price': exit_px, 'final_roi': final_roi})
                 except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                     self.send_error(500, 'Internal server error')
             elif path.startswith('/api/signal/') and path.endswith('/reopen'):
                 # POST /api/signal/{id}/reopen - re-activate a closed signal
@@ -614,6 +617,61 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             self._proxy_websocket()
             return
         
+        # URL normalization for SEO (301 Redirects)
+        parsed = urllib.parse.urlparse(self.path)
+        orig_path = parsed.path
+        query = parsed.query
+        
+        # Bypassed for API routes and health check
+        is_api = orig_path.startswith('/api/') or orig_path == '/health'
+        
+        # Bypassed for static assets with specific extensions (excluding .html)
+        static_extensions = {'.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.json', '.xml', '.webmanifest', '.svg', '.webp', '.woff', '.woff2', '.ttf', '.eot', '.mp4'}
+        _, ext = os.path.splitext(orig_path.lower())
+        is_static_asset = ext in static_extensions
+        
+        if not is_api and not is_static_asset:
+            normalized_path = orig_path
+            
+            # 1. Index variants
+            if normalized_path.endswith('/index.html'):
+                normalized_path = normalized_path[:-11]
+            elif normalized_path.endswith('/index'):
+                normalized_path = normalized_path[:-6]
+            if normalized_path == '':
+                normalized_path = '/'
+                
+            # 2. File extensions (redirect .html)
+            if normalized_path.endswith('.html') and normalized_path != '.html':
+                normalized_path = normalized_path[:-5]
+                
+            # 3. Case normalization for asset tickers
+            parts = normalized_path.split('/')
+            if len(parts) >= 3 and parts[1] == 'asset':
+                ticker = parts[2]
+                if ticker != ticker.upper():
+                    parts[2] = ticker.upper()
+                    normalized_path = '/'.join(parts)
+            
+            # 4. Trailing slashes (except root /)
+            if normalized_path.endswith('/') and normalized_path != '/':
+                normalized_path = normalized_path.rstrip('/')
+                
+            if not normalized_path:
+                normalized_path = '/'
+                
+            if normalized_path != orig_path:
+                redirect_url = normalized_path
+                if query:
+                    redirect_url += '?' + query
+                
+                print(f"[{datetime.now()}] SEO 301 Redirect: {self.path} -> {redirect_url}", flush=True)
+                self.send_response(301)
+                self.send_header('Location', redirect_url)
+                self.send_header('Cache-Control', 'public, max-age=31536000')
+                self.end_headers()
+                return
+
         # --- pSEO: Asset-specific deep landing pages (HIGH PRIORITY) ---
         clean_path = self.path.split('?')[0].rstrip('/')
         path_parts = clean_path.split('/')

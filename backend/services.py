@@ -685,36 +685,39 @@ class PortfolioSimulator:
                 count = c.fetchone()[0]
 
                 current_equity = self.initial_capital
+                last_equity = self.initial_capital
+                prev_assets = []
                 if count > 0:
                     c.execute("SELECT equity, assets_json FROM portfolio_history ORDER BY timestamp DESC LIMIT 1")
                     row = c.fetchone()
                     last_equity = row[0]
                     prev_assets = json.loads(row[1]) if row[1] else []
+                conn.close()
 
-                    # Compute equal-weight daily return of previous basket
-                    actual_return = 0.0
-                    valid_count = 0
-                    if prev_assets:
-                        try:
-                            batch_prev = CACHE.download(prev_assets, period='2d', interval='1d')
-                            for asset_ticker in prev_assets:
-                                if batch_prev is not None and not batch_prev.empty:
-                                    if isinstance(batch_prev.columns, pd.MultiIndex):
-                                        if asset_ticker in batch_prev.columns.levels[1]:
-                                            hist = batch_prev.xs(asset_ticker, axis=1, level=1).dropna()
-                                        else:
-                                            continue
+                # Compute equal-weight daily return of previous basket
+                actual_return = 0.0
+                valid_count = 0
+                if count > 0 and prev_assets:
+                    try:
+                        batch_prev = CACHE.download(prev_assets, period='2d', interval='1d')
+                        for asset_ticker in prev_assets:
+                            if batch_prev is not None and not batch_prev.empty:
+                                if isinstance(batch_prev.columns, pd.MultiIndex):
+                                    if asset_ticker in batch_prev.columns.levels[1]:
+                                        hist = batch_prev.xs(asset_ticker, axis=1, level=1).dropna()
                                     else:
-                                        hist = batch_prev.dropna()
-                                    
-                                    if not hist.empty and len(hist) >= 2:
-                                        closes = hist['Close'] if 'Close' in hist else hist
-                                        closes = closes.dropna()
-                                        if len(closes) >= 2:
-                                            daily_ret = float(closes.iloc[-1] / closes.iloc[-2] - 1)
-                                            actual_return += daily_ret
-                                            valid_count += 1
-                        except: pass
+                                        continue
+                                else:
+                                    hist = batch_prev.dropna()
+                                
+                                if not hist.empty and len(hist) >= 2:
+                                    closes = hist['Close'] if 'Close' in hist else hist
+                                    closes = closes.dropna()
+                                    if len(closes) >= 2:
+                                        daily_ret = float(closes.iloc[-1] / closes.iloc[-2] - 1)
+                                        actual_return += daily_ret
+                                        valid_count += 1
+                    except: pass
 
                     if valid_count > 0:
                         avg_return = actual_return / valid_count
@@ -733,6 +736,8 @@ class PortfolioSimulator:
                 execution_penalty = (self.trading_fee_pct + 0.001) * churn_pct # Fee + Avg Slippage
                 current_equity = current_equity * (1 - execution_penalty)
 
+                conn = sqlite3.connect(DB_PATH, timeout=30)
+                c = conn.cursor()
                 c.execute("INSERT INTO portfolio_history (equity, draw_down, assets_json) VALUES (?, ?, ?)",
                          (current_equity, 0.0, assets_bin))
                 conn.commit()
@@ -978,30 +983,30 @@ class HarvestService:
             'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
             'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
         }
-        conn = sqlite3.connect(DB_PATH, timeout=30)
-        c    = conn.cursor()
         try:
-            # Fetch all active signals (status IS NULL or 'active')
-            c.execute("""
-                SELECT id, type, ticker, price, user_email, timestamp, COALESCE(max_roi, 0.0), COALESCE(tp1_hit, 0)
-                FROM alerts_history
-                WHERE COALESCE(status,'active') = 'active'
-            """)
-            active_rows = c.fetchall()
-            if not active_rows:
-                conn.close(); return
+            with sqlite3.connect(DB_PATH, timeout=30) as conn:
+                c = conn.cursor()
+                # Fetch all active signals (status IS NULL or 'active')
+                c.execute("""
+                    SELECT id, type, ticker, price, user_email, timestamp, COALESCE(max_roi, 0.0), COALESCE(tp1_hit, 0)
+                    FROM alerts_history
+                    WHERE COALESCE(status,'active') = 'active'
+                """)
+                active_rows = c.fetchall()
+                if not active_rows:
+                    return
 
-            # Build price map from most recent market_ticks (written this cycle)
-            unique_tickers = list({r[2] for r in active_rows})
-            price_map = {}
-            for t in unique_tickers:
-                c.execute(
-                    "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
-                    (t,)
-                )
-                row = c.fetchone()
-                if row and row[0]:
-                    price_map[t] = float(row[0])
+                # Build price map from most recent market_ticks (written this cycle)
+                unique_tickers = list({r[2] for r in active_rows})
+                price_map = {}
+                for t in unique_tickers:
+                    c.execute(
+                        "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
+                        (t,)
+                    )
+                    row = c.fetchone()
+                    if row and row[0]:
+                        price_map[t] = float(row[0])
 
             # yfinance fallback for any ticker still missing
             missing = [t for t in unique_tickers if t not in price_map]
@@ -1024,122 +1029,121 @@ class HarvestService:
             now_dt  = datetime.utcnow()
             closed  = 0
             expired = 0
-            for sig_id, sig_type, ticker, entry_p, user_email, sig_ts, max_roi, tp1_hit in active_rows:
-                expiry_days, tp2_threshold, sl_threshold = NotificationService.get_signal_thresholds(sig_type)
-                tp1_threshold = tp2_threshold / 2.0
+            
+            with sqlite3.connect(DB_PATH, timeout=30) as conn:
+                c = conn.cursor()
+                for sig_id, sig_type, ticker, entry_p, user_email, sig_ts, max_roi, tp1_hit in active_rows:
+                    expiry_days, tp2_threshold, sl_threshold = NotificationService.get_signal_thresholds(sig_type)
+                    tp1_threshold = tp2_threshold / 2.0
 
-                # --- Time-based expiry check FIRST (dynamic) ---
-                # This runs even if we have no current price for the ticker
-                try:
-                    sig_dt = datetime.fromisoformat(sig_ts) if sig_ts else None
-                    if sig_dt:
-                        hours_passed = (now_dt - sig_dt).total_seconds() / 3600.0
-                        if hours_passed >= (expiry_days * 24.0):
-                            curr_p = price_map.get(ticker)
-                            final_roi = 0.0
-                            exit_px = 0.0
-                            if curr_p and entry_p and entry_p > 0:
-                                direction = 1 if (sig_type or '').upper() in BULLISH else -1
-                                final_roi = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
-                                exit_px = round(curr_p, 10)
-                            c.execute(
-                                "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
-                                (now_ts, exit_px, final_roi, sig_id)
-                            )
-                            expired += 1
-                            continue
-                except Exception:
-                    pass
-
-                # --- TP2 / Stop Loss / Trailing TP1 check (requires current price) ---
-                curr_p = price_map.get(ticker)
-                if not curr_p or not entry_p or entry_p <= 0:
-                    continue
-                direction = 1 if (sig_type or '').upper() in BULLISH else -1
-                roi = direction * (curr_p - entry_p) / entry_p * 100
-
-                # Update max_roi and tp1_hit dynamic high-water marks
-                new_max_roi = max(max_roi, roi)
-                new_tp1_hit = 1 if (tp1_hit or roi >= tp1_threshold) else 0
-                if new_max_roi != max_roi or new_tp1_hit != tp1_hit:
-                    max_roi = new_max_roi
-                    tp1_hit = new_tp1_hit
-                    c.execute("UPDATE alerts_history SET max_roi=?, tp1_hit=? WHERE id=?", (max_roi, tp1_hit, sig_id))
-
-                # Trailing TP1 Logic: If hit TP1 and subsequently loses 20% of max_roi
-                is_tp1_trailing_close = False
-                if tp1_hit and max_roi > 0 and roi <= max_roi * 0.80:
-                    is_tp1_trailing_close = True
-
-                if roi >= tp2_threshold or roi <= -abs(sl_threshold) or is_tp1_trailing_close:
-                    final_roi  = round(roi, 2)
-                    exit_px    = round(curr_p, 10)
-                    c.execute(
-                        "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
-                        (now_ts, exit_px, final_roi, sig_id)
-                    )
-                    is_win  = roi >= tp2_threshold or is_tp1_trailing_close
-                    reason  = 'TP1 TRAILING CLOSE' if is_tp1_trailing_close else ('TP2 HIT' if roi >= tp2_threshold else 'STOP LOSS')
-                    print(f"[AutoClose] Signal #{sig_id} {ticker} {reason}: ROI={final_roi:+.2f}% entry={entry_p} exit={exit_px} (Peak={max_roi:.2f}%)")
-                    closed += 1
-
-                    # Fire notification in a background thread so it never blocks the DB commit
-                    if user_email:
-                        def _notify(ue=user_email, tk=ticker, st=sig_type,
-                                    ep=entry_p, xp=exit_px, roi_v=final_roi, win=is_win, rsn=reason):
-                            try:
-                                sym       = tk.replace('-USD', '')
-                                emoji     = '🟢' if win else '🔴'
-                                result    = rsn
-                                color     = 0x22c55e if win else 0xef4444
-
-                                def _fmt(v):
-                                    """Compact price formatter: avoids $0.00 for micro-cap."""
-                                    if v is None: return 'N/A'
-                                    if v >= 1:    return f'${v:,.4f}'
-                                    # Find first significant digit position
-                                    import math
-                                    dps = max(4, -int(math.floor(math.log10(abs(v)))) + 3) if v > 0 else 8
-                                    return f'${v:.{dps}f}'
-
-                                NOTIFY.push_webhook(
-                                    ue,
-                                    f"{emoji} {sym} -- {result}",
-                                    f"Your **{sym}** signal has been automatically closed after reaching the **{result}** threshold.",
-                                    embed_color=color,
-                                    fields=[
-                                        {'name': 'Ticker',      'value': tk,                           'inline': True},
-                                        {'name': 'Signal Type', 'value': st.replace('_', ' '),         'inline': True},
-                                        {'name': 'Result',      'value': result,                       'inline': True},
-                                        {'name': 'Entry',       'value': _fmt(ep),                     'inline': True},
-                                        {'name': 'Exit',        'value': _fmt(xp),                     'inline': True},
-                                        {'name': 'ROI',         'value': f'{roi_v:+.2f}%',             'inline': True},
-                                    ]
+                    # --- Time-based expiry check FIRST (dynamic) ---
+                    # This runs even if we have no current price for the ticker
+                    try:
+                        sig_dt = datetime.fromisoformat(sig_ts) if sig_ts else None
+                        if sig_dt:
+                            hours_passed = (now_dt - sig_dt).total_seconds() / 3600.0
+                            if hours_passed >= (expiry_days * 24.0):
+                                curr_p = price_map.get(ticker)
+                                final_roi = 0.0
+                                exit_px = 0.0
+                                if curr_p and entry_p and entry_p > 0:
+                                    direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                                    final_roi = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
+                                    exit_px = round(curr_p, 10)
+                                c.execute(
+                                    "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                                    (now_ts, exit_px, final_roi, sig_id)
                                 )
-                            except Exception as ne:
-                                print(f"[AutoClose] Notify error for signal #{sig_id}: {ne}")
-                        threading.Thread(target=_notify, daemon=True).start()
+                                expired += 1
+                                continue
+                    except Exception:
+                        pass
 
-            total_closed = closed + expired
-            if total_closed:
-                conn.commit()
-                # Bust signal history cache so the archive reflects new state immediately
-                try:
-                    from .routes.institutional import InstitutionalRoutesMixin
-                    InstitutionalRoutesMixin._sig_history_cache.clear()
-                except Exception:
-                    pass
-                parts = []
-                if closed:  parts.append(f"{closed} TP/SL")
-                if expired: parts.append(f"{expired} expired")
-                print(f"[AutoClose] {' + '.join(parts)} = {total_closed} signal(s) auto-closed this cycle.")
-            else:
-                print(f"[AutoClose] No signals hit TP2 or SL this cycle ({len(active_rows)} active).")
+                    # --- TP2 / Stop Loss / Trailing TP1 check (requires current price) ---
+                    curr_p = price_map.get(ticker)
+                    if not curr_p or not entry_p or entry_p <= 0:
+                        continue
+                    direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                    roi = direction * (curr_p - entry_p) / entry_p * 100
+
+                    # Update max_roi and tp1_hit dynamic high-water marks
+                    new_max_roi = max(max_roi, roi)
+                    new_tp1_hit = 1 if (tp1_hit or roi >= tp1_threshold) else 0
+                    if new_max_roi != max_roi or new_tp1_hit != tp1_hit:
+                        max_roi = new_max_roi
+                        tp1_hit = new_tp1_hit
+                        c.execute("UPDATE alerts_history SET max_roi=?, tp1_hit=? WHERE id=?", (max_roi, tp1_hit, sig_id))
+
+                    # Trailing TP1 Logic: If hit TP1 and subsequently loses 20% of max_roi
+                    is_tp1_trailing_close = False
+                    if tp1_hit and max_roi > 0 and roi <= max_roi * 0.80:
+                        is_tp1_trailing_close = True
+
+                    if roi >= tp2_threshold or roi <= -abs(sl_threshold) or is_tp1_trailing_close:
+                        final_roi  = round(roi, 2)
+                        exit_px    = round(curr_p, 10)
+                        c.execute(
+                            "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                            (now_ts, exit_px, final_roi, sig_id)
+                        )
+                        is_win  = roi >= tp2_threshold or is_tp1_trailing_close
+                        reason  = 'TP1 TRAILING CLOSE' if is_tp1_trailing_close else ('TP2 HIT' if roi >= tp2_threshold else 'STOP LOSS')
+                        print(f"[AutoClose] Signal #{sig_id} {ticker} {reason}: ROI={final_roi:+.2f}% entry={entry_p} exit={exit_px} (Peak={max_roi:.2f}%)")
+                        closed += 1
+
+                        # Fire notification in a background thread so it never blocks the DB commit
+                        if user_email:
+                            def _notify(ue=user_email, tk=ticker, st=sig_type,
+                                        ep=entry_p, xp=exit_px, roi_v=final_roi, win=is_win, rsn=reason):
+                                try:
+                                    sym       = tk.replace('-USD', '')
+                                    emoji     = '🟢' if win else '🔴'
+                                    result    = rsn
+                                    color     = 0x22c55e if win else 0xef4444
+
+                                    def _fmt(v):
+                                        """Compact price formatter: avoids $0.00 for micro-cap."""
+                                        if v is None: return 'N/A'
+                                        if v >= 1:    return f'${v:,.4f}'
+                                        import math
+                                        dps = max(4, -int(math.floor(math.log10(abs(v)))) + 3) if v > 0 else 8
+                                        return f'${v:.{dps}f}'
+
+                                    NOTIFY.push_webhook(
+                                        ue,
+                                        f"{emoji} {sym} -- {result}",
+                                        f"Your **{sym}** signal has been automatically closed after reaching the **{result}** threshold.",
+                                        embed_color=color,
+                                        fields=[
+                                            {'name': 'Ticker',      'value': tk,                           'inline': True},
+                                            {'name': 'Signal Type', 'value': st.replace('_', ' '),         'inline': True},
+                                            {'name': 'Result',      'value': result,                       'inline': True},
+                                            {'name': 'Entry',       'value': _fmt(ep),                     'inline': True},
+                                            {'name': 'Exit',        'value': _fmt(xp),                     'inline': True},
+                                            {'name': 'ROI',         'value': f'{roi_v:+.2f}%',             'inline': True},
+                                        ]
+                                    )
+                                except Exception as ne:
+                                    print(f"[AutoClose] Notify error for signal #{sig_id}: {ne}")
+                            threading.Thread(target=_notify, daemon=True).start()
+
+                total_closed = closed + expired
+                if total_closed:
+                    conn.commit()
+                    # Bust signal history cache so the archive reflects new state immediately
+                    try:
+                        from .routes.institutional import InstitutionalRoutesMixin
+                        InstitutionalRoutesMixin._sig_history_cache.clear()
+                    except Exception:
+                        pass
+                    parts = []
+                    if closed:  parts.append(f"{closed} TP/SL")
+                    if expired: parts.append(f"{expired} expired")
+                    print(f"[AutoClose] {' + '.join(parts)} = {total_closed} signal(s) auto-closed this cycle.")
+                else:
+                    print(f"[AutoClose] No signals hit TP2 or SL this cycle ({len(active_rows)} active).")
         except Exception as e:
             print(f"[AutoClose] Error: {e}")
-            conn.rollback()
-        finally:
-            conn.close()
 
     def check_confluence(self, ticker, direction, current_regime=None):
         """
@@ -1376,6 +1380,7 @@ class HarvestService:
                                         "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
                                         (datetime.now().isoformat(), round(curr_p, 10), ex_roi, ex_id)
                                     )
+                                    conn.commit()
                                     print(f"[SignalReversal] Auto-closed {ex_type} #{ex_id} on {ticker} "
                                           f"(ROI={ex_roi:+.2f}%) — superseded by new {_direction} signal")
                         except Exception as _rev_e:
@@ -1423,6 +1428,7 @@ class HarvestService:
                              datetime.now().isoformat(), _z, _alpha, _direction, _cat, target_email,
                              _mtf_score, json.dumps(_mtf_detail))
                         )
+                        conn.commit()
                         # Signal fired — remove from near-miss cache to prevent double-fire
                         with _near_miss_lock:
                             _near_miss_cache.pop(ticker, None)
@@ -1430,6 +1436,7 @@ class HarvestService:
                     # Record Prediction Metadata (once, globally)
                     c.execute("INSERT INTO ml_predictions (symbol, predicted_return, confidence, features_json) VALUES (?, ?, ?, ?)",
                              (ticker, pred_return, confidence, json.dumps(importance)))
+                    conn.commit()
 
                     if enabled_users:
                         print(f"[{datetime.now()}] !!! ALPHA ALERT: {ticker} @ {curr_p} -> inserted for {len(enabled_users)} user(s)")
@@ -1796,6 +1803,7 @@ class HarvestService:
                     (sig_type, ticker, message, severity, curr_p,
                      datetime.now().isoformat(), _dir, _cat, ru_email)
                 )
+                conn.commit()
                 users_inserted += 1
 
             if users_inserted > 0:
