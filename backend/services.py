@@ -336,19 +336,6 @@ class MLAlphaEngine:
         df['BB_pos'] = (df['Close'] - df['BB_lower']) / (df['BB_upper'] - df['BB_lower'] + 1e-8)
         
         df['Vol_1d_change'] = df['Volume'].pct_change(1)
-        
-        # --- NEW FEATURES: Sentiment & Orderbook Imbalance ---
-        # For historical training, we synthesize highly correlated proxies so the model leverages them.
-        np.random.seed(42)
-        df['Sentiment_Score'] = df['return_5d'].apply(lambda x: 1.0 if x > 0.05 else (-1.0 if x < -0.05 else 0.0)) + np.random.normal(0, 0.2, len(df))
-        df['Order_Imbalance'] = df['return_1d'].apply(lambda x: 1.0 if x > 0.02 else (-1.0 if x < -0.02 else 0.0)) + np.random.normal(0, 0.2, len(df))
-        
-        # For live inference, override the final row with ACTUAL REAL-TIME DATA
-        if is_live and ticker:
-            real_sentiment = get_sentiment(ticker)
-            real_imbalance = get_orderbook_imbalance(ticker)
-            df.iloc[-1, df.columns.get_loc('Sentiment_Score')] = real_sentiment
-            df.iloc[-1, df.columns.get_loc('Order_Imbalance')] = real_imbalance
             
         return df.dropna()
 
@@ -400,7 +387,7 @@ class MLAlphaEngine:
                 df['Target_Return_24h'] = df['Close'].shift(-1).pct_change(1)
                 df = df.dropna()
                 
-                features = ['return_1d', 'return_5d', 'RSI_14', 'MACD', 'BB_pos', 'Vol_1d_change', 'Sentiment_Score', 'Order_Imbalance']
+                features = ['return_1d', 'return_5d', 'RSI_14', 'MACD', 'BB_pos', 'Vol_1d_change']
                 X = df[features]
                 y = df['Target_Return_24h']
                 
@@ -439,7 +426,7 @@ class MLAlphaEngine:
             df = self._compute_features(current_df.copy(), ticker=ticker, is_live=True)
             if df.empty: return None
             
-            features = ['return_1d', 'return_5d', 'RSI_14', 'MACD', 'BB_pos', 'Vol_1d_change', 'Sentiment_Score', 'Order_Imbalance']
+            features = ['return_1d', 'return_5d', 'RSI_14', 'MACD', 'BB_pos', 'Vol_1d_change']
             X_live = df[features].iloc[[-1]]
             pred_return = self.models[ticker].predict(X_live)[0]
 
