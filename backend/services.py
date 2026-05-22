@@ -348,10 +348,10 @@ class MLAlphaEngine:
         conn.close()
         
         all_tickers = list(set([t for sub in UNIVERSE.values() for t in sub] + tracked) - DELISTED)
-        # Batch download all tickers for 2 years to avoid slow sequential downloads and Yahoo Finance crumb errors
+        # Batch download all tickers for 4 years to avoid slow sequential downloads and Yahoo Finance crumb errors
         print(f"[{datetime.now()}] MLAlphaEngine: Downloading batch data for {len(all_tickers)} tickers...", flush=True)
         try:
-            batch_df = CACHE.download(all_tickers, period='2y', interval='1d')
+            batch_df = CACHE.download(all_tickers, period='4y', interval='1d')
             print(f"[{datetime.now()}] MLAlphaEngine: Batch download complete. Shape: {batch_df.shape if batch_df is not None else 'None'}", flush=True)
         except Exception as e:
             print(f"[{datetime.now()}] MLAlphaEngine: Batch download FAILED: {e}", flush=True)
