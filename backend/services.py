@@ -978,7 +978,7 @@ class HarvestService:
                 c = conn.cursor()
                 # Fetch all active signals (status IS NULL or 'active')
                 c.execute("""
-                    SELECT id, type, ticker, price, user_email, timestamp, COALESCE(max_roi, 0.0), COALESCE(tp1_hit, 0)
+                    SELECT id, type, ticker, price, user_email, timestamp, COALESCE(max_roi, 0.0), COALESCE(tp1_hit, 0), direction
                     FROM alerts_history
                     WHERE COALESCE(status,'active') = 'active'
                 """)
@@ -1022,7 +1022,7 @@ class HarvestService:
             
             with sqlite3.connect(DB_PATH, timeout=30) as conn:
                 c = conn.cursor()
-                for sig_id, sig_type, ticker, entry_p, user_email, sig_ts, max_roi, tp1_hit in active_rows:
+                for sig_id, sig_type, ticker, entry_p, user_email, sig_ts, max_roi, tp1_hit, direction_val in active_rows:
                     expiry_days, tp2_threshold, sl_threshold = NotificationService.get_signal_thresholds(sig_type)
                     tp1_threshold = tp2_threshold / 2.0
 
@@ -1037,7 +1037,10 @@ class HarvestService:
                                 final_roi = 0.0
                                 exit_px = 0.0
                                 if curr_p and entry_p and entry_p > 0:
-                                    direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                                    if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
+                                        direction = 1 if direction_val.upper() == 'LONG' else -1
+                                    else:
+                                        direction = 1 if (sig_type or '').upper() in BULLISH else -1
                                     final_roi = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
                                     exit_px = round(curr_p, 10)
                                 c.execute(
@@ -1053,7 +1056,10 @@ class HarvestService:
                     curr_p = price_map.get(ticker)
                     if not curr_p or not entry_p or entry_p <= 0:
                         continue
-                    direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                    if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
+                        direction = 1 if direction_val.upper() == 'LONG' else -1
+                    else:
+                        direction = 1 if (sig_type or '').upper() in BULLISH else -1
                     roi = direction * (curr_p - entry_p) / entry_p * 100
 
                     # Update max_roi and tp1_hit dynamic high-water marks
