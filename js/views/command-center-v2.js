@@ -1275,6 +1275,8 @@ function pushSparklinePrice(price) {
             fetch('/api/btc').then(r => r.json()).then(bd => {
                 if (bd.prev_close) _btcOpen24h = bd.prev_close;
                 else if (bd.price && bd.change != null) _btcOpen24h = bd.price / (1 + bd.change / 100);
+                const mlInd = document.getElementById('ml-training-indicator');
+                if (mlInd) mlInd.style.display = bd.ml_is_training ? 'inline-flex' : 'none';
             }).catch(() => {});
             // Temporarily use rolling start as baseline until API response heals _btcOpen24h
             if (_sparkPriceHistory.length >= 2) baseline = _sparkPriceHistory[0];
@@ -1345,6 +1347,8 @@ async function initBTCSparkline(_retries) {
                 } else if (bd.price && bd.change != null) {
                     _btcOpen24h = bd.price / (1 + bd.change / 100);
                 }
+                const mlInd = document.getElementById('ml-training-indicator');
+                if (mlInd) mlInd.style.display = bd.ml_is_training ? 'inline-flex' : 'none';
             }).catch(() => {});
         }
 
@@ -1356,6 +1360,8 @@ async function initBTCSparkline(_retries) {
                 if (br.ok) {
                     const bd = await br.json();
                     latest = bd.price || 0;
+                    const mlInd = document.getElementById('ml-training-indicator');
+                    if (mlInd) mlInd.style.display = bd.ml_is_training ? 'inline-flex' : 'none';
                     const chg = bd.change || 0;
                     if (latest > 0) {
                         prev = bd.prev_close || (latest / (1 + chg / 100));

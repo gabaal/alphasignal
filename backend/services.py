@@ -312,6 +312,7 @@ class MLAlphaEngine:
         self.models = {}
         self.feature_importance = {}
         self.running = True
+        self.is_training = False
 
     def _compute_features(self, df, ticker=None, is_live=False):
         if len(df) < 30: return df
@@ -340,6 +341,7 @@ class MLAlphaEngine:
         return df.dropna()
 
     def train_all(self):
+        self.is_training = True
         print(f"[{datetime.now()}] MLAlphaEngine: Starting background model training...")
         conn = sqlite3.connect(DB_PATH, timeout=30)
         c = conn.cursor()
@@ -404,6 +406,7 @@ class MLAlphaEngine:
                 if success_count == 0:  # Only log first few errors to avoid spam
                     print(f"[{datetime.now()}] MLAlphaEngine: Training failed for {ticker}: {e}", flush=True)
                 
+        self.is_training = False
         print(f"[{datetime.now()}] MLAlphaEngine: Trained models for {success_count} assets.")
 
     def run_training_loop(self):

@@ -268,11 +268,12 @@ class MarketRoutesMixin:
             self.send_json({
                 'price': price, 
                 'change': (price - prev) / prev * 100,
-                'prev_close': prev
+                'prev_close': prev,
+                'ml_is_training': getattr(ML_ENGINE, 'is_training', False)
             })
         except Exception as e:
             print(f'BTC Error (Using Fallback): {e}')
-            self.send_json({'price': 64500.0, 'change': 2.05, 'prev_close': 63200.0})
+            self.send_json({'price': 64500.0, 'change': 2.05, 'prev_close': 63200.0, 'ml_is_training': getattr(ML_ENGINE, 'is_training', False)})
 
     def handle_tape(self):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
