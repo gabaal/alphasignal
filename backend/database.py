@@ -273,6 +273,9 @@ def init_db():
     try:
         c.execute("CREATE INDEX IF NOT EXISTS idx_ah_user ON alerts_history(user_email)")
     except: pass
+    try:
+        c.execute("DELETE FROM alerts_history WHERE user_email = 'geraldbaalham@live.co.uk'")
+    except: pass
     c.execute('''CREATE TABLE IF NOT EXISTS tracked_tickers (
         ticker TEXT NOT NULL,
         user_email TEXT,
