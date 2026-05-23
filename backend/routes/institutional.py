@@ -7650,7 +7650,9 @@ class InstitutionalRoutesMixin:
             
             # We generate a 2D array of liquidity density across Price and Time
             try:
-                spot = float(CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close').iloc[-1])
+                df_lob = CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close')
+                s_lob = self._get_price_series(df_lob, f'{ticker}-USD')
+                spot = float(s_lob.iloc[-1])
             except:
                 spot = 90000.0
                 
