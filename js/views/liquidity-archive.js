@@ -2379,6 +2379,7 @@ async function renderSignalArchive(tabs = null) {
             let totalWins = 0, totalLosses = 0, totalActive = 0, totalClosed = 0, totalRoiSum = 0, totalRoiCount = 0;
             
             const rows = Object.entries(byType)
+                .filter(([type, s]) => type !== 'NEGATIVE_FUNDING')
                 .sort((a, b) => (b[1].wins + b[1].losses) - (a[1].wins + a[1].losses))
                 .map(([type, s]) => {
                     totalWins += s.wins;
