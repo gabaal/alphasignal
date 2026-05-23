@@ -2282,7 +2282,7 @@ window.loadCmdPremiumVisuals = async function() {
             for(let i=0; i<res.prices.length; i++) {
                 datasets.push({
                     label: `Level ${res.prices[i]}`,
-                    data: res.density.map(t => t[i]),
+                    data: res.density.map(t => 1), // uniform height for true heatmap grid
                     backgroundColor: res.density.map(t => {
                         const norm = (t[i] - minD) / (maxD - minD || 1);
                         if (norm < 0.33) return `rgba(0, 180, 200, ${0.25 + norm * 0.5})`;
@@ -2301,7 +2301,24 @@ window.loadCmdPremiumVisuals = async function() {
                     options: {
                         responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                        scales: { x: { stacked: true, grid: { display: false }, ticks: { color: '#aaa', font: { size: 9, family: 'JetBrains Mono' }, maxRotation: 35, maxTicksLimit: 12 } }, y: { stacked: true, display: false } }
+                        scales: { 
+                            x: { stacked: true, grid: { display: false }, ticks: { color: '#aaa', font: { size: 9, family: 'JetBrains Mono' }, maxRotation: 35, maxTicksLimit: 12 } }, 
+                            y: { 
+                                stacked: true, 
+                                display: true, 
+                                position: 'right',
+                                grid: { color: 'rgba(255,255,255,0.02)' },
+                                ticks: { 
+                                    color: '#888', 
+                                    font: { family: 'JetBrains Mono', size: 9 },
+                                    callback: function(value) {
+                                        if (value === 0) return '';
+                                        const idx = Math.min(Math.max(0, value - 1), res.prices.length - 1);
+                                        return '$' + Math.round(res.prices[idx]).toLocaleString();
+                                    }
+                                }
+                            } 
+                        }
                     }
                 });
             }
