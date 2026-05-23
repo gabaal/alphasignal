@@ -5393,7 +5393,7 @@ class InstitutionalRoutesMixin:
 
                 c2_cur.execute(f"""
                     SELECT
-                        ah.type,
+                        CASE WHEN ah.type = 'ML_ALPHA_PREDICTION' THEN ah.type || '_' || COALESCE(ah.direction, 'LONG') ELSE ah.type END as effective_type,
                         SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) > 0 THEN 1 ELSE 0 END) as wins,
                         SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND COALESCE(ah.final_roi,0) < 0 THEN 1 ELSE 0 END) as losses,
                         SUM(CASE WHEN COALESCE(ah.status,'active')='closed' THEN 1 ELSE 0 END) as closed,
@@ -5401,7 +5401,7 @@ class InstitutionalRoutesMixin:
                         AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi,
                         COUNT(*) as total
                     FROM alerts_history ah {by_type_where}
-                    GROUP BY ah.type
+                    GROUP BY effective_type
                 """, by_type_params)
                 by_type = {}
                 for bt_type, bt_wins, bt_losses, bt_closed, bt_active, bt_avg_roi, bt_total in c2_cur.fetchall():

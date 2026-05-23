@@ -2339,7 +2339,7 @@ async function renderSignalArchive(tabs = null) {
             // falling back to computing from current page data if not available.
             const byType = {};
             const BULLISH_T = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',
-                'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION']);
+                'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION_LONG']);
 
             // Prefer server-provided per_type breakdown
             const serverBreakdown = resp?.summary?.by_type || null;
@@ -2358,7 +2358,10 @@ async function renderSignalArchive(tabs = null) {
             } else {
                 // Fallback: compute from current page rows
                 (pageData || []).forEach(s => {
-                    const t = (s.type || 'UNKNOWN').toUpperCase();
+                    let t = (s.type || 'UNKNOWN').toUpperCase();
+                    if (t === 'ML_ALPHA_PREDICTION') {
+                        t = t + '_' + (s.direction || 'LONG').toUpperCase();
+                    }
                     if (!byType[t]) byType[t] = { wins:0, losses:0, active:0, closed:0, avg_roi:null, total:0, roiSum:0, roiCount:0, isBull: t === 'ML_ALPHA_PREDICTION' ? null : BULLISH_T.has(t) };
                     byType[t].total++;
                     if (s.state === 'HIT_TP1' || s.state === 'HIT_TP2') byType[t].wins++;
@@ -2414,7 +2417,7 @@ async function renderSignalArchive(tabs = null) {
                             : '<span style="font-size:0.5rem;background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">SHORT</span>');
                     return `<tr style="border-bottom:1px solid ${alphaColor(0.04)};transition:background 0.15s" onmouseover="this.style.background=alphaColor(0.03)" onmouseout="this.style.background=''">
                         <td style="padding:12px 14px;font-weight:700;font-size:0.85rem;white-space:nowrap">
-                            <span style="color:var(--text)">${type.replace(/_/g,' ')}</span>${badge}
+                            <span style="color:var(--text)">${type.replace(/_LONG|_SHORT/g, '').replace(/_/g,' ')}</span>${badge}
                         </td>
                         <td style="padding:12px 14px;text-align:center;font-weight:900;color:#22c55e;font-family:monospace;font-size:1rem">${s.wins}</td>
                         <td style="padding:12px 14px;text-align:center;font-weight:900;color:#ef4444;font-family:monospace;font-size:1rem">${s.losses}</td>
