@@ -2314,7 +2314,11 @@ window.loadCmdPremiumVisuals = async function() {
                                     callback: function(value) {
                                         if (value === 0) return '';
                                         const idx = Math.min(Math.max(0, value - 1), res.prices.length - 1);
-                                        return '$' + Math.round(res.prices[idx]).toLocaleString();
+                                        const p = res.prices[idx];
+                                        if (p < 0.1) return '$' + p.toFixed(4);
+                                        if (p < 10) return '$' + p.toFixed(3);
+                                        if (p < 1000) return '$' + p.toFixed(1);
+                                        return '$' + Math.round(p).toLocaleString();
                                     }
                                 }
                             } 

@@ -3826,7 +3826,9 @@ async function renderLOBHeatmapMode(display, ticker) {
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
         ctx.font = "9px 'JetBrains Mono'";
         for (let r = 0; r < rows; r += 4) {
-            ctx.fillText(data.prices[r], 10, (rows - 1 - r) * cellH + 12);
+            const p = data.prices[r];
+            const pStr = '$' + (p < 0.1 ? p.toFixed(4) : p < 10 ? p.toFixed(3) : p < 1000 ? p.toFixed(1) : Math.round(p).toLocaleString());
+            ctx.fillText(pStr, 10, (rows - 1 - r) * cellH + 12);
         }
 
         // Draw Time Labels (X-Axis)
