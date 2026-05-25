@@ -132,6 +132,12 @@ async function renderNarrativeGalaxy(filterChain = 'ALL', tabs = null) {
                     </div>`;
                 }).join('')}
             </div>
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--text-dim); line-height: 1.6;">
+                <strong style="color: var(--text);">What is Narrative Sentiment Velocity?</strong><br>
+                It is a proprietary metric that measures how quickly social mindshare and market sentiment are shifting around specific crypto assets. By tracking the intersection of <strong>NLP-derived news/social sentiment</strong> and <strong>short-term price momentum (24-48h)</strong>, it acts as a leading indicator.<br><br>
+                <span style="color: #22c55e; font-weight: 800;">Positive Velocity (Green)</span> indicates a rapidly accelerating bullish narrative, often preceding a thematic rotation of capital.<br>
+                <span style="color: #ef4444; font-weight: 800;">Negative Velocity (Red)</span> indicates an accelerating bearish or fear-driven narrative (e.g., regulatory crackdowns, unlocks, or contagion).
+            </div>
         </div>` : ''}
     `;
 

@@ -1252,9 +1252,9 @@ class HarvestService:
                 
                 if np.isnan(z_score): z_score = 0.0
 
-                # Signal EVALUATION always uses the ML floor (0.5).
+                # Signal EVALUATION always uses the ML floor (1.5).
                 # User-specific z_threshold only gates NOTIFICATION delivery downstream.
-                ML_ZSCORE_FLOOR = 0.5
+                ML_ZSCORE_FLOOR = 1.5
                 ml_z_thresh = ML_ZSCORE_FLOOR
                 signal_type = None
                 _sample_z.append((ticker, round(z_score, 3), round(ml_z_thresh, 2)))
@@ -1263,9 +1263,9 @@ class HarvestService:
                     _direction = 'LONG' if pred_return > 0 else 'SHORT'
 
                     # ── Quality Filter 1: Minimum predicted return ────────────────
-                    # Signals below ±0.1% expected move are noise — below transaction
+                    # Signals below ±0.5% expected move are noise — below transaction
                     # costs and indistinguishable from random. Hard floor.
-                    ML_MIN_PRED_RETURN = 0.001  # 0.1%
+                    ML_MIN_PRED_RETURN = 0.005  # 0.5%
                     if abs(pred_return) < ML_MIN_PRED_RETURN:
                         _log_suppression(
                             ticker, 'LONG' if pred_return > 0 else 'SHORT',
@@ -1394,7 +1394,7 @@ class HarvestService:
                             print(f"[MTF] Confluence error for {ticker}: {_mtf_e}")
                             _mtf_score, _mtf_detail = 33, {'1h': 'neutral', '4h': 'neutral', '1d': _direction.lower()}
 
-                        if _mtf_score < 20:
+                        if _mtf_score < 40:
                             _log_suppression(
                                 ticker, _direction, 'MTF_CONFLUENCE',
                                 f"MTF score {_mtf_score}/100 — TF detail: {_mtf_detail}",
@@ -1607,11 +1607,11 @@ class HarvestService:
             try:
                 c.execute("SELECT MAX(algo_rsi_oversold), MIN(algo_rsi_overbought) FROM user_settings WHERE alerts_enabled != 0")
                 row = c.fetchone()
-                max_rsi_os = float(row[0]) if row and row[0] is not None else 30.0
-                min_rsi_ob = float(row[1]) if row and row[1] is not None else 80.0
+                max_rsi_os = float(row[0]) if row and row[0] is not None else 25.0
+                min_rsi_ob = float(row[1]) if row and row[1] is not None else 85.0
             except:
-                max_rsi_os = 30.0
-                min_rsi_ob = 80.0
+                max_rsi_os = 25.0
+                min_rsi_ob = 85.0
             
             # Global Exclusions: Ignore Stablecoins (no volatility) and Memecoins (precision/slippage risks).
             STABLECOINS = {

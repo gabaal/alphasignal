@@ -7653,7 +7653,10 @@ class InstitutionalRoutesMixin:
                 df_lob = CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close')
                 s_lob = self._get_price_series(df_lob, f'{ticker}-USD')
                 spot = float(s_lob.iloc[-1])
-            except:
+            except Exception as e:
+                import traceback
+                print(f"[DEBUG LOB HEATMAP] Exception: {e}")
+                traceback.print_exc()
                 spot = 90000.0
                 
             ticker_hash = sum(ord(c) for c in ticker)

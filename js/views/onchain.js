@@ -527,6 +527,13 @@ async function renderBacktesterV2(tabs = null) {
         <div class="glass-card" style="padding:1.5rem" id="btv2-trade-log-container">
             <div style="padding:2rem;text-align:center;color:var(--text-dim)">Click RUN BACKTEST to load</div>
         </div>
+        
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 1.5rem;">
+            <strong style="color: var(--text);">What is Signal Backtester V2?</strong><br>
+            It is a historical performance simulator designed to validate the efficacy of AlphaSignal's proprietary signals over time. By running a walk-forward simulation using actual recorded signals and real price data, it helps quantify a strategy's edge before deploying live capital.<br><br>
+            <span style="color: #00d4aa; font-weight: 800;">Sharpe & Calmar Ratios</span> measure risk-adjusted returns. A Sharpe > 1.0 or Calmar > 1.0 indicates a robust, tradable edge.<br>
+            <span style="color: #ef4444; font-weight: 800;">Max Drawdown</span> shows the peak-to-trough decline, essential for proper risk management and position sizing.
+        </div>
 
         <!-- Video Modal -->
         <div id="btv2-video-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;justify-content:center;align-items:center;backdrop-filter:blur(5px);">

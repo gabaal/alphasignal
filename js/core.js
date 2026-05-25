@@ -2142,6 +2142,12 @@ async function runStrategyBacktest(ticker, strategy, fast = 20, slow = 50, tabs 
                         The Guppy Density Ribbon stacks an array of 15 overlapping Exponential Moving Averages. Structural compression signals imminent breakout probability across institutional limits.
                     </div>
                 </div>
+                
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--text-dim); line-height: 1.6;">
+                    <strong style="color: var(--text);">What is the Strategy Lab?</strong><br>
+                    It is an institutional sandbox for testing quantitative strategies across different assets. You can select classic technical or proprietary models (e.g., Regime-Filtered Carry, Kelly Position Sizer) and instantly validate them against Buy & Hold.<br><br>
+                    The lab provides a deep dive into <span style="color: #00f2ff; font-weight: 800;">Monte Carlo simulations</span> to model extreme volatility paths, and <span style="color: #facc15; font-weight: 800;">Walk-Forward Optimization</span> to ensure the strategy is robust and not just curve-fitted to past data.
+                </div>
 
             </div>
         </div>
