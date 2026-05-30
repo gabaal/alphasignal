@@ -1514,82 +1514,111 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             from io import BytesIO
             from PIL import Image, ImageDraw, ImageFont
         except ImportError:
+            print(f"[OG Image] Pillow not installed")
             self.send_error(500, "Pillow not installed")
             return
-            
+
         try:
-            # Create base image (dark terminal background)
-            img = Image.new('RGB', (1200, 630), color='#0a0e17')
+            # ── Colours (always use integer RGB tuples — hex strings
+            # are not supported by all Pillow versions) ──────────────
+            C_BG       = (10,  14,  23)   # #0a0e17
+            C_GRID     = (17,  24,  39)   # #111827
+            C_CARD     = (30,  41,  59)   # #1e293b
+            C_BORDER   = (51,  65,  85)   # #334155
+            C_WHITE    = (255, 255, 255)
+            C_BRAND    = (125, 211, 252)  # #7dd3fc
+            C_SUBTEXT  = (148, 163, 184)  # #94a3b8
+            C_FOOTER   = (100, 116, 139)  # #64748b
+            C_GREEN    = (0,   255, 163)  # #00ffa3
+            C_RED      = (255,  51, 102)  # #ff3366
+            C_NEUTRAL  = (160, 174, 192)  # #a0aec0
+            bias_color = C_GREEN if bias == 'Bullish' else C_RED if bias == 'Bearish' else C_NEUTRAL
+
+            # ── Canvas ───────────────────────────────────────────────
+            img  = Image.new('RGB', (1200, 630), color=C_BG)
             draw = ImageDraw.Draw(img)
-            
-            # Draw subtle grid/background
-            for i in range(0, 1200, 40):
-                draw.line([(i, 0), (i, 630)], fill='#111827', width=1)
-            for i in range(0, 630, 40):
-                draw.line([(0, i), (1200, i)], fill='#111827', width=1)
-                
-            # Fonts
+
+            # Subtle grid
+            for x in range(0, 1200, 40):
+                draw.line([(x, 0), (x, 630)],   fill=C_GRID, width=1)
+            for y in range(0, 630, 40):
+                draw.line([(0, y), (1200, y)],   fill=C_GRID, width=1)
+
+            # ── Fonts (Linux-safe path search) ───────────────────────
             try:
                 import os
                 if os.name == 'nt':
-                    font_dir = "C:\\Windows\\Fonts\\"
-                    title_font = ImageFont.truetype(os.path.join(font_dir, "arialbd.ttf"), 96)
-                    subtitle_font = ImageFont.truetype(os.path.join(font_dir, "arial.ttf"), 48)
-                    value_font = ImageFont.truetype(os.path.join(font_dir, "arialbd.ttf"), 64)
-                    brand_font = ImageFont.truetype(os.path.join(font_dir, "arialbd.ttf"), 42)
+                    _fd = 'C:\\Windows\\Fonts\\'
+                    title_font    = ImageFont.truetype(os.path.join(_fd, 'arialbd.ttf'), 96)
+                    subtitle_font = ImageFont.truetype(os.path.join(_fd, 'arial.ttf'),   48)
+                    value_font    = ImageFont.truetype(os.path.join(_fd, 'arialbd.ttf'), 64)
+                    brand_font    = ImageFont.truetype(os.path.join(_fd, 'arialbd.ttf'), 42)
                 else:
-                    title_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 96)
-                    subtitle_font = ImageFont.truetype("DejaVuSans.ttf", 48)
-                    value_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 64)
-                    brand_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 42)
+                    # Search common Linux font directories for DejaVu
+                    _candidates_bold = [
+                        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+                        '/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf',
+                        '/usr/share/fonts/DejaVuSans-Bold.ttf',
+                        'DejaVuSans-Bold.ttf',
+                    ]
+                    _candidates_reg = [
+                        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+                        '/usr/share/fonts/dejavu/DejaVuSans.ttf',
+                        '/usr/share/fonts/DejaVuSans.ttf',
+                        'DejaVuSans.ttf',
+                    ]
+                    def _find(paths):
+                        for p in paths:
+                            if os.path.exists(p):
+                                return p
+                        return None
+                    _bold = _find(_candidates_bold)
+                    _reg  = _find(_candidates_reg)
+                    if _bold:
+                        title_font    = ImageFont.truetype(_bold, 96)
+                        value_font    = ImageFont.truetype(_bold, 64)
+                        brand_font    = ImageFont.truetype(_bold, 42)
+                    else:
+                        raise FileNotFoundError('DejaVuSans-Bold not found')
+                    subtitle_font = ImageFont.truetype(_reg, 48) if _reg else ImageFont.load_default()
             except Exception as fe:
-                print(f"[{datetime.now()}] Font load error: {fe}, falling back to default")
-                title_font = ImageFont.load_default()
-                subtitle_font = ImageFont.load_default()
-                value_font = ImageFont.load_default()
-                brand_font = ImageFont.load_default()
-            
-            # Header
-            draw.text((80, 80), f"ALPHASIGNAL", font=brand_font, fill='#7dd3fc')
-            draw.text((80, 160), f"{ticker} Analytics", font=title_font, fill='#ffffff')
-            
-            # Determine color based on bias
-            bias_color = '#00ffa3' if bias == 'Bullish' else '#ff3366' if bias == 'Bearish' else '#a0aec0'
-            
-            # Metrics Grid
-            y_start = 320
-            
+                print(f"[OG Image] Font load error: {fe} — using bitmap default")
+                title_font = subtitle_font = value_font = brand_font = ImageFont.load_default()
+
+            # ── Text ──────────────────────────────────────────────────
+            draw.text((80, 80),  'ALPHASIGNAL',          font=brand_font,    fill=C_BRAND)
+            draw.text((80, 160), f'{ticker} Analytics',  font=title_font,    fill=C_WHITE)
+
+            y0 = 320
             # Box 1: Bias
-            draw.rectangle([80, y_start, 380, y_start+200], fill='#1e293b', outline='#334155', width=2)
-            draw.text((120, y_start+40), "MARKET BIAS", font=subtitle_font, fill='#94a3b8')
-            draw.text((120, y_start+110), bias, font=value_font, fill=bias_color)
-            
+            draw.rectangle([80,  y0, 380, y0+200], fill=C_CARD, outline=C_BORDER, width=2)
+            draw.text((120, y0+40),  'MARKET BIAS',  font=subtitle_font, fill=C_SUBTEXT)
+            draw.text((120, y0+110), bias,           font=value_font,    fill=bias_color)
+
             # Box 2: Z-Score
-            draw.rectangle([410, y_start, 710, y_start+200], fill='#1e293b', outline='#334155', width=2)
-            draw.text((450, y_start+40), "MVRV Z-SCORE", font=subtitle_font, fill='#94a3b8')
-            draw.text((450, y_start+110), zscore, font=value_font, fill='#ffffff')
-            
+            draw.rectangle([410, y0, 710, y0+200], fill=C_CARD, outline=C_BORDER, width=2)
+            draw.text((450, y0+40),  'MVRV Z-SCORE', font=subtitle_font, fill=C_SUBTEXT)
+            draw.text((450, y0+110), zscore,         font=value_font,    fill=C_WHITE)
+
             # Box 3: ATR
-            draw.rectangle([740, y_start, 1120, y_start+200], fill='#1e293b', outline='#334155', width=2)
-            draw.text((780, y_start+40), "ATR 2x STOP", font=subtitle_font, fill='#94a3b8')
-            draw.text((780, y_start+110), f"${atr}", font=value_font, fill='#ffffff')
-            
+            draw.rectangle([740, y0, 1120, y0+200], fill=C_CARD, outline=C_BORDER, width=2)
+            draw.text((780, y0+40),  'ATR 2x STOP',  font=subtitle_font, fill=C_SUBTEXT)
+            draw.text((780, y0+110), f'${atr}',      font=value_font,    fill=C_WHITE)
+
             # Footer
-            draw.text((80, 560), "alphasignal.digital", font=subtitle_font, fill='#64748b')
-            draw.text((800, 560), "Institutional Grade Intelligence", font=subtitle_font, fill='#64748b')
-            
-            # Save to buffer
+            draw.text((80,  560), 'alphasignal.digital',         font=subtitle_font, fill=C_FOOTER)
+            draw.text((800, 560), 'Institutional Grade Intelligence', font=subtitle_font, fill=C_FOOTER)
+
+            # ── Encode & send ─────────────────────────────────────────
             buf = BytesIO()
             img.save(buf, format='PNG')
-            img_data = buf.getvalue()
-            
-            # Send response
             self.send_response(200)
             self.send_header('Content-Type', 'image/png')
             self.send_header('Cache-Control', 'public, max-age=3600')
             self.end_headers()
-            self.wfile.write(img_data)
-            
+            self.wfile.write(buf.getvalue())
+            print(f"[OG Image] OK — {ticker} {bias}")
+
         except Exception as e:
             print(f"[{datetime.now()}] OG Image Generation Error: {e}")
             traceback.print_exc()
