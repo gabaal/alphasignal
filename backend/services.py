@@ -2015,7 +2015,7 @@ class HarvestService:
             core_assets = ['BTC', 'ETH', 'SOL', 'LINK', 'ADA', 'BNB', 'XRP', 'DOGE']
             galaxy = [
                 'AVAX', 'MATIC', 'NEAR', 'RNDR', 'APT', 'OP', 'ARB', 'SUI', 
-                'SEI', 'TIA', 'FET', 'STX', 'IMX', 'LDO', 'MNT', 'PEPE', 'SHIB', 'WIF', 
+                'SEI', 'TIA', 'FET', 'IMX', 'LDO', 'MNT', 'PEPE', 'SHIB', 'WIF', 
                 'TON', 'FIL', 'ICP', 'RUNE', 'FTM', 'AR', 'AAVE', 'MKR', 'TAO', 
                 'ONDO', 'JUP', 'PYTH', 'JTO', 'ORDI'
             ]
