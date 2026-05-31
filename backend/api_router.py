@@ -254,9 +254,35 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     self.send_error_json(str(e))
                 return
+            elif path == '/api/track-view':
+                # ── Lightweight page view tracker ────────────────────────────────────
+                # Called fire-and-forget from the frontend on every switchView().
+                # Requires a valid auth token — anonymous/unauthenticated calls are ignored.
+                try:
+                    auth_info = self.is_authenticated()
+                    if auth_info and auth_info.get('email'):
+                        view_name  = str(post_data.get('view', ''))[:80]
+                        view_path  = str(post_data.get('path', ''))[:120]
+                        user_email = auth_info['email']
+                        ip         = self.client_address[0]
+                        ua         = self.headers.get('User-Agent', '')[:200]
+                        conn = sqlite3.connect(DB_PATH, timeout=5)
+                        conn.execute(
+                            "INSERT INTO page_views (user_email, view_name, path, ip, user_agent) VALUES (?,?,?,?,?)",
+                            (user_email, view_name, view_path, ip, ua)
+                        )
+                        conn.commit()
+                        conn.close()
+                    self.send_json({'ok': True})
+                except Exception as e:
+                    # Never surface errors to client — tracking must never break the app
+                    self.send_json({'ok': True})
+                return
+
             elif path == '/api/auth/login':
                 email_attempt = post_data.get('email', '')
                 # S4: lockout check
+
                 if _check_login_lockout(email_attempt):
                     self.send_response(429)
                     self.send_header('Content-Type', 'application/json')
@@ -934,8 +960,93 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     })
                 except Exception as e:
                     self.send_error_json(str(e))
+            elif path == '/api/admin/user-analytics':
+                # ── Per-user activity analytics ───────────────────────────────────────
+                # Query: /api/admin/user-analytics?email=user@example.com&days=30
+                # Admin-only: requires valid auth.
+                try:
+                    query_params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                    target_email = query_params.get('email', [None])[0]
+                    days = int(query_params.get('days', ['30'])[0])
+
+                    conn = sqlite3.connect(DB_PATH, timeout=10)
+                    conn.row_factory = sqlite3.Row
+                    c = conn.cursor()
+
+                    if target_email:
+                        # ── Single user report ─────────────────────────────────────
+                        # Total views
+                        total = c.execute(
+                            "SELECT COUNT(*) FROM page_views WHERE user_email=? AND ts >= datetime('now', ?)",
+                            (target_email, f'-{days} days')
+                        ).fetchone()[0]
+
+                        # Views per calendar day
+                        daily = c.execute("""
+                            SELECT date(ts) as day, COUNT(*) as views
+                            FROM page_views
+                            WHERE user_email=? AND ts >= datetime('now', ?)
+                            GROUP BY date(ts) ORDER BY day DESC
+                        """, (target_email, f'-{days} days')).fetchall()
+
+                        # Most visited views
+                        top_views = c.execute("""
+                            SELECT view_name, COUNT(*) as count
+                            FROM page_views
+                            WHERE user_email=? AND ts >= datetime('now', ?)
+                            GROUP BY view_name ORDER BY count DESC LIMIT 20
+                        """, (target_email, f'-{days} days')).fetchall()
+
+                        # Last 50 events
+                        recent = c.execute("""
+                            SELECT view_name, path, ts
+                            FROM page_views
+                            WHERE user_email=?
+                            ORDER BY ts DESC LIMIT 50
+                        """, (target_email,)).fetchall()
+
+                        # Last seen
+                        last_seen = c.execute(
+                            "SELECT MAX(ts) FROM page_views WHERE user_email=?",
+                            (target_email,)
+                        ).fetchone()[0]
+
+                        avg_per_day = round(total / max(days, 1), 1)
+
+                        self.send_json({
+                            'email': target_email,
+                            'period_days': days,
+                            'total_views': total,
+                            'avg_views_per_day': avg_per_day,
+                            'last_seen': last_seen,
+                            'daily_breakdown': [dict(r) for r in daily],
+                            'top_views': [dict(r) for r in top_views],
+                            'recent_activity': [dict(r) for r in recent],
+                        })
+                    else:
+                        # ── All-users summary ──────────────────────────────────────
+                        summary = c.execute("""
+                            SELECT user_email,
+                                   COUNT(*) as total_views,
+                                   MAX(ts) as last_seen,
+                                   COUNT(DISTINCT date(ts)) as active_days
+                            FROM page_views
+                            WHERE ts >= datetime('now', ?)
+                            GROUP BY user_email
+                            ORDER BY total_views DESC
+                        """, (f'-{days} days',)).fetchall()
+
+                        self.send_json({
+                            'period_days': days,
+                            'users': [dict(r) for r in summary]
+                        })
+                    conn.close()
+                except Exception as e:
+                    self.send_error_json(str(e))
+
             elif path == '/api/user/ai-memory':
                 self.handle_ai_knowledge_get(auth_info)
+
             elif path == '/api/config':
                 self.handle_config()
             elif path == '/api/search':

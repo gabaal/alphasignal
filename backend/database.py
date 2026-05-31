@@ -484,5 +484,25 @@ def init_db():
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(signal_id, user_email)
     )''')
+    # ── Page View Tracker ─────────────────────────────────────────────────────
+    c.execute('''CREATE TABLE IF NOT EXISTS page_views (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email TEXT NOT NULL,
+        view_name  TEXT NOT NULL,
+        path       TEXT,
+        ip         TEXT,
+        user_agent TEXT,
+        ts         DATETIME DEFAULT CURRENT_TIMESTAMP
+    )''')
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_pv_email ON page_views(user_email)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_pv_ts    ON page_views(ts DESC)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_pv_view  ON page_views(view_name)")
+    except: pass
+
     conn.commit()
     conn.close()

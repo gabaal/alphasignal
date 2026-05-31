@@ -72,6 +72,21 @@ function switchView(view, pushState = true) {
         
         viewMap[view]();
         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // ── Fire-and-forget page view tracking ──────────────────────────────
+        // Only tracks authenticated users. Errors silently swallowed.
+        // keepalive:true ensures the request survives navigation/unload.
+        if (window.isAuthenticatedUser) {
+            try {
+                const _path = window.location.pathname + window.location.search;
+                fetch('/api/track-view', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ view, path: _path }),
+                    keepalive: true
+                }).catch(() => {}); // never throw
+            } catch(e) {}
+        }
         
         // Hide sidebar on mobile after selection
         if (window.innerWidth <= 900) {
@@ -80,6 +95,7 @@ function switchView(view, pushState = true) {
         }
     }
 }
+
 
 window.addEventListener('popstate', (e) => {
     if (e.state && e.state.view) {
