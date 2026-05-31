@@ -1889,9 +1889,73 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         with open(_index_path, 'r', encoding='utf-8') as f:
             html = f.read()
 
-        # Build a minimal server-side SEO block injected BEFORE the existing <title>
-        # The existing <title> and canonical are replaced so Googlebot sees the right values
-        # at HTML parse time, before any JS runs.
+        # Build slug label for structured data (e.g. 'etf-flows' -> 'ETF Flows')
+        _slug_label = view_key.replace('docs-', '').replace('academy-watch', 'Academy Cinema').replace('-', ' ').title()
+        _is_docs = view_key.startswith('docs-')
+        _breadcrumb_item2_name = "Docs" if _is_docs else "Academy"
+        _breadcrumb_item2_url = "https://alphasignal.digital/help" if _is_docs else "https://alphasignal.digital/academy"
+
+        _jsonld = f"""{{
+      "@context": "https://schema.org",
+      "@graph": [
+        {{
+          "@type": "TechArticle",
+          "@id": "{canonical_url}#article",
+          "headline": "{title}",
+          "description": "{desc}",
+          "url": "{canonical_url}",
+          "inLanguage": "en-US",
+          "isPartOf": {{
+            "@type": "WebSite",
+            "@id": "https://alphasignal.digital/#website",
+            "name": "AlphaSignal",
+            "url": "https://alphasignal.digital/"
+          }},
+          "publisher": {{
+            "@type": "Organization",
+            "name": "AlphaSignal",
+            "url": "https://alphasignal.digital/",
+            "logo": {{
+              "@type": "ImageObject",
+              "url": "https://alphasignal.digital/assets/logo.png"
+            }}
+          }},
+          "image": {{
+            "@type": "ImageObject",
+            "url": "https://alphasignal.digital/assets/social-preview.png"
+          }},
+          "about": {{
+            "@type": "Thing",
+            "name": "{_slug_label}"
+          }}
+        }},
+        {{
+          "@type": "BreadcrumbList",
+          "@id": "{canonical_url}#breadcrumb",
+          "itemListElement": [
+            {{
+              "@type": "ListItem",
+              "position": 1,
+              "name": "AlphaSignal",
+              "item": "https://alphasignal.digital/"
+            }},
+            {{
+              "@type": "ListItem",
+              "position": 2,
+              "name": "{_breadcrumb_item2_name}",
+              "item": "{_breadcrumb_item2_url}"
+            }},
+            {{
+              "@type": "ListItem",
+              "position": 3,
+              "name": "{_slug_label}",
+              "item": "{canonical_url}"
+            }}
+          ]
+        }}
+      ]
+    }}"""
+
         seo_head = f"""    <title>{full_title}</title>
     <meta name="description" content="{desc}">
     <link rel="canonical" id="canonical-link" href="{canonical_url}">
@@ -1905,7 +1969,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
     <meta property="twitter:site" content="@alphasignalai">
     <meta property="twitter:url" id="twitter-url" content="{canonical_url}">
     <meta property="twitter:title" id="twitter-title" content="{full_title}">
-    <meta property="twitter:description" id="twitter-desc" content="{desc}">"""
+    <meta property="twitter:description" id="twitter-desc" content="{desc}">
+    <script type="application/ld+json">{_jsonld}</script>"""
+
 
         # Replace the static <title> tag that index.html ships with
         html = html.replace(
