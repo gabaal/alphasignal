@@ -1435,61 +1435,95 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
     <script type="application/ld+json">
     {{
       "@context": "https://schema.org",
-      "@type": "WebPage",
-      "name": "{title}",
-      "description": "{desc}",
-      "url": "https://alphasignal.digital/asset/{ticker}",
-      "mainEntity": {{
-        "@type": "FinancialProduct",
-        "name": "{asset_name}",
-        "alternateName": "{ticker}",
-        "description": "Institutional trading analytics for {asset_name} ({ticker}): Z-Score deviation, ATR stop loss, options flow, whale accumulation patterns, and AI alpha signals."
-      }}
-    }}
-    </script>
-    <script type="application/ld+json">
-    {{
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {{"@type": "ListItem", "position": 1, "name": "AlphaSignal", "item": "https://alphasignal.digital/"}},
-        {{"@type": "ListItem", "position": 2, "name": "Asset Analytics", "item": "https://alphasignal.digital/asset/BTC"}},
-        {{"@type": "ListItem", "position": 3, "name": "{asset_name} ({ticker})", "item": "https://alphasignal.digital/asset/{ticker}"}}
-      ]
-    }}
-    </script>
-    <script type="application/ld+json">
-    {{
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
+      "@graph": [
         {{
-          "@type": "Question",
-          "name": "What is the current {asset_name} Z-Score?",
-          "acceptedAnswer": {{
-            "@type": "Answer",
-            "text": "The current {asset_name} ({ticker}) Z-Score is {z_score}, indicating a {bias} market bias. A Z-Score above +2 signals overbought conditions; below -2 signals oversold. Track live Z-Score signals at AlphaSignal."
+          "@type": "WebPage",
+          "@id": "https://alphasignal.digital/asset/{ticker}#webpage",
+          "url": "https://alphasignal.digital/asset/{ticker}",
+          "name": "{title}",
+          "description": "{desc}",
+          "isPartOf": {{
+            "@type": "WebSite",
+            "@id": "https://alphasignal.digital/#website",
+            "name": "AlphaSignal",
+            "url": "https://alphasignal.digital/"
+          }},
+          "publisher": {{
+            "@type": "Organization",
+            "name": "AlphaSignal",
+            "url": "https://alphasignal.digital/",
+            "logo": {{
+              "@type": "ImageObject",
+              "url": "https://alphasignal.digital/assets/logo.png"
+            }}
+          }},
+          "mainEntity": {{
+            "@type": "FinancialProduct",
+            "name": "{asset_name}",
+            "alternateName": "{ticker}",
+            "description": "Institutional trading analytics for {asset_name} ({ticker}): Z-Score deviation, ATR stop loss, options flow, whale accumulation patterns, and AI alpha signals."
           }}
         }},
         {{
-          "@type": "Question",
-          "name": "How do I set a stop loss for {asset_name}?",
-          "acceptedAnswer": {{
-            "@type": "Answer",
-            "text": "For {asset_name} ({ticker}), the ATR-based 2x stop loss is currently ${atr_val}. ATR (Average True Range) stop losses adjust dynamically to market volatility, preventing premature exits during normal price fluctuations while protecting against major drawdowns."
-          }}
+          "@type": "Dataset",
+          "@id": "https://alphasignal.digital/asset/{ticker}#dataset",
+          "name": "{asset_name} ({ticker}) Live Signal Data",
+          "description": "Real-time institutional signal data for {asset_name} ({ticker}) including Z-Score deviation ({z_score}), market bias ({bias}), ATR 2x stop loss (${atr_val}), options flow, and whale tracking metrics.",
+          "url": "https://alphasignal.digital/asset/{ticker}",
+          "creator": {{
+            "@type": "Organization",
+            "name": "AlphaSignal",
+            "url": "https://alphasignal.digital/"
+          }},
+          "variableMeasured": [
+            {{"@type": "PropertyValue", "name": "Z-Score", "value": "{z_score}"}},
+            {{"@type": "PropertyValue", "name": "Market Bias", "value": "{bias}"}},
+            {{"@type": "PropertyValue", "name": "ATR 2x Stop", "value": "{atr_val}"}}
+          ]
         }},
         {{
-          "@type": "Question",
-          "name": "Is {asset_name} bullish or bearish right now?",
-          "acceptedAnswer": {{
-            "@type": "Answer",
-            "text": "Based on AlphaSignal's real-time ML alpha engine and sentiment analysis, {asset_name} ({ticker}) is currently showing a {bias} bias with a Z-Score of {z_score}. This is updated live using whale activity, options flow, and on-chain data."
-          }}
+          "@type": "BreadcrumbList",
+          "@id": "https://alphasignal.digital/asset/{ticker}#breadcrumb",
+          "itemListElement": [
+            {{"@type": "ListItem", "position": 1, "name": "AlphaSignal", "item": "https://alphasignal.digital/"}},
+            {{"@type": "ListItem", "position": 2, "name": "Asset Analytics", "item": "https://alphasignal.digital/asset/BTC"}},
+            {{"@type": "ListItem", "position": 3, "name": "{asset_name} ({ticker})", "item": "https://alphasignal.digital/asset/{ticker}"}}
+          ]
+        }},
+        {{
+          "@type": "FAQPage",
+          "@id": "https://alphasignal.digital/asset/{ticker}#faq",
+          "mainEntity": [
+            {{
+              "@type": "Question",
+              "name": "What is the current {asset_name} Z-Score?",
+              "acceptedAnswer": {{
+                "@type": "Answer",
+                "text": "The current {asset_name} ({ticker}) Z-Score is {z_score}, indicating a {bias} market bias. A Z-Score above +2 signals overbought conditions; below -2 signals oversold. Track live Z-Score signals at AlphaSignal."
+              }}
+            }},
+            {{
+              "@type": "Question",
+              "name": "How do I set a stop loss for {asset_name}?",
+              "acceptedAnswer": {{
+                "@type": "Answer",
+                "text": "For {asset_name} ({ticker}), the ATR-based 2x stop loss is currently ${atr_val}. ATR (Average True Range) stop losses adjust dynamically to market volatility, preventing premature exits during normal price fluctuations while protecting against major drawdowns."
+              }}
+            }},
+            {{
+              "@type": "Question",
+              "name": "Is {asset_name} bullish or bearish right now?",
+              "acceptedAnswer": {{
+                "@type": "Answer",
+                "text": "Based on AlphaSignal's real-time ML alpha engine and sentiment analysis, {asset_name} ({ticker}) is currently showing a {bias} bias with a Z-Score of {z_score}. This is updated live using whale activity, options flow, and on-chain data."
+              }}
+            }}
+          ]
         }}
       ]
     }}
     </script>"""
+
 
             # ── Server-rendered content strip (no JS, fully crawlable) ───────────
             pseo_strip = f"""<div id="pseo-strip" aria-hidden="true">
