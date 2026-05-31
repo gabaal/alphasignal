@@ -76,14 +76,13 @@ Disallow: /tradingview-hub
 Disallow: /custom-analytics
 Disallow: /backtest
 Disallow: /catalysts
-Disallow: /help
 
 # ── Allow public content ─────────────────────────────────────────────────────
 Allow: /asset/
 Allow: /signal/
 Allow: /academy/
 Allow: /academy-watch
-Allow: /docs-
+Allow: /docs/
 Allow: /privacy
 Allow: /terms
 Allow: /roadmap
