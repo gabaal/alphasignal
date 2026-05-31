@@ -168,15 +168,24 @@ function renderHelp() {
                     </button>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0">
-                    ${hub.docs.map((doc, idx) => `
+                    ${hub.docs.map((doc, idx) => {
+                        // Build a real crawlable href for docs-* routes so Googlebot can follow links
+                        // without executing JS. SPA navigation is preserved via onclick.
+                        const crawlHref = doc.href ? doc.href
+                            : doc.route === 'academy-watch' ? '/academy-watch'
+                            : doc.route.startsWith('docs-') ? `/docs/${doc.route.slice(5)}`
+                            : null;
+                        return `
                     <div onclick="${doc.href ? `window.location.href='${doc.href}'` : `switchView('${doc.route}')`}" style="padding:1.1rem 1.4rem;cursor:pointer;border-right:1px solid ${alphaColor(0.05)};border-bottom:1px solid ${alphaColor(0.05)};transition:background 0.18s;position:relative" onmouseover="this.style.background=alphaColor(0.04)" onmouseout="this.style.background='transparent'">
+                        ${crawlHref ? `<a href="${crawlHref}" onclick="event.preventDefault()" tabindex="-1" aria-hidden="true" style="position:absolute;inset:0;z-index:0;opacity:0;pointer-events:none"></a>` : ''}
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                             <span class="material-symbols-outlined" style="font-size:18px;color:${hub.color}">${doc.icon}</span>
                             <span style="font-size:0.95rem;font-weight:700;color:var(--text)">${doc.name}</span>
                         </div>
                         <p style="font-size:0.8rem;line-height:1.5;color:var(--text-dim);margin:0">${doc.desc}</p>
                         <span class="material-symbols-outlined" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:${alphaColor(0.15)}">chevron_right</span>
-                    </div>`).join('')}
+                    </div>`;
+                    }).join('')}
                 </div>
             </div>`).join('')}
         </div>

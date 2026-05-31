@@ -124,9 +124,15 @@ function renderViewDocPage({ hub, hubIcon, hubColor = 'var(--accent)', title, vi
                     <span class="material-symbols-outlined" style="font-size:14px">link</span>RELATED GUIDES
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
-                    ${relatedDocs.map(r => `<button onclick="switchView('${r.route}')" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;background:${window.alphaColor(0.04)};border:1px solid ${window.alphaColor(0.1)};color:var(--text-dim);font-size:0.82rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;font-family:inherit" onmouseover="this.style.borderColor=window.alphaColor(0.3);this.style.color='var(--text)'" onmouseout="this.style.borderColor=window.alphaColor(0.1);this.style.color='var(--text-dim)'">
-                        <span class="material-symbols-outlined" style="font-size:14px">${r.icon || 'article'}</span>${r.name}
-                    </button>`).join('')}
+                    ${relatedDocs.map(r => {
+                        const relHref = r.route === 'academy-watch' ? '/academy-watch'
+                            : r.route.startsWith('docs-') ? `/docs/${r.route.slice(5)}`
+                            : '#';
+                        return `<a href="${relHref}" onclick="event.preventDefault();switchView('${r.route}')" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;background:${window.alphaColor(0.04)};border:1px solid ${window.alphaColor(0.1)};color:var(--text-dim);font-size:0.82rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;font-family:inherit;text-decoration:none" onmouseover="this.style.borderColor=window.alphaColor(0.3);this.style.color='var(--text)'" onmouseout="this.style.borderColor=window.alphaColor(0.1);this.style.color='var(--text-dim)'">
+                            <span class="material-symbols-outlined" style="font-size:14px">${r.icon || 'article'}</span>${r.name}
+                        </a>`;
+                    }).join('')}
+
                 </div>
             </div>` : ''}
 
