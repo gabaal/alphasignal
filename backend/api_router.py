@@ -716,6 +716,47 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 super().do_GET()
                 return
 
+        # --- SEO 301: /docs-{slug} -> /docs/{slug} (flat to semantic redirect) ---
+        # The sitemap previously listed /docs-etf-flows style URLs. These now 301 to
+        # /docs/etf-flows so all canonicals are consistent and Google can reindex cleanly.
+        if clean_path.startswith('/docs-') and len(path_parts) == 2:
+            slug = path_parts[-1][5:]  # strip leading 'docs-'
+            new_path = f'/docs/{slug}'
+            print(f"[{datetime.now()}] SEO 301 docs flat: {clean_path} -> {new_path}", flush=True)
+            self.send_response(301)
+            self.send_header('Location', new_path)
+            self.send_header('Cache-Control', 'public, max-age=86400')
+            self.end_headers()
+            return
+
+        # --- pSEO: docs/* pages - inject server-side canonical + title ---
+        # Converts /docs/signals -> view key 'docs-signals', serves index.html with correct meta
+        if clean_path.startswith('/docs/') and len(path_parts) == 3:
+            try:
+                doc_slug = path_parts[-1]  # e.g. 'signals', 'etf-flows'
+                view_key = f'docs-{doc_slug}'
+                print(f"[{datetime.now()}] pSEO_DOCS_HIT: {view_key}", flush=True)
+                self.handle_docs_seo(view_key, clean_path)
+                return
+            except Exception as e:
+                print(f"[{datetime.now()}] pSEO_DOCS_CRASH: {e}", flush=True)
+                traceback.print_exc()
+                # Fallback to plain index.html
+                self.path = '/'
+                super().do_GET()
+                return
+
+        # --- pSEO: academy-watch page ---
+        if clean_path == '/academy-watch':
+            try:
+                self.handle_docs_seo('academy-watch', clean_path)
+                return
+            except Exception as e:
+                print(f"[{datetime.now()}] pSEO_ACADEMY_WATCH_CRASH: {e}", flush=True)
+                self.path = '/'
+                super().do_GET()
+                return
+
 
         # S2: rate limit GET requests (AI endpoints get stricter limit)
         ip = self.client_address[0]
@@ -1715,6 +1756,112 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             print(f"[{datetime.now()}] !!! pSEO_SIGNAL_GENERATION_ERROR: {e} !!!", flush=True)
             traceback.print_exc()
             self.send_error(500, "Internal Server Error")
+
+    def handle_docs_seo(self, view_key: str, clean_path: str):
+        """pSEO: Serves index.html with server-side injected title, description, and canonical
+        for docs/* and academy-watch routes.  Googlebot sees the correct canonical in raw HTML
+        before any JS runs - fixing 'Alternate page with proper canonical tag' in GSC.
+        """
+        # View metadata mirroring seo-meta.js (keep in sync when adding new docs pages)
+        _DOCS_META = {
+            'docs-etf-flows':          ('Bitcoin ETF Flows - Chart Guide | AlphaSignal Docs', 'Full documentation for the AlphaSignal ETF Flows view. Explains Bitcoin Spot ETF Daily Flows, Daily Leaderboard, and Cumulative Net Flow Waterfall with actionable trading signals.'),
+            'docs-liquidations':       ('Liquidation Scanner - Chart Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Liquidations view. Covers liquidation cascade charts, heatmap, and cumulative chart with cluster detection and high-conviction entry signals.'),
+            'docs-oi-radar':           ('Open Interest Radar - Chart Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal OI Radar. OI vs price divergence charts and funding rate heatmap - signals for over-leveraged conditions and leverage flush risks.'),
+            'docs-cme-gaps':           ('CME Gap Tracker - Chart Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal CME Gaps view. Gap inventory table, fill probability scoring, and price overlay with historical fill rate data and trading strategies.'),
+            'docs-briefing':           ('AI Macro Briefing - Component Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Macro Briefing. GPT-4o macro memo, System Conviction Dials, and BTC Correlation Tracker with signal interpretation guides.'),
+            'docs-rotation':           ('Sector Rotation - RRG Chart Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Sector Rotation view. Relative Rotation Graph (RRG), 30-day sector heatmap, and momentum leader table with institutional rotation cycle interpretation.'),
+            'docs-macro-compass':      ('Macro Compass - Regime Chart Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Macro Compass. M2 vs BTC chart, DXY overlay, yield curve monitor, and global risk scatter with regime-based trading signals.'),
+            'docs-macro-calendar':     ('Macro Event Calendar - Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Macro Calendar. Event timeline, BTC impact scoring, and historical volatility overlay for FOMC, CPI, and NFP events.'),
+            'docs-regime':             ('Market Regime Engine - Classification Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Regime Classifier. Regime Dial, 12-month history chart, and Strategy Allocation Table with signal rules for each of the four regime states.'),
+            'docs-signals':            ('Alpha Signals - Z-Score Card Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Signals view. Z-score signal cards, momentum vector bars, and historical signal performance with full rolling Z-score calculation guide.'),
+            'docs-ml-engine':          ('ML Engine - Prediction Model Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal ML Engine. 7-day directional probability bars, confidence delta chart, and signal correlation matrix with ensemble model explanation.'),
+            'docs-alpha-score':        ('Alpha Score - Composite Ranking Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Alpha Score view. Composite ranking table, grade distribution chart, and score breakdown covering all five contributing factors.'),
+            'docs-strategy-lab':       ('Strategy Lab - Rules Builder Guide | AlphaSignal Docs', 'Full documentation for the AlphaSignal Strategy Lab. Visual signal rules builder, backtest performance chart, and parameter sensitivity table.'),
+            'docs-backtester':         ('Signal Backtester V2 - Performance Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Backtester V2. Equity curve, monthly return heatmap, drawdown analysis, and regime breakdown with institutional ratio interpretation.'),
+            'docs-signal-archive':     ('Signal Archive - Historical Record Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Signal Archive. Historical signal table, win rate analysis, and signal replay chart - complete auditable record of all Z-score signals.'),
+            'docs-narrative':          ('Narrative Galaxy - Trend Cluster Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Narrative Galaxy. 3D force-directed cluster chart, trending keyword timeline, and dominant narrative radar.'),
+            'docs-token-unlocks':      ('Token Unlock Schedule - Table Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Token Unlocks view. Unlock schedule table, supply impact score badges, and sell pressure ratings with positioning signals.'),
+            'docs-yield-lab':          ('DeFi Yield Lab - Protocol Comparison Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Yield Lab. APY comparison table, real yield vs emissions breakdown, and protocol risk score bars.'),
+            'docs-portfolio-optimizer':('Portfolio Optimizer - Efficient Frontier Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Portfolio Optimizer. ML rebalancing table, allocation radar, and Efficient Frontier scatter with institutional construction signals.'),
+            'docs-tradelab':           ('Trade Idea Lab - Thesis Builder Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Trade Idea Lab. Systematic thesis builder, risk/reward calculator, and AI thesis validator.'),
+            'docs-whale-pulse':        ('Whale Pulse - On-Chain Transaction Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Whale Pulse. Whale transaction feed, execution time polar chart, and volume bubble scatter with institutional accumulation signals.'),
+            'docs-chain-velocity':     ('Chain Velocity - Cross-Chain Capital Flow Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Chain Velocity view. Velocity time-series chart, cross-chain Sankey flow diagram, and Network Signature Radar.'),
+            'docs-onchain':            ('On-Chain Analytics - MVRV, SOPR, NVT, Puell Guide | AlphaSignal Docs', 'Full documentation for the AlphaSignal On-Chain Analytics. MVRV Z-Score, SOPR, Puell Multiple, NVT Ratio, and Realised Price Overlay with actionable signal rules.'),
+            'docs-options-flow':       ('Options Flow - Deribit Structure Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Options Flow. Put/Call Ratio gauge, Max Pain chart, IV Smile Curve, and top OI strikes table with institutional positioning signals.'),
+            'docs-newsroom':           ('Newsroom - AI Sentiment Feed Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Newsroom. Live news feed with AI sentiment classification and keyword heatmap with high-impact event signal rules.'),
+            'docs-trade-ledger':       ('Trade Ledger - Audit Log Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Trade Ledger. Trade log table, signal source attribution, and performance attribution - complete auditable track record.'),
+            'docs-performance':        ('Performance Dashboard - Equity Curve Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Performance Dashboard. Key stat cards, monthly ROI heatmap calendar, and portfolio equity curve vs BTC benchmark.'),
+            'docs-risk-matrix':        ('Risk Matrix - Portfolio VaR Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Risk Matrix. Portfolio VaR gauge, volatility-adjusted position sizer, and correlation scatter with institutional risk management rules.'),
+            'docs-stress-lab':         ('Stress Test Lab - Scenario Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Stress Test Lab. Historical scenario table (FTX, March 2020, Luna) and distribution chart for extreme market stress-testing.'),
+            'docs-charting-suite':     ('Charting Suite - Order Flow Charts Guide | AlphaSignal Docs', 'Full documentation for the AlphaSignal Charting Suite. OHLCV chart, Volume Profile, Cumulative Volume Delta (CVD), and Market Depth with institutional interpretation.'),
+            'docs-tradingview-hub':    ('TradingView Hub Docs - 13 Widget Guide | AlphaSignal', 'Complete documentation for the AlphaSignal TradingView Hub. All 13 live widgets including Market Overview, TA Gauges, Crypto Screener, Economic Calendar, and Sector Heatmaps.'),
+            'docs-custom-charts':      ('Custom Analytics Charts Docs | AlphaSignal', 'Technical reference for the AlphaSignal Custom Analytics tab. BTC Dominance, Funding Rate bars, MVRV/SOPR Overlay, Rolling Volatility, and Correlation Matrix documentation.'),
+            'docs-order-flow':         ('Liquidity Dashboard - Order Flow Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Liquidity Dashboard. Aggregated order book, live execution tape, and institutional liquidity heatmap with price level signals.'),
+            'docs-alerts':             ('Live Signal Alerts - Alert Feed Guide | AlphaSignal Docs', 'Documentation for AlphaSignal Live Alerts. Alert feed cards, severity levels (LOW/MEDIUM/HIGH/CRITICAL), and filter controls with CRITICAL Z-Score response rules.'),
+            'docs-price-alerts':       ('Price Alerts - Custom Trigger Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Price Alerts. Alert manager table, creation form, and browser push notification setup with best practice pairing rules.'),
+            'docs-signal-leaderboard': ('Signal Leaderboard - Performance Ranking Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Signal Leaderboard. Ranked performance table with 7D/30D/90D/All-Time filtering to identify highest-conviction repeatable alpha.'),
+            'docs-market-brief':       ('AI Market Brief - Daily Memo Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Market Brief. Five-section AI daily brief (Overnight Summary, Signal Environment, Macro Watch, Risk Signals, Actionable Ideas) by GPT-4o.'),
+            'docs-my-terminal':        ('Active Positions - Watchlist Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Active Positions hub. Live P&L watchlist table, portfolio summary stats, and notification preference controls.'),
+            'docs-ask-terminal':       ('Ask Terminal - AI Chat Guide | AlphaSignal Docs', 'Technical reference for the AlphaSignal Ask Terminal AI. GPT-4o chat with live terminal context injection and dynamic suggested query chips.'),
+            'docs-command-center':     ('Dashboard - Overview Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Dashboard. Alpha Score vs Z-Score scatter plot, Hub Quick-Link Grid, BTC sparkline, and System Conviction Dials.'),
+            'docs-lob-heatmap':        ('LOB Heatmap - Limit Order Deep Dive | AlphaSignal Docs', 'Documentation for the AlphaSignal Limit Order Book Heatmap. Read bid/ask walls, liquidity voids, and institutional spoofing signals.'),
+            'docs-volume-profile':     ('Volume Profile (TPO) - Market Profile Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal Volume Profile. Value Area High/Low and Point of Control (POC) interpretation for Bitcoin and other assets.'),
+            'docs-gex':                ('Dealer Gamma Exposure (GEX) - Dynamics Guide | AlphaSignal Docs', 'Documentation for the AlphaSignal GEX Profile. Market maker hedging pressure, zero-gamma levels, and options-driven volatility signals.'),
+            'academy-watch':           ('Academy Cinema Hub - Institutional Video Masterclasses | AlphaSignal', 'Immersive video-first instructional portal for AlphaSignal Academy. 40+ professional masterclasses on quantitative strategy, order flow, on-chain analytics, and risk management.'),
+        }
+
+        title, desc = _DOCS_META.get(view_key, (
+            f'{view_key.replace("docs-", "").replace("-", " ").title()} | AlphaSignal Docs',
+            'AlphaSignal institutional crypto intelligence terminal documentation. Real-time signals, on-chain analytics, and AI market insights. alphasignal.digital'
+        ))
+        full_title = f'{title} | AlphaSignal - Crypto Intelligence Terminal' if '| AlphaSignal' not in title else title
+        canonical_url = f'https://alphasignal.digital{clean_path}'
+
+        _base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        _index_path = os.path.join(_base_dir, 'index.html')
+
+        with open(_index_path, 'r', encoding='utf-8') as f:
+            html = f.read()
+
+        # Build a minimal server-side SEO block injected BEFORE the existing <title>
+        # The existing <title> and canonical are replaced so Googlebot sees the right values
+        # at HTML parse time, before any JS runs.
+        seo_head = f"""    <title>{full_title}</title>
+    <meta name="description" content="{desc}">
+    <link rel="canonical" id="canonical-link" href="{canonical_url}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="AlphaSignal">
+    <meta property="og:url" id="og-url" content="{canonical_url}">
+    <meta property="og:title" id="og-title" content="{full_title}">
+    <meta property="og:description" id="og-desc" content="{desc}">
+    <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@alphasignalai">
+    <meta property="twitter:url" id="twitter-url" content="{canonical_url}">
+    <meta property="twitter:title" id="twitter-title" content="{full_title}">
+    <meta property="twitter:description" id="twitter-desc" content="{desc}">"""
+
+        # Replace the static <title> tag that index.html ships with
+        html = html.replace(
+            '<title>AlphaSignal &mdash; Crypto Analytics &amp; Algorithmic Trading Terminal | Institutional Intelligence</title>',
+            seo_head
+        )
+        # Also neutralise the hardcoded canonical that points to / — the seo_head already injects ours above
+        html = html.replace(
+            '<link rel="canonical" id="canonical-link" href="https://alphasignal.digital/">',
+            '<!-- canonical injected server-side above -->'
+        )
+        html = html.replace('<body', f'<body data-seo-view="{view_key}"')
+
+        html_bytes = html.encode('utf-8')
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(html_bytes)))
+        self.send_header('Cache-Control', 'public, max-age=3600')
+        self.end_headers()
+        self.wfile.write(html_bytes)
+        print(f"[{datetime.now()}] pSEO_DOCS_SERVED: {view_key} -> {canonical_url}", flush=True)
+
 
 class AlphaSignalServer(ThreadedHTTPServer):
     pass
