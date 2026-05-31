@@ -716,7 +716,73 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 super().do_GET()
                 return
 
-        # --- SEO 301: /docs-{slug} -> /docs/{slug} (flat to semantic redirect) ---
+        # --- SEO 301: /explain-{slug} -> /docs/{slug} (legacy explain-* routes) ---
+        # These were previously client-side only (JS switchView). Now Googlebot gets a
+        # proper 301, consolidating any link equity from old indexed /explain-* URLs.
+        _EXPLAIN_MAP = {
+            # Direct docs-* equivalents
+            'explain-signals':        '/docs/signals',
+            'explain-briefing':       '/docs/briefing',
+            'explain-liquidity':      '/docs/order-flow',
+            'explain-flow':           '/docs/order-flow',
+            'explain-whales':         '/docs/whale-pulse',
+            'explain-ml-engine':      '/docs/ml-engine',
+            'explain-mindshare':      '/docs/narrative',
+            'explain-narrative':      '/docs/narrative',
+            'explain-benchmark':      '/docs/performance',
+            'explain-performance':    '/docs/performance',
+            'explain-alerts':         '/docs/alerts',
+            'explain-zscore':         '/docs/signals',
+            'explain-alpha':          '/docs/alpha-score',
+            'explain-alpha-score':    '/docs/alpha-score',
+            'explain-correlation':    '/docs/onchain',
+            'explain-onchain':        '/docs/onchain',
+            'explain-sentiment':      '/docs/newsroom',
+            'explain-newsroom':       '/docs/newsroom',
+            'explain-risk':           '/docs/risk-matrix',
+            'explain-playbook':       '/docs/strategy-lab',
+            'explain-strategy-lab':   '/docs/strategy-lab',
+            'explain-regimes':        '/docs/regime',
+            'explain-signal-archive': '/docs/signal-archive',
+            'explain-portfolio-lab':  '/docs/portfolio-optimizer',
+            'explain-backtester-v2':  '/docs/backtester',
+            'explain-tradingview':    '/docs/tradingview-hub',
+            'explain-etf-flows':      '/docs/etf-flows',
+            'explain-liquidations':   '/docs/liquidations',
+            'explain-oi-radar':       '/docs/oi-radar',
+            'explain-cme-gaps':       '/docs/cme-gaps',
+            'explain-rotation':       '/docs/rotation',
+            'explain-macro-compass':  '/docs/macro-compass',
+            'explain-macro-calendar': '/docs/macro-calendar',
+            'explain-token-unlocks':  '/docs/token-unlocks',
+            'explain-yield-lab':      '/docs/yield-lab',
+            'explain-tradelab':       '/docs/tradelab',
+            'explain-options-flow':   '/docs/options-flow',
+            'explain-trade-ledger':   '/docs/trade-ledger',
+            'explain-command-center': '/docs/command-center',
+            'explain-ask-terminal':   '/docs/ask-terminal',
+            'explain-my-terminal':    '/docs/my-terminal',
+            # Ones that had no docs equivalent - send to /help
+            'explain-api':            '/help',
+            'explain-glossary':       '/help',
+            'explain-velocity':       '/help',
+            'explain-telegram':       '/help',
+            'explain-pwa':            '/help',
+            'explain-heatmap':        '/help',
+            'explain-ai-engine':      '/help',
+            'explain-topologies':     '/help',
+        }
+        if clean_path.startswith('/explain-') and len(path_parts) == 2:
+            slug = path_parts[-1]  # e.g. 'explain-signals'
+            new_path = _EXPLAIN_MAP.get(slug, '/help')
+            print(f"[{datetime.now()}] SEO 301 explain: {clean_path} -> {new_path}", flush=True)
+            self.send_response(301)
+            self.send_header('Location', new_path)
+            self.send_header('Cache-Control', 'public, max-age=86400')
+            self.end_headers()
+            return
+
+
         # The sitemap previously listed /docs-etf-flows style URLs. These now 301 to
         # /docs/etf-flows so all canonicals are consistent and Google can reindex cleanly.
         if clean_path.startswith('/docs-') and len(path_parts) == 2:
