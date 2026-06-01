@@ -5103,7 +5103,7 @@ class InstitutionalRoutesMixin:
                 SELECT
                     SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN 1 ELSE 0 END) as closed_count,
                     SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi > 0 THEN 1 ELSE 0 END) as closed_wins,
-                    SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi < 0 THEN 1 ELSE 0 END) as closed_losses,
+                    SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL AND ah.final_roi <= 0 THEN 1 ELSE 0 END) as closed_losses,
                     AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi,
                     SUM(CASE WHEN COALESCE(ah.status,'active')='active' THEN 1 ELSE 0 END) as active_count
                 FROM alerts_history ah {summary_where}
@@ -5395,7 +5395,7 @@ class InstitutionalRoutesMixin:
                     SELECT
                         CASE WHEN ah.type = 'ML_ALPHA_PREDICTION' THEN ah.type || '_' || COALESCE(ah.direction, 'LONG') ELSE ah.type END as effective_type,
                         SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi > 0 THEN 1 ELSE 0 END) as wins,
-                        SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi < 0 THEN 1 ELSE 0 END) as losses,
+                        SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL AND ah.final_roi <= 0 THEN 1 ELSE 0 END) as losses,
                         SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN 1 ELSE 0 END) as closed,
                         SUM(CASE WHEN COALESCE(ah.status,'active')='active' THEN 1 ELSE 0 END) as active,
                         AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL THEN ah.final_roi END) as avg_roi,
