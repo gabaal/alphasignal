@@ -746,6 +746,82 @@ async function loadCorrelationMatrix(tickers, containerId = 'corr-chart', endpoi
     });
 }
 
+// ============= Volume Profile Helpers (global — used by openDetail IIFE + toggleOverlay) =============
+function computeDetailVolumeProfile(klines, bins) {
+    bins = bins || 40;
+    if (!klines || klines.length < 2) return null;
+    var highs = klines.map(function(k) { return k.high || k.close; });
+    var lows  = klines.map(function(k) { return k.low  || k.close; });
+    var minP  = Math.min.apply(null, lows);
+    var maxP  = Math.max.apply(null, highs);
+    if (maxP <= minP) return null;
+    var binSize = (maxP - minP) / bins;
+    var profile = [];
+    for (var i = 0; i < bins; i++) {
+        profile.push({ priceFrom: minP + i * binSize, priceTo: minP + (i + 1) * binSize, mid: minP + (i + 0.5) * binSize, volume: 0 });
+    }
+    klines.forEach(function(k) {
+        if (!k.volume) return;
+        var lo = k.low || k.close, hi = k.high || k.close;
+        var range = (hi - lo) || 1e-9;
+        profile.forEach(function(bin) {
+            var overlap = Math.min(hi, bin.priceTo) - Math.max(lo, bin.priceFrom);
+            if (overlap > 0) bin.volume += k.volume * (overlap / range);
+        });
+    });
+    var maxVol = Math.max.apply(null, profile.map(function(b) { return b.volume; }));
+    if (!maxVol) return null;
+    var pocBin = profile.reduce(function(a, b) { return b.volume > a.volume ? b : a; });
+    var totalVol = profile.reduce(function(s, b) { return s + b.volume; }, 0);
+    var target = totalVol * 0.70;
+    var pocIdx = profile.indexOf(pocBin);
+    var vahIdx = pocIdx, valIdx = pocIdx, acc = pocBin.volume;
+    while (acc < target) {
+        var upV = (vahIdx + 1 < bins) ? profile[vahIdx + 1].volume : 0;
+        var dnV = (valIdx - 1 >= 0)   ? profile[valIdx - 1].volume : 0;
+        if (upV >= dnV && vahIdx + 1 < bins) { vahIdx++; acc += upV; }
+        else if (valIdx - 1 >= 0)            { valIdx--; acc += dnV; }
+        else break;
+    }
+    return { profile: profile, poc: pocBin.mid, vah: profile[vahIdx].priceTo, val: profile[valIdx].priceFrom, maxVolume: maxVol };
+}
+
+function drawDetailVolumeProfileCanvas(vpData, series, chartEl) {
+    var old = document.getElementById('_vp_canvas');
+    if (old) old.remove();
+    if (!vpData || !series || !chartEl) return;
+    var W = Math.round((chartEl.clientWidth || 700) * 0.15);
+    var H = chartEl.clientHeight || 300;
+    var canvas = document.createElement('canvas');
+    canvas.id = '_vp_canvas';
+    canvas.width = W; canvas.height = H;
+    canvas.style.cssText = 'position:absolute;top:0;right:0;pointer-events:none;z-index:4;';
+    chartEl.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+    vpData.profile.forEach(function(bin) {
+        if (bin.volume <= 0) return;
+        var y1 = series.priceToCoordinate(bin.priceTo);
+        var y2 = series.priceToCoordinate(bin.priceFrom);
+        if (y1 === null || y2 === null || isNaN(y1) || isNaN(y2)) return;
+        if (y1 > y2) { var tmp = y1; y1 = y2; y2 = tmp; }
+        var barH = Math.max(y2 - y1, 1.5);
+        var barW = (bin.volume / vpData.maxVolume) * W * 0.90;
+        var isPOC = Math.abs(bin.mid - vpData.poc) < (bin.priceTo - bin.priceFrom) * 0.6;
+        var inVA  = bin.mid >= vpData.val && bin.mid <= vpData.vah;
+        ctx.fillStyle = isPOC ? 'rgba(0,242,255,0.88)' : inVA ? 'rgba(0,242,255,0.28)' : 'rgba(0,242,255,0.10)';
+        ctx.fillRect(W - barW, y1, barW, barH);
+    });
+    // POC label
+    var pocY = series.priceToCoordinate(vpData.poc);
+    if (pocY !== null && !isNaN(pocY)) {
+        ctx.fillStyle = '#00f2ff';
+        ctx.font = '700 9px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('POC', 2, Math.max(10, Math.min(pocY - 2, H - 4)));
+    }
+}
+
 // ============= Pack G1: Flow Monitor =============
 async function openDetail(ticker, category, correlation = 0, alpha = 0, sentiment = 0, period = '60d', isTracked = false) {
     // pSEO Bypass: Allow viewing asset intelligence if arriving from search (first load)
@@ -929,12 +1005,13 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 <button id="int-btn-15m" class="tf-btn" onclick="updateChartInterval('15m')">15M</button>
             </div>
         </div>
-        <div class="chart-container" id="price-chart-container" style="height:300px;border-radius:8px;overflow:hidden;"></div>
-        <div class="overlay-controls" style="margin-top:0.75rem; display:flex; gap:10px; align-items:center">
+        <div class="chart-container" id="price-chart-container" style="height:300px;border-radius:8px;overflow:hidden;position:relative;"></div>
+        <div class="overlay-controls" style="margin-top:0.75rem; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
             <label style="font-size:0.7rem; color:var(--text-dim); font-weight:700">ADVANCED OVERLAYS:</label>
             <button class="timeframe-btn" onclick="toggleOverlay('ema')">EMA (12/26)</button>
             <button class="timeframe-btn" onclick="toggleOverlay('vol')">VOL RIBBONS</button>
             <button class="timeframe-btn" onclick="toggleOverlay('zscore')" style="border-color:#facc15;color:#facc15">Z SCORE</button>
+            <button class="timeframe-btn active" id="vp-overlay-btn" onclick="toggleOverlay('vp')" style="border-color:#00f2ff;color:#00f2ff">VOL PROFILE</button>
         </div>
         
         <!-- Advanced Charting Grid -->
@@ -1096,7 +1173,39 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
     
     // Store data for chart toggling
     window.currentHistory = data.history;
-    window.activeOverlays = { ema: false, vol: false };
+    window.activeOverlays = { ema: false, vol: false, zscore: false, vp: true };
+
+    // Define global overlay toggle — referenced from inline onclick HTML
+    window.toggleOverlay = function(key) {
+        if (!window.activeOverlays) window.activeOverlays = {};
+        window.activeOverlays[key] = !window.activeOverlays[key];
+        // Sync button visual state
+        document.querySelectorAll('[onclick="toggleOverlay(\'' + key + '\')"]').forEach(function(btn) {
+            btn.classList.toggle('active', !!window.activeOverlays[key]);
+        });
+        // Volume Profile is a canvas overlay — handle separately
+        if (key === 'vp') {
+            if (window.activeOverlays.vp) {
+                if (window._detailVPData && window._detailCandleSeries) {
+                    var _vpEl = document.getElementById('price-chart-container');
+                    if (_vpEl) requestAnimationFrame(function() { drawDetailVolumeProfileCanvas(window._detailVPData, window._detailCandleSeries, _vpEl); });
+                    window._vpPOC = window._detailCandleSeries.createPriceLine({ price: window._detailVPData.poc, color: '#00f2ff', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: 'POC' });
+                    window._vpVAH = window._detailCandleSeries.createPriceLine({ price: window._detailVPData.vah, color: 'rgba(0,242,255,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: 'VAH' });
+                    window._vpVAL = window._detailCandleSeries.createPriceLine({ price: window._detailVPData.val, color: 'rgba(0,242,255,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: 'VAL' });
+                }
+            } else {
+                var vpCanvasEl = document.getElementById('_vp_canvas');
+                if (vpCanvasEl) vpCanvasEl.remove();
+                if (window._detailCandleSeries) {
+                    if (window._vpPOC) { try { window._detailCandleSeries.removePriceLine(window._vpPOC); } catch(e){} window._vpPOC = null; }
+                    if (window._vpVAH) { try { window._detailCandleSeries.removePriceLine(window._vpVAH); } catch(e){} window._vpVAH = null; }
+                    if (window._vpVAL) { try { window._detailCandleSeries.removePriceLine(window._vpVAL); } catch(e){} window._vpVAL = null; }
+                }
+            }
+            return;
+        }
+        if (window.renderDetailOverlays) window.renderDetailOverlays();
+    };
 
     if (data.news && data.news.length) {
         window.lastNewsData = data.news; // Store for article view
@@ -1159,6 +1268,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 if (kData && kData.length > 0) {
                     const sorted = kData.filter(d => d.time && d.close).sort((a,b) => a.time - b.time);
                     window._detailKlines = sorted;
+                    window._detailVPData = computeDetailVolumeProfile(sorted);
                     window._detailCandleSeries.setData(sorted);
                     window._detailLwChart.timeScale().fitContent();
                     if (window.renderDetailOverlays) window.renderDetailOverlays();
@@ -1206,6 +1316,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 candleSeries.setData(sorted);
                 lwChart.timeScale().fitContent();
                 window._detailKlines = sorted;
+                window._detailVPData = computeDetailVolumeProfile(sorted);
 
                 // Draw EMA 12 / EMA 26 overlays if toggled
                 window.renderDetailOverlays = () => {
@@ -1214,6 +1325,18 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                     if (window._bbUpperSeries) { try { lwChart.removeSeries(window._bbUpperSeries); } catch(e){} window._bbUpperSeries = null; }
                     if (window._bbLowerSeries) { try { lwChart.removeSeries(window._bbLowerSeries); } catch(e){} window._bbLowerSeries = null; }
                     if (window._zScoreOverlaySeries) { try { lwChart.removeSeries(window._zScoreOverlaySeries); } catch(e){} window._zScoreOverlaySeries = null; }
+                    // Volume Profile: clean slate then re-render if active
+                    const _vpOld = document.getElementById('_vp_canvas');
+                    if (_vpOld) _vpOld.remove();
+                    if (window._vpPOC) { try { candleSeries.removePriceLine(window._vpPOC); } catch(e){} window._vpPOC = null; }
+                    if (window._vpVAH) { try { candleSeries.removePriceLine(window._vpVAH); } catch(e){} window._vpVAH = null; }
+                    if (window._vpVAL) { try { candleSeries.removePriceLine(window._vpVAL); } catch(e){} window._vpVAL = null; }
+                    if (window.activeOverlays?.vp && window._detailVPData) {
+                        requestAnimationFrame(() => drawDetailVolumeProfileCanvas(window._detailVPData, candleSeries, chartEl));
+                        window._vpPOC = candleSeries.createPriceLine({ price: window._detailVPData.poc, color: '#00f2ff', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: 'POC' });
+                        window._vpVAH = candleSeries.createPriceLine({ price: window._detailVPData.vah, color: 'rgba(0,242,255,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: 'VAH' });
+                        window._vpVAL = candleSeries.createPriceLine({ price: window._detailVPData.val, color: 'rgba(0,242,255,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: 'VAL' });
+                    }
 
                     const closes = window._detailKlines.map(d => d.close);
                     const times  = window._detailKlines.map(d => d.time);
@@ -1384,7 +1507,12 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
         }
 
         // Responsive resize
-        const ro = new ResizeObserver(() => { lwChart.applyOptions({ width: chartEl.clientWidth }); });
+        const ro = new ResizeObserver(() => {
+            lwChart.applyOptions({ width: chartEl.clientWidth });
+            if (window.activeOverlays?.vp && window._detailVPData && candleSeries) {
+                requestAnimationFrame(() => drawDetailVolumeProfileCanvas(window._detailVPData, candleSeries, chartEl));
+            }
+        });
         ro.observe(chartEl);
     })();
 
