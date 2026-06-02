@@ -1026,6 +1026,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         summary = c.execute("""
                             SELECT user_email,
                                    COUNT(*) as total_views,
+                                   MIN(ts) as first_seen,
                                    MAX(ts) as last_seen,
                                    COUNT(DISTINCT date(ts)) as active_days
                             FROM page_views
