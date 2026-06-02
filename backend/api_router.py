@@ -936,14 +936,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             if path == '/api/auth/status':
                 self.handle_auth_status(auth_info)
             elif path == '/api/admin/purge-equities':
-                import sqlite3
+                import sqlite3 as _sq3
                 from backend.database import DB_PATH, UNIVERSE
                 NON_CRYPTO = list(set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', [])))
                 if not NON_CRYPTO:
                     self.send_json({"status": "ok", "message": "No non-crypto equities to purge"})
                     return
                 try:
-                    conn = sqlite3.connect(DB_PATH, timeout=30)
+                    conn = _sq3.connect(DB_PATH, timeout=30)
                     c = conn.cursor()
                     placeholders = ','.join(['?']*len(NON_CRYPTO))
                     c.execute(f"DELETE FROM alerts_history WHERE ticker IN ({placeholders})", NON_CRYPTO)
