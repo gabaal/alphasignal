@@ -41,7 +41,7 @@ window.showOnboardingModal = function() {
         <div style="
             background:linear-gradient(135deg,rgba(5,7,30,0.98),rgba(10,15,40,0.98));
             border:1px solid rgba(0,242,255,0.2);border-radius:20px;
-            padding:2.5rem;max-width:560px;width:100%;
+            padding:2.5rem;max-width:580px;width:100%;
             box-shadow:0 0 60px rgba(0,242,255,0.08);
             position:relative;overflow:hidden
         ">
@@ -55,32 +55,45 @@ window.showOnboardingModal = function() {
                 <div class="onboard-dot" data-step="2"></div>
             </div>
 
-            <!-- Step panels -->
+            <!-- Step 0: Welcome + Quick-Start -->
             <div id="onboard-step-0">
-                <div style="text-align:center;margin-bottom:2rem">
-                    <span class="material-symbols-outlined" style="font-size:3rem;color:var(--accent);display:block;margin-bottom:1rem">waving_hand</span>
-                    <h2 style="font-size:1.4rem;margin:0 0 0.75rem;font-weight:900">Welcome to AlphaSignal</h2>
-                    <p style="color:var(--text-dim);font-size:0.85rem;line-height:1.7;max-width:400px;margin:0 auto">
-                        Your institutional intelligence terminal is ready. Let's set up your personal watchlist in 60 seconds.
+                <div style="text-align:center;margin-bottom:1.75rem">
+                    <span class="material-symbols-outlined" style="font-size:2.8rem;color:var(--accent);display:block;margin-bottom:0.75rem">waving_hand</span>
+                    <h2 style="font-size:1.35rem;margin:0 0 0.6rem;font-weight:900">Welcome to AlphaSignal</h2>
+                    <p style="color:var(--text-dim);font-size:0.82rem;line-height:1.7;max-width:420px;margin:0 auto">
+                        You now have access to institutional-grade crypto intelligence. Here's where to start:
                     </p>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2rem">
+
+                <!-- Quick-start action cards -->
+                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.75rem">
                     ${[
-                        ['electric_bolt', '#7dd3fc', 'Live Signals', '50+ assets tracked 24/7'],
-                        ['add_circle', '#22c55e', 'My Watchlist', 'Track your favourite assets'],
-                        ['notifications_active', '#f59e0b', 'Price Alerts', 'Get notified at your targets'],
-                        ['psychology', '#8b5cf6', 'AI Thesis', 'AI explains every signal']
-                    ].map(([icon, color, title, desc]) => `
-                        <div style="background:${alphaColor(0.03)};border:1px solid ${alphaColor(0.06)};border-radius:10px;padding:1rem">
-                            <span class="material-symbols-outlined" style="color:${color};font-size:1.5rem;display:block;margin-bottom:6px">${icon}</span>
-                            <div style="font-size:0.75rem;font-weight:800;margin-bottom:3px">${title}</div>
-                            <div style="font-size:0.65rem;color:var(--text-dim)">${desc}</div>
+                        ['electric_bolt','#00f2ff','Live Signals','See every tracked asset ranked by Alpha score right now','signals','GO TO SIGNALS'],
+                        ['dashboard','rgba(0,242,255,0.7)','Dashboard','Live macro overview — Fear/Greed gauge, ETF flows, regime','command-center','OPEN DASHBOARD'],
+                        ['psychology','#a78bfa','AI Terminal','Ask anything about the current market in plain English','ai-chat','ASK THE AI']
+                    ].map(([icon, color, title, desc, view, cta]) => `
+                        <div onclick="finishOnboardingGoTo('${view}')" style="
+                            background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);
+                            border-radius:12px;padding:14px 16px;cursor:pointer;
+                            display:flex;align-items:center;gap:14px;
+                            transition:all 0.15s
+                        " onmouseover="this.style.borderColor='rgba(0,242,255,0.3)';this.style.background='rgba(0,242,255,0.04)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)';this.style.background='rgba(255,255,255,0.02)'">
+                            <span class="material-symbols-outlined" style="color:${color};font-size:1.6rem;flex-shrink:0">${icon}</span>
+                            <div style="flex:1;min-width:0">
+                                <div style="font-size:0.78rem;font-weight:900;margin-bottom:3px">${title}</div>
+                                <div style="font-size:0.62rem;color:var(--text-dim);line-height:1.5">${desc}</div>
+                            </div>
+                            <span style="font-size:0.55rem;font-weight:900;letter-spacing:1.5px;color:var(--accent);white-space:nowrap;flex-shrink:0">${cta} ›</span>
                         </div>
                     `).join('')}
                 </div>
-                <button class="intel-action-btn" style="width:100%" onclick="onboardNext(1)">
-                    GET STARTED <span class="material-symbols-outlined" style="vertical-align:middle;font-size:1rem;margin-left:6px">arrow_forward</span>
-                </button>
+
+                <div style="display:flex;gap:10px">
+                    <button class="intel-action-btn" style="flex:1" onclick="onboardNext(1)">
+                        SET UP MY WATCHLIST <span class="material-symbols-outlined" style="vertical-align:middle;font-size:1rem;margin-left:6px">arrow_forward</span>
+                    </button>
+                    <button onclick="finishOnboardingGoTo('signals')" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);padding:0 16px;border-radius:8px;cursor:pointer;font-size:0.65rem;font-weight:700;white-space:nowrap">SKIP</button>
+                </div>
             </div>
 
             <div id="onboard-step-1" style="display:none">
@@ -133,8 +146,8 @@ window.showOnboardingModal = function() {
                     </div>
                 </div>
                 <button class="intel-action-btn" style="width:100%;background:linear-gradient(135deg,rgba(0,242,255,0.15),rgba(139,92,246,0.1))" onclick="finishOnboarding()">
-                    <span class="material-symbols-outlined" style="vertical-align:middle;margin-right:6px">check_circle</span>
-                    FINISH SETUP - GO TO MY TERMINAL
+                    <span class="material-symbols-outlined" style="vertical-align:middle;margin-right:6px">electric_bolt</span>
+                    FINISH SETUP — GO TO LIVE SIGNALS
                 </button>
                 <button onclick="finishOnboarding(true)" style="display:block;width:100%;background:none;border:none;color:var(--text-dim);font-size:0.65rem;margin-top:10px;cursor:pointer">Skip for now</button>
             </div>
@@ -207,11 +220,31 @@ window.finishOnboarding = async function(skipped = false) {
     localStorage.setItem(ONBOARD_KEY, '1');
     document.getElementById('onboard-modal')?.remove();
 
-    // Navigate to My Terminal to see their new watchlist
+    // Always land on Live Signals — the most engaging view for new users
     if (tickers.length > 0) {
-        showToast('Watchlist ready!', `${tickers.length} asset${tickers.length > 1 ? 's' : ''} added to your terminal`, 'success');
-        switchView('my-terminal');
-    } else {
-        switchView('command-center');
+        showToast('Watchlist ready!', `${tickers.length} asset${tickers.length > 1 ? 's' : ''} added — watching for you`, 'success');
     }
+    switchView('signals');
+};
+
+// Navigate directly to a view and close the modal (used by quick-start cards)
+window.finishOnboardingGoTo = async function(view) {
+    const tickers = Array.from(window._onboardSelected || []);
+    if (tickers.length > 0 && isAuthenticatedUser) {
+        await Promise.allSettled(
+            tickers.map(t => fetchAPI('/watchlist', 'POST', { ticker: t, note: 'Added during setup' }))
+        );
+        window._watchlistCache = null;
+        window._alertCacheTs = 0;
+    }
+    if (isAuthenticatedUser) {
+        fetchAPI('/onboarding-complete', 'POST', {
+            skipped: true,
+            watchlist_count: tickers.length,
+            completed_at: new Date().toISOString()
+        }).catch(() => {});
+    }
+    localStorage.setItem(ONBOARD_KEY, '1');
+    document.getElementById('onboard-modal')?.remove();
+    switchView(view);
 };

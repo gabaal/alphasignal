@@ -35,6 +35,8 @@ async function checkAuthStatus() {
         }
         updatePremiumUI();
         if (typeof startSignalPoller === 'function') startSignalPoller();
+        // Show onboarding for first-time users even on cached auth (localStorage flag prevents repeat)
+        setTimeout(() => window.maybeShowOnboarding?.(), 800);
         // Validate & refresh cache silently in background
         fetchAPI('/auth/status').then(s => {
             if (s && s.authenticated) setCachedAuth(s);
