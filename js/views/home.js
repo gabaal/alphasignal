@@ -38,7 +38,7 @@ async function renderHome() {
                     <div class="lp-actions">
                         ${!isAuthenticatedUser
                             ? `<button class="lp-btn-primary" onclick="showAuth(true, 'register')"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>START FREE</button>`
-                            : `<button class="lp-btn-primary" onclick="switchView('my-terminal')"><span class="material-symbols-outlined" style="font-size:18px">account_circle</span>MY TERMINAL</button>`}
+                            : `<button class="lp-btn-primary" onclick="switchView('signals')"><span class="material-symbols-outlined" style="font-size:18px">radar</span>LIVE SIGNALS</button>`}
                         <button class="lp-btn-ghost" onclick="switchView('command-center')"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>OPEN DASHBOARD</button>
                     </div>
                 </div>
