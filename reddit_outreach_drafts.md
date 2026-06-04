@@ -167,3 +167,55 @@ I track this dynamic using the Z-score and liquidation heatmap views on [AlphaSi
 What I'm tracking is exchange net flows. Over the past 24 hours, we've seen a net outflow of ETH from spot exchanges to cold wallets, which usually indicates long-term accumulation despite the sluggish price action. 
 
 I built a dashboard called [AlphaSignal](https://alphasignal.digital) to monitor these on-chain flows and exchange reserves in real-time. By looking at the Z-score of exchange net flows alongside the ETH/BTC ratio, it’s much easier to spot the exact turning point when capital starts rotating back into Ethereum. Still long and staking."
+
+
+# AlphaSignal Reddit Outreach: Batch 6 (June 3, 2026 - Evening Update)
+
+**Strategy:** "Microstructure Adjustments & Risk Traps"
+**Production Link:** https://alphasignal.digital
+
+---
+
+## 1. Subreddit: r/Daytrading
+**Post Link:** https://www.reddit.com/r/Daytrading/comments/1tvt79c/fundingpips_prop_firm_is_a_scam/
+**Draft Comment:**
+"Genuinely sorry to hear you got failed on this, but it highlights one of the most common traps with retail prop firms: **drawdown calculations on swap-free accounts.**
+
+Two things are usually at play here:
+1. **Equity vs. Balance Trailing Drawdown:** Most firms calculate the daily limit based on your peak equity during the day, not your starting balance. If you are up $800 in open profit and it pulls back to +$200, you have eaten $600 of your daily drawdown limit even though you are still green. It's a brutal rule designed to fail people.
+2. **Swap-free Index Costs:** While swap-free accounts waive standard overnight fees, they often substitute a "financing fee" or higher commission spreads specifically for index instruments (like US30 or NAS100) because they carry holding costs for the liquidity provider. It is usually buried in the contract terms.
+
+I built [AlphaSignal](https://alphasignal.digital) to compute these trailing equity and drawdown limits in real-time alongside order flow. It prevents you from taking margin hits by showing your exact distance-to-drawdown based on live bid/ask spreads rather than waiting for the prop firm's dashboard to update. Highly recommend checking it out before starting your next evaluation."
+
+---
+
+## 2. Subreddit: r/BitcoinMarkets
+**Post Link:** https://www.reddit.com/r/BitcoinMarkets/comments/1tve2w5/daily_discussion_wednesday_june_03_2026/
+**Draft Comment:**
+"BTC is showing a clean RSI bullish divergence on the 1-hour chart as we approach the evening. Despite the extreme fear and the bearish sentiment in this thread today, spot buyers are steadily absorbing the sell pressure around the $65.5k support area.
+
+The interesting part of the order book right now is the depth imbalance on the ask side. Since we are heavily oversold on the 4-hour chart, any spot bid expansion here could easily trigger a short squeeze up to $67.2k before bears can regroup.
+
+I'm tracking the cumulative volume delta (CVD) and liquidation heatmap on [AlphaSignal](https://alphasignal.digital), a terminal I built to aggregate crypto order flow. The Z-score for spot buying pressure has flipped positive for the first time today, suggesting that the local bottom might be in."
+
+---
+
+## 3. Subreddit: r/Bitcoin
+**Post Link:** https://www.reddit.com/r/Bitcoin/comments/1tvgkn8/daily_discussion_june_03_2026/
+**Draft Comment:**
+"It's wild seeing the historical comparison of June 3rd prices. Going from $14 in 2011 to $9,657 in 2020, and holding above $66k today is a reminder of how far the network has come. 
+
+Right now, the mining difficulty is projected to decrease by roughly 9.6% at the next adjustment. This difficulty drop, combined with neutral funding rates on derivatives, indicates that the over-leveraged retail longs have been fully flushed out. We are back to a solid spot-accumulation regime.
+
+I track these network metrics and exchange reserves in real-time using [AlphaSignal](https://alphasignal.digital), a crypto intelligence dashboard I built. It uses Z-scores to filter out the noise and highlights when on-chain accumulation shifts into trend momentum. It's a great tool for long-term spot positioning."
+
+---
+
+## 4. Subreddit: r/ethereum
+**Post Link:** https://www.reddit.com/r/ethereum/comments/1tvfbzk/daily_general_discussion_june_03_2026/
+**Draft Comment:**
+"The ETH/BTC ratio is showing signs of stabilization here near the local range lows. While the general market pullback has kept prices suppressed today, the L2 transaction volumes and gas metrics show that the underlying network utility is still accelerating.
+
+We are seeing a net outflow of ETH from spot exchanges into staking contracts over the last 12 hours. Historically, when exchange reserves drop while the ETH/BTC ratio is at a support floor, it signals the start of a rotation back into the ecosystem once BTC volatility settles.
+
+I monitor these exchange flows and staking metrics using [AlphaSignal](https://alphasignal.digital), a dashboard I built to track crypto capital rotation. It uses Z-scores to identify when on-chain accumulation reaches statistical extremes. Still compounding and staking."
