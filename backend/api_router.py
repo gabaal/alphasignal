@@ -1111,6 +1111,52 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     self.send_error_json(str(e))
 
+            elif path == '/api/admin/visitor-sessions':
+                # Returns anonymous visitor session data
+                # Query params:
+                #   ?converted=1        only sessions that converted to a signup
+                #   ?converted=0        only sessions that did NOT convert
+                #   ?email=user@x.com   sessions linked to a specific email
+                #   ?ref=reddit         sessions where referrer contains 'reddit'
+                #   (no params)         all sessions, newest first, capped at 500
+                try:
+                    conn = sqlite3.connect(DB_PATH, timeout=10)
+                    conn.row_factory = sqlite3.Row
+                    c = conn.cursor()
+                    params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                    target_email   = params.get('email',     [None])[0]
+                    target_ref     = params.get('ref',       [None])[0]
+                    converted_flag = params.get('converted', [None])[0]
+
+                    query = "SELECT * FROM visitor_sessions WHERE 1=1"
+                    args  = []
+                    if target_email:
+                        query += " AND email=?"
+                        args.append(target_email)
+                    if target_ref:
+                        query += " AND referrer LIKE ?"
+                        args.append(f"%{target_ref}%")
+                    if converted_flag == '1':
+                        query += " AND email IS NOT NULL"
+                    elif converted_flag == '0':
+                        query += " AND email IS NULL"
+
+                    query += " ORDER BY created_at DESC LIMIT 500"
+                    rows = c.execute(query, args).fetchall()
+                    conn.close()
+
+                    total       = len(rows)
+                    converted   = sum(1 for r in rows if r['email'])
+                    self.send_json({
+                        'total':           total,
+                        'converted':       converted,
+                        'bounced':         total - converted,
+                        'conversion_rate': round(converted / total * 100, 1) if total else 0,
+                        'sessions':        [dict(r) for r in rows],
+                    })
+                except Exception as e:
+                    self.send_error_json(str(e))
+
             elif path == '/api/user/ai-memory':
                 self.handle_ai_knowledge_get(auth_info)
 
