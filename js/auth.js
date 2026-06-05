@@ -2,6 +2,16 @@
 const AUTH_CACHE_KEY = 'as_auth_v1';
 const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// - Referrer capture: store the landing referrer on first visit so it survives to signup -
+(function captureReferrer() {
+    try {
+        if (!sessionStorage.getItem('as_landing_ref')) {
+            const ref = document.referrer || '';
+            sessionStorage.setItem('as_landing_ref', ref);
+        }
+    } catch {}
+})();
+
 function getCachedAuth() {
     try {
         const raw = localStorage.getItem(AUTH_CACHE_KEY);
@@ -258,8 +268,16 @@ async function handleAuth(isSignup) {
 
     errorEl.classList.add('hidden');
     const endpoint = isSignup ? '/auth/signup' : '/auth/login';
-    
-    const res = await fetchAPI(endpoint, 'POST', { email, password });
+
+    let payload = { email, password };
+    if (isSignup) {
+        try {
+            payload.referrer = sessionStorage.getItem('as_landing_ref') || document.referrer || '';
+            payload.landing_page = sessionStorage.getItem('as_landing_page') || window.location.href || '';
+        } catch {}
+    }
+
+    const res = await fetchAPI(endpoint, 'POST', payload);
     
     if (res && (res.success || res.access_token)) {
         if (isSignup) {

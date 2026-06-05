@@ -318,6 +318,22 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 # or nested under 'user' key when confirmation is OFF
                 user_obj = res.get('user') or (res if 'id' in res and 'email' in res else None)
                 if user_obj:
+                    # Capture referrer + landing page at signup time
+                    try:
+                        signup_email   = post_data.get('email', '')
+                        signup_ref     = str(post_data.get('referrer', ''))[:500]
+                        signup_landing = str(post_data.get('landing_page', ''))[:500]
+                        signup_ip      = self.client_address[0]
+                        conn_ref = sqlite3.connect(DB_PATH, timeout=5)
+                        conn_ref.execute(
+                            "INSERT OR IGNORE INTO signups (email, referrer, landing_page, ip) VALUES (?,?,?,?)",
+                            (signup_email, signup_ref, signup_landing, signup_ip)
+                        )
+                        conn_ref.commit()
+                        conn_ref.close()
+                        print(f"[{datetime.now()}] SIGNUP: {signup_email} | ref={signup_ref or 'direct'} | landing={signup_landing}")
+                    except Exception as ref_err:
+                        print(f"[{datetime.now()}] Referrer capture error: {ref_err}")
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
@@ -1040,6 +1056,28 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                             'users': [dict(r) for r in summary]
                         })
                     conn.close()
+                except Exception as e:
+                    self.send_error_json(str(e))
+
+            elif path == '/api/admin/signups':
+                # Returns signup referrer data for all users or a specific email
+                # Usage: /api/admin/signups  or  /api/admin/signups?email=user@example.com
+                try:
+                    conn = sqlite3.connect(DB_PATH, timeout=10)
+                    conn.row_factory = sqlite3.Row
+                    c = conn.cursor()
+                    params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                    target_email = params.get('email', [None])[0]
+                    if target_email:
+                        rows = c.execute(
+                            "SELECT * FROM signups WHERE email=?", (target_email,)
+                        ).fetchall()
+                    else:
+                        rows = c.execute(
+                            "SELECT * FROM signups ORDER BY created_at DESC"
+                        ).fetchall()
+                    conn.close()
+                    self.send_json({'signups': [dict(r) for r in rows]})
                 except Exception as e:
                     self.send_error_json(str(e))
 

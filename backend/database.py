@@ -504,5 +504,22 @@ def init_db():
         c.execute("CREATE INDEX IF NOT EXISTS idx_pv_view  ON page_views(view_name)")
     except: pass
 
+    # ── Signup Referrer Tracker ───────────────────────────────────────────────
+    c.execute('''CREATE TABLE IF NOT EXISTS signups (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        email        TEXT NOT NULL,
+        referrer     TEXT,
+        landing_page TEXT,
+        ip           TEXT,
+        created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(email)
+    )''')
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_signups_email ON signups(email)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_signups_ref   ON signups(referrer)")
+    except: pass
+
     conn.commit()
     conn.close()
