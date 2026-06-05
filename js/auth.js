@@ -2,15 +2,40 @@
 const AUTH_CACHE_KEY = 'as_auth_v1';
 const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// - Referrer capture: store the landing referrer on first visit so it survives to signup -
-(function captureReferrer() {
+// - Visitor session tracking: capture referrer + session token on first visit -
+(function initVisitorSession() {
     try {
+        const isNewSession = !sessionStorage.getItem('as_session_id');
+
+        // Always capture the true landing referrer (only on first page of session)
         if (!sessionStorage.getItem('as_landing_ref')) {
-            const ref = document.referrer || '';
-            sessionStorage.setItem('as_landing_ref', ref);
+            sessionStorage.setItem('as_landing_ref', document.referrer || '');
+            sessionStorage.setItem('as_landing_page', window.location.href || '');
+        }
+
+        if (isNewSession) {
+            // Generate a random session ID
+            const sid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : Math.random().toString(36).slice(2) + Date.now().toString(36);
+            sessionStorage.setItem('as_session_id', sid);
+
+            // Fire a lightweight anonymous visit ping - no auth required
+            const payload = {
+                session_id:   sid,
+                referrer:     sessionStorage.getItem('as_landing_ref') || '',
+                landing_page: sessionStorage.getItem('as_landing_page') || window.location.href || '',
+            };
+            fetch('/api/track-visit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                keepalive: true,
+            }).catch(() => {});
         }
     } catch {}
 })();
+
 
 function getCachedAuth() {
     try {
@@ -272,8 +297,9 @@ async function handleAuth(isSignup) {
     let payload = { email, password };
     if (isSignup) {
         try {
-            payload.referrer = sessionStorage.getItem('as_landing_ref') || document.referrer || '';
+            payload.referrer     = sessionStorage.getItem('as_landing_ref') || document.referrer || '';
             payload.landing_page = sessionStorage.getItem('as_landing_page') || window.location.href || '';
+            payload.session_id   = sessionStorage.getItem('as_session_id') || '';
         } catch {}
     }
 

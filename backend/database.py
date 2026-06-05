@@ -521,5 +521,31 @@ def init_db():
         c.execute("CREATE INDEX IF NOT EXISTS idx_signups_ref   ON signups(referrer)")
     except: pass
 
+    # ── Anonymous Visitor Session Tracker ─────────────────────────────────────
+    # Captures referrer + landing page for every visitor, even if they never sign up.
+    # session_id is generated client-side (sessionStorage). If they later sign up,
+    # their email is written onto this row so you can trace the full journey.
+    c.execute('''CREATE TABLE IF NOT EXISTS visitor_sessions (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id   TEXT NOT NULL,
+        referrer     TEXT,
+        landing_page TEXT,
+        ip           TEXT,
+        user_agent   TEXT,
+        email        TEXT,
+        created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+        converted_at DATETIME,
+        UNIQUE(session_id)
+    )''')
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_vs_session ON visitor_sessions(session_id)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_vs_ref     ON visitor_sessions(referrer)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_vs_email   ON visitor_sessions(email)")
+    except: pass
+
     conn.commit()
     conn.close()

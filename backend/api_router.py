@@ -279,6 +279,29 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     self.send_json({'ok': True})
                 return
 
+            elif path == '/api/track-visit':
+                # ── Anonymous visitor session ping ──────────────────────────────
+                # No auth required - fires on first page load for every visitor.
+                # Stores referrer + landing page keyed by a client-generated session_id.
+                try:
+                    session_id   = str(post_data.get('session_id', ''))[:64]
+                    visit_ref    = str(post_data.get('referrer', ''))[:500]
+                    visit_land   = str(post_data.get('landing_page', ''))[:500]
+                    visit_ip     = self.client_address[0]
+                    visit_ua     = self.headers.get('User-Agent', '')[:200]
+                    if session_id:
+                        conn_v = sqlite3.connect(DB_PATH, timeout=5)
+                        conn_v.execute(
+                            "INSERT OR IGNORE INTO visitor_sessions (session_id, referrer, landing_page, ip, user_agent) VALUES (?,?,?,?,?)",
+                            (session_id, visit_ref, visit_land, visit_ip, visit_ua)
+                        )
+                        conn_v.commit()
+                        conn_v.close()
+                except Exception:
+                    pass
+                self.send_json({'ok': True})
+                return
+
             elif path == '/api/auth/login':
                 email_attempt = post_data.get('email', '')
                 # S4: lockout check
@@ -323,15 +346,22 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         signup_email   = post_data.get('email', '')
                         signup_ref     = str(post_data.get('referrer', ''))[:500]
                         signup_landing = str(post_data.get('landing_page', ''))[:500]
+                        signup_sid     = str(post_data.get('session_id', ''))[:64]
                         signup_ip      = self.client_address[0]
                         conn_ref = sqlite3.connect(DB_PATH, timeout=5)
                         conn_ref.execute(
                             "INSERT OR IGNORE INTO signups (email, referrer, landing_page, ip) VALUES (?,?,?,?)",
                             (signup_email, signup_ref, signup_landing, signup_ip)
                         )
+                        # Link the anonymous visitor session to this email
+                        if signup_sid:
+                            conn_ref.execute(
+                                "UPDATE visitor_sessions SET email=?, converted_at=datetime('now') WHERE session_id=? AND email IS NULL",
+                                (signup_email, signup_sid)
+                            )
                         conn_ref.commit()
                         conn_ref.close()
-                        print(f"[{datetime.now()}] SIGNUP: {signup_email} | ref={signup_ref or 'direct'} | landing={signup_landing}")
+                        print(f"[{datetime.now()}] SIGNUP: {signup_email} | ref={signup_ref or 'direct'} | sid={signup_sid or 'none'}")
                     except Exception as ref_err:
                         print(f"[{datetime.now()}] Referrer capture error: {ref_err}")
                     self.send_response(200)
