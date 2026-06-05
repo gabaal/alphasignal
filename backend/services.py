@@ -1275,6 +1275,44 @@ class HarvestService:
                         )
                         continue
 
+                    # ── Quality Filter 1b: Tighter long signal standards ──────────
+                    # PnL analysis showed longs hit only 24.5% win rate vs 46.5% for
+                    # shorts, with avg loss of -3.14% vs -2.09% for shorts.
+                    # The worst losses were short-lived longs on volatile small-caps
+                    # that got whipsawed within minutes. Two sub-filters address this:
+                    #
+                    # (a) Longs require a higher minimum predicted return (1.0%) to
+                    #     compensate for the extra noise on bullish momentum calls.
+                    # (b) Longs on high-volatility tickers (30-day vol > 5%) require
+                    #     a z-score of at least 2.0 (vs the 1.5 floor for shorts)
+                    #     to avoid triggering on short-term noise spikes.
+                    if _direction == 'LONG':
+                        ML_LONG_MIN_RETURN = 0.010  # 1.0% floor for longs (2x short floor)
+                        if abs(pred_return) < ML_LONG_MIN_RETURN:
+                            _log_suppression(
+                                ticker, _direction, 'LONG_RETURN_FLOOR',
+                                f"pred_return {pred_return*100:.2f}% below long floor {ML_LONG_MIN_RETURN*100:.2f}%",
+                                z_score=z_score, pred_return=pred_return, price=curr_p
+                            )
+                            continue
+
+                        # High-volatility long filter: require stronger z-score
+                        try:
+                            returns_30 = hist_df['Close'].pct_change().dropna().tail(30)
+                            vol_30 = float(returns_30.std())
+                            ML_LONG_HIGHVOL_THRESHOLD = 0.05   # 5% daily std = high volatility
+                            ML_LONG_HIGHVOL_ZSCORE    = 2.0    # require z >= 2.0 on noisy tickers
+                            if vol_30 > ML_LONG_HIGHVOL_THRESHOLD and abs(z_score) < ML_LONG_HIGHVOL_ZSCORE:
+                                _log_suppression(
+                                    ticker, _direction, 'LONG_HIGHVOL_ZSCORE',
+                                    f"vol_30={vol_30:.3f} > {ML_LONG_HIGHVOL_THRESHOLD} but z={z_score:.2f} < {ML_LONG_HIGHVOL_ZSCORE} — high noise, weak signal",
+                                    z_score=z_score, pred_return=pred_return, price=curr_p
+                                )
+                                continue
+                        except Exception:
+                            pass
+                    # ─────────────────────────────────────────────────────────────
+
                     # ── Quality Filter 2: SMA-50 trend alignment ─────────────────
                     # LONGs only in confirmed uptrends (price > SMA-50).
                     # SHORTs only in confirmed downtrends (price < SMA-50).
