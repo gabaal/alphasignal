@@ -72,20 +72,21 @@ def _get_btc_summary():
         return None
 
 
-def _get_leaderboard_stats():
-    """Win-rate from actual closed signals with recorded final_roi."""
+def _get_leaderboard_stats(user_email):
+    """Win-rate from this user's actual closed signals with recorded final_roi."""
     try:
         conn = sqlite3.connect(DB_PATH, timeout=30)
         c = conn.cursor()
-        # Only count signals that have been properly closed with a real outcome
+        # Only count signals closed by this specific user with a real outcome
         c.execute("""
             SELECT final_roi
             FROM alerts_history
             WHERE status = 'closed'
               AND final_roi IS NOT NULL
+              AND user_email = ?
             ORDER BY closed_at DESC
             LIMIT 100
-        """)
+        """, (user_email,))
         rows = c.fetchall()
         conn.close()
 
@@ -477,7 +478,7 @@ def send_digest_to_user(user_email):
     try:
         signals = _get_top_signals(limit=3)
         btc     = _get_btc_summary()
-        lb      = _get_leaderboard_stats()
+        lb      = _get_leaderboard_stats(user_email)
         brief   = _get_market_brief_excerpt()
 
         # --- Email (Resend) ---------------------------------------------------
