@@ -73,51 +73,28 @@ def _get_btc_summary():
 
 
 def _get_leaderboard_stats():
-    """Win-rate from DB market_ticks only - no live yfinance calls."""
+    """Win-rate from actual closed signals with recorded final_roi."""
     try:
         conn = sqlite3.connect(DB_PATH, timeout=30)
-        conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        # Pull recent signals with entry price
+        # Only count signals that have been properly closed with a real outcome
         c.execute("""
-            SELECT ticker, type, price AS entry_price, timestamp
+            SELECT final_roi
             FROM alerts_history
-            WHERE price > 0
-              AND timestamp > datetime('now', '-7 days')
-            ORDER BY timestamp DESC
-            LIMIT 50
+            WHERE status = 'closed'
+              AND final_roi IS NOT NULL
+            ORDER BY closed_at DESC
+            LIMIT 100
         """)
         rows = c.fetchall()
+        conn.close()
+
         if not rows:
-            conn.close()
             return None
 
-        wins, losses = 0, 0
-        for r in rows:
-            try:
-                ticker     = r['ticker']
-                entry      = float(r['entry_price'])
-                sig_type   = r['type']
-                # Grab the latest market_ticks price for this ticker
-                c.execute("""
-                    SELECT price FROM market_ticks
-                    WHERE symbol = ?
-                    ORDER BY timestamp DESC LIMIT 1
-                """, (ticker,))
-                tick = c.fetchone()
-                if not tick:
-                    continue
-                curr = float(tick[0])
-                move = (curr - entry) / entry
-                is_bullish = sig_type in ('RSI_OVERSOLD', 'MACD_BULLISH_CROSS', 'ML_ALPHA_PREDICTION')
-                won = (move > 0 and is_bullish) or (move < 0 and not is_bullish)
-                if won: wins += 1
-                else:   losses += 1
-            except Exception:
-                continue
-
-        conn.close()
-        total = wins + losses
+        wins   = sum(1 for r in rows if r[0] > 0)
+        losses = sum(1 for r in rows if r[0] <= 0)
+        total  = wins + losses
         if total == 0:
             return None
         return {'wins': wins, 'losses': losses, 'total': total,
@@ -125,6 +102,7 @@ def _get_leaderboard_stats():
     except Exception as e:
         print(f"[Digest] Leaderboard stats error: {e}")
         return None
+
 def _get_market_brief_excerpt():
     """Pull AI brief from memory cache first, then DB cache_store fallback."""
     try:
@@ -325,7 +303,7 @@ def _build_email_html(user_email, signals, btc_price, lb_stats=None, brief_excer
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td>
-                    <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;color:#6b7280;">SIGNAL WIN RATE (LAST 100 SIGNALS)</span>
+                    <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;color:#6b7280;">SIGNAL WIN RATE (LAST {lb_stats['total']} CLOSED)</span>
                   </td>
                   <td align="right">
                     <span style="font-family:\'JetBrains Mono\',monospace,sans-serif;font-size:18px;font-weight:900;color:{'#22c55e' if lb_stats['win_rate']>=55 else '#f59e0b' if lb_stats['win_rate']>=45 else '#ef4444'};">{ lb_stats['win_rate'] }%</span>
