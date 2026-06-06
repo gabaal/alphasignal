@@ -73,17 +73,17 @@ def _get_btc_summary():
 
 
 def _get_leaderboard_stats(user_email):
-    """Win-rate from this user's actual closed signals with recorded final_roi."""
+    """Win-rate from this user's closed signals with recorded final_roi.
+    Includes legacy signals where user_email IS NULL (pre-dates user scoping)."""
     try:
         conn = sqlite3.connect(DB_PATH, timeout=30)
         c = conn.cursor()
-        # Only count signals closed by this specific user with a real outcome
         c.execute("""
             SELECT final_roi
             FROM alerts_history
             WHERE status = 'closed'
               AND final_roi IS NOT NULL
-              AND user_email = ?
+              AND (user_email = ? OR user_email IS NULL OR user_email = '')
             ORDER BY closed_at DESC
             LIMIT 100
         """, (user_email,))
@@ -103,6 +103,7 @@ def _get_leaderboard_stats(user_email):
     except Exception as e:
         print(f"[Digest] Leaderboard stats error: {e}")
         return None
+
 
 def _get_market_brief_excerpt():
     """Pull AI brief from memory cache first, then DB cache_store fallback."""
