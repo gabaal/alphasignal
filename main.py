@@ -63,7 +63,7 @@ except ImportError:
 # --- INJECTED BACKEND MODULES ---
 from backend.database import load_env, PORT, SUPABASE_URL, SUPABASE_KEY, SUPABASE_HEADERS, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, SupabaseClient, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, DB_PATH, init_db, redis_client
 from backend.caching import DataCache, CACHE
-from backend.services import NotificationService, MLAlphaEngine, PortfolioSimulator, HarvestService, IntradayRescanService, get_sentiment, get_sentiment_batch, get_orderbook_imbalance, NOTIFY, ML_ENGINE, PORTFOLIO_SIM
+from backend.services import NotificationService, MLAlphaEngine, PortfolioSimulator, HarvestService, IntradayRescanService, get_sentiment, get_sentiment_batch, get_orderbook_imbalance, NOTIFY, ML_ENGINE, PORTFOLIO_SIM, DRIP_EMAIL_SVC
 
 
 
@@ -513,6 +513,11 @@ if __name__ == "__main__":
     # Start Telegram Bot (long-polling)
     from backend.routes.telegram_bot import start_bot as start_telegram_bot
     start_telegram_bot()
+
+    # Start Drip Email Service (post-signup "what did you think?" after 1 hour)
+    drip_thread = threading.Thread(target=DRIP_EMAIL_SVC.run, daemon=True)
+    print("Starting Drip Email Service (1h post-signup feedback loop)...", flush=True)
+    drip_thread.start()
 
     httpd.serve_forever()
 

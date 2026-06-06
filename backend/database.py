@@ -520,6 +520,10 @@ def init_db():
     try:
         c.execute("CREATE INDEX IF NOT EXISTS idx_signups_ref   ON signups(referrer)")
     except: pass
+    # Migration: drip email dedup guard — stamped when the 1h post-signup email is sent
+    try:
+        c.execute("ALTER TABLE signups ADD COLUMN drip_email_sent_at DATETIME")
+    except: pass
 
     # ── Anonymous Visitor Session Tracker ─────────────────────────────────────
     # Captures referrer + landing page for every visitor, even if they never sign up.

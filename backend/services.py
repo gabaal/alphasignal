@@ -2334,3 +2334,172 @@ class IntradayRescanService:
 
     def stop(self):
         self.running = False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DRIP EMAIL SERVICE
+# Runs every 5 minutes. For every free signup that is ≥1 hour old and hasn't
+# been emailed yet, checks Supabase to confirm they're not already a paid
+# subscriber, then sends a personal "what did you think?" email via Resend.
+# Deduplication: drip_email_sent_at column in the local signups table.
+# ─────────────────────────────────────────────────────────────────────────────
+class DripEmailService:
+    POLL_INTERVAL_SECS = 300   # check every 5 minutes
+    MIN_AGE_SECS       = 3600  # fire after 1 hour
+    MAX_AGE_SECS       = 172800  # stop chasing after 48 hours
+
+    def __init__(self):
+        self.running       = True
+        self.api_key       = os.getenv("RESEND_API_KEY", "")
+        self.from_address  = os.getenv("RESEND_FROM", "AlphaSignal <digest@alphasignal.digital>")
+
+    # ── Helpers ──────────────────────────────────────────────────────────────
+
+    def _is_paid(self, user_email: str) -> bool:
+        """Return True if the user has an active Supabase subscription."""
+        try:
+            from .database import SUPABASE_URL, SUPABASE_HEADERS
+            # Look up the Supabase user_id from the auth.users table via admin API
+            url = f"{SUPABASE_URL}/rest/v1/subscriptions?select=subscription,user_id"
+            # We filter server-side by joining through profiles/auth — simplest approach:
+            # fetch all subscriptions and match by email via auth lookup
+            auth_url = f"{SUPABASE_URL}/auth/v1/admin/users"
+            import requests as _req
+            admin_key = os.getenv("SUPABASE_SERVICE_KEY", os.getenv("SUPABASE_KEY", ""))
+            admin_headers = {
+                "apikey": admin_key,
+                "Authorization": f"Bearer {admin_key}",
+            }
+            # Fetch users list and find our email
+            resp = _req.get(auth_url, headers=admin_headers, params={"email": user_email}, timeout=8)
+            if resp.status_code != 200:
+                return False
+            users_data = resp.json()
+            user_list = users_data.get("users", []) if isinstance(users_data, dict) else users_data
+            if not user_list:
+                return False
+            user_id = user_list[0].get("id")
+            if not user_id:
+                return False
+            # Now check subscriptions table
+            sub_url = f"{SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.{user_id}&select=subscription"
+            sub_resp = _req.get(sub_url, headers={
+                "apikey": admin_key,
+                "Authorization": f"Bearer {admin_key}",
+            }, timeout=8)
+            if sub_resp.status_code != 200:
+                return False
+            subs = sub_resp.json()
+            return bool(subs and subs[0].get("subscription"))
+        except Exception as e:
+            print(f"[DripEmail] _is_paid check error for {user_email}: {e}")
+            return False  # treat as free on error — better to email than miss
+
+    def _send_email(self, to_email: str) -> bool:
+        """Send the drip email via Resend. Returns True on success."""
+        if not self.api_key:
+            print("[DripEmail] RESEND_API_KEY not set — skipping send")
+            return False
+        first_name = to_email.split("@")[0].split(".")[0].capitalize()
+        html_body = f"""
+<p>Hey {first_name},</p>
+<p>You signed up for <strong>AlphaSignal</strong> earlier — just wanted to check in personally.</p>
+<p>Did everything make sense? Were the signals useful? Any friction getting started?</p>
+<p>I read every reply — if anything felt unclear or wasn't quite what you expected, just hit reply and let me know.</p>
+<p>— Gerald<br>
+<a href="https://alphasignal.digital">AlphaSignal</a> — Institutional Intelligence Terminal</p>
+""".strip()
+        text_body = (
+            f"Hey {first_name},\n\n"
+            "You signed up for AlphaSignal earlier — just wanted to check in personally.\n\n"
+            "Did everything make sense? Were the signals useful? Any friction getting started?\n\n"
+            "I read every reply — if anything felt unclear or wasn't quite what you expected, "
+            "just hit reply and let me know.\n\n"
+            "— Gerald\nAlphaSignal: https://alphasignal.digital"
+        )
+        try:
+            import requests as _req
+            resp = _req.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": self.from_address,
+                    "to": [to_email],
+                    "subject": "Quick question about AlphaSignal...",
+                    "html": html_body,
+                    "text": text_body,
+                    "reply_to": "gerald@alphasignal.digital",
+                },
+                timeout=10,
+            )
+            if resp.status_code in (200, 201):
+                print(f"[DripEmail] ✓ Sent to {to_email}")
+                return True
+            else:
+                print(f"[DripEmail] Send failed for {to_email}: HTTP {resp.status_code} — {resp.text[:200]}")
+                return False
+        except Exception as e:
+            print(f"[DripEmail] Send error for {to_email}: {e}")
+            return False
+
+    def _stamp_sent(self, email: str):
+        """Mark drip_email_sent_at in the local signups table."""
+        try:
+            with sqlite3.connect(DB_PATH, timeout=15) as conn:
+                conn.execute(
+                    "UPDATE signups SET drip_email_sent_at = datetime('now') WHERE email = ?",
+                    (email,)
+                )
+        except Exception as e:
+            print(f"[DripEmail] DB stamp error for {email}: {e}")
+
+    # ── Main loop ─────────────────────────────────────────────────────────────
+
+    def _run_cycle(self):
+        """One pass: find eligible signups and send if not paid."""
+        try:
+            with sqlite3.connect(DB_PATH, timeout=15) as conn:
+                c = conn.cursor()
+                c.execute("""
+                    SELECT email FROM signups
+                    WHERE drip_email_sent_at IS NULL
+                      AND created_at <= datetime('now', ? )
+                      AND created_at >= datetime('now', ? )
+                """, (f"-{self.MIN_AGE_SECS} seconds", f"-{self.MAX_AGE_SECS} seconds"))
+                candidates = [row[0] for row in c.fetchall()]
+        except Exception as e:
+            print(f"[DripEmail] DB query error: {e}")
+            return
+
+        if not candidates:
+            return
+
+        print(f"[DripEmail] {len(candidates)} candidate(s) to evaluate: {candidates}")
+        for email in candidates:
+            try:
+                if self._is_paid(email):
+                    print(f"[DripEmail] {email} is paid — stamping without email")
+                    self._stamp_sent(email)
+                    continue
+                if self._send_email(email):
+                    self._stamp_sent(email)
+            except Exception as e:
+                print(f"[DripEmail] Error processing {email}: {e}")
+
+    def run(self):
+        print(f"[DripEmail] Service started — polling every {self.POLL_INTERVAL_SECS}s", flush=True)
+        while self.running:
+            try:
+                self._run_cycle()
+            except Exception as e:
+                print(f"[DripEmail] Cycle error: {e}")
+            time.sleep(self.POLL_INTERVAL_SECS)
+
+    def stop(self):
+        self.running = False
+
+
+DRIP_EMAIL_SVC = DripEmailService()
