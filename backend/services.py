@@ -2431,7 +2431,7 @@ class DripEmailService:
                     "subject": "Quick question about AlphaSignal...",
                     "html": html_body,
                     "text": text_body,
-                    "reply_to": "gerald@alphasignal.digital",
+                    "reply_to": "alphasignal.digital@outlook.com",
                 },
                 timeout=10,
             )
