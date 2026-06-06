@@ -948,6 +948,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/tape',
                     '/api/liquidation-map',
                     '/api/stripe/webhook',
+                    # Signal detail panel — free users can click any signal
+                    '/api/history', '/api/derivatives', '/api/wallet-attribution',
                     '/privacy', '/terms', '/roadmap',
                 ]
                 free_auth_routes = [
