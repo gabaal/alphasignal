@@ -790,7 +790,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
     <script src="https://js.stripe.com/v3/" defer></script>
     <script src="js/utils.js?v=2.86" defer></script>
-    <script src="js/auth.js?v=2.86" defer></script>
+    <script src="js/auth.js?v=2.87" defer></script>
     <script src="js/core.js?v=2.80" defer></script>
     <script src="js/heatmap_engine.js?v=2.80" defer></script>
     <script src="js/charts.js?v=2.80" defer></script>
@@ -993,6 +993,83 @@ input:focus, select:focus, textarea:focus { border-color: rgba(125,211,252,0.40)
     <style>
         @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
     </style>
+    <style>
+        /* ── Upgrade Prompt Banner ──────────────────────────────── */
+        #upgrade-prompt-banner {
+            position: fixed;
+            bottom: -160px;
+            right: 24px;
+            z-index: 9000;
+            width: 360px;
+            max-width: calc(100vw - 32px);
+            background: linear-gradient(135deg, rgba(9,12,20,0.97) 0%, rgba(0,20,30,0.97) 100%);
+            border: 1px solid rgba(0,242,255,0.3);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,242,255,0.08), inset 0 1px 0 rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            transition: bottom 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+            opacity: 0;
+        }
+        #upgrade-prompt-banner.upb-visible {
+            bottom: 88px;  /* clear mobile-nav */
+            opacity: 1;
+        }
+        @media (min-width: 768px) {
+            #upgrade-prompt-banner.upb-visible { bottom: 24px; }
+        }
+        .upb-glow {
+            position: absolute; inset: 0; border-radius: 16px;
+            background: radial-gradient(ellipse 60% 40% at 10% 50%, rgba(0,242,255,0.07), transparent 70%);
+            pointer-events: none;
+        }
+        .upb-close {
+            position: absolute; top: 10px; right: 10px;
+            background: none; border: none; color: rgba(255,255,255,0.35);
+            cursor: pointer; padding: 2px; line-height: 1;
+            transition: color 0.2s;
+        }
+        .upb-close:hover { color: rgba(255,255,255,0.8); }
+        .upb-icon {
+            flex-shrink: 0;
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(0,242,255,0.1);
+            border: 1px solid rgba(0,242,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .upb-body { flex: 1; min-width: 0; }
+        .upb-eyebrow {
+            font-size: 0.55rem; font-weight: 900; letter-spacing: 2px;
+            color: #00f2ff; margin-bottom: 2px;
+        }
+        .upb-headline {
+            font-size: 0.88rem; font-weight: 800; color: #f1f5f9;
+            letter-spacing: 0.3px; margin-bottom: 3px;
+        }
+        .upb-sub {
+            font-size: 0.62rem; color: rgba(255,255,255,0.4);
+            line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .upb-cta {
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #00f2ff, #0ea5e9);
+            color: #090c14; border: none; border-radius: 8px;
+            padding: 9px 14px; font-size: 0.65rem; font-weight: 900;
+            letter-spacing: 1px; cursor: pointer;
+            display: flex; align-items: center; white-space: nowrap;
+            font-family: inherit;
+            box-shadow: 0 0 16px rgba(0,242,255,0.3);
+            transition: box-shadow 0.2s, transform 0.15s;
+        }
+        .upb-cta:hover {
+            box-shadow: 0 0 28px rgba(0,242,255,0.5);
+            transform: translateY(-1px);
+        }
+    </style>
+
     <script>
         (function() {
             // Don't show in standalone PWA mode

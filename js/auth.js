@@ -72,6 +72,7 @@ async function checkAuthStatus() {
         if (typeof startSignalPoller === 'function') startSignalPoller();
         // Show onboarding for first-time users even on cached auth (localStorage flag prevents repeat)
         setTimeout(() => window.maybeShowOnboarding?.(), 800);
+        if (!isPremiumUser) setTimeout(checkUpgradePrompt, 4000);
         // Validate & refresh cache silently in background
         fetchAPI('/auth/status').then(s => {
             if (s && s.authenticated) setCachedAuth(s);
@@ -98,6 +99,7 @@ async function checkAuthStatus() {
         
         updatePremiumUI();
         if (typeof startSignalPoller === 'function') startSignalPoller();
+        if (!isPremiumUser) setTimeout(checkUpgradePrompt, 4000);
         return true;
     } else {
         isAuthenticatedUser = false;
@@ -204,6 +206,71 @@ function showPaywall(visible) {
     } else {
         overlay.classList.add('hidden');
     }
+}
+
+// ============================================================
+// Upgrade Prompt Banner — fires after 5+ signals seen
+// Shows a sleek sticky bottom-right banner (not a blocking modal)
+// Dismissed state stored in localStorage for 24 hours
+// ============================================================
+async function checkUpgradePrompt() {
+    // Never show to premium users or if already dismissed today
+    if (isPremiumUser || !isAuthenticatedUser) return;
+    const STORAGE_KEY = 'as_upgrade_dismissed';
+    try {
+        const dismissed = localStorage.getItem(STORAGE_KEY);
+        if (dismissed && (Date.now() - parseInt(dismissed)) < 24 * 60 * 60 * 1000) return;
+    } catch {}
+
+    // Check how many signals the user has received
+    try {
+        const data = await fetchAPI('/alerts?limit=6');
+        const signals = Array.isArray(data) ? data : (data?.alerts || []);
+        if (signals.length < 5) return; // not enough signals yet
+    } catch { return; }
+
+    // Build and inject the banner if not already present
+    if (document.getElementById('upgrade-prompt-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'upgrade-prompt-banner';
+    banner.setAttribute('role', 'complementary');
+    banner.setAttribute('aria-label', 'Upgrade to Pro');
+    banner.innerHTML = `
+        <div class="upb-glow"></div>
+        <button class="upb-close" id="upb-close-btn" aria-label="Dismiss upgrade prompt">
+            <span class="material-symbols-outlined" style="font-size:16px">close</span>
+        </button>
+        <div class="upb-icon">
+            <span class="material-symbols-outlined" style="font-size:1.6rem;color:#00f2ff">bolt</span>
+        </div>
+        <div class="upb-body">
+            <div class="upb-eyebrow">YOU'VE SEEN 5+ SIGNALS</div>
+            <div class="upb-headline">Unlock Full Terminal Access</div>
+            <div class="upb-sub">60+ analytical views · Whale Monitor · Options Flow · AI Briefings</div>
+        </div>
+        <button class="upb-cta" id="upb-upgrade-btn" aria-label="Upgrade to AlphaSignal Pro">
+            UPGRADE &nbsp;<span style="opacity:0.7">$7.99/mo</span>
+            <span class="material-symbols-outlined" style="font-size:14px;margin-left:4px">arrow_forward</span>
+        </button>
+    `;
+    document.body.appendChild(banner);
+
+    // Animate in
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => banner.classList.add('upb-visible'));
+    });
+
+    // Wire buttons
+    document.getElementById('upb-close-btn').addEventListener('click', () => {
+        banner.classList.remove('upb-visible');
+        setTimeout(() => banner.remove(), 400);
+        try { localStorage.setItem(STORAGE_KEY, Date.now().toString()); } catch {}
+    });
+    document.getElementById('upb-upgrade-btn').addEventListener('click', () => {
+        banner.classList.remove('upb-visible');
+        setTimeout(() => banner.remove(), 400);
+        handleSubscribe();
+    });
 }
 
 function showAuth(visible, mode = 'login') {
