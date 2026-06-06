@@ -98,8 +98,11 @@ def _get_leaderboard_stats(user_email):
         total  = wins + losses
         if total == 0:
             return None
+        win_rate = round(wins / total * 100, 1)
+        if win_rate < 55.0:
+            return None  # don't show unflattering stats in the digest
         return {'wins': wins, 'losses': losses, 'total': total,
-                'win_rate': round(wins / total * 100, 1)}
+                'win_rate': win_rate}
     except Exception as e:
         print(f"[Digest] Leaderboard stats error: {e}")
         return None
