@@ -157,6 +157,20 @@ class AuthRoutesMixin:
                     'stripe_customer_id': stripe_customer_id
                 }
                 _session_cache_set(token, result)
+
+                # Auto-provision user_settings on first login so signals and
+                # digest are enabled by default without requiring a Settings visit
+                if email:
+                    try:
+                        with sqlite3.connect(DB_PATH, timeout=10) as _uc:
+                            _uc.execute(
+                                "INSERT OR IGNORE INTO user_settings "
+                                "(user_email, alerts_enabled, digest_enabled) VALUES (?, 1, 1)",
+                                (email,)
+                            )
+                    except Exception:
+                        pass
+
                 return result
             return None
         except Exception as e:

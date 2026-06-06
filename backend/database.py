@@ -525,6 +525,17 @@ def init_db():
         c.execute("ALTER TABLE signups ADD COLUMN drip_email_sent_at DATETIME")
     except: pass
 
+    # Migration: ensure all existing user_settings rows have alerts/digest enabled
+    # (backfill for users created before auto-provision was added at login)
+    try:
+        c.execute("""
+            UPDATE user_settings
+            SET alerts_enabled = 1,
+                digest_enabled  = COALESCE(digest_enabled, 1)
+            WHERE alerts_enabled IS NULL OR alerts_enabled = 0
+        """)
+    except: pass
+
     # ── Anonymous Visitor Session Tracker ─────────────────────────────────────
     # Captures referrer + landing page for every visitor, even if they never sign up.
     # session_id is generated client-side (sessionStorage). If they later sign up,
