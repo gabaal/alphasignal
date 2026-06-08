@@ -2,6 +2,7 @@ function switchView(view, pushState = true) {
     // Clean up view-specific live intervals
     if (window._gommLiveInterval) { clearInterval(window._gommLiveInterval); window._gommLiveInterval = null; }
     if (window._footprintInterval) { clearInterval(window._footprintInterval); window._footprintInterval = null; }
+    if (window._ppAutoRefresh) { clearInterval(window._ppAutoRefresh); window._ppAutoRefresh = null; }
 
     // Global Memory Wipe for 60FPS Optimization
     if (typeof window.globalUIWipe === 'function') {

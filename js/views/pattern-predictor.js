@@ -8,7 +8,7 @@
  */
 
 function renderPatternPredictor() {
-    const app = document.getElementById('app');
+    const app = appEl;
     if (!app) return;
 
     app.innerHTML = `
