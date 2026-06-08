@@ -16,6 +16,7 @@ from backend.routes.personal import PersonalRoutesMixin
 from backend.routes.digest import DigestRoutesMixin
 from backend.routes.price_alerts import PriceAlertRoutesMixin, start_price_alert_checker as _pa_start
 from backend.routes.telegram_bot import start_bot as _tg_start  # noqa
+from backend.routes.predictor import PredictorRoutesMixin
 import socketserver, http.server
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -65,7 +66,7 @@ def _rate_check(ip: str, path: str) -> bool:
         return True
 
 
-class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin, DigestRoutesMixin, PriceAlertRoutesMixin):
+class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, MarketRoutesMixin, InstitutionalRoutesMixin, AIEngineRoutesMixin, PersonalRoutesMixin, DigestRoutesMixin, PriceAlertRoutesMixin, PredictorRoutesMixin):
     def end_headers(self):
         # Strict CORS - reflect origin only if it's in the allowlist
         origin = self.headers.get('Origin', '')
@@ -941,6 +942,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
                     '/api/whales', '/api/gex-profile', '/api/options-max-pain',
                     '/api/volume-profile', '/api/lob-heatmap', '/api/oi-funding-heatmap',
+                    '/api/market-prediction', '/api/composite-index',
                     '/api/global-liquidity-heatmap',
                     '/api/volatility-surface', '/api/monte-carlo', '/api/factor-web', '/api/sankey',
                     '/api/footprint',
@@ -1176,6 +1178,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_signals()
             elif path == '/api/btc':
                 self.handle_btc()
+            elif path == '/api/market-prediction':
+                self.handle_market_prediction(urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query))
+            elif path == '/api/composite-index':
+                self.handle_composite_index(urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query))
             elif path == '/api/cme-gaps':
                 self.handle_cme_gaps()
             elif path == '/api/market-pulse':

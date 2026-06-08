@@ -562,5 +562,26 @@ def init_db():
         c.execute("CREATE INDEX IF NOT EXISTS idx_vs_email   ON visitor_sessions(email)")
     except: pass
 
+    # ── Composite Index History (Pattern Predictor) ───────────────────────────
+    # One row per minute: a numerical fingerprint of the market's multi-factor state.
+    # Used to match the current pattern against history and predict directional bias.
+    c.execute('''CREATE TABLE IF NOT EXISTS composite_index_history (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        ts         DATETIME NOT NULL,
+        ci_value   REAL NOT NULL,        -- Composite Index score (-100 to +100)
+        z_score    REAL,                 -- Market-wide mean Z-score
+        rsi        REAL,                 -- BTC RSI-14
+        bb_pos     REAL,                 -- BTC Bollinger Band position (0-1)
+        macd       REAL,                 -- BTC MACD value
+        vol_change REAL,                 -- BTC volume % change vs prev period
+        fear_greed REAL,                 -- Fear & Greed index (0-100)
+        regime     TEXT,                 -- Current HMM regime label
+        sentiment  REAL,                 -- Aggregate BTC sentiment score
+        btc_price  REAL                  -- BTC price at this minute
+    )''')
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_cih_ts ON composite_index_history(ts DESC)")
+    except: pass
+
     conn.commit()
     conn.close()

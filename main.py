@@ -536,5 +536,11 @@ if __name__ == "__main__":
     print("Starting Drip Email Service (1h post-signup feedback loop)...", flush=True)
     drip_thread.start()
 
+    # Start Composite Index Predictor (writes one tick per minute to composite_index_history)
+    from backend.predictor_service import PREDICTOR_SVC
+    pred_thread = threading.Thread(target=PREDICTOR_SVC.run, daemon=True)
+    print("Starting Composite Index Predictor Service (60s tick)...", flush=True)
+    pred_thread.start()
+
     httpd.serve_forever()
 

@@ -1,6 +1,7 @@
 
 // ============= Initialization =============
 const viewMap = {
+    'pattern-predictor': renderPatternPredictor,
     'onchain': renderOnChain,
     'tradingview-hub': renderTradingViewHub,
     'custom-analytics': renderCustomAnalytics,
