@@ -942,7 +942,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/liquidity', '/api/liquidity-history', '/api/ai_analyst', '/api/atr',
                     '/api/whales', '/api/gex-profile', '/api/options-max-pain',
                     '/api/volume-profile', '/api/lob-heatmap', '/api/oi-funding-heatmap',
-                    '/api/market-prediction', '/api/composite-index',
+                    '/api/market-prediction', '/api/composite-index', '/api/predictor-accuracy',
                     '/api/global-liquidity-heatmap',
                     '/api/volatility-surface', '/api/monte-carlo', '/api/factor-web', '/api/sankey',
                     '/api/footprint',
@@ -1182,6 +1182,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_market_prediction(urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query))
             elif path == '/api/composite-index':
                 self.handle_composite_index(urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query))
+            elif path == '/api/predictor-accuracy':
+                self.handle_predictor_accuracy(urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query))
             elif path == '/api/cme-gaps':
                 self.handle_cme_gaps()
             elif path == '/api/market-pulse':

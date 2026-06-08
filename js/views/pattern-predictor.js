@@ -1,550 +1,482 @@
 /**
- * Pattern Predictor View
- * ========================
- * Renders the Composite Index Pattern Predictor dashboard.
- * Calls:
- *   GET /api/composite-index?limit=120  → sparkline of recent CI values
- *   GET /api/market-prediction?lookback=30&top_n=5 → pattern match + prediction
+ * Pattern Predictor v2
+ * =====================
+ * Multi-factor Composite Index dashboard with:
+ *  - 1m / 1h / 1d timeframe tabs
+ *  - Regime-conditioned pattern matching
+ *  - Live accuracy scoreboard
+ *  - On-chain factor gauges (MVRV, Whale Score)
+ *  - Historical match table
  */
 
 function renderPatternPredictor() {
     const app = appEl;
     if (!app) return;
 
-    app.innerHTML = `
-    <div class="pp-shell" id="pp-shell">
+    const REGIME_COLORS = {
+        'TRENDING':     { bg: 'rgba(125,211,252,0.15)', border: 'rgba(125,211,252,0.5)', text: '#7dd3fc' },
+        'ACCUMULATION': { bg: 'rgba(129,140,248,0.15)', border: 'rgba(129,140,248,0.5)', text: '#818cf8' },
+        'DISTRIBUTION': { bg: 'rgba(251,146,60,0.15)',  border: 'rgba(251,146,60,0.5)',  text: '#fb923c' },
+        'VOLATILE':     { bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.5)', text: '#f87171' },
+        'BULL':         { bg: 'rgba(74,222,128,0.15)',  border: 'rgba(74,222,128,0.5)',  text: '#4ade80' },
+        'BEAR':         { bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.5)', text: '#f87171' },
+    };
+    function regimeStyle(r) {
+        const k = Object.keys(REGIME_COLORS).find(k => (r||'').toUpperCase().includes(k));
+        return REGIME_COLORS[k] || { bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.3)', text: '#94a3b8' };
+    }
 
-        <!-- ── Header ── -->
-        <div class="pp-header">
-            <div class="pp-header-left">
-                <span class="pp-icon material-symbols-outlined">psychology</span>
-                <div>
-                    <h1 class="pp-title">Composite Index Predictor</h1>
-                    <p class="pp-subtitle">Market DNA fingerprinting · Pattern memory engine · Multi-factor signal fusion</p>
-                </div>
+    app.innerHTML = `
+        <div class="view-header">
+            <div>
+                <h2 style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">System Intelligence</h2>
+                <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">psychology</span>Pattern Predictor <span class="premium-badge">v2</span></h1>
+                <p style="color:var(--text-dim);font-size:0.8rem;margin:4px 0 0">Multi-factor Composite Index · Regime-conditioned pattern matching · Live accuracy tracking</p>
             </div>
-            <div class="pp-header-controls">
-                <label class="pp-control-label">Lookback</label>
-                <select id="pp-lookback" class="pp-select">
-                    <option value="10">10 min</option>
-                    <option value="20">20 min</option>
-                    <option value="30" selected>30 min</option>
-                    <option value="60">60 min</option>
-                    <option value="120">120 min</option>
-                </select>
-                <button id="pp-refresh-btn" class="pp-btn-primary" onclick="ppRefresh()">
-                    <span class="material-symbols-outlined" style="font-size:15px">refresh</span>
-                    SCAN
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <!-- Timeframe tabs -->
+                <div style="display:flex;gap:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:3px">
+                    <button id="pp-tf-1m" class="pp-tf-btn active" onclick="ppSetTimeframe('1m')">1m</button>
+                    <button id="pp-tf-1h" class="pp-tf-btn" onclick="ppSetTimeframe('1h')">1h</button>
+                    <button id="pp-tf-1d" class="pp-tf-btn" onclick="ppSetTimeframe('1d')">1d</button>
+                </div>
+                <!-- Regime filter toggle -->
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--text-dim);cursor:pointer;padding:6px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px">
+                    <input type="checkbox" id="pp-regime-filter" checked onchange="ppRefresh()" style="accent-color:var(--accent)">
+                    Regime filter
+                </label>
+                <button onclick="ppRefresh()" class="intel-action-btn mini" style="width:auto;padding:5px 12px;font-size:0.65rem;display:flex;align-items:center;gap:4px">
+                    <span class="material-symbols-outlined" style="font-size:13px">refresh</span> REFRESH
                 </button>
             </div>
         </div>
 
-        <!-- ── Composite Index Sparkline ── -->
-        <div class="pp-card pp-card-full">
-            <div class="pp-card-header">
-                <span class="material-symbols-outlined pp-card-icon" style="color:var(--accent,#00f2ff)">show_chart</span>
-                <span class="pp-card-title">Live Composite Index  <span class="pp-badge pp-badge-live">● LIVE</span></span>
-                <span id="pp-ci-current" class="pp-ci-badge">—</span>
-            </div>
-            <div class="pp-sparkline-wrap">
-                <canvas id="pp-ci-chart" height="120"></canvas>
-            </div>
-        </div>
+        <style>
+            .pp-tf-btn {
+                background:none;border:none;color:var(--text-dim);padding:4px 12px;
+                border-radius:7px;cursor:pointer;font-size:0.7rem;font-weight:700;
+                font-family:inherit;letter-spacing:0.5px;transition:all 0.15s;
+            }
+            .pp-tf-btn.active {
+                background:var(--accent);color:#000;
+            }
+            .pp-tf-btn:hover:not(.active) { color:var(--text-main); background:rgba(255,255,255,0.06); }
+            .pp-gauge-bar { height:6px;border-radius:100px;background:rgba(255,255,255,0.08);overflow:hidden;margin-top:4px }
+            .pp-gauge-fill { height:100%;border-radius:100px;transition:width 0.6s ease }
+            .pp-match-sim { height:4px;border-radius:100px;background:rgba(125,211,252,0.15) }
+            .pp-match-sim-fill { height:100%;border-radius:100px;background:linear-gradient(90deg,rgba(125,211,252,0.4),var(--accent));transition:width 0.5s ease }
+        </style>
 
-        <!-- ── Factor Gauges Row ── -->
-        <div class="pp-gauges-row" id="pp-gauges-row">
-            <div class="pp-gauge-card" id="pp-gauge-rsi">
-                <div class="pp-gauge-label">RSI-14</div>
-                <div class="pp-gauge-value" id="pp-rsi-val">—</div>
-                <div class="pp-gauge-bar"><div class="pp-gauge-fill" id="pp-rsi-fill" style="width:50%;background:#facc15"></div></div>
-                <div class="pp-gauge-note" id="pp-rsi-note">Loading…</div>
+        <!-- Accuracy Scoreboard -->
+        <div id="pp-accuracy-panel" style="margin-bottom:1.5rem">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.75rem">
+                <span class="material-symbols-outlined" style="color:var(--accent);font-size:1rem">analytics</span>
+                <span style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase">Prediction Accuracy</span>
+                <span id="pp-accuracy-badge" style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(125,211,252,0.12);color:var(--accent);border:1px solid rgba(125,211,252,0.25)">LOADING...</span>
             </div>
-            <div class="pp-gauge-card" id="pp-gauge-bb">
-                <div class="pp-gauge-label">Bollinger Position</div>
-                <div class="pp-gauge-value" id="pp-bb-val">—</div>
-                <div class="pp-gauge-bar"><div class="pp-gauge-fill" id="pp-bb-fill" style="width:50%;background:#a78bfa"></div></div>
-                <div class="pp-gauge-note" id="pp-bb-note">Loading…</div>
-            </div>
-            <div class="pp-gauge-card" id="pp-gauge-fg">
-                <div class="pp-gauge-label">Fear &amp; Greed</div>
-                <div class="pp-gauge-value" id="pp-fg-val">—</div>
-                <div class="pp-gauge-bar"><div class="pp-gauge-fill" id="pp-fg-fill" style="width:50%;background:#fb923c"></div></div>
-                <div class="pp-gauge-note" id="pp-fg-note">Loading…</div>
-            </div>
-            <div class="pp-gauge-card" id="pp-gauge-vol">
-                <div class="pp-gauge-label">Vol Change</div>
-                <div class="pp-gauge-value" id="pp-vol-val">—</div>
-                <div class="pp-gauge-bar"><div class="pp-gauge-fill" id="pp-vol-fill" style="width:50%;background:#34d399"></div></div>
-                <div class="pp-gauge-note" id="pp-vol-note">Loading…</div>
-            </div>
-            <div class="pp-gauge-card" id="pp-gauge-regime">
-                <div class="pp-gauge-label">Market Regime</div>
-                <div class="pp-gauge-value" id="pp-regime-val" style="font-size:1rem">—</div>
-                <div class="pp-gauge-note" id="pp-regime-note" style="margin-top:8px">From HMM engine</div>
+            <div id="pp-accuracy-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem">
+                <div class="glass-card" style="padding:1rem;text-align:center">
+                    <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px">OVERALL ACCURACY</div>
+                    <div id="pp-acc-overall" style="font-size:2rem;font-weight:900;color:var(--accent)">—</div>
+                    <div id="pp-acc-n" style="font-size:0.6rem;color:var(--text-dim)">0 predictions resolved</div>
+                </div>
+                <div class="glass-card" style="padding:1rem">
+                    <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px">BY REGIME</div>
+                    <div id="pp-acc-regimes" style="display:flex;flex-direction:column;gap:6px;font-size:0.72rem"></div>
+                </div>
+                <div class="glass-card" style="padding:1rem">
+                    <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px">LAST 5 PREDICTIONS</div>
+                    <div id="pp-acc-recent" style="display:flex;flex-direction:column;gap:5px;font-size:0.7rem"></div>
+                </div>
             </div>
         </div>
 
-        <!-- ── Prediction Result ── -->
-        <div class="pp-prediction-row">
-            <div class="pp-pred-card" id="pp-pred-direction-card">
-                <div class="pp-pred-icon material-symbols-outlined" id="pp-pred-icon">pending</div>
-                <div class="pp-pred-label">Predicted Direction</div>
-                <div class="pp-pred-value" id="pp-pred-direction">SCANNING…</div>
+        <!-- Regime badge + CI Sparkline -->
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1.5rem">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:1rem">
+                <div>
+                    <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Composite Index</div>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span id="pp-ci-value" style="font-size:2rem;font-weight:900;color:var(--accent)">—</span>
+                        <div id="pp-regime-badge" style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:0.6rem;font-weight:900;letter-spacing:1px;background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.2);color:#94a3b8">
+                            <span class="material-symbols-outlined" style="font-size:11px">circle</span> —
+                        </div>
+                    </div>
+                </div>
+                <div style="font-size:0.65rem;color:var(--text-dim);text-align:right">
+                    <div id="pp-btc-price" style="font-size:1.1rem;font-weight:700;color:var(--text-main)">—</div>
+                    <div>BTC Price</div>
+                </div>
             </div>
-            <div class="pp-pred-card">
-                <div class="pp-pred-icon material-symbols-outlined" style="color:#a78bfa">trending_up</div>
-                <div class="pp-pred-label">Expected Move</div>
-                <div class="pp-pred-value" id="pp-pred-change">—</div>
-            </div>
-            <div class="pp-pred-card">
-                <div class="pp-pred-icon material-symbols-outlined" style="color:#34d399">security</div>
-                <div class="pp-pred-label">Match Confidence</div>
-                <div class="pp-pred-value" id="pp-pred-confidence">—</div>
-            </div>
-            <div class="pp-pred-card">
-                <div class="pp-pred-icon material-symbols-outlined" style="color:#facc15">database</div>
-                <div class="pp-pred-label">History Depth</div>
-                <div class="pp-pred-value" id="pp-pred-history">—</div>
+            <div style="height:120px;position:relative">
+                <canvas id="pp-sparkline" aria-label="Composite Index sparkline"></canvas>
             </div>
         </div>
 
-        <!-- ── Top Matches ── -->
-        <div class="pp-card pp-card-full">
-            <div class="pp-card-header">
-                <span class="material-symbols-outlined pp-card-icon" style="color:#a78bfa">compare_arrows</span>
-                <span class="pp-card-title">Best Historical Pattern Matches</span>
-                <span class="pp-badge" id="pp-match-count" style="background:rgba(167,139,250,0.15);color:#a78bfa">—</span>
-            </div>
-            <div id="pp-matches-table-wrap">
-                <div class="pp-spinner-wrap"><span class="pp-spinner material-symbols-outlined">sync</span></div>
+        <!-- Factor Gauges -->
+        <div style="margin-bottom:1.5rem">
+            <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:0.75rem">Factor Gauges</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1rem" id="pp-gauges">
+                <!-- injected by JS -->
             </div>
         </div>
 
-        <!-- ── CI History mini-table ── -->
-        <div class="pp-card pp-card-full">
-            <div class="pp-card-header">
-                <span class="material-symbols-outlined pp-card-icon" style="color:#34d399">history</span>
-                <span class="pp-card-title">Recent CI Ticks</span>
-                <span class="pp-badge" id="pp-ticks-count" style="background:rgba(52,211,153,0.12);color:#34d399">—</span>
+        <!-- Prediction Panel + Matches -->
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;margin-bottom:1.5rem" id="pp-prediction-grid">
+            <div class="glass-card" style="padding:1.5rem" id="pp-prediction-panel">
+                <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Prediction</div>
+                <div id="pp-pred-content" style="display:flex;flex-direction:column;gap:12px">
+                    <div style="text-align:center;color:var(--text-dim);font-size:0.8rem;padding:2rem 0">Loading...</div>
+                </div>
             </div>
-            <div id="pp-ticks-wrap">
-                <div class="pp-spinner-wrap"><span class="pp-spinner material-symbols-outlined">sync</span></div>
+            <div class="glass-card" style="padding:1.5rem">
+                <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Best Historical Matches</div>
+                <div id="pp-matches-table"></div>
             </div>
         </div>
 
-        <p class="pp-footnote">
-            ⚡ Composite Index = weighted blend of RSI-14, Bollinger Band position, MACD, Volume spike,
-            Fear &amp; Greed, market Z-score and BTC sentiment. One tick recorded per minute. Pattern
-            matching uses Euclidean distance over the CI time-series window.
-        </p>
-    </div>
-
-    <style>
-    /* ── Shell ── */
-    .pp-shell { max-width: 1400px; margin: 0 auto; padding: 24px 20px 60px; font-family: 'Inter', 'JetBrains Mono', monospace; }
-
-    /* ── Header ── */
-    .pp-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
-    .pp-header-left { display: flex; align-items: center; gap: 14px; }
-    .pp-icon { font-size: 36px; color: var(--accent, #00f2ff); filter: drop-shadow(0 0 10px rgba(0,242,255,0.5)); animation: pp-pulse 3s ease-in-out infinite; }
-    @keyframes pp-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(1.06)} }
-    .pp-title { font-size: 1.5rem; font-weight: 900; letter-spacing: 1.5px; margin: 0; background: linear-gradient(135deg, #00f2ff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .pp-subtitle { font-size: 0.7rem; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin: 4px 0 0; text-transform: uppercase; }
-    .pp-header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .pp-control-label { font-size: 0.65rem; letter-spacing: 1px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
-    .pp-select { background: rgba(255,255,255,0.05); border: 1px solid rgba(0,242,255,0.2); color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; cursor: pointer; outline: none; }
-    .pp-btn-primary { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: linear-gradient(135deg, rgba(0,242,255,0.15), rgba(167,139,250,0.15)); border: 1px solid rgba(0,242,255,0.3); color: var(--accent, #00f2ff); border-radius: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; transition: all .2s; }
-    .pp-btn-primary:hover { background: linear-gradient(135deg, rgba(0,242,255,0.25), rgba(167,139,250,0.25)); border-color: rgba(0,242,255,0.6); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,242,255,0.2); }
-    .pp-btn-primary:active { transform: translateY(0); }
-
-    /* ── Cards ── */
-    .pp-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; backdrop-filter: blur(12px); }
-    .pp-card-full { width: 100%; box-sizing: border-box; }
-    .pp-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-    .pp-card-icon { font-size: 20px; }
-    .pp-card-title { font-size: 0.8rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.8); flex: 1; }
-    .pp-badge { font-size: 0.65rem; font-weight: 900; letter-spacing: 1px; padding: 3px 10px; border-radius: 20px; }
-    .pp-badge-live { background: rgba(34,197,94,0.15); color: #22c55e; animation: pp-live-blink 2s ease-in-out infinite; }
-    @keyframes pp-live-blink { 0%,100%{opacity:1} 50%{opacity:.5} }
-    .pp-ci-badge { font-size: 1.1rem; font-weight: 900; letter-spacing: 1px; padding: 4px 14px; border-radius: 8px; transition: all .3s; }
-
-    /* ── Sparkline ── */
-    .pp-sparkline-wrap { position: relative; height: 120px; }
-
-    /* ── Gauge Row ── */
-    .pp-gauges-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
-    @media (max-width: 900px) { .pp-gauges-row { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 500px) { .pp-gauges-row { grid-template-columns: 1fr; } }
-    .pp-gauge-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px; transition: border-color .2s, transform .2s; }
-    .pp-gauge-card:hover { border-color: rgba(0,242,255,0.3); transform: translateY(-2px); }
-    .pp-gauge-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
-    .pp-gauge-value { font-size: 1.4rem; font-weight: 900; color: #fff; margin-bottom: 8px; }
-    .pp-gauge-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
-    .pp-gauge-fill { height: 100%; border-radius: 4px; transition: width .6s cubic-bezier(.4,0,.2,1); }
-    .pp-gauge-note { font-size: 0.62rem; letter-spacing: .5px; color: rgba(255,255,255,0.35); margin-top: 4px; }
-
-    /* ── Prediction Row ── */
-    .pp-prediction-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-    @media (max-width: 700px) { .pp-prediction-row { grid-template-columns: repeat(2, 1fr); } }
-    .pp-pred-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 20px 16px; text-align: center; transition: all .25s; position: relative; overflow: hidden; }
-    .pp-pred-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center top, rgba(0,242,255,0.05), transparent 70%); pointer-events: none; }
-    .pp-pred-card:hover { transform: translateY(-3px); border-color: rgba(0,242,255,0.25); }
-    .pp-pred-icon { font-size: 28px; margin-bottom: 8px; display: block; }
-    .pp-pred-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
-    .pp-pred-value { font-size: 1.3rem; font-weight: 900; color: #fff; letter-spacing: 1px; }
-
-    /* ── Matches Table ── */
-    .pp-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
-    .pp-table th { text-align: left; padding: 8px 12px; font-size: 0.6rem; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); border-bottom: 1px solid rgba(255,255,255,0.06); font-weight: 700; }
-    .pp-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.8); transition: background .15s; }
-    .pp-table tr:hover td { background: rgba(0,242,255,0.03); }
-    .pp-table .pp-match-dist { color: var(--accent,#00f2ff); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-    .pp-match-bar { display: inline-block; height: 6px; border-radius: 3px; vertical-align: middle; margin-left: 6px; transition: width .4s; }
-    .pp-change-pos { color: #22c55e; font-weight: 900; }
-    .pp-change-neg { color: #ef4444; font-weight: 900; }
-    .pp-change-neu { color: #facc15; font-weight: 900; }
-
-    /* ── Ticks Table ── */
-    .pp-ticks-scroll { max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(0,242,255,0.2) transparent; }
-
-    /* ── Spinner ── */
-    .pp-spinner-wrap { text-align: center; padding: 32px; }
-    .pp-spinner { font-size: 28px; color: rgba(0,242,255,0.5); animation: spin 1s linear infinite; }
-    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
-    /* ── Footnote ── */
-    .pp-footnote { font-size: 0.65rem; color: rgba(255,255,255,0.25); text-align: center; line-height: 1.7; margin-top: 24px; letter-spacing: .3px; }
-
-    /* ── CI Direction colouring ── */
-    .pp-bull { color: #22c55e !important; -webkit-text-fill-color: #22c55e !important; }
-    .pp-bear { color: #ef4444 !important; -webkit-text-fill-color: #ef4444 !important; }
-    .pp-neut { color: #facc15 !important; -webkit-text-fill-color: #facc15 !important; }
-    </style>
+        <!-- Recent CI ticks -->
+        <div class="glass-card" style="padding:1.5rem">
+            <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Recent CI History</div>
+            <div id="pp-ticks-table"></div>
+        </div>
     `;
 
-    // Kick off data load
-    ppLoad();
+    // ── state ────────────────────────────────────────────────────────────────
+    window._ppTimeframe = window._ppTimeframe || '1m';
+    let _sparkChart = null;
 
-    // Auto-refresh every 60s
-    if (window._ppAutoRefresh) clearInterval(window._ppAutoRefresh);
-    window._ppAutoRefresh = setInterval(ppLoad, 60000);
-}
+    window.ppSetTimeframe = function(tf) {
+        window._ppTimeframe = tf;
+        ['1m','1h','1d'].forEach(t => {
+            const btn = document.getElementById(`pp-tf-${t}`);
+            if (btn) btn.classList.toggle('active', t === tf);
+        });
+        ppRefresh();
+    };
 
-// ── data loaders ──────────────────────────────────────────────────────────────
+    window.ppRefresh = function() {
+        ppLoad();
+        ppLoadPrediction();
+        ppLoadAccuracy();
+    };
 
-async function ppLoad() {
-    try {
-        await Promise.all([ppLoadCI(), ppLoadPrediction()]);
-    } catch (e) {
-        console.warn('[PatternPredictor] Load error:', e);
-    }
-}
+    // ── sparkline + gauges ───────────────────────────────────────────────────
+    async function ppLoad() {
+        const tf    = window._ppTimeframe || '1m';
+        const limit = tf === '1m' ? 120 : (tf === '1h' ? 72 : 30);
+        try {
+            const data = await fetchAPI(`/composite-index?timeframe=${tf}&limit=${limit}`);
+            if (!data || !data.ticks || !data.ticks.length) return;
+            const ticks = data.ticks;
+            const last  = ticks[ticks.length - 1];
 
-async function ppRefresh() {
-    const btn = document.getElementById('pp-refresh-btn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px;animation:spin 1s linear infinite">sync</span> SCANNING…`;
-    }
-    await ppLoad();
-    if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">refresh</span> SCAN`;
-    }
-}
+            // CI value
+            const ciVal = parseFloat(last.ci_value || 0);
+            const ciEl  = document.getElementById('pp-ci-value');
+            if (ciEl) {
+                ciEl.textContent = ciVal.toFixed(1);
+                ciEl.style.color = ciVal > 10 ? '#4ade80' : ciVal < -10 ? '#f87171' : '#7dd3fc';
+            }
 
-async function ppLoadCI() {
-    try {
-        const res = await fetch('/api/composite-index?limit=120');
-        const data = await res.json();
-        if (!data || !data.history) return;
-        ppRenderSparkline(data.history);
-        ppRenderGauges(data.latest);
-        ppRenderTicksTable(data.history);
-        const ticksBadge = document.getElementById('pp-ticks-count');
-        if (ticksBadge) ticksBadge.textContent = `${data.count} ticks`;
-    } catch (e) {
-        console.warn('[CI] fetch error:', e);
-    }
-}
+            // BTC price
+            const prEl = document.getElementById('pp-btc-price');
+            if (prEl && last.btc_price) prEl.textContent = '$' + Number(last.btc_price).toLocaleString('en-US', {maximumFractionDigits:0});
 
-async function ppLoadPrediction() {
-    const lookback = parseInt(document.getElementById('pp-lookback')?.value || 30, 10);
-    try {
-        const res = await fetch(`/api/market-prediction?lookback=${lookback}&top_n=5`);
-        const data = await res.json();
-        ppRenderPrediction(data);
-        ppRenderMatchesTable(data);
-    } catch (e) {
-        console.warn('[Prediction] fetch error:', e);
-        ppRenderPrediction({ error: 'fetch_failed' });
-    }
-}
+            // Regime badge
+            const regime = last.regime || 'Unknown';
+            const rs     = regimeStyle(regime);
+            const rb     = document.getElementById('pp-regime-badge');
+            if (rb) {
+                rb.textContent = '';
+                rb.style.background = rs.bg;
+                rb.style.borderColor = rs.border;
+                rb.style.color = rs.text;
+                rb.innerHTML = `<span class="material-symbols-outlined" style="font-size:11px">circle</span> ${regime}`;
+            }
 
-// ── renderers ─────────────────────────────────────────────────────────────────
-
-let _ppChart = null;
-
-function ppRenderSparkline(history) {
-    const canvas = document.getElementById('pp-ci-chart');
-    if (!canvas) return;
-
-    const labels = history.map(r => r.ts ? r.ts.slice(11, 16) : '');
-    const values = history.map(r => r.ci_value);
-
-    // Colour gradient: green for positive, red for negative
-    const ctx = canvas.getContext('2d');
-    const grad = ctx.createLinearGradient(0, 0, 0, 120);
-    const lastVal = values[values.length - 1] || 0;
-    const isPos = lastVal >= 0;
-    grad.addColorStop(0, isPos ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)');
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-
-    const borderColor = isPos ? '#22c55e' : '#ef4444';
-
-    if (_ppChart) { _ppChart.destroy(); _ppChart = null; }
-
-    _ppChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                data: values,
-                borderColor,
-                backgroundColor: grad,
-                borderWidth: 2,
-                pointRadius: 0,
-                fill: true,
-                tension: 0.4,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 600 },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `CI: ${ctx.parsed.y.toFixed(2)}`,
-                    },
-                    backgroundColor: 'rgba(13,17,23,0.95)',
-                    borderColor: 'rgba(0,242,255,0.2)',
-                    borderWidth: 1,
-                    titleColor: '#00f2ff',
-                    bodyColor: '#fff',
-                    titleFont: { family: 'JetBrains Mono, monospace', size: 10 },
-                }
-            },
-            scales: {
-                x: { display: false },
-                y: {
-                    grid: { color: 'rgba(255,255,255,0.05)', lineWidth: 1 },
-                    ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 9 }, maxTicksLimit: 5 },
+            // Sparkline
+            const labels = ticks.map(t => t.ts ? t.ts.slice(11,16) : '');
+            const values = ticks.map(t => parseFloat(t.ci_value || 0));
+            const ctx    = document.getElementById('pp-sparkline');
+            if (ctx) {
+                if (_sparkChart) { _sparkChart.destroy(); _sparkChart = null; }
+                if (typeof Chart !== 'undefined') {
+                    _sparkChart = new Chart(ctx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                data: values,
+                                borderColor: values.map((v, i) => i === values.length - 1 ? '#7dd3fc' : (v > 0 ? 'rgba(74,222,128,0.7)' : 'rgba(248,113,113,0.7)')),
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                fill: true,
+                                backgroundColor: (ctx2) => {
+                                    const g = ctx2.chart.ctx.createLinearGradient(0, 0, 0, 120);
+                                    g.addColorStop(0, 'rgba(74,222,128,0.15)');
+                                    g.addColorStop(0.5, 'rgba(125,211,252,0.05)');
+                                    g.addColorStop(1, 'rgba(248,113,113,0.08)');
+                                    return g;
+                                },
+                                tension: 0.4,
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false, animation: false,
+                            plugins: { legend: { display: false }, tooltip: {
+                                backgroundColor: 'rgba(9,12,20,0.95)',
+                                callbacks: {
+                                    label: c => `CI: ${c.raw.toFixed(2)}`
+                                }
+                            }},
+                            scales: {
+                                x: { display: false },
+                                y: {
+                                    grid: { color: 'rgba(255,255,255,0.04)' },
+                                    ticks: { color: '#64748b', font: { size: 9 } },
+                                    suggestedMin: -60, suggestedMax: 60,
+                                }
+                            }
+                        }
+                    });
                 }
             }
+
+            // Factor Gauges
+            const gauges = [
+                { label: 'RSI',         val: parseFloat(last.rsi||50),         min:0,   max:100,  unit:'',   low:30, high:70, invert:true },
+                { label: 'BB Position', val: parseFloat(last.bb_pos||0.5)*100, min:0,   max:100,  unit:'%',  low:20, high:80, invert:true },
+                { label: 'Fear & Greed',val: parseFloat(last.fear_greed||50),  min:0,   max:100,  unit:'',   low:25, high:75, invert:true },
+                { label: 'Vol Change',  val: parseFloat(last.vol_change||0)*100,min:-100,max:100, unit:'%',  low:-30, high:30, invert:false },
+                { label: 'MVRV Proxy',  val: parseFloat(last.mvrv_proxy||1.5), min:0,   max:4,    unit:'x',  low:1.0, high:3.0, invert:true },
+                { label: 'Whale Score', val: parseFloat(last.whale_score||0)*100,min:-100,max:100,unit:'%',  low:-20, high:20, invert:false },
+            ];
+            const gaugeEl = document.getElementById('pp-gauges');
+            if (gaugeEl) {
+                gaugeEl.innerHTML = gauges.map(g => {
+                    const pct   = Math.max(0, Math.min(100, ((g.val - g.min) / (g.max - g.min)) * 100));
+                    const color = g.invert
+                        ? (g.val > g.high ? '#f87171' : g.val < g.low ? '#4ade80' : '#7dd3fc')
+                        : (g.val > g.high ? '#4ade80' : g.val < g.low ? '#f87171' : '#7dd3fc');
+                    return `
+                    <div class="glass-card" style="padding:0.9rem">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">
+                            <span style="font-size:0.6rem;color:var(--text-dim);font-weight:700;letter-spacing:0.5px">${g.label.toUpperCase()}</span>
+                            <span style="font-size:0.85rem;font-weight:900;color:${color}">${g.val.toFixed(1)}${g.unit}</span>
+                        </div>
+                        <div class="pp-gauge-bar">
+                            <div class="pp-gauge-fill" style="width:${pct}%;background:${color};opacity:0.8"></div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // Recent ticks table (only in 1m mode)
+            const ticksEl = document.getElementById('pp-ticks-table');
+            if (ticksEl) {
+                const show = ticks.slice(-20).reverse();
+                ticksEl.innerHTML = `
+                <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:0.72rem">
+                    <thead>
+                        <tr style="color:var(--text-dim);font-size:0.58rem;letter-spacing:1px">
+                            <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border)">TIME</th>
+                            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">CI</th>
+                            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">RSI</th>
+                            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">MVRV</th>
+                            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">WHALE</th>
+                            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">BTC</th>
+                            <th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">REGIME</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${show.map(t => {
+                            const ci = parseFloat(t.ci_value||0);
+                            const ciCol = ci > 10 ? '#4ade80' : ci < -10 ? '#f87171' : '#7dd3fc';
+                            const rs2 = regimeStyle(t.regime||'');
+                            return `<tr style="border-bottom:1px solid rgba(255,255,255,0.03)">
+                                <td style="padding:5px 8px;color:var(--text-dim);font-family:monospace">${(t.ts||'').slice(11,16)}</td>
+                                <td style="padding:5px 8px;text-align:right;font-weight:700;color:${ciCol}">${ci.toFixed(1)}</td>
+                                <td style="padding:5px 8px;text-align:right;color:var(--text-dim)">${parseFloat(t.rsi||0).toFixed(0)}</td>
+                                <td style="padding:5px 8px;text-align:right;color:var(--text-dim)">${parseFloat(t.mvrv_proxy||0).toFixed(2)}x</td>
+                                <td style="padding:5px 8px;text-align:right;color:${parseFloat(t.whale_score||0)>0?'#4ade80':'#f87171'}">${(parseFloat(t.whale_score||0)*100).toFixed(0)}%</td>
+                                <td style="padding:5px 8px;text-align:right;color:var(--text-main)">$${Number(t.btc_price||0).toLocaleString('en-US',{maximumFractionDigits:0})}</td>
+                                <td style="padding:5px 8px;text-align:right"><span style="font-size:0.55rem;padding:1px 6px;border-radius:4px;background:${rs2.bg};color:${rs2.text};border:1px solid ${rs2.border}">${t.regime||'—'}</span></td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+                </div>`;
+            }
+        } catch (e) {
+            console.error('[PatternPredictor] load error:', e);
         }
-    });
-
-    // Update current CI badge
-    const badge = document.getElementById('pp-ci-current');
-    if (badge && lastVal !== undefined) {
-        badge.textContent = lastVal.toFixed(2);
-        badge.style.background = lastVal > 10 ? 'rgba(34,197,94,0.15)' :
-                                  lastVal < -10 ? 'rgba(239,68,68,0.15)' :
-                                  'rgba(250,204,21,0.12)';
-        badge.style.color = lastVal > 10 ? '#22c55e' : lastVal < -10 ? '#ef4444' : '#facc15';
-        badge.style.border = `1px solid ${lastVal > 10 ? 'rgba(34,197,94,0.3)' : lastVal < -10 ? 'rgba(239,68,68,0.3)' : 'rgba(250,204,21,0.2)'}`;
     }
-}
 
-function ppRenderGauges(latest) {
-    if (!latest) return;
+    // ── prediction panel ─────────────────────────────────────────────────────
+    async function ppLoadPrediction() {
+        const regimeFilter = document.getElementById('pp-regime-filter')?.checked ? '1' : '0';
+        try {
+            const data = await fetchAPI(`/market-prediction?lookback=30&top_n=5&regime_filter=${regimeFilter}`);
+            if (!data) return;
 
-    // RSI
-    const rsi = latest.rsi || 50;
-    ppSetGauge('rsi', rsi.toFixed(1),
-        `${rsi}%`, rsi < 30 ? '#22c55e' : rsi > 70 ? '#ef4444' : '#facc15',
-        rsi < 30 ? 'Oversold — bullish reversal zone' : rsi > 70 ? 'Overbought — pullback risk' : 'Neutral territory');
+            const predEl = document.getElementById('pp-pred-content');
+            if (data.error) {
+                const needed = data.rows_needed || 60;
+                const have   = data.rows_available || 0;
+                if (predEl) predEl.innerHTML = `
+                    <div style="text-align:center;padding:1.5rem 0">
+                        <div class="material-symbols-outlined" style="font-size:2rem;color:var(--text-dim);display:block;margin-bottom:8px">hourglass_top</div>
+                        <div style="color:var(--text-dim);font-size:0.78rem;line-height:1.6">
+                            Collecting data…<br>
+                            <strong style="color:var(--text-main)">${have} / ${needed}</strong> minutes recorded
+                        </div>
+                        <div style="margin-top:12px;height:4px;border-radius:100px;background:rgba(255,255,255,0.06)">
+                            <div style="height:100%;width:${Math.min(100,Math.round(have/needed*100))}%;background:var(--accent);border-radius:100px;transition:width 1s ease"></div>
+                        </div>
+                    </div>`;
+                return;
+            }
 
-    // Bollinger
-    const bb = (latest.bb_pos || 0.5);
-    ppSetGauge('bb', (bb * 100).toFixed(0) + '%',
-        `${(bb * 100).toFixed(0)}%`, '#a78bfa',
-        bb < 0.2 ? 'Near lower band — mean reversion signal' : bb > 0.8 ? 'Near upper band — stretched' : 'Mid-band range');
+            const p       = data.prediction || {};
+            const dir     = p.direction || 'NEUTRAL';
+            const chg     = p.predicted_change || 0;
+            const conf    = Math.round((p.confidence || 0) * 100);
+            const dirCol  = dir === 'BULLISH' ? '#4ade80' : dir === 'BEARISH' ? '#f87171' : '#94a3b8';
+            const dirIcon = dir === 'BULLISH' ? 'trending_up' : dir === 'BEARISH' ? 'trending_down' : 'trending_flat';
+            const rfLabel = data.regime_filtered ? `<span style="font-size:0.55rem;color:var(--accent);background:rgba(125,211,252,0.1);padding:1px 6px;border-radius:4px;border:1px solid rgba(125,211,252,0.2)">REGIME MATCHED</span>` : '';
 
-    // Fear & Greed
-    const fg = latest.fear_greed || 50;
-    ppSetGauge('fg', fg.toFixed(0),
-        `${fg}%`, fg < 25 ? '#22c55e' : fg > 75 ? '#ef4444' : '#fb923c',
-        fg < 25 ? 'Extreme Fear — contrarian buy' : fg > 75 ? 'Extreme Greed — caution' : 'Moderate sentiment');
+            if (predEl) predEl.innerHTML = `
+                <div style="text-align:center;padding:0.5rem 0">
+                    <span class="material-symbols-outlined" style="font-size:3rem;color:${dirCol}">${dirIcon}</span>
+                    <div style="font-size:1.4rem;font-weight:900;color:${dirCol};margin:4px 0">${dir}</div>
+                    <div style="font-size:0.75rem;color:var(--text-dim)">Expected move</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:${chg>0?'#4ade80':chg<0?'#f87171':'#94a3b8'}">${chg>=0?'+':''}${(chg*1).toFixed(3)}%</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+                    <div style="text-align:center;background:rgba(255,255,255,0.03);border-radius:8px;padding:8px">
+                        <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">CONFIDENCE</div>
+                        <div style="font-size:1rem;font-weight:900;color:${conf>65?'#4ade80':conf>40?'#fb923c':'#f87171'}">${conf}%</div>
+                    </div>
+                    <div style="text-align:center;background:rgba(255,255,255,0.03);border-radius:8px;padding:8px">
+                        <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px">MATCHES</div>
+                        <div style="font-size:1rem;font-weight:900;color:var(--text-main)">${p.matches_found || 0}</div>
+                    </div>
+                </div>
+                <div style="text-align:center;margin-top:4px">${rfLabel}</div>
+                <div style="font-size:0.6rem;color:var(--text-dim);text-align:center">Lookback: ${p.lookback_minutes}m · History: ${data.history_size} ticks</div>
+            `;
 
-    // Volume change
-    const vc = (latest.vol_change || 0) * 100;
-    const vcPct = Math.min(100, Math.abs(vc) * 5 + 50);
-    ppSetGauge('vol', (vc >= 0 ? '+' : '') + vc.toFixed(1) + '%',
-        `${vcPct}%`, vc > 5 ? '#22c55e' : vc < -5 ? '#ef4444' : '#34d399',
-        vc > 10 ? 'Volume spike — momentum signal' : vc < -10 ? 'Volume drop — caution' : 'Normal volume');
-
-    // Regime
-    const regime = latest.regime || 'Unknown';
-    const regEl = document.getElementById('pp-regime-val');
-    const regNote = document.getElementById('pp-regime-note');
-    if (regEl) {
-        regEl.textContent = regime;
-        regEl.style.color = regime.includes('BULL') || regime === 'Risk-On' ? '#22c55e' :
-                            regime.includes('BEAR') || regime === 'Dislocation' ? '#ef4444' : '#facc15';
-    }
-    if (regNote) regNote.textContent = 'HMM market regime state';
-}
-
-function ppSetGauge(key, displayVal, fillPct, color, note) {
-    const val  = document.getElementById(`pp-${key}-val`);
-    const fill = document.getElementById(`pp-${key}-fill`);
-    const noteEl = document.getElementById(`pp-${key}-note`);
-    if (val) val.textContent = displayVal;
-    if (fill) { fill.style.width = fillPct; fill.style.background = color; }
-    if (noteEl) noteEl.textContent = note;
-}
-
-function ppRenderPrediction(data) {
-    const dirEl    = document.getElementById('pp-pred-direction');
-    const chgEl    = document.getElementById('pp-pred-change');
-    const confEl   = document.getElementById('pp-pred-confidence');
-    const histEl   = document.getElementById('pp-pred-history');
-    const iconEl   = document.getElementById('pp-pred-icon');
-    const cardEl   = document.getElementById('pp-pred-direction-card');
-
-    if (data.error) {
-        if (data.error === 'insufficient_history') {
-            const need = data.rows_needed || 30;
-            const have = data.rows_available || 0;
-            if (dirEl) dirEl.textContent = 'BUILDING…';
-            if (chgEl) chgEl.textContent = `${have}/${need * 2} ticks`;
-            if (confEl) confEl.textContent = 'Need more data';
-            if (histEl) histEl.textContent = `${have} rows`;
-            if (iconEl) { iconEl.textContent = 'hourglass_empty'; iconEl.style.color = '#facc15'; }
-        } else {
-            if (dirEl) dirEl.textContent = 'ERROR';
-            if (chgEl) chgEl.textContent = '—';
+            // Matches table
+            const matchEl = document.getElementById('pp-matches-table');
+            if (matchEl && data.matches && data.matches.length) {
+                const maxSim = Math.max(...data.matches.map(m => 1/(m.distance+0.01)));
+                matchEl.innerHTML = data.matches.map((m, i) => {
+                    const sim   = Math.round(1/(m.distance+0.01) / maxSim * 100);
+                    const chgPct = m.price_change_pct || 0;
+                    const chgCol = chgPct > 0 ? '#4ade80' : chgPct < 0 ? '#f87171' : '#94a3b8';
+                    const rs2   = regimeStyle(m.regime||'');
+                    return `
+                    <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                            <div style="font-size:0.65rem;color:var(--text-dim);font-family:monospace">${(m.window_start||'').slice(0,16)} → ${(m.window_end||'').slice(11,16)}</div>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <span style="font-size:0.6rem;padding:1px 6px;border-radius:4px;background:${rs2.bg};color:${rs2.text};border:1px solid ${rs2.border}">${m.regime||'?'}</span>
+                                <span style="font-size:0.75rem;font-weight:700;color:${chgCol}">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <div class="pp-match-sim" style="flex:1"><div class="pp-match-sim-fill" style="width:${sim}%"></div></div>
+                            <span style="font-size:0.6rem;color:var(--text-dim);width:38px;text-align:right">${sim}% sim</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            } else if (matchEl) {
+                matchEl.innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:2rem 0">No matches found yet — accumulating history…</div>';
+            }
+        } catch (e) {
+            console.error('[PatternPredictor] prediction error:', e);
         }
-        return;
     }
 
-    const pred = data.prediction || {};
-    const dir  = pred.direction || 'NEUTRAL';
-    const chg  = pred.predicted_change || 0;
-    const conf = pred.confidence || 0;
-    const hist = data.history_size || 0;
+    // ── accuracy panel ───────────────────────────────────────────────────────
+    async function ppLoadAccuracy() {
+        try {
+            const data = await fetchAPI('/predictor-accuracy');
+            if (!data) return;
 
-    if (dirEl) {
-        dirEl.textContent = dir;
-        dirEl.className = 'pp-pred-value ' + (dir === 'BULLISH' ? 'pp-bull' : dir === 'BEARISH' ? 'pp-bear' : 'pp-neut');
+            const badge = document.getElementById('pp-accuracy-badge');
+            if (badge) {
+                badge.textContent = data.accuracy_pct != null
+                    ? `${data.accuracy_pct}% ACCURACY`
+                    : `${data.total_resolved||0} RESOLVED`;
+            }
+
+            const overallEl = document.getElementById('pp-acc-overall');
+            if (overallEl) {
+                overallEl.textContent = data.accuracy_pct != null ? `${data.accuracy_pct}%` : '—';
+                overallEl.style.color = data.accuracy_pct > 60 ? '#4ade80' : data.accuracy_pct > 45 ? '#fb923c' : data.accuracy_pct != null ? '#f87171' : '#7dd3fc';
+            }
+            const nEl = document.getElementById('pp-acc-n');
+            if (nEl) nEl.textContent = `${data.total_resolved||0} predictions resolved`;
+
+            // By regime
+            const regEl = document.getElementById('pp-acc-regimes');
+            if (regEl) {
+                if (data.by_regime && data.by_regime.length) {
+                    regEl.innerHTML = data.by_regime.map(r => {
+                        const rs2 = regimeStyle(r.regime||'');
+                        return `<div style="display:flex;justify-content:space-between;align-items:center">
+                            <span style="color:${rs2.text}">${r.regime||'?'}</span>
+                            <span style="font-weight:700;color:${r.accuracy_pct>60?'#4ade80':r.accuracy_pct>45?'#fb923c':'#f87171'}">${r.accuracy_pct}% <span style="color:var(--text-dim);font-weight:400">(${r.total})</span></span>
+                        </div>`;
+                    }).join('');
+                } else {
+                    regEl.innerHTML = '<span style="color:var(--text-dim);font-size:0.7rem">Accumulating data…</span>';
+                }
+            }
+
+            // Recent predictions
+            const recEl = document.getElementById('pp-acc-recent');
+            if (recEl) {
+                const recent = (data.recent || []).slice(0, 5);
+                if (recent.length) {
+                    recEl.innerHTML = recent.map(r => {
+                        const icon = r.was_correct === 1 ? '✅' : r.was_correct === 0 ? '❌' : '⏳';
+                        const dirCol = r.predicted_dir === 'BULLISH' ? '#4ade80' : r.predicted_dir === 'BEARISH' ? '#f87171' : '#94a3b8';
+                        return `<div style="display:flex;justify-content:space-between;align-items:center">
+                            <span style="color:${dirCol};font-weight:700">${r.predicted_dir}</span>
+                            <span style="color:var(--text-dim)">${(r.predicted_at||'').slice(11,16)}</span>
+                            <span>${icon}</span>
+                        </div>`;
+                    }).join('');
+                } else {
+                    recEl.innerHTML = '<span style="color:var(--text-dim);font-size:0.7rem">First prediction logs in ~30 min…</span>';
+                }
+            }
+        } catch (e) {
+            console.error('[PatternPredictor] accuracy error:', e);
+        }
     }
-    if (iconEl) {
-        iconEl.textContent = dir === 'BULLISH' ? 'arrow_upward' : dir === 'BEARISH' ? 'arrow_downward' : 'remove';
-        iconEl.style.color  = dir === 'BULLISH' ? '#22c55e' : dir === 'BEARISH' ? '#ef4444' : '#facc15';
+
+    // ── responsive grid ──────────────────────────────────────────────────────
+    function ppSetGrid() {
+        const grid = document.getElementById('pp-prediction-grid');
+        if (grid) grid.style.gridTemplateColumns = window.innerWidth < 800 ? '1fr' : '1fr 2fr';
     }
-    if (cardEl) {
-        cardEl.style.borderColor = dir === 'BULLISH' ? 'rgba(34,197,94,0.3)' : dir === 'BEARISH' ? 'rgba(239,68,68,0.3)' : 'rgba(250,204,21,0.2)';
-    }
-    if (chgEl) {
-        chgEl.textContent = (chg >= 0 ? '+' : '') + (chg * 100).toFixed(3) + '%';
-        chgEl.className = 'pp-pred-value ' + (chg > 0.0005 ? 'pp-bull' : chg < -0.0005 ? 'pp-bear' : 'pp-neut');
-    }
-    if (confEl) confEl.textContent = (conf * 100).toFixed(1) + '%';
-    if (histEl) histEl.textContent = hist.toLocaleString() + ' rows';
-}
+    ppSetGrid();
+    window.addEventListener('resize', ppSetGrid);
 
-function ppRenderMatchesTable(data) {
-    const wrap = document.getElementById('pp-matches-table-wrap');
-    const badge = document.getElementById('pp-match-count');
-    if (!wrap) return;
+    // ── initial load ─────────────────────────────────────────────────────────
+    ppLoad();
+    ppLoadPrediction();
+    ppLoadAccuracy();
 
-    const matches = data.matches || [];
-    if (badge) badge.textContent = `${matches.length} match${matches.length !== 1 ? 'es' : ''}`;
-
-    if (data.error === 'insufficient_history') {
-        wrap.innerHTML = `<div style="text-align:center;padding:32px;color:rgba(255,255,255,0.3);font-size:0.75rem;letter-spacing:1px">
-            ⏳ BUILDING HISTORY — ${data.rows_available || 0} / ${(data.rows_needed || 30) * 2} ticks collected.<br>
-            <span style="color:rgba(255,255,255,0.2);font-size:0.65rem">Pattern matching activates once enough 1-minute ticks are stored. Check back in a few hours.</span>
-        </div>`;
-        return;
-    }
-
-    if (!matches.length) {
-        wrap.innerHTML = `<div style="text-align:center;padding:32px;color:rgba(255,255,255,0.3);font-size:0.75rem;letter-spacing:1px">No matches found yet — history is accumulating.</div>`;
-        return;
-    }
-
-    const maxDist = Math.max(...matches.map(m => m.distance), 1);
-
-    const rows = matches.map((m, i) => {
-        const chg = m.price_change_pct || 0;
-        const chgClass = chg > 0.05 ? 'pp-change-pos' : chg < -0.05 ? 'pp-change-neg' : 'pp-change-neu';
-        const chgStr = (chg >= 0 ? '+' : '') + chg.toFixed(3) + '%';
-        const barW = Math.round((1 - m.distance / maxDist) * 100);
-        const barColor = chg > 0 ? '#22c55e' : chg < 0 ? '#ef4444' : '#facc15';
-        const similarity = Math.round((1 - m.distance / maxDist) * 100);
-        return `<tr>
-            <td style="color:rgba(255,255,255,0.4);font-size:0.65rem">Match #${i + 1}</td>
-            <td class="pp-match-dist">${m.distance.toFixed(3)}
-                <span class="pp-match-bar" style="width:${barW}px;background:${barColor}"></span>
-            </td>
-            <td style="font-size:0.68rem">${similarity}%</td>
-            <td style="font-size:0.68rem;color:rgba(255,255,255,0.5)">${(m.window_start||'').slice(0,16).replace('T',' ')}</td>
-            <td style="font-size:0.68rem;color:rgba(255,255,255,0.5)">${(m.window_end||'').slice(0,16).replace('T',' ')}</td>
-            <td class="${chgClass}">${chgStr}</td>
-            <td style="font-size:0.68rem;color:rgba(167,139,250,0.8)">${m.regime || '—'}</td>
-        </tr>`;
-    }).join('');
-
-    wrap.innerHTML = `<div style="overflow-x:auto">
-        <table class="pp-table">
-            <thead><tr>
-                <th>Rank</th>
-                <th>Distance</th>
-                <th>Similarity</th>
-                <th>Window Start</th>
-                <th>Window End</th>
-                <th>BTC Move After</th>
-                <th>Regime</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-        </table>
-    </div>`;
-}
-
-function ppRenderTicksTable(history) {
-    const wrap = document.getElementById('pp-ticks-wrap');
-    if (!wrap || !history.length) return;
-
-    const recent = [...history].reverse().slice(0, 60);
-    const rows = recent.map(r => {
-        const ci = r.ci_value || 0;
-        const ciColor = ci > 10 ? '#22c55e' : ci < -10 ? '#ef4444' : '#facc15';
-        const ciDir   = ci > 10 ? '↑' : ci < -10 ? '↓' : '→';
-        return `<tr>
-            <td style="font-size:0.65rem;color:rgba(255,255,255,0.4)">${(r.ts||'').slice(0,16).replace('T',' ')}</td>
-            <td style="font-weight:900;color:${ciColor}">${ciDir} ${ci.toFixed(2)}</td>
-            <td style="color:rgba(255,255,255,0.6)">${(r.rsi||0).toFixed(1)}</td>
-            <td style="color:#a78bfa">${((r.bb_pos||0)*100).toFixed(0)}%</td>
-            <td style="color:rgba(255,255,255,0.6)">${(r.fear_greed||50).toFixed(0)}</td>
-            <td style="font-size:0.68rem;color:rgba(255,255,255,0.5)">${r.regime||'—'}</td>
-            <td style="font-size:0.68rem;color:rgba(255,255,255,0.5)">$${(r.btc_price||0).toLocaleString('en-US',{maximumFractionDigits:0})}</td>
-        </tr>`;
-    }).join('');
-
-    wrap.innerHTML = `<div class="pp-ticks-scroll"><table class="pp-table">
-        <thead><tr>
-            <th>Time (UTC)</th>
-            <th>CI Value</th>
-            <th>RSI</th>
-            <th>BB Pos</th>
-            <th>F&amp;G</th>
-            <th>Regime</th>
-            <th>BTC Price</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-    </table></div>`;
+    // Auto-refresh every 60s
+    window._ppAutoRefresh = setInterval(() => {
+        ppLoad();
+        ppLoadPrediction();
+        ppLoadAccuracy();
+    }, 60000);
 }

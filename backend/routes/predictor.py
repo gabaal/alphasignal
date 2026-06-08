@@ -1,64 +1,84 @@
 """
-Pattern Predictor API Route Mixin
-===================================
-GET /api/market-prediction  – returns pattern match + prediction for the frontend
-GET /api/composite-index    – returns recent CI history for the sparkline chart
+Predictor Routes Mixin
+======================
+Provides:
+  GET /api/composite-index  → CI history (1m / 1h / 1d timeframes)
+  GET /api/market-prediction → Regime-conditioned pattern match + prediction
+  GET /api/predictor-accuracy → Accuracy stats and recent prediction log
 """
-import sqlite3
 import json
 from datetime import datetime
 
-from backend.database import DB_PATH
-from backend.predictor_service import PREDICTOR_SVC
+from backend.predictor_service import PREDICTOR_SVC, PredictorService
 
 
 class PredictorRoutesMixin:
 
-    def handle_market_prediction(self, query_params):
+    # ── GET /api/composite-index ──────────────────────────────────────────────
+    def handle_composite_index(self, query_params):
         """
-        GET /api/market-prediction?lookback=30&top_n=5
-
-        Returns the current pattern match result from the predictor service.
+        Returns CI history for the sparkline.
+        Query params:
+          limit     – number of rows (default 120)
+          timeframe – '1m' | '1h' | '1d' (default '1m')
         """
         try:
-            lookback = int(query_params.get("lookback", ["30"])[0])
-            top_n    = int(query_params.get("top_n",    ["5"])[0])
+            limit     = int(query_params.get('limit', ['120'])[0])
+            timeframe = str(query_params.get('timeframe', ['1m'])[0]).strip()
+            if timeframe not in ('1m', '1h', '1d'):
+                timeframe = '1m'
+            limit = max(10, min(limit, 2000))
+
+            rows = PredictorService.get_ci_timeframe(timeframe=timeframe, limit=limit)
+
+            if isinstance(rows, dict) and 'error' in rows:
+                self.send_json({'error': rows['error'], 'ticks': []})
+                return
+
+            self.send_json({
+                'ticks':     rows,
+                'count':     len(rows),
+                'timeframe': timeframe,
+            })
+
+        except Exception as e:
+            self.send_json({'error': str(e), 'ticks': []})
+
+    # ── GET /api/market-prediction ────────────────────────────────────────────
+    def handle_market_prediction(self, query_params):
+        """
+        Pattern-matches current CI fingerprint against history.
+        Query params:
+          lookback – window size in minutes (default 30)
+          top_n    – number of top matches to return (default 5)
+          regime_filter – '1' (default) | '0' to disable
+        """
+        try:
+            lookback      = int(query_params.get('lookback', ['30'])[0])
+            top_n         = int(query_params.get('top_n',    ['5'])[0])
+            regime_filter = query_params.get('regime_filter', ['1'])[0] != '0'
+
             lookback = max(5, min(lookback, 120))
             top_n    = max(1, min(top_n, 20))
 
-            result = PREDICTOR_SVC.match_current_pattern(
+            result = PredictorService.match_current_pattern(
                 lookback_minutes=lookback,
                 top_n=top_n,
+                regime_filter=regime_filter,
             )
+
             self.send_json(result)
+
         except Exception as e:
-            self.send_error_json(str(e))
+            self.send_json({'error': str(e)})
 
-    def handle_composite_index(self, query_params):
+    # ── GET /api/predictor-accuracy ───────────────────────────────────────────
+    def handle_predictor_accuracy(self, query_params=None):
         """
-        GET /api/composite-index?limit=120
-
-        Returns the last N rows from composite_index_history for the sparkline.
+        Returns prediction accuracy stats and recent prediction log.
         """
         try:
-            limit = int(query_params.get("limit", ["120"])[0])
-            limit = max(10, min(limit, 1440))    # 1 min to 24 h
-
-            with sqlite3.connect(DB_PATH, timeout=10) as conn:
-                conn.row_factory = sqlite3.Row
-                rows = conn.execute("""
-                    SELECT ts, ci_value, rsi, bb_pos, macd, vol_change,
-                           fear_greed, regime, sentiment, btc_price
-                    FROM composite_index_history
-                    ORDER BY ts DESC
-                    LIMIT ?
-                """, (limit,)).fetchall()
-
-            data = [dict(r) for r in reversed(rows)]
-            self.send_json({
-                "history": data,
-                "count":   len(data),
-                "latest":  data[-1] if data else None,
-            })
+            stats = PredictorService.get_accuracy_stats()
+            self.send_json(stats)
         except Exception as e:
-            self.send_error_json(str(e))
+            self.send_json({'error': str(e)})

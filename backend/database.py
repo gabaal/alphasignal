@@ -566,21 +566,57 @@ def init_db():
     # One row per minute: a numerical fingerprint of the market's multi-factor state.
     # Used to match the current pattern against history and predict directional bias.
     c.execute('''CREATE TABLE IF NOT EXISTS composite_index_history (
-        id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        ts         DATETIME NOT NULL,
-        ci_value   REAL NOT NULL,        -- Composite Index score (-100 to +100)
-        z_score    REAL,                 -- Market-wide mean Z-score
-        rsi        REAL,                 -- BTC RSI-14
-        bb_pos     REAL,                 -- BTC Bollinger Band position (0-1)
-        macd       REAL,                 -- BTC MACD value
-        vol_change REAL,                 -- BTC volume % change vs prev period
-        fear_greed REAL,                 -- Fear & Greed index (0-100)
-        regime     TEXT,                 -- Current HMM regime label
-        sentiment  REAL,                 -- Aggregate BTC sentiment score
-        btc_price  REAL                  -- BTC price at this minute
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        ts             DATETIME NOT NULL,
+        ci_value       REAL NOT NULL,        -- Composite Index score (-100 to +100)
+        z_score        REAL,                 -- Market-wide mean Z-score
+        rsi            REAL,                 -- BTC RSI-14
+        bb_pos         REAL,                 -- BTC Bollinger Band position (0-1)
+        macd           REAL,                 -- BTC MACD value
+        vol_change     REAL,                 -- BTC volume % change vs prev period
+        fear_greed     REAL,                 -- Fear & Greed index (0-100)
+        regime         TEXT,                 -- Current HMM regime label
+        sentiment      REAL,                 -- Aggregate BTC sentiment score
+        btc_price      REAL,                 -- BTC price at this minute
+        mvrv_proxy     REAL,                 -- MVRV proxy (price / 200d avg)
+        whale_score    REAL,                 -- Net whale flow score (-1 to +1)
+        exch_flow_score REAL                 -- Exchange inflow/outflow score (-1 to +1)
     )''')
+    # Migrations: add new columns to existing prod databases
+    for col, definition in [
+        ('mvrv_proxy',      'REAL'),
+        ('whale_score',     'REAL'),
+        ('exch_flow_score', 'REAL'),
+    ]:
+        try:
+            c.execute(f'ALTER TABLE composite_index_history ADD COLUMN {col} {definition}')
+        except Exception:
+            pass  # column already exists
     try:
         c.execute("CREATE INDEX IF NOT EXISTS idx_cih_ts ON composite_index_history(ts DESC)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_cih_regime ON composite_index_history(regime, ts DESC)")
+    except: pass
+
+    # ── Predictor Accuracy (Pattern Predictor v2) ─────────────────────────────
+    # Records every prediction made and resolves the outcome after lookback_minutes.
+    c.execute('''CREATE TABLE IF NOT EXISTS predictor_accuracy (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        predicted_at     DATETIME NOT NULL,
+        lookback_minutes INTEGER NOT NULL,
+        regime           TEXT,
+        predicted_dir    TEXT NOT NULL,      -- 'BULLISH' | 'BEARISH' | 'NEUTRAL'
+        predicted_change REAL,
+        confidence       REAL,
+        btc_price_at     REAL,
+        btc_price_after  REAL,               -- filled after lookback_minutes pass
+        actual_change    REAL,               -- actual % move
+        was_correct      INTEGER,            -- 1=correct, 0=wrong, NULL=pending
+        resolved_at      DATETIME
+    )''')
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_pa_ts ON predictor_accuracy(predicted_at DESC)")
     except: pass
 
     conn.commit()
