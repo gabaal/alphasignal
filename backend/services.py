@@ -955,11 +955,7 @@ class HarvestService:
             except Exception as e:
                 print(f"Snapshot error: {e}")
 
-            # Phase 9: Auto-close signals that have hit TP2 or Stop Loss
-            try:
-                self.auto_close_signals()
-            except Exception as e:
-                print(f"Auto-close error: {e}")
+
 
             time.sleep(self.interval)
     def auto_close_signals(self):
@@ -985,18 +981,32 @@ class HarvestService:
                 active_rows = c.fetchall()
                 if not active_rows:
                     return
-
-                # Build price map from most recent market_ticks (written this cycle)
                 unique_tickers = list({r[2] for r in active_rows})
+                print(f"[AutoClose] Fast-loop check: Found {len(active_rows)} active signals for {unique_tickers}", flush=True)
                 price_map = {}
+                try:
+                    from backend.routes.institutional import InstitutionalRoutesMixin as IRM
+                    for t in unique_tickers:
+                        cached_entry = IRM._price_cache.get(t) or IRM._price_cache.get(t + '-USD')
+                        if cached_entry:
+                            if isinstance(cached_entry, tuple) and len(cached_entry) > 0:
+                                price_map[t] = float(cached_entry[0])
+                            elif isinstance(cached_entry, dict) and 'price' in cached_entry:
+                                price_map[t] = float(cached_entry['price'])
+                            elif isinstance(cached_entry, (int, float)):
+                                price_map[t] = float(cached_entry)
+                except Exception as cache_err:
+                    print(f"[AutoClose] Error checking InstitutionalRoutesMixin._price_cache: {cache_err}")
+
                 for t in unique_tickers:
-                    c.execute(
-                        "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
-                        (t,)
-                    )
-                    row = c.fetchone()
-                    if row and row[0]:
-                        price_map[t] = float(row[0])
+                    if t not in price_map:
+                        c.execute(
+                            "SELECT price FROM market_ticks WHERE symbol=? AND price>0 ORDER BY timestamp DESC LIMIT 1",
+                            (t,)
+                        )
+                        row = c.fetchone()
+                        if row and row[0]:
+                            price_map[t] = float(row[0])
 
             # yfinance fallback for any ticker still missing
             missing = [t for t in unique_tickers if t not in price_map]
@@ -1015,6 +1025,7 @@ class HarvestService:
                 except Exception as e:
                     print(f"[AutoClose] yfinance fallback error: {e}")
 
+            print(f"[AutoClose] Resolved price map: {price_map}", flush=True)
             now_ts  = datetime.utcnow().isoformat()
             now_dt  = datetime.utcnow()
             closed  = 0

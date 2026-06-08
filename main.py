@@ -486,6 +486,19 @@ if __name__ == "__main__":
     print("Starting background Harvester thread...", flush=True)
     h_thread.start()
 
+    # Start Fast-Loop Stop Loss / Take Profit Checker (every 30s)
+    def run_stop_loss_loop():
+        print("Starting background Stop-Loss / Take-Profit Fast-Loop (30s)...", flush=True)
+        time.sleep(10)
+        while True:
+            try:
+                harvester.auto_close_signals()
+            except Exception as e:
+                print(f"[StopLossFastLoop] Error in auto-close: {e}", flush=True)
+            time.sleep(30)
+
+    threading.Thread(target=run_stop_loss_loop, daemon=True).start()
+
     # Start Intraday Rescan: re-checks near-miss tickers every 5 min for MTF flip
     intraday_rescan = IntradayRescanService(ws_server=ws_server)
     ir_thread = threading.Thread(target=intraday_rescan.run, daemon=True)
