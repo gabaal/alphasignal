@@ -415,15 +415,19 @@ if __name__ == "__main__":
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
-        c.execute("SELECT id, price, exit_price FROM alerts_history WHERE type = 'ML_ALPHA_PREDICTION' AND direction = 'SHORT' AND status = 'closed'")
-        for row_id, entry_p, exit_p in c.fetchall():
-            if entry_p and exit_p and entry_p > 0:
-                true_roi = round(-1 * (exit_p - entry_p) / entry_p * 100, 2)
-                c.execute("UPDATE alerts_history SET final_roi = ?, max_roi = ?, tp1_hit = ? WHERE id = ?", (true_roi, max(0.0, true_roi), 1 if true_roi >= 5.0 else 0, row_id))
-        c.execute("UPDATE alerts_history SET max_roi = 0.0, tp1_hit = 0 WHERE type = 'ML_ALPHA_PREDICTION' AND direction = 'SHORT' AND COALESCE(status, 'active') = 'active'")
-        conn.commit()
+        c.execute("CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY)")
+        c.execute("SELECT 1 FROM schema_migrations WHERE version='clean_reset_v1'")
+        if not c.fetchone():
+            c.execute("DELETE FROM alerts_history")
+            c.execute("DELETE FROM signal_suppression_log")
+            c.execute("DELETE FROM trade_ledger")
+            c.execute("DELETE FROM positions")
+            c.execute("INSERT INTO schema_migrations (version) VALUES ('clean_reset_v1')")
+            conn.commit()
+            print("[PROD FIX] Successfully ran clean reset of database tables.", flush=True)
+        else:
+            print("[PROD FIX] Reset already applied previously. Skipping.", flush=True)
         conn.close()
-        print("[PROD FIX] Successfully ran PnL correction on database.", flush=True)
     except Exception as e:
         print(f"[PROD FIX FAILED] {e}", flush=True)
     # -------------------------
