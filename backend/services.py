@@ -783,6 +783,38 @@ NEAR_MISS_TTL_SECS = 4 * 3600   # 4 hours
 _near_miss_cache: dict = {}
 _near_miss_lock  = threading.Lock()
 
+# ─────────────────────────────────────────────────────────────────────────────
+# In-memory signal fire guard — prevents race-condition duplicate inserts.
+# When concurrent threads pass the DB dedup SELECT before any INSERT commits,
+# this set acts as a fast pre-check. Keys are (ticker, direction, type) tuples
+# and are held for SIGNAL_INFLIGHT_TTL_SECS before expiring.
+# ─────────────────────────────────────────────────────────────────────────────
+SIGNAL_INFLIGHT_TTL_SECS = 3600   # 1 hour — matches the DB 1h dedup window
+_signal_inflight: dict = {}        # key -> expiry timestamp
+_signal_inflight_lock = threading.Lock()
+
+def _inflight_check_and_set(ticker: str, direction: str, signal_type: str) -> bool:
+    """Return True (blocked) if this signal key is already in-flight.
+    Otherwise register it and return False (allowed to proceed)."""
+    import time
+    key = (ticker, direction, signal_type)
+    now = time.time()
+    with _signal_inflight_lock:
+        # Expire stale entries
+        stale = [k for k, exp in _signal_inflight.items() if exp < now]
+        for k in stale:
+            del _signal_inflight[k]
+        if key in _signal_inflight:
+            return True   # already in-flight — block
+        _signal_inflight[key] = now + SIGNAL_INFLIGHT_TTL_SECS
+        return False      # first to fire — allow
+
+def _inflight_clear(ticker: str, direction: str, signal_type: str):
+    """Remove a key from the in-flight set (e.g. on error)."""
+    key = (ticker, direction, signal_type)
+    with _signal_inflight_lock:
+        _signal_inflight.pop(key, None)
+
 def _bank_near_miss(ticker, direction, z_score, pred_return, price,
                     severity, signal_type, message, category, enabled_users):
     """Store a near-miss entry so the fast loop can re-evaluate it."""
@@ -1477,6 +1509,13 @@ class HarvestService:
             elif _mtf_score < 35:
                 severity = 'medium'
 
+            # In-memory race-condition guard: if another thread already
+            # started inserting this (ticker, direction, type) within the
+            # last hour, skip the entire user loop for this signal.
+            if _inflight_check_and_set(ticker, _direction, signal_type):
+                print(f"[SignalGuard] Blocked duplicate in-flight: {ticker} {_direction} {signal_type}")
+                continue
+
             for target_email in enabled_users:
                 # Per-user anti-spam: suppress only if the SAME direction
                 # already fired for this ticker in the last 1h.
@@ -1872,6 +1911,11 @@ class HarvestService:
                 rule_users = []
 
             users_inserted = 0
+            # In-memory race-condition guard for rule-based signals
+            _rule_direction = 'LONG' if 'OVERSOLD' in sig_type or 'BULLISH' in sig_type else 'SHORT' if 'OVERBOUGHT' in sig_type or 'BEARISH' in sig_type else 'NEUTRAL'
+            if _inflight_check_and_set(ticker, _rule_direction, sig_type):
+                print(f"[SignalGuard] Blocked duplicate rule signal in-flight: {ticker} {sig_type}")
+                continue
             for ru_email in rule_users:
                 # 3-hour DB dedup: skip if we already recorded this alert within 3h
                 c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-3 hours')",
