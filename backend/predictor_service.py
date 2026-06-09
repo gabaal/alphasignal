@@ -762,6 +762,67 @@ class PredictorService:
         except Exception as e:
             return {"error": str(e)}
 
+    # ── one-time startup backfill ─────────────────────────────────────────────
+
+    def _backfill_regime_labels(self):
+        """Fix any predictor_accuracy rows that have regime = 'Unknown'.
+
+        Tries to match each row against the nearest composite_index_history tick.
+        Falls back to the current HMM label for rows with no close CI record.
+        Safe to call repeatedly — only touches rows with 'Unknown' or NULL regime.
+        """
+        try:
+            # Get current HMM label as fallback
+            fallback = 'Dislocation'
+            try:
+                from backend.routes.regime_hmm import HMM_ENGINE
+                res = HMM_ENGINE.predict_regime('BTC-USD')
+                if res.get('current_label') and not res.get('training'):
+                    fallback = res['current_label']
+            except Exception:
+                pass
+
+            with sqlite3.connect(DB_PATH, timeout=30) as conn:
+                conn.row_factory = sqlite3.Row
+                c = conn.cursor()
+
+                c.execute("""
+                    SELECT id, predicted_at FROM predictor_accuracy
+                    WHERE regime IS NULL OR regime = '' OR regime = 'Unknown'
+                """)
+                rows = c.fetchall()
+
+                if not rows:
+                    return
+
+                print(f"[Predictor v2] Backfilling regime on {len(rows)} rows...", flush=True)
+                fixed = 0
+                for row in rows:
+                    # Try closest CI tick within 90 minutes
+                    ci = conn.execute("""
+                        SELECT regime
+                        FROM composite_index_history
+                        WHERE regime IS NOT NULL
+                          AND regime != ''
+                          AND regime != 'Unknown'
+                          AND ABS(strftime('%s', ts) - strftime('%s', ?)) < 5400
+                        ORDER BY ABS(strftime('%s', ts) - strftime('%s', ?)) ASC
+                        LIMIT 1
+                    """, (row['predicted_at'], row['predicted_at'])).fetchone()
+
+                    regime = ci['regime'] if ci else fallback
+                    c.execute(
+                        "UPDATE predictor_accuracy SET regime = ? WHERE id = ?",
+                        (regime, row['id'])
+                    )
+                    fixed += 1
+
+                conn.commit()
+                print(f"[Predictor v2] Regime backfill complete: {fixed} rows updated.", flush=True)
+
+        except Exception as e:
+            print(f"[Predictor v2] Regime backfill error: {e}", flush=True)
+
     # ── main loop ─────────────────────────────────────────────────────────────
 
     def run(self):
@@ -769,6 +830,8 @@ class PredictorService:
         print(f"[Predictor v2] Service starting (interval={self.INTERVAL}s)...", flush=True)
         # Stagger start so boot isn't swamped
         time.sleep(30)
+        # Backfill any Unknown regime rows from before the fix
+        self._backfill_regime_labels()
         prune_counter = 0
         daily_refresh_counter = 0
 
