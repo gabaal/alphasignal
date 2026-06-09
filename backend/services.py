@@ -1415,274 +1415,275 @@ class HarvestService:
                 print(f"Prediction loop error for {ticker}: {e}")
                 continue
 
-            # Gate summary
-            _top_z = sorted(_sample_z, key=lambda x: abs(x[1]), reverse=True)[:5]
-            print(f"[{datetime.now()}] MLAlphaEngine GATES: {_gate} | threshold={ml_z_thresh if '_sample_z' else '?'} | top_z={_top_z}", flush=True)
+        # Gate summary
+        _top_z = sorted(_sample_z, key=lambda x: abs(x[1]), reverse=True)[:5]
+        print(f"[{datetime.now()}] MLAlphaEngine GATES: {_gate} | threshold={ml_z_thresh if '_sample_z' else '?'} | top_z={_top_z}", flush=True)
 
-            # Phase B: Group candidates by category and filter using Option 3 (Best-of-Breed)
-            # Keep only the top 2 signals per category (sorted by abs(z_score) descending)
-            promoted_candidates = []
-            by_category = {}
-            for cand in candidates:
-                cat = cand['_cat']
-                if cat not in by_category:
-                    by_category[cat] = []
-                by_category[cat].append(cand)
+        # Phase B: Group candidates by category and filter using Option 3 (Best-of-Breed)
+        # Keep only the top 2 signals per category (sorted by abs(z_score) descending)
+        promoted_candidates = []
+        by_category = {}
+        for cand in candidates:
+            cat = cand['_cat']
+            if cat not in by_category:
+                by_category[cat] = []
+            by_category[cat].append(cand)
 
-            for cat, cat_cands in by_category.items():
-                if len(cat_cands) > 2:
-                    # Sort descending by absolute z_score
-                    sorted_cands = sorted(cat_cands, key=lambda x: abs(x['z_score']), reverse=True)
-                    top_2 = sorted_cands[:2]
-                    suppressed = sorted_cands[2:]
-                    
-                    promoted_candidates.extend(top_2)
-                    for cand in suppressed:
-                        ticker = cand['ticker']
-                        _direction = cand['_direction']
-                        z_score = cand['z_score']
-                        pred_return = cand['pred_return']
-                        curr_p = cand['curr_p']
-                        _log_suppression(
-                            ticker, _direction, 'CORRELATION_RANK',
-                            f"Ranked below top 2 in category {cat} (z_score={z_score:+.2f}z)",
-                            z_score=z_score, pred_return=pred_return, price=curr_p
-                        )
-                else:
-                    promoted_candidates.extend(cat_cands)
+        for cat, cat_cands in by_category.items():
+            if len(cat_cands) > 2:
+                # Sort descending by absolute z_score
+                sorted_cands = sorted(cat_cands, key=lambda x: abs(x['z_score']), reverse=True)
+                top_2 = sorted_cands[:2]
+                suppressed = sorted_cands[2:]
 
-            # Phase C: Write promoted signals to database and dispatch notifications
-            for cand in promoted_candidates:
-                ticker = cand['ticker']
-                pred_return = cand['pred_return']
-                importance = cand['importance']
-                confidence = cand['confidence']
-                z_score = cand['z_score']
-                curr_p = cand['curr_p']
-                signal_type = cand['signal_type']
-                severity = cand['severity']
-                message = cand['message']
-                _direction = cand['_direction']
-                _z = cand['_z']
-                _alpha = cand['_alpha']
-                _cat = cand['_cat']
-                _mtf_score = cand['_mtf_score']
-                _mtf_detail = cand['_mtf_detail']
-
-                # Adjust severity based on confluence score
-                if _mtf_score >= 75:
-                    severity = 'critical'
-                elif _mtf_score >= 50:
-                    severity = severity if severity in ('critical', 'high') else 'high'
-                elif _mtf_score < 35:
-                    severity = 'medium'
-
-                for target_email in enabled_users:
-                    # Per-user anti-spam: suppress only if the SAME direction
-                    # already fired for this ticker in the last 1h.
-                    c.execute(
-                        "SELECT id FROM alerts_history "
-                        "WHERE ticker=? AND user_email=? AND direction=? "
-                        "AND timestamp > datetime('now', '-1 hours')",
-                        (ticker, target_email, _direction)
+                promoted_candidates.extend(top_2)
+                for cand in suppressed:
+                    ticker = cand['ticker']
+                    _direction = cand['_direction']
+                    z_score = cand['z_score']
+                    pred_return = cand['pred_return']
+                    curr_p = cand['curr_p']
+                    _log_suppression(
+                        ticker, _direction, 'CORRELATION_RANK',
+                        f"Ranked below top 2 in category {cat} (z_score={z_score:+.2f}z)",
+                        z_score=z_score, pred_return=pred_return, price=curr_p
                     )
-                    if c.fetchone():
-                        continue
+            else:
+                promoted_candidates.extend(cat_cands)
 
-                    # ── Signal Reversal Gate ──────────────────────────────────────
-                    _BULLISH_TYPES = {
-                        'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','MACD_CROSS_UP',
-                        'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
-                        'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
-                        'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
-                    }
-                    try:
-                        c.execute(
-                            "SELECT id, type, price FROM alerts_history "
-                            "WHERE ticker=? AND user_email=? AND COALESCE(status,'active')='active'",
-                            (ticker, target_email)
-                        )
-                        for ex_id, ex_type, ex_entry in c.fetchall():
-                            ex_is_long = ex_type in _BULLISH_TYPES
-                            new_is_long = _direction == 'LONG'
-                            if ex_is_long != new_is_long:
-                                # Conflicting direction — auto-close at current price
-                                ex_roi = round(
-                                    (1 if ex_is_long else -1) * (curr_p - ex_entry) / ex_entry * 100, 2
-                                ) if ex_entry and ex_entry > 0 else 0.0
-                                c.execute(
-                                    "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
-                                    (datetime.now().isoformat(), round(curr_p, 10), ex_roi, ex_id)
-                                )
-                                conn.commit()
-                                print(f"[SignalReversal] Auto-closed {ex_type} #{ex_id} on {ticker} "
-                                      f"(ROI={ex_roi:+.2f}%) — superseded by new {_direction} signal")
-                    except Exception as _rev_e:
-                        print(f"[SignalReversal] Error checking conflicts for {ticker}: {_rev_e}")
+        # Phase C: Write promoted signals to database and dispatch notifications
+        for cand in promoted_candidates:
+            ticker = cand['ticker']
+            pred_return = cand['pred_return']
+            importance = cand['importance']
+            confidence = cand['confidence']
+            z_score = cand['z_score']
+            curr_p = cand['curr_p']
+            signal_type = cand['signal_type']
+            severity = cand['severity']
+            message = cand['message']
+            _direction = cand['_direction']
+            _z = cand['_z']
+            _alpha = cand['_alpha']
+            _cat = cand['_cat']
+            _mtf_score = cand['_mtf_score']
+            _mtf_detail = cand['_mtf_detail']
 
-                    # Insert to alerts_history
+            # Adjust severity based on confluence score
+            if _mtf_score >= 75:
+                severity = 'critical'
+            elif _mtf_score >= 50:
+                severity = severity if severity in ('critical', 'high') else 'high'
+            elif _mtf_score < 35:
+                severity = 'medium'
+
+            for target_email in enabled_users:
+                # Per-user anti-spam: suppress only if the SAME direction
+                # already fired for this ticker in the last 1h.
+                c.execute(
+                    "SELECT id FROM alerts_history "
+                    "WHERE ticker=? AND user_email=? AND direction=? "
+                    "AND timestamp > datetime('now', '-1 hours')",
+                    (ticker, target_email, _direction)
+                )
+                if c.fetchone():
+                    continue
+
+                # ── Signal Reversal Gate ──────────────────────────────────────
+                _BULLISH_TYPES = {
+                    'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','MACD_CROSS_UP',
+                    'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
+                    'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
+                    'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
+                }
+                try:
                     c.execute(
-                        "INSERT INTO alerts_history "
-                        "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category, user_email, mtf_score, mtf_detail) "
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (signal_type, ticker, message, severity, curr_p,
-                         datetime.now().isoformat(), _z, _alpha, _direction, _cat, target_email,
-                         _mtf_score, json.dumps(_mtf_detail))
+                        "SELECT id, type, price FROM alerts_history "
+                        "WHERE ticker=? AND user_email=? AND COALESCE(status,'active')='active'",
+                        (ticker, target_email)
                     )
-                    conn.commit()
-                    # Signal fired — remove from near-miss cache to prevent double-fire
-                    with _near_miss_lock:
-                        _near_miss_cache.pop(ticker, None)
+                    for ex_id, ex_type, ex_entry in c.fetchall():
+                        ex_is_long = ex_type in _BULLISH_TYPES
+                        new_is_long = _direction == 'LONG'
+                        if ex_is_long != new_is_long:
+                            # Conflicting direction — auto-close at current price
+                            ex_roi = round(
+                                (1 if ex_is_long else -1) * (curr_p - ex_entry) / ex_entry * 100, 2
+                            ) if ex_entry and ex_entry > 0 else 0.0
+                            c.execute(
+                                "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                                (datetime.now().isoformat(), round(curr_p, 10), ex_roi, ex_id)
+                            )
+                            conn.commit()
+                            print(f"[SignalReversal] Auto-closed {ex_type} #{ex_id} on {ticker} "
+                                  f"(ROI={ex_roi:+.2f}%) — superseded by new {_direction} signal")
+                except Exception as _rev_e:
+                    print(f"[SignalReversal] Error checking conflicts for {ticker}: {_rev_e}")
 
-                # Notification dispatches
-                if enabled_users:
-                    print(f"[{datetime.now()}] !!! ALPHA ALERT: {ticker} @ {curr_p} -> inserted for {len(enabled_users)} user(s)")
+                # Insert to alerts_history
+                c.execute(
+                    "INSERT INTO alerts_history "
+                    "(type, ticker, message, severity, price, timestamp, z_score, alpha, direction, category, user_email, mtf_score, mtf_detail) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (signal_type, ticker, message, severity, curr_p,
+                     datetime.now().isoformat(), _z, _alpha, _direction, _cat, target_email,
+                     _mtf_score, json.dumps(_mtf_detail))
+                )
+                conn.commit()
+                # Signal fired — remove from near-miss cache to prevent double-fire
+                with _near_miss_lock:
+                    _near_miss_cache.pop(ticker, None)
 
-                    # Watchlist-targeted alerts (personalised)
-                    threading.Thread(target=notify_watchlist_users,
-                        args=(ticker, signal_type, message, severity, curr_p),
-                        daemon=True).start()
+            # Notification dispatches
+            if enabled_users:
+                print(f"[{datetime.now()}] !!! ALPHA ALERT: {ticker} @ {curr_p} -> inserted for {len(enabled_users)} user(s)")
 
-                    # Rich Multi-Channel Dispatch with user z_threshold gate
+                # Watchlist-targeted alerts (personalised)
+                threading.Thread(target=notify_watchlist_users,
+                    args=(ticker, signal_type, message, severity, curr_p),
+                    daemon=True).start()
+
+                # Rich Multi-Channel Dispatch with user z_threshold gate
+                try:
+                    with sqlite3.connect(DB_PATH, timeout=30) as alert_conn:
+                        alert_c = alert_conn.cursor()
+                        alert_c.execute("SELECT user_email, z_threshold, algo_webhook, exchange_name, exchange_api_key, exchange_api_secret, native_execution_enabled, trade_size_usd FROM user_settings WHERE alerts_enabled != 0")
+                        for row in alert_c.fetchall():
+                            target_email = row[0]
+                            user_z_thresh = float(row[1]) if row[1] else 2.0
+                            algo_url = row[2] if len(row) > 2 and row[2] else None
+
+                            exch_name = row[3] if len(row) > 3 else None
+                            exch_key = row[4] if len(row) > 4 else None
+                            exch_sec = row[5] if len(row) > 5 else None
+                            nat_en = bool(row[6]) if len(row) > 6 else False
+                            trd_sz = float(row[7]) if len(row) > 7 and row[7] else 100.0
+
+                            if abs(z_score) >= user_z_thresh and _cat != 'EQUITIES':
+                                # Native Execution
+                                if nat_en and exch_name and exch_key and exch_sec:
+                                    def _fire_native(en=exch_name, ek=exch_key, es=exch_sec, tk=ticker, dr=_direction, sz=trd_sz):
+                                        try:
+                                            from backend.execution import NativeExecutionService
+                                            NativeExecutionService.execute_trade(en, ek, es, tk, dr, sz)
+                                        except Exception as e:
+                                            print(f"[NativeExecution] Error: {e}")
+                                    threading.Thread(target=_fire_native, daemon=True).start()
+
+                                # Issue Algorithmic Trade Webhook if configured
+                                if algo_url:
+                                    def _fire_algo(url=algo_url, t_email=target_email):
+                                        try:
+                                            payload = {
+                                                "action": "BUY" if pred_return > 0 else "SELL",
+                                                "ticker": ticker,
+                                                "price": curr_p,
+                                                "signal_type": signal_type,
+                                                "alpha_score": _alpha,
+                                                "timestamp": datetime.now().isoformat(),
+                                            }
+                                            import requests
+                                            requests.post(url, json=payload, timeout=3)
+                                        except Exception as we:
+                                            print(f"[AlgoWebhook] Error pushing to {t_email}: {we}")
+                                    threading.Thread(target=_fire_algo, daemon=True).start()
+
+                                # --- Internal Algo Bots ---
+                                try:
+                                    bot_conn = sqlite3.connect(DB_PATH, timeout=30)
+                                    bot_c = bot_conn.cursor()
+                                    bot_c.execute("SELECT id, name, condition_zscore, condition_regime, action_side, action_amount, action_exchange, asset, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email = ? AND status = 'active'", (target_email,))
+                                    bots = bot_c.fetchall()
+
+                                    for b_id, b_name, b_z, b_regime, b_side, b_amt, b_exch, b_asset, b_tp_pct, b_sl_pct in bots:
+                                        if abs(z_score) >= b_z:
+                                            if b_asset != 'ANY' and b_asset != ticker:
+                                                continue
+                                            if b_regime != 'ANY' and current_regime and current_regime != b_regime:
+                                                continue
+
+                                            action_dir = 'BUY' if pred_return > 0 else 'SELL'
+                                            if b_side != 'MATCH_SIGNAL':
+                                                action_dir = b_side.upper()
+
+                                            trade_action = f"{action_dir} (${b_amt}) [Bot: {b_name} | API: {b_exch}]"
+
+                                            tp_price = 0.0
+                                            sl_price = 0.0
+                                            if b_tp_pct and b_tp_pct > 0:
+                                                tp_price = curr_p * (1 + (b_tp_pct/100)) if action_dir == 'BUY' else curr_p * (1 - (b_tp_pct/100))
+                                            if b_sl_pct and b_sl_pct > 0:
+                                                sl_price = curr_p * (1 - (b_sl_pct/100)) if action_dir == 'BUY' else curr_p * (1 + (b_sl_pct/100))
+
+                                            bot_c.execute("INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                                                          (target_email, ticker, trade_action, curr_p, round(tp_price, 4), round(sl_price, 4), 0.0, 0.0))
+                                            bot_c.execute("UPDATE trading_bots SET last_triggered = ? WHERE id = ?", (datetime.now().isoformat(), b_id))
+                                            print(f"[AlgoBot] Executed {b_name} for {target_email} on {ticker}")
+                                    bot_conn.commit()
+                                    bot_conn.close()
+                                except Exception as be:
+                                    print(f"[AlgoBot] Error checking bots for {target_email}: {be}")
+
+                            # The standard push_webhook logic below still gates on z_thresh
+                            if abs(z_score) < user_z_thresh:
+                                continue
+                            if NotificationService.is_on_cooldown(target_email, ticker, signal_type):
+                                continue
+                            NotificationService.mark_sent(target_email, ticker, signal_type)
+                            direction = 'LONG' if pred_return > 0 else 'SHORT'
+                            top_driver = max(importance, key=importance.get)
+                            _action, _tp, _sl, _color, _emoji = NotificationService.build_action_fields(signal_type, direction, curr_p)
+                            _fp = NotificationService._fmt_price
+                            sym = ticker.replace('-USD', '')
+                            NOTIFY.push_webhook(
+                                target_email,
+                                f"{_emoji} {_action}: {sym}",
+                                f"ML Engine detected a high-conviction alpha window. Entry at {_fp(curr_p)}.",
+                                embed_color=_color,
+                                fields=[
+                                    {"name": "⚡ ACTION",       "value": _action,                 "inline": False},
+                                    {"name": "Entry Price",    "value": _fp(curr_p),              "inline": True},
+                                    {"name": "Take Profit",    "value": f"{_fp(_tp)} (+{NotificationService.TP_PCT:.0f}%)", "inline": True},
+                                    {"name": "Stop Loss",      "value": f"{_fp(_sl)} (-{NotificationService.SL_PCT:.0f}%)", "inline": True},
+                                    {"name": "Predicted Alpha","value": f"{_alpha:+.2f}%",         "inline": True},
+                                    {"name": "Z-Score",        "value": f"{z_score:+.2f}σ",        "inline": True},
+                                    {"name": "ML Confidence",  "value": f"{confidence*100:.0f}%",  "inline": True},
+                                ]
+                            )
+                except Exception as ne:
+                    print(f"Alert Dispatch Error: {ne}")
+
+                # Real-time WebSocket Broadcast to Frontend
+                if self.ws_server:
                     try:
-                        with sqlite3.connect(DB_PATH, timeout=30) as alert_conn:
-                            alert_c = alert_conn.cursor()
-                            alert_c.execute("SELECT user_email, z_threshold, algo_webhook, exchange_name, exchange_api_key, exchange_api_secret, native_execution_enabled, trade_size_usd FROM user_settings WHERE alerts_enabled != 0")
-                            for row in alert_c.fetchall():
-                                target_email = row[0]
-                                user_z_thresh = float(row[1]) if row[1] else 2.0
-                                algo_url = row[2] if len(row) > 2 and row[2] else None
-                                
-                                exch_name = row[3] if len(row) > 3 else None
-                                exch_key = row[4] if len(row) > 4 else None
-                                exch_sec = row[5] if len(row) > 5 else None
-                                nat_en = bool(row[6]) if len(row) > 6 else False
-                                trd_sz = float(row[7]) if len(row) > 7 and row[7] else 100.0
+                        _ws_action, _ws_tp, _ws_sl, _, _ws_emoji = NotificationService.build_action_fields(
+                            signal_type, 'LONG' if pred_return > 0 else 'SHORT', curr_p)
+                        self.ws_server.broadcast(json.dumps({
+                            'type': 'new_alert',
+                            'data': {
+                                'type': signal_type, 'ticker': ticker,
+                                'title': f"{_ws_emoji} {_ws_action}: {ticker.replace('-USD','')}",
+                                'content': message, 'severity': severity,
+                                'z_score': z_score,
+                                'predicted_return': float(pred_return) if pred_return else 0.0,
+                                'price': curr_p,
+                                'action': _ws_action,
+                                'tp_price': round(_ws_tp, 6) if _ws_tp else None,
+                                'sl_price': round(_ws_sl, 6) if _ws_sl else None,
+                                'timestamp': datetime.now().isoformat()
+                            }
+                        }))
+                    except Exception as wse:
+                        print(f"WS Broadcast Error: {wse}")
 
-                                if abs(z_score) >= user_z_thresh and _cat != 'EQUITIES':
-                                    # Native Execution
-                                    if nat_en and exch_name and exch_key and exch_sec:
-                                        def _fire_native(en=exch_name, ek=exch_key, es=exch_sec, tk=ticker, dr=_direction, sz=trd_sz):
-                                            try:
-                                                from backend.execution import NativeExecutionService
-                                                NativeExecutionService.execute_trade(en, ek, es, tk, dr, sz)
-                                            except Exception as e:
-                                                print(f"[NativeExecution] Error: {e}")
-                                        threading.Thread(target=_fire_native, daemon=True).start()
-                                        
-                                    # Issue Algorithmic Trade Webhook if configured
-                                    if algo_url:
-                                        def _fire_algo(url=algo_url, t_email=target_email):
-                                            try:
-                                                payload = {
-                                                    "action": "BUY" if pred_return > 0 else "SELL",
-                                                    "ticker": ticker,
-                                                    "price": curr_p,
-                                                    "signal_type": signal_type,
-                                                    "alpha_score": _alpha,
-                                                    "timestamp": datetime.now().isoformat(),
-                                                }
-                                                import requests
-                                                requests.post(url, json=payload, timeout=3)
-                                            except Exception as we:
-                                                print(f"[AlgoWebhook] Error pushing to {t_email}: {we}")
-                                        threading.Thread(target=_fire_algo, daemon=True).start()
-                                        
-                                    # --- Internal Algo Bots ---
-                                    try:
-                                        bot_conn = sqlite3.connect(DB_PATH, timeout=30)
-                                        bot_c = bot_conn.cursor()
-                                        bot_c.execute("SELECT id, name, condition_zscore, condition_regime, action_side, action_amount, action_exchange, asset, take_profit_pct, stop_loss_pct FROM trading_bots WHERE user_email = ? AND status = 'active'", (target_email,))
-                                        bots = bot_c.fetchall()
-                                        
-                                        for b_id, b_name, b_z, b_regime, b_side, b_amt, b_exch, b_asset, b_tp_pct, b_sl_pct in bots:
-                                            if abs(z_score) >= b_z:
-                                                if b_asset != 'ANY' and b_asset != ticker:
-                                                    continue
-                                                if b_regime != 'ANY' and current_regime and current_regime != b_regime:
-                                                    continue
-                                                
-                                                action_dir = 'BUY' if pred_return > 0 else 'SELL'
-                                                if b_side != 'MATCH_SIGNAL':
-                                                    action_dir = b_side.upper()
-                                                
-                                                trade_action = f"{action_dir} (${b_amt}) [Bot: {b_name} | API: {b_exch}]"
-                                                
-                                                tp_price = 0.0
-                                                sl_price = 0.0
-                                                if b_tp_pct and b_tp_pct > 0:
-                                                    tp_price = curr_p * (1 + (b_tp_pct/100)) if action_dir == 'BUY' else curr_p * (1 - (b_tp_pct/100))
-                                                if b_sl_pct and b_sl_pct > 0:
-                                                    sl_price = curr_p * (1 - (b_sl_pct/100)) if action_dir == 'BUY' else curr_p * (1 + (b_sl_pct/100))
-                                                    
-                                                bot_c.execute("INSERT INTO trade_ledger (user_email, ticker, action, price, target, stop, rr, slippage) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                                                              (target_email, ticker, trade_action, curr_p, round(tp_price, 4), round(sl_price, 4), 0.0, 0.0))
-                                                bot_c.execute("UPDATE trading_bots SET last_triggered = ? WHERE id = ?", (datetime.now().isoformat(), b_id))
-                                                print(f"[AlgoBot] Executed {b_name} for {target_email} on {ticker}")
-                                        bot_conn.commit()
-                                        bot_conn.close()
-                                    except Exception as be:
-                                        print(f"[AlgoBot] Error checking bots for {target_email}: {be}")
-
-                                # The standard push_webhook logic below still gates on z_thresh
-                                if abs(z_score) < user_z_thresh:
-                                    continue
-                                if NotificationService.is_on_cooldown(target_email, ticker, signal_type):
-                                    continue
-                                NotificationService.mark_sent(target_email, ticker, signal_type)
-                                direction = 'LONG' if pred_return > 0 else 'SHORT'
-                                top_driver = max(importance, key=importance.get)
-                                _action, _tp, _sl, _color, _emoji = NotificationService.build_action_fields(signal_type, direction, curr_p)
-                                _fp = NotificationService._fmt_price
-                                sym = ticker.replace('-USD', '')
-                                NOTIFY.push_webhook(
-                                    target_email,
-                                    f"{_emoji} {_action}: {sym}",
-                                    f"ML Engine detected a high-conviction alpha window. Entry at {_fp(curr_p)}.",
-                                    embed_color=_color,
-                                    fields=[
-                                        {"name": "⚡ ACTION",       "value": _action,                 "inline": False},
-                                        {"name": "Entry Price",    "value": _fp(curr_p),              "inline": True},
-                                        {"name": "Take Profit",    "value": f"{_fp(_tp)} (+{NotificationService.TP_PCT:.0f}%)", "inline": True},
-                                        {"name": "Stop Loss",      "value": f"{_fp(_sl)} (-{NotificationService.SL_PCT:.0f}%)", "inline": True},
-                                        {"name": "Predicted Alpha","value": f"{_alpha:+.2f}%",         "inline": True},
-                                        {"name": "Z-Score",        "value": f"{z_score:+.2f}σ",        "inline": True},
-                                        {"name": "ML Confidence",  "value": f"{confidence*100:.0f}%",  "inline": True},
-                                    ]
-                                )
-                    except Exception as ne:
-                        print(f"Alert Dispatch Error: {ne}")
-
-                    # Real-time WebSocket Broadcast to Frontend
-                    if self.ws_server:
-                        try:
-                            _ws_action, _ws_tp, _ws_sl, _, _ws_emoji = NotificationService.build_action_fields(
-                                signal_type, 'LONG' if pred_return > 0 else 'SHORT', curr_p)
-                            self.ws_server.broadcast(json.dumps({
-                                'type': 'new_alert',
-                                'data': {
-                                    'type': signal_type, 'ticker': ticker,
-                                    'title': f"{_ws_emoji} {_ws_action}: {ticker.replace('-USD','')}",
-                                    'content': message, 'severity': severity,
-                                    'z_score': z_score,
-                                    'predicted_return': float(pred_return) if pred_return else 0.0,
-                                    'price': curr_p,
-                                    'action': _ws_action,
-                                    'tp_price': round(_ws_tp, 6) if _ws_tp else None,
-                                    'sl_price': round(_ws_sl, 6) if _ws_sl else None,
-                                    'timestamp': datetime.now().isoformat()
-                                }
-                            }))
-                        except Exception as wse:
-                            print(f"WS Broadcast Error: {wse}")
-
-            conn.commit()
+        conn.commit()
 
         # Rule-based fallback signals (fires even before ML models warm up)
         self._generate_rule_based_signals(data, conn, c)
 
         conn.commit()
         conn.close()
+
 
     def _generate_rule_based_signals(self, data, conn, c):
         """RSI / MACD / volume-spike signals - complement to ML predictions."""
