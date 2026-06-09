@@ -1208,6 +1208,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_ai_analyst()
             elif path == '/api/signal-history':
                 self.handle_signal_history()
+            elif path == '/api/admin/dedupe-signals':
+                self.handle_admin_dedupe_signals()
             elif path == '/api/signal-suppression-log':
                 self.handle_signal_suppression_log()
             elif path == '/api/near-miss':
@@ -2267,5 +2269,100 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         print(f"[{datetime.now()}] pSEO_DOCS_SERVED: {view_key} -> {canonical_url}", flush=True)
 
 
+    def handle_admin_dedupe_signals(self):
+        """Admin-only endpoint: deduplicate alerts_history in-place.
+        Requires the request to come from the admin account session.
+        GET /api/admin/dedupe-signals          -- dry-run report
+        GET /api/admin/dedupe-signals?write=1  -- apply deletion
+        """
+        from itertools import groupby as _groupby
+
+        # Auth gate: must be logged-in as admin
+        auth = self.is_authenticated()
+        if not auth or auth.get('email') != 'geraldbaalham@live.co.uk':
+            self.send_response(403)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': 'Forbidden'}).encode())
+            return
+
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        apply_write = qs.get('write', ['0'])[0] == '1'
+        window_secs = int(qs.get('window', ['60'])[0])
+
+        STATE_PRIORITY = {'closed': 0, 'hit_tp2': 1, 'hit_tp1': 2, 'hit_sl': 3, 'expired': 4, 'active': 5}
+
+        def _parse_ts(s):
+            if not s:
+                return None
+            try:
+                return datetime.fromisoformat(s.replace('Z', '+00:00'))
+            except Exception:
+                return None
+
+        with sqlite3.connect(DB_PATH, timeout=30) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = [dict(r) for r in conn.execute(
+                "SELECT id, ticker, type, timestamp, status, direction, final_roi FROM alerts_history ORDER BY ticker, type, timestamp"
+            ).fetchall()]
+
+            def _key(r):
+                return (r['ticker'] or '', r['type'] or '')
+
+            sorted_rows = sorted(rows, key=_key)
+            groups = []
+            for _, gr in _groupby(sorted_rows, key=_key):
+                bucket = []
+                last_ts = None
+                for row in sorted(gr, key=lambda r: r['timestamp'] or ''):
+                    ts = _parse_ts(row['timestamp'])
+                    if last_ts is None or (ts and (ts - last_ts).total_seconds() > window_secs):
+                        if bucket:
+                            groups.append(bucket)
+                        bucket = [row]
+                        last_ts = ts
+                    else:
+                        bucket.append(row)
+                        if ts and ts > last_ts:
+                            last_ts = ts
+                if bucket:
+                    groups.append(bucket)
+
+            keep_ids, delete_ids = set(), set()
+            for group in groups:
+                if len(group) == 1:
+                    keep_ids.add(group[0]['id'])
+                else:
+                    def _score(r):
+                        sp = STATE_PRIORITY.get((r.get('status') or 'active').lower(), 99)
+                        hr = 0 if r.get('final_roi') is not None else 1
+                        return (sp, hr, -r['id'])
+                    best = min(group, key=_score)
+                    keep_ids.add(best['id'])
+                    for row in group:
+                        if row['id'] != best['id']:
+                            delete_ids.add(row['id'])
+
+            result = {
+                'total': len(rows),
+                'unique': len(keep_ids),
+                'duplicates': len(delete_ids),
+                'applied': False,
+                'window_secs': window_secs,
+            }
+
+            if apply_write and delete_ids:
+                dl = list(delete_ids)
+                for i in range(0, len(dl), 500):
+                    chunk = dl[i:i+500]
+                    conn.execute(f"DELETE FROM alerts_history WHERE id IN ({','.join('?'*len(chunk))})", chunk)
+                conn.commit()
+                result['applied'] = True
+                result['remaining'] = conn.execute('SELECT COUNT(*) FROM alerts_history').fetchone()[0]
+
+        self.send_json(result)
+
+
 class AlphaSignalServer(ThreadedHTTPServer):
     pass
+
