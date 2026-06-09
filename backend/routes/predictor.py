@@ -49,28 +49,37 @@ class PredictorRoutesMixin:
         """
         Pattern-matches current CI fingerprint against history.
         Query params:
-          lookback – window size in minutes (default 30)
-          top_n    – number of top matches to return (default 5)
+          lookback      – window size in minutes (default 30); ignored when ensemble=1
+          top_n         – number of top matches to return (default 5)
           regime_filter – '1' (default) | '0' to disable
+          ensemble      – '1' (default) | '0' to use single lookback instead
         """
         try:
             lookback      = int(query_params.get('lookback', ['30'])[0])
             top_n         = int(query_params.get('top_n',    ['5'])[0])
             regime_filter = query_params.get('regime_filter', ['1'])[0] != '0'
+            use_ensemble  = query_params.get('ensemble', ['1'])[0] != '0'
 
             lookback = max(5, min(lookback, 120))
             top_n    = max(1, min(top_n, 20))
 
-            result = PredictorService.match_current_pattern(
-                lookback_minutes=lookback,
-                top_n=top_n,
-                regime_filter=regime_filter,
-            )
+            if use_ensemble:
+                result = PredictorService.ensemble_prediction(
+                    top_n=top_n,
+                    regime_filter=regime_filter,
+                )
+            else:
+                result = PredictorService.match_current_pattern(
+                    lookback_minutes=lookback,
+                    top_n=top_n,
+                    regime_filter=regime_filter,
+                )
 
             self.send_json(result)
 
         except Exception as e:
             self.send_json({'error': str(e)})
+
 
     # ── GET /api/predictor-accuracy ───────────────────────────────────────────
     def handle_predictor_accuracy(self, query_params=None):

@@ -243,14 +243,15 @@ function renderPatternPredictor() {
                 }
             }
 
-            // Factor Gauges
+            // Factor Gauges with CI contribution labels
+            // Contribution weights match build_composite_index formula
             const gauges = [
-                { label: 'RSI',         val: parseFloat(last.rsi||50),         min:0,   max:100,  unit:'',   low:30, high:70, invert:true },
-                { label: 'BB Position', val: parseFloat(last.bb_pos||0.5)*100, min:0,   max:100,  unit:'%',  low:20, high:80, invert:true },
-                { label: 'Fear & Greed',val: parseFloat(last.fear_greed||50),  min:0,   max:100,  unit:'',   low:25, high:75, invert:true },
-                { label: 'Vol Change',  val: parseFloat(last.vol_change||0)*100,min:-100,max:100, unit:'%',  low:-30, high:30, invert:false },
-                { label: 'MVRV Proxy',  val: parseFloat(last.mvrv_proxy||1.5), min:0,   max:4,    unit:'x',  low:1.0, high:3.0, invert:true },
-                { label: 'Whale Score', val: parseFloat(last.whale_score||0)*100,min:-100,max:100,unit:'%',  low:-20, high:20, invert:false },
+                { label: 'RSI',         val: parseFloat(last.rsi||50),          min:0,    max:100, unit:'',  low:30,  high:70,  invert:true,  contrib: v => -((v-50)/50)*25,   maxPts: 25 },
+                { label: 'BB Position', val: parseFloat(last.bb_pos||0.5)*100,  min:0,    max:100, unit:'%', low:20,  high:80,  invert:true,  contrib: v => -(v/100-0.5)*30,   maxPts: 15 },
+                { label: 'Fear & Greed',val: parseFloat(last.fear_greed||50),   min:0,    max:100, unit:'',  low:25,  high:75,  invert:true,  contrib: v => -((v-50)/50)*10,   maxPts: 10 },
+                { label: 'Vol Change',  val: parseFloat(last.vol_change||0)*100,min:-100, max:100, unit:'%', low:-30, high:30,  invert:false, contrib: v => Math.max(-10,Math.min(10,v/100*10)), maxPts: 10 },
+                { label: 'MVRV Proxy',  val: parseFloat(last.mvrv_proxy||1.5),  min:0,    max:4,   unit:'x', low:1.0, high:3.0, invert:true,  contrib: v => Math.max(-20,Math.min(20,-(v-1.5)/1.5*20)), maxPts: 20 },
+                { label: 'Whale Score', val: parseFloat(last.whale_score||0)*100,min:-100,max:100, unit:'%', low:-20, high:20,  invert:false, contrib: v => Math.max(-15,Math.min(15,v/100*15)), maxPts: 15 },
             ];
             const gaugeEl = document.getElementById('pp-gauges');
             if (gaugeEl) {
@@ -259,6 +260,9 @@ function renderPatternPredictor() {
                     const color = g.invert
                         ? (g.val > g.high ? '#f87171' : g.val < g.low ? '#4ade80' : '#7dd3fc')
                         : (g.val > g.high ? '#4ade80' : g.val < g.low ? '#f87171' : '#7dd3fc');
+                    const pts   = g.contrib(g.val);
+                    const ptsStr = (pts >= 0 ? '+' : '') + pts.toFixed(1);
+                    const ptsCol = pts > 0 ? '#4ade80' : pts < 0 ? '#f87171' : '#94a3b8';
                     return `
                     <div class="glass-card" style="padding:0.9rem">
                         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">
@@ -268,6 +272,7 @@ function renderPatternPredictor() {
                         <div class="pp-gauge-bar">
                             <div class="pp-gauge-fill" style="width:${pct}%;background:${color};opacity:0.8"></div>
                         </div>
+                        <div style="font-size:0.55rem;color:${ptsCol};text-align:right;margin-top:3px;font-weight:700">${ptsStr} pts / ±${g.maxPts}</div>
                     </div>`;
                 }).join('');
             }
@@ -318,7 +323,8 @@ function renderPatternPredictor() {
     async function ppLoadPrediction() {
         const regimeFilter = document.getElementById('pp-regime-filter')?.checked ? '1' : '0';
         try {
-            const data = await fetchAPI(`/market-prediction?lookback=30&top_n=5&regime_filter=${regimeFilter}`);
+            // Use ensemble endpoint by default
+            const data = await fetchAPI(`/market-prediction?top_n=5&regime_filter=${regimeFilter}&ensemble=1`);
             if (!data) return;
 
             const predEl = document.getElementById('pp-pred-content');
@@ -346,6 +352,47 @@ function renderPatternPredictor() {
             const dirCol  = dir === 'BULLISH' ? '#4ade80' : dir === 'BEARISH' ? '#f87171' : '#94a3b8';
             const dirIcon = dir === 'BULLISH' ? 'trending_up' : dir === 'BEARISH' ? 'trending_down' : 'trending_flat';
             const rfLabel = data.regime_filtered ? `<span style="font-size:0.55rem;color:var(--accent);background:rgba(125,211,252,0.1);padding:1px 6px;border-radius:4px;border:1px solid rgba(125,211,252,0.2)">REGIME MATCHED</span>` : '';
+            const ensLabel = p.ensemble ? `<span style="font-size:0.55rem;color:#a78bfa;background:rgba(167,139,250,0.1);padding:1px 6px;border-radius:4px;border:1px solid rgba(167,139,250,0.2)">ENSEMBLE</span>` : '';
+
+            // Confidence breakdown bars
+            const cb = p.confidence_breakdown || {};
+            const dq = Math.round((cb.distance_quality || 0) * 100);
+            const ma = Math.round((cb.match_agreement  || 0) * 100);
+            const oc = Math.round((cb.outcome_consistency || 0) * 100);
+            const confBreakdown = (dq || ma || oc) ? `
+                <div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.06)">
+                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px">CONFIDENCE BREAKDOWN</div>
+                    ${[['Match Quality', dq, '#7dd3fc'], ['Agreement', ma, '#4ade80'], ['Consistency', oc, '#a78bfa']].map(([lbl, val, col]) => `
+                    <div style="margin-bottom:5px">
+                        <div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--text-dim);margin-bottom:2px">
+                            <span>${lbl}</span><span style="color:${col}">${val}%</span>
+                        </div>
+                        <div style="height:3px;border-radius:100px;background:rgba(255,255,255,0.06)">
+                            <div style="height:100%;width:${val}%;background:${col};border-radius:100px;opacity:0.7"></div>
+                        </div>
+                    </div>`).join('')}
+                </div>` : '';
+
+            // Ensemble lookback breakdown
+            const ens = data.ensemble_lookbacks || {};
+            const ensAgreement = data.ensemble_agreement != null ? Math.round(data.ensemble_agreement * 100) : null;
+            const ensPanel = Object.keys(ens).length ? `
+                <div style="margin-top:8px;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.06)">
+                    <div style="font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px">ENSEMBLE LOOKBACKS ${ensAgreement != null ? `<span style="color:${ensAgreement>=67?'#4ade80':ensAgreement>=34?'#fb923c':'#f87171'};float:right">${ensAgreement}% agree</span>` : ''}</div>
+                    <div style="display:flex;flex-direction:column;gap:4px">
+                    ${Object.entries(ens).map(([lb, e]) => {
+                        const ec  = e.direction === 'BULLISH' ? '#4ade80' : e.direction === 'BEARISH' ? '#f87171' : '#94a3b8';
+                        const econf = Math.round((e.confidence||0)*100);
+                        const echg = (e.predicted_change||0);
+                        return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.6rem">
+                            <span style="color:var(--text-dim);width:28px">${lb}m</span>
+                            <span style="font-weight:700;color:${ec};flex:1;text-align:center">${e.direction}</span>
+                            <span style="color:${echg>=0?'#4ade80':'#f87171'};width:46px;text-align:right">${echg>=0?'+':''}${echg.toFixed(3)}%</span>
+                            <span style="color:var(--text-dim);width:30px;text-align:right">${econf}%</span>
+                        </div>`;
+                    }).join('')}
+                    </div>
+                </div>` : '';
 
             if (predEl) predEl.innerHTML = `
                 <div style="text-align:center;padding:0.5rem 0">
@@ -364,23 +411,26 @@ function renderPatternPredictor() {
                         <div style="font-size:1rem;font-weight:900;color:var(--text-main)">${p.matches_found || 0}</div>
                     </div>
                 </div>
-                <div style="text-align:center;margin-top:4px">${rfLabel}</div>
-                <div style="font-size:0.6rem;color:var(--text-dim);text-align:center">Lookback: ${p.lookback_minutes}m · History: ${data.history_size} ticks</div>
+                <div style="text-align:center;margin-top:4px;display:flex;gap:4px;justify-content:center;flex-wrap:wrap">${rfLabel}${ensLabel}</div>
+                ${confBreakdown}
+                ${ensPanel}
+                <div style="font-size:0.6rem;color:var(--text-dim);text-align:center;margin-top:6px">History: ${data.history_size} ticks</div>
             `;
 
-            // Matches table
+            // Matches table — now uses closeness score
             const matchEl = document.getElementById('pp-matches-table');
             if (matchEl && data.matches && data.matches.length) {
-                const maxSim = Math.max(...data.matches.map(m => 1/(m.distance+0.01)));
+                const maxClose = Math.max(...data.matches.map(m => m.closeness || 0), 0.001);
                 matchEl.innerHTML = data.matches.map((m, i) => {
-                    const sim   = Math.round(1/(m.distance+0.01) / maxSim * 100);
+                    const sim    = Math.round((m.closeness || 0) / maxClose * 100);
                     const chgPct = m.price_change_pct || 0;
                     const chgCol = chgPct > 0 ? '#4ade80' : chgPct < 0 ? '#f87171' : '#94a3b8';
-                    const rs2   = regimeStyle(m.regime||'');
+                    const rs2    = regimeStyle(m.regime||'');
+                    const cosSim = m.cosine_sim != null ? `<span style="font-size:0.5rem;color:#a78bfa;margin-left:4px">cos:${m.cosine_sim.toFixed(2)}</span>` : '';
                     return `
                     <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-                            <div style="font-size:0.65rem;color:var(--text-dim);font-family:monospace">${(m.window_start||'').slice(0,16)} → ${(m.window_end||'').slice(11,16)}</div>
+                            <div style="font-size:0.65rem;color:var(--text-dim);font-family:monospace">${(m.window_start||'').slice(0,16)} → ${(m.window_end||'').slice(11,16)}${cosSim}</div>
                             <div style="display:flex;align-items:center;gap:8px">
                                 <span style="font-size:0.6rem;padding:1px 6px;border-radius:4px;background:${rs2.bg};color:${rs2.text};border:1px solid ${rs2.border}">${m.regime||'?'}</span>
                                 <span style="font-size:0.75rem;font-weight:700;color:${chgCol}">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</span>
@@ -419,7 +469,13 @@ function renderPatternPredictor() {
                 overallEl.style.color = data.accuracy_pct > 60 ? '#4ade80' : data.accuracy_pct > 45 ? '#fb923c' : data.accuracy_pct != null ? '#f87171' : '#7dd3fc';
             }
             const nEl = document.getElementById('pp-acc-n');
-            if (nEl) nEl.textContent = `${data.total_resolved||0} predictions resolved`;
+            if (nEl) {
+                // Rolling chips
+                const chips = [];
+                if (data.accuracy_7d_pct != null)  chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);color:#4ade80">7d ${data.accuracy_7d_pct}%</span>`);
+                if (data.accuracy_30d_pct != null) chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(125,211,252,0.08);border:1px solid rgba(125,211,252,0.2);color:#7dd3fc">30d ${data.accuracy_30d_pct}%</span>`);
+                nEl.innerHTML = `${data.total_resolved||0} predictions resolved ${chips.join(' ')}`;
+            }
 
             // By regime
             const regEl = document.getElementById('pp-acc-regimes');

@@ -492,6 +492,33 @@ class PredictorService:
     # ── pattern matching ──────────────────────────────────────────────────────
 
     @staticmethod
+    def _extract_feature_matrix(rows):
+        """
+        Build a (N, 5) feature matrix from a list of DB rows.
+        Features: [ci_value, rsi, bb_pos, whale_score, mvrv_proxy]
+        Returns raw matrix; caller is responsible for z-score normalisation.
+        """
+        arr = np.array([
+            [
+                float(r["ci_value"]    or 0.0),
+                float(r["rsi"]         or 50.0),
+                float(r["bb_pos"]      or 0.5),
+                float(r["whale_score"] or 0.0),
+                float(r["mvrv_proxy"]  or 1.5),
+            ]
+            for r in rows
+        ], dtype=float)
+        return arr
+
+    @staticmethod
+    def _zscore_cols(matrix):
+        """Z-score each column independently. Columns with zero std are left as-is."""
+        mu    = matrix.mean(axis=0)
+        sigma = matrix.std(axis=0)
+        sigma[sigma < 1e-8] = 1.0
+        return (matrix - mu) / sigma, mu, sigma
+
+    @staticmethod
     def match_current_pattern(lookback_minutes=30, top_n=5, regime_filter=True):
         """
         Compare the current N-minute CI fingerprint against all stored
@@ -530,8 +557,27 @@ class PredictorService:
             current_window = rows_list[-lookback_minutes:]
             current_ci     = [r["ci_value"] for r in current_window]
             current_regime = current_window[-1]["regime"] if current_window else "Unknown"
-            current_arr    = np.array(current_ci, dtype=float)
             current_ids    = {r["id"] for r in current_window}
+
+            # ── Multi-feature matching ────────────────────────────────────────
+            # Build z-score normalised feature matrix over full history
+            full_matrix_raw = PredictorService._extract_feature_matrix(rows_list)
+            full_matrix, feat_mu, feat_sigma = PredictorService._zscore_cols(full_matrix_raw)
+
+            # Current feature window (normalised using history stats)
+            cur_raw = PredictorService._extract_feature_matrix(current_window)  # (L, 5)
+            cur_norm = (cur_raw - feat_mu) / feat_sigma                          # (L, 5)
+            cur_flat = cur_norm.flatten()                                         # (L*5,)
+
+            # Trend direction vector (first-differences of CI, normalised)
+            cur_trend = np.diff(cur_norm[:, 0])  # CI column deltas
+
+            def _cosine(a, b):
+                """Cosine similarity between two 1-D vectors."""
+                na, nb = np.linalg.norm(a), np.linalg.norm(b)
+                if na < 1e-8 or nb < 1e-8:
+                    return 0.0
+                return float(np.dot(a, b) / (na * nb))
 
             def _slide(rows, filter_regime=None):
                 matches = []
@@ -540,11 +586,26 @@ class PredictorService:
                     window = rows[i: i + lookback_minutes]
                     if any(r["id"] in current_ids for r in window):
                         continue
-                    # Regime filter: skip windows that don't match current regime
                     if filter_regime and window[-1]["regime"] != filter_regime:
                         continue
-                    window_ci = np.array([r["ci_value"] for r in window], dtype=float)
-                    dist = float(np.sqrt(np.mean((current_arr - window_ci) ** 2)))
+
+                    # Multi-feature distance (z-score normalised, all 5 features)
+                    win_raw  = full_matrix[i: i + lookback_minutes]  # already normalised
+                    win_flat = win_raw.flatten()
+                    eucl     = float(np.sqrt(np.mean((cur_flat - win_flat) ** 2)))
+
+                    # Cosine similarity on flattened feature vectors
+                    cos_sim  = _cosine(cur_flat, win_flat)  # -1..1
+
+                    # Trend alignment bonus: CI first-differences
+                    win_trend  = np.diff(win_raw[:, 0])
+                    trend_sim  = _cosine(cur_trend, win_trend)  # -1..1
+
+                    # Combined score: lower eucl = better; higher cos/trend = better
+                    # Map to a single "closeness" score in [0, ∞) — higher is better
+                    closeness = (0.5 * (1.0 / (eucl + 1e-6)) +
+                                 0.3 * max(0.0, cos_sim) +
+                                 0.2 * max(0.0, trend_sim))
 
                     future = rows[i + lookback_minutes: i + lookback_minutes + lookback_minutes]
                     if not future:
@@ -552,11 +613,14 @@ class PredictorService:
                     fp_start = rows[i + lookback_minutes]["btc_price"]
                     fp_end   = future[-1]["btc_price"]
                     pct_chg  = 0.0
-                    if fp_start and fp_start != 0:
+                    if fp_start and fp_start > 0:
                         pct_chg = round((fp_end - fp_start) / fp_start * 100, 3)
 
                     matches.append({
-                        "distance":         round(dist, 4),
+                        "distance":         round(eucl, 4),
+                        "cosine_sim":       round(cos_sim, 4),
+                        "trend_sim":        round(trend_sim, 4),
+                        "closeness":        round(closeness, 6),
                         "window_start":     window[0]["ts"],
                         "window_end":       window[-1]["ts"],
                         "future_ci_mean":   round(float(np.mean([r["ci_value"] for r in future])), 4),
@@ -572,30 +636,60 @@ class PredictorService:
                 if len(best) >= 20:
                     used_regime_filter = True
                 else:
-                    # Not enough regime-matched windows — fall back to all
                     best = _slide(rows_list, filter_regime=None)
             else:
                 best = _slide(rows_list, filter_regime=None)
 
-            best.sort(key=lambda x: x["distance"])
+            # Sort by closeness DESC (higher = better match)
+            best.sort(key=lambda x: x["closeness"], reverse=True)
             top_matches = best[:top_n]
 
-            # Aggregate weighted prediction
+            # ── Smarter confidence + weighted prediction ──────────────────────
             if top_matches:
+                # Weight by closeness² for sharper concentration on best matches
                 weight_sum      = 0.0
                 weighted_change = 0.0
                 for m in top_matches:
-                    w = 1.0 / (m["distance"] + 1e-8)
+                    w = m["closeness"] ** 2
                     weighted_change += w * m["price_change_pct"]
                     weight_sum      += w
                 pred_change = weighted_change / weight_sum if weight_sum else 0.0
                 direction   = ("BULLISH" if pred_change > 0.05 else
                                ("BEARISH" if pred_change < -0.05 else "NEUTRAL"))
-                confidence  = min(0.95, max(0.20, 1.0 - (top_matches[0]["distance"] / 20.0)))
+
+                # Agreement: fraction of top matches pointing same direction
+                match_dirs = ["BULLISH" if m["price_change_pct"] > 0.05 else
+                              ("BEARISH" if m["price_change_pct"] < -0.05 else "NEUTRAL")
+                              for m in top_matches]
+                agreement = sum(1 for d in match_dirs if d == direction) / len(match_dirs)
+
+                # Consistency: low std of outcomes = more predictable
+                chg_vals = [m["price_change_pct"] for m in top_matches]
+                mean_abs = np.mean(np.abs(chg_vals)) + 1e-8
+                consistency = max(0.0, 1.0 - float(np.std(chg_vals)) / mean_abs)
+                consistency = min(1.0, consistency)
+
+                # Distance quality from best match
+                dist_quality = max(0.0, min(1.0, top_matches[0]["closeness"] / 5.0))
+
+                confidence = round(
+                    0.4 * dist_quality +
+                    0.35 * agreement +
+                    0.25 * consistency,
+                    3,
+                )
+                confidence = max(0.10, min(0.95, confidence))
+
+                confidence_breakdown = {
+                    "distance_quality": round(dist_quality, 3),
+                    "match_agreement":  round(agreement, 3),
+                    "outcome_consistency": round(consistency, 3),
+                }
             else:
-                pred_change = 0.0
-                direction   = "NEUTRAL"
-                confidence  = 0.0
+                pred_change          = 0.0
+                direction            = "NEUTRAL"
+                confidence           = 0.0
+                confidence_breakdown = {}
 
             return {
                 "current_ci":       [round(v, 3) for v in current_ci],
@@ -604,7 +698,8 @@ class PredictorService:
                 "prediction": {
                     "direction":        direction,
                     "predicted_change": round(pred_change, 4),
-                    "confidence":       round(confidence, 3),
+                    "confidence":       confidence,
+                    "confidence_breakdown": confidence_breakdown,
                     "lookback_minutes": lookback_minutes,
                     "matches_found":    len(top_matches),
                     "regime":           current_regime,
@@ -618,12 +713,83 @@ class PredictorService:
             traceback.print_exc()
             return {"error": str(e)}
 
+    @staticmethod
+    def ensemble_prediction(top_n=5, regime_filter=True):
+        """
+        Run pattern matching at three lookbacks (15m / 30m / 45m) and
+        aggregate into a single ensemble prediction.
+
+        Returns the standard match_current_pattern payload plus:
+          ensemble_lookbacks   – per-lookback summary
+          ensemble_agreement   – 0–1, fraction agreeing on same direction
+        """
+        lookbacks = [15, 30, 45]
+        results   = {}
+        for lb in lookbacks:
+            r = PredictorService.match_current_pattern(
+                lookback_minutes=lb, top_n=top_n, regime_filter=regime_filter
+            )
+            results[lb] = r
+
+        # Collect valid predictions
+        valid = [
+            (lb, r["prediction"])
+            for lb, r in results.items()
+            if "prediction" in r and "error" not in r
+        ]
+
+        if not valid:
+            # Return the 30m result as fallback
+            base = results.get(30, {"error": "insufficient_history"})
+            base["ensemble_lookbacks"] = {}
+            base["ensemble_agreement"] = 0.0
+            return base
+
+        # Confidence-weighted ensemble
+        total_weight    = 0.0
+        weighted_change = 0.0
+        for lb, pred in valid:
+            w = pred["confidence"]
+            weighted_change += w * pred["predicted_change"]
+            total_weight    += w
+
+        ens_change    = weighted_change / total_weight if total_weight else 0.0
+        ens_direction = ("BULLISH" if ens_change > 0.05 else
+                         ("BEARISH" if ens_change < -0.05 else "NEUTRAL"))
+
+        # Agreement: fraction of lookbacks matching ensemble direction
+        dirs = [pred["direction"] for _, pred in valid]
+        agreement = sum(1 for d in dirs if d == ens_direction) / len(dirs)
+
+        # Use the 30m result as base and overwrite prediction with ensemble
+        base = results.get(30, results[valid[0][0]])
+        base_pred = base.get("prediction", {})
+        base_pred.update({
+            "direction":        ens_direction,
+            "predicted_change": round(ens_change, 4),
+            "confidence":       round(total_weight / len(valid), 3),
+            "ensemble":         True,
+        })
+        base["prediction"] = base_pred
+
+        base["ensemble_lookbacks"] = {
+            lb: {
+                "direction":        pred["direction"],
+                "predicted_change": pred["predicted_change"],
+                "confidence":       pred["confidence"],
+                "matches_found":    pred["matches_found"],
+            }
+            for lb, pred in valid
+        }
+        base["ensemble_agreement"] = round(agreement, 3)
+        return base
+
     # ── accuracy stats ────────────────────────────────────────────────────────
 
     @staticmethod
     def get_accuracy_stats():
         """
-        Return overall and per-regime prediction accuracy from predictor_accuracy.
+        Return overall, rolling, and per-regime prediction accuracy.
         Only counts resolved rows (was_correct IS NOT NULL).
         """
         try:
@@ -638,6 +804,22 @@ class PredictorService:
                         AVG(ABS(actual_change - predicted_change)) AS avg_error
                     FROM predictor_accuracy
                     WHERE was_correct IS NOT NULL
+                """).fetchone()
+
+                # Rolling 7-day accuracy
+                roll_7d = conn.execute("""
+                    SELECT COUNT(*) AS total, SUM(was_correct) AS correct
+                    FROM predictor_accuracy
+                    WHERE was_correct IS NOT NULL
+                      AND resolved_at > datetime('now', '-7 days')
+                """).fetchone()
+
+                # Rolling 30-day accuracy
+                roll_30d = conn.execute("""
+                    SELECT COUNT(*) AS total, SUM(was_correct) AS correct
+                    FROM predictor_accuracy
+                    WHERE was_correct IS NOT NULL
+                      AND resolved_at > datetime('now', '-30 days')
                 """).fetchone()
 
                 # Per-regime stats
@@ -660,6 +842,11 @@ class PredictorService:
                     LIMIT 20
                 """).fetchall()
 
+            def _rate(row):
+                t = row["total"] or 0
+                c = int(row["correct"] or 0)
+                return round(c / t * 100, 1) if t > 0 else None
+
             total   = overall["total"] or 0
             correct = int(overall["correct"] or 0)
             rate    = round(correct / total * 100, 1) if total > 0 else None
@@ -670,6 +857,8 @@ class PredictorService:
                 "total_correct":   correct,
                 "accuracy_pct":    rate,
                 "avg_error_pct":   avg_err,
+                "accuracy_7d_pct": _rate(roll_7d),
+                "accuracy_30d_pct": _rate(roll_30d),
                 "by_regime": [
                     {
                         "regime":       r["regime"],
