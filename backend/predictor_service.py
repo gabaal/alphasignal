@@ -229,18 +229,18 @@ class PredictorService:
         return 0.0
 
     def _get_regime_from_db(self):
-        """Latest HMM regime label from the signals table."""
+        """Latest regime label from the composite_index_history table."""
         try:
             with sqlite3.connect(DB_PATH, timeout=10) as conn:
                 c = conn.cursor()
                 c.execute("""
-                    SELECT type FROM alerts_history
-                    WHERE type LIKE 'REGIME%'
-                    ORDER BY timestamp DESC LIMIT 1
+                    SELECT regime FROM composite_index_history
+                    WHERE regime IS NOT NULL AND regime != ''
+                    ORDER BY ts DESC LIMIT 1
                 """)
                 row = c.fetchone()
-                if row:
-                    return row[0].replace('REGIME_', '')
+                if row and row[0]:
+                    return row[0]
         except Exception:
             pass
         return "Unknown"
