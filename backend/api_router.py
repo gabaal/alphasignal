@@ -576,10 +576,10 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     # Fetch entry price + type to compute final ROI at close time
                     with sqlite3.connect(DB_PATH, timeout=30) as conn:
                         c = conn.cursor()
-                        c.execute("SELECT price, type, ticker, user_email FROM alerts_history WHERE id=?", (sig_id,))
+                        c.execute("SELECT price, type, ticker, user_email, direction FROM alerts_history WHERE id=?", (sig_id,))
                         sig_row = c.fetchone()
                     if sig_row:
-                        entry_p, sig_type, ticker, sig_owner = sig_row
+                        entry_p, sig_type, ticker, sig_owner, direction_col = sig_row
                         # Security: only the owning user (or legacy NULL-owner) can close
                         if sig_owner and sig_owner != auth_info.get('email'):
                             self.send_response(403)
@@ -608,7 +608,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         BULLISH_T = {'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION',
                                      'VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION'}
                         if exit_px and entry_p and entry_p > 0:
-                            direction = 1 if (sig_type or '').upper() in BULLISH_T else -1
+                            # Prefer the stored direction column; fall back to type-based heuristic only when NULL
+                            if direction_col and direction_col.upper() in ('LONG', 'SHORT'):
+                                direction = 1 if direction_col.upper() == 'LONG' else -1
+                            else:
+                                direction = 1 if (sig_type or '').upper() in BULLISH_T else -1
                             final_roi = round(direction * (exit_px - entry_p) / entry_p * 100, 2)
                     with sqlite3.connect(DB_PATH, timeout=30) as conn:
                         c = conn.cursor()
