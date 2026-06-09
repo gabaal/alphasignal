@@ -229,13 +229,27 @@ class PredictorService:
         return 0.0
 
     def _get_regime_from_db(self):
-        """Latest regime label from the composite_index_history table."""
+        """Current regime from HMM engine (authoritative), falling back to last DB row."""
+        # 1. Try the live HMM engine first — same source the harvester uses
+        try:
+            from backend.routes.regime_hmm import HMM_ENGINE
+            result = HMM_ENGINE.predict_regime('BTC-USD')
+            label = result.get('current_label', '')
+            # Ignore the placeholder value returned while training is in progress
+            if label and label not in ('', 'Unknown') and not result.get('training'):
+                return label
+        except Exception:
+            pass
+
+        # 2. Fall back to last non-Unknown regime stored in composite_index_history
         try:
             with sqlite3.connect(DB_PATH, timeout=10) as conn:
                 c = conn.cursor()
                 c.execute("""
                     SELECT regime FROM composite_index_history
-                    WHERE regime IS NOT NULL AND regime != ''
+                    WHERE regime IS NOT NULL
+                      AND regime != ''
+                      AND regime != 'Unknown'
                     ORDER BY ts DESC LIMIT 1
                 """)
                 row = c.fetchone()
@@ -243,6 +257,7 @@ class PredictorService:
                     return row[0]
         except Exception:
             pass
+
         return "Unknown"
 
     def _get_mvrv_proxy(self, current_price):
