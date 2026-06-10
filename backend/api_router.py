@@ -634,6 +634,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 if not auth_info:
                     self.send_response(401); self.end_headers(); return
                 try:
+                    sig_id = int(path.split('/')[3])
                     user_email_auth = auth_info.get('email', '')
                     conn = sqlite3.connect(DB_PATH, timeout=30)
                     c = conn.cursor()
