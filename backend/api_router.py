@@ -1210,6 +1210,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 self.handle_signal_history()
             elif path == '/api/admin/dedupe-signals':
                 self.handle_admin_dedupe_signals()
+            elif path == '/api/admin/migrate-schema':
+                self.handle_admin_migrate_schema()
             elif path == '/api/signal-suppression-log':
                 self.handle_signal_suppression_log()
             elif path == '/api/near-miss':
@@ -2363,6 +2365,105 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
         self.send_json(result)
 
 
+    def handle_admin_migrate_schema(self):
+        """Admin: backfill signal_events + user_signal_state from alerts_history.
+        GET /api/admin/migrate-schema          -- dry-run (counts only)
+        GET /api/admin/migrate-schema?apply=1  -- write to DB
+        """
+        auth = self.is_authenticated()
+        if not auth or auth.get('email') != 'geraldbaalham@live.co.uk':
+            self.send_json({'error': 'Forbidden'}, 403); return
+
+        qs      = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        do_apply = qs.get('apply', ['0'])[0] == '1'
+
+        from collections import defaultdict as _dd
+
+        with sqlite3.connect(DB_PATH, timeout=60) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute("""
+                SELECT id, type, ticker, message, severity, price, timestamp,
+                       z_score, alpha, direction, category, mtf_score, mtf_detail,
+                       btc_correlation, sentiment, status, closed_at, exit_price,
+                       final_roi, max_roi, tp1_hit, user_email
+                FROM alerts_history ORDER BY id ASC
+            """).fetchall()
+
+            groups = _dd(list)
+            for row in rows:
+                ts_min = (row['timestamp'] or '')[:16]
+                key    = (row['ticker'], row['type'], ts_min)
+                groups[key].append(dict(row))
+
+            se_inserted  = 0
+            uss_inserted = 0
+            uss_skipped  = 0
+
+            if do_apply:
+                for key, group_rows in groups.items():
+                    canonical = min(group_rows, key=lambda r: r['id'])
+                    se_id = canonical['id']
+                    try:
+                        conn.execute("""
+                            INSERT OR IGNORE INTO signal_events
+                                (id, type, ticker, message, severity, price, timestamp,
+                                 z_score, alpha, direction, category, mtf_score, mtf_detail,
+                                 btc_correlation, sentiment)
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        """, (
+                            canonical['id'], canonical['type'], canonical['ticker'],
+                            canonical['message'], canonical['severity'], canonical['price'],
+                            canonical['timestamp'], canonical['z_score'], canonical['alpha'],
+                            canonical['direction'], canonical['category'],
+                            canonical['mtf_score'], canonical['mtf_detail'],
+                            canonical['btc_correlation'], canonical['sentiment'],
+                        ))
+                        se_inserted += conn.execute(
+                            'SELECT changes()'
+                        ).fetchone()[0]
+                    except Exception as e:
+                        print(f'[migrate] se insert error: {e}')
+
+                    for row in group_rows:
+                        if not row['user_email']: continue
+                        try:
+                            conn.execute("""
+                                INSERT OR IGNORE INTO user_signal_state
+                                    (signal_id, user_email, status, closed_at, exit_price,
+                                     final_roi, max_roi, tp1_hit, triggered_at, ah_id)
+                                VALUES (?,?,?,?,?,?,?,?,?,?)
+                            """, (
+                                se_id, row['user_email'],
+                                row['status'] or 'active', row['closed_at'],
+                                row['exit_price'], row['final_roi'],
+                                row['max_roi'] or 0.0, row['tp1_hit'] or 0,
+                                row['timestamp'], row['id'],
+                            ))
+                            changed = conn.execute('SELECT changes()').fetchone()[0]
+                            if changed:
+                                uss_inserted += 1
+                            else:
+                                uss_skipped += 1
+                        except Exception as e:
+                            print(f'[migrate] uss insert error: {e}')
+                conn.commit()
+
+            # Report counts
+            se_count  = conn.execute('SELECT COUNT(*) FROM signal_events').fetchone()[0]
+            uss_count = conn.execute('SELECT COUNT(*) FROM user_signal_state').fetchone()[0]
+
+        self.send_json({
+            'ah_total':      len(rows),
+            'unique_events': len(groups),
+            'se_in_db':      se_count,
+            'uss_in_db':     uss_count,
+            'se_inserted':   se_inserted  if do_apply else None,
+            'uss_inserted':  uss_inserted if do_apply else None,
+            'uss_skipped':   uss_skipped  if do_apply else None,
+            'applied':       do_apply,
+        })
+
+
+
 class AlphaSignalServer(ThreadedHTTPServer):
     pass
-
