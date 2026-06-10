@@ -815,6 +815,54 @@ def _inflight_clear(ticker: str, direction: str, signal_type: str):
     with _signal_inflight_lock:
         _signal_inflight.pop(key, None)
 
+
+# ── Normalised-schema dual-write helpers ─────────────────────────────────────
+# Phase 1: every signal write goes to BOTH alerts_history (legacy) AND the new
+# signal_events / user_signal_state tables.  Once migration is confirmed stable
+# we will drop the alerts_history writes.
+
+def _new_signal_event(c, sig_type, ticker, message, severity, price, ts,
+                      z_score=None, alpha=None, direction=None, category=None,
+                      mtf_score=None, mtf_detail=None):
+    """Insert one row into signal_events and return its id."""
+    c.execute(
+        "INSERT INTO signal_events "
+        "(type, ticker, message, severity, price, timestamp, "
+        " z_score, alpha, direction, category, mtf_score, mtf_detail) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        (sig_type, ticker, message, severity, price, ts,
+         z_score, alpha, direction, category, mtf_score, mtf_detail)
+    )
+    return c.lastrowid
+
+
+def _dual_write_user_state(c, signal_id, user_email, ah_id):
+    """Insert one row into user_signal_state linking signal_id → user.
+    Uses INSERT OR IGNORE so re-runs are safe (e.g. retry after crash).
+    ah_id is the alerts_history.id for cross-reference during migration."""
+    c.execute(
+        "INSERT OR IGNORE INTO user_signal_state "
+        "(signal_id, user_email, ah_id) VALUES (?,?,?)",
+        (signal_id, user_email, ah_id)
+    )
+
+
+def _dual_update_uss_close(c, ah_id, status, closed_at, exit_price, final_roi):
+    """Mirror a close/status update from alerts_history into user_signal_state."""
+    c.execute(
+        "UPDATE user_signal_state SET status=?, closed_at=?, exit_price=?, final_roi=? "
+        "WHERE ah_id=?",
+        (status, closed_at, exit_price, final_roi, ah_id)
+    )
+
+
+def _dual_update_uss_roi(c, ah_id, max_roi, tp1_hit):
+    """Mirror a max_roi / tp1_hit update into user_signal_state."""
+    c.execute(
+        "UPDATE user_signal_state SET max_roi=?, tp1_hit=? WHERE ah_id=?",
+        (max_roi, tp1_hit, ah_id)
+    )
+
 def _bank_near_miss(ticker, direction, z_score, pred_return, price,
                     severity, signal_type, message, category, enabled_users):
     """Store a near-miss entry so the fast loop can re-evaluate it."""
@@ -1090,6 +1138,7 @@ class HarvestService:
                                     "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
                                     (now_ts, exit_px, final_roi, sig_id)
                                 )
+                                _dual_update_uss_close(c, sig_id, 'closed', now_ts, exit_px, final_roi)
                                 expired += 1
                                 continue
                     except Exception:
@@ -1112,6 +1161,7 @@ class HarvestService:
                         max_roi = new_max_roi
                         tp1_hit = new_tp1_hit
                         c.execute("UPDATE alerts_history SET max_roi=?, tp1_hit=? WHERE id=?", (max_roi, tp1_hit, sig_id))
+                        _dual_update_uss_roi(c, sig_id, max_roi, tp1_hit)
 
                     # Trailing TP1 Logic: If hit TP1 and subsequently loses 20% of max_roi
                     is_tp1_trailing_close = False
@@ -1125,6 +1175,7 @@ class HarvestService:
                             "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
                             (now_ts, exit_px, final_roi, sig_id)
                         )
+                        _dual_update_uss_close(c, sig_id, 'closed', now_ts, exit_px, final_roi)
                         is_win  = roi >= tp2_threshold or is_tp1_trailing_close
                         reason  = 'TP1 TRAILING CLOSE' if is_tp1_trailing_close else ('TP2 HIT' if roi >= tp2_threshold else 'STOP LOSS')
                         print(f"[AutoClose] Signal #{sig_id} {ticker} {reason}: ROI={final_roi:+.2f}% entry={entry_p} exit={exit_px} (Peak={max_roi:.2f}%)")
@@ -1516,6 +1567,15 @@ class HarvestService:
                 print(f"[SignalGuard] Blocked duplicate in-flight: {ticker} {_direction} {signal_type}")
                 continue
 
+            # ── Create one signal_events row for this event (shared across all users) ──
+            _ts_now = datetime.now().isoformat()
+            _se_id = _new_signal_event(
+                c, signal_type, ticker, message, severity, curr_p, _ts_now,
+                z_score=_z, alpha=_alpha, direction=_direction,
+                category=_cat, mtf_score=_mtf_score,
+                mtf_detail=json.dumps(_mtf_detail)
+            )
+
             for target_email in enabled_users:
                 # Per-user anti-spam: suppress only if the SAME direction
                 # already fired for this ticker in the last 1h.
@@ -1553,6 +1613,7 @@ class HarvestService:
                                 "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
                                 (datetime.now().isoformat(), round(curr_p, 10), ex_roi, ex_id)
                             )
+                            _dual_update_uss_close(c, ex_id, 'closed', datetime.now().isoformat(), round(curr_p, 10), ex_roi)
                             conn.commit()
                             print(f"[SignalReversal] Auto-closed {ex_type} #{ex_id} on {ticker} "
                                   f"(ROI={ex_roi:+.2f}%) — superseded by new {_direction} signal")
@@ -1916,23 +1977,29 @@ class HarvestService:
             if _inflight_check_and_set(ticker, _rule_direction, sig_type):
                 print(f"[SignalGuard] Blocked duplicate rule signal in-flight: {ticker} {sig_type}")
                 return
+            # Create one signal_events row for this rule-based signal (shared across all users)
+            _rule_ts = datetime.now().isoformat()
+            _dir = 'LONG' if 'OVERSOLD' in sig_type or 'BULLISH' in sig_type else 'SHORT' if 'OVERBOUGHT' in sig_type or 'BEARISH' in sig_type else 'NEUTRAL'
+            _cat = 'MACRO' if is_macro else next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
+            _rule_se_id = _new_signal_event(
+                c, sig_type, ticker, message, severity, curr_p, _rule_ts,
+                direction=_dir, category=_cat
+            )
             for ru_email in rule_users:
                 # 3-hour DB dedup: skip if we already recorded this alert within 3h
                 c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-3 hours')",
                           (ticker, sig_type, ru_email))
                 if c.fetchone(): continue
-                
-                # We default broadly
-                _dir = 'LONG' if 'OVERSOLD' in sig_type or 'BULLISH' in sig_type else 'SHORT' if 'OVERBOUGHT' in sig_type or 'BEARISH' in sig_type else 'NEUTRAL'
-                _cat = 'MACRO' if is_macro else next((cat for cat, tks in UNIVERSE.items() if ticker in tks), 'OTHER')
-                
+
                 c.execute(
                     "INSERT INTO alerts_history "
                     "(type, ticker, message, severity, price, timestamp, direction, category, user_email) "
                     "VALUES (?,?,?,?,?,?,?,?,?)",
                     (sig_type, ticker, message, severity, curr_p,
-                     datetime.now().isoformat(), _dir, _cat, ru_email)
+                     _rule_ts, _dir, _cat, ru_email)
                 )
+                _rule_ah_id = c.lastrowid
+                _dual_write_user_state(c, _rule_se_id, ru_email, _rule_ah_id)
                 conn.commit()
                 users_inserted += 1
 
@@ -2195,13 +2262,18 @@ class HarvestService:
                         # Database Cooldown: 1 hour per asset/type to avoid audit log bloat
                         c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND timestamp > datetime('now', '-1 hours')", (asset, sig_type))
                         if c.fetchone(): continue
-                        
+
                         ts_str = datetime.now().isoformat()
-                        
+
+                        # Create one signal_events row for this funding event
+                        _fund_se_id = _new_signal_event(
+                            c, sig_type, asset, message, severity, 0.0, ts_str, category='INSTITUTIONAL'
+                        )
+
                         # Get all users to ensure institutional audit trail persists for everyone
                         c.execute("SELECT user_email, alerts_enabled FROM user_settings")
                         users = c.fetchall()
-                        
+
                         for email, alerts_enabled in users:
                             # Record in DB for institutional archive (regardless of toggle)
                             c.execute(
@@ -2209,6 +2281,7 @@ class HarvestService:
                                 (sig_type, asset, message, severity, 0.0, ts_str, email, 'INSTITUTIONAL')
                             )
                             alert_id = c.lastrowid
+                            _dual_write_user_state(c, _fund_se_id, email, alert_id)
                             
                             # Push to Discord / Telegram ONLY if enabled
                             if alerts_enabled:
@@ -2300,6 +2373,15 @@ class IntradayRescanService:
                 severity = 'medium'
 
             inserted = 0
+            _rescan_ts = datetime.now().isoformat()
+            # Create one signal_events row (shared across all users for this rescan signal)
+            _rescan_se_id = _new_signal_event(
+                c, signal_type, ticker, f"[Intraday Rescan] {message}",
+                severity, price, _rescan_ts,
+                z_score=_z, alpha=_alpha, direction=direction,
+                category=_cat, mtf_score=_mtf_score,
+                mtf_detail=json.dumps(_mtf_detail)
+            )
             for target_email in users:
                 # Anti-spam: skip if same direction already fired in the last hour
                 c.execute(
@@ -2320,11 +2402,13 @@ class IntradayRescanService:
                      f"[Intraday Rescan] {message}",
                      severity,
                      price,
-                     datetime.now().isoformat(),
+                     _rescan_ts,
                      _z, _alpha, direction, _cat,
                      target_email,
                      _mtf_score, json.dumps(_mtf_detail))
                 )
+                _rescan_ah_id = c.lastrowid
+                _dual_write_user_state(c, _rescan_se_id, target_email, _rescan_ah_id)
                 inserted += 1
 
             conn.commit()

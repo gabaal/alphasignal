@@ -249,6 +249,99 @@ def init_db():
         c.execute("ALTER TABLE alerts_history ADD COLUMN mtf_detail TEXT")
     except: pass
 
+    # ── Normalised signal tables (Phase 1: dual-write) ───────────────────────
+    # signal_events: one row per real-world signal event (de-duplicated)
+    c.execute('''CREATE TABLE IF NOT EXISTS signal_events (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        type            TEXT NOT NULL,
+        ticker          TEXT NOT NULL,
+        message         TEXT,
+        severity        TEXT,
+        price           REAL,
+        timestamp       DATETIME NOT NULL,
+        z_score         REAL,
+        alpha           REAL,
+        direction       TEXT,
+        category        TEXT,
+        mtf_score       REAL,
+        mtf_detail      TEXT,
+        btc_correlation REAL,
+        sentiment       REAL
+    )''')
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_se_ticker_ts ON signal_events(ticker, timestamp DESC)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_se_type_ts ON signal_events(type, timestamp DESC)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_se_ts ON signal_events(timestamp DESC)")
+    except: pass
+
+    # user_signal_state: one row per user × signal event
+    # ah_id cross-references alerts_history.id during the dual-write migration window
+    c.execute('''CREATE TABLE IF NOT EXISTS user_signal_state (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        signal_id    INTEGER NOT NULL REFERENCES signal_events(id),
+        user_email   TEXT NOT NULL,
+        status       TEXT DEFAULT 'active',
+        closed_at    TEXT,
+        exit_price   REAL,
+        final_roi    REAL,
+        max_roi      REAL DEFAULT 0.0,
+        tp1_hit      INTEGER DEFAULT 0,
+        triggered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        ah_id        INTEGER,
+        UNIQUE(signal_id, user_email)
+    )''')
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_uss_email ON user_signal_state(user_email)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_uss_signal ON user_signal_state(signal_id)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_uss_email_ts ON user_signal_state(user_email, triggered_at DESC)")
+    except: pass
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS idx_uss_ah_id ON user_signal_state(ah_id)")
+    except: pass
+
+    # Compatibility VIEW — exposes signal_events JOIN user_signal_state as the old flat layout.
+    # Any legacy code still reading from alerts_history_view gets the same columns.
+    try:
+        c.execute('''
+            CREATE VIEW IF NOT EXISTS alerts_history_view AS
+            SELECT
+                uss.ah_id              AS id,
+                se.type,
+                se.ticker,
+                se.message,
+                se.severity,
+                se.price,
+                se.timestamp,
+                se.z_score,
+                se.alpha,
+                se.direction,
+                se.category,
+                se.btc_correlation,
+                se.sentiment,
+                uss.status,
+                uss.closed_at,
+                uss.exit_price,
+                uss.final_roi,
+                uss.max_roi,
+                uss.tp1_hit,
+                se.mtf_score,
+                se.mtf_detail,
+                uss.user_email,
+                se.id              AS signal_event_id,
+                uss.id             AS uss_id
+            FROM signal_events se
+            JOIN user_signal_state uss ON uss.signal_id = se.id
+        ''')
+    except: pass
+
     # Signal suppression audit log — every killed signal lands here with reason
     c.execute('''CREATE TABLE IF NOT EXISTS signal_suppression_log (
         id        INTEGER PRIMARY KEY AUTOINCREMENT,

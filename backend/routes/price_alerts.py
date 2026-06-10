@@ -169,26 +169,33 @@ def _archive_price_alert(user_email, ticker, target_price, current_price, direct
     ticker_clean = ticker.replace('-USD', '')
     move = ((current_price - target_price) / target_price) * 100
     try:
+        from backend.services import _new_signal_event, _dual_write_user_state
         conn = sqlite3.connect(DB_PATH, timeout=30)
         c = conn.cursor()
-        c.execute(
-            "INSERT INTO alerts_history (type, ticker, message, severity, triggered_at, user_email) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (
-                'price_alert',
-                ticker_clean,
-                f"Price alert triggered: {ticker_clean} {'above' if direction == 'ABOVE' else 'below'} "
-                f"${target_price:,.4f} - current ${current_price:,.4f} ({'+' if move>=0 else ''}{move:.2f}%)"
-                + (f" | Note: {note}" if note else ""),
-                'HIGH',
-                datetime.utcnow().isoformat(),
-                user_email
-            )
+        ts_now = datetime.utcnow().isoformat()
+        msg = (
+            f"Price alert triggered: {ticker_clean} {'above' if direction == 'ABOVE' else 'below'} "
+            f"${target_price:,.4f} - current ${current_price:,.4f} ({'+' if move>=0 else ''}{move:.2f}%)"
+            + (f" | Note: {note}" if note else "")
         )
+        # Legacy write
+        c.execute(
+            "INSERT INTO alerts_history (type, ticker, message, severity, timestamp, user_email) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            ('PRICE_ALERT', ticker_clean, msg, 'HIGH', ts_now, user_email)
+        )
+        ah_id = c.lastrowid
+        # Normalised dual-write
+        se_id = _new_signal_event(
+            c, 'PRICE_ALERT', ticker_clean, msg, 'HIGH', current_price, ts_now,
+            direction='LONG' if direction == 'ABOVE' else 'SHORT'
+        )
+        _dual_write_user_state(c, se_id, user_email, ah_id)
         conn.commit()
         conn.close()
     except Exception as e:
         print(f'[PriceAlert] Archive error: {e}', flush=True)
+
 
 
 # -
