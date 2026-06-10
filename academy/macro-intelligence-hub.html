@@ -1,166 +1,232 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <base href="/">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Using the Macro Intelligence Hub: Regime, Flows, and Calendar - AlphaSignal Academy</title>
-    <meta name="description" content="A complete guide to the AlphaSignal Macro Intelligence Hub. How to use the Market Regime classifier, Capital Flows, Sector Rotation, Macro Calendar, and Correlation Matrix to build macro context before reading signals.">
-    <meta name="keywords" content="AlphaSignal macro hub, market regime classifier, crypto macro calendar, FOMC BTC impact, capital flows crypto, sector rotation crypto, ETF flows Bitcoin, macro intelligence terminal, HMM market regime, correlation matrix crypto, crypto macro analysis, institutional macro crypto">
-    <meta name="author" content="AlphaSignal">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="https://alphasignal.digital/academy/macro-intelligence-hub">
-    <meta property="og:title" content="Using the Macro Intelligence Hub: Regime, Flows, and Calendar - AlphaSignal Academy">
-    <meta property="og:description" content="How to use the AlphaSignal Macro Hub: regime classification, capital flows, sector rotation, and the macro event calendar.">
-    <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:site" content="@alphasignalai">
-    <link rel="canonical" href="https://alphasignal.digital/academy/macro-intelligence-hub">
-    <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"></noscript>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Using the Macro Intelligence Hub","description":"How to use the AlphaSignal Macro Intelligence Hub for regime classification, capital flows, and macro event tracking.","author":{"@type":"Organization","name":"AlphaSignal Academy","url":"https://alphasignal.digital/"},"publisher":{"@type":"Organization","name":"AlphaSignal","logo":{"@type":"ImageObject","url":"https://alphasignal.digital/assets/pwa-icon-512.png"}},"datePublished":"2026-06-04T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://alphasignal.digital/academy/macro-intelligence-hub"}}</script>
-</head>
-<body class="cyber-theme">
-<div id="app-loader" aria-hidden="true" style="position:fixed;inset:0;z-index:99999;background:radial-gradient(ellipse 120% 80% at 10% -10%,rgba(14,18,40,1) 0%,#050710 60%,#020408 100%);display:flex;align-items:center;justify-content:center;transition:opacity 0.35s ease;pointer-events:none;"><div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:#e2e8f0;margin-bottom:1.75rem;">Alpha<span style="color:#7dd3fc;">Signal</span></div><div style="width:28px;height:28px;border:2px solid rgba(125,211,252,0.18);border-top-color:#7dd3fc;border-radius:50%;animation:_ld-spin 0.75s linear infinite;margin:0 auto 1rem;"></div><div style="font-size:0.62rem;color:#64748b;letter-spacing:2.5px;font-weight:700;">INITIALIZING</div></div></div>
-<style>@keyframes _ld-spin{to{transform:rotate(360deg)}}</style>
-<div class="layout hidden" id="main-layout">
-<a href="#app-view" class="skip-link" style="position:absolute;top:-40px;left:0;background:#7dd3fc;color:#000;padding:6px 12px;z-index:9999;font-size:0.75rem;font-weight:700;transition:top 0.2s;text-decoration:none;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
-<aside class="sidebar" id="sidebar" role="complementary" aria-label="Main Navigation">
-    <div class="brand" onclick="switchView('home')" style="cursor:pointer;justify-content:center;padding:1rem 0;" role="link"><div class="brand-title">Alpha<span>Signal</span></div></div>
-    <nav class="sidebar-nav" role="navigation">
-        <div class="nav-item" data-view="command-center"><span class="icon material-symbols-outlined">dashboard</span> Dashboard</div>
-        <div class="nav-item" data-view="signals"><span class="icon material-symbols-outlined">radar</span> Live Signals</div>
-        <div class="sidebar-label" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin:1.5rem 0 0.5rem 1rem;font-weight:700">INSTITUTIONAL WORKFLOW</div>
-        <div class="nav-item active" data-view="macro-hub"><span class="icon material-symbols-outlined">monitoring</span> Macro Intelligence</div>
-        <div class="nav-item" data-view="analytics-hub"><span class="icon material-symbols-outlined">analytics</span> Market Analytics</div>
-        <div class="nav-item" data-view="liquidity"><span class="icon material-symbols-outlined">bar_chart</span> Liquidity &amp; Order Flow</div>
-        <div class="nav-item" data-view="alpha-hub"><span class="icon material-symbols-outlined">electric_bolt</span> Strategy &amp; Backtester</div>
-        <div class="nav-item" data-view="institutional-hub"><span class="icon material-symbols-outlined">key</span> Portfolio &amp; Risk</div>
-        <div class="nav-item" data-view="audit-hub"><span class="icon material-symbols-outlined">trending_up</span> Trade Ledger Audit</div>
-        <div class="sidebar-label" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin:1.5rem 0 0.5rem 1rem;font-weight:700">EXECUTION &amp; AUTOMATION</div>
-        <div class="nav-item" data-view="my-terminal"><span class="icon material-symbols-outlined">person</span> Active Positions <span style="font-size:0.5rem;background:rgba(0,242,255,0.15);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PERSONAL</span></div>
-        <div class="nav-item" data-view="algo-hub"><span class="icon material-symbols-outlined">smart_toy</span> Live Algo Builder <span style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span></div>
-        <div class="nav-item" data-view="alerts-hub"><span class="icon material-symbols-outlined">notifications_active</span> Alerts &amp; Webhooks</div>
-        <div class="sidebar-label" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin:1.5rem 0 0.5rem 1rem;font-weight:700">SYSTEM</div>
-        <div class="nav-item" data-view="ask-terminal"><span class="icon material-symbols-outlined">smart_toy</span> Ask Terminal <span style="font-size:0.5rem;background:#bc13fe;color:black;padding:1px 5px;border-radius:4px;margin-left:2px">AI</span></div>
-        <div class="nav-item" data-view="help" style="margin-top:1rem;border-top:1px solid rgba(255,255,255,0.05);padding-top:1rem;"><span class="icon material-symbols-outlined">help</span> Help / Docs</div>
-    </nav>
-    <div class="user-profile-card profile-dropdown" id="user-profile-dropdown" aria-haspopup="true" aria-expanded="false">
-        <div class="profile-header dropdown-trigger"><div class="user-avatar"><span id="user-initials">IU</span></div><div class="user-details"><span id="display-user-email">Institutional User</span><div id="user-tier-badge" class="tier-badge free">FREE TIER</div></div><span class="material-symbols-outlined dropdown-caret">expand_more</span></div>
-        <div class="profile-actions dropdown-menu"><button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()"><span class="btn-icon material-symbols-outlined">credit_card</span> MANAGE BILLING</button><button id="theme-toggle-btn" class="profile-action-btn" onclick="window.toggleTheme()"><span class="btn-icon material-symbols-outlined" id="theme-icon">light_mode</span> <span id="theme-label">LIGHT MODE</span></button><button id="logout-btn" class="profile-action-btn logout-btn"><span class="btn-icon material-symbols-outlined">logout</span> LOGOUT</button></div>
-    </div>
-    <div class="sentiment-widget-wrapper" style="padding:1.5rem;border-top:1px solid rgba(255,255,255,0.05);margin-top:0.5rem;text-align:center;"><div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px">FEAR &amp; GREED INDEX</div><div style="position:relative;width:120px;height:60px;margin:0 auto;"><canvas id="fearGreedGauge" role="img" aria-label="Fear and greed gauge"></canvas><div id="fearGreedValue" style="position:absolute;bottom:0;left:0;width:100%;font-size:1.2rem;font-weight:900;color:white;">--</div></div></div>
-</aside>
-<div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
-<main class="content" role="main">
-    <header class="top-bar">
-        <button class="mobile-toggle material-symbols-outlined" id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar" aria-expanded="false" aria-controls="sidebar">menu</button>
-        <div class="signal-feed"><div class="feed-label">LIVE ALPHA</div><div class="scroller-container" aria-hidden="true"><div id="alpha-scroller" class="scroller"><span>Connecting...</span></div></div></div>
-        <div id="btc-sparkline-wrap" style="display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);flex-shrink:0"><div style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px;font-weight:700"><a href="/asset/BTC" style="color:#00ffa3;text-decoration:underline;text-underline-offset:3px;font-weight:600;">BTC</a></span><span id="btc-spark-price" style="font-size:0.7rem;font-weight:900;color:var(--text)">-</span><span id="btc-spark-change" style="font-size:0.55rem;font-weight:700">-</span></div><div style="width:80px;height:36px;position:relative;"><canvas id="btcSparklineChart" width="80" height="36"></canvas></div></div>
-        <div class="search-container" role="search" style="position:relative"><input type="text" id="global-search" name="terminal-ticker-search" placeholder="Search ticker..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')" aria-label="Search tickers"><div id="search-dropdown" class="search-dropdown hidden"></div></div>
-        <div class="top-bar-actions"><div class="action-group" id="live-meta-group"><div class="countdown-timer" id="countdown-timer"><span class="countdown-icon material-symbols-outlined">timer</span><span id="countdown-value">5:00</span></div></div><div class="action-group" id="system-actions-group"><button onclick="showNotificationSettings(true)" class="action-btn-styled primary"><span class="material-symbols-outlined" style="font-size:1rem;">api</span> HOOKS</button><button onclick="switchView('home');setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),350)" class="action-btn-styled outline" style="font-size:0.75rem;letter-spacing:1px;font-weight:700"><span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> PRICING</button><button id="export-btn" onclick="showExportMenu(event,'main-content',document.querySelector('h1')?.textContent?.trim()||'AlphaSignal')" class="action-btn-styled outline"><span class="material-symbols-outlined" style="font-size:1rem;">ios_share</span> EXPORT</button><button id="refresh-btn" class="action-btn-styled primary"><span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> RE-CALCULATE</button></div></div>
-    </header>
-    <div id="app-view" style="min-height:100vh">
-        <div class='academy-container seo-pre-render' style='padding:5rem 2rem 10rem;max-width:900px;margin:0 auto;font-family:"Inter",sans-serif;'>
-
-<div style='display:inline-block;padding:4px 12px;background:rgba(125,211,252,0.15);border:1px solid var(--accent);color:var(--accent);border-radius:6px;font-size:0.75rem;letter-spacing:2px;font-weight:700;margin-bottom:0.75rem;'>ACADEMY: HOW TO USE THE TERMINAL</div>
-<div style='display:inline-block;margin-left:0.75rem;padding:4px 12px;background:rgba(188,19,254,0.12);border:1px solid rgba(188,19,254,0.4);color:#c084fc;border-radius:6px;font-size:0.75rem;letter-spacing:2px;font-weight:700;margin-bottom:0.75rem;'>ARTICLE 4 OF 8</div>
-
-<h1 style='font-size:clamp(2rem,4vw,3.2rem);margin-bottom:1.5rem;margin-top:1rem;color:var(--text-main);font-weight:900;line-height:1.1;letter-spacing:-1px;'>Using the Macro Intelligence Hub: Regime, Flows, and Calendar</h1>
-<p style='font-size:1.25rem;line-height:1.6;color:var(--text-dim);margin-bottom:3rem;padding-bottom:3rem;border-bottom:1px solid rgba(255,255,255,0.08);'>The Macro Hub is the widest view in the terminal. It covers the institutional capital flows, sector rotation, FOMC calendar, and regime classification that form the backdrop for every signal you read. This article explains what each tab does and when to use it.</p>
-
-<div class='academy-article-dynamic' style='font-size:1.1rem;line-height:1.85;color:#cbd5e1;'>
-
-<h2>What the Macro Hub covers</h2>
-
-<p>The Macro Intelligence Hub is accessible from the sidebar under "Macro Intelligence". It opens to the Market Briefing tab by default and contains seven tabs: Market Briefing, Macro Compass, Capital Flows, Sector Rotation, Capital Rotation, Correlation Matrix, Macro Calendar, and Market Regime.</p>
-
-<p>These are not eight independent tools. They are eight views of the same question: what is the macro environment doing right now, and how is capital moving in response to it? The tabs build on each other, so reading them in order gives you a coherent macro picture rather than a collection of isolated data points.</p>
-
-<img src="/academy/images/article4-macro-hub.png" alt="AlphaSignal Macro Intelligence Hub showing tab navigation and the Market Briefing view with Macro Context, Key Opportunities, and Risk Warnings sections" style="width:100%;border-radius:12px;margin:2rem 0;border:1px solid rgba(0,242,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4);" loading="lazy" />
-<p style="font-size:0.8rem;color:var(--text-dim);text-align:center;margin-top:-1.5rem;margin-bottom:2.5rem;">The Macro Intelligence Hub. The tab bar at the top gives access to all seven views from one location. The Market Briefing is the starting point: an AI-generated summary of current macro context, key opportunities, and active risk warnings for BTC and the broader crypto market.</p>
-
-<h2>Market Regime: the first thing to check</h2>
-
-<p>The Market Regime tab runs a Hidden Markov Model against BTC price, volatility, and cross-asset correlation data. The output is one of three regime states with a confidence percentage. The Structural Alpha Heatmap below the main panel shows the regime history over the past 90 days as colour-coded columns: green for Risk-On, yellow for Compression, red for Dislocation.</p>
-
-<p>The heatmap tells you two things beyond the current state. First, how long the current regime has been active. A regime that has persisted for 20 consecutive days is more entrenched than one that appeared yesterday. Second, how frequently each regime appears in this asset's recent history. If the asset has been in Dislocation for 60% of the past 90 days, the base rate of encountering a Dislocation regime is high and you should weight your strategy selection accordingly.</p>
-
-<p>The three supplementary metrics below the regime label are worth reading every day: Trend Bias, Volatility, and SMA 20 Distance. Trend Bias tells you directional lean (Bullish, Bearish, or Neutral). Volatility tells you whether vol is elevated or suppressed. SMA 20 Distance tells you how far price is from its 20-day moving average, which gives you a sense of how extended or compressed the current move is.</p>
-
-<h2>Capital Flows: reading ETF institutional intent</h2>
-
-<p>The Capital Flows tab shows daily net inflow and outflow data across all major Bitcoin spot ETFs. The view used in the Article 2 daily routine lives here. The interpretation rules that matter most are directional consistency, not single-day magnitude.</p>
-
-<p>Three consecutive days of net outflows from BlackRock IBIT signals that the largest institutional ETF holder is reducing exposure. This is a structural bearish signal for BTC, regardless of what the price is doing on any individual day. Single-day spikes in either direction are frequently noise: end-of-month rebalancing, tactical hedges, or authorised participant arbitrage.</p>
-
-<img src="/academy/images/article4-etf-flows.png" alt="AlphaSignal ETF Flows view showing daily net inflow and outflow bars for Bitcoin spot ETFs including BlackRock IBIT and Fidelity FBTC" style="width:100%;border-radius:12px;margin:2rem 0;border:1px solid rgba(0,242,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4);" loading="lazy" />
-<p style="font-size:0.8rem;color:var(--text-dim);text-align:center;margin-top:-1.5rem;margin-bottom:2.5rem;">The ETF Flows view under Capital Flows. Each bar is one trading day. The cumulative flow line at the top is the more useful metric for spotting sustained institutional direction over a week or longer. A rising cumulative line alongside a Risk-On regime is the clearest bullish macro alignment the terminal can show you.</p>
-
-<h2>Sector Rotation and Capital Rotation</h2>
-
-<p>The Sector Rotation tab breaks the signal universe into sectors: L1, DeFi, Exchange, Miners, AI, RWA, and others. It shows which sectors are currently attracting capital and which are seeing outflows, based on volume and on-chain flow data. This is the view to check when you want to know whether the top Alpha Score assets are concentrated in one sector or spread across the board.</p>
-
-<p>Concentrated signal activity in one sector means a specific thesis is driving capital, not a broad market risk-on move. Distributed signal activity across three or more sectors means broad appetite for crypto risk. The latter tends to be more durable.</p>
-
-<p>Capital Rotation overlays this with a cycle framework, showing where each sector sits in the rotation cycle relative to BTC dominance and altcoin beta. When L1s are leading and DeFi is lagging, the cycle is in early-stage altcoin expansion. When everything is outperforming BTC simultaneously, late-cycle exhaustion is more likely.</p>
-
-<h2>Macro Calendar: event risk you cannot ignore</h2>
-
-<p>The Macro Calendar tab lists upcoming macroeconomic events: FOMC meetings, CPI and NFP releases, Fed speaker appearances, and Treasury auctions. Each event is scored for its historical impact on BTC price over the 48 hours following the announcement. FOMC decisions carry a consistently high impact score. CPI prints are variable depending on whether the reading surprises relative to consensus.</p>
-
-<p>The practical use of the calendar is simple: if you are considering entering a position within 24 hours of a high-impact event, reduce sizing by at least half. FOMC weeks have shown above-average volatility and correlation breakdown across crypto assets. The regime classifier often shifts during FOMC weeks. Entering with full position size before a FOMC meeting is accepting regime-change risk without compensation.</p>
-
-<h2>Correlation Matrix: when crypto stops trading like crypto</h2>
-
-<p>The Correlation Matrix shows the rolling 30-day correlation between BTC and traditional asset classes including equities (SPX), gold, DXY (US Dollar Index), and bond yields. In a normal Risk-On regime, BTC correlates positively with equities and negatively with DXY. During macro stress events, those correlations break down or invert temporarily.</p>
-
-<p>When BTC-SPX correlation drops below 0.3 in a Dislocation regime, it means BTC is decoupling from the equity market risk-off trade. This is either idiosyncratic crypto stress (on-chain or exchange-related) or early institutional accumulation that is diverging from the broader macro risk appetite. Both require different responses.</p>
-
-<p>The Correlation Matrix gives you early warning when the macro regime is changing in ways the HMM classifier has not yet caught. Correlations typically shift before the regime label changes. If you see BTC-DXY correlation flipping positive while the regime still shows Risk-On, the regime label is about to update. Trade that transition carefully.</p>
-
-</div>
-
-<!-- Series Nav -->
-<div style='margin-top:4rem;padding:2rem;background:rgba(125,211,252,0.04);border:1px solid rgba(125,211,252,0.12);border-radius:16px;'>
-    <div style='font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:1rem;'>HOW TO USE THE TERMINAL: 8-PART SERIES</div>
-    <div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;'>
-        <a href="/academy/how-alphasignal-works" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>1. How AlphaSignal Works</a>
-        <a href="/academy/alphasignal-daily-routine" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>2. Your First 10 Minutes</a>
-        <a href="/academy/reading-z-scores" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>3. Reading Z-Scores</a>
-        <a href="/academy/macro-intelligence-hub" style='display:block;padding:0.75rem 1rem;background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.3);border-radius:8px;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:700;'>4. Macro Hub</a>
-        <a href="/academy/whale-watching-onchain" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>5. Whale Watching</a>
-        <a href="/academy/derivatives-decoded" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>6. Derivatives Decoded</a>
-        <a href="/academy/position-sizing-risk-matrix" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>7. Position Sizing</a>
-        <a href="/academy/building-a-trading-watchlist" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>8. Building a Watchlist</a>
-    </div>
-</div>
-<div style='margin-top:4rem;padding:3rem;background:rgba(0,0,0,0.3);border:1px solid rgba(125,211,252,0.15);border-radius:16px;text-align:center;'>
-    <h3 style='margin:0 0 1rem;color:#fff;font-size:1.4rem;'>Open the Macro Hub now</h3>
-    <p style='color:var(--text-dim);margin-bottom:2rem;max-width:520px;margin-left:auto;margin-right:auto;'>Check the current regime, then look at the ETF flow trend. Two data points that take under two minutes and change how you read everything else.</p>
-    <a href="/?view=macro-hub" style='display:inline-block;background:var(--accent);color:#000;font-weight:800;text-decoration:none;padding:1rem 2.5rem;border-radius:8px;font-size:1rem;box-shadow:0 0 20px rgba(125,211,252,0.3);margin-right:1rem;'>OPEN MACRO HUB</a>
-    <a href="/?view=etf-flows" style='display:inline-block;background:transparent;color:var(--accent);font-weight:700;text-decoration:none;padding:1rem 2.5rem;border-radius:8px;font-size:1rem;border:1px solid rgba(125,211,252,0.4);'>ETF FLOWS</a>
-</div>
-</div></div>
-    <noscript><div style="max-width:900px;margin:0 auto;padding:4rem 2rem;font-family:system-ui,sans-serif;color:#e2e8f0;"><h1>Using the Macro Intelligence Hub</h1><p>Guide to the AlphaSignal Macro Hub: regime, ETF flows, sector rotation, and macro calendar. Available at alphasignal.digital.</p></div></noscript>
-    <script>(function(){var l=document.getElementById('app-loader');var m=document.getElementById('main-layout');if(l){l.style.transition='opacity 0.15s';l.style.opacity='0';setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l);},160);}if(m){m.classList.remove('hidden');m.style.removeProperty('filter');}})()</script>
-    <footer class="global-footer" role="contentinfo"><div style="border-top:1px solid rgba(255,255,255,0.06);padding:2rem 0;"><div class="footer-bottom"><span>&copy; 2026 ALPHASIGNAL TERMINAL &mdash; alphasignal.digital</span><div class="system-badges"><span class="badge">SECURE_SSL</span><span class="badge">AI_NEURAL_ACTIVE</span><span class="badge">PWA_READY</span></div></div></div></footer>
-</main>
-<nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation"><div class="mobile-nav-item" data-view="signals"><span class="m-icon material-symbols-outlined">radar</span><span class="m-label">Signals</span></div><div class="mobile-nav-item" data-view="briefing"><span class="m-icon material-symbols-outlined">memory</span><span class="m-label">AI Intel</span></div><div class="mobile-nav-item active" data-view="macro-hub"><span class="m-icon material-symbols-outlined">public</span><span class="m-label">Macro</span></div><div class="mobile-nav-item" data-view="alerts-hub"><span class="m-icon material-symbols-outlined">notifications</span><span class="m-label">Alerts</span></div><div class="mobile-nav-item" id="mobile-more-btn"><span class="m-icon material-symbols-outlined">menu</span><span class="m-label">More</span></div></nav>
-<div id="auth-overlay" class="overlay hidden" role="dialog" aria-modal="true"><div class="overlay-content auth-box"><button class="close-overlay">&times;</button><div class="brand-title" style="text-align:center;margin-bottom:1.5rem;">Alpha<span>Signal</span></div><input type="email" id="auth-email" placeholder="Email address" autocomplete="email"><input type="password" id="auth-password" placeholder="Password" autocomplete="current-password"><button id="login-btn" class="intel-action-btn auth-submit"><span class="material-symbols-outlined" style="font-size:1rem;">login</span><span id="auth-btn-label">SIGN IN</span></button><div id="auth-error" class="hidden" style="color:var(--risk-high);font-size:0.8rem;margin-top:0.5rem;"></div><a href="#" id="toggle-auth">Create account</a></div></div>
-<div id="paywall-overlay" class="overlay hidden" role="dialog" aria-modal="true"></div>
-<div id="detail-overlay" class="overlay hidden" role="dialog" aria-modal="true"></div>
-<div id="notification-modal" class="overlay hidden" role="dialog" aria-modal="true"></div>
-<div id="export-menu" class="hidden" style="position:fixed;z-index:9999;"></div>
-<div id="search-results-overlay" class="hidden"></div>
-</div>
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Using the Macro Intelligence Hub: Regime, Flows, and Calendar - AlphaSignal Academy</title>
+    <meta name="description" content="A complete guide to the AlphaSignal Macro Intelligence Hub. How to use the Market Regime classifier, Capital Flows, Sector Rotation, Macro Calendar, and Correlation Matrix to build macro context before reading signals.">
+    <meta name="keywords" content="AlphaSignal macro hub, market regime classifier, crypto macro calendar, FOMC BTC impact, capital flows crypto, sector rotation crypto, ETF flows Bitcoin, macro intelligence terminal, HMM market regime, correlation matrix crypto, crypto macro analysis, institutional macro crypto">
+    <meta name="author" content="AlphaSignal">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://alphasignal.digital/academy/macro-intelligence-hub">
+    <meta property="og:title" content="Using the Macro Intelligence Hub: Regime, Flows, and Calendar - AlphaSignal Academy">
+    <meta property="og:description" content="How to use the AlphaSignal Macro Hub: regime classification, capital flows, sector rotation, and the macro event calendar.">
+    <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@alphasignalai">
+    <link rel="canonical" href="https://alphasignal.digital/academy/macro-intelligence-hub">
+    <meta name="theme-color" content="#05070a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"></noscript>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Using the Macro Intelligence Hub","description":"How to use the AlphaSignal Macro Intelligence Hub for regime classification, capital flows, and macro event tracking.","author":{"@type":"Organization","name":"AlphaSignal Academy","url":"https://alphasignal.digital/"},"publisher":{"@type":"Organization","name":"AlphaSignal","logo":{"@type":"ImageObject","url":"https://alphasignal.digital/assets/pwa-icon-512.png"}},"datePublished":"2026-06-04T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://alphasignal.digital/academy/macro-intelligence-hub"}}</script>
+</head>
+<body class="cyber-theme">
+<div id="app-loader" aria-hidden="true" style="position:fixed;inset:0;z-index:99999;background:radial-gradient(ellipse 120% 80% at 10% -10%,rgba(14,18,40,1) 0%,#050710 60%,#020408 100%);display:flex;align-items:center;justify-content:center;transition:opacity 0.35s ease;pointer-events:none;"><div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:#e2e8f0;margin-bottom:1.75rem;">Alpha<span style="color:#7dd3fc;">Signal</span></div><div style="width:28px;height:28px;border:2px solid rgba(125,211,252,0.18);border-top-color:#7dd3fc;border-radius:50%;animation:_ld-spin 0.75s linear infinite;margin:0 auto 1rem;"></div><div style="font-size:0.62rem;color:#64748b;letter-spacing:2.5px;font-weight:700;">INITIALIZING</div></div></div>
+<style>@keyframes _ld-spin{to{transform:rotate(360deg)}}</style>
+<div class="layout hidden" id="main-layout">
+<a href="#app-view" class="skip-link" style="position:absolute;top:-40px;left:0;background:#7dd3fc;color:#000;padding:6px 12px;z-index:9999;font-size:0.75rem;font-weight:700;transition:top 0.2s;text-decoration:none;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
+<aside class="sidebar" id="sidebar" role="complementary" aria-label="Main Navigation">
+    <div class="brand" onclick="switchView('home')" style="cursor:pointer;justify-content:center;padding:1rem 0;" role="link"><div class="brand-title">Alpha<span>Signal</span></div></div>
+    <nav class="sidebar-nav" role="navigation">
+        <div class="nav-item" data-view="command-center"><span class="icon material-symbols-outlined">dashboard</span> Dashboard</div>
+        <div class="nav-item" data-view="signals"><span class="icon material-symbols-outlined">radar</span> Live Signals</div>
+        <div class="sidebar-label" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin:1.5rem 0 0.5rem 1rem;font-weight:700">INSTITUTIONAL WORKFLOW</div>
+        <div class="nav-item active" data-view="macro-hub"><span class="icon material-symbols-outlined">monitoring</span> Macro Intelligence</div>
+        <div class="nav-item" data-view="analytics-hub"><span class="icon material-symbols-outlined">analytics</span> Market Analytics</div>
+        <div class="nav-item" data-view="liquidity"><span class="icon material-symbols-outlined">bar_chart</span> Liquidity &amp; Order Flow</div>
+        <div class="nav-item" data-view="alpha-hub"><span class="icon material-symbols-outlined">electric_bolt</span> Strategy &amp; Backtester</div>
+        <div class="nav-item" data-view="institutional-hub"><span class="icon material-symbols-outlined">key</span> Portfolio &amp; Risk</div>
+        <div class="nav-item" data-view="audit-hub"><span class="icon material-symbols-outlined">trending_up</span> Trade Ledger Audit</div>
+        <div class="sidebar-label" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin:1.5rem 0 0.5rem 1rem;font-weight:700">EXECUTION &amp; AUTOMATION</div>
+        <div class="nav-item" data-view="my-terminal"><span class="icon material-symbols-outlined">person</span> Active Positions <span style="font-size:0.5rem;background:rgba(0,242,255,0.15);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PERSONAL</span></div>
+        <div class="nav-item" data-view="algo-hub"><span class="icon material-symbols-outlined">smart_toy</span> Live Algo Builder <span style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span></div>
+        <div class="nav-item" data-view="alerts-hub"><span class="icon material-symbols-outlined">notifications_active</span> Alerts &amp; Webhooks</div>
+        <div class="sidebar-label" style="font-size:0.55rem;color:var(--text-dim);letter-spacing:2px;margin:1.5rem 0 0.5rem 1rem;font-weight:700">SYSTEM</div>
+        <div class="nav-item" data-view="ask-terminal"><span class="icon material-symbols-outlined">smart_toy</span> Ask Terminal <span style="font-size:0.5rem;background:#bc13fe;color:black;padding:1px 5px;border-radius:4px;margin-left:2px">AI</span></div>
+        <div class="nav-item" data-view="help" style="margin-top:1rem;border-top:1px solid rgba(255,255,255,0.05);padding-top:1rem;"><span class="icon material-symbols-outlined">help</span> Help / Docs</div>
+    </nav>
+    <div class="user-profile-card profile-dropdown" id="user-profile-dropdown" aria-haspopup="true" aria-expanded="false">
+        <div class="profile-header dropdown-trigger"><div class="user-avatar"><span id="user-initials">IU</span></div><div class="user-details"><span id="display-user-email">Institutional User</span><div id="user-tier-badge" class="tier-badge free">FREE TIER</div></div><span class="material-symbols-outlined dropdown-caret">expand_more</span></div>
+        <div class="profile-actions dropdown-menu"><button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()"><span class="btn-icon material-symbols-outlined">credit_card</span> MANAGE BILLING</button><button id="theme-toggle-btn" class="profile-action-btn" onclick="window.toggleTheme()"><span class="btn-icon material-symbols-outlined" id="theme-icon">light_mode</span> <span id="theme-label">LIGHT MODE</span></button><button id="logout-btn" class="profile-action-btn logout-btn"><span class="btn-icon material-symbols-outlined">logout</span> LOGOUT</button></div>
+    </div>
+    <div class="sentiment-widget-wrapper" style="padding:1.5rem;border-top:1px solid rgba(255,255,255,0.05);margin-top:0.5rem;text-align:center;"><div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px">FEAR &amp; GREED INDEX</div><div style="position:relative;width:120px;height:60px;margin:0 auto;"><canvas id="fearGreedGauge" role="img" aria-label="Fear and greed gauge"></canvas><div id="fearGreedValue" style="position:absolute;bottom:0;left:0;width:100%;font-size:1.2rem;font-weight:900;color:white;">--</div></div></div>
+</aside>
+<div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+<main class="content" role="main">
+    <header class="top-bar">
+        <button class="mobile-toggle material-symbols-outlined" id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar" aria-expanded="false" aria-controls="sidebar">menu</button>
+        <div class="signal-feed"><div class="feed-label">LIVE ALPHA</div><div class="scroller-container" aria-hidden="true"><div id="alpha-scroller" class="scroller"><span>Connecting...</span></div></div></div>
+        <div id="btc-sparkline-wrap" style="display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);flex-shrink:0"><div style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px;font-weight:700"><a href="/asset/BTC" style="color:#00ffa3;text-decoration:underline;text-underline-offset:3px;font-weight:600;">BTC</a></span><span id="btc-spark-price" style="font-size:0.7rem;font-weight:900;color:var(--text)">-</span><span id="btc-spark-change" style="font-size:0.55rem;font-weight:700">-</span></div><div style="width:80px;height:36px;position:relative;"><canvas id="btcSparklineChart" width="80" height="36"></canvas></div></div>
+        <div class="search-container" role="search" style="position:relative"><input type="text" id="global-search" name="terminal-ticker-search" placeholder="Search ticker..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')" aria-label="Search tickers"><div id="search-dropdown" class="search-dropdown hidden"></div></div>
+        <div class="top-bar-actions"><div class="action-group" id="live-meta-group"><div class="countdown-timer" id="countdown-timer"><span class="countdown-icon material-symbols-outlined">timer</span><span id="countdown-value">5:00</span></div></div><div class="action-group" id="system-actions-group"><button onclick="showNotificationSettings(true)" class="action-btn-styled primary"><span class="material-symbols-outlined" style="font-size:1rem;">api</span> HOOKS</button><button onclick="switchView('home');setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),350)" class="action-btn-styled outline" style="font-size:0.75rem;letter-spacing:1px;font-weight:700"><span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> PRICING</button><button id="export-btn" onclick="showExportMenu(event,'main-content',document.querySelector('h1')?.textContent?.trim()||'AlphaSignal')" class="action-btn-styled outline"><span class="material-symbols-outlined" style="font-size:1rem;">ios_share</span> EXPORT</button><button id="refresh-btn" class="action-btn-styled primary"><span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> RE-CALCULATE</button></div></div>
+    </header>
+    <div id="app-view" style="min-height:100vh">
+        <div class='academy-container seo-pre-render' style='padding:5rem 2rem 10rem;max-width:900px;margin:0 auto;font-family:"Inter",sans-serif;'>
+
+<div style='display:inline-block;padding:4px 12px;background:rgba(125,211,252,0.15);border:1px solid var(--accent);color:var(--accent);border-radius:6px;font-size:0.75rem;letter-spacing:2px;font-weight:700;margin-bottom:0.75rem;'>ACADEMY: HOW TO USE THE TERMINAL</div>
+<div style='display:inline-block;margin-left:0.75rem;padding:4px 12px;background:rgba(188,19,254,0.12);border:1px solid rgba(188,19,254,0.4);color:#c084fc;border-radius:6px;font-size:0.75rem;letter-spacing:2px;font-weight:700;margin-bottom:0.75rem;'>ARTICLE 4 OF 8</div>
+
+<h1 style='font-size:clamp(2rem,4vw,3.2rem);margin-bottom:1.5rem;margin-top:1rem;color:var(--text-main);font-weight:900;line-height:1.1;letter-spacing:-1px;'>Using the Macro Intelligence Hub: Regime, Flows, and Calendar</h1>
+<p style='font-size:1.25rem;line-height:1.6;color:var(--text-dim);margin-bottom:3rem;padding-bottom:3rem;border-bottom:1px solid rgba(255,255,255,0.08);'>The Macro Hub is the widest view in the terminal. It covers the institutional capital flows, sector rotation, FOMC calendar, and regime classification that form the backdrop for every signal you read. This article explains what each tab does and when to use it.</p>
+
+<div class='academy-article-dynamic' style='font-size:1.1rem;line-height:1.85;color:#cbd5e1;'>
+
+<h2>What the Macro Hub covers</h2>
+
+<p>The Macro Intelligence Hub is accessible from the sidebar under "Macro Intelligence". It opens to the Market Briefing tab by default and contains seven tabs: Market Briefing, Macro Compass, Capital Flows, Sector Rotation, Capital Rotation, Correlation Matrix, Macro Calendar, and Market Regime.</p>
+
+<p>These are not eight independent tools. They are eight views of the same question: what is the macro environment doing right now, and how is capital moving in response to it? The tabs build on each other, so reading them in order gives you a coherent macro picture rather than a collection of isolated data points.</p>
+
+<img src="/academy/images/article4-macro-hub.png" alt="AlphaSignal Macro Intelligence Hub showing tab navigation and the Market Briefing view with Macro Context, Key Opportunities, and Risk Warnings sections" style="width:100%;border-radius:12px;margin:2rem 0;border:1px solid rgba(0,242,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4);" loading="lazy" />
+<p style="font-size:0.8rem;color:var(--text-dim);text-align:center;margin-top:-1.5rem;margin-bottom:2.5rem;">The Macro Intelligence Hub. The tab bar at the top gives access to all seven views from one location. The Market Briefing is the starting point: an AI-generated summary of current macro context, key opportunities, and active risk warnings for BTC and the broader crypto market.</p>
+
+<h2>Market Regime: the first thing to check</h2>
+
+<p>The Market Regime tab runs a Hidden Markov Model against BTC price, volatility, and cross-asset correlation data. The output is one of three regime states with a confidence percentage. The Structural Alpha Heatmap below the main panel shows the regime history over the past 90 days as colour-coded columns: green for Risk-On, yellow for Compression, red for Dislocation.</p>
+
+<p>The heatmap tells you two things beyond the current state. First, how long the current regime has been active. A regime that has persisted for 20 consecutive days is more entrenched than one that appeared yesterday. Second, how frequently each regime appears in this asset's recent history. If the asset has been in Dislocation for 60% of the past 90 days, the base rate of encountering a Dislocation regime is high and you should weight your strategy selection accordingly.</p>
+
+<p>The three supplementary metrics below the regime label are worth reading every day: Trend Bias, Volatility, and SMA 20 Distance. Trend Bias tells you directional lean (Bullish, Bearish, or Neutral). Volatility tells you whether vol is elevated or suppressed. SMA 20 Distance tells you how far price is from its 20-day moving average, which gives you a sense of how extended or compressed the current move is.</p>
+
+<h2>Capital Flows: reading ETF institutional intent</h2>
+
+<p>The Capital Flows tab shows daily net inflow and outflow data across all major Bitcoin spot ETFs. The view used in the Article 2 daily routine lives here. The interpretation rules that matter most are directional consistency, not single-day magnitude.</p>
+
+<p>Three consecutive days of net outflows from BlackRock IBIT signals that the largest institutional ETF holder is reducing exposure. This is a structural bearish signal for BTC, regardless of what the price is doing on any individual day. Single-day spikes in either direction are frequently noise: end-of-month rebalancing, tactical hedges, or authorised participant arbitrage.</p>
+
+<img src="/academy/images/article4-etf-flows.png" alt="AlphaSignal ETF Flows view showing daily net inflow and outflow bars for Bitcoin spot ETFs including BlackRock IBIT and Fidelity FBTC" style="width:100%;border-radius:12px;margin:2rem 0;border:1px solid rgba(0,242,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4);" loading="lazy" />
+<p style="font-size:0.8rem;color:var(--text-dim);text-align:center;margin-top:-1.5rem;margin-bottom:2.5rem;">The ETF Flows view under Capital Flows. Each bar is one trading day. The cumulative flow line at the top is the more useful metric for spotting sustained institutional direction over a week or longer. A rising cumulative line alongside a Risk-On regime is the clearest bullish macro alignment the terminal can show you.</p>
+
+<h2>Sector Rotation and Capital Rotation</h2>
+
+<p>The Sector Rotation tab breaks the signal universe into sectors: L1, DeFi, Exchange, Miners, AI, RWA, and others. It shows which sectors are currently attracting capital and which are seeing outflows, based on volume and on-chain flow data. This is the view to check when you want to know whether the top Alpha Score assets are concentrated in one sector or spread across the board.</p>
+
+<p>Concentrated signal activity in one sector means a specific thesis is driving capital, not a broad market risk-on move. Distributed signal activity across three or more sectors means broad appetite for crypto risk. The latter tends to be more durable.</p>
+
+<p>Capital Rotation overlays this with a cycle framework, showing where each sector sits in the rotation cycle relative to BTC dominance and altcoin beta. When L1s are leading and DeFi is lagging, the cycle is in early-stage altcoin expansion. When everything is outperforming BTC simultaneously, late-cycle exhaustion is more likely.</p>
+
+<h2>Macro Calendar: event risk you cannot ignore</h2>
+
+<p>The Macro Calendar tab lists upcoming macroeconomic events: FOMC meetings, CPI and NFP releases, Fed speaker appearances, and Treasury auctions. Each event is scored for its historical impact on BTC price over the 48 hours following the announcement. FOMC decisions carry a consistently high impact score. CPI prints are variable depending on whether the reading surprises relative to consensus.</p>
+
+<p>The practical use of the calendar is simple: if you are considering entering a position within 24 hours of a high-impact event, reduce sizing by at least half. FOMC weeks have shown above-average volatility and correlation breakdown across crypto assets. The regime classifier often shifts during FOMC weeks. Entering with full position size before a FOMC meeting is accepting regime-change risk without compensation.</p>
+
+<h2>Correlation Matrix: when crypto stops trading like crypto</h2>
+
+<p>The Correlation Matrix shows the rolling 30-day correlation between BTC and traditional asset classes including equities (SPX), gold, DXY (US Dollar Index), and bond yields. In a normal Risk-On regime, BTC correlates positively with equities and negatively with DXY. During macro stress events, those correlations break down or invert temporarily.</p>
+
+<p>When BTC-SPX correlation drops below 0.3 in a Dislocation regime, it means BTC is decoupling from the equity market risk-off trade. This is either idiosyncratic crypto stress (on-chain or exchange-related) or early institutional accumulation that is diverging from the broader macro risk appetite. Both require different responses.</p>
+
+<p>The Correlation Matrix gives you early warning when the macro regime is changing in ways the HMM classifier has not yet caught. Correlations typically shift before the regime label changes. If you see BTC-DXY correlation flipping positive while the regime still shows Risk-On, the regime label is about to update. Trade that transition carefully.</p>
+
+</div>
+
+<!-- Series Nav -->
+<div style='margin-top:4rem;padding:2rem;background:rgba(125,211,252,0.04);border:1px solid rgba(125,211,252,0.12);border-radius:16px;'>
+    <div style='font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:1rem;'>HOW TO USE THE TERMINAL: 8-PART SERIES</div>
+    <div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;'>
+        <a href="/academy/how-alphasignal-works" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>1. How AlphaSignal Works</a>
+        <a href="/academy/alphasignal-daily-routine" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>2. Your First 10 Minutes</a>
+        <a href="/academy/reading-z-scores" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>3. Reading Z-Scores</a>
+        <a href="/academy/macro-intelligence-hub" style='display:block;padding:0.75rem 1rem;background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.3);border-radius:8px;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:700;'>4. Macro Hub</a>
+        <a href="/academy/whale-watching-onchain" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>5. Whale Watching</a>
+        <a href="/academy/derivatives-decoded" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>6. Derivatives Decoded</a>
+        <a href="/academy/position-sizing-risk-matrix" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>7. Position Sizing</a>
+        <a href="/academy/building-a-trading-watchlist" style='display:block;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;color:var(--text-dim);font-size:0.8rem;'>8. Building a Watchlist</a>
+    </div>
+</div>
+<div style='margin-top:4rem;padding:3rem;background:rgba(0,0,0,0.3);border:1px solid rgba(125,211,252,0.15);border-radius:16px;text-align:center;'>
+    <h3 style='margin:0 0 1rem;color:#fff;font-size:1.4rem;'>Open the Macro Hub now</h3>
+    <p style='color:var(--text-dim);margin-bottom:2rem;max-width:520px;margin-left:auto;margin-right:auto;'>Check the current regime, then look at the ETF flow trend. Two data points that take under two minutes and change how you read everything else.</p>
+    <a href="/?view=macro-hub" style='display:inline-block;background:var(--accent);color:#000;font-weight:800;text-decoration:none;padding:1rem 2.5rem;border-radius:8px;font-size:1rem;box-shadow:0 0 20px rgba(125,211,252,0.3);margin-right:1rem;'>OPEN MACRO HUB</a>
+    <a href="/?view=etf-flows" style='display:inline-block;background:transparent;color:var(--accent);font-weight:700;text-decoration:none;padding:1rem 2.5rem;border-radius:8px;font-size:1rem;border:1px solid rgba(125,211,252,0.4);'>ETF FLOWS</a>
+</div>
+</div></div>
+    <noscript><div style="max-width:900px;margin:0 auto;padding:4rem 2rem;font-family:system-ui,sans-serif;color:#e2e8f0;"><h1>Using the Macro Intelligence Hub</h1><p>Guide to the AlphaSignal Macro Hub: regime, ETF flows, sector rotation, and macro calendar. Available at alphasignal.digital.</p></div></noscript>
+    <script>(function(){var l=document.getElementById('app-loader');var m=document.getElementById('main-layout');if(l){l.style.transition='opacity 0.15s';l.style.opacity='0';setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l);},160);}if(m){m.classList.remove('hidden');m.style.removeProperty('filter');}})()</script>
+    <footer class="global-footer" role="contentinfo"><div style="border-top:1px solid rgba(255,255,255,0.06);padding:2rem 0;"><div class="footer-bottom"><span>&copy; 2026 ALPHASIGNAL TERMINAL &mdash; alphasignal.digital</span><div class="system-badges"><span class="badge">SECURE_SSL</span><span class="badge">AI_NEURAL_ACTIVE</span><span class="badge">PWA_READY</span></div></div></div></footer>
+</main>
+<nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation"><div class="mobile-nav-item" data-view="signals"><span class="m-icon material-symbols-outlined">radar</span><span class="m-label">Signals</span></div><div class="mobile-nav-item" data-view="briefing"><span class="m-icon material-symbols-outlined">memory</span><span class="m-label">AI Intel</span></div><div class="mobile-nav-item active" data-view="macro-hub"><span class="m-icon material-symbols-outlined">public</span><span class="m-label">Macro</span></div><div class="mobile-nav-item" data-view="alerts-hub"><span class="m-icon material-symbols-outlined">notifications</span><span class="m-label">Alerts</span></div><div class="mobile-nav-item" id="mobile-more-btn"><span class="m-icon material-symbols-outlined">menu</span><span class="m-label">More</span></div></nav>
+<div id="auth-overlay" class="overlay hidden" role="dialog" aria-modal="true"><div class="overlay-content auth-box"><button class="close-overlay">&times;</button><div class="brand-title" style="text-align:center;margin-bottom:1.5rem;">Alpha<span>Signal</span></div><input type="email" id="auth-email" placeholder="Email address" autocomplete="email"><input type="password" id="auth-password" placeholder="Password" autocomplete="current-password"><button id="login-btn" class="intel-action-btn auth-submit"><span class="material-symbols-outlined" style="font-size:1rem;">login</span><span id="auth-btn-label">SIGN IN</span></button><div id="auth-error" class="hidden" style="color:var(--risk-high);font-size:0.8rem;margin-top:0.5rem;"></div><a href="#" id="toggle-auth">Create account</a></div></div>
+<div id="paywall-overlay" class="overlay hidden" role="dialog" aria-modal="true"></div>
+<div id="detail-overlay" class="overlay hidden" role="dialog" aria-modal="true"></div>
+<div id="notification-modal" class="overlay hidden" role="dialog" aria-modal="true"></div>
+<div id="export-menu" class="hidden" style="position:fixed;z-index:9999;"></div>
+<div id="search-results-overlay" class="hidden"></div>
+</div>
+
+    <!-- CDN dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
+    <script src="https://s3.tradingview.com/tv.js" async></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
+    <script src="https://js.stripe.com/v3/" defer></script>
+    <!-- App core -->
+    <script src="/js/utils.js?v=2.86" defer></script>
+    <script src="/js/auth.js?v=2.87" defer></script>
+    <script src="/js/core.js?v=2.80" defer></script>
+    <script src="/js/heatmap_engine.js?v=2.80" defer></script>
+    <script src="/js/charts.js?v=2.80" defer></script>
+    <!-- Views -->
+    <script src="/js/views/hub-nav-v2.js?v=2.80" defer></script>
+    <script src="/js/views/global-markets.js?v=2.80" defer></script>
+    <script src="/js/views/signals.js?v=2.80" defer></script>
+    <script src="/js/views/performance.js?v=2.80" defer></script>
+    <script src="/js/views/macro-intel.js?v=2.80" defer></script>
+    <script src="/js/views/whales.js?v=2.80" defer></script>
+    <script src="/js/views/block-radar.js?v=2.80" defer></script>
+    <script src="/js/views/macro-analytics.js?v=2.80" defer></script>
+    <script src="/js/views/strategy.js?v=2.80" defer></script>
+    <script src="/js/views/portfolio.js?v=2.80" defer></script>
+    <script src="/js/views/narrative.js?v=2.80" defer></script>
+    <script src="/js/views/trade-lab.js?v=2.80" defer></script>
+    <script src="/js/views/audit.js?v=2.80" defer></script>
+    <script src="/js/views/liquidity-archive.js?v=2.80" defer></script>
+    <script src="/js/views/gex-profile.js?v=2.80" defer></script>
+    <script src="/js/views/volume-profile.js?v=2.80" defer></script>
+    <script src="/js/views/alerts-archive.js?v=2.80" defer></script>
+    <script src="/js/views/onchain.js?v=2.80" defer></script>
+    <script src="/js/views/command-center-v2.js?v=2.85" defer></script>
+    <script src="/js/views/power-trio.js?v=2.80" defer></script>
+    <script src="/js/views/trade-setup.js?v=2.80" defer></script>
+    <script src="/js/views/trade-plan.js?v=2.80" defer></script>
+    <script src="/js/views/home.js?v=2.82" defer></script>
+    <script src="/js/views/algo-hub.js?v=2.80"></script>
+    <script src="/js/views/algo-params.js?v=2.80" defer></script>
+    <script src="/js/views/explain.js?v=2.80" defer></script>
+    <script src="/js/views/my-terminal.js?v=2.80"></script>
+    <script src="/js/views/signal-permalink.js?v=2.80" defer></script>
+    <script src="/js/views/onboarding.js?v=2.86" defer></script>
+    <script src="/js/views/price-alerts.js?v=2.80" defer></script>
+    <script src="/js/views/signal-leaderboard.js?v=2.80" defer></script>
+    <script src="/js/views/market-brief.js?v=2.80" defer></script>
+    <script src="/js/views/exchange-keys.js?v=2.80" defer></script>
+    <script src="/js/views/webhooks.js?v=2.80" defer></script>
+    <script src="/js/docs-a.js?v=2.80" defer></script>
+    <script src="/js/docs-b.js?v=2.80" defer></script>
+    <script src="/js/docs-c.js?v=2.80" defer></script>
+    <script src="/js/export.js?v=2.80" defer></script>
+    <script src="/js/seo-meta.js?v=2.80" defer></script>
+    <script src="/js/views/academy_videos_data.js?v=2.80" defer></script>
+    <script src="/js/views/academy-watch.js?v=2.80" defer></script>
+    <script src="/js/views/derivatives.js?v=2.80" defer></script>
+    <script src="/js/views/pattern-predictor.js?v=2.82" defer></script>
+    <script src="/js/main.js?v=2.84" defer></script>
+    <script src="/js/router.js?v=2.84" defer></script>
+    <script src="/js/ai-chat.js?v=2.80" defer></script>
+
+</body>
+</html>

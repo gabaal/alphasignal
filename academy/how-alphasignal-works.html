@@ -1,442 +1,508 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <base href="/">
-
-    <!-- Google tag (gtag.js) -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>How AlphaSignal Works (And Why It's Built Differently) - AlphaSignal Academy</title>
-    <meta name="description" content="A plain-English explanation of how the AlphaSignal terminal works: Z-score signals, market regime classification, the three-tier decision hierarchy, and how to build a focused daily routine.">
-    <meta name="keywords" content="AlphaSignal, Alpha Signal, alphasignal.digital, how alphasignal works, alphasignal tutorial, crypto trading terminal guide, Z-score trading, market regime classifier, HMM regime, crypto trading signals explained, institutional crypto terminal, bitcoin analytics, alpha signals, trading terminal guide, crypto intelligence, Z-score distribution, signal hub, portfolio optimizer, backtester, strategy lab">
-    <meta name="author" content="AlphaSignal">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
-    <meta name="rating" content="general">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-
-    <!-- PWA / Mobile -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="AlphaSignal">
-    <meta name="theme-color" content="#05070a">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="/icon-512.png">
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="article">
-    <meta property="og:site_name" content="AlphaSignal Academy">
-    <meta property="og:url" content="https://alphasignal.digital/academy/how-alphasignal-works">
-    <meta property="og:title" content="How AlphaSignal Works (And Why It's Built Differently) - AlphaSignal Academy">
-    <meta property="og:description" content="A plain-English explanation of how the AlphaSignal terminal works: Z-score signals, market regime classification, and the three-tier decision hierarchy.">
-    <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:site" content="@alphasignalai">
-    <meta property="twitter:url" content="https://alphasignal.digital/academy/how-alphasignal-works">
-    <meta property="twitter:title" content="How AlphaSignal Works (And Why It's Built Differently) - AlphaSignal Academy">
-    <meta property="twitter:description" content="A plain-English explanation of how the AlphaSignal terminal works: Z-score signals, market regime classification, and the three-tier decision hierarchy.">
-    <meta property="twitter:image" content="https://alphasignal.digital/assets/social-preview.png">
-    <link rel="canonical" href="https://alphasignal.digital/academy/how-alphasignal-works">
-
-    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
-    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
-    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
-    <link rel="preload" as="style"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
-          onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"></noscript>
-    <link rel="preload" as="style"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
-          onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
-
-    <!-- Article JSON-LD Schema -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      "headline": "How AlphaSignal Works (And Why It's Built Differently)",
-      "description": "A plain-English explanation of how the AlphaSignal terminal works: Z-score signals, market regime classification, and the three-tier decision hierarchy.",
-      "image": "https://alphasignal.digital/assets/social-preview.png",
-      "author": {
-        "@type": "Organization",
-        "name": "AlphaSignal Academy",
-        "url": "https://alphasignal.digital/"
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "AlphaSignal",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://alphasignal.digital/assets/pwa-icon-512.png"
-        }
-      },
-      "datePublished": "2026-06-04T00:00:00Z",
-      "dateModified": "2026-06-04T00:00:00Z",
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "https://alphasignal.digital/academy/how-alphasignal-works"
-      }
-    }
-    </script>
-</head>
-<body class="cyber-theme">
-    <div id="app-loader" aria-hidden="true" style="
-        position:fixed;inset:0;z-index:99999;
-        background:radial-gradient(ellipse 120% 80% at 10% -10%,rgba(14,18,40,1) 0%,#050710 60%,#020408 100%);
-        display:flex;flex-direction:column;align-items:center;justify-content:center;
-        transition:opacity 0.35s ease;pointer-events:none;">
-        <div style="text-align:center;user-select:none;">
-            <div style="font-size:2rem;font-weight:900;letter-spacing:-1px;color:#e2e8f0;margin-bottom:1.75rem;line-height:1;">
-                Alpha<span style="color:#7dd3fc;">Signal</span>
-            </div>
-            <div style="width:28px;height:28px;border:2px solid rgba(125,211,252,0.18);border-top-color:#7dd3fc;border-radius:50%;animation:_ld-spin 0.75s linear infinite;margin:0 auto 1rem;"></div>
-            <div style="font-size:0.62rem;color:#64748b;letter-spacing:2.5px;font-weight:700;">INITIALIZING</div>
-        </div>
-    </div>
-    <style>@keyframes _ld-spin{to{transform:rotate(360deg)}}</style>
-    <div class="layout hidden" id="main-layout">
-<a href="#app-view" class="skip-link" style="position:absolute;top:-40px;left:0;background:#7dd3fc;color:#000;padding:6px 12px;z-index:9999;font-size:0.75rem;font-weight:700;letter-spacing:1px;transition:top 0.2s;text-decoration:none;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
-        <aside class="sidebar" id="sidebar" role="complementary" aria-label="Main Navigation">
-            <div class="brand" onclick="switchView('home')" style="cursor:pointer; justify-content: center; padding: 1rem 0;" role="link" aria-label="Go to Home">
-                <div class="brand-title">Alpha<span>Signal</span></div>
-            </div>
-            <nav class="sidebar-nav" role="navigation">
-                <div class="nav-item active" data-view="command-center" aria-label="View Dashboard">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">dashboard</span> Dashboard
-                </div>
-                <div class="nav-item" data-view="signals" aria-label="View Signals">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">radar</span> Live Signals
-                </div>
-                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INSTITUTIONAL WORKFLOW</div>
-                <div class="nav-item" data-view="macro-hub" aria-label="View Macro Intelligence">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">monitoring</span> Macro Intelligence
-                </div>
-                <div class="nav-item" data-view="analytics-hub" aria-label="View Market Analytics">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">analytics</span> Market Analytics
-                </div>
-                <div class="nav-item" data-view="liquidity" aria-label="View Liquidity &amp; Order Flow">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">bar_chart</span> Liquidity &amp; Order Flow
-                </div>
-                <div class="nav-item" data-view="alpha-hub" aria-label="View Strategy &amp; Backtester">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">electric_bolt</span> Strategy &amp; Backtester
-                </div>
-                <div class="nav-item" data-view="institutional-hub" aria-label="View Portfolio &amp; Risk">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">key</span> Portfolio &amp; Risk
-                </div>
-                <div class="nav-item" data-view="audit-hub" aria-label="View Trade Ledger Audit">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">trending_up</span> Trade Ledger Audit
-                </div>
-                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">EXECUTION &amp; AUTOMATION</div>
-                <div class="nav-item" data-view="my-terminal" aria-label="Active Positions">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">person</span> Active Positions
-                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(0,242,255,0.15);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PERSONAL</span>
-                </div>
-                <div class="nav-item" data-view="algo-hub" aria-label="Live Algo Builder">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Live Algo Builder
-                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
-                </div>
-                <div class="nav-item" data-view="alerts-hub" aria-label="Alerts Hub">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">notifications_active</span> Alerts &amp; Webhooks
-                </div>
-                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">SYSTEM</div>
-                <div class="nav-item" data-view="ask-terminal" aria-label="Ask the Terminal AI">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Ask Terminal <span class="premium-badge" style="font-size:0.5rem;background:#bc13fe;color:black;padding:1px 5px;border-radius:4px;margin-left:2px">AI</span>
-                </div>
-                <div class="nav-item" data-view="help" aria-label="Help Documentation" style="margin-top:1rem;border-top:1px solid rgba(255,255,255,0.05);padding-top:1rem;">
-                    <span class="icon material-symbols-outlined" aria-hidden="true">help</span> Help / Docs
-                </div>
-            </nav>
-            <div class="user-profile-card profile-dropdown" id="user-profile-dropdown" aria-haspopup="true" aria-expanded="false">
-                <div class="profile-header dropdown-trigger">
-                    <div class="user-avatar"><span id="user-initials">IU</span></div>
-                    <div class="user-details">
-                        <span id="display-user-email">Institutional User</span>
-                        <div id="user-tier-badge" class="tier-badge free">FREE TIER</div>
-                    </div>
-                    <span class="material-symbols-outlined dropdown-caret">expand_more</span>
-                </div>
-                <div class="profile-actions dropdown-menu">
-                    <button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()" aria-label="Manage Billing">
-                        <span class="btn-icon material-symbols-outlined">credit_card</span> MANAGE BILLING
-                    </button>
-                    <button id="theme-toggle-btn" class="profile-action-btn theme-toggle-btn" onclick="window.toggleTheme()" aria-label="Toggle Light/Dark Mode">
-                        <span class="btn-icon material-symbols-outlined" id="theme-icon">light_mode</span> <span id="theme-label">LIGHT MODE</span>
-                    </button>
-                    <button id="logout-btn" class="profile-action-btn logout-btn" aria-label="Logout">
-                        <span class="btn-icon material-symbols-outlined">logout</span> LOGOUT
-                    </button>
-                </div>
-            </div>
-            <div class="sentiment-widget-wrapper" style="padding:1.5rem;border-top:1px solid rgba(255,255,255,0.05);margin-top:0.5rem;text-align:center;">
-                <div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px">FEAR &amp; GREED INDEX</div>
-                <div style="position:relative;width:120px;height:60px;margin:0 auto;">
-                    <canvas id="fearGreedGauge" role="img" aria-label="Fear and greed index gauge"></canvas>
-                    <div id="fearGreedValue" style="position:absolute;bottom:0;left:0;width:100%;font-size:1.2rem;font-weight:900;color:white;text-shadow:0 0 10px rgba(255,255,255,0.2)">--</div>
-                </div>
-            </div>
-        </aside>
-
-        <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
-
-        <main class="content" role="main">
-            <header class="top-bar">
-                <button class="mobile-toggle material-symbols-outlined" id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar" aria-expanded="false" aria-controls="sidebar">menu</button>
-                <div class="signal-feed">
-                    <div class="feed-label">LIVE ALPHA</div>
-                    <div class="scroller-container" aria-hidden="true" role="presentation">
-                        <div id="alpha-scroller" class="scroller"><span>Connecting to data streams...</span></div>
-                    </div>
-                </div>
-                <div id="btc-sparkline-wrap" style="display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);flex-shrink:0">
-                    <div style="display:flex;flex-direction:column;align-items:flex-end">
-                        <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px;font-weight:700"><a href="/asset/BTC" style="color:#00ffa3;text-decoration:underline;text-underline-offset:3px;font-weight:600;" title="Track BTC live signals on AlphaSignal">BTC</a></span>
-                        <span id="btc-spark-price" style="font-size:0.7rem;font-weight:900;color:var(--text)">-</span>
-                        <span id="btc-spark-change" style="font-size:0.55rem;font-weight:700">-</span>
-                    </div>
-                    <div style="width:80px;height:36px;position:relative;">
-                        <canvas id="btcSparklineChart" width="80" height="36"></canvas>
-                    </div>
-                </div>
-                <div class="search-container" role="search" style="position:relative">
-                    <input type="text" id="global-search" name="terminal-ticker-search" placeholder="&#x2318;K / Ctrl+K - SEARCH TICKER..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')" aria-label="Search for tickers">
-                    <div id="search-dropdown" class="search-dropdown hidden"></div>
-                </div>
-                <div class="top-bar-actions">
-                    <div class="action-group" id="live-meta-group">
-                        <div class="countdown-timer" id="countdown-timer" title="Auto-refresh countdown">
-                            <span class="countdown-icon material-symbols-outlined">timer</span>
-                            <span id="countdown-value">5:00</span>
-                        </div>
-                        <span id="signal-poller-dot" title="Live signal monitoring active" style="display:none;width:7px;height:7px;border-radius:50%;background:#00d4aa;box-shadow:0 0 6px #00d4aa;animation:pulse-live 1.2s infinite;margin-left:4px;flex-shrink:0"></span>
-                    </div>
-                    <div class="action-group" id="system-actions-group">
-                        <button onclick="showNotificationSettings(true)" aria-label="Alerts &amp; Execution Hooks" class="action-btn-styled primary" title="Configure Webhooks">
-                            <span class="material-symbols-outlined" style="font-size:1rem;">api</span> HOOKS
-                        </button>
-                        <button onclick="switchView('home'); setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),350)" aria-label="Pricing" class="action-btn-styled outline" title="View pricing plans" style="font-size:0.75rem;letter-spacing:1px;font-weight:700">
-                            <span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> PRICING
-                        </button>
-                        <button id="export-btn" onclick="showExportMenu(event,'main-content',document.querySelector('h1')?.textContent?.trim()||'AlphaSignal View')" aria-label="Export" class="action-btn-styled outline" title="Export chart, PDF or CSV">
-                            <span class="material-symbols-outlined" style="font-size:1rem;">ios_share</span> EXPORT
-                        </button>
-                        <button id="refresh-btn" aria-label="Recalculate Signals" class="action-btn-styled primary">
-                            <span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> RE-CALCULATE
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <div id="app-view" style="min-height:100vh">
-                <div class='academy-container seo-pre-render' style='padding:5rem 2rem 10rem; max-width:900px; margin:0 auto; font-family:"Inter", sans-serif;'>
-
-<div style='display:inline-block; padding:4px 12px; background:rgba(125,211,252,0.15); border:1px solid var(--accent); color:var(--accent); border-radius:6px; font-size:0.75rem; letter-spacing:2px; font-weight:700; margin-bottom:0.75rem;'>ACADEMY: HOW TO USE THE TERMINAL</div>
-<div style='display:inline-block; margin-left:0.75rem; padding:4px 12px; background:rgba(188,19,254,0.12); border:1px solid rgba(188,19,254,0.4); color:#c084fc; border-radius:6px; font-size:0.75rem; letter-spacing:2px; font-weight:700; margin-bottom:0.75rem;'>ARTICLE 1 OF 8</div>
-
-<h1 style='font-size:clamp(2rem, 4vw, 3.2rem); margin-bottom:1.5rem; margin-top:1rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>How AlphaSignal Works (And Why It's Built Differently)</h1>
-<p style='font-size:1.25rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Most trading terminals give you data. AlphaSignal gives you a decision framework. This guide explains what's actually happening under the hood and how to use it properly from day one.</p>
-
-<div class='academy-article-dynamic' style='font-size:1.1rem; line-height:1.85; color:#cbd5e1;'>
-
-<h2>The problem with most crypto dashboards</h2>
-
-<p>Most crypto dashboards are aggregators. They pull in price feeds, social sentiment scores, and technical indicators and display them in a grid. The problem is that a grid of numbers does not tell you what to do. You still have to interpret all of it yourself, under time pressure, while the market is moving.</p>
-
-<p>AlphaSignal is built around a different premise: that a small number of statistical signals, correctly framed, are more useful than a large number of raw data points. The entire terminal is organized around that idea.</p>
-
-<h2>What a Z-score actually measures</h2>
-
-<p>The primary language of the terminal is the Z-score. It shows up everywhere: on signal cards, in the Alpha Score, in the distribution chart on the Signal Hub, and inside the Backtester results.</p>
-
-<p>A Z-score answers a specific question: how far is this metric from its recent historical average, measured in standard deviations? A Z-score of zero means the asset is behaving exactly as it has on average. A Z-score of 2.0 means the current reading is two standard deviations above average, which happens less than 5% of the time under a normal distribution.</p>
-
-<p>In practice this translates directly. A Z-score of 1.0 on a momentum signal means the asset is moving faster than usual, but not unusually so. A Z-score of 2.5 means something is happening that statistically occurs only a few times per year for that asset. That is when the terminal fires a high-conviction signal.</p>
-
-<p>What Z-score does not tell you is whether a move will continue or reverse. A high Z-score in a trending market often means momentum is intact. The same Z-score in a choppy, range-bound market often means mean reversion is likely. That is exactly what the regime layer is for.</p>
-
-<img src="/academy/images/article1-signals-annotated.png" alt="AlphaSignal Live Signals view showing the HMM regime banner, Strategy Firing Density chart, Z-Score Distribution bell curve, and live signal cards with callout annotations" style="width:100%;border-radius:12px;margin:2.5rem 0;border:1px solid rgba(0,242,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4);" loading="lazy" />
-<p style="font-size:0.8rem; color:var(--text-dim); text-align:center; margin-top:-1.5rem; margin-bottom:2.5rem;">The Live Signals view. The red regime banner at the top (1) tells you the HMM classifier has identified a Dislocation regime. The Strategy Firing Density chart (2) shows how many signals fired over the last 30 days. The Z-Score Distribution (3) shows where the current population of signals sits on the bell curve. Individual signal cards (4) show ticker, direction, and ATR-based stop level.</p>
-
-<h2>The three-tier decision hierarchy</h2>
-
-<p>The terminal has a lot of views. When you first open it, the sidebar has over 20 navigation items organized into hubs. This is not meant to be used all at once. There is a specific order to it.</p>
-
-<p>Tier one is macro context. Before you look at any individual signal, you need to know what kind of market you are in. The Market Regime classifier (accessible from Macro Intelligence in the sidebar) runs a Hidden Markov Model against the broad market and outputs one of three states: Risk-On, Compression, or Dislocation. This single label tells you which strategies have historically worked in the current environment and which have not.</p>
-
-<p>Tier two is signal confirmation. Once you know the regime, you look at the Live Signals view. The Z-score distribution chart at the top tells you immediately whether signal activity is clustered in negative or positive territory. If you are in a Risk-On regime and the distribution is skewed positively, that is a coherent environment. If you are in a Dislocation regime and the distribution is heavily negative, shorting or sitting out is statistically supported.</p>
-
-<p>Tier three is execution context. Before entering a position flagged by the signal layer, you check the relevant microstructure data: funding rates to see whether you are swimming with or against the crowd, on-chain exchange inflows to see whether holders are distributing, and your position sizing relative to the ATR-derived stop level shown on each signal card.</p>
-
-<p>Most users skip tier one entirely and go straight to tier two. This is the most common mistake. A strong Z-score in the wrong regime is noise, not signal.</p>
-
-<h2>Why there are 80+ views and you only need 5 or 6</h2>
-
-<p>The terminal covers a wide range of analytical frameworks because different traders have different workflows and different edges. The Derivatives Hub is essential for someone trading perpetuals. The Chain Velocity view is relevant for someone positioning around cross-chain capital rotation. The Narrative Galaxy is useful for catching early mindshare shifts before they appear in price.</p>
-
-<p>None of that means you need all of it every day. A practical daily workflow uses five or six views in a consistent order: the AI Market Briefing for overnight context, the Market Regime classifier for state identification, ETF Flows for institutional conviction, Live Signals for the current opportunity set, and your own watchlist in My Terminal for execution-level decisions.</p>
-
-<p>The rest of the terminal is there when you need to go deeper on a specific situation. If a whale alert fires and you want to validate it with on-chain data, you go to the On-Chain Stats view. If you want to check whether options dealers are short gamma at a key strike before entering a long, you go to the GEX Profile. These are situational tools, not daily requirements.</p>
-
-<img src="/academy/images/article1-portfolio-optimizer.png" alt="AlphaSignal Portfolio Optimizer showing equity curve vs BTC benchmark, Sharpe ratio of 1.85, and constituent weightings" style="width:100%;border-radius:12px;margin:2.5rem 0;border:1px solid rgba(0,242,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4);" loading="lazy" />
-<p style="font-size:0.8rem; color:var(--text-dim); text-align:center; margin-top:-1.5rem; margin-bottom:2.5rem;">The Portfolio Optimizer, under Portfolio &amp; Risk. It simulates an alpha-weighted rebalancing strategy against a BTC benchmark over 30 days. The equity curve here shows the current ML-weighted portfolio tracking below benchmark, with a modeled Sharpe of 1.85. The Institutional Risk Scorecard on the right gives you VaR, Beta, Sortino, and Annualized Volatility in one panel.</p>
-
-<h2>Free tier vs Pro: where the line is</h2>
-
-<p>The free tier gives you access to the Live Signals view, the Command Center dashboard, price alerts, and the AI briefing. This is enough to understand whether the current environment is interesting and to track a few assets you already follow.</p>
-
-<p>Pro adds the ML-powered layers: Alpha Score rankings, the Backtester, the Portfolio Optimizer, the Regime Classifier, full on-chain analytics, derivatives data, and the live signal alert webhooks. These are the tools that shift the terminal from a monitoring instrument into an active decision-support system.</p>
-
-<p>The clearest dividing line is the regime classifier. Free users can see signals but cannot see what kind of market those signals are firing in. That missing context is what makes the Pro tier worth it for an active trader. Signal quality without regime awareness is like reading a compass without knowing which direction you are trying to go.</p>
-
-<h2>What to do right now</h2>
-
-<p>Open the terminal and navigate to Macro Intelligence in the sidebar. Find the Market Regime view and note the current state. Then go to Live Signals and look at the Z-Score Distribution chart. Ask yourself: does the signal distribution make sense given the regime? That single check will immediately give you a better mental model of the market than most dashboards can provide.</p>
-
-<p>The next article in this series covers the specific daily routine: exactly where to click, in what order, and what you are looking for at each step. It takes under ten minutes once you know the sequence.</p>
-
-</div>
-
-<!-- Series navigation -->
-<div style='margin-top:4rem; padding:2rem; background:rgba(125,211,252,0.04); border:1px solid rgba(125,211,252,0.12); border-radius:16px;'>
-    <div style='font-size:0.65rem; font-weight:900; letter-spacing:2px; color:var(--accent); margin-bottom:1rem;'>HOW TO USE THE TERMINAL: 8-PART SERIES</div>
-    <div style='display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.75rem;'>
-        <a href="/academy/how-alphasignal-works" style='display:block; padding:0.75rem 1rem; background:rgba(0,242,255,0.1); border:1px solid rgba(0,242,255,0.3); border-radius:8px; text-decoration:none; color:var(--text); font-size:0.8rem; font-weight:700;'>1. How AlphaSignal Works</a>
-        <a href="/academy/alphasignal-daily-routine" style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; text-decoration:none; color:var(--text-dim); font-size:0.8rem;'>2. Your First 10 Minutes</a>
-        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>3. Reading Z-Scores (coming soon)</span>
-        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>4. Macro Hub (coming soon)</span>
-        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>5. Whale Watching (coming soon)</span>
-        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>6. Derivatives Decoded (coming soon)</span>
-        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>7. Position Sizing (coming soon)</span>
-        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>8. Building a Watchlist (coming soon)</span>
-    </div>
-</div>
-
-<div style='margin-top:4rem; padding:3rem; background:rgba(0,0,0,0.3); border:1px solid rgba(125,211,252,0.15); border-radius:16px; text-align:center;'>
-    <h3 style='margin:0 0 1rem; color:#fff; font-size:1.4rem;'>Open the terminal and check the current regime</h3>
-    <p style='color:var(--text-dim); margin-bottom:2rem; max-width:520px; margin-left:auto; margin-right:auto;'>The Market Regime classifier tells you which strategies are statistically supported right now. It takes 30 seconds to check and changes how you read every signal that follows.</p>
-    <a href="/?view=regime" style='display:inline-block; background:var(--accent); color:#000; font-weight:800; text-decoration:none; padding:1rem 2.5rem; border-radius:8px; font-size:1rem; box-shadow:0 0 20px rgba(125,211,252,0.3); margin-right:1rem;'>OPEN REGIME VIEW</a>
-    <a href="/?view=signals" style='display:inline-block; background:transparent; color:var(--accent); font-weight:700; text-decoration:none; padding:1rem 2.5rem; border-radius:8px; font-size:1rem; border:1px solid rgba(125,211,252,0.4);'>LIVE SIGNALS</a>
-</div>
-
-</div></div>
-
-            <noscript>
-            <div style="max-width:1100px;margin:0 auto;padding:4rem 2rem;font-family:system-ui,sans-serif;color:#e2e8f0;">
-                <h1 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">How AlphaSignal Works &mdash; AlphaSignal Academy</h1>
-                <p style="font-size:1.1rem;color:#94a3b8;line-height:1.8;margin-bottom:2rem;">
-                    AlphaSignal is an institutional crypto intelligence terminal. This guide explains the Z-score signal system, the three-tier decision hierarchy (macro regime, signal confirmation, execution), and how to build a focused daily workflow. Available at alphasignal.digital.
-                </p>
-            </div>
-            </noscript>
-
-            <script>
-            (function(){
-                var l=document.getElementById('app-loader');
-                var m=document.getElementById('main-layout');
-                if(l){l.style.transition='opacity 0.15s';l.style.opacity='0';setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l);},160);}
-                if(m){m.classList.remove('hidden');m.style.removeProperty('filter');}
-            })();
-            </script>
-
-            <footer class="global-footer" role="contentinfo">
-                <div class="footer-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;margin-bottom:2rem;">
-                    <div class="footer-brand">
-                        <div class="brand-title" style="font-size:1.3rem;font-weight:900;margin-bottom:0.5rem;">Alpha<span>Signal</span></div>
-                        <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;">Institutional Alpha &amp; Multi-Asset Intelligence Terminal. Real-time Z-score signals, AI briefings, on-chain analytics, and 60+ analytical views. From $7.99/month.</p>
-                    </div>
-                    <div class="footer-links">
-                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">TERMINAL GUIDES</h4>
-                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
-                            <li><a href="/academy/how-alphasignal-works" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">How AlphaSignal Works</a></li>
-                            <li><a href="/academy/statistical-mean-reversion-z-scores" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Z-Score Mean Reversion</a></li>
-                            <li><a href="/academy/hidden-markov-market-regimes" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">HMM Market Regimes</a></li>
-                            <li><a href="/academy/fundamental-mvrv-z-score" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">MVRV Z-Score Guide</a></li>
-                            <li><a href="/academy/understanding-gamma-exposure-gex" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Gamma Exposure (GEX)</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-links">
-                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">SIGNALS &amp; ANALYTICS</h4>
-                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
-                            <li><a href="/?view=signals" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Live Alpha Signals</a></li>
-                            <li><a href="/?view=alpha-score" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Alpha Score Dashboard</a></li>
-                            <li><a href="/?view=regime" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Market Regime Classifier</a></li>
-                            <li><a href="/?view=backtester-v2" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Backtester V2</a></li>
-                            <li><a href="/?view=etf-flows" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Bitcoin Spot ETF Flows</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-links">
-                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">RESOURCES</h4>
-                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
-                            <li><a href="/?view=help" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Help &amp; Documentation</a></li>
-                            <li><a href="/?view=ask-terminal" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Ask Terminal AI</a></li>
-                            <li><a href="/academy" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Academy Home</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:1.5rem;">
-                    <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.7;margin-bottom:1rem;max-width:900px;">
-                        <strong style="color:var(--text-main);">AlphaSignal</strong> is an institutional Bitcoin and crypto intelligence terminal providing real-time <strong>trading signals</strong>, <strong>on-chain analytics</strong>, <strong>options flow</strong>, <strong>whale tracking</strong>, <strong>ETF flows</strong>, and <strong>AI market analysis</strong>. Designed for professional crypto traders and institutional desks. Not financial advice.
-                    </div>
-                </div>
-                <div class="footer-bottom">
-                    <span>&copy; 2026 ALPHASIGNAL TERMINAL &mdash; alphasignal.digital</span>
-                    <div class="system-badges">
-                        <span class="badge">SECURE_SSL</span>
-                        <span class="badge">AI_NEURAL_ACTIVE</span>
-                        <span class="badge">PWA_READY</span>
-                    </div>
-                </div>
-            </footer>
-        </main>
-
-        <nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation">
-            <div class="mobile-nav-item active" data-view="signals" aria-label="View Signals">
-                <span class="m-icon material-symbols-outlined" aria-hidden="true">radar</span>
-                <span class="m-label">Signals</span>
-            </div>
-            <div class="mobile-nav-item" data-view="briefing" aria-label="View AI Intel">
-                <span class="m-icon material-symbols-outlined" aria-hidden="true">memory</span>
-                <span class="m-label">AI Intel</span>
-            </div>
-            <div class="mobile-nav-item" data-view="macro-hub" aria-label="View Macro">
-                <span class="m-icon material-symbols-outlined" aria-hidden="true">public</span>
-                <span class="m-label">Macro</span>
-            </div>
-            <div class="mobile-nav-item" data-view="alerts-hub" aria-label="View Alerts" style="position:relative">
-                <span class="m-icon material-symbols-outlined" aria-hidden="true">notifications</span>
-                <span class="m-label">Alerts</span>
-            </div>
-            <div class="mobile-nav-item" id="mobile-more-btn" aria-label="More options">
-                <span class="m-icon material-symbols-outlined" aria-hidden="true">menu</span>
-                <span class="m-label">More</span>
-            </div>
-        </nav>
-
-        <!-- Overlays (required by app.js) -->
-        <div id="auth-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Authentication">
-            <div class="overlay-content auth-box">
-                <button class="close-overlay" aria-label="Close authentication dialog">&times;</button>
-                <div class="brand-title" style="text-align:center;margin-bottom:1.5rem;">Alpha<span>Signal</span></div>
-                <input type="email" id="auth-email" placeholder="Email address" autocomplete="email">
-                <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
-                <button id="login-btn" class="intel-action-btn auth-submit" aria-label="Login to Terminal">
-                    <span class="material-symbols-outlined" style="font-size:1rem;">login</span>
-                    <span id="auth-btn-label">SIGN IN</span>
-                </button>
-                <div id="auth-error" class="hidden" style="color:var(--risk-high);font-size:0.8rem;margin-top:0.5rem;"></div>
-                <a href="#" id="toggle-auth" aria-label="Toggle between Login and Registration">Create account</a>
-            </div>
-        </div>
-        <div id="paywall-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Upgrade required"></div>
-        <div id="detail-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Asset detail"></div>
-        <div id="notification-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Notification settings"></div>
-        <div id="export-menu" class="hidden" style="position:fixed;z-index:9999;"></div>
-        <div id="search-results-overlay" class="hidden"></div>
-    </div>
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+
+    <!-- Google tag (gtag.js) -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>How AlphaSignal Works (And Why It's Built Differently) - AlphaSignal Academy</title>
+    <meta name="description" content="A plain-English explanation of how the AlphaSignal terminal works: Z-score signals, market regime classification, the three-tier decision hierarchy, and how to build a focused daily routine.">
+    <meta name="keywords" content="AlphaSignal, Alpha Signal, alphasignal.digital, how alphasignal works, alphasignal tutorial, crypto trading terminal guide, Z-score trading, market regime classifier, HMM regime, crypto trading signals explained, institutional crypto terminal, bitcoin analytics, alpha signals, trading terminal guide, crypto intelligence, Z-score distribution, signal hub, portfolio optimizer, backtester, strategy lab">
+    <meta name="author" content="AlphaSignal">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="rating" content="general">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+    <!-- PWA / Mobile -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AlphaSignal">
+    <meta name="theme-color" content="#05070a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="/icon-512.png">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AlphaSignal Academy">
+    <meta property="og:url" content="https://alphasignal.digital/academy/how-alphasignal-works">
+    <meta property="og:title" content="How AlphaSignal Works (And Why It's Built Differently) - AlphaSignal Academy">
+    <meta property="og:description" content="A plain-English explanation of how the AlphaSignal terminal works: Z-score signals, market regime classification, and the three-tier decision hierarchy.">
+    <meta property="og:image" content="https://alphasignal.digital/assets/social-preview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@alphasignalai">
+    <meta property="twitter:url" content="https://alphasignal.digital/academy/how-alphasignal-works">
+    <meta property="twitter:title" content="How AlphaSignal Works (And Why It's Built Differently) - AlphaSignal Academy">
+    <meta property="twitter:description" content="A plain-English explanation of how the AlphaSignal terminal works: Z-score signals, market regime classification, and the three-tier decision hierarchy.">
+    <meta property="twitter:image" content="https://alphasignal.digital/assets/social-preview.png">
+    <link rel="canonical" href="https://alphasignal.digital/academy/how-alphasignal-works">
+
+    <link rel="stylesheet" href="styles.css?v=2.65" media="print" onload="this.media='all'" fetchpriority="high">
+    <noscript><link rel="stylesheet" href="styles.css?v=2.65"></noscript>
+    <link rel="icon" type="image/png" href="assets/pwa-icon-512.png">
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=optional"></noscript>
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"></noscript>
+
+    <!-- Article JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "How AlphaSignal Works (And Why It's Built Differently)",
+      "description": "A plain-English explanation of how the AlphaSignal terminal works: Z-score signals, market regime classification, and the three-tier decision hierarchy.",
+      "image": "https://alphasignal.digital/assets/social-preview.png",
+      "author": {
+        "@type": "Organization",
+        "name": "AlphaSignal Academy",
+        "url": "https://alphasignal.digital/"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "AlphaSignal",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://alphasignal.digital/assets/pwa-icon-512.png"
+        }
+      },
+      "datePublished": "2026-06-04T00:00:00Z",
+      "dateModified": "2026-06-04T00:00:00Z",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://alphasignal.digital/academy/how-alphasignal-works"
+      }
+    }
+    </script>
+</head>
+<body class="cyber-theme">
+    <div id="app-loader" aria-hidden="true" style="
+        position:fixed;inset:0;z-index:99999;
+        background:radial-gradient(ellipse 120% 80% at 10% -10%,rgba(14,18,40,1) 0%,#050710 60%,#020408 100%);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        transition:opacity 0.35s ease;pointer-events:none;">
+        <div style="text-align:center;user-select:none;">
+            <div style="font-size:2rem;font-weight:900;letter-spacing:-1px;color:#e2e8f0;margin-bottom:1.75rem;line-height:1;">
+                Alpha<span style="color:#7dd3fc;">Signal</span>
+            </div>
+            <div style="width:28px;height:28px;border:2px solid rgba(125,211,252,0.18);border-top-color:#7dd3fc;border-radius:50%;animation:_ld-spin 0.75s linear infinite;margin:0 auto 1rem;"></div>
+            <div style="font-size:0.62rem;color:#64748b;letter-spacing:2.5px;font-weight:700;">INITIALIZING</div>
+        </div>
+    </div>
+    <style>@keyframes _ld-spin{to{transform:rotate(360deg)}}</style>
+    <div class="layout hidden" id="main-layout">
+<a href="#app-view" class="skip-link" style="position:absolute;top:-40px;left:0;background:#7dd3fc;color:#000;padding:6px 12px;z-index:9999;font-size:0.75rem;font-weight:700;letter-spacing:1px;transition:top 0.2s;text-decoration:none;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
+        <aside class="sidebar" id="sidebar" role="complementary" aria-label="Main Navigation">
+            <div class="brand" onclick="switchView('home')" style="cursor:pointer; justify-content: center; padding: 1rem 0;" role="link" aria-label="Go to Home">
+                <div class="brand-title">Alpha<span>Signal</span></div>
+            </div>
+            <nav class="sidebar-nav" role="navigation">
+                <div class="nav-item active" data-view="command-center" aria-label="View Dashboard">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">dashboard</span> Dashboard
+                </div>
+                <div class="nav-item" data-view="signals" aria-label="View Signals">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">radar</span> Live Signals
+                </div>
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">INSTITUTIONAL WORKFLOW</div>
+                <div class="nav-item" data-view="macro-hub" aria-label="View Macro Intelligence">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">monitoring</span> Macro Intelligence
+                </div>
+                <div class="nav-item" data-view="analytics-hub" aria-label="View Market Analytics">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">analytics</span> Market Analytics
+                </div>
+                <div class="nav-item" data-view="liquidity" aria-label="View Liquidity &amp; Order Flow">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">bar_chart</span> Liquidity &amp; Order Flow
+                </div>
+                <div class="nav-item" data-view="alpha-hub" aria-label="View Strategy &amp; Backtester">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">electric_bolt</span> Strategy &amp; Backtester
+                </div>
+                <div class="nav-item" data-view="institutional-hub" aria-label="View Portfolio &amp; Risk">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">key</span> Portfolio &amp; Risk
+                </div>
+                <div class="nav-item" data-view="audit-hub" aria-label="View Trade Ledger Audit">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">trending_up</span> Trade Ledger Audit
+                </div>
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">EXECUTION &amp; AUTOMATION</div>
+                <div class="nav-item" data-view="my-terminal" aria-label="Active Positions">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">person</span> Active Positions
+                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(0,242,255,0.15);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PERSONAL</span>
+                </div>
+                <div class="nav-item" data-view="algo-hub" aria-label="Live Algo Builder">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Live Algo Builder
+                    <span class="premium-badge" style="font-size:0.5rem;background:rgba(125,211,252,0.15);color:var(--accent);border:1px solid rgba(125,211,252,0.3);padding:1px 5px;border-radius:4px;margin-left:2px">PREMIUM</span>
+                </div>
+                <div class="nav-item" data-view="alerts-hub" aria-label="Alerts Hub">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">notifications_active</span> Alerts &amp; Webhooks
+                </div>
+                <div class="sidebar-label" style="font-size:0.55rem; color:var(--text-dim); letter-spacing:2px; margin:1.5rem 0 0.5rem 1rem; font-weight:700">SYSTEM</div>
+                <div class="nav-item" data-view="ask-terminal" aria-label="Ask the Terminal AI">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">smart_toy</span> Ask Terminal <span class="premium-badge" style="font-size:0.5rem;background:#bc13fe;color:black;padding:1px 5px;border-radius:4px;margin-left:2px">AI</span>
+                </div>
+                <div class="nav-item" data-view="help" aria-label="Help Documentation" style="margin-top:1rem;border-top:1px solid rgba(255,255,255,0.05);padding-top:1rem;">
+                    <span class="icon material-symbols-outlined" aria-hidden="true">help</span> Help / Docs
+                </div>
+            </nav>
+            <div class="user-profile-card profile-dropdown" id="user-profile-dropdown" aria-haspopup="true" aria-expanded="false">
+                <div class="profile-header dropdown-trigger">
+                    <div class="user-avatar"><span id="user-initials">IU</span></div>
+                    <div class="user-details">
+                        <span id="display-user-email">Institutional User</span>
+                        <div id="user-tier-badge" class="tier-badge free">FREE TIER</div>
+                    </div>
+                    <span class="material-symbols-outlined dropdown-caret">expand_more</span>
+                </div>
+                <div class="profile-actions dropdown-menu">
+                    <button id="manage-sub-btn" class="profile-action-btn hidden" onclick="manageSubscription()" aria-label="Manage Billing">
+                        <span class="btn-icon material-symbols-outlined">credit_card</span> MANAGE BILLING
+                    </button>
+                    <button id="theme-toggle-btn" class="profile-action-btn theme-toggle-btn" onclick="window.toggleTheme()" aria-label="Toggle Light/Dark Mode">
+                        <span class="btn-icon material-symbols-outlined" id="theme-icon">light_mode</span> <span id="theme-label">LIGHT MODE</span>
+                    </button>
+                    <button id="logout-btn" class="profile-action-btn logout-btn" aria-label="Logout">
+                        <span class="btn-icon material-symbols-outlined">logout</span> LOGOUT
+                    </button>
+                </div>
+            </div>
+            <div class="sentiment-widget-wrapper" style="padding:1.5rem;border-top:1px solid rgba(255,255,255,0.05);margin-top:0.5rem;text-align:center;">
+                <div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px">FEAR &amp; GREED INDEX</div>
+                <div style="position:relative;width:120px;height:60px;margin:0 auto;">
+                    <canvas id="fearGreedGauge" role="img" aria-label="Fear and greed index gauge"></canvas>
+                    <div id="fearGreedValue" style="position:absolute;bottom:0;left:0;width:100%;font-size:1.2rem;font-weight:900;color:white;text-shadow:0 0 10px rgba(255,255,255,0.2)">--</div>
+                </div>
+            </div>
+        </aside>
+
+        <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+        <main class="content" role="main">
+            <header class="top-bar">
+                <button class="mobile-toggle material-symbols-outlined" id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar" aria-expanded="false" aria-controls="sidebar">menu</button>
+                <div class="signal-feed">
+                    <div class="feed-label">LIVE ALPHA</div>
+                    <div class="scroller-container" aria-hidden="true" role="presentation">
+                        <div id="alpha-scroller" class="scroller"><span>Connecting to data streams...</span></div>
+                    </div>
+                </div>
+                <div id="btc-sparkline-wrap" style="display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);flex-shrink:0">
+                    <div style="display:flex;flex-direction:column;align-items:flex-end">
+                        <span style="font-size:0.5rem;color:var(--text-dim);letter-spacing:1px;font-weight:700"><a href="/asset/BTC" style="color:#00ffa3;text-decoration:underline;text-underline-offset:3px;font-weight:600;" title="Track BTC live signals on AlphaSignal">BTC</a></span>
+                        <span id="btc-spark-price" style="font-size:0.7rem;font-weight:900;color:var(--text)">-</span>
+                        <span id="btc-spark-change" style="font-size:0.55rem;font-weight:700">-</span>
+                    </div>
+                    <div style="width:80px;height:36px;position:relative;">
+                        <canvas id="btcSparklineChart" width="80" height="36"></canvas>
+                    </div>
+                </div>
+                <div class="search-container" role="search" style="position:relative">
+                    <input type="text" id="global-search" name="terminal-ticker-search" placeholder="&#x2318;K / Ctrl+K - SEARCH TICKER..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly')" onblur="this.setAttribute('readonly','')" aria-label="Search for tickers">
+                    <div id="search-dropdown" class="search-dropdown hidden"></div>
+                </div>
+                <div class="top-bar-actions">
+                    <div class="action-group" id="live-meta-group">
+                        <div class="countdown-timer" id="countdown-timer" title="Auto-refresh countdown">
+                            <span class="countdown-icon material-symbols-outlined">timer</span>
+                            <span id="countdown-value">5:00</span>
+                        </div>
+                        <span id="signal-poller-dot" title="Live signal monitoring active" style="display:none;width:7px;height:7px;border-radius:50%;background:#00d4aa;box-shadow:0 0 6px #00d4aa;animation:pulse-live 1.2s infinite;margin-left:4px;flex-shrink:0"></span>
+                    </div>
+                    <div class="action-group" id="system-actions-group">
+                        <button onclick="showNotificationSettings(true)" aria-label="Alerts &amp; Execution Hooks" class="action-btn-styled primary" title="Configure Webhooks">
+                            <span class="material-symbols-outlined" style="font-size:1rem;">api</span> HOOKS
+                        </button>
+                        <button onclick="switchView('home'); setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'}),350)" aria-label="Pricing" class="action-btn-styled outline" title="View pricing plans" style="font-size:0.75rem;letter-spacing:1px;font-weight:700">
+                            <span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> PRICING
+                        </button>
+                        <button id="export-btn" onclick="showExportMenu(event,'main-content',document.querySelector('h1')?.textContent?.trim()||'AlphaSignal View')" aria-label="Export" class="action-btn-styled outline" title="Export chart, PDF or CSV">
+                            <span class="material-symbols-outlined" style="font-size:1rem;">ios_share</span> EXPORT
+                        </button>
+                        <button id="refresh-btn" aria-label="Recalculate Signals" class="action-btn-styled primary">
+                            <span class="material-symbols-outlined" style="font-size:1rem;">bolt</span> RE-CALCULATE
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div id="app-view" style="min-height:100vh">
+                <div class='academy-container seo-pre-render' style='padding:5rem 2rem 10rem; max-width:900px; margin:0 auto; font-family:"Inter", sans-serif;'>
+
+<div style='display:inline-block; padding:4px 12px; background:rgba(125,211,252,0.15); border:1px solid var(--accent); color:var(--accent); border-radius:6px; font-size:0.75rem; letter-spacing:2px; font-weight:700; margin-bottom:0.75rem;'>ACADEMY: HOW TO USE THE TERMINAL</div>
+<div style='display:inline-block; margin-left:0.75rem; padding:4px 12px; background:rgba(188,19,254,0.12); border:1px solid rgba(188,19,254,0.4); color:#c084fc; border-radius:6px; font-size:0.75rem; letter-spacing:2px; font-weight:700; margin-bottom:0.75rem;'>ARTICLE 1 OF 8</div>
+
+<h1 style='font-size:clamp(2rem, 4vw, 3.2rem); margin-bottom:1.5rem; margin-top:1rem; color:var(--text-main); font-weight:900; line-height:1.1; letter-spacing:-1px;'>How AlphaSignal Works (And Why It's Built Differently)</h1>
+<p style='font-size:1.25rem; line-height:1.6; color:var(--text-dim); margin-bottom:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,0.08);'>Most trading terminals give you data. AlphaSignal gives you a decision framework. This guide explains what's actually happening under the hood and how to use it properly from day one.</p>
+
+<div class='academy-article-dynamic' style='font-size:1.1rem; line-height:1.85; color:#cbd5e1;'>
+
+<h2>The problem with most crypto dashboards</h2>
+
+<p>Most crypto dashboards are aggregators. They pull in price feeds, social sentiment scores, and technical indicators and display them in a grid. The problem is that a grid of numbers does not tell you what to do. You still have to interpret all of it yourself, under time pressure, while the market is moving.</p>
+
+<p>AlphaSignal is built around a different premise: that a small number of statistical signals, correctly framed, are more useful than a large number of raw data points. The entire terminal is organized around that idea.</p>
+
+<h2>What a Z-score actually measures</h2>
+
+<p>The primary language of the terminal is the Z-score. It shows up everywhere: on signal cards, in the Alpha Score, in the distribution chart on the Signal Hub, and inside the Backtester results.</p>
+
+<p>A Z-score answers a specific question: how far is this metric from its recent historical average, measured in standard deviations? A Z-score of zero means the asset is behaving exactly as it has on average. A Z-score of 2.0 means the current reading is two standard deviations above average, which happens less than 5% of the time under a normal distribution.</p>
+
+<p>In practice this translates directly. A Z-score of 1.0 on a momentum signal means the asset is moving faster than usual, but not unusually so. A Z-score of 2.5 means something is happening that statistically occurs only a few times per year for that asset. That is when the terminal fires a high-conviction signal.</p>
+
+<p>What Z-score does not tell you is whether a move will continue or reverse. A high Z-score in a trending market often means momentum is intact. The same Z-score in a choppy, range-bound market often means mean reversion is likely. That is exactly what the regime layer is for.</p>
+
+<img src="/academy/images/article1-signals-annotated.png" alt="AlphaSignal Live Signals view showing the HMM regime banner, Strategy Firing Density chart, Z-Score Distribution bell curve, and live signal cards with callout annotations" style="width:100%;border-radius:12px;margin:2.5rem 0;border:1px solid rgba(0,242,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4);" loading="lazy" />
+<p style="font-size:0.8rem; color:var(--text-dim); text-align:center; margin-top:-1.5rem; margin-bottom:2.5rem;">The Live Signals view. The red regime banner at the top (1) tells you the HMM classifier has identified a Dislocation regime. The Strategy Firing Density chart (2) shows how many signals fired over the last 30 days. The Z-Score Distribution (3) shows where the current population of signals sits on the bell curve. Individual signal cards (4) show ticker, direction, and ATR-based stop level.</p>
+
+<h2>The three-tier decision hierarchy</h2>
+
+<p>The terminal has a lot of views. When you first open it, the sidebar has over 20 navigation items organized into hubs. This is not meant to be used all at once. There is a specific order to it.</p>
+
+<p>Tier one is macro context. Before you look at any individual signal, you need to know what kind of market you are in. The Market Regime classifier (accessible from Macro Intelligence in the sidebar) runs a Hidden Markov Model against the broad market and outputs one of three states: Risk-On, Compression, or Dislocation. This single label tells you which strategies have historically worked in the current environment and which have not.</p>
+
+<p>Tier two is signal confirmation. Once you know the regime, you look at the Live Signals view. The Z-score distribution chart at the top tells you immediately whether signal activity is clustered in negative or positive territory. If you are in a Risk-On regime and the distribution is skewed positively, that is a coherent environment. If you are in a Dislocation regime and the distribution is heavily negative, shorting or sitting out is statistically supported.</p>
+
+<p>Tier three is execution context. Before entering a position flagged by the signal layer, you check the relevant microstructure data: funding rates to see whether you are swimming with or against the crowd, on-chain exchange inflows to see whether holders are distributing, and your position sizing relative to the ATR-derived stop level shown on each signal card.</p>
+
+<p>Most users skip tier one entirely and go straight to tier two. This is the most common mistake. A strong Z-score in the wrong regime is noise, not signal.</p>
+
+<h2>Why there are 80+ views and you only need 5 or 6</h2>
+
+<p>The terminal covers a wide range of analytical frameworks because different traders have different workflows and different edges. The Derivatives Hub is essential for someone trading perpetuals. The Chain Velocity view is relevant for someone positioning around cross-chain capital rotation. The Narrative Galaxy is useful for catching early mindshare shifts before they appear in price.</p>
+
+<p>None of that means you need all of it every day. A practical daily workflow uses five or six views in a consistent order: the AI Market Briefing for overnight context, the Market Regime classifier for state identification, ETF Flows for institutional conviction, Live Signals for the current opportunity set, and your own watchlist in My Terminal for execution-level decisions.</p>
+
+<p>The rest of the terminal is there when you need to go deeper on a specific situation. If a whale alert fires and you want to validate it with on-chain data, you go to the On-Chain Stats view. If you want to check whether options dealers are short gamma at a key strike before entering a long, you go to the GEX Profile. These are situational tools, not daily requirements.</p>
+
+<img src="/academy/images/article1-portfolio-optimizer.png" alt="AlphaSignal Portfolio Optimizer showing equity curve vs BTC benchmark, Sharpe ratio of 1.85, and constituent weightings" style="width:100%;border-radius:12px;margin:2.5rem 0;border:1px solid rgba(0,242,255,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4);" loading="lazy" />
+<p style="font-size:0.8rem; color:var(--text-dim); text-align:center; margin-top:-1.5rem; margin-bottom:2.5rem;">The Portfolio Optimizer, under Portfolio &amp; Risk. It simulates an alpha-weighted rebalancing strategy against a BTC benchmark over 30 days. The equity curve here shows the current ML-weighted portfolio tracking below benchmark, with a modeled Sharpe of 1.85. The Institutional Risk Scorecard on the right gives you VaR, Beta, Sortino, and Annualized Volatility in one panel.</p>
+
+<h2>Free tier vs Pro: where the line is</h2>
+
+<p>The free tier gives you access to the Live Signals view, the Command Center dashboard, price alerts, and the AI briefing. This is enough to understand whether the current environment is interesting and to track a few assets you already follow.</p>
+
+<p>Pro adds the ML-powered layers: Alpha Score rankings, the Backtester, the Portfolio Optimizer, the Regime Classifier, full on-chain analytics, derivatives data, and the live signal alert webhooks. These are the tools that shift the terminal from a monitoring instrument into an active decision-support system.</p>
+
+<p>The clearest dividing line is the regime classifier. Free users can see signals but cannot see what kind of market those signals are firing in. That missing context is what makes the Pro tier worth it for an active trader. Signal quality without regime awareness is like reading a compass without knowing which direction you are trying to go.</p>
+
+<h2>What to do right now</h2>
+
+<p>Open the terminal and navigate to Macro Intelligence in the sidebar. Find the Market Regime view and note the current state. Then go to Live Signals and look at the Z-Score Distribution chart. Ask yourself: does the signal distribution make sense given the regime? That single check will immediately give you a better mental model of the market than most dashboards can provide.</p>
+
+<p>The next article in this series covers the specific daily routine: exactly where to click, in what order, and what you are looking for at each step. It takes under ten minutes once you know the sequence.</p>
+
+</div>
+
+<!-- Series navigation -->
+<div style='margin-top:4rem; padding:2rem; background:rgba(125,211,252,0.04); border:1px solid rgba(125,211,252,0.12); border-radius:16px;'>
+    <div style='font-size:0.65rem; font-weight:900; letter-spacing:2px; color:var(--accent); margin-bottom:1rem;'>HOW TO USE THE TERMINAL: 8-PART SERIES</div>
+    <div style='display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.75rem;'>
+        <a href="/academy/how-alphasignal-works" style='display:block; padding:0.75rem 1rem; background:rgba(0,242,255,0.1); border:1px solid rgba(0,242,255,0.3); border-radius:8px; text-decoration:none; color:var(--text); font-size:0.8rem; font-weight:700;'>1. How AlphaSignal Works</a>
+        <a href="/academy/alphasignal-daily-routine" style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; text-decoration:none; color:var(--text-dim); font-size:0.8rem;'>2. Your First 10 Minutes</a>
+        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>3. Reading Z-Scores (coming soon)</span>
+        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>4. Macro Hub (coming soon)</span>
+        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>5. Whale Watching (coming soon)</span>
+        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>6. Derivatives Decoded (coming soon)</span>
+        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>7. Position Sizing (coming soon)</span>
+        <span style='display:block; padding:0.75rem 1rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:var(--text-dim); font-size:0.8rem;'>8. Building a Watchlist (coming soon)</span>
+    </div>
+</div>
+
+<div style='margin-top:4rem; padding:3rem; background:rgba(0,0,0,0.3); border:1px solid rgba(125,211,252,0.15); border-radius:16px; text-align:center;'>
+    <h3 style='margin:0 0 1rem; color:#fff; font-size:1.4rem;'>Open the terminal and check the current regime</h3>
+    <p style='color:var(--text-dim); margin-bottom:2rem; max-width:520px; margin-left:auto; margin-right:auto;'>The Market Regime classifier tells you which strategies are statistically supported right now. It takes 30 seconds to check and changes how you read every signal that follows.</p>
+    <a href="/?view=regime" style='display:inline-block; background:var(--accent); color:#000; font-weight:800; text-decoration:none; padding:1rem 2.5rem; border-radius:8px; font-size:1rem; box-shadow:0 0 20px rgba(125,211,252,0.3); margin-right:1rem;'>OPEN REGIME VIEW</a>
+    <a href="/?view=signals" style='display:inline-block; background:transparent; color:var(--accent); font-weight:700; text-decoration:none; padding:1rem 2.5rem; border-radius:8px; font-size:1rem; border:1px solid rgba(125,211,252,0.4);'>LIVE SIGNALS</a>
+</div>
+
+</div></div>
+
+            <noscript>
+            <div style="max-width:1100px;margin:0 auto;padding:4rem 2rem;font-family:system-ui,sans-serif;color:#e2e8f0;">
+                <h1 style="font-size:2.5rem;font-weight:900;margin-bottom:1rem;">How AlphaSignal Works &mdash; AlphaSignal Academy</h1>
+                <p style="font-size:1.1rem;color:#94a3b8;line-height:1.8;margin-bottom:2rem;">
+                    AlphaSignal is an institutional crypto intelligence terminal. This guide explains the Z-score signal system, the three-tier decision hierarchy (macro regime, signal confirmation, execution), and how to build a focused daily workflow. Available at alphasignal.digital.
+                </p>
+            </div>
+            </noscript>
+
+            <script>
+            (function(){
+                var l=document.getElementById('app-loader');
+                var m=document.getElementById('main-layout');
+                if(l){l.style.transition='opacity 0.15s';l.style.opacity='0';setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l);},160);}
+                if(m){m.classList.remove('hidden');m.style.removeProperty('filter');}
+            })();
+            </script>
+
+            <footer class="global-footer" role="contentinfo">
+                <div class="footer-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;margin-bottom:2rem;">
+                    <div class="footer-brand">
+                        <div class="brand-title" style="font-size:1.3rem;font-weight:900;margin-bottom:0.5rem;">Alpha<span>Signal</span></div>
+                        <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;">Institutional Alpha &amp; Multi-Asset Intelligence Terminal. Real-time Z-score signals, AI briefings, on-chain analytics, and 60+ analytical views. From $7.99/month.</p>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">TERMINAL GUIDES</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/academy/how-alphasignal-works" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">How AlphaSignal Works</a></li>
+                            <li><a href="/academy/statistical-mean-reversion-z-scores" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Z-Score Mean Reversion</a></li>
+                            <li><a href="/academy/hidden-markov-market-regimes" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">HMM Market Regimes</a></li>
+                            <li><a href="/academy/fundamental-mvrv-z-score" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">MVRV Z-Score Guide</a></li>
+                            <li><a href="/academy/understanding-gamma-exposure-gex" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Gamma Exposure (GEX)</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">SIGNALS &amp; ANALYTICS</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=signals" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Live Alpha Signals</a></li>
+                            <li><a href="/?view=alpha-score" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Alpha Score Dashboard</a></li>
+                            <li><a href="/?view=regime" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Market Regime Classifier</a></li>
+                            <li><a href="/?view=backtester-v2" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Signal Backtester V2</a></li>
+                            <li><a href="/?view=etf-flows" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Bitcoin Spot ETF Flows</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:0.75rem;">RESOURCES</h4>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+                            <li><a href="/?view=help" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Help &amp; Documentation</a></li>
+                            <li><a href="/?view=ask-terminal" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Ask Terminal AI</a></li>
+                            <li><a href="/academy" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">Academy Home</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:1.5rem;">
+                    <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.7;margin-bottom:1rem;max-width:900px;">
+                        <strong style="color:var(--text-main);">AlphaSignal</strong> is an institutional Bitcoin and crypto intelligence terminal providing real-time <strong>trading signals</strong>, <strong>on-chain analytics</strong>, <strong>options flow</strong>, <strong>whale tracking</strong>, <strong>ETF flows</strong>, and <strong>AI market analysis</strong>. Designed for professional crypto traders and institutional desks. Not financial advice.
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <span>&copy; 2026 ALPHASIGNAL TERMINAL &mdash; alphasignal.digital</span>
+                    <div class="system-badges">
+                        <span class="badge">SECURE_SSL</span>
+                        <span class="badge">AI_NEURAL_ACTIVE</span>
+                        <span class="badge">PWA_READY</span>
+                    </div>
+                </div>
+            </footer>
+        </main>
+
+        <nav class="mobile-nav" role="navigation" aria-label="Mobile Navigation">
+            <div class="mobile-nav-item active" data-view="signals" aria-label="View Signals">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">radar</span>
+                <span class="m-label">Signals</span>
+            </div>
+            <div class="mobile-nav-item" data-view="briefing" aria-label="View AI Intel">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">memory</span>
+                <span class="m-label">AI Intel</span>
+            </div>
+            <div class="mobile-nav-item" data-view="macro-hub" aria-label="View Macro">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">public</span>
+                <span class="m-label">Macro</span>
+            </div>
+            <div class="mobile-nav-item" data-view="alerts-hub" aria-label="View Alerts" style="position:relative">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">notifications</span>
+                <span class="m-label">Alerts</span>
+            </div>
+            <div class="mobile-nav-item" id="mobile-more-btn" aria-label="More options">
+                <span class="m-icon material-symbols-outlined" aria-hidden="true">menu</span>
+                <span class="m-label">More</span>
+            </div>
+        </nav>
+
+        <!-- Overlays (required by app.js) -->
+        <div id="auth-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Authentication">
+            <div class="overlay-content auth-box">
+                <button class="close-overlay" aria-label="Close authentication dialog">&times;</button>
+                <div class="brand-title" style="text-align:center;margin-bottom:1.5rem;">Alpha<span>Signal</span></div>
+                <input type="email" id="auth-email" placeholder="Email address" autocomplete="email">
+                <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
+                <button id="login-btn" class="intel-action-btn auth-submit" aria-label="Login to Terminal">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">login</span>
+                    <span id="auth-btn-label">SIGN IN</span>
+                </button>
+                <div id="auth-error" class="hidden" style="color:var(--risk-high);font-size:0.8rem;margin-top:0.5rem;"></div>
+                <a href="#" id="toggle-auth" aria-label="Toggle between Login and Registration">Create account</a>
+            </div>
+        </div>
+        <div id="paywall-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Upgrade required"></div>
+        <div id="detail-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Asset detail"></div>
+        <div id="notification-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Notification settings"></div>
+        <div id="export-menu" class="hidden" style="position:fixed;z-index:9999;"></div>
+        <div id="search-results-overlay" class="hidden"></div>
+    </div>
+
+    <!-- CDN dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0" defer></script>
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
+    <script src="https://s3.tradingview.com/tv.js" async></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js" defer></script>
+    <script src="https://js.stripe.com/v3/" defer></script>
+    <!-- App core -->
+    <script src="/js/utils.js?v=2.86" defer></script>
+    <script src="/js/auth.js?v=2.87" defer></script>
+    <script src="/js/core.js?v=2.80" defer></script>
+    <script src="/js/heatmap_engine.js?v=2.80" defer></script>
+    <script src="/js/charts.js?v=2.80" defer></script>
+    <!-- Views -->
+    <script src="/js/views/hub-nav-v2.js?v=2.80" defer></script>
+    <script src="/js/views/global-markets.js?v=2.80" defer></script>
+    <script src="/js/views/signals.js?v=2.80" defer></script>
+    <script src="/js/views/performance.js?v=2.80" defer></script>
+    <script src="/js/views/macro-intel.js?v=2.80" defer></script>
+    <script src="/js/views/whales.js?v=2.80" defer></script>
+    <script src="/js/views/block-radar.js?v=2.80" defer></script>
+    <script src="/js/views/macro-analytics.js?v=2.80" defer></script>
+    <script src="/js/views/strategy.js?v=2.80" defer></script>
+    <script src="/js/views/portfolio.js?v=2.80" defer></script>
+    <script src="/js/views/narrative.js?v=2.80" defer></script>
+    <script src="/js/views/trade-lab.js?v=2.80" defer></script>
+    <script src="/js/views/audit.js?v=2.80" defer></script>
+    <script src="/js/views/liquidity-archive.js?v=2.80" defer></script>
+    <script src="/js/views/gex-profile.js?v=2.80" defer></script>
+    <script src="/js/views/volume-profile.js?v=2.80" defer></script>
+    <script src="/js/views/alerts-archive.js?v=2.80" defer></script>
+    <script src="/js/views/onchain.js?v=2.80" defer></script>
+    <script src="/js/views/command-center-v2.js?v=2.85" defer></script>
+    <script src="/js/views/power-trio.js?v=2.80" defer></script>
+    <script src="/js/views/trade-setup.js?v=2.80" defer></script>
+    <script src="/js/views/trade-plan.js?v=2.80" defer></script>
+    <script src="/js/views/home.js?v=2.82" defer></script>
+    <script src="/js/views/algo-hub.js?v=2.80"></script>
+    <script src="/js/views/algo-params.js?v=2.80" defer></script>
+    <script src="/js/views/explain.js?v=2.80" defer></script>
+    <script src="/js/views/my-terminal.js?v=2.80"></script>
+    <script src="/js/views/signal-permalink.js?v=2.80" defer></script>
+    <script src="/js/views/onboarding.js?v=2.86" defer></script>
+    <script src="/js/views/price-alerts.js?v=2.80" defer></script>
+    <script src="/js/views/signal-leaderboard.js?v=2.80" defer></script>
+    <script src="/js/views/market-brief.js?v=2.80" defer></script>
+    <script src="/js/views/exchange-keys.js?v=2.80" defer></script>
+    <script src="/js/views/webhooks.js?v=2.80" defer></script>
+    <script src="/js/docs-a.js?v=2.80" defer></script>
+    <script src="/js/docs-b.js?v=2.80" defer></script>
+    <script src="/js/docs-c.js?v=2.80" defer></script>
+    <script src="/js/export.js?v=2.80" defer></script>
+    <script src="/js/seo-meta.js?v=2.80" defer></script>
+    <script src="/js/views/academy_videos_data.js?v=2.80" defer></script>
+    <script src="/js/views/academy-watch.js?v=2.80" defer></script>
+    <script src="/js/views/derivatives.js?v=2.80" defer></script>
+    <script src="/js/views/pattern-predictor.js?v=2.82" defer></script>
+    <script src="/js/main.js?v=2.84" defer></script>
+    <script src="/js/router.js?v=2.84" defer></script>
+    <script src="/js/ai-chat.js?v=2.80" defer></script>
+
+</body>
+</html>
