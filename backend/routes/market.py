@@ -535,19 +535,18 @@ class MarketRoutesMixin:
 
             if user_email:
                 c.execute(
-                    """SELECT DATE(timestamp) as day, COUNT(*) as cnt
-                       FROM alerts_history
-                       WHERE timestamp >= ? AND user_email = ?
+                    """SELECT DATE(se.timestamp) as day, COUNT(*) as cnt
+                       FROM signal_events se
+                       JOIN user_signal_state uss ON uss.signal_id = se.id
+                       WHERE se.timestamp >= ? AND uss.user_email = ?
                        GROUP BY day
                        ORDER BY day ASC""",
                     (cutoff, user_email)
                 )
             else:
-                # Unauthenticated - return global system-wide density (all users)
-                # Show real platform-wide activity as social proof for anonymous visitors
                 c.execute(
                     """SELECT DATE(timestamp) as day, COUNT(*) as cnt
-                       FROM alerts_history
+                       FROM signal_events
                        WHERE timestamp >= ?
                        GROUP BY day
                        ORDER BY day ASC""",
@@ -602,7 +601,7 @@ class MarketRoutesMixin:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             two_hours_ago = (datetime.now() - timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S')
-            c.execute("SELECT ticker, id, type, direction FROM alerts_history WHERE timestamp >= ? ORDER BY timestamp DESC", (two_hours_ago,))
+            c.execute("SELECT ticker, id, type, direction FROM signal_events WHERE timestamp >= ? ORDER BY timestamp DESC", (two_hours_ago,))
             recent_alerts = c.fetchall()
             conn.close()
 

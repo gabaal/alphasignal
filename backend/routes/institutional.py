@@ -2492,46 +2492,46 @@ class InstitutionalRoutesMixin:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
 
-            where_clauses = ["price IS NOT NULL AND price > 0"]
+            where_clauses = ["se.price IS NOT NULL AND se.price > 0"]
             params = []
 
             if user_email:
-                where_clauses.append("LOWER(user_email) = LOWER(?)")
+                where_clauses.append("LOWER(uss.user_email) = LOWER(?)")
                 params.append(user_email)
                 c.execute('SELECT enable_rsi_oversold, enable_rsi_overbought, enable_macd, enable_ml_alpha, enable_vol_spike FROM user_settings WHERE user_email=?', (user_email,))
                 r = c.fetchone()
                 if r:
                     en_rsi_os, en_rsi_ob, en_macd, en_ml, en_vol = r
                     if not en_rsi_os:
-                        where_clauses.append("type NOT LIKE '%RSI_OVERSOLD%'")
+                        where_clauses.append("se.type NOT LIKE '%RSI_OVERSOLD%'")
                     if not en_rsi_ob:
-                        where_clauses.append("type NOT LIKE '%RSI_OVERBOUGHT%'")
+                        where_clauses.append("se.type NOT LIKE '%RSI_OVERBOUGHT%'")
                     if not en_macd:
-                        where_clauses.append("type NOT LIKE '%MACD%'")
+                        where_clauses.append("se.type NOT LIKE '%MACD%'")
                     if not en_ml:
-                        where_clauses.append("type NOT LIKE '%ML_%'")
+                        where_clauses.append("se.type NOT LIKE '%ML_%'")
                     if not en_vol:
-                        where_clauses.append("type NOT LIKE '%VOLUME_%'")
+                        where_clauses.append("se.type NOT LIKE '%VOLUME_%'")
 
             if filter_ticker:
-                # Accept both 'STRK' and 'STRK-USD' — callers may strip the suffix
                 ticker_variants = [filter_ticker]
                 if not filter_ticker.endswith('-USD'):
                     ticker_variants.append(filter_ticker + '-USD')
                 placeholders = ','.join('?' * len(ticker_variants))
-                where_clauses.append(f"ticker IN ({placeholders})")
+                where_clauses.append(f"se.ticker IN ({placeholders})")
                 params.extend(ticker_variants)
 
             where_sql = " AND ".join(where_clauses)
             params.append(limit)
 
             c.execute(f"""
-                SELECT id, type, ticker, severity, price, timestamp,
-                       direction, COALESCE(status, 'active') AS status,
-                       final_roi, exit_price, closed_at
-                FROM alerts_history
+                SELECT se.id, se.type, se.ticker, se.severity, se.price, se.timestamp,
+                       se.direction, COALESCE(uss.status, 'active') AS status,
+                       uss.final_roi, uss.exit_price, uss.closed_at
+                FROM signal_events se
+                JOIN user_signal_state uss ON uss.signal_id = se.id
                 WHERE {where_sql}
-                ORDER BY timestamp DESC
+                ORDER BY se.timestamp DESC
                 LIMIT ?
             """, params)
 
@@ -3662,7 +3662,14 @@ class InstitutionalRoutesMixin:
         try:
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute("\n                SELECT ticker, price, timestamp, type \n                FROM alerts_history \n                WHERE timestamp > datetime('now', '-7 days')\n                GROUP BY ticker \n                ORDER BY timestamp DESC\n                LIMIT 10\n            ")
+            c.execute("""
+                SELECT ticker, price, timestamp, type 
+                FROM signal_events
+                WHERE timestamp > datetime('now', '-7 days')
+                GROUP BY ticker 
+                ORDER BY timestamp DESC
+                LIMIT 10
+            """)
             alerts = c.fetchall()
             conn.close()
             picks = []
@@ -3701,21 +3708,23 @@ class InstitutionalRoutesMixin:
             user_email = auth.get('email') if auth else None
             if filter_ticker:
                 if user_email:
-                    c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
-                                 FROM alerts_history WHERE ticker = ? AND LOWER(user_email) = LOWER(?)
-                                 ORDER BY timestamp DESC LIMIT ?''', (filter_ticker, user_email, limit))
+                    c.execute('''SELECT se.id, se.type, se.ticker, se.message, se.severity, se.timestamp, se.price
+                                 FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id
+                                 WHERE se.ticker = ? AND LOWER(uss.user_email) = LOWER(?)
+                                 ORDER BY se.timestamp DESC LIMIT ?''', (filter_ticker, user_email, limit))
                 else:
                     c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
-                                 FROM alerts_history WHERE ticker = ?
+                                 FROM signal_events WHERE ticker = ?
                                  ORDER BY timestamp DESC LIMIT ?''', (filter_ticker, limit))
             else:
                 if user_email:
-                    c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
-                                 FROM alerts_history WHERE LOWER(user_email) = LOWER(?)
-                                 ORDER BY timestamp DESC LIMIT ?''', (user_email, limit))
+                    c.execute('''SELECT se.id, se.type, se.ticker, se.message, se.severity, se.timestamp, se.price
+                                 FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id
+                                 WHERE LOWER(uss.user_email) = LOWER(?)
+                                 ORDER BY se.timestamp DESC LIMIT ?''', (user_email, limit))
                 else:
                     c.execute('''SELECT id, type, ticker, message, severity, timestamp, price
-                                 FROM alerts_history
+                                 FROM signal_events
                                  ORDER BY timestamp DESC LIMIT ?''', (limit,))
             rows = c.fetchall()
 
@@ -3776,19 +3785,19 @@ class InstitutionalRoutesMixin:
             if last_seen:
                 if auth:
                     c.execute(
-                        "SELECT COUNT(*) FROM alerts_history WHERE timestamp > ? AND LOWER(user_email) = LOWER(?)",
+                        "SELECT COUNT(*) FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id WHERE se.timestamp > ? AND LOWER(uss.user_email) = LOWER(?)",
                         (last_seen, email)
                     )
                 else:
-                    c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > ?", (last_seen,))
+                    c.execute("SELECT COUNT(*) FROM signal_events WHERE timestamp > ?", (last_seen,))
             else:
                 if auth:
                     c.execute(
-                        "SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day') AND LOWER(user_email) = LOWER(?)",
+                        "SELECT COUNT(*) FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id WHERE se.timestamp > datetime('now', '-1 day') AND LOWER(uss.user_email) = LOWER(?)",
                         (email,)
                     )
                 else:
-                    c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
+                    c.execute("SELECT COUNT(*) FROM signal_events WHERE timestamp > datetime('now', '-1 day')")
 
             unread = c.fetchone()[0]
             conn.close()
@@ -4513,7 +4522,7 @@ class InstitutionalRoutesMixin:
                         conn = sqlite3.connect(DB_PATH, timeout=30)
                         c_db = conn.cursor()
                         c_db.execute(
-                            "SELECT COUNT(*) FROM alerts_history WHERE ticker=? AND timestamp > datetime('now', '-72 hours')",
+                            "SELECT COUNT(*) FROM signal_events WHERE ticker=? AND timestamp > datetime('now', '-72 hours')",
                             (t,)
                         )
                         alert_count = c_db.fetchone()[0]
@@ -4643,18 +4652,19 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
             
-            where_clauses = "price IS NOT NULL AND price > 0"
+
+            where_clauses = "se.price IS NOT NULL AND se.price > 0"
             if email:
                 c.execute('SELECT enable_rsi, enable_macd, enable_ml_alpha, enable_vol_spike FROM user_settings WHERE user_email=?', (email,))
                 r = c.fetchone()
                 if r:
                     enable_rsi, enable_macd, enable_ml, enable_vol = r
-                    if not enable_rsi: where_clauses += " AND type NOT LIKE '%RSI%'"
-                    if not enable_macd: where_clauses += " AND type NOT LIKE '%MACD%'"
-                    if not enable_ml: where_clauses += " AND type NOT LIKE '%ML_%'"
-                    if not enable_vol: where_clauses += " AND type NOT LIKE '%VOLUME_%'"
+                    if not enable_rsi: where_clauses += " AND se.type NOT LIKE '%RSI%'"
+                    if not enable_macd: where_clauses += " AND se.type NOT LIKE '%MACD%'"
+                    if not enable_ml: where_clauses += " AND se.type NOT LIKE '%ML_%'"
+                    if not enable_vol: where_clauses += " AND se.type NOT LIKE '%VOLUME_%'"
 
-            c.execute(f'SELECT ticker, price, timestamp, direction, status, final_roi FROM alerts_history WHERE {where_clauses} ORDER BY timestamp DESC LIMIT 100')
+            c.execute(f'SELECT se.ticker, se.price, se.timestamp, se.direction, COALESCE(uss.status,\'active\'), uss.final_roi FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id WHERE {where_clauses} ORDER BY se.timestamp DESC LIMIT 100')
             signals = c.fetchall()
             conn.close()
             total = len(signals)
@@ -4727,9 +4737,9 @@ class InstitutionalRoutesMixin:
             try:
                 conn2 = sqlite3.connect(DB_PATH, timeout=30)
                 c2 = conn2.cursor()
-                c2.execute("SELECT type, COUNT(*) as cnt FROM alerts_history GROUP BY type ORDER BY cnt DESC")
+                c2.execute("SELECT type, COUNT(*) as cnt FROM signal_events GROUP BY type ORDER BY cnt DESC")
                 type_rows = c2.fetchall()
-                c2.execute("SELECT ticker, COUNT(*) as cnt FROM alerts_history WHERE ticker != 'SYSTEM' GROUP BY ticker ORDER BY cnt DESC LIMIT 5")
+                c2.execute("SELECT ticker, COUNT(*) as cnt FROM signal_events WHERE ticker != 'SYSTEM' GROUP BY ticker ORDER BY cnt DESC LIMIT 10")
                 ticker_rows = c2.fetchall()
                 conn2.close()
                 total_typed = sum(r[1] for r in type_rows) or 1
@@ -4771,16 +4781,16 @@ class InstitutionalRoutesMixin:
                 # User scoping: strictly own signals only
                 if user_email:
                     if f_from and f_to:
-                        base_where = "WHERE datetime(ah.timestamp) >= ? AND datetime(ah.timestamp) <= ? AND ah.user_email = ?"
+                        base_where = "WHERE datetime(se.timestamp) >= ? AND datetime(se.timestamp) <= ? AND uss.user_email = ?"
                         params = [f_from + ' 00:00:00', f_to + ' 23:59:59', user_email]
                     elif f_from:
-                        base_where = "WHERE datetime(ah.timestamp) >= ? AND ah.user_email = ?"
+                        base_where = "WHERE datetime(se.timestamp) >= ? AND uss.user_email = ?"
                         params = [f_from + ' 00:00:00', user_email]
                     elif f_to:
-                        base_where = "WHERE datetime(ah.timestamp) <= ? AND ah.user_email = ?"
+                        base_where = "WHERE datetime(se.timestamp) <= ? AND uss.user_email = ?"
                         params = [f_to + ' 23:59:59', user_email]
                     else:
-                        base_where = "WHERE ah.timestamp > datetime('now', ?) AND ah.user_email = ?"
+                        base_where = "WHERE se.timestamp > datetime('now', ?) AND uss.user_email = ?"
                         params = [f'-{f_days} day', user_email]
                 else:
                     # Unauthenticated: export empty
@@ -4789,27 +4799,27 @@ class InstitutionalRoutesMixin:
                     self.end_headers()
                     return
                 if f_ticker:
-                    base_where += ' AND ah.ticker = ?'; params.append(f_ticker.upper())
+                    base_where += ' AND se.ticker = ?'; params.append(f_ticker.upper())
                 if f_type:
-                    base_where += ' AND ah.type = ?'; params.append(f_type)
+                    base_where += ' AND se.type = ?'; params.append(f_type)
                 if f_severity:
-                    base_where += ' AND LOWER(ah.severity) = ?'; params.append(f_severity.lower())
+                    base_where += ' AND LOWER(se.severity) = ?'; params.append(f_severity.lower())
                 if f_direction:
                     if f_direction == 'bullish':
-                        base_where += " AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
+                        base_where += " AND se.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
                     elif f_direction == 'bearish':
-                        base_where += " AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
+                        base_where += " AND se.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
 
                 conn = sqlite3.connect(DB_PATH, timeout=30)
                 c = conn.cursor()
                 c.execute(f'''
-                    SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
-                           ah.price, ah.timestamp,
-                           COALESCE(ah.status,"active") as status,
-                           ah.closed_at, ah.exit_price, ah.final_roi
-                    FROM alerts_history ah
+                    SELECT se.id, se.type, se.ticker, se.message, se.severity,
+                           se.price, se.timestamp,
+                           COALESCE(uss.status,"active") as status,
+                           uss.closed_at, uss.exit_price, uss.final_roi
+                    FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id
                     {base_where}
-                    ORDER BY ah.timestamp DESC
+                    ORDER BY se.timestamp DESC
                 ''', params)
                 rows = c.fetchall()
                 conn.close()
@@ -4836,7 +4846,7 @@ class InstitutionalRoutesMixin:
             snapshot = {'exported_at': datetime.now().isoformat(), 'terminal': 'AlphaSignal Institutional Terminal', 'btc_price': LIVE_PRICES.get('BTC', 0), 'eth_price': LIVE_PRICES.get('ETH', 0), 'sol_price': LIVE_PRICES.get('SOL', 0)}
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute('SELECT ticker, type, message, price, timestamp FROM alerts_history ORDER BY timestamp DESC LIMIT 10')
+            c.execute('SELECT ticker, type, message, price, timestamp FROM signal_events ORDER BY timestamp DESC LIMIT 10')
             snapshot['recent_signals'] = [{'ticker': r[0], 'type': r[1], 'message': r[2], 'entry_price': r[3], 'timestamp': r[4]} for r in c.fetchall()]
             conn.close()
             self.send_response(200)
@@ -4854,9 +4864,14 @@ class InstitutionalRoutesMixin:
         try:
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute('\n                SELECT id, type, ticker, message, severity, price, timestamp\n                FROM alerts_history\n                ORDER BY timestamp DESC\n                LIMIT 10\n            ')
+            c.execute('''
+                SELECT id, type, ticker, message, severity, price, timestamp
+                FROM signal_events
+                ORDER BY timestamp DESC
+                LIMIT 10
+            ''')
             rows = c.fetchall()
-            c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
+            c.execute("SELECT COUNT(*) FROM signal_events WHERE timestamp > datetime('now', '-1 day')")
             unread = c.fetchone()[0]
             conn.close()
             notifs = []
@@ -4984,14 +4999,14 @@ class InstitutionalRoutesMixin:
 
             # Whitelist of server-sortable columns -> SQL expressions
             SORT_MAP = {
-                'ticker':    'ah.ticker',
-                'type':      'ah.type',
-                'severity':  "CASE LOWER(COALESCE(ah.severity,'')) WHEN 'critical' THEN 3 WHEN 'high' THEN 2 WHEN 'medium' THEN 1 ELSE 0 END",
-                'entry':     'ah.price',
-                'date':      'ah.timestamp',
-                'direction': "CASE WHEN ah.direction = 'LONG' THEN 0 WHEN ah.direction = 'SHORT' THEN 1 ELSE 2 END",
+                'ticker':    'se.ticker',
+                'type':      'se.type',
+                'severity':  "CASE LOWER(COALESCE(se.severity,'')) WHEN 'critical' THEN 3 WHEN 'high' THEN 2 WHEN 'medium' THEN 1 ELSE 0 END",
+                'entry':     'se.price',
+                'date':      'se.timestamp',
+                'direction': "CASE WHEN se.direction = 'LONG' THEN 0 WHEN se.direction = 'SHORT' THEN 1 ELSE 2 END",
             }
-            order_expr = SORT_MAP.get(sort_col, 'ah.timestamp')
+            order_expr = SORT_MAP.get(sort_col, 'se.timestamp')
             order_clause = f'ORDER BY {order_expr} {sort_dir.upper()}'
 
             # - Cache check: 2-min TTL, keyed by all query params + user -
@@ -5005,108 +5020,105 @@ class InstitutionalRoutesMixin:
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c    = conn.cursor()
 
-            # User scoping: show own signals if authenticated, all signals if not
+            # User scoping: WHERE clause targets JOIN columns (se.timestamp, uss.user_email)
             if user_email:
-                # Custom date range takes priority over days-based lookback.
-                # datetime(ah.timestamp) normalises both 'T' and space separators
-                # so '2026-04-07T15:25:00' compares correctly against '2026-04-07 23:59:59'.
-                # LOWER() on both sides makes the email comparison case-insensitive.
                 if f_from and f_to:
-                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND datetime(ah.timestamp) <= ? AND LOWER(ah.user_email) = LOWER(?)"
+                    base_where  = "WHERE datetime(se.timestamp) >= ? AND datetime(se.timestamp) <= ? AND LOWER(uss.user_email) = LOWER(?)"
                     params      = [f_from + ' 00:00:00', f_to + ' 23:59:59', user_email]
                 elif f_from:
-                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND LOWER(ah.user_email) = LOWER(?)"
+                    base_where  = "WHERE datetime(se.timestamp) >= ? AND LOWER(uss.user_email) = LOWER(?)"
                     params      = [f_from + ' 00:00:00', user_email]
                 elif f_to:
-                    base_where  = "WHERE datetime(ah.timestamp) <= ? AND LOWER(ah.user_email) = LOWER(?)"
+                    base_where  = "WHERE datetime(se.timestamp) <= ? AND LOWER(uss.user_email) = LOWER(?)"
                     params      = [f_to + ' 23:59:59', user_email]
                 else:
-                    base_where  = "WHERE ah.timestamp > datetime('now', ?) AND LOWER(ah.user_email) = LOWER(?)"
+                    base_where  = "WHERE se.timestamp > datetime('now', ?) AND LOWER(uss.user_email) = LOWER(?)"
                     params      = [f'-{f_days} day', user_email]
                 
                 c.execute('SELECT enable_rsi_oversold, enable_rsi_overbought, enable_macd, enable_ml_alpha, enable_vol_spike FROM user_settings WHERE user_email=?', (user_email,))
                 r = c.fetchone()
                 if r:
                     en_rsi_os, en_rsi_ob, en_macd, en_ml, en_vol = r
-                    if not en_rsi_os: base_where += " AND ah.type NOT LIKE '%RSI_OVERSOLD%'"
-                    if not en_rsi_ob: base_where += " AND ah.type NOT LIKE '%RSI_OVERBOUGHT%'"
-                    if not en_macd: base_where += " AND ah.type NOT LIKE '%MACD%'"
-                    if not en_ml: base_where += " AND ah.type NOT LIKE '%ML_%'"
-                    if not en_vol: base_where += " AND ah.type NOT LIKE '%VOLUME_%'"
+                    if not en_rsi_os: base_where += " AND se.type NOT LIKE '%RSI_OVERSOLD%'"
+                    if not en_rsi_ob: base_where += " AND se.type NOT LIKE '%RSI_OVERBOUGHT%'"
+                    if not en_macd: base_where += " AND se.type NOT LIKE '%MACD%'"
+                    if not en_ml: base_where += " AND se.type NOT LIKE '%ML_%'"
+                    if not en_vol: base_where += " AND se.type NOT LIKE '%VOLUME_%'"
                 
                 # Filter out NON_CRYPTO tickers
                 NON_CRYPTO = tuple(set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', [])))
                 if NON_CRYPTO:
-                    base_where += f" AND ah.ticker NOT IN ({','.join(['?']*len(NON_CRYPTO))})"
+                    base_where += f" AND se.ticker NOT IN ({','.join(['?']*len(NON_CRYPTO))})"
                     params.extend(NON_CRYPTO)
                 
-                # Filter out informational anomalies from the Signals Archive (only show alpha-predictive signals)
-                base_where += (" AND ah.type NOT LIKE '%FUNDING%'"
-                               " AND ah.type NOT LIKE '%DEPEG%'"
-                               " AND ah.type NOT LIKE '%CME_GAP%'"
-                               " AND ah.type NOT LIKE '%REBALANCE%'")
+                # Filter out informational anomalies from the Signals Archive
+                base_where += (" AND se.type NOT LIKE '%FUNDING%'"
+                               " AND se.type NOT LIKE '%DEPEG%'"
+                               " AND se.type NOT LIKE '%CME_GAP%'"
+                               " AND se.type NOT LIKE '%REBALANCE%'")
                     
                 count_params = list(params)
             else:
-                # Unauthenticated: show all signals (public market intelligence, not private user data)
+                # Unauthenticated: show all signals (public market intelligence)
                 if f_from and f_to:
-                    base_where  = "WHERE datetime(ah.timestamp) >= ? AND datetime(ah.timestamp) <= ?"
+                    base_where  = "WHERE datetime(se.timestamp) >= ? AND datetime(se.timestamp) <= ?"
                     params      = [f_from + ' 00:00:00', f_to + ' 23:59:59']
                 elif f_from:
-                    base_where  = "WHERE datetime(ah.timestamp) >= ?"
+                    base_where  = "WHERE datetime(se.timestamp) >= ?"
                     params      = [f_from + ' 00:00:00']
                 elif f_to:
-                    base_where  = "WHERE datetime(ah.timestamp) <= ?"
+                    base_where  = "WHERE datetime(se.timestamp) <= ?"
                     params      = [f_to + ' 23:59:59']
                 else:
-                    base_where  = "WHERE ah.timestamp > datetime('now', ?)"
+                    base_where  = "WHERE se.timestamp > datetime('now', ?)"
                     params      = [f'-{f_days} day']
                 
                 # Filter out informational anomalies from the Signals Archive
-                base_where += (" AND ah.type NOT LIKE '%FUNDING%'"
-                               " AND ah.type NOT LIKE '%DEPEG%'"
-                               " AND ah.type NOT LIKE '%CME_GAP%'"
-                               " AND ah.type NOT LIKE '%REBALANCE%'")
+                base_where += (" AND se.type NOT LIKE '%FUNDING%'"
+                               " AND se.type NOT LIKE '%DEPEG%'"
+                               " AND se.type NOT LIKE '%CME_GAP%'"
+                               " AND se.type NOT LIKE '%REBALANCE%'")
 
                 count_params = list(params)
 
             if f_ticker:
-                base_where  += ' AND ah.ticker = ?'
+                base_where  += ' AND se.ticker = ?'
                 params.append(f_ticker);  count_params.append(f_ticker)
             if f_type:
-                base_where  += ' AND ah.type = ?'
+                base_where  += ' AND se.type = ?'
                 params.append(f_type);    count_params.append(f_type)
             if f_severity:
-                base_where  += ' AND LOWER(ah.severity) = ?'
+                base_where  += ' AND LOWER(se.severity) = ?'
                 params.append(f_severity.lower());  count_params.append(f_severity.lower())
             if f_direction:
                 if f_direction == 'bullish':
-                    base_where  += " AND (ah.direction = 'LONG' OR (ah.direction IS NULL AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')))"
+                    base_where  += " AND (se.direction = 'LONG' OR (se.direction IS NULL AND se.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')))"
                 elif f_direction == 'bearish':
-                    base_where  += " AND (ah.direction = 'SHORT' OR (ah.direction IS NULL AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')))"
+                    base_where  += " AND (se.direction = 'SHORT' OR (se.direction IS NULL AND se.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')))"
             # Save the base query sans state filter for the overall stats
             summary_where = base_where
             summary_params = list(params)
 
+            # State filter — uss.status for user-specific state
             if f_state == 'active':
-                base_where  += " AND COALESCE(ah.status,'active') = 'active'"
+                base_where  += " AND COALESCE(uss.status,'active') = 'active'"
                 count_params = list(params)
             elif f_state == 'closed':
-                base_where  += " AND COALESCE(ah.status,'active') = 'closed'"
+                base_where  += " AND COALESCE(uss.status,'active') = 'closed'"
                 count_params = list(params)
 
-            c.execute(f"SELECT COUNT(*) FROM alerts_history ah {base_where}", count_params)
+            c.execute(f"SELECT COUNT(*) FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id {base_where}", count_params)
             total_count = c.fetchone()[0]
 
             # Summary counts across FULL filtered dataset (ignoring the active/closed tab selection so stats remain visible)
             c.execute(f"""
                 SELECT
-                    SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL AND ah.final_roi != 0 THEN 1 ELSE 0 END) as closed_count,
-                    SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi > 0 THEN 1 ELSE 0 END) as closed_wins,
-                    SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi < 0 THEN 1 ELSE 0 END) as closed_losses,
-                    AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL AND ah.final_roi != 0 THEN ah.final_roi END) as avg_roi,
-                    SUM(CASE WHEN COALESCE(ah.status,'active')='active' THEN 1 ELSE 0 END) as active_count
-                FROM alerts_history ah {summary_where}
+                    SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN 1 ELSE 0 END) as closed_count,
+                    SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi > 0 THEN 1 ELSE 0 END) as closed_wins,
+                    SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi < 0 THEN 1 ELSE 0 END) as closed_losses,
+                    AVG(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN uss.final_roi END) as avg_roi,
+                    SUM(CASE WHEN COALESCE(uss.status,'active')='active' THEN 1 ELSE 0 END) as active_count
+                FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id {summary_where}
             """, summary_params)
             summary_row = c.fetchone() or (0, 0, 0, None, 0)
 
@@ -5125,25 +5137,26 @@ class InstitutionalRoutesMixin:
 
             if python_sort:
                 sql = f"""
-                    SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
-                           ah.price, ah.timestamp,
-                           COALESCE(ah.status, 'active') AS status,
-                           ah.closed_at, ah.exit_price, ah.final_roi,
-                           ah.mtf_score, ah.mtf_detail, ah.direction
-                    FROM alerts_history ah
+                    SELECT se.id, se.type, se.ticker, se.message, se.severity,
+                           se.price, se.timestamp,
+                           COALESCE(uss.status, 'active') AS status,
+                           uss.closed_at, uss.exit_price, uss.final_roi,
+                           se.mtf_score, se.mtf_detail, se.direction
+                    FROM signal_events se
+                    JOIN user_signal_state uss ON uss.signal_id = se.id
                     {base_where}
-                    ORDER BY ah.timestamp DESC
+                    ORDER BY se.timestamp DESC
                 """
-                # params has only WHERE-clause values - no limit/offset for full fetch
                 c.execute(sql, params)
             else:
                 sql = f"""
-                    SELECT ah.id, ah.type, ah.ticker, ah.message, ah.severity,
-                           ah.price, ah.timestamp,
-                           COALESCE(ah.status, 'active') AS status,
-                           ah.closed_at, ah.exit_price, ah.final_roi,
-                           ah.mtf_score, ah.mtf_detail, ah.direction
-                    FROM alerts_history ah
+                    SELECT se.id, se.type, se.ticker, se.message, se.severity,
+                           se.price, se.timestamp,
+                           COALESCE(uss.status, 'active') AS status,
+                           uss.closed_at, uss.exit_price, uss.final_roi,
+                           se.mtf_score, se.mtf_detail, se.direction
+                    FROM signal_events se
+                    JOIN user_signal_state uss ON uss.signal_id = se.id
                     {base_where}
                     {order_clause}
                     LIMIT ? OFFSET ?
@@ -5357,7 +5370,7 @@ class InstitutionalRoutesMixin:
                 c2_cur = conn2.cursor()
 
                 if user_email:
-                    by_type_where  = "WHERE LOWER(ah.user_email) = LOWER(?)"
+                    by_type_where  = "WHERE LOWER(uss.user_email) = LOWER(?)"
                     by_type_params = [user_email]
                     
                     # Apply module toggles to breakdown as well
@@ -5365,11 +5378,11 @@ class InstitutionalRoutesMixin:
                     r = c2_cur.fetchone()
                     if r:
                         en_rsi_os, en_rsi_ob, en_macd, en_ml, en_vol = r
-                        if not en_rsi_os: by_type_where += " AND ah.type NOT LIKE '%RSI_OVERSOLD%'"
-                        if not en_rsi_ob: by_type_where += " AND ah.type NOT LIKE '%RSI_OVERBOUGHT%'"
-                        if not en_macd: by_type_where += " AND ah.type NOT LIKE '%MACD%'"
-                        if not en_ml: by_type_where += " AND ah.type NOT LIKE '%ML_%'"
-                        if not en_vol: by_type_where += " AND ah.type NOT LIKE '%VOLUME_%'"
+                        if not en_rsi_os: by_type_where += " AND se.type NOT LIKE '%RSI_OVERSOLD%'"
+                        if not en_rsi_ob: by_type_where += " AND se.type NOT LIKE '%RSI_OVERBOUGHT%'"
+                        if not en_macd: by_type_where += " AND se.type NOT LIKE '%MACD%'"
+                        if not en_ml: by_type_where += " AND se.type NOT LIKE '%ML_%'"
+                        if not en_vol: by_type_where += " AND se.type NOT LIKE '%VOLUME_%'"
                 else:
                     by_type_where  = "WHERE 1=1"
                     by_type_params = []
@@ -5377,32 +5390,34 @@ class InstitutionalRoutesMixin:
                 # Also inherit ticker/type/direction filters if set, so the table stays
                 # consistent when the user drills into a specific signal type or ticker.
                 if f_ticker:
-                    by_type_where += ' AND ah.ticker = ?'
+                    by_type_where += ' AND se.ticker = ?'
                     by_type_params.append(f_ticker)
                 if f_type:
-                    by_type_where += ' AND ah.type = ?'
+                    by_type_where += ' AND se.type = ?'
                     by_type_params.append(f_type)
                 if f_direction:
                     if f_direction == 'bullish':
-                        by_type_where += (" AND (ah.direction = 'LONG' OR (ah.direction IS NULL AND ah.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',"
+                        by_type_where += (" AND (se.direction = 'LONG' OR (se.direction IS NULL AND se.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL',"
                                           "'WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT',"
                                           "'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')))")
                     elif f_direction == 'bearish':
-                        by_type_where += (" AND (ah.direction = 'SHORT' OR (ah.direction IS NULL AND ah.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
+                        by_type_where += (" AND (se.direction = 'SHORT' OR (se.direction IS NULL AND se.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
                                           "'REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')))")
 
                 c2_cur.execute(f"""
                     SELECT
-                        CASE WHEN ah.type = 'ML_ALPHA_PREDICTION' THEN ah.type || '_' || COALESCE(ah.direction, 'LONG') ELSE ah.type END as effective_type,
-                        SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi > 0 THEN 1 ELSE 0 END) as wins,
-                        SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi < 0 THEN 1 ELSE 0 END) as losses,
-                        SUM(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL AND ah.final_roi != 0 THEN 1 ELSE 0 END) as closed,
-                        SUM(CASE WHEN COALESCE(ah.status,'active')='active' THEN 1 ELSE 0 END) as active,
-                        AVG(CASE WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL AND ah.final_roi != 0 THEN ah.final_roi END) as avg_roi,
-                        SUM(CASE WHEN COALESCE(ah.status,'active')='active' THEN 1
-                                 WHEN COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL AND ah.final_roi != 0 THEN 1
+                        CASE WHEN se.type = 'ML_ALPHA_PREDICTION' THEN se.type || '_' || COALESCE(se.direction, 'LONG') ELSE se.type END as effective_type,
+                        SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi > 0 THEN 1 ELSE 0 END) as wins,
+                        SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi < 0 THEN 1 ELSE 0 END) as losses,
+                        SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN 1 ELSE 0 END) as closed,
+                        SUM(CASE WHEN COALESCE(uss.status,'active')='active' THEN 1 ELSE 0 END) as active,
+                        AVG(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN uss.final_roi END) as avg_roi,
+                        SUM(CASE WHEN COALESCE(uss.status,'active')='active' THEN 1
+                                 WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN 1
                                  ELSE 0 END) as total
-                    FROM alerts_history ah {by_type_where}
+                    FROM signal_events se
+                    JOIN user_signal_state uss ON uss.signal_id = se.id
+                    {by_type_where}
                     GROUP BY effective_type
                 """, by_type_params)
                 by_type = {}
@@ -5420,10 +5435,11 @@ class InstitutionalRoutesMixin:
                 
                 # Fetch Chronological P&L curve (closed signals with ROI)
                 c2_cur.execute(f"""
-                    SELECT ah.timestamp, ah.final_roi 
-                    FROM alerts_history ah 
-                    {by_type_where} AND COALESCE(ah.status,'active')='closed' AND ah.final_roi IS NOT NULL 
-                    ORDER BY ah.timestamp ASC
+                    SELECT se.timestamp, uss.final_roi 
+                    FROM signal_events se
+                    JOIN user_signal_state uss ON uss.signal_id = se.id
+                    {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL 
+                    ORDER BY se.timestamp ASC
                 """, by_type_params)
                 pnl_curve = []
                 for ts_pnl, val_pnl in c2_cur.fetchall():
@@ -5431,15 +5447,16 @@ class InstitutionalRoutesMixin:
                     
                 # Fetch P&L distribution by Ticker (Asset Class)
                 c2_cur.execute(f"""
-                    SELECT ticker AS symbol,
-                           SUM(CASE WHEN final_roi > 0 THEN 1 ELSE 0 END) as wins,
-                           SUM(CASE WHEN final_roi <= 0 THEN 1 ELSE 0 END) as losses,
+                    SELECT se.ticker AS symbol,
+                           SUM(CASE WHEN uss.final_roi > 0 THEN 1 ELSE 0 END) as wins,
+                           SUM(CASE WHEN uss.final_roi <= 0 THEN 1 ELSE 0 END) as losses,
                            COUNT(*) as total,
-                           AVG(final_roi) as avg_roi,
-                           SUM(final_roi) as total_roi
-                    FROM alerts_history ah
-                    {by_type_where} AND COALESCE(status,'active')='closed' AND final_roi IS NOT NULL
-                    GROUP BY ticker
+                           AVG(uss.final_roi) as avg_roi,
+                           SUM(uss.final_roi) as total_roi
+                    FROM signal_events se
+                    JOIN user_signal_state uss ON uss.signal_id = se.id
+                    {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
+                    GROUP BY se.ticker
                     ORDER BY total_roi DESC
                 """, by_type_params)
                 by_ticker = []
@@ -5454,15 +5471,15 @@ class InstitutionalRoutesMixin:
                     })
                     
                 # Fetch Time-of-Day / Day-of-Week Heatmap matrix
-                # strftime('%w') returns 0-6 (Sunday=0), strftime('%H') returns 00-23
                 c2_cur.execute(f"""
-                    SELECT strftime('%w', ah.timestamp) as dow,
-                           strftime('%H', ah.timestamp) as hour,
+                    SELECT strftime('%w', se.timestamp) as dow,
+                           strftime('%H', se.timestamp) as hour,
                            COUNT(*) as total,
-                           AVG(final_roi) as avg_roi,
-                           SUM(final_roi) as total_roi
-                    FROM alerts_history ah
-                    {by_type_where} AND COALESCE(status,'active')='closed' AND final_roi IS NOT NULL
+                           AVG(uss.final_roi) as avg_roi,
+                           SUM(uss.final_roi) as total_roi
+                    FROM signal_events se
+                    JOIN user_signal_state uss ON uss.signal_id = se.id
+                    {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
                     GROUP BY dow, hour
                 """, by_type_params)
                 heatmap_data = []
@@ -5648,7 +5665,7 @@ class InstitutionalRoutesMixin:
         try:
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute("SELECT id, type, ticker, message, severity, price, timestamp FROM alerts_history WHERE id = ?", (signal_id,))
+            c.execute("SELECT id, type, ticker, message, severity, price, timestamp FROM signal_events WHERE id = ?", (signal_id,))
             row = c.fetchone()
             if not row:
                 return self.send_error_json('Signal not found')
@@ -6248,7 +6265,7 @@ class InstitutionalRoutesMixin:
                     if not en_vol: where_clauses.append("type NOT LIKE '%VOLUME_%'")
 
             sql_query = f'''SELECT ticker, type, price, timestamp
-                         FROM alerts_history
+                         FROM signal_events
                          WHERE {" AND ".join(where_clauses)}'''
             params = []
             
@@ -7734,7 +7751,7 @@ class InstitutionalRoutesMixin:
             candidate_map = {p[0]: (p[1], p[2]) for p in preds}
             
             # Always pull top alpha signals as well to ensure diversity
-            c.execute("""SELECT ticker, 0.03, 0.7 FROM alerts_history
+            c.execute("""SELECT ticker, 0.03, 0.7 FROM signal_events
                          WHERE timestamp > datetime('now', '-72 hours')
                          GROUP BY ticker ORDER BY COUNT(*) DESC LIMIT 10""")
             for row in c.fetchall():
@@ -8087,9 +8104,9 @@ class InstitutionalRoutesMixin:
         try:
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute("SELECT COUNT(*) FROM alerts_history")
+            c.execute("SELECT COUNT(*) FROM signal_events")
             total_signals = c.fetchone()[0]
-            c.execute("SELECT COUNT(*) FROM alerts_history WHERE timestamp > datetime('now', '-1 day')")
+            c.execute("SELECT COUNT(*) FROM signal_events WHERE timestamp > datetime('now', '-1 day')")
             signals_today = c.fetchone()[0]
             conn.close()
             uptime_s = int(_time.time() - getattr(InstitutionalRoutesMixin, '_boot_time', _time.time()))

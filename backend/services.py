@@ -1052,11 +1052,13 @@ class HarvestService:
         try:
             with sqlite3.connect(DB_PATH, timeout=30) as conn:
                 c = conn.cursor()
-                # Fetch all active signals (status IS NULL or 'active')
+                # Fetch all active signals from normalised tables (Phase 2)
                 c.execute("""
-                    SELECT id, type, ticker, price, user_email, timestamp, COALESCE(max_roi, 0.0), COALESCE(tp1_hit, 0), direction
-                    FROM alerts_history
-                    WHERE COALESCE(status,'active') = 'active'
+                    SELECT uss.ah_id, se.type, se.ticker, se.price, uss.user_email, se.timestamp,
+                           COALESCE(uss.max_roi, 0.0), COALESCE(uss.tp1_hit, 0), se.direction
+                    FROM signal_events se
+                    JOIN user_signal_state uss ON uss.signal_id = se.id
+                    WHERE COALESCE(uss.status,'active') = 'active'
                 """)
                 active_rows = c.fetchall()
                 if not active_rows:

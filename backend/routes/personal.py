@@ -974,7 +974,7 @@ class PersonalRoutesMixin:
             # Fetch 90 days of ML Signals from history for this asset
             conn = sqlite3.connect(DB_PATH, timeout=30)
             c = conn.cursor()
-            c.execute("SELECT ticker, type, timestamp FROM alerts_history WHERE type LIKE 'ML_%' AND timestamp >= datetime('now', '-90 days')")
+            c.execute("SELECT ticker, type, timestamp FROM signal_events WHERE type LIKE 'ML_%' AND timestamp >= datetime('now', '-90 days')")
             signal_rows = c.fetchall()
             conn.close()
 
