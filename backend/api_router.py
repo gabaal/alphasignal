@@ -573,24 +573,19 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     sig_id = int(path.split('/')[3])
                     from datetime import datetime as _dt
                     exit_px = None; final_roi = None
-                    # Fetch entry price + type from normalised tables (sig_id is signal_events.id)
+                    user_email_auth = auth_info.get('email', '')
+                    # Fetch entry price + type scoped to this user's state row
                     with sqlite3.connect(DB_PATH, timeout=30) as conn:
                         c = conn.cursor()
                         c.execute("""SELECT se.price, se.type, se.ticker, uss.user_email, se.direction
                                      FROM signal_events se
                                      JOIN user_signal_state uss ON uss.signal_id = se.id
-                                     WHERE se.id=?""", (sig_id,))
+                                     WHERE se.id=? AND LOWER(uss.user_email)=LOWER(?)""",
+                                  (sig_id, user_email_auth))
                         sig_row = c.fetchone()
                     if sig_row:
                         entry_p, sig_type, ticker, sig_owner, direction_col = sig_row
-                        # Security: only the owning user (or legacy NULL-owner) can close
-                        if sig_owner and sig_owner != auth_info.get('email'):
-                            self.send_response(403)
-                            self.send_header('Content-Type', 'application/json')
-                            self.send_header('Access-Control-Allow-Origin', '*')
-                            self.end_headers()
-                            self.wfile.write(b'{"error":"forbidden"}')
-                            return
+                        # No ownership check needed — the query already filtered to this user's row
                         cached = InstitutionalRoutesMixin._price_cache.get(ticker)
                         if cached:
                             exit_px = cached[0]
@@ -639,13 +634,14 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 if not auth_info:
                     self.send_response(401); self.end_headers(); return
                 try:
-                    sig_id = int(path.split('/')[3])
+                    user_email_auth = auth_info.get('email', '')
                     conn = sqlite3.connect(DB_PATH, timeout=30)
                     c = conn.cursor()
-                    # Security: verify the signal belongs to this user (sig_id is signal_events.id)
-                    c.execute("SELECT uss.user_email FROM user_signal_state uss WHERE uss.signal_id=?", (sig_id,))
+                    # Scope to caller's own row — no separate ownership check needed
+                    c.execute("SELECT uss.user_email FROM user_signal_state uss WHERE uss.signal_id=? AND LOWER(uss.user_email)=LOWER(?)",
+                              (sig_id, user_email_auth))
                     owner_row = c.fetchone()
-                    if owner_row and owner_row[0] and owner_row[0] != auth_info.get('email'):
+                    if not owner_row:
                         conn.close()
                         self.send_response(403)
                         self.send_header('Content-Type', 'application/json')
