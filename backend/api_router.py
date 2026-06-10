@@ -573,10 +573,13 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     sig_id = int(path.split('/')[3])
                     from datetime import datetime as _dt
                     exit_px = None; final_roi = None
-                    # Fetch entry price + type to compute final ROI at close time
+                    # Fetch entry price + type from normalised tables (sig_id is signal_events.id)
                     with sqlite3.connect(DB_PATH, timeout=30) as conn:
                         c = conn.cursor()
-                        c.execute("SELECT price, type, ticker, user_email, direction FROM alerts_history WHERE id=?", (sig_id,))
+                        c.execute("""SELECT se.price, se.type, se.ticker, uss.user_email, se.direction
+                                     FROM signal_events se
+                                     JOIN user_signal_state uss ON uss.signal_id = se.id
+                                     WHERE se.id=?""", (sig_id,))
                         sig_row = c.fetchone()
                     if sig_row:
                         entry_p, sig_type, ticker, sig_owner, direction_col = sig_row
@@ -616,7 +619,11 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                             final_roi = round(direction * (exit_px - entry_p) / entry_p * 100, 2)
                     with sqlite3.connect(DB_PATH, timeout=30) as conn:
                         c = conn.cursor()
-                        c.execute("UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
+                        # Write to user_signal_state (Phase 2: reads come from here)
+                        c.execute("UPDATE user_signal_state SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE signal_id=?",
+                                  (_dt.utcnow().isoformat(), exit_px, final_roi, sig_id))
+                        # Keep alerts_history in sync for legacy compat (Phase 3 will drop this)
+                        c.execute("UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=(SELECT ah_id FROM user_signal_state WHERE signal_id=?)",
                                   (_dt.utcnow().isoformat(), exit_px, final_roi, sig_id))
                         conn.commit()
                     InstitutionalRoutesMixin._sig_history_cache.clear()
@@ -635,8 +642,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     sig_id = int(path.split('/')[3])
                     conn = sqlite3.connect(DB_PATH, timeout=30)
                     c = conn.cursor()
-                    # Security: verify the signal belongs to this user
-                    c.execute("SELECT user_email FROM alerts_history WHERE id=?", (sig_id,))
+                    # Security: verify the signal belongs to this user (sig_id is signal_events.id)
+                    c.execute("SELECT uss.user_email FROM user_signal_state uss WHERE uss.signal_id=?", (sig_id,))
                     owner_row = c.fetchone()
                     if owner_row and owner_row[0] and owner_row[0] != auth_info.get('email'):
                         conn.close()
@@ -646,7 +653,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         self.end_headers()
                         self.wfile.write(b'{"error":"forbidden"}')
                         return
-                    c.execute("UPDATE alerts_history SET status='active', closed_at=NULL, exit_price=NULL, final_roi=NULL WHERE id=?", (sig_id,))
+                    c.execute("UPDATE user_signal_state SET status='active', closed_at=NULL, exit_price=NULL, final_roi=NULL WHERE signal_id=?", (sig_id,))
+                    # Keep alerts_history in sync (Phase 3 will drop this)
+                    c.execute("UPDATE alerts_history SET status='active', closed_at=NULL, exit_price=NULL, final_roi=NULL WHERE id=(SELECT ah_id FROM user_signal_state WHERE signal_id=?)", (sig_id,))
                     conn.commit(); conn.close()
                     InstitutionalRoutesMixin._sig_history_cache.clear()
                     self.send_json({'success': True, 'id': sig_id, 'state': 'ACTIVE'})
