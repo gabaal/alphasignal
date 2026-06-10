@@ -1915,7 +1915,7 @@ class HarvestService:
             _rule_direction = 'LONG' if 'OVERSOLD' in sig_type or 'BULLISH' in sig_type else 'SHORT' if 'OVERBOUGHT' in sig_type or 'BEARISH' in sig_type else 'NEUTRAL'
             if _inflight_check_and_set(ticker, _rule_direction, sig_type):
                 print(f"[SignalGuard] Blocked duplicate rule signal in-flight: {ticker} {sig_type}")
-                continue
+                return
             for ru_email in rule_users:
                 # 3-hour DB dedup: skip if we already recorded this alert within 3h
                 c.execute("SELECT id FROM alerts_history WHERE ticker=? AND type=? AND user_email=? AND timestamp > datetime('now', '-3 hours')",
