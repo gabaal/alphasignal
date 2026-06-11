@@ -586,14 +586,35 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     if sig_row:
                         entry_p, sig_type, ticker, sig_owner, direction_col = sig_row
                         # No ownership check needed — the query already filtered to this user's row
+                        # Determine if this is a crypto ticker (ends in -USD or in the crypto universe)
+                        # Equity ETFs (BITB, MSTR, COIN, etc.) must NOT use the crypto price cache,
+                        # which is sourced from Binance/Bybit and returns near-zero for equities.
+                        _crypto_suffixes = ('-USD', '-USDT', '-BTC')
+                        _is_crypto = any(ticker.upper().endswith(s) for s in _crypto_suffixes) or \
+                                     ticker.upper() in {'BTC','ETH','SOL','BNB','ADA','XRP','DOGE','MATIC','AVAX',
+                                                        'DOT','LINK','LTC','ATOM','UNI','AAVE','COMP','MKR','SNX',
+                                                        'CRV','BAL','YFI','SUSHI','1INCH','GRT','FIL','AR','NEAR',
+                                                        'ALGO','VET','XLM','TRX','EOS','XTZ','IOTA','NEO','ZEC',
+                                                        'DASH','XMR','ETC','BCH','BSV','OP','ARB','APT','SUI','INJ',
+                                                        'FTM','HBAR','EGLD','FLOW','ROSE','ONE','SAND','MANA','AXS',
+                                                        'ENJ','CHZ','GALA','IMX','LRC','DYDX','PERP','BAND','OCEAN',
+                                                        'REN','KNC','ZRX','BAT','STORJ','SKL','NMR','ORN','ANT'}
                         cached = InstitutionalRoutesMixin._price_cache.get(ticker)
-                        if cached:
-                            exit_px = cached[0]
+                        cached_px = cached[0] if cached else None
+                        # Trust cache only for genuine crypto tickers and only when price looks sane vs entry
+                        if _is_crypto and cached_px and entry_p and cached_px > entry_p * 0.05:
+                            exit_px = cached_px
                         else:
-                            # Quick live fetch for this one ticker
+                            # Quick live fetch for this one ticker via yfinance
+                            # For equities try bare symbol first (BITB, MSTR, COIN, …)
+                            # For crypto try ticker-USD form as well
                             try:
                                 import yfinance as yf
-                                candidates = [ticker] + ([ticker+'-USD'] if '-' not in ticker else [ticker[:-4]])
+                                if _is_crypto:
+                                    candidates = [ticker] + ([ticker+'-USD'] if '-' not in ticker else [ticker[:-4]])
+                                else:
+                                    # Equity: try bare ticker only — adding -USD gives wrong crypto price
+                                    candidates = [ticker]
                                 for sym in candidates:
                                     try:
                                         info = yf.Ticker(sym).fast_info
