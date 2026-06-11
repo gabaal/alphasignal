@@ -1967,6 +1967,59 @@ async function renderSignalArchive(tabs = null) {
                     </table>
                 </div>`;
             _sl_redraw();
+
+            // -- Seed live prices so MOVE column populates --
+            // Step 1: fill from /api/signals (main universe, non-blocking so the table shows immediately)
+            if (!window.livePrices) window.livePrices = {};
+
+            const _slSeedPrices = async () => {
+                // Seed from /api/signals first (fast, covers ~50 major assets)
+                if (!window._livePricesSeedDone) {
+                    try {
+                        const sigs = await fetchAPI('/signals');
+                        const arr = Array.isArray(sigs) ? sigs : (sigs?.signals || []);
+                        arr.forEach(s => {
+                            if (s.ticker && s.price) {
+                                window.livePrices[s.ticker.replace('-USD','').toUpperCase()] = parseFloat(s.price);
+                            }
+                        });
+                        window._livePricesSeedDone = true;
+                    } catch(_) {}
+                }
+
+                // Step 2: for any ticker in allRows still without a price, fetch individually
+                const missing = [...new Set(
+                    allRows
+                        .map(r => (r.ticker||'').replace(/-USD$/i,'').toUpperCase())
+                        .filter(sym => sym && !window.livePrices[sym])
+                )];
+
+                for (const sym of missing) {
+                    // Try as crypto (-USD suffix) then bare symbol (equity)
+                    const toTry = [`${sym}-USD`, sym];
+                    for (const t of toTry) {
+                        try {
+                            const d = await fetchAPI(`/history?ticker=${encodeURIComponent(t)}&period=5d`);
+                            let px = null;
+                            if (d && d.price && parseFloat(d.price) > 0) {
+                                px = parseFloat(d.price);
+                            } else if (d && d.history && d.history.length) {
+                                const last = d.history[d.history.length - 1];
+                                const p = last.close ?? last.price ?? (Array.isArray(last) ? last[1] : null);
+                                if (p && parseFloat(p) > 0) px = parseFloat(p);
+                            }
+                            if (px) { window.livePrices[sym] = px; break; }
+                        } catch(_) {}
+                    }
+                }
+
+                // Redraw once all prices are in
+                _sl_redraw();
+            };
+
+            // Run non-blocking so the table shows first pass immediately
+            _slSeedPrices();
+
         } catch(e) {
             container.innerHTML = `<div style="padding:2rem;color:#ef4444;font-size:0.75rem">Failed to load suppression log: ${e.message}</div>`;
         }
