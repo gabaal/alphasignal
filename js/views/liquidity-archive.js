@@ -767,7 +767,7 @@ async function renderLiquidityView(tabs = null) {
                         <div style="font-size:0.65rem;font-weight:900;letter-spacing:1px;color:var(--text-dim)">L2 LIQUIDITY GRAVITY MAP (5M RESOLUTION)</div>
                         <div style="display:flex;gap:10px;align-items:center;font-size:0.55rem;color:var(--text-dim)">
                             <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;background:rgba(0,255,163,0.6);border-radius:2px"></span>Binance</span>
-                            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;background:rgba(255,177,0,0.6);border-radius:2px"></span>Bybit</span>
+                            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;background:rgba(0,140,255,0.8);border-radius:2px"></span>Bybit</span>
                         </div>
                     </div>
                     <div style="position:relative;height:450px;width:100%;background:#050510" id="global-heatmap-container">
@@ -821,16 +821,18 @@ async function renderLiquidityView(tabs = null) {
                 const w = heatCanvas.width;
                 const h = heatCanvas.height;
 
-                // 1. Smart Focus: Only include walls within 2% of price to avoid "squashing"
+                // Tight Y-axis zoom: base range on price history only, not wall positions
                 const currentPrice = prices[prices.length - 1];
-                const nearbyWalls = walls.filter(w => Math.abs(w.price - currentPrice) / currentPrice < 0.02);
-                const wallPrices = nearbyWalls.map(w => w.price);
+                const priceHigh = Math.max(...prices);
+                const priceLow  = Math.min(...prices);
+                const pad = (priceHigh - priceLow) * 0.15; // 15% of the actual price swing as padding
                 
-                let maxP = Math.max(...prices, ...wallPrices) * 1.005;
-                let minP = Math.min(...prices, ...wallPrices) * 0.995;
+                let maxP = priceHigh + pad;
+                let minP = priceLow  - pad;
                 
-                if (maxP === minP) { maxP *= 1.02; minP *= 0.98; }
+                if (maxP === minP) { maxP *= 1.005; minP *= 0.995; }
                 const priceRange = maxP - minP;
+
 
                 ctx.clearRect(0, 0, w, h);
 
@@ -847,16 +849,15 @@ async function renderLiquidityView(tabs = null) {
                 });
 
                 const sortedBins = Object.values(bins).sort((a, b) => b.size - a.size);
-                const topBinPrices = new Set(sortedBins.slice(0, 8).map(b => b.price));
-                let lastLabelY = -100;
+                const topBinPrices = new Set(sortedBins.slice(0, 5).map(b => b.price)); // top 5 to avoid crowding
 
-                // Render Volumetric Clouds
+                // === PASS 1: Render Volumetric Clouds (blur applied) ===
                 Object.values(bins).forEach(bin => {
                     const y = h - ((bin.price - minP) / priceRange) * h;
-                    if (y < -50 || y > h + 50) return; // Draw slightly off-screen for smooth transitions
+                    if (y < -50 || y > h + 50) return;
 
                     const normalizedSize = Math.min(1, bin.size / (curTicker.includes('BTC') ? 10 : 50));
-                    const baseColor = bin.exchange === 'Binance' ? '0, 255, 163' : '255, 177, 0';
+                    const baseColor = bin.exchange === 'Binance' ? '0, 255, 163' : '0, 140, 255';
                     
                     // Horizontal Gradient (Time decay)
                     const hGrad = ctx.createLinearGradient(w * 0.2, 0, w, 0);
@@ -864,50 +865,68 @@ async function renderLiquidityView(tabs = null) {
                     hGrad.addColorStop(0.7, `rgba(${baseColor}, ${normalizedSize * 0.4})`);
                     hGrad.addColorStop(1, `rgba(${baseColor}, ${normalizedSize * 0.8})`);
 
-                    // 2. Volumetric Thickness (Thicker is better)
                     const thickness = 20 + (normalizedSize * 60); 
                     
-                    // Vertical Gradient for the "Cloud" feel
-                    const vGrad = ctx.createLinearGradient(0, y - thickness/2, 0, y + thickness/2);
-                    vGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                    vGrad.addColorStop(0.5, `rgba(${baseColor}, ${normalizedSize * 0.5})`);
-                    vGrad.addColorStop(1, 'rgba(0,0,0,0)');
-
-                    ctx.fillStyle = hGrad;
                     ctx.filter = 'blur(15px)';
+                    ctx.fillStyle = hGrad;
                     ctx.fillRect(0, y - thickness/2, w, thickness);
-                    ctx.filter = 'none';
                     
-                    // Institutional core
-                    ctx.fillStyle = `rgba(${baseColor}, ${normalizedSize * 0.6})`;
-                    ctx.fillRect(w * 0.6, y - 1.5, w * 0.4, 3);
-
-                    // 3. Collision-Aware Labeling (Inboard Placement)
-                    if (topBinPrices.has(bin.price) && bin.size > (curTicker.includes('BTC') ? 0.5 : 10)) {
-                        let labelY = y;
-                        // Stagger logic to prevent vertical overlap
-                        if (Math.abs(labelY - lastLabelY) < 16) {
-                            labelY = lastLabelY + 16;
-                        }
-                        
-                        const labelText = `${bin.size.toFixed(1)} ${curTicker.split('-')[0]}`;
-                        const labelColor = bin.exchange === 'Binance' ? '#00ffa3' : '#ffb100';
-                        
-                        ctx.font = '900 11px Roboto';
-                        const textWidth = ctx.measureText(labelText).width;
-                        
-                        // Draw small background for legibility
-                        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                        ctx.fillRect(w - 70 - textWidth, labelY - 10, textWidth + 10, 14);
-                        
-                        // Draw Label
-                        ctx.fillStyle = labelColor;
-                        ctx.textAlign = 'left';
-                        ctx.fillText(labelText, w - 65 - textWidth, labelY);
-                        
-                        lastLabelY = labelY;
-                    }
+                    // Institutional core line — white for maximum visibility
+                    ctx.filter = 'none';
+                    ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + normalizedSize * 0.5})`;
+                    ctx.fillRect(w * 0.6, y - 1, w * 0.4, 2);
                 });
+
+                // === PASS 2: Render Labels (clean canvas state, no blur) ===
+                ctx.filter = 'none';
+                ctx.globalAlpha = 1;
+                ctx.font = '900 11px Roboto, sans-serif';
+                ctx.textAlign = 'left';
+
+                // Build candidate list sorted by Y (top of canvas first) so spacing cascades correctly
+                const labelCandidates = sortedBins
+                    .filter(bin => topBinPrices.has(bin.price) && bin.size > (curTicker.includes('BTC') ? 0.5 : 10))
+                    .map(bin => {
+                        const y = h - ((bin.price - minP) / priceRange) * h;
+                        return { bin, y };
+                    })
+                    .filter(({ y }) => y >= 0 && y <= h)
+                    .sort((a, b) => a.y - b.y); // top-to-bottom order
+
+                // Apply minimum-gap collision avoidance top-to-bottom
+                const BOX_H = 17;
+                const MIN_GAP = BOX_H + 4; // 21px between box tops
+                let lastPlacedY = -MIN_GAP * 2;
+                const placed = [];
+                for (const item of labelCandidates) {
+                    let labelY = item.y;
+                    if (labelY - lastPlacedY < MIN_GAP) labelY = lastPlacedY + MIN_GAP;
+                    if (labelY > h) continue; // off screen after nudge, skip
+                    placed.push({ ...item, labelY });
+                    lastPlacedY = labelY;
+                }
+
+                // Draw labels
+                for (const { bin, labelY } of placed) {
+                    const labelText = `${bin.size.toFixed(1)} ${curTicker.split('-')[0]}`;
+                    const accentColor = bin.exchange === 'Binance' ? '#00ffa3' : '#2eb8ff';
+                    const textWidth = ctx.measureText(labelText).width;
+                    const boxX = w - 76 - textWidth;
+                    const boxY = labelY - 12;
+                    const boxW = textWidth + 20;
+
+                    // Solid dark backdrop
+                    ctx.fillStyle = 'rgba(0,0,0,0.93)';
+                    ctx.fillRect(boxX, boxY, boxW, BOX_H);
+
+                    // Exchange accent bar (left edge)
+                    ctx.fillStyle = accentColor;
+                    ctx.fillRect(boxX, boxY, 3, BOX_H);
+
+                    // White label text
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(labelText, boxX + 6, labelY);
+                }
 
                 // Render Price Chart over it using Chart.js
                 const heatChartCtx = document.getElementById('globalHeatChart').getContext('2d');
@@ -941,13 +960,32 @@ async function renderLiquidityView(tabs = null) {
                             }
                         },
                         scales: {
-                            x: { display: false },
+                            x: { 
+                                display: true,
+                                grid: { color: 'rgba(255,255,255,0.04)', drawTicks: false },
+                                ticks: { 
+                                    color: '#666',
+                                    font: { size: 9, family: 'Roboto' },
+                                    maxTicksLimit: 8,
+                                    maxRotation: 0,
+                                    callback: function(val, idx) {
+                                        const raw = this.getLabelForValue(val);
+                                        if (!raw) return '';
+                                        // raw is a timestamp string — show HH:MM only
+                                        try {
+                                            const d = new Date(raw);
+                                            if (isNaN(d)) return raw.toString().slice(0, 5);
+                                            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                                        } catch { return raw.toString().slice(0, 5); }
+                                    }
+                                }
+                            },
                             y: { 
                                 position: 'right', 
                                 min: minP, 
                                 max: maxP, 
                                 grid: { color: 'rgba(255,255,255,0.05)', drawTicks: false }, 
-                                ticks: { color: '#fff', font:{size:10, weight:'900'} } 
+                                ticks: { color: '#b0e0e0', font:{size:10, weight:'900'}, backdropColor: 'rgba(0,0,0,0.6)', showLabelBackdrop: true } 
                             }
                         }
                     }
