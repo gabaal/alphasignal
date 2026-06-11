@@ -1908,7 +1908,15 @@ async function renderSignalArchive(tabs = null) {
                         <td style="padding:9px 8px"><span style="display:inline-flex;align-items:center;gap:4px;background:rgba(${hex},0.1);border:1px solid ${m.color}44;color:${m.color};padding:2px 8px;border-radius:4px;font-size:0.55rem;font-weight:800"><span class="material-symbols-outlined" style="font-size:11px">${m.icon}</span>${m.label}</span></td>
                         <td style="padding:9px 8px;font-size:0.6rem;color:var(--text-dim);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.reason||'').replace(/"/g,"'")}">${r.reason||'—'}</td>
                         <td style="padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:${parseFloat(z||0)>=2.5?'#22c55e':'#f59e0b'}">${z}</td>
-                        <td style="padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:${mtf!=='—'&&mtf<20?'#ef4444':'var(--text-dim)'}">${mtf}</td>
+                        <td style="padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:${
+                            r.gate === 'MTF_CONFLUENCE'
+                                ? (mtf !== '—' && mtf < 20 ? '#ef4444' : '#f59e0b')
+                                : 'rgba(255,255,255,0.2)'
+                        }" title="${
+                            r.gate === 'MTF_CONFLUENCE'
+                                ? `MTF score: ${mtf}/100 — signal killed here`
+                                : 'MTF not computed — signal was killed by an earlier gate before the MTF check runs'
+                        }">${r.gate === 'MTF_CONFLUENCE' ? mtf : 'N/A'}</td>
                         ${moveTd}
                     </tr>`;
                 }).join('');
