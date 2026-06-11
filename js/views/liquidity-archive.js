@@ -1827,7 +1827,7 @@ async function renderSignalArchive(tabs = null) {
                 const { col, dir } = _sl_sort;
                 return [...rows].sort((a, b) => {
                     let av = a[col], bv = b[col];
-                    if (['z_score','mtf_score','pred_return'].includes(col)) { av = parseFloat(av)||0; bv = parseFloat(bv)||0; }
+                    if (['z_score','mtf_score','pred_return','move_pct'].includes(col)) { av = parseFloat(av)||0; bv = parseFloat(bv)||0; }
                     return av < bv ? (dir==='asc'?-1:1) : av > bv ? (dir==='asc'?1:-1) : 0;
                 });
             }
@@ -1861,12 +1861,13 @@ async function renderSignalArchive(tabs = null) {
                 if (thead) thead.innerHTML = `<tr style="border-bottom:1px solid rgba(255,255,255,0.08)">
                     ${_sl_th('TIME','timestamp')}${_sl_th('TICKER','ticker')}${_sl_th('DIR','direction')}
                     ${_sl_th('GATE','gate')}${_sl_th('REASON','reason')}
-                    ${_sl_th('Z-SCORE','z_score')}${_sl_th('MTF','mtf_score')}</tr>`;
+                    ${_sl_th('Z-SCORE','z_score')}${_sl_th('MTF','mtf_score')}
+                    ${_sl_th('MOVE','move_pct')}</tr>`;
 
                 const tbody = document.getElementById('sl-tbody');
                 if (!tbody) return;
                 if (!filtered.length) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text-dim)">No matching suppressed signals.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" style="padding:2rem;text-align:center;color:var(--text-dim)">No matching suppressed signals.</td></tr>`;
                     return;
                 }
                 tbody.innerHTML = filtered.map(r => {
@@ -1876,6 +1877,30 @@ async function renderSignalArchive(tabs = null) {
                     const z   = r.z_score   != null ? parseFloat(r.z_score).toFixed(2)  : '—';
                     const mtf = r.mtf_score != null ? r.mtf_score : '—';
                     const hex = m.color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',');
+
+                    // MOVE: % price change since signal was suppressed
+                    // Positive = price moved in signal direction (suppression was wrong)
+                    // Negative = price moved against signal direction (suppression was correct)
+                    const sigPrice  = r.price && parseFloat(r.price) > 0 ? parseFloat(r.price) : null;
+                    const sym       = (r.ticker||'').replace(/-USD$/i,'').toUpperCase();
+                    const livePrice = sigPrice && sym ? (window.livePrices||{})[sym] : null;
+                    let moveTd = '<td style="padding:9px 8px;font-family:\'JetBrains Mono\',monospace;font-size:0.65rem;color:var(--text-dim)">—</td>';
+                    if (sigPrice && livePrice) {
+                        // Raw % move from signal price to now
+                        let rawPct = (livePrice - sigPrice) / sigPrice * 100;
+                        // Flip for SHORT: if price dropped, that is a WIN for the signal direction
+                        const movePct = r.direction === 'SHORT' ? -rawPct : rawPct;
+                        r.move_pct = movePct; // store for sort
+                        const moveCol  = movePct >= 0 ? '#22c55e' : '#ef4444';
+                        const moveSign = movePct >= 0 ? '+' : '';
+                        const moveTitle = r.direction === 'SHORT'
+                            ? `Price moved ${rawPct >= 0 ? 'up' : 'down'} ${Math.abs(rawPct).toFixed(2)}% since suppression (SHORT signal)`
+                            : `Price moved ${rawPct >= 0 ? 'up' : 'down'} ${Math.abs(rawPct).toFixed(2)}% since suppression (LONG signal)`;
+                        moveTd = `<td title="${moveTitle}" style="padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:700;color:${moveCol}">${moveSign}${movePct.toFixed(2)}%</td>`;
+                    } else {
+                        r.move_pct = 0;
+                    }
+
                     return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s" onmouseover="this.style.background='rgba(255,255,255,0.025)'" onmouseout="this.style.background=''">
                         <td style="padding:9px 8px;font-size:0.62rem;color:var(--text-dim);white-space:nowrap">${ts}</td>
                         <td style="padding:9px 8px;font-weight:900;color:var(--text-main);font-size:0.75rem">${(r.ticker||'').replace('-USD','')}</td>
@@ -1884,6 +1909,7 @@ async function renderSignalArchive(tabs = null) {
                         <td style="padding:9px 8px;font-size:0.6rem;color:var(--text-dim);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.reason||'').replace(/"/g,"'")}">${r.reason||'—'}</td>
                         <td style="padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:${parseFloat(z||0)>=2.5?'#22c55e':'#f59e0b'}">${z}</td>
                         <td style="padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:${mtf!=='—'&&mtf<20?'#ef4444':'var(--text-dim)'}">${mtf}</td>
+                        ${moveTd}
                     </tr>`;
                 }).join('');
             }
@@ -1937,7 +1963,7 @@ async function renderSignalArchive(tabs = null) {
                 <div style="overflow-x:auto">
                     <table style="width:100%;border-collapse:collapse;font-size:0.7rem">
                         <thead id="sl-thead"></thead>
-                        <tbody id="sl-tbody"><tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading...</td></tr></tbody>
+                        <tbody id="sl-tbody"><tr><td colspan="8" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading...</td></tr></tbody>
                     </table>
                 </div>`;
             _sl_redraw();
