@@ -1638,6 +1638,23 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                      f"Z-Score {z_score}, ATR 2x stop ${atr_val}. "
                      f"Track {asset_name} whale activity, options flow & ML alpha signals on AlphaSignal.")
 
+            # Generate a rich, unique paragraph about the asset to increase content depth for search engines
+            bias_phrase = f"currently demonstrates a {bias.lower()} market bias with a rolling standard deviation Z-Score of {z_score}."
+            if bias == "Bullish":
+                bias_explanation = f"This bullish deviation suggests that buying momentum for {asset_name} is growing relative to historical distribution channels, presenting potential short-term breakout vectors."
+            elif bias == "Bearish":
+                bias_explanation = f"This bearish deviation indicates that sell pressure is dominating current execution profiles for {asset_name}, suggesting caution or potential hedging scenarios."
+            else:
+                bias_explanation = f"This neutral state indicates sideways consolidation for {asset_name} within established liquidity pools, typical of range-bound accumulation patterns."
+
+            custom_desc = (
+                f"Statistical analysis for {asset_name} ({ticker}) {bias_phrase} {bias_explanation} "
+                f"The dynamic Average True Range (ATR) 2x stop is established at ${atr_val}, offering a volatility-adjusted "
+                f"risk parameters framework for position sizing. By analyzing order book depth, institutional whale wallets, "
+                f"and Deribit options flow, the AlphaSignal ML Alpha Engine classifies directional probabilities for {ticker} "
+                f"to support institutional trading strategy construction."
+            )
+
             # ── Head: meta tags + per-ticker styles ──────────────────────────────
             seo_head = f"""
     <title>{title}</title>
@@ -1799,9 +1816,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
   <div class="ps-card">
     <div class="ps-eyebrow">AlphaSignal &mdash; Institutional Intelligence</div>
     <h1>{asset_name} ({ticker}) Real-Time Analytics &amp; Institutional Signals</h1>
-    <p class="ps-desc">Track {asset_name} ({ticker}) with institutional-grade metrics: MVRV Z-Score deviation,
-      ATR-based position sizing, options flow scanner, whale accumulation patterns,
-      and AI-generated market briefings &mdash; all updated in real-time.</p>
+    <p class="ps-desc">{custom_desc}</p>
     <div class="ps-grid">
       <div class="ps-metric">
         <div class="ps-label">Market Bias</div>

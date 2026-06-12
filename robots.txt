@@ -76,6 +76,14 @@ Disallow: /tradingview-hub
 Disallow: /custom-analytics
 Disallow: /backtest
 Disallow: /catalysts
+Disallow: /power-trio
+Disallow: /trade-setup
+Disallow: /trade-plan
+Disallow: /liquidity-v2
+Disallow: /derivatives
+Disallow: /algo-hub
+Disallow: /exchange-keys
+Disallow: /pattern-predictor
 
 # ── Allow public content ─────────────────────────────────────────────────────
 Allow: /asset/
