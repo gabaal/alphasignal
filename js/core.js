@@ -787,16 +787,23 @@ function computeDetailVolumeProfile(klines, bins) {
 }
 
 function drawDetailVolumeProfileCanvas(vpData, series, chartEl) {
-    var old = document.getElementById('_vp_canvas');
-    if (old) old.remove();
-    if (!vpData || !series || !chartEl) return;
+    var canvas = document.getElementById('_vp_canvas');
+    if (!vpData || !series || !chartEl) {
+        if (canvas) canvas.remove();
+        return;
+    }
     var W = Math.round((chartEl.clientWidth || 700) * 0.15);
     var H = chartEl.clientHeight || 300;
-    var canvas = document.createElement('canvas');
-    canvas.id = '_vp_canvas';
-    canvas.width = W; canvas.height = H;
-    canvas.style.cssText = 'position:absolute;top:0;right:0;pointer-events:none;z-index:4;';
-    chartEl.appendChild(canvas);
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = '_vp_canvas';
+        canvas.style.cssText = 'position:absolute;top:0;right:0;pointer-events:none;z-index:4;';
+        chartEl.appendChild(canvas);
+    }
+    if (canvas.width !== W || canvas.height !== H) {
+        canvas.width = W;
+        canvas.height = H;
+    }
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, W, H);
     vpData.profile.forEach(function(bin) {
@@ -1242,6 +1249,12 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
 
         const candleSeries = lwChart.addCandlestickSeries({ upColor: '#22c55e', downColor: '#ef4444', borderVisible: false, wickUpColor: '#22c55e', wickDownColor: '#ef4444' });
         window._detailCandleSeries = candleSeries;
+
+        lwChart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+            if (window.activeOverlays?.vp && window._detailVPData) {
+                drawDetailVolumeProfileCanvas(window._detailVPData, candleSeries, chartEl);
+            }
+        });
 
         window.currentChartTicker = ticker;
         window.currentChartPeriod = yfPeriod;
