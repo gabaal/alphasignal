@@ -1189,7 +1189,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                 if (window._detailVPData && window._detailCandleSeries) {
                     var _vpEl = document.getElementById('price-chart-container');
                     if (_vpEl) requestAnimationFrame(function() { drawDetailVolumeProfileCanvas(window._detailVPData, window._detailCandleSeries, _vpEl); });
-                    window._vpPOC = window._detailCandleSeries.createPriceLine({ price: window._detailVPData.poc, color: '#00f2ff', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: 'POC' });
+                    window._vpPOC = window._detailCandleSeries.createPriceLine({ price: window._detailVPData.poc, color: '#00f2ff', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: 'POC', axisLabelTextColor: '#090c14' });
                     window._vpVAH = window._detailCandleSeries.createPriceLine({ price: window._detailVPData.vah, color: 'rgba(0,242,255,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: 'VAH' });
                     window._vpVAL = window._detailCandleSeries.createPriceLine({ price: window._detailVPData.val, color: 'rgba(0,242,255,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: 'VAL' });
                 }
@@ -1333,7 +1333,7 @@ async function openDetail(ticker, category, correlation = 0, alpha = 0, sentimen
                     if (window._vpVAL) { try { candleSeries.removePriceLine(window._vpVAL); } catch(e){} window._vpVAL = null; }
                     if (window.activeOverlays?.vp && window._detailVPData) {
                         requestAnimationFrame(() => drawDetailVolumeProfileCanvas(window._detailVPData, candleSeries, chartEl));
-                        window._vpPOC = candleSeries.createPriceLine({ price: window._detailVPData.poc, color: '#00f2ff', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: 'POC' });
+                        window._vpPOC = candleSeries.createPriceLine({ price: window._detailVPData.poc, color: '#00f2ff', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: 'POC', axisLabelTextColor: '#090c14' });
                         window._vpVAH = candleSeries.createPriceLine({ price: window._detailVPData.vah, color: 'rgba(0,242,255,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: 'VAH' });
                         window._vpVAL = candleSeries.createPriceLine({ price: window._detailVPData.val, color: 'rgba(0,242,255,0.4)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: 'VAL' });
                     }
