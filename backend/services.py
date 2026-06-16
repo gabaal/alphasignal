@@ -1397,7 +1397,7 @@ class HarvestService:
                             returns_30 = hist_df['Close'].pct_change().dropna().tail(30)
                             vol_30 = float(returns_30.std())
                             ML_LONG_HIGHVOL_THRESHOLD = 0.05   # 5% daily std = high volatility
-                            ML_LONG_HIGHVOL_ZSCORE    = 2.0    # require z >= 2.0 on noisy tickers
+                            ML_LONG_HIGHVOL_ZSCORE    = 1.5    # require z >= 1.5 on noisy tickers
                             if vol_30 > ML_LONG_HIGHVOL_THRESHOLD and abs(z_score) < ML_LONG_HIGHVOL_ZSCORE:
                                 _log_suppression(
                                     ticker, _direction, 'LONG_HIGHVOL_ZSCORE',
