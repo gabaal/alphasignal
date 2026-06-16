@@ -1383,7 +1383,7 @@ class HarvestService:
 
                     # ── Quality Filter 1b: Tighter long signal standards ──────────
                     if _direction == 'LONG':
-                        ML_LONG_MIN_RETURN = 0.010  # 1.0% floor for longs (2x short floor)
+                        ML_LONG_MIN_RETURN = 0.0075  # 0.75% floor for longs
                         if abs(pred_return) < ML_LONG_MIN_RETURN:
                             _log_suppression(
                                 ticker, _direction, 'LONG_RETURN_FLOOR',
