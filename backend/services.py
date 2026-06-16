@@ -1360,9 +1360,9 @@ class HarvestService:
                 
                 if np.isnan(z_score): z_score = 0.0
 
-                # Signal EVALUATION always uses the ML floor (1.5).
+                # Signal EVALUATION always uses the ML floor (1.4).
                 # User-specific z_threshold only gates NOTIFICATION delivery downstream.
-                ML_ZSCORE_FLOOR = 1.5
+                ML_ZSCORE_FLOOR = 1.4
                 ml_z_thresh = ML_ZSCORE_FLOOR
                 signal_type = None
                 _sample_z.append((ticker, round(z_score, 3), round(ml_z_thresh, 2)))
