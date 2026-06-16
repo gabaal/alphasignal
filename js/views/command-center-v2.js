@@ -342,9 +342,16 @@ async function renderCommandCenter() {
         <div id="section-sentiment-stream" class="cmd-draggable-section" data-section-id="sentiment-stream" draggable="true" style="cursor:grab; position:relative; width:100%; transition:all 0.2s">
             <div class="card" style="position:relative">
                 <div class="card-header" style="margin-bottom:0.75rem">
-                    <div style="display:flex; align-items:center; gap:8px">
-                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)">ACTIVE SIGNALS · MTF CONFLUENCE</h3>
-                        <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981"></span>
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
+                        <h3 style="margin:0; font-size:0.75rem; letter-spacing:1px; color:var(--text-main)" id="cmd-sentiment-title">ACTIVE SIGNALS</h3>
+                        <div style="display:flex; gap:4px; background:rgba(255,255,255,0.02); padding:2px; border-radius:6px; border:1px solid var(--border)">
+                            <button id="cmd-ss-tab-active" onclick="event.stopPropagation(); window._setCmdSentimentTab('active')" style="font-size:0.55rem; font-weight:800; border:none; border-radius:4px; padding:3px 8px; cursor:pointer; background:rgba(16,185,129,0.15); color:#10b981; display:flex; align-items:center; gap:3px; font-family:inherit">
+                                <span style="width:5px; height:5px; border-radius:50%; background:#10b981; display:inline-block"></span> ACTIVE
+                            </button>
+                            <button id="cmd-ss-tab-warming" onclick="event.stopPropagation(); window._setCmdSentimentTab('warming')" style="font-size:0.55rem; font-weight:800; border:none; border-radius:4px; padding:3px 8px; cursor:pointer; background:transparent; color:var(--text-dim); display:flex; align-items:center; gap:3px; font-family:inherit">
+                                <span style="width:5px; height:5px; border-radius:50%; background:#f59e0b; display:inline-block"></span> WARMING
+                            </button>
+                        </div>
                     </div>
                     <button onclick="event.stopPropagation(); cycleCmdSectionWidth('sentiment-stream')" title="Cycle Width" style="background:none;border:none;color:var(--text-dim);cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">aspect_ratio</span></button>
                 </div>
@@ -2699,74 +2706,171 @@ async function loadCmdPowerTrioConduit() {
 // ============================================================
 // LIVE SENTIMENT STREAM — top signals with alpha + sentiment
 // ============================================================
+window._cmdSentimentTab = 'active';
+window._setCmdSentimentTab = function(tab) {
+    window._cmdSentimentTab = tab;
+    const btnActive = document.getElementById('cmd-ss-tab-active');
+    const btnWarming = document.getElementById('cmd-ss-tab-warming');
+    const titleEl = document.getElementById('cmd-sentiment-title');
+
+    if (btnActive && btnWarming) {
+        if (tab === 'active') {
+            btnActive.style.background = 'rgba(16,185,129,0.15)';
+            btnActive.style.color = '#10b981';
+            btnWarming.style.background = 'transparent';
+            btnWarming.style.color = 'var(--text-dim)';
+            if (titleEl) titleEl.textContent = 'ACTIVE SIGNALS';
+        } else {
+            btnActive.style.background = 'transparent';
+            btnActive.style.color = 'var(--text-dim)';
+            btnWarming.style.background = 'rgba(245,158,11,0.15)';
+            btnWarming.style.color = '#f59e0b';
+            if (titleEl) titleEl.textContent = 'WARMING RADAR';
+        }
+    }
+    loadCmdSentimentStream();
+};
+
 async function loadCmdSentimentStream() {
     const el = document.getElementById('cmd-sentiment-stream-list');
     if (!el) return;
+    const tab = window._cmdSentimentTab || 'active';
     try {
-        // Pull from signal-history (active signals) — carries mtf_score + mtf_detail
-        const data = await fetchAPI('/signal-history?state=active&limit=6&sort_col=date&sort_dir=desc');
-        const signals = data?.data || [];
-        if (!signals.length) throw new Error('No active signals');
+        if (tab === 'active') {
+            // Pull from signal-history (active signals) — carries mtf_score + mtf_detail
+            const data = await fetchAPI('/signal-history?state=active&limit=6&sort_col=date&sort_dir=desc');
+            const signals = data?.data || [];
+            if (!signals.length) {
+                el.innerHTML = '<div style="padding:16px 12px;font-size:0.7rem;color:var(--text-dim);text-align:center">No active signals</div>';
+                return;
+            }
 
-        const BULLISH = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','MACD_CROSS_UP',
-            'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT',
-            'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM']);
+            const BULLISH = new Set(['ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','MACD_CROSS_UP',
+                'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT',
+                'ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM']);
 
-        el.innerHTML = signals.map(s => {
-            const isBull   = BULLISH.has((s.type || '').toUpperCase());
-            const roi      = parseFloat(s.return || 0);
-            const roiCol   = roi >= 0 ? '#10b981' : '#ef4444';
-            const ticker   = (s.ticker || '').replace('-USD', '');
-            const sigType  = (s.type || '').replace(/_/g, ' ');
-            const dirCol   = isBull ? '#10b981' : '#ef4444';
-            const dirLbl   = isBull ? '▲ LONG' : '▼ SHORT';
+            el.innerHTML = signals.map(s => {
+                const isBull   = BULLISH.has((s.type || '').toUpperCase());
+                const roi      = parseFloat(s.return || 0);
+                const roiCol   = roi >= 0 ? '#10b981' : '#ef4444';
+                const ticker   = (s.ticker || '').replace('-USD', '');
+                const sigType  = (s.type || '').replace(/_/g, ' ');
+                const dirCol   = isBull ? '#10b981' : '#ef4444';
+                const dirLbl   = isBull ? '▲ LONG' : '▼ SHORT';
 
-            // MTF badge renderer
-            const mtf   = s.mtf_detail;
-            const score = s.mtf_score;
-            const hasMtf = mtf != null || score != null;
+                // MTF badge renderer
+                const mtf   = s.mtf_detail;
+                const score = s.mtf_score;
+                const hasMtf = mtf != null || score != null;
 
-            const tfPill = (label, val) => {
-                const agrees = val && ((isBull && val === 'bullish') || (!isBull && val === 'bearish'));
-                const neutral = !val || val === 'neutral';
-                const c   = neutral ? '#64748b' : agrees ? '#22c55e' : '#ef4444';
-                const bg  = neutral ? 'rgba(100,116,139,0.08)' : agrees ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
-                const bdr = neutral ? 'rgba(100,116,139,0.2)' : agrees ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
-                const ico = neutral ? '—' : (val === 'bullish' ? '▲' : '▼');
-                return `<span style="display:inline-flex;align-items:center;gap:1px;background:${bg};border:1px solid ${bdr};color:${c};padding:1px 5px;border-radius:3px;font-size:0.48rem;font-weight:800;letter-spacing:0.5px">${label}<span style="font-size:0.5rem">${ico}</span></span>`;
-            };
+                const tfPill = (label, val) => {
+                    const agrees = val && ((isBull && val === 'bullish') || (!isBull && val === 'bearish'));
+                    const neutral = !val || val === 'neutral';
+                    const c   = neutral ? '#64748b' : agrees ? '#22c55e' : '#ef4444';
+                    const bg  = neutral ? 'rgba(100,116,139,0.08)' : agrees ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+                    const bdr = neutral ? 'rgba(100,116,139,0.2)' : agrees ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+                    const ico = neutral ? '—' : (val === 'bullish' ? '▲' : '▼');
+                    return `<span style="display:inline-flex;align-items:center;gap:1px;background:${bg};border:1px solid ${bdr};color:${c};padding:1px 5px;border-radius:3px;font-size:0.48rem;font-weight:800;letter-spacing:0.5px">${label}<span style="font-size:0.5rem">${ico}</span></span>`;
+                };
 
-            const scorePct  = score ?? 0;
-            const scoreCol  = scorePct >= 75 ? '#22c55e' : scorePct >= 50 ? '#00f2ff' : scorePct >= 33 ? '#f59e0b' : '#ef4444';
+                const scorePct  = score ?? 0;
+                const scoreCol  = scorePct >= 75 ? '#22c55e' : scorePct >= 50 ? '#00f2ff' : scorePct >= 33 ? '#f59e0b' : '#ef4444';
 
-            const mtfHTML = hasMtf ? `
-                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
-                    <div style="display:flex;gap:2px">
-                        ${tfPill('1H', mtf ? mtf['1h'] : null)}
-                        ${tfPill('4H', mtf ? mtf['4h'] : null)}
-                        ${tfPill('1D', mtf ? mtf['1d'] : null)}
-                    </div>
-                    <div style="display:flex;align-items:center;gap:4px">
-                        <div style="width:40px;height:2px;background:rgba(255,255,255,0.08);border-radius:1px;overflow:hidden">
-                            <div style="width:${scorePct}%;height:100%;background:${scoreCol}"></div>
+                const mtfHTML = hasMtf ? `
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+                        <div style="display:flex;gap:2px">
+                            ${tfPill('1H', mtf ? mtf['1h'] : null)}
+                            ${tfPill('4H', mtf ? mtf['4h'] : null)}
+                            ${tfPill('1D', mtf ? mtf['1d'] : null)}
                         </div>
-                        <span style="font-size:0.45rem;color:${scoreCol};font-weight:700;font-family:'JetBrains Mono'">${scorePct}</span>
-                    </div>
-                </div>` : `<div style="flex-shrink:0;width:70px"></div>`;
-
-            return `
-                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.7rem;padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:6px;gap:8px;border-left:2px solid ${dirCol}22">
-                    <div style="min-width:0;flex:1">
-                        <div style="display:flex;align-items:center;gap:5px">
-                            <span style="font-weight:900;color:var(--text-main)">${ticker}</span>
-                            <span style="color:${dirCol};font-size:0.5rem;font-weight:700">${dirLbl}</span>
+                        <div style="display:flex;align-items:center;gap:4px">
+                            <div style="width:40px;height:2px;background:rgba(255,255,255,0.08);border-radius:1px;overflow:hidden">
+                                <div style="width:${scorePct}%;height:100%;background:${scoreCol}"></div>
+                            </div>
+                            <span style="font-size:0.45rem;color:${scoreCol};font-weight:700;font-family:'JetBrains Mono'">${scorePct}</span>
                         </div>
-                        <div style="color:var(--text-dim);font-size:0.55rem;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sigType}</div>
-                    </div>
-                    ${mtfHTML}
-                    <span style="color:${roiCol};font-weight:900;flex-shrink:0;font-family:'JetBrains Mono';font-size:0.68rem">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</span>
-                </div>`;
-        }).join('');
+                    </div>` : `<div style="flex-shrink:0;width:70px"></div>`;
+
+                return `
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.7rem;padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:6px;gap:8px;border-left:2px solid ${dirCol}22">
+                        <div style="min-width:0;flex:1">
+                            <div style="display:flex;align-items:center;gap:5px">
+                                <span style="font-weight:900;color:var(--text-main)">${ticker}</span>
+                                <span style="color:${dirCol};font-size:0.5rem;font-weight:700">${dirLbl}</span>
+                            </div>
+                            <div style="color:var(--text-dim);font-size:0.55rem;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sigType}</div>
+                        </div>
+                        ${mtfHTML}
+                        <span style="color:${roiCol};font-weight:900;flex-shrink:0;font-family:'JetBrains Mono';font-size:0.68rem">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</span>
+                    </div>`;
+            }).join('');
+        } else {
+            // Pull from near-miss (warming setups)
+            const data = await fetchAPI('/near-miss');
+            const items = data?.data || [];
+            if (!items.length) {
+                el.innerHTML = '<div style="padding:16px 12px;font-size:0.7rem;color:var(--text-dim);text-align:center">No warming setups in cache</div>';
+                return;
+            }
+
+            el.innerHTML = items.slice(0, 6).map(item => {
+                const isBull   = item.direction === 'LONG';
+                const ticker   = (item.ticker || '').replace('-USD', '');
+                const sigType  = (item.signal_type || '').replace(/_/g, ' ');
+                const dirCol   = isBull ? '#22c55e' : '#ef4444';
+                const dirLbl   = isBull ? '▲ LONG' : '▼ SHORT';
+                const isLowZ   = item.gate === 'LOW_ZSCORE';
+
+                const mtf   = item.mtf_detail;
+                const score = item.mtf_score;
+                const hasMtf = mtf != null || score != null;
+
+                const tfPill = (label, val) => {
+                    const agrees = val && ((isBull && val === 'bullish') || (!isBull && val === 'bearish'));
+                    const neutral = !val || val === 'neutral';
+                    const c   = neutral ? '#64748b' : agrees ? '#22c55e' : '#ef4444';
+                    const bg  = neutral ? 'rgba(100,116,139,0.08)' : agrees ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+                    const bdr = neutral ? 'rgba(100,116,139,0.2)' : agrees ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+                    const ico = neutral ? '—' : (val === 'bullish' ? '▲' : '▼');
+                    return `<span style="display:inline-flex;align-items:center;gap:1px;background:${bg};border:1px solid ${bdr};color:${c};padding:1px 5px;border-radius:3px;font-size:0.48rem;font-weight:800;letter-spacing:0.5px">${label}<span style="font-size:0.5rem">${ico}</span></span>`;
+                };
+
+                const scorePct  = score ?? 33;
+                const scoreCol  = scorePct >= 75 ? '#22c55e' : scorePct >= 50 ? '#00f2ff' : scorePct >= 30 ? '#f59e0b' : '#ef4444';
+
+                const mtfHTML = hasMtf ? `
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+                        <div style="display:flex;gap:2px">
+                            ${tfPill('1H', mtf ? mtf['1h'] : null)}
+                            ${tfPill('4H', mtf ? mtf['4h'] : null)}
+                            ${tfPill('1D', mtf ? mtf['1d'] : null)}
+                        </div>
+                        <div style="display:flex;align-items:center;gap:4px">
+                            <div style="width:40px;height:2px;background:rgba(255,255,255,0.08);border-radius:1px;overflow:hidden">
+                                <div style="width:${scorePct}%;height:100%;background:${scoreCol}"></div>
+                            </div>
+                            <span style="font-size:0.45rem;color:${scoreCol};font-weight:700;font-family:'JetBrains Mono'">${scorePct}</span>
+                        </div>
+                    </div>` : `<div style="flex-shrink:0;width:70px"></div>`;
+
+                // Display metric depending on gate type
+                const metricText = isLowZ ? `Z: ${item.z_score}` : `RET: ${item.pred_return > 0 ? '+' : ''}${item.pred_return}%`;
+                const metricColor = isLowZ ? '#f59e0b' : '#00f2ff';
+
+                return `
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.7rem;padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:6px;gap:8px;border-left:2px solid ${dirCol}22">
+                        <div style="min-width:0;flex:1">
+                            <div style="display:flex;align-items:center;gap:5px">
+                                <span style="font-weight:900;color:var(--text-main)">${ticker}</span>
+                                <span style="color:${dirCol};font-size:0.5rem;font-weight:700">${dirLbl}</span>
+                            </div>
+                            <div style="color:var(--text-dim);font-size:0.55rem;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isLowZ ? 'Warming (Z-Score)' : 'Warming (MTF)'}</div>
+                        </div>
+                        ${mtfHTML}
+                        <span style="color:${metricColor};font-weight:900;flex-shrink:0;font-family:'JetBrains Mono';font-size:0.65rem;border:1px solid ${metricColor}22;background:${metricColor}0a;padding:2px 6px;border-radius:4px;letter-spacing:0.3px">${metricText}</span>
+                    </div>`;
+            }).join('');
+        }
     } catch (e) {
         if (el) el.innerHTML = '<div style="padding:8px 12px;font-size:0.7rem;color:var(--text-dim)">Signal data unavailable</div>';
         console.warn('[CmdSentimentStream]', e);

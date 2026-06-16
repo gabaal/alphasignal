@@ -1574,15 +1574,39 @@ async function renderSignalArchive(tabs = null) {
                 const urgCol  = urgency === 'NEW' ? '#22c55e' : urgency === 'ACTIVE' ? '#f59e0b' : '#94a3b8';
                 const ticker  = (item.ticker || '').replace('-USD','');
 
+                // Timeframe bias badge renderer
+                const tfPill = (label, val) => {
+                    const neutral = !val || val === 'neutral';
+                    const agrees = val && ((item.direction === 'LONG' && val === 'bullish') || (item.direction === 'SHORT' && val === 'bearish'));
+                    const c = neutral ? '#94a3b8' : agrees ? '#22c55e' : '#ef4444';
+                    const bg = neutral ? 'rgba(148,163,184,0.06)' : agrees ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+                    const bdr = neutral ? 'rgba(148,163,184,0.18)' : agrees ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)';
+                    const ico = neutral ? '—' : (val === 'bullish' ? '▲' : '▼');
+                    return `<span style="display:inline-flex;align-items:center;gap:2px;background:${bg};border:1px solid ${bdr};color:${c};padding:1px 5px;border-radius:3px;font-size:0.5rem;font-weight:800;letter-spacing:0.5px">${label} ${ico}</span>`;
+                };
+
+                const mtfDetail = item.mtf_detail;
+                const mtfScore = item.mtf_score != null ? item.mtf_score : 33;
+                const mtfCol = mtfScore >= 75 ? '#22c55e' : mtfScore >= 50 ? '#06b6d4' : mtfScore >= 30 ? '#f59e0b' : '#ef4444';
+
+                // Differentiate gate/reason
+                const isLowZ = item.gate === 'LOW_ZSCORE';
+                const gateLbl = isLowZ ? 'Z-ACCEL' : 'MTF FLIP';
+                const gateDesc = isLowZ ? 'Awaiting Z-score >= 1.4' : 'Awaiting MTF score >= 40';
+                const gateBg = isLowZ ? 'rgba(245,158,11,0.1)' : 'rgba(6,182,212,0.1)';
+                const gateBorder = isLowZ ? 'rgba(245,158,11,0.3)' : 'rgba(6,182,212,0.3)';
+                const gateColor = isLowZ ? '#f59e0b' : '#06b6d4';
+                const gateIcon = isLowZ ? 'speed' : 'layers';
+
                 return `
-                <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:1.2rem 1.4rem;display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap;transition:border-color 0.2s;position:relative;overflow:hidden"
-                     onmouseover="this.style.borderColor='rgba(16,185,129,0.5)'" onmouseout="this.style.borderColor='rgba(16,185,129,0.2)'">
-                    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#10b981,transparent);opacity:0.4"></div>
+                <div style="background:rgba(16,185,129,0.03);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:1.2rem 1.4rem;display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap;transition:border-color 0.2s;position:relative;overflow:hidden"
+                     onmouseover="this.style.borderColor='rgba(16,185,129,0.35)'" onmouseout="this.style.borderColor='rgba(16,185,129,0.15)'">
+                    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#10b981,transparent);opacity:0.3"></div>
                     <div style="min-width:56px;text-align:center">
                         <div style="font-size:1.1rem;font-weight:900;color:var(--text-main);letter-spacing:-0.5px">${ticker}</div>
                         <div style="font-size:0.55rem;margin-top:2px;color:${urgCol};font-weight:800;letter-spacing:1px">${urgency}</div>
                     </div>
-                    <div style="width:1px;height:40px;background:rgba(255,255,255,0.08)"></div>
+                    <div style="width:1px;height:40px;background:rgba(255,255,255,0.06)"></div>
                     <div style="display:flex;gap:1.2rem;flex-wrap:wrap;flex:1">
                         <div>
                             <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">DIRECTION</div>
@@ -1597,21 +1621,28 @@ async function renderSignalArchive(tabs = null) {
                             <div style="font-size:0.72rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:${prCol}">${item.pred_return > 0 ? '+' : ''}${item.pred_return}%</div>
                         </div>
                         <div>
-                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">SIGNAL TYPE</div>
-                            <div style="font-size:0.62rem;font-weight:700;color:var(--text-main)">${(item.signal_type||'').replace(/_/g,' ')}</div>
+                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">MTF CONFLUENCE</div>
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <div style="display:flex;gap:2px">
+                                    ${tfPill('1H', mtfDetail ? mtfDetail['1h'] : null)}
+                                    ${tfPill('4H', mtfDetail ? mtfDetail['4h'] : null)}
+                                    ${tfPill('1D', mtfDetail ? mtfDetail['1d'] : null)}
+                                </div>
+                                <span style="font-size:0.72rem;font-weight:900;color:${mtfCol};font-family:'JetBrains Mono'">${mtfScore}</span>
+                            </div>
                         </div>
                         <div>
-                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">WAITING</div>
+                            <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:3px">AGE</div>
                             <div style="font-size:0.62rem;color:var(--text-dim)">${fmtAge(item.age_secs)}</div>
                         </div>
                     </div>
-                    <div style="text-align:right;min-width:80px">
-                        <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:4px">AWAITING</div>
-                        <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);color:#06b6d4;padding:3px 8px;border-radius:4px;font-size:0.55rem;font-weight:800">
-                            <span class="material-symbols-outlined" style="font-size:11px">layers</span>MTF FLIP
+                    <div style="text-align:right;min-width:120px">
+                        <div style="font-size:0.48rem;letter-spacing:1.5px;color:var(--text-dim);font-weight:900;margin-bottom:4px">STATUS</div>
+                        <div style="display:inline-flex;align-items:center;gap:4px;background:${gateBg};border:1px solid ${gateBorder};color:${gateColor};padding:3px 8px;border-radius:4px;font-size:0.55rem;font-weight:800">
+                            <span class="material-symbols-outlined" style="font-size:11px">${gateIcon}</span>${gateLbl}
                         </div>
                         <div style="font-size:0.52rem;color:var(--text-dim);margin-top:6px">
-                            Rescan in <strong style="color:#10b981">&lt;5 min</strong>
+                            ${gateDesc}
                         </div>
                     </div>
                 </div>`;

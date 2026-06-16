@@ -4965,6 +4965,9 @@ class InstitutionalRoutesMixin:
                     'age_secs':     age_secs,
                     'expires_secs': max(0, NEAR_MISS_TTL_SECS - age_secs),
                     'banked_at':    entry.get('ts', 0),
+                    'gate':         entry.get('gate', 'MTF_CONFLUENCE'),
+                    'mtf_score':    entry.get('mtf_score'),
+                    'mtf_detail':   entry.get('mtf_detail'),
                 })
             # Sort by z_score descending — highest conviction first
             items.sort(key=lambda x: x['z_score'], reverse=True)

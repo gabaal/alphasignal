@@ -864,7 +864,8 @@ def _dual_update_uss_roi(c, ah_id, max_roi, tp1_hit):
     )
 
 def _bank_near_miss(ticker, direction, z_score, pred_return, price,
-                    severity, signal_type, message, category, enabled_users):
+                    severity, signal_type, message, category, enabled_users,
+                    gate='MTF_CONFLUENCE', mtf_score=None, mtf_detail=None):
     """Store a near-miss entry so the fast loop can re-evaluate it."""
     with _near_miss_lock:
         _near_miss_cache[ticker] = {
@@ -878,9 +879,12 @@ def _bank_near_miss(ticker, direction, z_score, pred_return, price,
             'category':     category,
             'ts':           time.time(),
             'users':        enabled_users,
+            'gate':         gate,
+            'mtf_score':    mtf_score,
+            'mtf_detail':   mtf_detail,
         }
-    print(f"[NearMiss] Banked {ticker} {direction} for fast-loop rescan "
-          f"(z={z_score:.2f}, pr={pred_return*100:.2f}%)")
+    print(f"[NearMiss] Banked {ticker} {direction} ({gate}) for fast-loop rescan "
+          f"(z={z_score:.2f}, pr={pred_return*100:.2f}%, mtf={mtf_score})")
 
 def _expire_near_miss():
     """Remove entries older than NEAR_MISS_TTL_SECS."""
@@ -1363,11 +1367,17 @@ class HarvestService:
                 # Signal EVALUATION always uses the ML floor (1.4).
                 # User-specific z_threshold only gates NOTIFICATION delivery downstream.
                 ML_ZSCORE_FLOOR = 1.4
+                WARMING_ZSCORE_FLOOR = 1.2
                 ml_z_thresh = ML_ZSCORE_FLOOR
                 signal_type = None
                 _sample_z.append((ticker, round(z_score, 3), round(ml_z_thresh, 2)))
-                if abs(z_score) >= ml_z_thresh:
+
+                is_active_z = abs(z_score) >= ML_ZSCORE_FLOOR
+                is_warming_z = WARMING_ZSCORE_FLOOR <= abs(z_score) < ML_ZSCORE_FLOOR
+
+                if is_active_z or is_warming_z:
                     _gate['evaluated'] += 1
+                    current_gate = 'LOW_ZSCORE' if is_warming_z else 'MTF_CONFLUENCE'
                     _direction = 'LONG' if pred_return > 0 else 'SHORT'
 
                     # ── Quality Filter 1: Minimum predicted return ────────────────
@@ -1456,6 +1466,14 @@ class HarvestService:
                         print(f"[MTF] Confluence error for {ticker}: {_mtf_e}")
                         _mtf_score, _mtf_detail = 33, {'1h': 'neutral', '4h': 'neutral', '1d': _direction.lower()}
 
+                    if current_gate == 'LOW_ZSCORE':
+                        _bank_near_miss(
+                            ticker, _direction, z_score, pred_return, curr_p,
+                            severity, signal_type, message, _cat, enabled_users,
+                            gate='LOW_ZSCORE', mtf_score=_mtf_score, mtf_detail=_mtf_detail
+                        )
+                        continue
+
                     if _mtf_score < 40:
                         _log_suppression(
                             ticker, _direction, 'MTF_CONFLUENCE',
@@ -1466,7 +1484,8 @@ class HarvestService:
                         # Bank into near-miss cache for 5-min fast rescan
                         _bank_near_miss(
                             ticker, _direction, z_score, pred_return, curr_p,
-                            severity, signal_type, message, _cat, enabled_users
+                            severity, signal_type, message, _cat, enabled_users,
+                            gate='MTF_CONFLUENCE', mtf_score=_mtf_score, mtf_detail=_mtf_detail
                         )
                         continue
 
@@ -2487,6 +2506,16 @@ class IntradayRescanService:
                 print(f"[IntradayRescan] {ticker} {entry['direction']}: "
                       f"MTF={mtf_score} (need≥20) "
                       f"detail={mtf_detail}")
+
+                # Update the cached score and details in-place
+                with _near_miss_lock:
+                    if ticker in _near_miss_cache:
+                        _near_miss_cache[ticker]['mtf_score'] = mtf_score
+                        _near_miss_cache[ticker]['mtf_detail'] = mtf_detail
+
+                if entry.get('gate') == 'LOW_ZSCORE':
+                    print(f"[IntradayRescan] {ticker} is warming (LOW_ZSCORE: z={entry['z_score']:.2f}), skipping fire.")
+                    continue
 
                 if mtf_score >= 20:
                     self._fire_signal(ticker, entry)
