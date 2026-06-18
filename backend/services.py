@@ -1650,6 +1650,8 @@ class HarvestService:
                      datetime.now().isoformat(), _z, _alpha, _direction, _cat, target_email,
                      _mtf_score, json.dumps(_mtf_detail))
                 )
+                _ah_id = c.lastrowid
+                _dual_write_user_state(c, _se_id, target_email, _ah_id)
                 conn.commit()
                 # Signal fired — remove from near-miss cache to prevent double-fire
                 with _near_miss_lock:
