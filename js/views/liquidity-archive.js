@@ -1831,10 +1831,13 @@ async function renderSignalArchive(tabs = null) {
             if (!data || !data.data) throw new Error('No data');
 
             const GATE_META = {
-                PRED_RETURN_FLOOR: { label: 'Pred Return Too Low',  color: '#f59e0b', icon: 'trending_down' },
-                SMA50_TREND:       { label: 'Counter-Trend (SMA50)',color: '#ef4444', icon: 'show_chart' },
-                CONFLUENCE_CHECK:  { label: 'Confluence Failed',    color: '#8b5cf6', icon: 'hub' },
-                MTF_CONFLUENCE:    { label: 'MTF Score < 20',       color: '#06b6d4', icon: 'layers' },
+                PRED_RETURN_FLOOR:   { label: 'Pred Return Too Low',   color: '#f59e0b', icon: 'trending_down' },
+                LONG_RETURN_FLOOR:   { label: 'Long Return Floor',     color: '#10b981', icon: 'keyboard_double_arrow_up' },
+                LONG_HIGHVOL_ZSCORE: { label: 'Long High-Vol Z-Score', color: '#3b82f6', icon: 'bolt' },
+                SMA50_TREND:         { label: 'Counter-Trend (SMA50)', color: '#ef4444', icon: 'show_chart' },
+                CONFLUENCE_CHECK:    { label: 'Confluence Failed',     color: '#8b5cf6', icon: 'hub' },
+                MTF_CONFLUENCE:      { label: 'MTF Score < 20',        color: '#06b6d4', icon: 'layers' },
+                CORRELATION_RANK:    { label: 'Correlation Rank',      color: '#6b7280', icon: 'grid_view' }
             };
 
             let _sl_sort    = { col: 'timestamp', dir: 'desc' };
@@ -1976,10 +1979,13 @@ async function renderSignalArchive(tabs = null) {
                     <div><label style="${lS}">GATE</label>
                         <select id="sl-f-gate" style="${iS};width:160px" onchange="window._sl_filterChange()">
                             <option value="">All Gates</option>
-                            <option value="MTF_CONFLUENCE">MTF Confluence</option>
-                            <option value="PRED_RETURN_FLOOR">Pred Return Floor</option>
-                            <option value="SMA50_TREND">SMA50 Trend</option>
-                            <option value="CONFLUENCE_CHECK">Confluence Check</option>
+                            <option value="PRED_RETURN_FLOOR">Pred Return Too Low</option>
+                            <option value="LONG_RETURN_FLOOR">Long Return Floor</option>
+                            <option value="LONG_HIGHVOL_ZSCORE">Long High-Vol Z-Score</option>
+                            <option value="SMA50_TREND">Counter-Trend (SMA50)</option>
+                            <option value="CONFLUENCE_CHECK">Confluence Failed</option>
+                            <option value="MTF_CONFLUENCE">MTF Score < 20</option>
+                            <option value="CORRELATION_RANK">Correlation Rank</option>
                         </select></div>
                     <div><label style="${lS}">DIRECTION</label>
                         <select id="sl-f-dir" style="${iS};width:100px" onchange="window._sl_filterChange()">
