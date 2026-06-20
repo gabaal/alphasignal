@@ -56,7 +56,10 @@ def load_env():
                     os.environ[k] = v
 
 load_env()
-PORT = int(os.environ.get("PORT", 8006))
+PORT = 8006
+if os.environ.get("TESTING") == "true":
+    PORT = int(os.environ.get("PORT", 8006))
+
 
 
 # ============================================================

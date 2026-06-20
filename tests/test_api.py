@@ -12,6 +12,7 @@ class TestAlphaSignalAPI(unittest.TestCase):
         # Start the server in a separate process
         env = os.environ.copy()
         env["PORT"] = "8012"
+        env["TESTING"] = "true"
         cls.server_proc = subprocess.Popen(["python", "main.py"], cwd="c:/Users/geral/.gemini/antigravity/scratch/alphasignal", env=env)
         time.sleep(10) # Wait for server to start
         
