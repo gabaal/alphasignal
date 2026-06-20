@@ -166,6 +166,13 @@ class WebSocketServer:
             try:
                 for sym, tick in tickers.items():
                     try:
+                        from backend.services import _fetch_live_crypto_price
+                        px = _fetch_live_crypto_price(tick)
+                        if px is not None and px > 0:
+                            LIVE_PRICES[sym] = round(float(px), 2)
+                            continue
+                    except: pass
+                    try:
                         info = yf.Ticker(tick).fast_info
                         px = info.get('last_price') or info.get('lastPrice')
                         if px and float(px) > 0:
@@ -228,7 +235,7 @@ class WebSocketServer:
                         conn2 = sqlite3.connect(DB_PATH, timeout=30)
                         cur2  = conn2.cursor()
                         cur2.execute("""
-                            SELECT DISTINCT ticker, id, type, price
+                            SELECT DISTINCT ticker, id, type, price, direction
                             FROM alerts_history
                             WHERE COALESCE(status,'active')='active'
                               AND timestamp > datetime('now', '-30 day')
@@ -240,6 +247,14 @@ class WebSocketServer:
                         sig_tickers = list({r[0] for r in active_rows})
 
                         def _fetch_px(orig_t):
+                            if orig_t.endswith('-USD'):
+                                try:
+                                    from backend.services import _fetch_live_crypto_price
+                                    px = _fetch_live_crypto_price(orig_t)
+                                    if px is not None and px > 0:
+                                        return orig_t, round(float(px), 6)
+                                except Exception as err:
+                                    print(f"[PricePrewarm] Binance REST error for {orig_t}: {err}")
                             candidates = [orig_t] + ([orig_t+'-USD'] if '-' not in orig_t else [orig_t[:-4]])
                             for sym2 in candidates:
                                 try:
@@ -277,12 +292,15 @@ class WebSocketServer:
                             conn3.close()
                         except: pass
 
-                        for ticker2, sig_id, sig_type, entry_p in active_rows:
+                        for ticker2, sig_id, sig_type, entry_p, direction_val in active_rows:
                             if not entry_p or entry_p <= 0: continue
                             cached2 = pc.get(ticker2)
                             if not cached2: continue
                             curr_p2 = cached2[0]
-                            direction = 1 if (sig_type or '').upper() in BULLISH_T else -1
+                            if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
+                                direction = 1 if direction_val.upper() == 'LONG' else -1
+                            else:
+                                direction = 1 if (sig_type or '').upper() in BULLISH_T else -1
                             roi = round(direction * (curr_p2 - entry_p) / entry_p * 100, 2)
                             new_state = None
                             if roi > 10:   new_state = 'HIT_TP2'

@@ -963,7 +963,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     '/api/signal-permalink', '/api/telegram/link', '/api/signal-radar',
                     '/api/signal-density', '/api/system-dials', '/api/signal-leaderboard',
                     '/api/funding-rates', '/api/options-signal', '/api/prices', '/api/universe',
-                    '/api/signal-thesis', '/api/admin/purge-equities', '/api/og-image',
+                    '/api/signal-thesis', '/api/admin/purge-equities', '/api/og-image', '/api/stress-test',
                     # Command Center — fully public
                     '/api/macro', '/api/ai-trade-now', '/api/regime', '/api/correlation-matrix',
                     '/api/etf-flows', '/api/cme-gaps', '/api/capital-rotation', '/api/mindshare',

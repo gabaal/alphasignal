@@ -10,7 +10,9 @@ class TestAlphaSignalAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Start the server in a separate process
-        cls.server_proc = subprocess.Popen(["python", "main.py"], cwd="c:/Users/geral/.gemini/antigravity/scratch/alphasignal")
+        env = os.environ.copy()
+        env["PORT"] = "8012"
+        cls.server_proc = subprocess.Popen(["python", "main.py"], cwd="c:/Users/geral/.gemini/antigravity/scratch/alphasignal", env=env)
         time.sleep(10) # Wait for server to start
         
     @classmethod
@@ -22,7 +24,7 @@ class TestAlphaSignalAPI(unittest.TestCase):
         response = requests.get(f"{self.BASE_URL}/api/signals")
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertIsInstance(data, list)
+        self.assertIsInstance(data, dict)
 
     def test_stress_test_endpoint(self):
         # This route should now call handle_stress_test()

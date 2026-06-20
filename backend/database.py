@@ -56,7 +56,8 @@ def load_env():
                     os.environ[k] = v
 
 load_env()
-PORT = 8006
+PORT = int(os.environ.get("PORT", 8006))
+
 
 # ============================================================
 # Cloud Database & Auth Configuration (Supabase)

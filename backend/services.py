@@ -101,6 +101,23 @@ def get_orderbook_imbalance(ticker):
     except: pass
     return random.uniform(-0.2, 0.2)
 
+def _fetch_live_crypto_price(ticker):
+    """Fetch live crypto price from Binance REST API as a real-time fallback."""
+    if not (ticker.endswith('-USD') or ticker.endswith('USDT')):
+        return None
+    try:
+        symbol = ticker.replace("-USD", "USDT").replace("-", "")
+        # Query public Binance ticker price API
+        r = requests.get(f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}", timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            if 'price' in data:
+                return float(data['price'])
+    except Exception as e:
+        print(f"[Binance REST Price Fallback] Error fetching price for {ticker}: {e}")
+    return None
+
+
 class NotificationService:
     # In-memory cooldown: key=(user_email, ticker, sig_type) -> last_sent unix timestamp
     # Prevents duplicate Telegram/Discord pushes within ALERT_COOLDOWN_SECS even when
@@ -1094,8 +1111,16 @@ class HarvestService:
                         if row and row[0]:
                             price_map[t] = float(row[0])
 
-            # yfinance fallback for any ticker still missing
+            # Binance live REST API fallback for any crypto ticker still missing
             missing = [t for t in unique_tickers if t not in price_map]
+            for t in list(missing):
+                if t.endswith('-USD'):
+                    px = _fetch_live_crypto_price(t)
+                    if px is not None:
+                        price_map[t] = round(px, 10)
+                        missing.remove(t)
+
+            # yfinance fallback for any ticker still missing
             if missing:
                 try:
                     import yfinance as yf
@@ -1618,12 +1643,15 @@ class HarvestService:
                 }
                 try:
                     c.execute(
-                        "SELECT id, type, price FROM alerts_history "
+                        "SELECT id, type, price, direction FROM alerts_history "
                         "WHERE ticker=? AND user_email=? AND COALESCE(status,'active')='active'",
                         (ticker, target_email)
                     )
-                    for ex_id, ex_type, ex_entry in c.fetchall():
-                        ex_is_long = ex_type in _BULLISH_TYPES
+                    for ex_id, ex_type, ex_entry, ex_direction in c.fetchall():
+                        if ex_direction:
+                            ex_is_long = ex_direction.upper() == 'LONG'
+                        else:
+                            ex_is_long = ex_type in _BULLISH_TYPES
                         new_is_long = _direction == 'LONG'
                         if ex_is_long != new_is_long:
                             # Conflicting direction — auto-close at current price
