@@ -4,6 +4,63 @@ import requests
 import stripe
 import redis
 
+# Patches for Yahoo Finance STX ticker mapping (STX -> STX4847-USD) to avoid delisting issues
+import yfinance as yf
+import pandas as pd
+
+_orig_download = yf.download
+_orig_Ticker = yf.Ticker
+
+def patched_download(*args, **kwargs):
+    if len(args) > 0:
+        tickers = args[0]
+        args_list = list(args)
+    else:
+        tickers = kwargs.get('tickers')
+        args_list = []
+        
+    was_list = isinstance(tickers, (list, tuple, set, pd.Index))
+    if was_list:
+        mapped_tickers = [('STX4847-USD' if t in ('STX-USD', 'STX') else t) for t in tickers]
+    else:
+        mapped_tickers = 'STX4847-USD' if tickers in ('STX-USD', 'STX') else tickers
+        
+    if args_list:
+        args_list[0] = mapped_tickers
+        args = tuple(args_list)
+    else:
+        kwargs['tickers'] = mapped_tickers
+        
+    res = _orig_download(*args, **kwargs)
+    
+    if res is not None:
+        if hasattr(res, 'columns'):
+            if isinstance(res.columns, pd.MultiIndex):
+                new_levels = [[('STX-USD' if x == 'STX4847-USD' else x) for x in level] for level in res.columns.levels]
+                res.columns = res.columns.set_levels(new_levels)
+            else:
+                res = res.rename(columns={'STX4847-USD': 'STX-USD'})
+        else:
+            if getattr(res, 'name', None) == 'STX4847-USD':
+                res.name = 'STX-USD'
+    return res
+
+def patched_Ticker(*args, **kwargs):
+    if len(args) > 0:
+        ticker = args[0]
+        args_list = list(args)
+        if ticker in ('STX-USD', 'STX'):
+            args_list[0] = 'STX4847-USD'
+        args = tuple(args_list)
+    else:
+        ticker = kwargs.get('ticker')
+        if ticker in ('STX-USD', 'STX'):
+            kwargs['ticker'] = 'STX4847-USD'
+    return _orig_Ticker(*args, **kwargs)
+
+yf.download = patched_download
+yf.Ticker = patched_Ticker
+
 # Initialize Redis connection pointing to localhost instance
 import socket
 REDIS_UP = False
@@ -157,7 +214,7 @@ UNIVERSE = {
                  'TON-USD', 'ATOM-USD', 'NEAR-USD', 'TRX-USD', 'XRP-USD',
                  'SEI-USD'],
     'L2':       ['OP-USD', 'ALGO-USD', 'STRK-USD',
-                 'WBTC-USD'],                            # added: Wrapped BTC
+                 'WBTC-USD', 'STX-USD'],                            # added: Wrapped BTC
     'AI':       ['FET-USD', 'RENDER-USD', 'OCEAN-USD'],
     'MEMES':    ['DOGE-USD', 'BONK-USD', 'WIF-USD', 'FLOKI-USD'],
     'PYTH':     ['PYTH-USD'],
