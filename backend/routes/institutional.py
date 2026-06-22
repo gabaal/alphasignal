@@ -2492,7 +2492,13 @@ class InstitutionalRoutesMixin:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
 
-            where_clauses = ["se.price IS NOT NULL AND se.price > 0"]
+            where_clauses = [
+                "se.price IS NOT NULL AND se.price > 0",
+                "se.type NOT LIKE '%FUNDING%'",
+                "se.type NOT LIKE '%DEPEG%'",
+                "se.type NOT LIKE '%CME_GAP%'",
+                "se.type NOT LIKE '%REBALANCE%'"
+            ]
             params = []
 
             if user_email:
@@ -4653,7 +4659,11 @@ class InstitutionalRoutesMixin:
             c = conn.cursor()
             
 
-            where_clauses = "se.price IS NOT NULL AND se.price > 0"
+            where_clauses = ("se.price IS NOT NULL AND se.price > 0"
+                             " AND se.type NOT LIKE '%FUNDING%'"
+                             " AND se.type NOT LIKE '%DEPEG%'"
+                             " AND se.type NOT LIKE '%CME_GAP%'"
+                             " AND se.type NOT LIKE '%REBALANCE%'")
             if email:
                 c.execute('SELECT enable_rsi, enable_macd, enable_ml_alpha, enable_vol_spike FROM user_settings WHERE user_email=?', (email,))
                 r = c.fetchone()
@@ -4809,6 +4819,12 @@ class InstitutionalRoutesMixin:
                         base_where += " AND se.type IN ('ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION')"
                     elif f_direction == 'bearish':
                         base_where += " AND se.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS','REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')"
+
+                # Filter out informational anomalies from CSV Export
+                base_where += (" AND se.type NOT LIKE '%FUNDING%'"
+                               " AND se.type NOT LIKE '%DEPEG%'"
+                               " AND se.type NOT LIKE '%CME_GAP%'"
+                               " AND se.type NOT LIKE '%REBALANCE%'")
 
                 conn = sqlite3.connect(DB_PATH, timeout=30)
                 c = conn.cursor()
@@ -5406,6 +5422,12 @@ class InstitutionalRoutesMixin:
                     elif f_direction == 'bearish':
                         by_type_where += (" AND (se.direction = 'SHORT' OR (se.direction IS NULL AND se.type IN ('ML_SHORT','RSI_OVERBOUGHT','MACD_BEARISH_CROSS',"
                                           "'REGIME_BEAR','ALPHA_DIVERGENCE_SHORT')))")
+
+                # Filter out informational anomalies from Strategy Breakdown & P&L Curve
+                by_type_where += (" AND se.type NOT LIKE '%FUNDING%'"
+                                  " AND se.type NOT LIKE '%DEPEG%'"
+                                  " AND se.type NOT LIKE '%CME_GAP%'"
+                                  " AND se.type NOT LIKE '%REBALANCE%'")
 
                 c2_cur.execute(f"""
                     SELECT
