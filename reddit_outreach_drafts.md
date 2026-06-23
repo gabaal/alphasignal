@@ -2138,20 +2138,19 @@ I built a custom dashboard called [AlphaSignal](https://alphasignal.digital) to 
 
 ---
 
-## 3. Subreddit: r/investing
-**Post Title:** "One Glitch Away From a Crash - The Extreme Volatility of Today’s Trillion-Dollar Tech Giants"
-**Post URL:** https://www.reddit.com/r/investing/comments/1ud7d0p/one_glitch_away_from_a_crash_the_extreme/
+## 3. Subreddit: r/stocks
+**Post Title:** "Everspin Technologies - Mram"
+**Post URL:** https://www.reddit.com/r/stocks/comments/1udc96r/everspin_technologies_mram/
 **Draft Comment:**
 
-"This is a spot-on description of the **liquidity expansion and narrative dispersion regimes**.
+"Index inclusion mechanics have changed dramatically over the last few years due to the growth of multi-manager pods and quant desks front-running the rebalance. 
 
-When valuation models (PE, DCF) decouple, markets trade purely on liquidity flows (passive index ETFs) and narrative velocity. Because there are no earnings to anchor the valuation, the price is purely driven by sentiment momentum. 
+Historically, the 'index inclusion effect' guaranteed a steady run-up to the event date and a spike in volume. Today, the trade is heavily pre-arbitraged:
+1. **Front-running:** Hedge funds anticipate inclusion weeks/months in advance by tracking the index methodologies (like the Russell reconstitution rules) and building long positions early.
+2. **The Liquidity Event:** The actual day of inclusion (June 26th) is a massive liquidity event. Passive index funds are forced to buy at the closing cross to minimize tracking error. But because the hedge funds are looking to exit their front-run positions, they use this passive buying spike as their exit liquidity. This is why you often see a massive volume spike on the day of reconstitution followed by a post-event dump (the 'reversal' drag).
+3. **Institutional Floor:** Over the medium term, being in the index increases passive indexing ownership, which dampens volatility and sets a higher baseline institutional floor, but it does not prevent short-term post-inclusion sell-offs.
 
-When sentiment shifts (due to a glitch or macro pivot), the correlation among all tech components spikes to 1.0, and they dump together.
-
-To navigate this, institutional desks use regime classification systems (like Hidden Markov Models) to measure whether we are in a low-volatility narrative expansion regime or a high-volatility correlation regime (liquidation), scaling exposure accordingly. 
-
-I track this using a terminal I built called [AlphaSignal](https://alphasignal.digital), which measures volume Z-scores and rolling correlation spikes to warn when a narrative has become too crowded and fragile."
+I track these institutional flows and index rebalances closely using a terminal I built called [AlphaSignal](https://alphasignal.digital). The Strategy Lab lets me backtest historical index inclusion behaviors and check how L2 depth profiles and volume Z-scores change on reconstitution day. For micro-caps like MRAM, waiting for the post-inclusion liquidity rebalancing dump next week is usually the safer entry."
 
 
 
