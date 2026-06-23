@@ -2138,20 +2138,20 @@ I built a custom dashboard called [AlphaSignal](https://alphasignal.digital) to 
 
 ---
 
-## 3. Subreddit: r/Daytrading
-**Post Title:** "Be honest! How many of you are actually profitable? Tell me how long you've been trading for and what market"
-**Post URL:** https://www.reddit.com/r/Daytrading/comments/1ud3ua0/be_honest_how_many_of_you_are_actually_profitable/
+## 3. Subreddit: r/investing
+**Post Title:** "One Glitch Away From a Crash - The Extreme Volatility of Today’s Trillion-Dollar Tech Giants"
+**Post URL:** https://www.reddit.com/r/investing/comments/1ud7d0p/one_glitch_away_from_a_crash_the_extreme/
 **Draft Comment:**
 
-"It took me about 4 years of grinding, blowing up accounts, and plateauing before I actually found consistency. I trade Bitcoin and high-liquidity crypto perps.
+"This is a spot-on description of the **liquidity expansion and narrative dispersion regimes**.
 
-The biggest turning point for me was moving away from discretionary chart patterns (like head and shoulders or support lines) and shifting to **order flow microstructure**. In crypto, price doesn't move randomly; it's a constant hunt for liquidations.
+When valuation models (PE, DCF) decouple, markets trade purely on liquidity flows (passive index ETFs) and narrative velocity. Because there are no earnings to anchor the valuation, the price is purely driven by sentiment momentum. 
 
-Two things that moved me from break-even to profitable:
-1. **Tracking Cumulative Volume Delta (CVD) divergence:** In crypto, perp markets are highly leveraged. When price hits a support zone but CVD is rising (aggressive buyers absorbing sell walls), it signals a high-probability reversal. Fading retail panic when spot buyers are absorbing supply is a solid edge.
-2. **Vol-Adjusted Sizing:** Never trade static contract sizes. Scale your size down dynamically when volatility (ATR) expansions occur, so your dollar risk remains constant.
+When sentiment shifts (due to a glitch or macro pivot), the correlation among all tech components spikes to 1.0, and they dump together.
 
-I got tired of manual calculations and built a quantitative terminal called [AlphaSignal](https://alphasignal.digital) that aggregates Bybit, Binance, and Coinbase order books, plots liquidation heatmaps, and computes real-time volume Z-scores. Shifting from 'feeling' the market to trading statistical boundaries is what made the difference for me. Keep grinding, 3 years is where a lot of the puzzle pieces start fitting together."
+To navigate this, institutional desks use regime classification systems (like Hidden Markov Models) to measure whether we are in a low-volatility narrative expansion regime or a high-volatility correlation regime (liquidation), scaling exposure accordingly. 
+
+I track this using a terminal I built called [AlphaSignal](https://alphasignal.digital), which measures volume Z-scores and rolling correlation spikes to warn when a narrative has become too crowded and fragile."
 
 
 
