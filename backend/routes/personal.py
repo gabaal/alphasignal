@@ -1,6 +1,6 @@
 import json, urllib.parse
 from datetime import datetime
-from backend.database import SupabaseClient, SUPABASE_URL, SUPABASE_HEADERS
+from backend.database import SupabaseClient, SUPABASE_URL, SUPABASE_HEADERS, EQUITY_TICKERS
 from backend.keyvault import KeyVault
 import requests
 
@@ -25,7 +25,11 @@ class PersonalRoutesMixin:
                 _now   = _time.time()
                 for item in items:
                     t = (item.get('ticker') or '').upper()
-                    candidates = [t, t[:-4] if t.endswith('-USD') else t + '-USD']
+                    clean_t = t.replace('-USD', '').upper()
+                    if clean_t in EQUITY_TICKERS:
+                        candidates = [t]
+                    else:
+                        candidates = [t, t[:-4] if t.endswith('-USD') else t + '-USD']
                     found = False
                     for sym in candidates:
                         entry = _cache.get(sym)
@@ -53,10 +57,14 @@ class PersonalRoutesMixin:
                     sym_map = {}  # yf_sym -> [item, ...]
                     for item in missing:
                         t = (item.get('ticker') or '').upper()
-                        # Prefer -USD for potential crypto tickers; we'll fall
-                        # back to the plain ticker if -USD returns nothing.
-                        for candidate in ([t] if t.endswith('-USD') else [t, t + '-USD']):
-                            sym_map.setdefault(candidate, []).append(item)
+                        clean_t = t.replace('-USD', '').upper()
+                        if clean_t in EQUITY_TICKERS:
+                            sym_map.setdefault(t, []).append(item)
+                        else:
+                            # Prefer -USD for potential crypto tickers; we'll fall
+                            # back to the plain ticker if -USD returns nothing.
+                            for candidate in ([t] if t.endswith('-USD') else [t, t + '-USD']):
+                                sym_map.setdefault(candidate, []).append(item)
 
                     unique_syms = list(sym_map.keys())
                     if unique_syms:
@@ -117,9 +125,13 @@ class PersonalRoutesMixin:
                 import yfinance as yf
                 # Try the ticker as-is first (handles equities: WULF, VIRT, TSLA)
                 # then try with -USD suffix (handles crypto: BTC-USD, ETH-USD)
-                candidates = [ticker]
-                if ticker.endswith('-USD'): candidates.append(ticker[:-4])
-                else:                       candidates.append(ticker + '-USD')
+                clean_t = ticker.replace('-USD', '').upper()
+                if clean_t in EQUITY_TICKERS:
+                    candidates = [ticker]
+                else:
+                    candidates = [ticker]
+                    if ticker.endswith('-USD'): candidates.append(ticker[:-4])
+                    else:                       candidates.append(ticker + '-USD')
                 for sym in candidates:
                     try:
                         info = yf.Ticker(sym).fast_info

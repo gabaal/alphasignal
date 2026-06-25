@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 import yfinance as yf
-from .database import DB_PATH, UNIVERSE
+from .database import DB_PATH, UNIVERSE, EQUITY_TICKERS
 from .caching import CACHE, BCACHE
 
 # ── Module-level blocklist: tickers that cause Yahoo 404/delisted errors ──
@@ -1125,7 +1125,11 @@ class HarvestService:
                 try:
                     import yfinance as yf
                     for t in missing:
-                        candidates = [t] + ([t + '-USD'] if '-' not in t else [])
+                        clean_t = t.replace('-USD', '').upper()
+                        if clean_t in EQUITY_TICKERS:
+                            candidates = [t]
+                        else:
+                            candidates = [t] + ([t + '-USD'] if '-' not in t else [])
                         for sym in candidates:
                             try:
                                 info = yf.Ticker(sym).fast_info

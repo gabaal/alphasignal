@@ -226,6 +226,20 @@ TICKER_ALIASES = {
     'MATIC':     'POL-USD',
 }
 
+# Known equity / ETF tickers that must be fetched as-is (no -USD suffix).
+EQUITY_TICKERS = {
+    'IBIT', 'FBTC', 'ARKB', 'BITO', 'BITB', 'HODL', 'BTCO', 'EZBC', 'GBTC',  # Bitcoin ETFs
+    'MSTR', 'COIN', 'MARA', 'RIOT', 'CLSK', 'CIFR', 'BTBT', 'HUT', 'IREN', 'WULF', 'CORZ', 'BTDR', 'VIRT', # BTC-related equities
+    'NVDA', 'AMD', 'INTC', 'TSLA', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META',   # Tech equities
+    'SPY', 'QQQ', 'GLD', 'SLV', 'TLT', 'IEF', 'HYG', 'LQD',                 # ETFs
+    'HOOD', 'SOFI', 'PYPL', 'SQ', 'V', 'MA',                               # Fintech equities
+}
+for _cat in ['EXCHANGE', 'MINERS', 'PROXY', 'TREASURY', 'ETF', 'EQUITIES']:
+    if _cat in UNIVERSE:
+        for _t in UNIVERSE[_cat]:
+            EQUITY_TICKERS.add(_t.upper().replace('-USD', ''))
+
+
 WHALE_WALLETS = {
     '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo': 'Binance Cold Storage',
     'bc1qgdjqv0av3q56jvd82tkdjpy7gdp9ut8tlqmgrpmv24sq90ecnvqqjwvw97': 'Bitfinex Reserve',
@@ -772,6 +786,69 @@ def init_db():
     try:
         c.execute("CREATE INDEX IF NOT EXISTS idx_pa_ts ON predictor_accuracy(predicted_at DESC)")
     except: pass
+
+    # ── Migration: Fix bad ETF/equity exit prices ────────────────────────────
+    try:
+        c.execute("""
+            SELECT uss.id, uss.signal_id, se.ticker, se.price, uss.closed_at, se.direction, se.type, uss.ah_id
+            FROM user_signal_state uss
+            JOIN signal_events se ON se.id = uss.signal_id
+            WHERE uss.status = 'closed' AND uss.exit_price > 1000
+        """)
+        bad_rows = c.fetchall()
+        if bad_rows:
+            import numpy as _np
+            from datetime import datetime as _dt, timedelta as _td
+            print(f"[Migration] Found {len(bad_rows)} closed ETF/equity signals with bad exit prices (>1000). Fixing...", flush=True)
+            for uss_id, sig_id, ticker, entry_p, closed_at, direction_val, sig_type, ah_id in bad_rows:
+                clean_tk = ticker.replace('-USD', '').upper()
+                if clean_tk not in EQUITY_TICKERS:
+                    continue
+                try:
+                    close_dt = None
+                    if closed_at:
+                        ts_str = closed_at.replace('Z', '').split('+')[0]
+                        close_dt = _dt.fromisoformat(ts_str)
+                    else:
+                        close_dt = _dt.utcnow()
+                    
+                    start_date = (close_dt - _td(days=4)).strftime('%Y-%m-%d')
+                    end_date = (close_dt + _td(days=4)).strftime('%Y-%m-%d')
+                    
+                    df = yf.download(clean_tk, start=start_date, end=end_date, progress=False)
+                    if df is not None and not df.empty:
+                        if isinstance(df.columns, pd.MultiIndex):
+                            close_col = df.xs('Close', axis=1, level=0) if 'Close' in df.columns.get_level_values(0) else df
+                        else:
+                            close_col = df['Close'] if 'Close' in df.columns else df
+                        
+                        if not close_col.empty:
+                            idx = _np.argmin([abs((pd.Timestamp(d).tz_localize(None) - close_dt).total_seconds()) for d in close_col.index])
+                            val = close_col.iloc[idx]
+                            close_val = float(val.iloc[0]) if isinstance(val, pd.Series) else float(val)
+                            if close_val and close_val > 0:
+                                BULLISH = {
+                                    'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
+                                    'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
+                                    'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
+                                    'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
+                                }
+                                if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
+                                    direction = 1 if direction_val.upper() == 'LONG' else -1
+                                else:
+                                    direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                                
+                                new_roi = round(direction * (close_val - entry_p) / entry_p * 100, 2)
+                                new_exit = round(close_val, 10)
+                                
+                                print(f"[Migration] Fixed signal #{sig_id} ({ticker}): exit_price={new_exit}, ROI={new_roi}%", flush=True)
+                                c.execute("UPDATE user_signal_state SET exit_price=?, final_roi=? WHERE id=?", (new_exit, new_roi, uss_id))
+                                if ah_id:
+                                    c.execute("UPDATE alerts_history SET exit_price=?, final_roi=? WHERE id=?", (new_exit, new_roi, ah_id))
+                except Exception as row_err:
+                    print(f"[Migration] Error fixing signal #{sig_id}: {row_err}", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_bad_etf_exit_prices: {migration_err}", flush=True)
 
     conn.commit()
     conn.close()

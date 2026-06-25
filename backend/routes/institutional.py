@@ -12,7 +12,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from backend.caching import CACHE, BCACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM, get_ticker_name, get_sentiment
-from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
+from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS, EQUITY_TICKERS
 from backend.routes.regime_hmm import HMM_ENGINE
 # Kick off weekly background retraining immediately on module load
 try:
@@ -5209,11 +5209,15 @@ class InstitutionalRoutesMixin:
                     from concurrent.futures import ThreadPoolExecutor, as_completed
 
                     def _fetch_price(orig_t):
-                        candidates = [orig_t]
-                        if '-' not in orig_t:
-                            candidates.append(orig_t + '-USD')
-                        elif orig_t.endswith('-USD'):
-                            candidates.append(orig_t[:-4])
+                        clean_t = orig_t.replace('-USD', '').upper()
+                        if clean_t in EQUITY_TICKERS:
+                            candidates = [orig_t]
+                        else:
+                            candidates = [orig_t]
+                            if '-' not in orig_t:
+                                candidates.append(orig_t + '-USD')
+                            elif orig_t.endswith('-USD'):
+                                candidates.append(orig_t[:-4])
                         for sym in candidates:
                             try:
                                 info = yf.Ticker(sym).fast_info

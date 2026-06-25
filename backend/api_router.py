@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from backend.caching import CACHE
 from backend.services import NOTIFY, ML_ENGINE, PORTFOLIO_SIM
-from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS
+from backend.database import SupabaseClient, DB_PATH, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, stripe, UNIVERSE, WHALE_WALLETS, SENTIMENT_KEYWORDS, data_dir, SUPABASE_URL, SUPABASE_HEADERS, EQUITY_TICKERS
 
 from backend.routes.auth import (AuthRoutesMixin, _session_cache_invalidate,
                                   _check_login_lockout, _record_login_failure,
@@ -590,7 +590,7 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                         # Equity ETFs (BITB, MSTR, COIN, etc.) must NOT use the crypto price cache,
                         # which is sourced from Binance/Bybit and returns near-zero for equities.
                         _crypto_suffixes = ('-USD', '-USDT', '-BTC')
-                        _is_crypto = any(ticker.upper().endswith(s) for s in _crypto_suffixes) or \
+                        _is_crypto = (any(ticker.upper().endswith(s) for s in _crypto_suffixes) or \
                                      ticker.upper() in {'BTC','ETH','SOL','BNB','ADA','XRP','DOGE','MATIC','AVAX',
                                                         'DOT','LINK','LTC','ATOM','UNI','AAVE','COMP','MKR','SNX',
                                                         'CRV','BAL','YFI','SUSHI','1INCH','GRT','FIL','AR','NEAR',
@@ -598,7 +598,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                                                         'DASH','XMR','ETC','BCH','BSV','OP','ARB','APT','SUI','INJ',
                                                         'FTM','HBAR','EGLD','FLOW','ROSE','ONE','SAND','MANA','AXS',
                                                         'ENJ','CHZ','GALA','IMX','LRC','DYDX','PERP','BAND','OCEAN',
-                                                        'REN','KNC','ZRX','BAT','STORJ','SKL','NMR','ORN','ANT'}
+                                                        'REN','KNC','ZRX','BAT','STORJ','SKL','NMR','ORN','ANT'}) and \
+                                     (ticker.replace('-USD', '').upper() not in EQUITY_TICKERS)
                         cached = InstitutionalRoutesMixin._price_cache.get(ticker)
                         cached_px = cached[0] if cached else None
                         # Trust cache only for genuine crypto tickers and only when price looks sane vs entry
