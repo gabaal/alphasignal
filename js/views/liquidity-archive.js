@@ -2351,12 +2351,14 @@ async function renderSignalArchive(tabs = null) {
         const pWins    = summ.page_wins   ?? data.filter(s => s.state === 'HIT_TP1' || s.state === 'HIT_TP2').length;
         const pLosses  = summ.page_losses ?? data.filter(s => s.state === 'STOPPED').length;
 
-        // Best signal this page (highest absolute return)
-        const bestSig  = [...data].sort((a, b) => Math.abs(b.return) - Math.abs(a.return))[0];
+        // Best signal this page (highest actual return)
+        const getSigReturn = (s) => parseFloat(s.state === 'CLOSED' ? (s.final_roi ?? s.return) : s.return) || 0;
+        const bestSig  = [...data].sort((a, b) => getSigReturn(b) - getSigReturn(a))[0];
+        const bestRet  = bestSig ? getSigReturn(bestSig) : 0;
         const bestStr  = bestSig
-            ? `${bestSig.ticker.replace('-USD','')} ${bestSig.return >= 0 ? '+' : ''}${bestSig.return}%`
+            ? `${bestSig.ticker.replace('-USD','')} ${bestRet >= 0 ? '+' : ''}${bestRet}%`
             : '--';
-        const bestCol  = bestSig ? (bestSig.return >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
+        const bestCol  = bestSig ? (bestRet >= 0 ? '#22c55e' : '#ef4444') : 'var(--text-dim)';
 
         const summaryHTML = `
           <div style="margin-bottom:1.2rem">
