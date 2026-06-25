@@ -60,6 +60,17 @@ async function _fetchFallbackPrices() {
 
     const ALIASES = { 'MATIC': 'POL-USD', 'MATIC-USD': 'POL-USD' };
 
+    // Known equity / ETF tickers that must be fetched as-is (no -USD suffix).
+    // Adding '-USD' to these produces a wrong yfinance instrument (e.g. 'FBTC-USD'
+    // returns a ~$60k BTC-priced token instead of the Fidelity Bitcoin ETF at ~$55).
+    const EQUITY_TICKERS = new Set([
+        'IBIT','FBTC','ARKB','BITO','BITB','HODL','BTCO','EZBC','GBTC',  // Bitcoin ETFs
+        'MSTR','COIN','MARA','RIOT','CLSK','CIFR','BTBT','HUT',           // BTC-related equities
+        'NVDA','AMD','INTC','TSLA','AAPL','MSFT','GOOGL','AMZN','META',   // Tech equities
+        'SPY','QQQ','GLD','SLV','TLT','IEF','HYG','LQD',                 // ETFs
+        'HOOD','SOFI','PYPL','SQ','V','MA',                               // Fintech equities
+    ]);
+
 
 
     // Find all still-pending elements whose tickers aren't seeded yet
@@ -82,11 +93,13 @@ async function _fetchFallbackPrices() {
 
         const alias = ALIASES[rawTicker] || ALIASES[sym];
 
+        // For known equity/ETF tickers, fetch as plain symbol (no -USD suffix).
+        // For everything else (crypto), append -USD if not already present.
         const toTry = alias
-
             ? [alias]
-
-            : [rawTicker.includes('-USD') ? rawTicker : `${rawTicker}-USD`];
+            : EQUITY_TICKERS.has(sym)
+                ? [sym]
+                : [rawTicker.includes('-USD') ? rawTicker : `${rawTicker}-USD`];
 
 
 
