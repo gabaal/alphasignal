@@ -107,7 +107,7 @@ def _fetch_live_crypto_price(ticker):
         return None
     # OCEAN/AGIX merged into FET and are delisted/frozen on Binance (returning stale price)
     clean_ticker = ticker.replace('-USD', '').replace('USDT', '').upper()
-    if clean_ticker in ('OCEAN', 'AGIX'):
+    if clean_ticker in ('OCEAN', 'AGIX', 'MKR'):
         return None
     try:
         symbol = ticker.replace("-USD", "USDT").replace("-", "")

@@ -886,5 +886,38 @@ def init_db():
     except Exception as migration_err:
         print(f"[Migration] Error running fix_bad_ocean_exit_prices: {migration_err}", flush=True)
 
+    # ── Migration: Fix MKR-USD delisted price merge error ─────────────────────
+    try:
+        # Reopen incorrectly closed MKR signals (which matched delisted prices 1813.7 and 1527.1511230469)
+        c.execute("""
+            UPDATE alerts_history
+            SET status = 'active',
+                closed_at = NULL,
+                exit_price = NULL,
+                final_roi = NULL,
+                max_roi = 0.0,
+                tp1_hit = 0
+            WHERE ticker = 'MKR-USD' AND status = 'closed' AND exit_price IN (1813.7, 1527.1511230469)
+        """)
+        reopened_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET status = 'active',
+                closed_at = NULL,
+                exit_price = NULL,
+                final_roi = NULL,
+                max_roi = 0.0,
+                tp1_hit = 0
+            WHERE status = 'closed' AND ah_id IN (
+                SELECT id FROM alerts_history WHERE ticker = 'MKR-USD' AND exit_price IS NULL AND status = 'active'
+            )
+        """)
+        reopened_uss = c.rowcount
+        if reopened_ah > 0 or reopened_uss > 0:
+            print(f"[Migration] Reopened incorrectly closed MKR-USD signals: updated {reopened_ah} rows in alerts_history, {reopened_uss} in user_signal_state", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_bad_mkr_exit_prices: {migration_err}", flush=True)
+
     conn.commit()
     conn.close()
