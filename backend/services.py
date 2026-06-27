@@ -105,6 +105,10 @@ def _fetch_live_crypto_price(ticker):
     """Fetch live crypto price from Binance REST API as a real-time fallback."""
     if not (ticker.endswith('-USD') or ticker.endswith('USDT')):
         return None
+    # OCEAN/AGIX merged into FET and are delisted/frozen on Binance (returning stale price)
+    clean_ticker = ticker.replace('-USD', '').replace('USDT', '').upper()
+    if clean_ticker in ('OCEAN', 'AGIX'):
+        return None
     try:
         symbol = ticker.replace("-USD", "USDT").replace("-", "")
         # Query public Binance ticker price API

@@ -850,5 +850,41 @@ def init_db():
     except Exception as migration_err:
         print(f"[Migration] Error running fix_bad_etf_exit_prices: {migration_err}", flush=True)
 
+    # ── Migration: Fix OCEAN-USD delisted price merge error ───────────────────
+    try:
+        # First update alerts_history
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = 0.1180,
+                final_roi = round(
+                    (CASE WHEN LOWER(direction) = 'bearish' THEN (price - 0.1180) ELSE (0.1180 - price) END) / price * 100,
+                    2
+                )
+            WHERE ticker = 'OCEAN-USD' AND status = 'closed' AND exit_price > 0.3
+        """)
+        updated_ah = c.rowcount
+        
+        # Then update user_signal_state matching those
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = 0.1180,
+                final_roi = (
+                    SELECT round(
+                        (CASE WHEN LOWER(ah.direction) = 'bearish' THEN (ah.price - 0.1180) ELSE (0.1180 - ah.price) END) / ah.price * 100,
+                        2
+                    )
+                    FROM alerts_history ah
+                    WHERE ah.id = user_signal_state.ah_id
+                )
+            WHERE status = 'closed' AND ah_id IN (
+                SELECT id FROM alerts_history WHERE ticker = 'OCEAN-USD' AND exit_price = 0.1180
+            )
+        """)
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed OCEAN-USD delisted price error: updated {updated_ah} rows in alerts_history, {updated_uss} in user_signal_state", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_bad_ocean_exit_prices: {migration_err}", flush=True)
+
     conn.commit()
     conn.close()
