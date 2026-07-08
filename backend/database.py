@@ -924,20 +924,15 @@ def init_db():
     # ── Migration: Recalculate and fix any wrong final_roi signs ──
     try:
         c.execute("""
-            SELECT id, ticker, price, exit_price, final_roi, direction, type
-            FROM alerts_history
-            WHERE status = 'closed'
+            SELECT uss.id, se.ticker, se.price, uss.exit_price, uss.final_roi, se.direction, se.type, uss.ah_id
+            FROM user_signal_state uss
+            JOIN signal_events se ON se.id = uss.signal_id
+            WHERE uss.status = 'closed'
         """)
         closed_alerts = c.fetchall()
         corrected_count = 0
-        for ah_id, ticker, entry_p, exit_p, final_roi, direction_val, sig_type in closed_alerts:
+        for uss_id, ticker, entry_p, exit_p, final_roi, direction_val, sig_type, ah_id in closed_alerts:
             if entry_p and exit_p and entry_p > 0 and exit_p > 0:
-                BULLISH = {
-                    'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
-                    'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
-                    'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
-                    'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
-                }
                 stored_dir = (direction_val or '').upper()
                 if stored_dir in ('LONG', 'SHORT', 'BULLISH', 'BEARISH'):
                     direction = -1 if stored_dir in ('SHORT', 'BEARISH') else 1
@@ -947,8 +942,9 @@ def init_db():
                 
                 correct_roi = round(direction * (exit_p - entry_p) / entry_p * 100, 2)
                 if final_roi is None or abs(correct_roi - final_roi) > 0.01:
-                    c.execute("UPDATE alerts_history SET final_roi=? WHERE id=?", (correct_roi, ah_id))
-                    c.execute("UPDATE user_signal_state SET final_roi=? WHERE ah_id=?", (correct_roi, ah_id))
+                    c.execute("UPDATE user_signal_state SET final_roi=? WHERE id=?", (correct_roi, uss_id))
+                    if ah_id:
+                        c.execute("UPDATE alerts_history SET final_roi=? WHERE id=?", (correct_roi, ah_id))
                     corrected_count += 1
         if corrected_count > 0:
             print(f"[Migration] Corrected final_roi for {corrected_count} closed alerts.", flush=True)
