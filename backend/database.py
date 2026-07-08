@@ -919,5 +919,37 @@ def init_db():
     except Exception as migration_err:
         print(f"[Migration] Error running fix_bad_mkr_exit_prices: {migration_err}", flush=True)
 
+    # ── Migration: Recalculate and fix any wrong final_roi signs ──
+    try:
+        c.execute("""
+            SELECT id, ticker, price, exit_price, final_roi, direction, type
+            FROM alerts_history
+            WHERE status = 'closed'
+        """)
+        closed_alerts = c.fetchall()
+        corrected_count = 0
+        for ah_id, ticker, entry_p, exit_p, final_roi, direction_val, sig_type in closed_alerts:
+            if entry_p and exit_p and entry_p > 0 and exit_p > 0:
+                BULLISH = {
+                    'ML_LONG','RSI_OVERSOLD','MACD_CROSS_UP','MACD_BULLISH_CROSS',
+                    'REGIME_BULL','WHALE_ACCUMULATION','VOLUME_SPIKE','SENTIMENT_SPIKE',
+                    'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
+                    'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
+                }
+                if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
+                    direction = 1 if direction_val.upper() == 'LONG' else -1
+                else:
+                    direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                
+                correct_roi = round(direction * (exit_p - entry_p) / entry_p * 100, 2)
+                if final_roi is None or abs(correct_roi - final_roi) > 0.01:
+                    c.execute("UPDATE alerts_history SET final_roi=? WHERE id=?", (correct_roi, ah_id))
+                    c.execute("UPDATE user_signal_state SET final_roi=? WHERE ah_id=?", (correct_roi, ah_id))
+                    corrected_count += 1
+        if corrected_count > 0:
+            print(f"[Migration] Corrected final_roi for {corrected_count} closed alerts.", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_bad_roi_signs: {migration_err}", flush=True)
+
     conn.commit()
     conn.close()

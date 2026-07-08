@@ -1609,7 +1609,11 @@ class InstitutionalRoutesMixin:
             sym     = ticker.replace('-USD', '').upper()
             _DERIBIT_NATIVE = {'BTC', 'ETH', 'SOL'}
             currency = sym if sym in _DERIBIT_NATIVE else None
-            yf_ticker = ticker if '-' in ticker else f'{sym}-USD'
+            from backend.database import EQUITY_TICKERS
+            if sym in EQUITY_TICKERS:
+                yf_ticker = sym
+            else:
+                yf_ticker = ticker if '-' in ticker else f'{sym}-USD'
 
             # -- Try live Deribit grid (only for natively listed assets) --------
             if currency:
@@ -3819,7 +3823,12 @@ class InstitutionalRoutesMixin:
         try:
             current_price = 91450.0  # static fallback; overwritten by live fetch below
             try:
-                asset_ticker = ticker if '-' in ticker else f'{ticker}-USD'
+                from backend.database import EQUITY_TICKERS
+                sym = ticker.replace('-USD', '').upper()
+                if sym in EQUITY_TICKERS:
+                    asset_ticker = sym
+                else:
+                    asset_ticker = ticker if '-' in ticker else f'{ticker}-USD'
                 btc_data = CACHE.download(asset_ticker, period='1d', interval='1m', column='Close')
                 if btc_data is not None and (not btc_data.empty):
                     last_val = btc_data.iloc[-1]
@@ -3903,7 +3912,12 @@ class InstitutionalRoutesMixin:
             imbalance = round((bid_depth - ask_depth) / (bid_depth + ask_depth) * 100, 1) if bid_depth + ask_depth > 0 else 0
             history = []
             try:
-                asset_ticker = ticker if '-' in ticker else f'{ticker}-USD'
+                from backend.database import EQUITY_TICKERS
+                sym = ticker.replace('-USD', '').upper()
+                if sym in EQUITY_TICKERS:
+                    asset_ticker = sym
+                else:
+                    asset_ticker = ticker if '-' in ticker else f'{ticker}-USD'
                 raw_ohlc = yf.download(asset_ticker, period='5d', interval='5m', progress=False)
                 if raw_ohlc is not None and (not raw_ohlc.empty):
                     if isinstance(raw_ohlc.columns, pd.MultiIndex):
@@ -7427,7 +7441,12 @@ class InstitutionalRoutesMixin:
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             ticker = query.get('ticker', ['BTC'])[0].upper()
-            yf_ticker = f'{ticker}-USD'
+            from backend.database import EQUITY_TICKERS
+            clean_t = ticker.replace('-USD', '').upper()
+            if clean_t in EQUITY_TICKERS:
+                yf_ticker = clean_t
+            else:
+                yf_ticker = f'{ticker}-USD' if '-' not in ticker else ticker
 
             # Robust spot price lookup: fast_info is a single lightweight API call
             spot = None
@@ -7484,7 +7503,12 @@ class InstitutionalRoutesMixin:
         try:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             ticker = query.get('ticker', ['BTC'])[0].upper()
-            yf_ticker = f'{ticker}-USD'
+            from backend.database import EQUITY_TICKERS
+            clean_t = ticker.replace('-USD', '').upper()
+            if clean_t in EQUITY_TICKERS:
+                yf_ticker = clean_t
+            else:
+                yf_ticker = f'{ticker}-USD' if '-' not in ticker else ticker
 
             # Robust spot price lookup
             spot = None
@@ -7558,7 +7582,12 @@ class InstitutionalRoutesMixin:
             query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             raw_ticker = query.get('ticker', ['BTC'])[0].upper()
             # Accept both 'BTC' and 'BTC-USD'
-            ticker = raw_ticker if '-USD' in raw_ticker or '-' in raw_ticker else f'{raw_ticker}-USD'
+            from backend.database import EQUITY_TICKERS
+            clean_t = raw_ticker.replace('-USD', '').upper()
+            if clean_t in EQUITY_TICKERS:
+                ticker = clean_t
+            else:
+                ticker = raw_ticker if '-USD' in raw_ticker or '-' in raw_ticker else f'{raw_ticker}-USD'
 
             try:
                 data = CACHE.download(ticker, period='60d', interval='1h')
@@ -7698,8 +7727,14 @@ class InstitutionalRoutesMixin:
             
             # We generate a 2D array of liquidity density across Price and Time
             try:
-                df_lob = CACHE.download(f'{ticker}-USD', period='1d', interval='1d', column='Close')
-                s_lob = self._get_price_series(df_lob, f'{ticker}-USD')
+                from backend.database import EQUITY_TICKERS
+                clean_t = ticker.replace('-USD', '').upper()
+                if clean_t in EQUITY_TICKERS:
+                    yf_ticker = clean_t
+                else:
+                    yf_ticker = ticker if '-' in ticker else f'{ticker}-USD'
+                df_lob = CACHE.download(yf_ticker, period='1d', interval='1d', column='Close')
+                s_lob = self._get_price_series(df_lob, yf_ticker)
                 spot = float(s_lob.iloc[-1])
             except Exception as e:
                 import traceback

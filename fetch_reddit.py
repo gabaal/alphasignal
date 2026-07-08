@@ -2,7 +2,7 @@ import requests
 import json
 
 headers = {'User-agent': 'AlphaSignal Outreach Bot 1.0'}
-subreddits = ['algotrading', 'CryptoCurrency', 'Daytrading', 'CryptoMarkets', 'MachineLearning']
+subreddits = ['algotrading', 'CryptoCurrency', 'Bitcoin', 'CryptoMarkets', 'MachineLearning']
 
 print("Recent Reddit Posts (Last 24h) for potential outreach:\n")
 
