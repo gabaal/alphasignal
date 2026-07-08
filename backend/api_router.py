@@ -615,7 +615,8 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                                     candidates = [ticker] + ([ticker+'-USD'] if '-' not in ticker else [ticker[:-4]])
                                 else:
                                     # Equity: try bare ticker only — adding -USD gives wrong crypto price
-                                    candidates = [ticker]
+                                    bare = ticker.replace('-USD', '').upper() if ticker.replace('-USD', '').upper() in EQUITY_TICKERS else ticker
+                                    candidates = [bare]
                                 for sym in candidates:
                                     try:
                                         info = yf.Ticker(sym).fast_info

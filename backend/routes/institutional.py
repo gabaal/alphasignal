@@ -5225,7 +5225,7 @@ class InstitutionalRoutesMixin:
                     def _fetch_price(orig_t):
                         clean_t = orig_t.replace('-USD', '').upper()
                         if clean_t in EQUITY_TICKERS:
-                            candidates = [orig_t]
+                            candidates = [clean_t]
                         else:
                             candidates = [orig_t]
                             if '-' not in orig_t:

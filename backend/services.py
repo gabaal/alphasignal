@@ -1131,7 +1131,7 @@ class HarvestService:
                     for t in missing:
                         clean_t = t.replace('-USD', '').upper()
                         if clean_t in EQUITY_TICKERS:
-                            candidates = [t]
+                            candidates = [clean_t]
                         else:
                             candidates = [t] + ([t + '-USD'] if '-' not in t else [])
                         for sym in candidates:
