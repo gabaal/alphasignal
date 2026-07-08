@@ -793,13 +793,13 @@ def init_db():
             SELECT uss.id, uss.signal_id, se.ticker, se.price, uss.closed_at, se.direction, se.type, uss.ah_id
             FROM user_signal_state uss
             JOIN signal_events se ON se.id = uss.signal_id
-            WHERE uss.status = 'closed' AND uss.exit_price > 1000
+            WHERE uss.status = 'closed' AND (uss.exit_price > 1000 OR (uss.exit_price < 1.0 AND uss.exit_price > 0))
         """)
         bad_rows = c.fetchall()
         if bad_rows:
             import numpy as _np
             from datetime import datetime as _dt, timedelta as _td
-            print(f"[Migration] Found {len(bad_rows)} closed ETF/equity signals with bad exit prices (>1000). Fixing...", flush=True)
+            print(f"[Migration] Found {len(bad_rows)} closed ETF/equity signals with bad exit prices (>1000 or <1.0). Fixing...", flush=True)
             for uss_id, sig_id, ticker, entry_p, closed_at, direction_val, sig_type, ah_id in bad_rows:
                 clean_tk = ticker.replace('-USD', '').upper()
                 if clean_tk not in EQUITY_TICKERS:
