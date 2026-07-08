@@ -833,10 +833,12 @@ def init_db():
                                     'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
                                     'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
                                 }
-                                if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
-                                    direction = 1 if direction_val.upper() == 'LONG' else -1
+                                stored_dir = (direction_val or '').upper()
+                                if stored_dir in ('LONG', 'SHORT', 'BULLISH', 'BEARISH'):
+                                    direction = -1 if stored_dir in ('SHORT', 'BEARISH') else 1
                                 else:
-                                    direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                                    is_short = any(x in (sig_type or '').upper() for x in ['OVERBOUGHT', 'BEARISH', 'SHORT', 'SELL'])
+                                    direction = -1 if is_short else 1
                                 
                                 new_roi = round(direction * (close_val - entry_p) / entry_p * 100, 2)
                                 new_exit = round(close_val, 10)
@@ -936,10 +938,12 @@ def init_db():
                     'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
                     'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'
                 }
-                if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
-                    direction = 1 if direction_val.upper() == 'LONG' else -1
+                stored_dir = (direction_val or '').upper()
+                if stored_dir in ('LONG', 'SHORT', 'BULLISH', 'BEARISH'):
+                    direction = -1 if stored_dir in ('SHORT', 'BEARISH') else 1
                 else:
-                    direction = 1 if (sig_type or '').upper() in BULLISH else -1
+                    is_short = any(x in (sig_type or '').upper() for x in ['OVERBOUGHT', 'BEARISH', 'SHORT', 'SELL'])
+                    direction = -1 if is_short else 1
                 
                 correct_roi = round(direction * (exit_p - entry_p) / entry_p * 100, 2)
                 if final_roi is None or abs(correct_roi - final_roi) > 0.01:
