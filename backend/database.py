@@ -921,6 +921,32 @@ def init_db():
     except Exception as migration_err:
         print(f"[Migration] Error running fix_bad_mkr_exit_prices: {migration_err}", flush=True)
 
+    # ── Migration: Fix RENDER-USD bad exit price ──────────────────────────────
+    try:
+        # First update alerts_history
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = 1.70,
+                final_roi = -3.03
+            WHERE ticker = 'RENDER-USD' AND status = 'closed' AND exit_price < 0.5
+        """)
+        updated_ah = c.rowcount
+        
+        # Then update user_signal_state matching those
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = 1.70,
+                final_roi = -3.03
+            WHERE status = 'closed' AND ah_id IN (
+                SELECT id FROM alerts_history WHERE ticker = 'RENDER-USD' AND exit_price = 1.70
+            )
+        """)
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed RENDER-USD bad exit price error: updated {updated_ah} rows in alerts_history, {updated_uss} in user_signal_state", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_bad_render_exit_prices: {migration_err}", flush=True)
+
     # ── Migration: Recalculate and fix any wrong final_roi signs ──
     try:
         c.execute("""
