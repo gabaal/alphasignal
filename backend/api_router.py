@@ -255,24 +255,6 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     self.send_error_json(str(e))
                 return
-            elif path == '/api/admin/run-query':
-                try:
-                    auth = self.is_authenticated()
-                    if not auth or auth.get('email') != 'geraldbaalham@live.co.uk':
-                        return self.send_error_json('Forbidden', 403)
-                    sql = post_data.get('sql')
-                    params = post_data.get('params', [])
-                    conn = sqlite3.connect(DB_PATH, timeout=30)
-                    c = conn.cursor()
-                    c.execute(sql, params)
-                    cols = [desc[0] for desc in c.description] if c.description else []
-                    rows = c.fetchall()
-                    conn.commit()
-                    conn.close()
-                    self.send_json({'success': True, 'columns': cols, 'rows': [dict(zip(cols, r)) for r in rows]})
-                except Exception as e:
-                    self.send_error_json(str(e))
-                return
             elif path == '/api/track-view':
                 # ── Lightweight page view tracker ────────────────────────────────────
                 # Called fire-and-forget from the frontend on every switchView().
