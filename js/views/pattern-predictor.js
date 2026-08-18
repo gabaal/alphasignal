@@ -456,23 +456,27 @@ function renderPatternPredictor() {
             const data = await fetchAPI('/predictor-accuracy');
             if (!data) return;
 
+            const primaryAcc = data.high_conf_accuracy_pct != null
+                ? data.high_conf_accuracy_pct
+                : (data.directional_accuracy_pct != null ? data.directional_accuracy_pct : data.accuracy_pct);
+
             const badge = document.getElementById('pp-accuracy-badge');
             if (badge) {
-                badge.textContent = data.accuracy_pct != null
-                    ? `${data.accuracy_pct}% ACCURACY`
+                badge.textContent = primaryAcc != null
+                    ? `${primaryAcc}% HIGH-CONF ACCURACY`
                     : `${data.total_resolved||0} RESOLVED`;
             }
 
             const overallEl = document.getElementById('pp-acc-overall');
             if (overallEl) {
-                overallEl.textContent = data.accuracy_pct != null ? `${data.accuracy_pct}%` : '—';
-                overallEl.style.color = data.accuracy_pct > 60 ? '#4ade80' : data.accuracy_pct > 45 ? '#fb923c' : data.accuracy_pct != null ? '#f87171' : '#7dd3fc';
+                overallEl.textContent = primaryAcc != null ? `${primaryAcc}%` : '—';
+                overallEl.style.color = primaryAcc > 50 ? '#4ade80' : primaryAcc > 40 ? '#fb923c' : primaryAcc != null ? '#f87171' : '#7dd3fc';
             }
+
             const nEl = document.getElementById('pp-acc-n');
             if (nEl) {
-                // Rolling chips
                 const chips = [];
-                if (data.high_conf_accuracy_pct != null) chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3);color:#c084fc">High Conf ${data.high_conf_accuracy_pct}%</span>`);
+                if (data.accuracy_pct != null) chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(148,163,184,0.12);border:1px solid rgba(148,163,184,0.3);color:#94a3b8">Raw All ${data.accuracy_pct}%</span>`);
                 if (data.directional_accuracy_pct != null) chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80">Directional ${data.directional_accuracy_pct}%</span>`);
                 if (data.accuracy_7d_pct != null)  chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(125,211,252,0.08);border:1px solid rgba(125,211,252,0.2);color:#7dd3fc">7d ${data.accuracy_7d_pct}%</span>`);
                 nEl.innerHTML = `${data.total_resolved||0} resolved<br><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:4px">${chips.join(' ')}</div>`;

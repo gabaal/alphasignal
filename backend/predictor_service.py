@@ -1120,6 +1120,8 @@ class PredictorService:
         time.sleep(30)
         # Backfill any Unknown regime rows from before the fix
         self._backfill_regime_labels()
+        # Re-resolve historical accuracy rows with exact +30m price lookup
+        self.re_resolve_all_history()
         prune_counter = 0
         daily_refresh_counter = 0
 
