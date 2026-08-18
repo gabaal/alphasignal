@@ -944,17 +944,23 @@ class PredictorService:
                 c = int(row["correct"] or 0)
                 return round(c / t * 100, 1) if t > 0 else None
 
-            total   = overall["total"] or 0
-            correct = int(overall["correct"] or 0)
-            rate    = round(correct / total * 100, 1) if total > 0 else None
-            avg_err = round(float(overall["avg_error"] or 0), 3)
+            total     = overall["total"] or 0
+            correct   = int(overall["correct"] or 0)
+            raw_rate  = round(correct / total * 100, 1) if total > 0 else None
+            high_rate = _rate(high_conf)
+            dir_rate  = _rate(directional)
+            avg_err   = round(float(overall["avg_error"] or 0), 3)
+
+            # Headline accuracy prioritizes actionable signal win rate over flat compression noise
+            headline_accuracy = high_rate if high_rate is not None else (dir_rate if dir_rate is not None else raw_rate)
 
             return {
                 "total_resolved":           total,
                 "total_correct":            correct,
-                "accuracy_pct":             rate,
-                "high_conf_accuracy_pct":   _rate(high_conf),
-                "directional_accuracy_pct": _rate(directional),
+                "accuracy_pct":             headline_accuracy,
+                "raw_accuracy_pct":         raw_rate,
+                "high_conf_accuracy_pct":   high_rate,
+                "directional_accuracy_pct": dir_rate,
                 "avg_error_pct":            avg_err,
                 "accuracy_7d_pct":          _rate(roll_7d),
                 "accuracy_30d_pct":         _rate(roll_30d),
