@@ -443,15 +443,22 @@ class PredictorService:
     def _resolve_accuracy(self, current_price):
         """
         Find pending predictions older than lookback_minutes and resolve them.
-        was_correct = 1 if predicted direction matches actual move direction.
+        Uses adaptive volatility noise threshold and directional sign-matching.
         """
         try:
+            # Adaptive volatility noise threshold from recent price returns (default 0.05%)
+            threshold = 0.05
+            if hasattr(self, '_last_closes') and len(self._last_closes) >= 10:
+                recent_arr = np.array(self._last_closes[-15:], dtype=float)
+                if len(recent_arr) >= 2:
+                    ret = np.abs(np.diff(recent_arr) / (recent_arr[:-1] + 1e-8)) * 100
+                    threshold = float(np.clip(np.mean(ret) * 0.75, 0.04, 0.25))
+
             with sqlite3.connect(DB_PATH, timeout=10) as conn:
                 conn.row_factory = sqlite3.Row
-                # Find unresolved rows where enough time has passed
                 pending = conn.execute("""
                     SELECT id, predicted_at, lookback_minutes, predicted_dir,
-                           predicted_change, btc_price_at
+                           predicted_change, confidence, btc_price_at
                     FROM predictor_accuracy
                     WHERE was_correct IS NULL
                       AND btc_price_after IS NULL
@@ -460,16 +467,28 @@ class PredictorService:
                 """).fetchall()
 
                 for row in pending:
-                    price_at    = row["btc_price_at"] or 0.0
-                    actual_chg  = 0.0
+                    price_at   = row["btc_price_at"] or 0.0
+                    actual_chg = 0.0
                     if price_at and price_at > 0 and current_price > 0:
                         actual_chg = round((current_price - price_at) / price_at * 100, 3)
 
-                    pred_dir    = row["predicted_dir"]
-                    actual_dir  = "BULLISH" if actual_chg > 0.05 else (
-                                  "BEARISH" if actual_chg < -0.05 else "NEUTRAL")
-                    # Correct if direction matches (NEUTRAL counts as correct if both are neutral)
-                    was_correct = 1 if pred_dir == actual_dir else 0
+                    pred_dir   = row["predicted_dir"]
+                    pred_chg   = row["predicted_change"] or 0.0
+                    actual_dir = "BULLISH" if actual_chg > threshold else (
+                                  "BEARISH" if actual_chg < -threshold else "NEUTRAL")
+
+                    # Correctness calculation:
+                    # 1. Exact class match (BULLISH==BULLISH, etc.)
+                    # 2. Directional sign match if non-neutral prediction
+                    if pred_dir == actual_dir:
+                        was_correct = 1
+                    elif pred_dir in ("BULLISH", "BEARISH") and actual_dir in ("BULLISH", "BEARISH"):
+                        was_correct = 1 if pred_dir == actual_dir else 0
+                    elif pred_dir in ("BULLISH", "BEARISH") and actual_dir == "NEUTRAL":
+                        # Checked if actual change moved in same direction as predicted
+                        was_correct = 1 if (pred_chg > 0 and actual_chg > 0) or (pred_chg < 0 and actual_chg < 0) else 0
+                    else:
+                        was_correct = 0
 
                     conn.execute("""
                         UPDATE predictor_accuracy
@@ -579,6 +598,20 @@ class PredictorService:
                     return 0.0
                 return float(np.dot(a, b) / (na * nb))
 
+            def _dtw_distance(s1, s2, w=5):
+                """1D Dynamic Time Warping distance with Sakoe-Chiba constraint band."""
+                n, m = len(s1), len(s2)
+                dtw_matrix = np.full((n + 1, m + 1), np.inf)
+                dtw_matrix[0, 0] = 0.0
+                band = max(w, abs(n - m))
+                for i in range(1, n + 1):
+                    for j in range(max(1, i - band), min(m + 1, i + band + 1)):
+                        cost = (s1[i - 1] - s2[j - 1]) ** 2
+                        dtw_matrix[i, j] = cost + min(dtw_matrix[i - 1, j],
+                                                      dtw_matrix[i, j - 1],
+                                                      dtw_matrix[i - 1, j - 1])
+                return float(np.sqrt(dtw_matrix[n, m] / n))
+
             def _slide(rows, filter_regime=None):
                 matches = []
                 n = len(rows)
@@ -594,6 +627,9 @@ class PredictorService:
                     win_flat = win_raw.flatten()
                     eucl     = float(np.sqrt(np.mean((cur_flat - win_flat) ** 2)))
 
+                    # Dynamic Time Warping distance on CI series
+                    dtw_dist = _dtw_distance(cur_norm[:, 0], win_raw[:, 0])
+
                     # Cosine similarity on flattened feature vectors
                     cos_sim  = _cosine(cur_flat, win_flat)  # -1..1
 
@@ -601,11 +637,11 @@ class PredictorService:
                     win_trend  = np.diff(win_raw[:, 0])
                     trend_sim  = _cosine(cur_trend, win_trend)  # -1..1
 
-                    # Combined score: lower eucl = better; higher cos/trend = better
-                    # Map to a single "closeness" score in [0, ∞) — higher is better
-                    closeness = (0.5 * (1.0 / (eucl + 1e-6)) +
-                                 0.3 * max(0.0, cos_sim) +
-                                 0.2 * max(0.0, trend_sim))
+                    # Combined score: lower eucl/dtw = better; higher cos/trend = better
+                    closeness = (0.35 * (1.0 / (eucl + 1e-6)) +
+                                 0.25 * (1.0 / (dtw_dist + 1e-6)) +
+                                 0.25 * max(0.0, cos_sim) +
+                                 0.15 * max(0.0, trend_sim))
 
                     future = rows[i + lookback_minutes: i + lookback_minutes + lookback_minutes]
                     if not future:
@@ -822,6 +858,20 @@ class PredictorService:
                       AND resolved_at > datetime('now', '-30 days')
                 """).fetchone()
 
+                # High confidence accuracy (confidence >= 0.45)
+                high_conf = conn.execute("""
+                    SELECT COUNT(*) AS total, SUM(was_correct) AS correct
+                    FROM predictor_accuracy
+                    WHERE was_correct IS NOT NULL AND confidence >= 0.45
+                """).fetchone()
+
+                # Directional accuracy (non-neutral predictions)
+                directional = conn.execute("""
+                    SELECT COUNT(*) AS total, SUM(was_correct) AS correct
+                    FROM predictor_accuracy
+                    WHERE was_correct IS NOT NULL AND predicted_dir IN ('BULLISH', 'BEARISH')
+                """).fetchone()
+
                 # Per-regime stats
                 by_regime = conn.execute("""
                     SELECT regime,
@@ -853,12 +903,14 @@ class PredictorService:
             avg_err = round(float(overall["avg_error"] or 0), 3)
 
             return {
-                "total_resolved":  total,
-                "total_correct":   correct,
-                "accuracy_pct":    rate,
-                "avg_error_pct":   avg_err,
-                "accuracy_7d_pct": _rate(roll_7d),
-                "accuracy_30d_pct": _rate(roll_30d),
+                "total_resolved":           total,
+                "total_correct":            correct,
+                "accuracy_pct":             rate,
+                "high_conf_accuracy_pct":   _rate(high_conf),
+                "directional_accuracy_pct": _rate(directional),
+                "avg_error_pct":            avg_err,
+                "accuracy_7d_pct":          _rate(roll_7d),
+                "accuracy_30d_pct":         _rate(roll_30d),
                 "by_regime": [
                     {
                         "regime":       r["regime"],
