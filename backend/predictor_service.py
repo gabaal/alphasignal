@@ -555,6 +555,70 @@ class PredictorService:
         except Exception as e:
             print(f"[Predictor v2] Re-resolve error: {e}", flush=True)
 
+    @staticmethod
+    def _ml_predict(rows_list, lookback_minutes=30):
+        """
+        Train an online Random Forest classifier on historical feature windows
+        to predict forward direction and output ML confidence probabilities.
+        """
+        try:
+            if len(rows_list) < lookback_minutes + 40:
+                return None
+
+            X, y = [], []
+            prices = [r['btc_price'] or 0.0 for r in rows_list]
+            for i in range(len(rows_list) - lookback_minutes):
+                r = rows_list[i]
+                p_now = prices[i]
+                p_future = prices[i + lookback_minutes]
+                if p_now <= 0 or p_future <= 0:
+                    continue
+                chg = (p_future - p_now) / p_now * 100
+                label = 1 if chg > 0.05 else (-1 if chg < -0.05 else 0)
+
+                feat = [
+                    float(r['ci_value'] or 0.0),
+                    float(r['rsi'] or 50.0),
+                    float(r['bb_pos'] or 0.5),
+                    float(r['macd'] or 0.0),
+                    float(r['vol_change'] or 0.0),
+                    float(r['whale_score'] or 0.0),
+                    float(r['mvrv_proxy'] or 1.5),
+                ]
+                X.append(feat)
+                y.append(label)
+
+            if len(X) < 40:
+                return None
+
+            X_arr = np.array(X, dtype=float)
+            y_arr = np.array(y, dtype=int)
+
+            from sklearn.ensemble import RandomForestClassifier
+            clf = RandomForestClassifier(n_estimators=60, max_depth=4, random_state=42)
+            clf.fit(X_arr[:-1], y_arr[:-1])
+
+            cur_feat = np.array([X_arr[-1]])
+            probs = clf.predict_proba(cur_feat)[0]
+            classes = list(clf.classes_)
+
+            p_bull = probs[classes.index(1)] if 1 in classes else 0.0
+            p_bear = probs[classes.index(-1)] if -1 in classes else 0.0
+            p_neut = probs[classes.index(0)] if 0 in classes else 0.0
+
+            best_dir = "BULLISH" if p_bull > max(p_bear, p_neut) else ("BEARISH" if p_bear > max(p_bull, p_neut) else "NEUTRAL")
+            best_conf = max(p_bull, p_bear)
+
+            return {
+                "direction": best_dir,
+                "confidence": round(float(best_conf), 3),
+                "p_bullish": round(float(p_bull), 3),
+                "p_bearish": round(float(p_bear), 3),
+                "p_neutral": round(float(p_neut), 3),
+            }
+        except Exception:
+            return None
+
     # ── pattern matching ──────────────────────────────────────────────────────
 
     @staticmethod
@@ -761,13 +825,21 @@ class PredictorService:
                     0.25 * consistency,
                     3,
                 )
-                confidence = max(0.10, min(0.95, confidence))
-
                 confidence_breakdown = {
                     "distance_quality": round(dist_quality, 3),
                     "match_agreement":  round(agreement, 3),
                     "outcome_consistency": round(consistency, 3),
                 }
+
+                # Machine Learning (Random Forest) Ensemble Integration
+                ml_pred = PredictorService._ml_predict(rows_list, lookback_minutes)
+                if ml_pred and ml_pred["direction"] != "NEUTRAL":
+                    if ml_pred["direction"] == direction:
+                        confidence = round(min(0.95, confidence * 1.20 + 0.10), 3)
+                    elif ml_pred["confidence"] > 0.50:
+                        direction = ml_pred["direction"]
+                        confidence = ml_pred["confidence"]
+                    confidence_breakdown["ml_confidence"] = ml_pred["confidence"]
             else:
                 pred_change          = 0.0
                 direction            = "NEUTRAL"
