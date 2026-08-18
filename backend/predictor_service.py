@@ -443,10 +443,9 @@ class PredictorService:
     def _resolve_accuracy(self, current_price):
         """
         Find pending predictions older than lookback_minutes and resolve them.
-        Uses adaptive volatility noise threshold and directional sign-matching.
+        Uses exact historical DB price 30m after predicted_at if available.
         """
         try:
-            # Adaptive volatility noise threshold from recent price returns (default 0.05%)
             threshold = 0.05
             if hasattr(self, '_last_closes') and len(self._last_closes) >= 10:
                 recent_arr = np.array(self._last_closes[-15:], dtype=float)
@@ -468,24 +467,30 @@ class PredictorService:
 
                 for row in pending:
                     price_at   = row["btc_price_at"] or 0.0
+                    lookback_m = row["lookback_minutes"] or 30
+
+                    # Look up exact BTC price in history 30m after predicted_at
+                    match = conn.execute("""
+                        SELECT btc_price FROM composite_index_history
+                        WHERE ts >= datetime(?, '+' || ? || ' minutes')
+                        ORDER BY ts ASC LIMIT 1
+                    """, (row["predicted_at"], lookback_m)).fetchone()
+
+                    price_after = float(match["btc_price"]) if (match and match["btc_price"]) else current_price
                     actual_chg = 0.0
-                    if price_at and price_at > 0 and current_price > 0:
-                        actual_chg = round((current_price - price_at) / price_at * 100, 3)
+                    if price_at and price_at > 0 and price_after > 0:
+                        actual_chg = round((price_after - price_at) / price_at * 100, 3)
 
                     pred_dir   = row["predicted_dir"]
                     pred_chg   = row["predicted_change"] or 0.0
                     actual_dir = "BULLISH" if actual_chg > threshold else (
                                   "BEARISH" if actual_chg < -threshold else "NEUTRAL")
 
-                    # Correctness calculation:
-                    # 1. Exact class match (BULLISH==BULLISH, etc.)
-                    # 2. Directional sign match if non-neutral prediction
                     if pred_dir == actual_dir:
                         was_correct = 1
                     elif pred_dir in ("BULLISH", "BEARISH") and actual_dir in ("BULLISH", "BEARISH"):
                         was_correct = 1 if pred_dir == actual_dir else 0
                     elif pred_dir in ("BULLISH", "BEARISH") and actual_dir == "NEUTRAL":
-                        # Checked if actual change moved in same direction as predicted
                         was_correct = 1 if (pred_chg > 0 and actual_chg > 0) or (pred_chg < 0 and actual_chg < 0) else 0
                     else:
                         was_correct = 0
@@ -498,7 +503,7 @@ class PredictorService:
                             resolved_at     = ?
                         WHERE id = ?
                     """, (
-                        round(current_price, 2),
+                        round(price_after, 2),
                         actual_chg,
                         was_correct,
                         datetime.utcnow().isoformat(timespec="seconds"),
@@ -507,6 +512,48 @@ class PredictorService:
                 conn.commit()
         except Exception as e:
             print(f"[Predictor] Accuracy resolve error: {e}", flush=True)
+
+    @staticmethod
+    def re_resolve_all_history():
+        """Re-evaluate all rows in predictor_accuracy against exact +30m prices."""
+        try:
+            with sqlite3.connect(DB_PATH, timeout=10) as conn:
+                conn.row_factory = sqlite3.Row
+                rows = conn.execute("SELECT * FROM predictor_accuracy").fetchall()
+                for r in rows:
+                    price_at = r['btc_price_at'] or 0.0
+                    lookback_m = r['lookback_minutes'] or 30
+                    match = conn.execute("""
+                        SELECT btc_price FROM composite_index_history
+                        WHERE ts >= datetime(?, '+' || ? || ' minutes')
+                        ORDER BY ts ASC LIMIT 1
+                    """, (r['predicted_at'], lookback_m)).fetchone()
+
+                    if match and match['btc_price']:
+                        price_after = float(match['btc_price'])
+                        actual_chg = round((price_after - price_at) / price_at * 100, 3)
+                        pred_dir = r['predicted_dir']
+                        pred_chg = r['predicted_change'] or 0.0
+                        actual_dir = "BULLISH" if actual_chg > 0.05 else ("BEARISH" if actual_chg < -0.05 else "NEUTRAL")
+
+                        if pred_dir == actual_dir:
+                            ok = 1
+                        elif pred_dir in ("BULLISH", "BEARISH") and actual_dir in ("BULLISH", "BEARISH"):
+                            ok = 1 if pred_dir == actual_dir else 0
+                        elif pred_dir in ("BULLISH", "BEARISH") and actual_dir == "NEUTRAL":
+                            ok = 1 if (pred_chg > 0 and actual_chg > 0) or (pred_chg < 0 and actual_chg < 0) else 0
+                        else:
+                            ok = 0
+
+                        conn.execute("""
+                            UPDATE predictor_accuracy
+                            SET btc_price_after = ?, actual_change = ?, was_correct = ?
+                            WHERE id = ?
+                        """, (round(price_after, 2), actual_chg, ok, r['id']))
+                conn.commit()
+                print("[Predictor v2] Re-resolved all historical accuracy rows.", flush=True)
+        except Exception as e:
+            print(f"[Predictor v2] Re-resolve error: {e}", flush=True)
 
     # ── pattern matching ──────────────────────────────────────────────────────
 
@@ -1105,11 +1152,14 @@ class PredictorService:
                                 lookback_minutes=30, top_n=5, regime_filter=True
                             )
                             if "prediction" in result and not result.get("error"):
-                                self._log_prediction(
-                                    result["prediction"],
-                                    current_price,
-                                    30
-                                )
+                                pred = result["prediction"]
+                                # Filter out low-conviction noise (log only confidence >= 0.40 or non-NEUTRAL)
+                                if pred.get("confidence", 0.0) >= 0.40 or pred.get("direction") != "NEUTRAL":
+                                    self._log_prediction(
+                                        pred,
+                                        current_price,
+                                        30
+                                    )
                         except Exception as pe:
                             print(f"[Predictor v2] Auto-log prediction error: {pe}", flush=True)
 
