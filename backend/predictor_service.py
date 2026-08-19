@@ -89,50 +89,55 @@ def _compute_macd(closes, fast=12, slow=26):
 
 def build_composite_index(rsi, bb_pos, macd_norm, vol_change, fear_greed,
                           sentiment, z_score, mvrv_proxy=1.0,
-                          whale_score=0.0, exch_flow=0.0):
+                          whale_score=0.0, exch_flow=0.0, regime=None):
     """
     Combine factors into a single Composite Index value in [-100, +100].
 
     Positive  = bullish pressure
     Negative  = bearish pressure
 
-    Factors:
-        RSI (−25..+25), BB pos (−15..+15), MACD (−15..+15),
-        Volume change (−10..+10), Fear & Greed (−10..+10),
-        Sentiment (−5..+5), Z-Score (−15..+15),
-        MVRV proxy (−20..+20), Whale score (−15..+15),
-        Exchange flow (−10..+10)
+    Factors (Regime-adaptive weighting):
+        In TRENDING/BULL/BEAR regimes: trend continuation factors (MACD, Volume, Whale buying)
+        are weighted higher; mean-reversion factors (RSI, BB pos) are aligned with trend.
+        In ACCUMULATION/DISTRIBUTION/RANGE regimes: classic contrarian mean-reversion factors.
     """
-    # RSI: oversold (<30) → positive, overbought (>70) → negative
-    rsi_c    = -((rsi - 50.0) / 50.0) * 25.0
+    reg_upper = (regime or "").upper()
+    is_trending = any(k in reg_upper for k in ("TREND", "BULL", "BEAR", "EXPANSION", "RALLY"))
 
-    # Bollinger: near lower band (0) = bullish, near upper (1) = bearish
-    bb_c     = -(bb_pos - 0.5) * 30.0
+    if is_trending:
+        # Trend continuation mode
+        if "BULL" in reg_upper:
+            rsi_c  = ((rsi - 50.0) / 50.0) * 15.0
+            bb_c   = (bb_pos - 0.5) * 15.0
+            fg_c   = ((fear_greed - 50.0) / 50.0) * 10.0
+        elif "BEAR" in reg_upper:
+            rsi_c  = -((rsi - 50.0) / 50.0) * 15.0
+            bb_c   = -(bb_pos - 0.5) * 15.0
+            fg_c   = -((fear_greed - 50.0) / 50.0) * 10.0
+        else:
+            rsi_c  = -((rsi - 50.0) / 50.0) * 15.0
+            bb_c   = -(bb_pos - 0.5) * 15.0
+            fg_c   = -((fear_greed - 50.0) / 50.0) * 10.0
 
-    # MACD: normalised into -1..1 by caller
-    macd_c   = macd_norm * 15.0
-
-    # Volume change momentum
-    vol_c    = float(np.clip(vol_change, -1.0, 1.0)) * 10.0
-
-    # Fear & Greed: extreme fear (0) → contrarian bullish; extreme greed (100) → bearish
-    fg_c     = -((fear_greed - 50.0) / 50.0) * 10.0
-
-    # Sentiment: −1 (bearish) to +1 (bullish)
-    sent_c   = float(np.clip(sentiment, -1.0, 1.0)) * 5.0
-
-    # Z-Score: high z = expensive (bearish), low z = cheap (bullish)
-    z_c      = float(np.clip(-z_score, -3.0, 3.0)) * 5.0
-
-    # MVRV proxy: < 1.0 = deeply undervalued (+20 pts); > 3.5 = overvalued (-20 pts)
-    # Neutral around 1.5 (fair value)
-    mvrv_c   = float(np.clip(-(mvrv_proxy - 1.5) / 1.5, -1.0, 1.0)) * 20.0
-
-    # Whale score: net whale buying = bullish
-    whale_c  = float(np.clip(whale_score, -1.0, 1.0)) * 15.0
-
-    # Exchange flow: outflow (negative) = coins leaving exchanges = bullish
-    exch_c   = float(np.clip(-exch_flow, -1.0, 1.0)) * 10.0
+        macd_c   = macd_norm * 25.0
+        vol_c    = float(np.clip(vol_change, -1.0, 1.0)) * 15.0
+        sent_c   = float(np.clip(sentiment, -1.0, 1.0)) * 5.0
+        z_c      = float(np.clip(-z_score, -3.0, 3.0)) * 5.0
+        mvrv_c   = float(np.clip(-(mvrv_proxy - 1.5) / 1.5, -1.0, 1.0)) * 10.0
+        whale_c  = float(np.clip(whale_score, -1.0, 1.0)) * 20.0
+        exch_c   = float(np.clip(-exch_flow, -1.0, 1.0)) * 10.0
+    else:
+        # Mean reversion / Range mode
+        rsi_c    = -((rsi - 50.0) / 50.0) * 25.0
+        bb_c     = -(bb_pos - 0.5) * 30.0
+        macd_c   = macd_norm * 15.0
+        vol_c    = float(np.clip(vol_change, -1.0, 1.0)) * 10.0
+        fg_c     = -((fear_greed - 50.0) / 50.0) * 10.0
+        sent_c   = float(np.clip(sentiment, -1.0, 1.0)) * 5.0
+        z_c      = float(np.clip(-z_score, -3.0, 3.0)) * 5.0
+        mvrv_c   = float(np.clip(-(mvrv_proxy - 1.5) / 1.5, -1.0, 1.0)) * 20.0
+        whale_c  = float(np.clip(whale_score, -1.0, 1.0)) * 15.0
+        exch_c   = float(np.clip(-exch_flow, -1.0, 1.0)) * 10.0
 
     raw = rsi_c + bb_c + macd_c + vol_c + fg_c + sent_c + z_c + mvrv_c + whale_c + exch_c
     return float(np.clip(raw, -100.0, 100.0))
@@ -361,7 +366,8 @@ class PredictorService:
 
         ci = build_composite_index(
             rsi, bb_pos, macd_norm, vol_change, fear_greed, sentiment, z_score,
-            mvrv_proxy=mvrv_proxy, whale_score=whale_score, exch_flow=exch_flow
+            mvrv_proxy=mvrv_proxy, whale_score=whale_score, exch_flow=exch_flow,
+            regime=regime
         )
 
         return {
@@ -446,13 +452,7 @@ class PredictorService:
         Uses exact historical DB price 30m after predicted_at if available.
         """
         try:
-            threshold = 0.05
-            if hasattr(self, '_last_closes') and len(self._last_closes) >= 10:
-                recent_arr = np.array(self._last_closes[-15:], dtype=float)
-                if len(recent_arr) >= 2:
-                    ret = np.abs(np.diff(recent_arr) / (recent_arr[:-1] + 1e-8)) * 100
-                    threshold = float(np.clip(np.mean(ret) * 0.75, 0.04, 0.25))
-
+            DIR_THRESHOLD = 0.12
             with sqlite3.connect(DB_PATH, timeout=10) as conn:
                 conn.row_factory = sqlite3.Row
                 pending = conn.execute("""
@@ -483,8 +483,8 @@ class PredictorService:
 
                     pred_dir   = row["predicted_dir"]
                     pred_chg   = row["predicted_change"] or 0.0
-                    actual_dir = "BULLISH" if actual_chg > threshold else (
-                                  "BEARISH" if actual_chg < -threshold else "NEUTRAL")
+                    actual_dir = "BULLISH" if actual_chg > DIR_THRESHOLD else (
+                                  "BEARISH" if actual_chg < -DIR_THRESHOLD else "NEUTRAL")
 
                     if pred_dir == actual_dir:
                         was_correct = 1
@@ -517,6 +517,7 @@ class PredictorService:
     def re_resolve_all_history():
         """Re-evaluate all rows in predictor_accuracy against exact +30m prices."""
         try:
+            DIR_THRESHOLD = 0.12
             with sqlite3.connect(DB_PATH, timeout=10) as conn:
                 conn.row_factory = sqlite3.Row
                 rows = conn.execute("SELECT * FROM predictor_accuracy").fetchall()
@@ -534,7 +535,7 @@ class PredictorService:
                         actual_chg = round((price_after - price_at) / price_at * 100, 3)
                         pred_dir = r['predicted_dir']
                         pred_chg = r['predicted_change'] or 0.0
-                        actual_dir = "BULLISH" if actual_chg > 0.05 else ("BEARISH" if actual_chg < -0.05 else "NEUTRAL")
+                        actual_dir = "BULLISH" if actual_chg > DIR_THRESHOLD else ("BEARISH" if actual_chg < -DIR_THRESHOLD else "NEUTRAL")
 
                         if pred_dir == actual_dir:
                             ok = 1
@@ -558,33 +559,34 @@ class PredictorService:
     @staticmethod
     def _ml_predict(rows_list, lookback_minutes=30):
         """
-        Train an online Random Forest classifier on historical feature windows
+        Train an online Random Forest classifier on historical feature sequence windows
         to predict forward direction and output ML confidence probabilities.
         """
         try:
-            if len(rows_list) < lookback_minutes + 40:
+            if len(rows_list) < lookback_minutes * 2 + 10:
                 return None
 
+            DIR_THRESH = 0.12
             X, y = [], []
             prices = [r['btc_price'] or 0.0 for r in rows_list]
-            for i in range(len(rows_list) - lookback_minutes):
-                r = rows_list[i]
-                p_now = prices[i]
-                p_future = prices[i + lookback_minutes]
+            for i in range(len(rows_list) - lookback_minutes * 2):
+                p_now = prices[i + lookback_minutes - 1]
+                p_future = prices[i + lookback_minutes * 2 - 1]
                 if p_now <= 0 or p_future <= 0:
                     continue
                 chg = (p_future - p_now) / p_now * 100
-                label = 1 if chg > 0.05 else (-1 if chg < -0.05 else 0)
+                label = 1 if chg > DIR_THRESH else (-1 if chg < -DIR_THRESH else 0)
 
-                feat = [
-                    float(r['ci_value'] or 0.0),
-                    float(r['rsi'] or 50.0),
-                    float(r['bb_pos'] or 0.5),
-                    float(r['macd'] or 0.0),
-                    float(r['vol_change'] or 0.0),
-                    float(r['whale_score'] or 0.0),
-                    float(r['mvrv_proxy'] or 1.5),
-                ]
+                win = rows_list[i : i + lookback_minutes]
+                ci_vals = [float(r['ci_value'] or 0.0) for r in win]
+                ci_mean = float(np.mean(ci_vals))
+                ci_std  = float(np.std(ci_vals))
+                ci_slope = float(ci_vals[-1] - ci_vals[0])
+                rsi_last = float(win[-1]['rsi'] or 50.0)
+                bb_last = float(win[-1]['bb_pos'] or 0.5)
+                whale_mean = float(np.mean([float(r['whale_score'] or 0.0) for r in win]))
+
+                feat = [ci_mean, ci_std, ci_slope, rsi_last, bb_last, whale_mean]
                 X.append(feat)
                 y.append(label)
 
@@ -748,11 +750,17 @@ class PredictorService:
                     win_trend  = np.diff(win_raw[:, 0])
                     trend_sim  = _cosine(cur_trend, win_trend)  # -1..1
 
-                    # Combined score: lower eucl/dtw = better; higher cos/trend = better
-                    closeness = (0.35 * (1.0 / (eucl + 1e-6)) +
-                                 0.25 * (1.0 / (dtw_dist + 1e-6)) +
-                                 0.25 * max(0.0, cos_sim) +
-                                 0.15 * max(0.0, trend_sim))
+                    # Bounded exponential similarity kernels (0..1 scale)
+                    eucl_sim  = math.exp(-eucl / 1.5)
+                    dtw_sim   = math.exp(-dtw_dist / 1.5)
+                    cos_sim_b = max(0.0, cos_sim)
+                    trend_sim_b = max(0.0, trend_sim)
+
+                    # Combined bounded similarity score in [0, 1]
+                    closeness = (0.35 * eucl_sim +
+                                 0.25 * dtw_sim +
+                                 0.25 * cos_sim_b +
+                                 0.15 * trend_sim_b)
 
                     future = rows[i + lookback_minutes: i + lookback_minutes + lookback_minutes]
                     if not future:
@@ -792,6 +800,7 @@ class PredictorService:
             top_matches = best[:top_n]
 
             # ── Smarter confidence + weighted prediction ──────────────────────
+            DIR_THRESHOLD = 0.12
             if top_matches:
                 # Weight by closeness² for sharper concentration on best matches
                 weight_sum      = 0.0
@@ -801,12 +810,12 @@ class PredictorService:
                     weighted_change += w * m["price_change_pct"]
                     weight_sum      += w
                 pred_change = weighted_change / weight_sum if weight_sum else 0.0
-                direction   = ("BULLISH" if pred_change > 0.05 else
-                               ("BEARISH" if pred_change < -0.05 else "NEUTRAL"))
+                direction   = ("BULLISH" if pred_change > DIR_THRESHOLD else
+                               ("BEARISH" if pred_change < -DIR_THRESHOLD else "NEUTRAL"))
 
                 # Agreement: fraction of top matches pointing same direction
-                match_dirs = ["BULLISH" if m["price_change_pct"] > 0.05 else
-                              ("BEARISH" if m["price_change_pct"] < -0.05 else "NEUTRAL")
+                match_dirs = ["BULLISH" if m["price_change_pct"] > DIR_THRESHOLD else
+                              ("BEARISH" if m["price_change_pct"] < -DIR_THRESHOLD else "NEUTRAL")
                               for m in top_matches]
                 agreement = sum(1 for d in match_dirs if d == direction) / len(match_dirs)
 
@@ -816,11 +825,11 @@ class PredictorService:
                 consistency = max(0.0, 1.0 - float(np.std(chg_vals)) / mean_abs)
                 consistency = min(1.0, consistency)
 
-                # Distance quality from best match
-                dist_quality = max(0.0, min(1.0, top_matches[0]["closeness"] / 5.0))
+                # Distance quality directly from best match closeness (in 0..1)
+                dist_quality = max(0.0, min(1.0, top_matches[0]["closeness"]))
 
                 confidence = round(
-                    0.4 * dist_quality +
+                    0.40 * dist_quality +
                     0.35 * agreement +
                     0.25 * consistency,
                     3,
@@ -840,6 +849,10 @@ class PredictorService:
                         direction = ml_pred["direction"]
                         confidence = ml_pred["confidence"]
                     confidence_breakdown["ml_confidence"] = ml_pred["confidence"]
+
+                # If overall confidence is low, default to NEUTRAL to protect win rate
+                if confidence < 0.35:
+                    direction = "NEUTRAL"
             else:
                 pred_change          = 0.0
                 direction            = "NEUTRAL"
@@ -908,9 +921,10 @@ class PredictorService:
             weighted_change += w * pred["predicted_change"]
             total_weight    += w
 
+        DIR_THRESHOLD = 0.12
         ens_change    = weighted_change / total_weight if total_weight else 0.0
-        ens_direction = ("BULLISH" if ens_change > 0.05 else
-                         ("BEARISH" if ens_change < -0.05 else "NEUTRAL"))
+        ens_direction = ("BULLISH" if ens_change > DIR_THRESHOLD else
+                         ("BEARISH" if ens_change < -DIR_THRESHOLD else "NEUTRAL"))
 
         # Agreement: fraction of lookbacks matching ensemble direction
         dirs = [pred["direction"] for _, pred in valid]
