@@ -1,0 +1,305 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "DocForge API Engine",
+    "description": "Developer-first high-speed HTML/CSS to PDF rendering API powered by dedicated Chrome clusters with persistent SHA-256 ledger stamps, Merkle Tree cryptographic anchoring, cloud storage adapters (S3/GCS/R2), Webhooks v2 with HMAC signatures & DLQ, SOC2 audit exporter, and multi-language SDKs (Node, Python, Go, Rust).",
+    "version": "2.4.0",
+    "contact": {
+      "name": "AlphaSignal Global Developer Support",
+      "url": "https://docforge.digital",
+      "email": "dev@alphasignal.digital"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Local Production Engine Server"
+    },
+    {
+      "url": "https://api.docforge.io",
+      "description": "Production Cloud Cluster"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/render": {
+      "post": {
+        "tags": ["Core Rendering"],
+        "summary": "Render HTML/CSS or Template ID to PDF",
+        "description": "Compiles Handlebars HTML template, injects custom CSS/themes/watermarks, and renders PDF binary buffer or JSON download URL.",
+        "operationId": "renderPdf",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenderPayload"
+              },
+              "example": {
+                "template_id": "b2b_saas_invoice",
+                "html": "<h1>Invoice #{{invoice.number}}</h1><p>Client: {{client.name}}</p>",
+                "css": "h1 { color: #0284c7; }",
+                "data": {
+                  "invoice": { "number": "INV-2026-99" },
+                  "client": { "name": "Acme Corp" }
+                },
+                "options": {
+                  "format": "A4",
+                  "orientation": "portrait",
+                  "theme": "emerald",
+                  "watermark": "PAID",
+                  "enable_signature_stamp": true
+                },
+                "response_type": "json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PDF Rendered Successfully",
+            "headers": {
+              "X-DocForge-Render-Time-Ms": {
+                "schema": { "type": "string" },
+                "description": "Execution latency in milliseconds (e.g. 184)"
+              },
+              "X-DocForge-Document-Hash": {
+                "schema": { "type": "string" },
+                "description": "Cryptographic SHA-256 document signature"
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": { "type": "string", "format": "binary" }
+              },
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/JsonRenderResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests — Rate Limit Exceeded",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/render/batch": {
+      "post": {
+        "tags": ["Batch Queue"],
+        "summary": "Enqueue Asynchronous Batch PDF Job",
+        "description": "Enqueues an array of document render items for background parallel processing with status polling and webhooks.",
+        "operationId": "renderBatch",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "template_id": "b2b_saas_invoice",
+                "items": [
+                  { "id": "inv_1", "data": { "number": "INV-001", "amount": "150.00" } },
+                  { "id": "inv_2", "data": { "number": "INV-002", "amount": "290.00" } }
+                ],
+                "webhook_url": "http://localhost:4000/v1/webhooks/simulator"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Batch Job Accepted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "accepted",
+                  "batch_id": "batch_1784800527640_803c3f75",
+                  "total_items": 2,
+                  "status_url": "http://localhost:4000/v1/jobs/batch_1784800527640_803c3f75"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/{batch_id}": {
+      "get": {
+        "tags": ["Batch Queue"],
+        "summary": "Query Batch Job Progress & Download URLs",
+        "description": "Fetches real-time execution status, progress percentage, and individual document hashes.",
+        "parameters": [
+          { "name": "batch_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Job Status Details" }
+        }
+      }
+    },
+    "/v1/templates": {
+      "post": {
+        "tags": ["Template Management"],
+        "summary": "Register or Version a Server-Side Template",
+        "description": "Stores a Handlebars layout and stylesheet in SQLite, returning an auto-incremented version number (v1, v2...).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "template_id": "b2b_saas_invoice",
+                "name": "B2B SaaS Monthly Invoice",
+                "html": "<h1>INVOICE {{number}}</h1><p>Client: {{client}}</p>",
+                "css": "h1 { color: #4f46e5; }"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Template Created or Versioned" }
+        }
+      },
+      "get": {
+        "tags": ["Template Management"],
+        "summary": "List All Registered Server Templates",
+        "responses": {
+          "200": { "description": "Array of Registered Templates" }
+        }
+      }
+    },
+    "/v1/templates/{template_id}": {
+      "get": {
+        "tags": ["Template Management"],
+        "summary": "Get Template Layout & Version History",
+        "parameters": [
+          { "name": "template_id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "version", "in": "query", "required": false, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Template Layout Details" }
+        }
+      }
+    },
+    "/v1/keys": {
+      "post": {
+        "tags": ["API Keys & Security"],
+        "summary": "Provision a New API Key",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Production Service Key",
+                "account_id": "acct_prod_991823",
+                "rate_limit_per_min": 100
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "API Key Provisioned" }
+        }
+      },
+      "get": {
+        "tags": ["API Keys & Security"],
+        "summary": "List Active Account API Keys",
+        "responses": {
+          "200": { "description": "List of API Keys" }
+        }
+      }
+    },
+    "/v1/keys/{key_id}": {
+      "delete": {
+        "tags": ["API Keys & Security"],
+        "summary": "Revoke an API Key",
+        "parameters": [
+          { "name": "key_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "API Key Revoked" }
+        }
+      }
+    },
+    "/v1/verify/{hash}": {
+      "get": {
+        "tags": ["Verification & Ledger"],
+        "summary": "Verify Document SHA-256 Ledger Authenticity",
+        "parameters": [
+          { "name": "hash", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Cryptographic Verification Details" }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": ["System & Telemetry"],
+        "summary": "Cluster & Engine Health Status",
+        "responses": {
+          "200": { "description": "Engine Status & Metrics" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-DocForge-Key",
+        "description": "API Key authentication header format: df_live_..."
+      }
+    },
+    "schemas": {
+      "RenderPayload": {
+        "type": "object",
+        "properties": {
+          "template_id": { "type": "string" },
+          "version": { "type": "integer" },
+          "html": { "type": "string" },
+          "css": { "type": "string" },
+          "data": { "type": "object" },
+          "options": { "$ref": "#/components/schemas/RenderOptions" },
+          "response_type": { "type": "string", "enum": ["binary", "json", "base64"] }
+        }
+      },
+      "RenderOptions": {
+        "type": "object",
+        "properties": {
+          "format": { "type": "string", "enum": ["A4", "Letter", "Legal", "A3"] },
+          "orientation": { "type": "string", "enum": ["portrait", "landscape"] },
+          "theme": { "type": "string" },
+          "watermark": { "type": "string" },
+          "enable_signature_stamp": { "type": "boolean" },
+          "display_header_footer": { "type": "boolean", "description": "Enable native Puppeteer multi-page header/footer layout" },
+          "header_template": { "type": "string", "description": "HTML template for top header" },
+          "footer_template": { "type": "string", "description": "HTML template for page footer (supports pageNumber & totalPages classes)" },
+          "fillable_forms": { "type": "boolean", "description": "Preserve interactive form field styling" },
+          "compress": { "type": "boolean", "description": "Apply stream compression optimization" },
+          "rtl": { "type": "boolean", "description": "Enable Right-to-Left text direction and unicode-bidi styling" }
+        }
+      },
+      "JsonRenderResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "document_hash": { "type": "string" },
+          "render_time_ms": { "type": "integer" },
+          "download_url": { "type": "string" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

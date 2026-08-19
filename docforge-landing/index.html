@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocForge API — High-Speed Developer-First PDF Engine</title>
+  <meta name="description" content="Turn HTML, CSS & JSON into Cryptographically Verified PDFs in milliseconds. Powered by dedicated Chrome clusters with SHA-256 signature verification." />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark-theme">
+  
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand-logo">
+        <div class="logo-box"><i class="fa-solid fa-file-pdf"></i></div>
+        <span class="brand-title">DocForge<span class="gradient-text">.API</span></span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#benchmarks">Speed Benchmark</a>
+        <a href="#showcase">Product Tour</a>
+        <a href="#sdk">Developer SDKs</a>
+        <a href="#pricing">Pricing Calculator</a>
+        <a href="http://localhost:3000" target="_blank" class="studio-link"><i class="fa-solid fa-wand-magic-sparkles"></i> Open Studio</a>
+      </nav>
+
+      <div class="nav-cta">
+        <a href="http://localhost:4000/docs" target="_blank" class="btn btn-outline"><i class="fa-solid fa-book"></i> API Docs</a>
+        <a href="#pricing" class="btn btn-primary shadow-glow">Get Free API Key</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero-section">
+    <div class="hero-bg-glow"></div>
+    <div class="container hero-grid">
+      
+      <div class="hero-text">
+        <div class="announcement-pill">
+          <span class="pulse-dot"></span>
+          <span class="pill-text">DocForge API v1.3 Production Cluster Live</span>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+
+        <h1 class="hero-headline">
+          Turn HTML & JSON into <br/>
+          <span class="gradient-text">Verified PDFs in <span id="heroLatency">184</span>ms</span>
+        </h1>
+
+        <p class="hero-subtext">
+          Developer-first PDF rendering engine powered by dedicated Chrome clusters. 
+          Dynamic Handlebars templating, automatic watermarking, dark mode document styling, and cryptographic SHA-256 ledger stamps.
+        </p>
+
+        <div class="hero-cta-group">
+          <a href="#pricing" class="btn btn-primary btn-lg shadow-glow"><i class="fa-solid fa-bolt"></i> Start Building Free (2,500 PDFs/mo)</a>
+          <a href="http://localhost:3000" target="_blank" class="btn btn-secondary btn-lg"><i class="fa-solid fa-play"></i> Try Interactive Studio</a>
+        </div>
+
+        <div class="hero-trust-bar">
+          <span><i class="fa-solid fa-shield-halved"></i> SOC2 Type II Certified</span>
+          <span><i class="fa-solid fa-gauge-high"></i> 99.99% Uptime Guarantee</span>
+          <span><i class="fa-solid fa-lock"></i> SHA-256 Ledger Stamp</span>
+        </div>
+      </div>
+
+      <!-- HERO CODE TERMINAL DEMO -->
+      <div class="hero-terminal-wrapper">
+        <div class="terminal-card glass-card">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="terminal-tabs">
+              <button class="term-tab active" data-lang="curl">cURL</button>
+              <button class="term-tab" data-lang="node">Node.js / TS</button>
+              <button class="term-tab" data-lang="python">Python</button>
+              <button class="term-tab" data-lang="go">Go</button>
+              <button class="term-tab" data-lang="rust">Rust</button>
+            </div>
+            <button class="copy-term-btn" onclick="copyHeroCode()" title="Copy Code"><i class="fa-regular fa-copy"></i></button>
+          </div>
+
+          <div class="terminal-body">
+            <pre><code id="heroCodeSnippet"></code></pre>
+          </div>
+
+          <div class="terminal-footer">
+            <div class="term-stat"><i class="fa-solid fa-bolt text-cyan"></i> Latency: <strong>184 ms</strong></div>
+            <div class="term-stat"><i class="fa-solid fa-shield-cat text-emerald"></i> Cryptographic Hash: <strong>SHA-256</strong></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- LIVE SPEED BENCHMARK SECTION -->
+  <section id="benchmarks" class="section benchmark-section">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-tag"><i class="fa-solid fa-gauge-high"></i> PERFORMANCE BENCHMARK</div>
+        <h2>Unrivaled Rendering Speed</h2>
+        <p>Built on optimized Chrome headless worker pools with pre-warmed DOM contexts.</p>
+      </div>
+
+      <div class="benchmark-grid glass-card">
+        <div class="bench-item highlight">
+          <div class="bench-info">
+            <span class="bench-name">DocForge API (Dedicated Cluster)</span>
+            <span class="bench-time font-gradient">184 ms</span>
+          </div>
+          <div class="bench-bar-bg"><div class="bench-bar-fill highlight-fill" style="width: 15%;"></div></div>
+        </div>
+
+        <div class="bench-item">
+          <div class="bench-info">
+            <span class="bench-name">Puppeteer Raw Self-Hosted</span>
+            <span class="bench-time">850 ms</span>
+          </div>
+          <div class="bench-bar-bg"><div class="bench-bar-fill" style="width: 60%;"></div></div>
+        </div>
+
+        <div class="bench-item">
+          <div class="bench-info">
+            <span class="bench-name">PDFShift Cloud API</span>
+            <span class="bench-time">980 ms</span>
+          </div>
+          <div class="bench-bar-bg"><div class="bench-bar-fill" style="width: 72%;"></div></div>
+        </div>
+
+        <div class="bench-item">
+          <div class="bench-info">
+            <span class="bench-name">Traditional HTML2PDF Converters</span>
+            <span class="bench-time">1,420 ms</span>
+          </div>
+          <div class="bench-bar-bg"><div class="bench-bar-fill" style="width: 95%;"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCT TOUR SHOWCASE IMAGE SECTION -->
+  <section id="showcase" class="section showcase-section">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-tag"><i class="fa-solid fa-laptop-code"></i> PRODUCT TOUR</div>
+        <h2>Designed for Engineering Teams</h2>
+        <p>Complete visibility into cluster latency, quota usage, and document ledger integrity.</p>
+      </div>
+
+      <div class="showcase-image-wrapper glass-card">
+        <img src="assets/dashboard_mockup.png" alt="DocForge Developer Analytics Dashboard" class="showcase-img" />
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY FEATURES GRID -->
+  <section id="features" class="section features-section">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-tag"><i class="fa-solid fa-cube"></i> ENGINE CAPABILITIES</div>
+        <h2>Everything You Need for Enterprise Documents</h2>
+        <p>From simple receipts to multi-page contracts and Web3 token grants.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card glass-card">
+          <div class="icon-box cyan"><i class="fa-solid fa-bolt"></i></div>
+          <h3>Sub-200ms Headless Engine</h3>
+          <p>Pre-warmed Puppeteer cluster replicas eliminate cold starts, delivering sub-200ms PDF binary generation.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card glass-card">
+          <div class="icon-box purple"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>Cryptographic SHA-256 Stamp</h3>
+          <p>Every rendered document automatically embeds a tamper-proof SHA-256 signature and QR code verification link.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card glass-card">
+          <div class="icon-box emerald"><i class="fa-solid fa-stamp"></i></div>
+          <h3>Dynamic Watermarks & Themes</h3>
+          <p>Overlay <code>CONFIDENTIAL</code> or <code>PAID</code> watermarks and toggle dark mode styling on the fly with 1 API option.</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="feature-card glass-card">
+          <div class="icon-box amber"><i class="fa-solid fa-brackets-curly"></i></div>
+          <h3>Handlebars Template Logic</h3>
+          <p>Full support for dynamic variable interpolation, nested objects, conditional blocks, and <code>{{#each}}</code> array loops.</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="feature-card glass-card">
+          <div class="icon-box rose"><i class="fa-solid fa-copy"></i></div>
+          <h3>Multi-Page CSS Break Support</h3>
+          <p>Native handling of <code>page-break-after</code>, CSS headers, dynamic page counters (e.g. Page 1 of 2), and footers.</p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="feature-card glass-card">
+          <div class="icon-box blue"><i class="fa-solid fa-code"></i></div>
+          <h3>Official Node & Python SDKs</h3>
+          <p>Type-safe client SDKs for TypeScript/Node.js and Python with automatic retry and error handling built-in.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEVELOPER SDK SHOWCASE SECTION -->
+  <section id="sdk" class="section sdk-section">
+    <div class="container">
+      <div class="sdk-card glass-card">
+        <div class="sdk-header">
+          <div>
+            <div class="section-tag"><i class="fa-solid fa-code-branch"></i> DEVELOPER EXPERIENCE</div>
+            <h2>Integrate in 3 Lines of Code</h2>
+            <p>Install via npm or pip and start rendering immediately.</p>
+          </div>
+
+          <div class="sdk-tab-buttons">
+            <button class="sdk-tab active" data-sdk="node"><i class="fa-brands fa-node-js"></i> Node.js / TS</button>
+            <button class="sdk-tab" data-sdk="python"><i class="fa-brands fa-python"></i> Python</button>
+            <button class="sdk-tab" data-sdk="go"><i class="fa-brands fa-golang"></i> Go</button>
+            <button class="sdk-tab" data-sdk="rust"><i class="fa-solid fa-gear"></i> Rust</button>
+          </div>
+        </div>
+
+        <div class="sdk-code-box">
+          <pre><code id="sdkCodeDisplay"></code></pre>
+          <button class="copy-sdk-btn" onclick="copySdkCode()"><i class="fa-regular fa-copy"></i> Copy Snippet</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE PRICING CALCULATOR SECTION -->
+  <section id="pricing" class="section pricing-section">
+    <div class="container">
+      <div class="section-header center">
+        <div class="section-tag"><i class="fa-solid fa-calculator"></i> TRANSPARENT PRICING</div>
+        <h2>Predictable Costs. Scale Seamlessly.</h2>
+        <p>Adjust the slider below to calculate your estimated monthly cost.</p>
+      </div>
+
+      <!-- Pricing Calculator Widget -->
+      <div class="pricing-calculator-card glass-card">
+        <div class="calc-top">
+          <div class="slider-group">
+            <label for="pdfSlider">Monthly PDF Generation Volume:</label>
+            <div class="slider-display font-gradient" id="sliderVolDisplay">25,000 PDFs / mo</div>
+            <input type="range" id="pdfSlider" min="2500" max="500000" step="2500" value="25000" oninput="updatePricingCalculator()" />
+            <div class="slider-ticks">
+              <span>2.5K (Free)</span>
+              <span>100K</span>
+              <span>250K</span>
+              <span>500K+</span>
+            </div>
+          </div>
+
+          <div class="cost-summary-box">
+            <div class="cost-tier-name" id="calcTierName">Growth Plan</div>
+            <div class="cost-price font-gradient" id="calcMonthlyPrice">$49 <span class="period">/ month</span></div>
+            <div class="per-doc-cost" id="calcPerDocCost">$0.0019 per PDF</div>
+          </div>
+        </div>
+
+        <div class="calc-comparison">
+          <div class="comp-box">
+            <span class="comp-title">DocForge API Managed Cluster</span>
+            <span class="comp-val text-emerald" id="docforgeCostVal">$49 / mo</span>
+            <span class="comp-sub">0 server maintenance, sub-200ms latency, zero cold starts</span>
+          </div>
+
+          <div class="comp-box vs-box">
+            <span class="comp-title">Self-Hosted AWS Lambda / Puppeteer</span>
+            <span class="comp-val text-rose" id="selfHostCostVal">$185 / mo</span>
+            <span class="comp-sub">EC2/Lambda invocations + Memory timeouts + Dev Maintenance</span>
+          </div>
+        </div>
+
+        <div class="calc-action">
+          <a href="#" class="btn btn-primary btn-lg shadow-glow"><i class="fa-solid fa-rocket"></i> Start 14-Day Free Trial</a>
+        </div>
+      </div>
+
+      <!-- Static Tier Cards -->
+      <div class="tier-grid">
+        <div class="tier-card glass-card">
+          <div class="tier-badge">DEVELOPER</div>
+          <h3>Free Tier</h3>
+          <div class="tier-price">$0 <span>/ mo</span></div>
+          <ul class="tier-features">
+            <li><i class="fa-solid fa-check text-emerald"></i> 2,500 PDFs per month</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> Full Template Studio Access</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> SHA-256 Ledger Stamp</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> Community Discord Support</li>
+          </ul>
+          <button class="btn btn-outline full-width">Get Started Free</button>
+        </div>
+
+        <div class="tier-card glass-card featured">
+          <div class="featured-badge">MOST POPULAR</div>
+          <div class="tier-badge cyan">GROWTH</div>
+          <h3>Growth Plan</h3>
+          <div class="tier-price">$49 <span>/ mo</span></div>
+          <ul class="tier-features">
+            <li><i class="fa-solid fa-check text-emerald"></i> 25,000 PDFs per month</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> Dedicated Worker Replicas</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> Custom Domain Verification</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> Priority Email Support (1h SLA)</li>
+          </ul>
+          <button class="btn btn-primary full-width shadow-glow">Start Growth Trial</button>
+        </div>
+
+        <div class="tier-card glass-card">
+          <div class="tier-badge purple">ENTERPRISE</div>
+          <h3>Enterprise Cluster</h3>
+          <div class="tier-price">$249 <span>/ mo</span></div>
+          <ul class="tier-features">
+            <li><i class="fa-solid fa-check text-emerald"></i> 250,000+ PDFs per month</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> Private Dedicated VPC Nodes</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> 99.99% SLA Guarantee</li>
+            <li><i class="fa-solid fa-check text-emerald"></i> 24/7 Dedicated Slack Channel</li>
+          </ul>
+          <button class="btn btn-outline full-width">Contact Sales</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <div class="logo-box"><i class="fa-solid fa-file-pdf"></i></div>
+          <span class="brand-title">DocForge<span class="gradient-text">.API</span></span>
+        </div>
+        <p>Developer-first PDF rendering engine & cryptographic ledger verification system.</p>
+        <p class="copyright">&copy; 2026 AlphaSignal Global Ltd. All rights reserved.</p>
+      </div>
+
+      <div class="footer-links-grid">
+        <div class="link-col">
+          <h4>Product</h4>
+          <a href="http://localhost:3000" target="_blank">Template Studio</a>
+          <a href="#benchmarks">Speed Benchmarks</a>
+          <a href="#pricing">Pricing Calculator</a>
+          <a href="http://localhost:4000/v1/health" target="_blank">API Health Status</a>
+        </div>
+
+        <div class="link-col">
+          <h4>Developers</h4>
+          <a href="#sdk">Node.js / TS SDK</a>
+          <a href="#sdk">Python SDK</a>
+          <a href="http://localhost:4000/docs" target="_blank">API Documentation</a>
+          <a href="http://localhost:4000/openapi.json" target="_blank">OpenAPI Specification</a>
+        </div>
+
+        <div class="link-col">
+          <h4>Legal & Safety</h4>
+          <a href="#">Security & SOC2</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">HIPAA Compliance</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

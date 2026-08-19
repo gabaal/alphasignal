@@ -1,0 +1,1282 @@
+{
+  "monitors": [
+    {
+      "id": "mon_auth_service",
+      "name": "Auth & Identity Service",
+      "url": "https://httpbin.org/status/200",
+      "interval_seconds": 60,
+      "status": "UP",
+      "latency_ms": 306,
+      "uptime_pct": 100,
+      "ssl_days_remaining": 210,
+      "last_checked": "2026-07-28T17:51:08.095Z",
+      "consecutive_failures": 0,
+      "created_at": "2026-07-28T14:53:35.047Z"
+    },
+    {
+      "id": "mon_billing_engine",
+      "name": "Stripe Billing Webhook Listener",
+      "url": "https://httpbin.org/status/200",
+      "interval_seconds": 60,
+      "status": "UP",
+      "latency_ms": 580,
+      "uptime_pct": 99.95,
+      "ssl_days_remaining": 145,
+      "last_checked": "2026-07-28T17:51:08.676Z",
+      "consecutive_failures": 0,
+      "created_at": "2026-07-28T14:53:35.047Z"
+    }
+  ],
+  "status_pages": [
+    {
+      "id": "page_default",
+      "slug": "default",
+      "title": "AlphaSignal Global System Status",
+      "company_name": "AlphaSignal Technologies",
+      "logo_url": "/favicon.png",
+      "announcement": "All systems are operating normally across global regions.",
+      "monitors": [
+        "mon_api_core",
+        "mon_auth_service",
+        "mon_billing_engine"
+      ],
+      "is_public": true,
+      "custom_css": "",
+      "created_at": "2026-07-28T14:53:35.047Z"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "inc_1785254558522",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T16:02:38.522Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T16:02:38.522Z"
+    },
+    {
+      "id": "inc_1785254557466",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T16:02:37.466Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T16:02:37.466Z"
+    },
+    {
+      "id": "inc_1785254526734",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T16:02:06.734Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T16:02:06.734Z"
+    },
+    {
+      "id": "inc_1785254526431",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T16:02:06.431Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T16:02:06.431Z"
+    },
+    {
+      "id": "inc_1785254258899",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:57:38.899Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:57:38.899Z"
+    },
+    {
+      "id": "inc_1785254257274",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:57:37.274Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:57:37.274Z"
+    },
+    {
+      "id": "inc_1785254196774",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:56:36.774Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:56:36.774Z"
+    },
+    {
+      "id": "inc_1785254110396",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:55:10.396Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:55:10.396Z"
+    },
+    {
+      "id": "inc_1785253870638",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:51:10.638Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:51:10.638Z"
+    },
+    {
+      "id": "inc_1785253837452",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:50:37.452Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:50:37.452Z"
+    },
+    {
+      "id": "inc_1785253814529",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:50:14.529Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:50:14.529Z"
+    },
+    {
+      "id": "inc_1785253810316",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:50:10.316Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:50:10.316Z"
+    },
+    {
+      "id": "inc_1785253658327",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:47:38.327Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:47:38.327Z"
+    },
+    {
+      "id": "inc_1785253627585",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:47:07.585Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:47:07.585Z"
+    },
+    {
+      "id": "inc_1785253566240",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:46:06.240Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:46:06.240Z"
+    },
+    {
+      "id": "inc_1785253536633",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:45:36.633Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:45:36.633Z"
+    },
+    {
+      "id": "inc_1785253506648",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:45:06.648Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:45:06.648Z"
+    },
+    {
+      "id": "inc_1785253481158",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:44:41.158Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:44:41.158Z"
+    },
+    {
+      "id": "inc_1785253356449",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:42:36.449Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:42:36.449Z"
+    },
+    {
+      "id": "inc_1785253356174",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:42:36.174Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:42:36.174Z"
+    },
+    {
+      "id": "inc_1785253298260",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:41:38.260Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:41:38.260Z"
+    },
+    {
+      "id": "inc_1785253271019",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:41:11.019Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:41:11.019Z"
+    },
+    {
+      "id": "inc_1785253237048",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:40:37.048Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:40:37.048Z"
+    },
+    {
+      "id": "inc_1785253212897",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:40:12.897Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:40:12.897Z"
+    },
+    {
+      "id": "inc_1785253176415",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:39:36.415Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:39:36.415Z"
+    },
+    {
+      "id": "inc_1785253176139",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:39:36.139Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:39:36.139Z"
+    },
+    {
+      "id": "inc_1785253059575",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:37:39.575Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:37:39.575Z"
+    },
+    {
+      "id": "inc_1785253028267",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:37:08.267Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:37:08.267Z"
+    },
+    {
+      "id": "inc_1785252996358",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:36:36.358Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:36:36.358Z"
+    },
+    {
+      "id": "inc_1785252940979",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:35:40.979Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:35:40.979Z"
+    },
+    {
+      "id": "inc_1785252816013",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:33:36.013Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:33:36.013Z"
+    },
+    {
+      "id": "inc_1785252786453",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:33:06.453Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:33:06.453Z"
+    },
+    {
+      "id": "inc_1785252756197",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:32:36.197Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:32:36.197Z"
+    },
+    {
+      "id": "inc_1785252731181",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:32:11.181Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:32:11.181Z"
+    },
+    {
+      "id": "inc_1785252666369",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:31:06.369Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:31:06.369Z"
+    },
+    {
+      "id": "inc_1785252636043",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:30:36.043Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:30:36.043Z"
+    },
+    {
+      "id": "inc_1785252611181",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:30:11.181Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:30:11.181Z"
+    },
+    {
+      "id": "inc_1785252576145",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:29:36.145Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:29:36.145Z"
+    },
+    {
+      "id": "inc_1785252426301",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:27:06.301Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:27:06.301Z"
+    },
+    {
+      "id": "inc_1785252426023",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:27:06.023Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:27:06.023Z"
+    },
+    {
+      "id": "inc_1785252367373",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:26:07.373Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:26:07.373Z"
+    },
+    {
+      "id": "inc_1785252366526",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:26:06.526Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:26:06.526Z"
+    },
+    {
+      "id": "inc_1785252246279",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:24:06.279Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:24:06.279Z"
+    },
+    {
+      "id": "inc_1785252131276",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:22:11.276Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:22:11.276Z"
+    },
+    {
+      "id": "inc_1785251916114",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:18:36.114Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:18:36.114Z"
+    },
+    {
+      "id": "inc_1785251885823",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:18:05.823Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:18:05.823Z"
+    },
+    {
+      "id": "inc_1785251826781",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:17:06.781Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:17:06.781Z"
+    },
+    {
+      "id": "inc_1785251826118",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:17:06.118Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:17:06.118Z"
+    },
+    {
+      "id": "inc_1785251645728",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:14:05.728Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:14:05.728Z"
+    },
+    {
+      "id": "inc_1785251588034",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:13:08.034Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:13:08.034Z"
+    },
+    {
+      "id": "inc_1785251285610",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:08:05.610Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:08:05.610Z"
+    },
+    {
+      "id": "inc_1785251226942",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:07:06.942Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:07:06.942Z"
+    },
+    {
+      "id": "inc_1785251105836",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:05:05.836Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:05:05.836Z"
+    },
+    {
+      "id": "inc_1785251105530",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:05:05.530Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:05:05.530Z"
+    },
+    {
+      "id": "inc_1785251046472",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:04:06.472Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:04:06.472Z"
+    },
+    {
+      "id": "inc_1785251019521",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:03:39.521Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:03:39.521Z"
+    },
+    {
+      "id": "inc_1785250989833",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:03:09.833Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:03:09.833Z"
+    },
+    {
+      "id": "inc_1785250957075",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:02:37.076Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T15:02:37.076Z"
+    },
+    {
+      "id": "inc_1785250895865",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:01:35.865Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:01:35.865Z"
+    },
+    {
+      "id": "inc_1785250895567",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T15:01:35.567Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T15:01:35.567Z"
+    },
+    {
+      "id": "inc_1785250777559",
+      "title": "Recovery: Stripe Billing Webhook Listener",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Stripe Billing Webhook Listener has recovered.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T14:59:37.559Z",
+          "status": "RESOLVED",
+          "message": "Service Stripe Billing Webhook Listener has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T14:59:37.559Z"
+    },
+    {
+      "id": "inc_1785250776405",
+      "title": "Recovery: Auth & Identity Service",
+      "status": "RESOLVED",
+      "impact": "NONE",
+      "description": "Service Auth & Identity Service has recovered.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T14:59:36.405Z",
+          "status": "RESOLVED",
+          "message": "Service Auth & Identity Service has recovered."
+        }
+      ],
+      "created_at": "2026-07-28T14:59:36.405Z"
+    },
+    {
+      "id": "inc_1785250506034",
+      "title": "Outage: Stripe Billing Webhook Listener",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_billing_engine"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T14:55:06.034Z",
+          "status": "INVESTIGATING",
+          "message": "Service Stripe Billing Webhook Listener failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T14:55:06.034Z"
+    },
+    {
+      "id": "inc_1785250453612",
+      "title": "Outage: Auth & Identity Service",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Auth & Identity Service failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_auth_service"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T14:54:13.612Z",
+          "status": "INVESTIGATING",
+          "message": "Service Auth & Identity Service failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T14:54:13.612Z"
+    },
+    {
+      "id": "inc_1785250449402",
+      "title": "Outage: Primary API Gateway",
+      "status": "INVESTIGATING",
+      "impact": "MAJOR",
+      "description": "Service Primary API Gateway failed 2 consecutive healthchecks.",
+      "monitors_affected": [
+        "mon_api_core"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T14:54:09.402Z",
+          "status": "INVESTIGATING",
+          "message": "Service Primary API Gateway failed 2 consecutive healthchecks."
+        }
+      ],
+      "created_at": "2026-07-28T14:54:09.402Z"
+    },
+    {
+      "id": "inc_1785250428743",
+      "title": "Upstream Provider Intermittent Timeout",
+      "status": "INVESTIGATING",
+      "impact": "MINOR",
+      "description": "Investigating high response latency on upstream DNS providers.",
+      "monitors_affected": [],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T14:53:48.743Z",
+          "status": "INVESTIGATING",
+          "message": "Investigating high response latency on upstream DNS providers."
+        }
+      ],
+      "created_at": "2026-07-28T14:53:48.743Z"
+    },
+    {
+      "id": "inc_101",
+      "title": "Scheduled Database Maintenance",
+      "status": "RESOLVED",
+      "impact": "MINOR",
+      "description": "Database optimization routine completed successfully with zero dropped packets.",
+      "monitors_affected": [
+        "mon_api_core"
+      ],
+      "updates": [
+        {
+          "timestamp": "2026-07-28T10:53:35.047Z",
+          "status": "RESOLVED",
+          "message": "Maintenance complete. Performance restored to 100% capacity."
+        },
+        {
+          "timestamp": "2026-07-28T08:53:35.047Z",
+          "status": "IN_PROGRESS",
+          "message": "Executing index rebalancing on primary cluster."
+        }
+      ],
+      "created_at": "2026-07-28T08:53:35.047Z"
+    }
+  ],
+  "api_keys": [
+    {
+      "key": "sentinel_live_demo_key_99",
+      "plan": "pro",
+      "name": "Pro Sentinel API Key",
+      "created_at": "2026-07-28T14:53:35.047Z"
+    },
+    {
+      "key": "sentinel_live_5kfz5f8jfntrh9rn",
+      "plan": "pro",
+      "name": "DevOps Lead",
+      "created_at": "2026-07-28T14:53:48.747Z"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_1785250428749",
+      "email": "devops@techcorp.io",
+      "plan": "pro",
+      "api_key": "sentinel_live_f1l8a7u8gx5yxlos",
+      "created_at": "2026-07-28T14:53:48.749Z"
+    }
+  ]
+}

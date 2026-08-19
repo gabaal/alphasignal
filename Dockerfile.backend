@@ -1,0 +1,29 @@
+FROM node:20-bullseye-slim
+
+# Install Chromium and required font packages for Puppeteer rendering
+RUN apt-get update && apt-get install -y \
+    chromium \
+    fonts-liberation \
+    fonts-roboto \
+    fonts-freefont-ttf \
+    ca-certificates \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Puppeteer environment flags to use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# Copy package manifests and install dependencies
+COPY docforge-backend/package.json ./
+RUN npm install --only=production
+
+# Copy application source code
+COPY docforge-backend/ ./
+
+EXPOSE 4000
+
+CMD ["node", "server.js"]

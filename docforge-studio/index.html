@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocForge API — Developer-First PDF Engine & Template Studio</title>
+  <meta name="description" content="HTML/CSS + JSON to Cryptographically Verified PDF in milliseconds. Live Template Studio, API Playground, and Document Verification Engine." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Handlebars.js and QRCode.js libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="logo-container">
+      <div class="logo-icon"><i class="fa-solid fa-file-pdf"></i></div>
+      <div class="logo-text">
+        <span class="brand-name">DocForge<span class="highlight">.API</span></span>
+        <span class="badge live-badge"><span class="pulse-dot"></span> v2.5.0 Production</span>
+        <span class="badge live-badge" id="wsStatusBadge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; margin-left: 6px;"><i class="fa-solid fa-satellite-dish"></i> WS Live</span>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <button class="nav-btn active" data-tab="studio"><i class="fa-solid fa-code"></i> Template Studio</button>
+      <button class="nav-btn" data-tab="diff"><i class="fa-solid fa-code-compare"></i> Visual Diff</button>
+      <button class="nav-btn" data-tab="playground"><i class="fa-solid fa-terminal"></i> API Playground</button>
+      <button class="nav-btn" data-tab="library"><i class="fa-solid fa-border-all"></i> Preset Library</button>
+      <button class="nav-btn" data-tab="webhooks"><i class="fa-solid fa-satellite-dish"></i> Webhooks & Events</button>
+      <button class="nav-btn" data-tab="verification"><i class="fa-solid fa-shield-halved"></i> Verification Engine</button>
+      <button class="nav-btn" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Usage & Keys</button>
+    </nav>
+
+    <div class="header-actions">
+      <div class="api-key-chip" id="quickApiKey">
+        <i class="fa-solid fa-key"></i> <span id="apiKeyMasked">df_live_8f92a4...</span>
+        <button class="copy-icon-btn" onclick="copyApiKey()" title="Copy API Key"><i class="fa-regular fa-copy"></i></button>
+      </div>
+      <button class="btn btn-primary" onclick="triggerRender(true)"><i class="fa-solid fa-bolt"></i> Re-Render</button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="app-container">
+    
+    <!-- SECTION 1: TEMPLATE STUDIO VIEW -->
+    <section id="tab-studio" class="tab-content active">
+      <!-- DocForge Copilot AI Prompt Bar -->
+      <div class="copilot-prompt-bar" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(16, 185, 129, 0.12)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; padding: 10px 16px; margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
+        <span style="font-weight: 700; color: #818cf8; font-size: 13px; display: flex; align-items: center; gap: 6px; whitespace: nowrap;">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Copilot AI:
+        </span>
+        <input type="text" id="copilotPromptInput" placeholder="Type prompt to generate AI template... e.g. 'Create a mutual NDA contract for tech startup' or 'Medical diagnostic report'" style="flex: 1; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 7px 12px; color: #fff; font-size: 13px; outline: none;" onkeydown="if(event.key==='Enter') triggerCopilotAi()" />
+        <button class="btn btn-primary" onclick="triggerCopilotAi()" id="btnCopilotAi" style="background: linear-gradient(135deg, #6366f1, #10b981); border: none; font-size: 13px; padding: 7px 16px; font-weight: 700;"><i class="fa-solid fa-bolt"></i> Synthesize Template</button>
+      </div>
+
+      <div class="studio-bar">
+        <div class="template-selector">
+          <label><i class="fa-solid fa-layer-group"></i> Active Template:</label>
+          <select id="templatePresetSelect" onchange="loadPresetTemplate(this.value)">
+            <optgroup label="Server DB Templates" id="serverTemplatesGroup">
+              <!-- Dynamically populated from GET /v1/templates -->
+            </optgroup>
+            <optgroup label="Built-In Presets">
+              <option value="saas_invoice">SaaS Tax Invoice (B2B)</option>
+              <option value="certificate">Course Completion Certificate</option>
+              <option value="freelance_receipt">Freelance Service Receipt</option>
+              <option value="nda_agreement">Non-Disclosure Agreement (NDA)</option>
+              <option value="msa_statement">Master Services Agreement (Multi-Page)</option>
+              <option value="token_grant">Web3 Token Vesting Grant</option>
+              <option value="healthcare_report">Medical Diagnostic & Lab Report</option>
+              <option value="realestate_deed">Real Estate Closing Statement</option>
+              <option value="payslip_statement">Employee Payroll Advice & Payslip</option>
+              <option value="event_ticket">VIP Tech Summit Pass & Badge</option>
+            </optgroup>
+          </select>
+          <button class="btn btn-icon-only" onclick="syncServerTemplates()" title="Refresh Server Templates"><i class="fa-solid fa-arrows-rotate"></i></button>
+        </div>
+
+        <!-- Custom Studio Controls: Watermarking & Theme Palette -->
+        <div class="studio-customize-controls">
+          <div class="ctrl-item">
+            <label><i class="fa-solid fa-stamp"></i> Watermark:</label>
+            <select id="watermarkSelect" onchange="triggerRender(true)">
+              <option value="none">None</option>
+              <option value="CONFIDENTIAL">CONFIDENTIAL</option>
+              <option value="DRAFT">DRAFT</option>
+              <option value="PAID">PAID</option>
+              <option value="SAMPLE">SAMPLE</option>
+            </select>
+          </div>
+
+          <div class="ctrl-item">
+            <label><i class="fa-solid fa-palette"></i> Document Mode:</label>
+            <select id="pdfThemeSelect" onchange="triggerRender(true)">
+              <option value="light">Classic Light</option>
+              <option value="dark">Cyber Dark</option>
+              <option value="emerald">Emerald Clean</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="studio-status">
+          <span class="stat-pill"><i class="fa-solid fa-gauge-high"></i> Latency: <strong id="estLatency">185 ms</strong></span>
+          <span class="stat-pill" id="clusterStatusPill"><i class="fa-solid fa-server"></i> API: <strong style="color:#10b981;">Connected</strong></span>
+        </div>
+
+        <div class="studio-actions">
+          <button class="btn btn-secondary" onclick="resetStudioEditors()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          <button class="btn btn-secondary" style="background:#059669; color:#fff;" onclick="pushCurrentTemplateToServer()"><i class="fa-solid fa-cloud-arrow-up"></i> Save to Server DB</button>
+          <button class="btn btn-accent" onclick="triggerRender(true)"><i class="fa-solid fa-play"></i> Render PDF</button>
+          <button class="btn btn-success" onclick="downloadCompiledPdf()"><i class="fa-solid fa-download"></i> Download PDF</button>
+        </div>
+      </div>
+
+      <div class="studio-grid">
+        <!-- LEFT: Code Editors -->
+        <div class="editor-pane">
+          <div class="pane-tabs">
+            <button class="editor-tab active" data-editor="html"><i class="fa-brands fa-html5"></i> HTML Template</button>
+            <button class="editor-tab" data-editor="css"><i class="fa-brands fa-css3-alt"></i> CSS Styles</button>
+            <button class="editor-tab" data-editor="json"><i class="fa-solid fa-brackets-curly"></i> JSON Variables</button>
+          </div>
+
+          <div class="editor-content-area">
+            <!-- HTML Editor Area -->
+            <div id="editor-html-container" class="editor-view active">
+              <textarea id="htmlEditor" spellcheck="false" oninput="debounceRender()"></textarea>
+            </div>
+
+            <!-- CSS Editor Area -->
+            <div id="editor-css-container" class="editor-view">
+              <textarea id="cssEditor" spellcheck="false" oninput="debounceRender()"></textarea>
+            </div>
+
+            <!-- JSON Editor Area -->
+            <div id="editor-json-container" class="editor-view">
+              <textarea id="jsonEditor" spellcheck="false" oninput="debounceRender()"></textarea>
+            </div>
+          </div>
+
+          <div class="pane-footer">
+            <span class="info-text"><i class="fa-solid fa-circle-info"></i> Supports Handlebars syntax (e.g. <code>{{invoice.total}}</code>, <code>{{#each items}}</code>)</span>
+            <button class="btn-text" onclick="generateMockDataFromHtml()"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Generate Mock Data</button>
+            <button class="btn-text" onclick="validateJsonSchema()"><i class="fa-solid fa-check-double"></i> Validate Schema</button>
+            <button class="btn-text" onclick="formatJsonEditor()"><i class="fa-solid fa-align-left"></i> Format</button>
+          </div>
+        </div>
+
+        <!-- RIGHT: Live Document Preview Canvas -->
+        <div class="preview-pane">
+          <div class="preview-header">
+            <span class="preview-title"><i class="fa-solid fa-eye"></i> Live PDF Canvas Preview</span>
+            <div class="canvas-controls">
+              <span id="pageCountDisplay" class="page-indicator">1 Page (A4 Portrait)</span>
+              <button class="icon-btn" onclick="zoomPreview(0.1)" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+              <button class="icon-btn" onclick="zoomPreview(-0.1)" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+              <button class="icon-btn" onclick="resetZoom()" title="Reset Zoom"><i class="fa-solid fa-expand"></i></button>
+            </div>
+          </div>
+
+          <div class="preview-viewport-wrapper">
+            <div id="previewCanvas" class="paper-canvas">
+              <iframe id="renderFrame" title="PDF Render Result"></iframe>
+            </div>
+          </div>
+
+          <!-- Document Signature Verification Footer -->
+          <div class="verification-stamp-bar" id="stampBar">
+            <div class="stamp-info">
+              <div id="qrCodeContainer" class="qr-box"></div>
+              <div class="stamp-meta">
+                <div class="stamp-title"><i class="fa-solid fa-certificate"></i> DocForge Cryptographic Stamp</div>
+                <div class="stamp-hash">SHA-256: <span id="docHashValue">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span></div>
+                <div class="stamp-time">Verified Issued: <span id="docTimestamp">2026-07-22 14:24:00 UTC</span></div>
+              </div>
+            </div>
+            <button class="btn btn-outline-sm" onclick="verifyCurrentDocument()"><i class="fa-solid fa-circle-check"></i> Verify Ledger</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: API PLAYGROUND VIEW -->
+    <section id="tab-playground" class="tab-content">
+      <div class="playground-layout">
+        <div class="api-config-panel">
+          <h3><i class="fa-solid fa-sliders"></i> Request Parameters</h3>
+          
+          <div class="form-group">
+            <label>API Endpoint</label>
+            <div class="endpoint-input">
+              <span class="method-tag post">POST</span>
+              <input type="text" value="http://localhost:4000/v1/render" readonly />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Response Format</label>
+            <select id="apiResponseType" onchange="generateSnippetCode()">
+              <option value="binary">application/pdf (Binary Stream)</option>
+              <option value="json">application/json (Signed Download URL)</option>
+              <option value="base64">application/json (Base64 String)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Page Format & Orientation</label>
+            <div class="grid-2col">
+              <select id="apiPageFormat" onchange="generateSnippetCode()">
+                <option value="A4">A4 (210 x 297 mm)</option>
+                <option value="Letter">US Letter (8.5 x 11 in)</option>
+                <option value="Legal">US Legal</option>
+              </select>
+              <select id="apiOrientation" onchange="generateSnippetCode()">
+                <option value="portrait">Portrait</option>
+                <option value="landscape">Landscape</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Security & Customization Options</label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="chkSignature" checked onchange="generateSnippetCode()" />
+              Embed SHA-256 & QR Verification Stamp
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="chkWatermark" onchange="generateSnippetCode()" />
+              Add Confidential Watermark
+            </label>
+          </div>
+
+          <button class="btn btn-accent full-width" onclick="executeApiCall()"><i class="fa-solid fa-paper-plane"></i> Send API Request</button>
+        </div>
+
+        <div class="code-generator-panel">
+          <div class="panel-header">
+            <div class="lang-selector">
+              <button class="lang-btn active" data-lang="curl">cURL</button>
+              <button class="lang-btn" data-lang="node">Node.js / TS</button>
+              <button class="lang-btn" data-lang="python">Python</button>
+            </div>
+            <button class="btn-text" onclick="copySnippet()"><i class="fa-regular fa-copy"></i> Copy Code</button>
+          </div>
+
+          <div class="snippet-box">
+            <pre><code id="codeSnippetText"></code></pre>
+          </div>
+
+          <!-- Live API Execution Output Console -->
+          <div class="console-box">
+            <div class="console-header">
+              <span><i class="fa-solid fa-terminal"></i> Response Console</span>
+              <span id="responseBadge" class="status-badge ready">Ready</span>
+            </div>
+            <div class="console-meta-bar" id="consoleMeta">
+              <span>Status: <strong>--</strong></span>
+              <span>Time: <strong>--</strong></span>
+              <span>Hash: <strong>--</strong></span>
+            </div>
+            <pre id="consoleOutput" class="console-body">// Press 'Send API Request' to test execution against Node.js Puppeteer cluster.</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: PRESET LIBRARY VIEW -->
+    <section id="tab-library" class="tab-content">
+      <div class="section-title">
+        <h2>Production Document Templates (10 Presets)</h2>
+        <p>Pre-designed, responsive HTML/CSS templates optimized for instant compilation.</p>
+      </div>
+
+      <div class="template-card-grid">
+        <!-- Card 1 -->
+        <div class="template-card">
+          <div class="card-preview invoice-thumb">
+            <div class="thumb-header">INVOICE</div>
+            <div class="thumb-lines"></div>
+            <div class="thumb-table"></div>
+          </div>
+          <div class="card-body">
+            <h3>SaaS B2B Tax Invoice</h3>
+            <p>VAT/GST ready invoice template with line item tables, discounts, and payment terms.</p>
+            <div class="card-footer">
+              <span class="tag">Finance</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('saas_invoice')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="template-card">
+          <div class="card-preview cert-thumb">
+            <div class="thumb-border"></div>
+            <div class="thumb-cert-title">CERTIFICATE</div>
+          </div>
+          <div class="card-body">
+            <h3>Course Certificate of Completion</h3>
+            <p>Elegant certificate design with decorative borders, achievement badges, and instructor signature.</p>
+            <div class="card-footer">
+              <span class="tag">EdTech</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('certificate')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="template-card">
+          <div class="card-preview receipt-thumb">
+            <div class="thumb-header">RECEIPT</div>
+            <div class="thumb-lines"></div>
+          </div>
+          <div class="card-body">
+            <h3>Freelance Service Receipt</h3>
+            <p>Minimalist receipt for consultants and agency invoicing with instant payment verification.</p>
+            <div class="card-footer">
+              <span class="tag">Services</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('freelance_receipt')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="template-card">
+          <div class="card-preview nda-thumb">
+            <div class="thumb-doc"></div>
+          </div>
+          <div class="card-body">
+            <h3>Non-Disclosure Agreement (NDA)</h3>
+            <p>Formal legal agreement with dynamic party variables, effective date, and signature placeholders.</p>
+            <div class="card-footer">
+              <span class="tag">Legal</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('nda_agreement')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="template-card">
+          <div class="card-preview msa-thumb">
+            <div class="thumb-badge">MULTI-PAGE</div>
+            <div class="thumb-lines"></div>
+          </div>
+          <div class="card-body">
+            <h3>Master Services Agreement (MSA)</h3>
+            <p>Comprehensive multi-page contract with CSS page breaks, terms, and Statement of Work (SOW).</p>
+            <div class="card-footer">
+              <span class="tag accent-purple">Enterprise</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('msa_statement')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="template-card">
+          <div class="card-preview token-thumb">
+            <div class="thumb-header">WEB3 GRANT</div>
+            <div class="thumb-lines"></div>
+          </div>
+          <div class="card-body">
+            <h3>Web3 Token Vesting Grant</h3>
+            <p>Modern crypto token allocation statement with wallet address verification and cliff schedules.</p>
+            <div class="card-footer">
+              <span class="tag accent-cyan">Crypto / Web3</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('token_grant')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7 -->
+        <div class="template-card">
+          <div class="card-preview health-thumb">
+            <div class="thumb-header">MEDICAL REPORT</div>
+            <div class="thumb-lines"></div>
+          </div>
+          <div class="card-body">
+            <h3>Medical Diagnostic & Lab Report</h3>
+            <p>Clinical report with patient vitals, lab result metric ranges, physician signature, and HIPAA stamp.</p>
+            <div class="card-footer">
+              <span class="tag accent-rose">Healthcare</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('healthcare_report')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 8 -->
+        <div class="template-card">
+          <div class="card-preview realestate-thumb">
+            <div class="thumb-header">CLOSING DEED</div>
+            <div class="thumb-lines"></div>
+          </div>
+          <div class="card-body">
+            <h3>Real Estate Closing Statement</h3>
+            <p>Commercial property closing statement with parcel IDs, escrow breakdowns, and notary blocks.</p>
+            <div class="card-footer">
+              <span class="tag accent-amber">Real Estate</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('realestate_deed')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 9 -->
+        <div class="template-card">
+          <div class="card-preview pay-thumb">
+            <div class="thumb-header">PAYSLIP</div>
+            <div class="thumb-lines"></div>
+          </div>
+          <div class="card-body">
+            <h3>Employee Payroll Advice & Payslip</h3>
+            <p>Corporate payslip with earnings breakdown, tax/401k deductions, and net pay summaries.</p>
+            <div class="card-footer">
+              <span class="tag accent-emerald">HR & Payroll</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('payslip_statement')">Use Template</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 10 -->
+        <div class="template-card">
+          <div class="card-preview ticket-thumb">
+            <div class="thumb-header">VIP PASS</div>
+            <div class="thumb-lines"></div>
+          </div>
+          <div class="card-body">
+            <h3>VIP Tech Summit Pass & Badge</h3>
+            <p>Modern event admission pass with attendee QR codes, track access levels, and venue details.</p>
+            <div class="card-footer">
+              <span class="tag accent-cyan">Events</span>
+              <button class="btn btn-outline-sm" onclick="loadPresetAndSwitch('event_ticket')">Use Template</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: WEBHOOKS & EVENTS SIMULATOR VIEW (NEW) -->
+    <section id="tab-webhooks" class="tab-content">
+      <div class="playground-layout">
+        
+        <!-- Left: Webhook Config Panel -->
+        <div class="api-config-panel">
+          <h3><i class="fa-solid fa-satellite-dish"></i> Webhook Configuration</h3>
+
+          <div class="form-group">
+            <label>Target Webhook Endpoint URL</label>
+            <input type="text" id="webhookTargetUrl" value="http://localhost:4000/v1/webhooks/simulator" class="input-text" />
+          </div>
+
+          <div class="form-group">
+            <label>HMAC Signing Secret</label>
+            <div class="endpoint-input">
+              <input type="text" id="webhookSecret" value="whsec_99182301923a88f2" readonly />
+              <button class="copy-icon-btn" onclick="generateNewWebhookSecret()" title="Regenerate Secret"><i class="fa-solid fa-arrows-rotate"></i></button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Subscribed Event Types</label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="evRendered" checked />
+              <code>document.rendered</code> (PDF compilation finished)
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="evBatch" checked />
+              <code>batch.completed</code> (Async batch rendering finished)
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="evVerified" checked />
+              <code>document.verified</code> (Ledger SHA-256 hash verified)
+            </label>
+          </div>
+
+          <div class="grid-2col">
+            <button class="btn btn-accent" onclick="triggerTestWebhook('document.rendered')"><i class="fa-solid fa-paper-plane"></i> Test document.rendered</button>
+            <button class="btn btn-secondary" style="background:#8b5cf6; color:#fff;" onclick="triggerTestWebhook('batch.completed')"><i class="fa-solid fa-layer-group"></i> Test batch.completed</button>
+          </div>
+        </div>
+
+        <!-- Right: Webhook Delivery Log Console -->
+        <div class="code-generator-panel">
+          <div class="panel-header">
+            <span class="preview-title"><i class="fa-solid fa-list-check"></i> Real-Time Webhook Delivery Logs</span>
+            <button class="btn-text" onclick="clearWebhookLogs()"><i class="fa-solid fa-trash-can"></i> Clear Logs</button>
+          </div>
+
+          <div class="panel-box" style="padding:0; border:none; background:transparent;">
+            <table class="data-table" id="webhookLogsTable">
+              <thead>
+                <tr>
+                  <th>Event ID</th>
+                  <th>Event Type</th>
+                  <th>Status</th>
+                  <th>Latency</th>
+                  <th>HMAC Signature Header</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="webhookLogRows">
+                <tr>
+                  <td><code>evt_88912a</code></td>
+                  <td><span class="tag accent-cyan">document.rendered</span></td>
+                  <td><span class="badge live-badge">200 OK</span></td>
+                  <td>42 ms</td>
+                  <td><code class="code-sm">t=1784717,v1=991823...</code></td>
+                  <td>Just now</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Webhook Payload Inspector -->
+          <div class="console-box" style="margin-top:20px;">
+            <div class="console-header">
+              <span><i class="fa-solid fa-code"></i> Webhook Request JSON Payload & HMAC Signature</span>
+              <span id="webhookPayloadBadge" class="status-badge success">Signed HMAC-SHA256</span>
+            </div>
+            <pre id="webhookPayloadConsole" class="console-body">// Click 'Test document.rendered' to simulate a live signed Webhook delivery.</pre>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 5: VERIFICATION ENGINE VIEW -->
+    <section id="tab-verification" class="tab-content">
+      <div class="verification-hero">
+        <div class="hero-icon"><i class="fa-solid fa-shield-cat"></i></div>
+        <h2>Cryptographic Document Verification Engine</h2>
+        <p>Verify document authenticity, issuance timestamp, and SHA-256 integrity against the DocForge ledger.</p>
+
+        <div class="search-hash-box">
+          <input type="text" id="hashSearchInput" placeholder="Paste document SHA-256 hash or scan verification code..." value="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" />
+          <button class="btn btn-primary" onclick="lookupHash()"><i class="fa-solid fa-magnifying-glass"></i> Verify Document</button>
+        </div>
+      </div>
+
+      <div id="verificationResultCard" class="result-card verified">
+        <div class="result-header">
+          <div class="status-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <h3>DOCUMENT IS AUTHENTIC & VALID</h3>
+            <p class="subtitle">Issued via DocForge API Gateway on July 22, 2026</p>
+          </div>
+        </div>
+
+        <div class="result-grid">
+          <div class="res-item">
+            <label>SHA-256 Hash</label>
+            <div class="res-val code-text" id="resHash">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</div>
+          </div>
+          <div class="res-item">
+            <label>Issuer Organization</label>
+            <div class="res-val" id="resIssuer">AlphaSignal Global Ltd (Account ID: acct_8829a)</div>
+          </div>
+          <div class="res-item">
+            <label>Template Identifier</label>
+            <div class="res-val" id="resTemplate">tpl_inv_8821a9 (SaaS Tax Invoice B2B)</div>
+          </div>
+          <div class="res-item">
+            <label>Tamper Check</label>
+            <div class="res-val text-success"><i class="fa-solid fa-lock"></i> 0 Modifications (Byte stream matches original cryptographic signature)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: USAGE & KEYS DASHBOARD -->
+    <section id="tab-dashboard" class="tab-content">
+      <div class="dashboard-grid">
+        <!-- Stat Cards -->
+        <div class="metric-card">
+          <div class="metric-title">Monthly Quota Used</div>
+          <div class="metric-value">2,150 <span class="metric-unit">/ 25,000</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 8.6%;"></div></div>
+          <div class="metric-footer">Growth Plan Tier (Resets in 9 days)</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Avg Render Latency</div>
+          <div class="metric-value">184 <span class="metric-unit">ms</span></div>
+          <div class="metric-footer text-success"><i class="fa-solid fa-arrow-down"></i> 14ms faster than target SLA</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Render Success Rate</div>
+          <div class="metric-value">99.98%</div>
+          <div class="metric-footer text-success"><i class="fa-solid fa-circle-check"></i> All cluster nodes operational</div>
+        </div>
+      </div>
+
+      <!-- API Key Management -->
+      <div class="panel-box">
+        <h3><i class="fa-solid fa-key"></i> Active API Keys</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Key Name</th>
+              <th>Environment</th>
+              <th>Prefix</th>
+              <th>Created</th>
+              <th>Last Used</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Production Key (Main App)</strong></td>
+              <td><span class="badge live-badge">Live</span></td>
+              <td><code>df_live_8f92...</code></td>
+              <td>2026-06-01</td>
+              <td>2 seconds ago</td>
+              <td><button class="btn btn-outline-sm danger" onclick="revokeKeyAlert()">Revoke</button></td>
+            </tr>
+            <tr>
+              <td><strong>Staging & Test Key</strong></td>
+              <td><span class="badge test-badge">Test</span></td>
+              <td><code>df_test_3a11...</code></td>
+              <td>2026-06-15</td>
+              <td>1 hour ago</td>
+              <td><button class="btn btn-outline-sm danger" onclick="revokeKeyAlert()">Revoke</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 7: VISUAL DIFF COMPARATOR VIEW -->
+    <section id="tab-diff" class="tab-content">
+      <div class="diff-container">
+        <div class="diff-bar">
+          <div class="diff-select-group">
+            <label><i class="fa-solid fa-file-code"></i> Base Version (A):</label>
+            <select id="diffVersionA" onchange="runVisualDiff()">
+              <option value="saas_invoice">SaaS Tax Invoice (v1 Default)</option>
+              <option value="certificate">Course Completion Certificate</option>
+              <option value="freelance_receipt">Freelance Service Receipt</option>
+              <option value="nda_agreement">Non-Disclosure Agreement (NDA)</option>
+            </select>
+          </div>
+
+          <div class="diff-vs-badge"><i class="fa-solid fa-arrow-right-arrow-left"></i> VS</div>
+
+          <div class="diff-select-group">
+            <label><i class="fa-solid fa-file-pen"></i> Target Version (B):</label>
+            <select id="diffVersionB" onchange="runVisualDiff()">
+              <option value="current_editor">Current Studio Editor (Live Work-in-Progress)</option>
+              <option value="saas_invoice_dark">SaaS Invoice (v2 Dark Theme)</option>
+              <option value="msa_statement">Master Services Agreement (v2 Multi-Page)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" onclick="runVisualDiff()"><i class="fa-solid fa-rotate"></i> Compare Layouts</button>
+        </div>
+
+        <div class="diff-summary-card">
+          <div class="diff-stat"><i class="fa-solid fa-magnifying-glass"></i> Status: <strong id="diffStatus" style="color:#f59e0b;">Comparison Active</strong></div>
+          <div class="diff-stat"><i class="fa-solid fa-font"></i> Structural Elements: <strong id="diffElements">A: 14 nodes vs B: 18 nodes</strong></div>
+          <div class="diff-stat"><i class="fa-solid fa-shield-halved"></i> Hash Delta: <code id="diffHashDelta">a98b21... ➔ f41e88...</code></div>
+        </div>
+
+        <div class="diff-viewport">
+          <div class="diff-pane">
+            <div class="pane-title"><i class="fa-solid fa-cube"></i> Version A (Base Layout)</div>
+            <iframe id="diffFrameA" class="diff-iframe" title="Version A"></iframe>
+          </div>
+          <div class="diff-pane">
+            <div class="pane-title" style="color: #6366f1;"><i class="fa-solid fa-cube"></i> Version B (Target / Updated Layout)</div>
+            <iframe id="diffFrameB" class="diff-iframe" title="Version B"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification System -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

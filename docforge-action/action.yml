@@ -1,0 +1,42 @@
+name: 'DocForge PDF Generator'
+description: 'Automate PDF document generation, release notes, and compliance reports using DocForge API Engine.'
+author: 'DocForge Team'
+
+inputs:
+  api_key:
+    description: 'DocForge API Secret Key'
+    required: true
+  html:
+    description: 'Inline HTML content or template layout string'
+    required: false
+  css:
+    description: 'Custom CSS styles'
+    required: false
+  data:
+    description: 'JSON string of data variables for Handlebars interpolation'
+    required: false
+  template_id:
+    description: 'Server-side template ID'
+    required: false
+  output_path:
+    description: 'Local file path to save the generated PDF artifact'
+    required: false
+    default: 'output.pdf'
+  server_url:
+    description: 'DocForge API server endpoint URL'
+    required: false
+    default: 'http://localhost:4000'
+
+outputs:
+  document_hash:
+    description: 'SHA-256 cryptographic hash of the rendered PDF document'
+  render_time_ms:
+    description: 'Server-side PDF render latency in milliseconds'
+
+runs:
+  using: 'node20'
+  main: 'index.js'
+
+branding:
+  icon: 'file-text'
+  color: 'green'

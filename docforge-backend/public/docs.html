@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocForge API Documentation — Interactive OpenAPI Explorer</title>
+  <link rel="icon" type="image/svg+xml" href="http://localhost:3000/favicon.svg" />
+  
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Swagger UI CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css" />
+
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --cyan-accent: #38bdf8;
+      --indigo-accent: #6366f1;
+      --emerald-accent: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Top Navigation Header */
+    .docs-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      padding: 0 24px;
+      background: #090d16;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-box {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .brand-title span {
+      color: var(--cyan-accent);
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .header-links a:hover {
+      color: var(--cyan-accent);
+    }
+
+    .btn-pill {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--cyan-accent) !important;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    /* Swagger UI Dark Mode Theme Overrides */
+    #swagger-ui {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+
+    .swagger-ui {
+      color: var(--text-main);
+    }
+
+    .swagger-ui .topbar { display: none; }
+    .swagger-ui .info { margin: 20px 0; }
+    .swagger-ui .info .title { color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; }
+    .swagger-ui .info p, .swagger-ui .info td, .swagger-ui .info li { color: var(--text-muted); }
+    .swagger-ui .scheme-container { background: var(--bg-card); box-shadow: none; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+    .swagger-ui select { background: #0f172a; color: #fff; border-color: #334155; }
+
+    .swagger-ui .opblock { border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); background: var(--bg-card); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    .swagger-ui .opblock .opblock-summary-method { border-radius: 6px; font-family: 'Fira Code', monospace; }
+    .swagger-ui .opblock .opblock-summary-path { color: #fff; font-family: 'Fira Code', monospace; font-weight: 600; }
+    .swagger-ui .opblock .opblock-summary-description { color: var(--text-muted); }
+    .swagger-ui .opblock-body pre { background: #090d16 !important; color: #38bdf8 !important; border-radius: 8px; font-family: 'Fira Code', monospace; }
+    
+    .swagger-ui table thead tr th, .swagger-ui table thead tr td { color: #fff; border-bottom-color: #334155; }
+    .swagger-ui .parameter__name { color: var(--cyan-accent); font-family: 'Fira Code', monospace; }
+    .swagger-ui .parameter__type { color: var(--text-muted); }
+    
+    .swagger-ui .btn.execute { background: #2563eb; color: #fff; border-radius: 8px; font-weight: bold; border: none; }
+    .swagger-ui .btn.execute:hover { background: #1d4ed8; }
+
+    .swagger-ui .opblock-post { border-color: rgba(56, 189, 248, 0.3); background: rgba(15, 23, 42, 0.8); }
+    .swagger-ui .opblock-post .opblock-summary-method { background: #0284c7; }
+    .swagger-ui .opblock-get { border-color: rgba(16, 185, 129, 0.3); background: rgba(15, 23, 42, 0.8); }
+    .swagger-ui .opblock-get .opblock-summary-method { background: #059669; }
+    
+    .swagger-ui .dialog-ux .modal-ux { background: #0f172a; border: 1px solid #334155; color: #fff; }
+    .swagger-ui input[type="text"] { background: #090d16; color: #fff; border: 1px solid #334155; border-radius: 6px; padding: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="docs-header">
+    <div class="brand-logo">
+      <div class="logo-box"><i class="fa-solid fa-file-pdf"></i></div>
+      <span class="brand-title">DocForge<span>.Docs</span></span>
+    </div>
+
+    <div class="header-links">
+      <a href="http://localhost:3001" target="_blank"><i class="fa-solid fa-house"></i> Landing Page</a>
+      <a href="http://localhost:3000" target="_blank" class="btn-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> Open Template Studio</a>
+      <a href="http://localhost:4000/v1/health" target="_blank"><i class="fa-solid fa-heart-pulse"></i> Cluster Health</a>
+    </div>
+  </header>
+
+  <!-- Swagger UI Mount Point -->
+  <div id="swagger-ui"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-standalone-preset.min.js"></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: '/openapi.json',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "BaseLayout",
+        requestInterceptor: (req) => {
+          // Automatically inject default API key if header is not present
+          if (!req.headers['X-DocForge-Key'] && !req.headers['x-docforge-key'] && !req.headers['authorization']) {
+            req.headers['X-DocForge-Key'] = 'df_live_swagger_demo_key_991823';
+          }
+          return req;
+        },
+        onComplete: () => {
+          // Pre-authorize Swagger UI for interactive execution
+          if (window.ui && window.ui.preauthorizeApiKey) {
+            window.ui.preauthorizeApiKey('ApiKeyAuth', 'df_live_swagger_demo_key_991823');
+          }
+        }
+      });
+    };
+  </script>
+</body>
+</html>

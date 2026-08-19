@@ -1,0 +1,735 @@
+{
+  "api_keys": {
+    "gex_live_pro_master_key_991823": {
+      "key_id": "key_master_001",
+      "key": "gex_live_pro_master_key_991823",
+      "plan": "pro_quant",
+      "name": "Master Pro Quant Trader Account",
+      "created_at": "2026-07-27T10:35:26.704Z",
+      "requests_today": 52,
+      "rate_limit_per_min": 1000,
+      "last_used_at": "2026-07-27T11:36:00.225Z",
+      "last_ip": "127.0.0.1",
+      "webhooks": {
+        "discord": "https://discord.com/api/webhooks/simulator",
+        "telegram_chat_id": "",
+        "telegram_bot_token": "",
+        "slack": ""
+      }
+    },
+    "gex_live_869e0887fda8dc8e4955760810340db9": {
+      "key_id": "key_869c665a96db",
+      "key": "gex_live_869e0887fda8dc8e4955760810340db9",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T10:35:28.455Z",
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_971627d39bca8fc2d41fc10a707d89fd": {
+      "key_id": "key_be648b2c9855",
+      "key": "gex_live_971627d39bca8fc2d41fc10a707d89fd",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T10:35:28.457Z",
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_9cbc2aef8358cc0558c014586c83d22c": {
+      "key_id": "key_15d7482cb880",
+      "key": "gex_live_9cbc2aef8358cc0558c014586c83d22c",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T10:35:28.459Z",
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_7d53f943a9679e3156dff8ecb7147f0a": {
+      "key_id": "key_f74325f577a1",
+      "key": "gex_live_7d53f943a9679e3156dff8ecb7147f0a",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T11:25:24.155Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_2ec04fb1e8d5830b55ce10b41c84cc95": {
+      "key_id": "key_d26773028bf0",
+      "key": "gex_live_2ec04fb1e8d5830b55ce10b41c84cc95",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T11:25:24.157Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_84d2888d32f9dfadbbc93b477347587d": {
+      "key_id": "key_166a24d9551a",
+      "key": "gex_live_84d2888d32f9dfadbbc93b477347587d",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T11:25:24.158Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_006b5b6f379ae554adc6e2bd5d7e1ccb": {
+      "key_id": "key_efa847996bf7",
+      "key": "gex_live_006b5b6f379ae554adc6e2bd5d7e1ccb",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T11:32:41.197Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_3ea60fad13e7a338f166a4eca4d71b4c": {
+      "key_id": "key_f0208688c187",
+      "key": "gex_live_3ea60fad13e7a338f166a4eca4d71b4c",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T11:32:41.199Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_4effb9b392fa52e3bffb5212ff10da6b": {
+      "key_id": "key_954a7ebba4bf",
+      "key": "gex_live_4effb9b392fa52e3bffb5212ff10da6b",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T11:32:41.201Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_bc7c49c400c1375f98feb3442d45bff8": {
+      "key_id": "key_cf7d3a0f3b28",
+      "key": "gex_live_bc7c49c400c1375f98feb3442d45bff8",
+      "plan": "pro_quant",
+      "name": "Subscriber quant@trader.io",
+      "created_at": "2026-07-27T11:33:35.681Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_43b2491f906a8f74a2b8217ff46c324d": {
+      "key_id": "key_4fc6d8cbe58c",
+      "key": "gex_live_43b2491f906a8f74a2b8217ff46c324d",
+      "plan": "pro_quant",
+      "name": "Stripe User: quant@trader.io",
+      "created_at": "2026-07-27T11:33:37.849Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_37a6bf1f3fc813046659b3c7b5ee0c31": {
+      "key_id": "key_7861d801db58",
+      "key": "gex_live_37a6bf1f3fc813046659b3c7b5ee0c31",
+      "plan": "starter",
+      "name": "Subscriber quant@trader.io",
+      "created_at": "2026-07-27T11:35:52.381Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 120
+    },
+    "gex_live_c909473f963230b73830fda67eff5133": {
+      "key_id": "key_32b063851fd8",
+      "key": "gex_live_c909473f963230b73830fda67eff5133",
+      "plan": "starter",
+      "name": "Stripe User: quant@trader.io",
+      "created_at": "2026-07-27T11:35:58.107Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 120
+    },
+    "gex_live_16972ef03eab201e2b66ce8e07d5cb22": {
+      "key_id": "key_dc4cf23cc398",
+      "key": "gex_live_16972ef03eab201e2b66ce8e07d5cb22",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T11:38:34.155Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_f740f6b4a6606b5d751980bbfb27af38": {
+      "key_id": "key_f1cf3120fdb0",
+      "key": "gex_live_f740f6b4a6606b5d751980bbfb27af38",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T11:38:34.157Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_965a0ff03384b13629fb731c58aafc14": {
+      "key_id": "key_e901b4757dae",
+      "key": "gex_live_965a0ff03384b13629fb731c58aafc14",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T11:38:34.160Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_84c90451571ba3101a2c59e6bd48fe2b": {
+      "key_id": "key_c37f3f3fdaee",
+      "key": "gex_live_84c90451571ba3101a2c59e6bd48fe2b",
+      "plan": "pro_quant",
+      "name": "Subscriber quant@trader.io",
+      "created_at": "2026-07-27T11:40:17.235Z",
+      "last_used_at": "2026-07-27T11:41:13.909Z",
+      "last_ip": "127.0.0.1",
+      "requests_today": 6,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_d2fc1ffd749072a5dc1e86ac1a2f5827": {
+      "key_id": "key_ee3ccd72864a",
+      "key": "gex_live_d2fc1ffd749072a5dc1e86ac1a2f5827",
+      "plan": "pro_quant",
+      "name": "Stripe User: quant@trader.io",
+      "created_at": "2026-07-27T11:40:24.937Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_436eb8396a84f08752e130c784d689fc": {
+      "key_id": "key_b3f81c6f6501",
+      "key": "gex_live_436eb8396a84f08752e130c784d689fc",
+      "plan": "pro_quant",
+      "name": "Subscriber quant@trader.io",
+      "created_at": "2026-07-27T11:40:50.260Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_79fb2ab8c3f80e07847df90e8de42f25": {
+      "key_id": "key_dc1c025f464a",
+      "key": "gex_live_79fb2ab8c3f80e07847df90e8de42f25",
+      "plan": "pro_quant",
+      "name": "Stripe User: quant@trader.io",
+      "created_at": "2026-07-27T11:40:52.426Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_263498f77404deebde066d63f600eccc": {
+      "key_id": "key_74f160669dde",
+      "key": "gex_live_263498f77404deebde066d63f600eccc",
+      "plan": "starter",
+      "name": "Subscriber quant@trader.io",
+      "created_at": "2026-07-27T11:41:03.755Z",
+      "last_used_at": "2026-07-28T14:42:55.685Z",
+      "last_ip": "::1",
+      "requests_today": 54,
+      "rate_limit_per_min": 120,
+      "webhooks": {
+        "discord": "https://discord.com/api/webhooks/1530894596672979075/kO-q5hhOIDSWBeLDCf7LQJpi2SboTy9oOZR6Ksygu9Z0hOBiXJglTPnuZj18FHzrW8FP",
+        "telegram_chat_id": "@gab131313_bot",
+        "telegram_bot_token": "8141457789:AAHPZT9cM1bqwV067QQ1WqpwaawKa7hFR20",
+        "slack": ""
+      }
+    },
+    "gex_live_9df389a041cf55b645790dd910c6a2ee": {
+      "key_id": "key_cbbd9efa0d03",
+      "key": "gex_live_9df389a041cf55b645790dd910c6a2ee",
+      "plan": "starter",
+      "name": "Stripe User: quant@trader.io",
+      "created_at": "2026-07-27T11:41:08.953Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 120
+    },
+    "gex_live_19991994ce9976b67abbe3ba2c2fd400": {
+      "key_id": "key_5a0de2e69405",
+      "key": "gex_live_19991994ce9976b67abbe3ba2c2fd400",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T11:42:07.895Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_c444133b3c5322b603151e43194176a1": {
+      "key_id": "key_e91918704b6c",
+      "key": "gex_live_c444133b3c5322b603151e43194176a1",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T11:42:07.898Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_3a11feb081cd5dfa97fa8900bc458cde": {
+      "key_id": "key_2d173184ec40",
+      "key": "gex_live_3a11feb081cd5dfa97fa8900bc458cde",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T11:42:07.900Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000
+    },
+    "gex_live_05989592dd026dfa8b989e2a29d2c641": {
+      "key_id": "key_4fc31e05f1b7",
+      "key": "gex_live_05989592dd026dfa8b989e2a29d2c641",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T11:43:16.307Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": "",
+        "slack": ""
+      }
+    },
+    "gex_live_3e09ab1d9811cb8825282730bad0c2f0": {
+      "key_id": "key_1d700f5f777d",
+      "key": "gex_live_3e09ab1d9811cb8825282730bad0c2f0",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T11:43:16.309Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": "",
+        "slack": ""
+      }
+    },
+    "gex_live_94dd985e2f1a31345a22ac450286b689": {
+      "key_id": "key_d0f0e0fdae4e",
+      "key": "gex_live_94dd985e2f1a31345a22ac450286b689",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T11:43:16.311Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": "",
+        "slack": ""
+      }
+    },
+    "gex_live_cac6285abe7c06b938aa10cb4390e882": {
+      "key_id": "key_1a7e73bf8de0",
+      "key": "gex_live_cac6285abe7c06b938aa10cb4390e882",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T11:44:28.128Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": "",
+        "slack": ""
+      }
+    },
+    "gex_live_8fb5ccaa7dbaa0ae5e44fdae6ce7f282": {
+      "key_id": "key_8b9eff11dd35",
+      "key": "gex_live_8fb5ccaa7dbaa0ae5e44fdae6ce7f282",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T11:44:28.130Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": "",
+        "slack": ""
+      }
+    },
+    "gex_live_49c983c06fef50566a3546ff7d375251": {
+      "key_id": "key_b3cf0aade4bc",
+      "key": "gex_live_49c983c06fef50566a3546ff7d375251",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T11:44:28.131Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": "",
+        "slack": ""
+      }
+    },
+    "gex_live_2961e82df858aa8a52ac6ad62dfc90cd": {
+      "key_id": "key_d3dacc24c9a2",
+      "key": "gex_live_2961e82df858aa8a52ac6ad62dfc90cd",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T11:53:54.960Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_10666d9fdac403976422bba5dc6cbb61": {
+      "key_id": "key_bb717cc80908",
+      "key": "gex_live_10666d9fdac403976422bba5dc6cbb61",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T11:53:54.962Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_54def76d929e3362acfabf670611dff0": {
+      "key_id": "key_16811776f88b",
+      "key": "gex_live_54def76d929e3362acfabf670611dff0",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T11:53:54.964Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_3d98f1cc4a3c2c5b421755e6e042cd56": {
+      "key_id": "key_5b85a4bcc45f",
+      "key": "gex_live_3d98f1cc4a3c2c5b421755e6e042cd56",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T11:55:19.414Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_abd6917da2c9485fd699c0f9221f9846": {
+      "key_id": "key_115e74b6f8d1",
+      "key": "gex_live_abd6917da2c9485fd699c0f9221f9846",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T11:55:19.417Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_8a4aabfcfea99eba35c3232fc7e1f051": {
+      "key_id": "key_e24e45053fe2",
+      "key": "gex_live_8a4aabfcfea99eba35c3232fc7e1f051",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T11:55:19.420Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_0c42d2debc44231ef1b773d4b5e7db38": {
+      "key_id": "key_5e8dfdf7058a",
+      "key": "gex_live_0c42d2debc44231ef1b773d4b5e7db38",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T12:01:17.002Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_3633997cdbc6d36f58302330e48d3ad8": {
+      "key_id": "key_0d6994b64469",
+      "key": "gex_live_3633997cdbc6d36f58302330e48d3ad8",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T12:01:17.005Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_91b7dbeee0f59decca3f1a13bf2953db": {
+      "key_id": "key_844f101730db",
+      "key": "gex_live_91b7dbeee0f59decca3f1a13bf2953db",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T12:01:17.006Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_f252381b38035f8a6f1b471b2151f3ab": {
+      "key_id": "key_d3ec26ab2c73",
+      "key": "gex_live_f252381b38035f8a6f1b471b2151f3ab",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-27T12:09:23.543Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_957198af953933dd04b697d784c1a27e": {
+      "key_id": "key_247cc8f82645",
+      "key": "gex_live_957198af953933dd04b697d784c1a27e",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-27T12:09:23.545Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_d9d85cdd923d612364f4d6ede306a403": {
+      "key_id": "key_4ac155c82fec",
+      "key": "gex_live_d9d85cdd923d612364f4d6ede306a403",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-27T12:09:23.547Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_f8d9b0d502dd516bf9f8eb07e03a2fe5": {
+      "key_id": "key_7f0fd4500598",
+      "key": "gex_live_f8d9b0d502dd516bf9f8eb07e03a2fe5",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-28T11:41:24.798Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_957ff09266d7ba854f5c1d6789df6412": {
+      "key_id": "key_e5d920ab3acd",
+      "key": "gex_live_957ff09266d7ba854f5c1d6789df6412",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-28T11:41:24.800Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_b6a5b5f40c00337251f9e0601cad5a5c": {
+      "key_id": "key_3c4617cf9b43",
+      "key": "gex_live_b6a5b5f40c00337251f9e0601cad5a5c",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-28T11:41:24.802Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_2b9d4021df1c5330c6a579790c9dca25": {
+      "key_id": "key_3bc07a9d0ffb",
+      "key": "gex_live_2b9d4021df1c5330c6a579790c9dca25",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-28T11:44:53.134Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_c87977644a07727d096871ee1045a9e5": {
+      "key_id": "key_991437860dc6",
+      "key": "gex_live_c87977644a07727d096871ee1045a9e5",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-28T11:44:53.138Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_31b0c15dcfc93b52c84d3ea69cfe493b": {
+      "key_id": "key_273a88b51586",
+      "key": "gex_live_31b0c15dcfc93b52c84d3ea69cfe493b",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-28T11:44:53.139Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_aef54dad06f9edc67b2521a9362d4ff2": {
+      "key_id": "key_07b779a70418",
+      "key": "gex_live_aef54dad06f9edc67b2521a9362d4ff2",
+      "plan": "pro_quant",
+      "name": "AlphaQuant Fund",
+      "created_at": "2026-07-28T14:42:54.504Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_10ea60645ae326858a0c5a51ade39a35": {
+      "key_id": "key_eff0e7515871",
+      "key": "gex_live_10ea60645ae326858a0c5a51ade39a35",
+      "plan": "pro_quant",
+      "name": "Subscriber pro@quanttrader.io",
+      "created_at": "2026-07-28T14:42:54.506Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    },
+    "gex_live_9abb3b1b9ada6d25f23bcbf777762e8b": {
+      "key_id": "key_a7133163d462",
+      "key": "gex_live_9abb3b1b9ada6d25f23bcbf777762e8b",
+      "plan": "pro_quant",
+      "name": "Stripe User: subscriber@hedgefund.io",
+      "created_at": "2026-07-28T14:42:54.508Z",
+      "last_used_at": null,
+      "last_ip": null,
+      "requests_today": 0,
+      "rate_limit_per_min": 1000,
+      "webhooks": {
+        "discord": "",
+        "telegram_chat_id": "",
+        "telegram_bot_token": ""
+      }
+    }
+  },
+  "subscriptions": []
+}

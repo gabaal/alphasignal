@@ -1,0 +1,30 @@
+{
+  "name": "@docforge/sdk",
+  "version": "1.4.0",
+  "description": "Official Node.js & TypeScript SDK for DocForge PDF API Engine — High-speed HTML/CSS to PDF compilation, server-side templates, async batch rendering, and persistent cryptographic ledger verification.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "docforge",
+    "pdf",
+    "pdf-generator",
+    "html-to-pdf",
+    "puppeteer",
+    "template-engine",
+    "batch-rendering",
+    "invoice-generator",
+    "cryptographic-ledger"
+  ],
+  "author": "AlphaSignal Global",
+  "license": "MIT",
+  "homepage": "https://docforge.digital",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alphasignal/docforge.git"
+  }
+}

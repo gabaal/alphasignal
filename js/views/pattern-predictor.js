@@ -65,6 +65,7 @@ function renderPatternPredictor() {
             .pp-gauge-fill { height:100%;border-radius:100px;transition:width 0.6s ease }
             .pp-match-sim { height:4px;border-radius:100px;background:rgba(125,211,252,0.15) }
             .pp-match-sim-fill { height:100%;border-radius:100px;background:linear-gradient(90deg,rgba(125,211,252,0.4),var(--accent));transition:width 0.5s ease }
+            @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
         </style>
 
         <!-- Accuracy Scoreboard -->
@@ -126,7 +127,7 @@ function renderPatternPredictor() {
             <div class="glass-card" style="padding:1.5rem" id="pp-prediction-panel">
                 <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem">Prediction</div>
                 <div id="pp-pred-content" style="display:flex;flex-direction:column;gap:12px">
-                    <div style="text-align:center;color:var(--text-dim);font-size:0.8rem;padding:2rem 0">Loading...</div>
+                    <div style="text-align:center;color:var(--text-dim);font-size:0.8rem;padding:2rem 0"><span class="material-symbols-outlined" style="font-size:1.8rem;display:block;margin-bottom:8px;animation:spin 1.2s linear infinite">autorenew</span>Computing…</div>
                 </div>
             </div>
             <div class="glass-card" style="padding:1.5rem">
@@ -156,6 +157,9 @@ function renderPatternPredictor() {
     };
 
     window.ppRefresh = function() {
+        // Show spinner immediately before slow async calls
+        const predEl = document.getElementById('pp-pred-content');
+        if (predEl) predEl.innerHTML = `<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;padding:2rem 0"><span class="material-symbols-outlined" style="font-size:1.8rem;display:block;margin-bottom:8px;animation:spin 1.2s linear infinite">autorenew</span>Computing…</div>`;
         ppLoad();
         ppLoadPrediction();
         ppLoadAccuracy();
@@ -322,6 +326,9 @@ function renderPatternPredictor() {
     // ── prediction panel ─────────────────────────────────────────────────────
     async function ppLoadPrediction() {
         const regimeFilter = document.getElementById('pp-regime-filter')?.checked ? '1' : '0';
+        // Show spinner immediately
+        const predElEarly = document.getElementById('pp-pred-content');
+        if (predElEarly) predElEarly.innerHTML = `<div style="text-align:center;color:var(--text-dim);font-size:0.8rem;padding:2rem 0"><span class="material-symbols-outlined" style="font-size:1.8rem;display:block;margin-bottom:8px;animation:spin 1.2s linear infinite">autorenew</span>Computing…</div>`;
         try {
             // Use ensemble endpoint by default
             const data = await fetchAPI(`/market-prediction?top_n=5&regime_filter=${regimeFilter}&ensemble=1`);

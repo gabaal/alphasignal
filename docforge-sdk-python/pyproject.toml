@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docforge"
+version = "1.4.0"
+description = "Official Python SDK for DocForge PDF API Engine — High-speed HTML/CSS to PDF compilation, server-side templates, async batch rendering, and persistent cryptographic ledger verification."
+readme = "README.md"
+authors = [{ name = "AlphaSignal Global", email = "dev@alphasignal.digital" }]
+license = { text = "MIT" }
+keywords = ["docforge", "pdf", "pdf-generator", "html-to-pdf", "template-engine", "batch-rendering", "cryptographic-ledger"]
+dependencies = [
+    "requests>=2.28.0"
+]
+
+[project.urls]
+Homepage = "https://docforge.digital"
+Documentation = "http://localhost:4000/docs"
+Repository = "https://github.com/alphasignal/docforge.git"

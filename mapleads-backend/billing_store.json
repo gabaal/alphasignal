@@ -1,0 +1,22 @@
+{
+  "keys": {
+    "MAP-LEADS-DEMO-2026": {
+      "key": "MAP-LEADS-DEMO-2026",
+      "owner": "Demo User",
+      "tier": "Pro Trial",
+      "credits": 100,
+      "totalUsed": 12,
+      "createdAt": "2026-07-30T09:28:35.477Z"
+    },
+    "MAP-UNLIMITED-TESTING-2026": {
+      "key": "MAP-UNLIMITED-TESTING-2026",
+      "owner": "Tester / Admin",
+      "tier": "Unlimited VIP Pass",
+      "credits": 9999999,
+      "isUnlimited": true,
+      "totalUsed": 385,
+      "createdAt": "2026-07-30T09:28:35.478Z"
+    }
+  },
+  "usageLogs": []
+}

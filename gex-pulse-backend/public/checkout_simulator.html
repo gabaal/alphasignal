@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stripe Checkout Simulator — GEX-Pulse Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Fira+Code:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    body {
+      margin: 0;
+      background: #0e131f;
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .checkout-card {
+      background: #171e2e;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 100%;
+      padding: 32px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+
+    .stripe-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #635bff;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .amount-box {
+      font-size: 36px;
+      font-weight: 800;
+      color: #10b981;
+      margin: 8px 0;
+    }
+
+    .btn-pay {
+      width: 100%;
+      background: #635bff;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+
+    .btn-pay:hover { background: #534be0; }
+
+    .key-display {
+      background: #090d16;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      word-break: break-all;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="checkout-card">
+    <div class="stripe-badge"><i class="fa-brands fa-stripe"></i> Stripe Checkout Gateway</div>
+    
+    <h2 style="margin:0; font-size:22px;">Complete Pro Subscription</h2>
+    <p style="color:#94a3b8; font-size:13px; margin:4px 0 16px;">GEX-Pulse 0DTE Institutional Dealer Gamma API</p>
+
+    <div class="amount-box" id="displayAmount">$149.00 <span style="font-size:14px; color:#94a3b8;">/ month</span></div>
+
+    <div style="font-size:13px; color:#cbd5e1; margin-top:16px;">
+      <div><strong>Subscriber Email:</strong> <span id="displayEmail">quant@trader.io</span></div>
+      <div><strong>Plan Tier:</strong> <span id="displayPlan" style="text-transform:uppercase; color:#10b981; font-weight:700;">PRO_QUANT</span></div>
+    </div>
+
+    <div class="key-display">
+      <div style="font-size:10px; color:#94a3b8; text-transform:uppercase; margin-bottom:4px;">PROVISIONED PRO API KEY:</div>
+      <span id="displayKey">gex_live_...</span>
+    </div>
+
+    <button class="btn-pay" onclick="completePayment()"><i class="fa-solid fa-lock"></i> Confirm & Complete $149 Payment</button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get('plan') || 'pro_quant';
+    const key = params.get('key') || 'gex_live_master';
+    const email = params.get('email') || 'quant@trader.io';
+    const amount = plan === 'pro_quant' ? '$149.00' : '$49.00';
+
+    document.getElementById('displayAmount').innerHTML = `${amount} <span style="font-size:14px; color:#94a3b8;">/ month</span>`;
+    document.getElementById('displayPlan').innerText = plan.toUpperCase();
+    document.getElementById('displayKey').innerText = key;
+    document.getElementById('displayEmail').innerText = email;
+
+    async function completePayment() {
+      try {
+        await fetch('/v1/webhooks/stripe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'checkout.session.completed',
+            data: { object: { customer_email: email, metadata: { plan } } }
+          })
+        });
+
+        alert(`🎉 Payment Successful!\n\nYour GEX Pro API Key is active:\n${key}`);
+        window.location.href = '/?status=success&key=' + key;
+      } catch (err) {
+        alert('Payment processing error: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

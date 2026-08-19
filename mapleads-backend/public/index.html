@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MapLeads AI - Local Business & Email Lead Extractor</title>
+  <meta name="description" content="Extract local business leads, verified email addresses, phone numbers, and social links from Google Maps and web crawlers in real-time.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: rgba(18, 26, 43, 0.75);
+      --bg-card-hover: rgba(28, 40, 65, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(99, 102, 241, 0.4);
+      --accent-primary: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --success-green: #10b981;
+      --warning-amber: #f59e0b;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(12px);
+      background: rgba(9, 13, 22, 0.8);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: white;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      font-size: 0.75rem;
+      color: #a855f7;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .credit-badge {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid var(--border-highlight);
+      padding: 0.5rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #c7d2fe;
+    }
+
+    .credit-count {
+      color: #38bdf8;
+      font-family: var(--font-heading);
+      font-weight: 700;
+    }
+
+    .btn {
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--accent-gradient);
+      color: white;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .search-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.75rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .search-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr 140px 160px;
+      gap: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .search-form {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .search-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .input-field {
+      background: rgba(9, 13, 22, 0.7);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: white;
+      font-size: 0.95rem;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .input-field:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    select.input-field {
+      cursor: pointer;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .table-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(9, 13, 22, 0.4);
+    }
+
+    .table-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.8);
+      padding: 1rem 1.25rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .lead-name {
+      font-weight: 600;
+      color: white;
+    }
+
+    .email-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .email-badge.verified {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+
+    .email-badge.estimated {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fcd34d;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .social-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .social-icon:hover {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .empty-state {
+      padding: 4rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid var(--border-highlight);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      padding: 2rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .plan-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .plan-card {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .plan-card:hover, .plan-card.selected {
+      border-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .plan-price {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <div class="brand-logo">M</div>
+        <div class="brand-text">
+          <h1>MapLeads AI</h1>
+          <span>Lead & Email Scraper</span>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <div class="credit-badge">
+          <span>Credits:</span>
+          <span class="credit-count" id="creditCount">100</span>
+        </div>
+        <button class="btn btn-secondary" onclick="openKeyModal()">API Key</button>
+        <button class="btn btn-primary" onclick="openBuyModal()">Buy Credits</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero-section">
+      <h2 class="hero-title">Local Business Email & Lead Extractor</h2>
+      <p class="hero-subtitle">Search Google Maps businesses by industry and city, crawl official company landing pages in real-time, and extract verified contact emails, phone numbers, and social profiles.</p>
+    </div>
+
+    <div class="search-card">
+      <form class="search-form" id="searchForm" onsubmit="handleSearch(event)">
+        <div class="form-group">
+          <label for="queryInput">Business Category / Keyword</label>
+          <input type="text" id="queryInput" class="input-field" placeholder="e.g. Plumbers, Dentists, Real Estate" value="Plumbers" required>
+        </div>
+        <div class="form-group">
+          <label for="locationInput">City / Region</label>
+          <input type="text" id="locationInput" class="input-field" placeholder="e.g. Austin, TX or Miami, FL" value="Austin, TX" required>
+        </div>
+        <div class="form-group">
+          <label for="limitSelect">Lead Count</label>
+          <select id="limitSelect" class="input-field">
+            <option value="5">5 Leads</option>
+            <option value="10" selected>10 Leads</option>
+            <option value="25">25 Leads</option>
+          </select>
+        </div>
+        <div class="form-group" style="justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary" id="searchBtn" style="height: 44px; width: 100%; justify-content: center;">
+            <span id="btnText">Extract Leads</span>
+            <div id="btnSpinner" class="spinner" style="display: none;"></div>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <span class="stat-label">Total Extracted</span>
+        <span class="stat-value" id="statExtracted">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Verified Emails</span>
+        <span class="stat-value" id="statEmails" style="color: #6ee7b7;">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Avg. Rating</span>
+        <span class="stat-value" id="statRating" style="color: #fcd34d;">0.0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Current Tier</span>
+        <span class="stat-value" id="statTier" style="font-size: 1.25rem; color: #a855f7;">Pro Trial</span>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">Extracted Business Leads</div>
+        <div class="export-actions">
+          <button class="btn btn-secondary" onclick="exportLeads('json')">JSON</button>
+          <button class="btn btn-primary" onclick="exportLeads('csv')">Export CSV</button>
+        </div>
+      </div>
+
+      <table id="leadsTable">
+        <thead>
+          <tr>
+            <th>Business Name</th>
+            <th>Location</th>
+            <th>Phone</th>
+            <th>Extracted Email</th>
+            <th>Rating</th>
+            <th>Social Links</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="leadsBody">
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <p>No leads extracted yet. Enter a query above and click <strong>Extract Leads</strong> to start crawling.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal for API Key -->
+  <div class="modal-overlay" id="keyModal">
+    <div class="modal-card">
+      <h3 class="modal-title">API Key & Billing Settings</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Enter your active API Key to deduct credits or issue a new trial key.</p>
+      
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="keyInput">Current API Key</label>
+        <input type="text" id="keyInput" class="input-field" value="MAP-UNLIMITED-TESTING-2026">
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" onclick="closeKeyModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveApiKey()">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentLeads = [];
+    let activeKey = localStorage.getItem('mapleads_api_key') || 'MAP-UNLIMITED-TESTING-2026';
+
+    document.getElementById('keyInput').value = activeKey;
+    fetchKeyStats();
+
+    async function fetchKeyStats() {
+      try {
+        const res = await fetch(`/api/keys/verify?key=${encodeURIComponent(activeKey)}`);
+        const data = await res.json();
+        if (data.success && data.keyInfo) {
+          document.getElementById('creditCount').innerText = data.keyInfo.credits;
+          document.getElementById('statTier').innerText = data.keyInfo.tier || 'Pro Trial';
+        }
+      } catch (err) {
+        console.warn('Failed to verify API key stats:', err);
+      }
+    }
+
+    async function handleSearch(e) {
+      e.preventDefault();
+      const query = document.getElementById('queryInput').value;
+      const location = document.getElementById('locationInput').value;
+      const limit = document.getElementById('limitSelect').value;
+
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const searchBtn = document.getElementById('searchBtn');
+
+      btnText.innerText = 'Crawling...';
+      btnSpinner.style.display = 'block';
+      searchBtn.disabled = true;
+
+      try {
+        const response = await fetch('/api/leads/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': activeKey
+          },
+          body: JSON.stringify({ query, location, limit: parseInt(limit, 10) })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          alert('Error: ' + (data.error || 'Failed to extract leads'));
+          return;
+        }
+
+        currentLeads = data.leads || [];
+        renderLeads(currentLeads);
+
+        if (data.billing) {
+          document.getElementById('creditCount').innerText = data.billing.remainingCredits;
+        }
+
+      } catch (err) {
+        alert('Extraction failed: ' + err.message);
+      } finally {
+        btnText.innerText = 'Extract Leads';
+        btnSpinner.style.display = 'none';
+        searchBtn.disabled = false;
+      }
+    }
+
+    function renderLeads(leads) {
+      const tbody = document.getElementById('leadsBody');
+      if (!leads || leads.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>No results found for this search.</p></div></td></tr>`;
+        return;
+      }
+
+      let emailCount = 0;
+      let totalRating = 0;
+
+      tbody.innerHTML = leads.map(lead => {
+        if (lead.emails && lead.emails.length > 0) emailCount++;
+        totalRating += (lead.rating || 4.5);
+
+        const emailText = lead.emails && lead.emails.length > 0 ? lead.emails[0] : 'None found';
+        const badgeClass = lead.emailStatus === 'verified' ? 'verified' : 'estimated';
+
+        const socialHtml = `
+          <div class="social-links">
+            ${lead.social && lead.social.linkedin ? `<a href="${lead.social.linkedin}" target="_blank" class="social-icon" title="LinkedIn">in</a>` : ''}
+            ${lead.social && lead.social.facebook ? `<a href="${lead.social.facebook}" target="_blank" class="social-icon" title="Facebook">fb</a>` : ''}
+            ${lead.social && lead.social.twitter ? `<a href="${lead.social.twitter}" target="_blank" class="social-icon" title="Twitter/X">x</a>` : ''}
+          </div>
+        `;
+
+        return `
+          <tr>
+            <td>
+              <div class="lead-name">${escapeHtml(lead.name)}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">${lead.website ? `<a href="${lead.website}" target="_blank" style="color: #818cf8; text-decoration: none;">${escapeHtml(lead.website)}</a>` : 'No website'}</div>
+            </td>
+            <td>${escapeHtml(lead.location)}</td>
+            <td>${escapeHtml(lead.phone)}</td>
+            <td>
+              <span class="email-badge ${badgeClass}">
+                ${escapeHtml(emailText)}
+              </span>
+            </td>
+            <td>⭐ ${lead.rating} <span style="font-size: 0.75rem; color: var(--text-muted);">(${lead.userRatingsTotal})</span></td>
+            <td>${socialHtml}</td>
+            <td>
+              <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="copyEmail('${escapeHtml(emailText)}')">Copy Email</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('statExtracted').innerText = leads.length;
+      document.getElementById('statEmails').innerText = emailCount;
+      document.getElementById('statRating').innerText = (totalRating / leads.length).toFixed(1);
+    }
+
+    async function exportLeads(format) {
+      if (!currentLeads || currentLeads.length === 0) {
+        alert('No leads available to export. Run a search first.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/leads/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leads: currentLeads, format })
+        });
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `map_leads_export.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (err) {
+        alert('Export failed: ' + err.message);
+      }
+    }
+
+    function copyEmail(email) {
+      navigator.clipboard.writeText(email);
+      alert('Copied email to clipboard: ' + email);
+    }
+
+    function openKeyModal() {
+      document.getElementById('keyModal').classList.add('active');
+    }
+
+    function closeKeyModal() {
+      document.getElementById('keyModal').classList.remove('active');
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('keyInput').value.trim();
+      if (key) {
+        activeKey = key;
+        localStorage.setItem('mapleads_api_key', key);
+        fetchKeyStats();
+        closeKeyModal();
+      }
+    }
+
+    function openBuyModal() {
+      alert('Stripe Integration Placeholder: In production, this opens Stripe Checkout for 500 Credits ($19) or Unlimited Pro Plan ($49/mo).');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

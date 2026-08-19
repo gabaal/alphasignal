@@ -751,16 +751,27 @@ class PredictorService:
                     trend_sim  = _cosine(cur_trend, win_trend)  # -1..1
 
                     # Bounded exponential similarity kernels (0..1 scale)
-                    eucl_sim  = math.exp(-eucl / 1.5)
-                    dtw_sim   = math.exp(-dtw_dist / 1.5)
-                    cos_sim_b = max(0.0, cos_sim)
+                    eucl_sim    = math.exp(-eucl / 1.5)
+                    dtw_sim     = math.exp(-dtw_dist / 1.5)
+                    cos_sim_b   = max(0.0, cos_sim)
                     trend_sim_b = max(0.0, trend_sim)
 
-                    # Combined bounded similarity score in [0, 1]
-                    closeness = (0.35 * eucl_sim +
-                                 0.25 * dtw_sim +
-                                 0.25 * cos_sim_b +
-                                 0.15 * trend_sim_b)
+                    # Recency decay: windows older than 30d are exponentially penalised.
+                    # This prevents locking on a stale bear/bull cluster from weeks ago.
+                    try:
+                        win_ts_str = window[-1]["ts"]
+                        from datetime import datetime as _dt2
+                        win_age_days = (datetime.utcnow() - _dt2.fromisoformat(win_ts_str)).total_seconds() / 86400.0
+                        recency_mult = math.exp(-win_age_days / 30.0)   # 30-day half-life
+                        recency_mult = max(0.5, recency_mult)            # floor at 0.5
+                    except Exception:
+                        recency_mult = 1.0
+
+                    # Combined bounded similarity score in [0, 1], scaled by recency
+                    closeness = recency_mult * (0.35 * eucl_sim +
+                                               0.25 * dtw_sim +
+                                               0.25 * cos_sim_b +
+                                               0.15 * trend_sim_b)
 
                     future = rows[i + lookback_minutes: i + lookback_minutes + lookback_minutes]
                     if not future:
@@ -1040,6 +1051,21 @@ class PredictorService:
             # Headline accuracy prioritizes actionable signal win rate over flat compression noise
             headline_accuracy = high_rate if high_rate is not None else (dir_rate if dir_rate is not None else raw_rate)
 
+            # Stale data check: warn if latest CI tick is more than 3 hours old
+            _stale_warning = False
+            _last_tick_ts = None
+            try:
+                latest_tick = conn.execute(
+                    "SELECT ts FROM composite_index_history ORDER BY ts DESC LIMIT 1"
+                ).fetchone()
+                if latest_tick and latest_tick["ts"]:
+                    _last_tick_ts = latest_tick["ts"]
+                    from datetime import datetime as _dt3
+                    age_h = (datetime.utcnow() - _dt3.fromisoformat(_last_tick_ts)).total_seconds() / 3600.0
+                    _stale_warning = age_h > 3.0
+            except Exception:
+                pass
+
             return {
                 "total_resolved":           total,
                 "total_correct":            correct,
@@ -1071,6 +1097,8 @@ class PredictorService:
                     }
                     for r in recent
                 ],
+                "stale_data_warning": _stale_warning,
+                "last_tick_ts":       _last_tick_ts,
             }
         except Exception as e:
             return {"error": str(e)}

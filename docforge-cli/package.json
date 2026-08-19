@@ -1,0 +1,15 @@
+{
+  "name": "docforge-cli",
+  "version": "1.0.0",
+  "description": "Official Command-Line Tool (CLI) for DocForge PDF API Engine",
+  "bin": {
+    "docforge": "./bin/docforge.js"
+  },
+  "main": "bin/docforge.js",
+  "scripts": {
+    "start": "node ./bin/docforge.js"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  }
+}
