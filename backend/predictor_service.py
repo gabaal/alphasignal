@@ -626,8 +626,8 @@ class PredictorService:
     @staticmethod
     def _extract_feature_matrix(rows):
         """
-        Build a (N, 5) feature matrix from a list of DB rows.
-        Features: [ci_value, rsi, bb_pos, whale_score, mvrv_proxy]
+        Build a (N, 6) feature matrix from a list of DB rows.
+        Features: [ci_value, rsi, bb_pos, whale_score, mvrv_proxy, vol_change]
         Returns raw matrix; caller is responsible for z-score normalisation.
         """
         arr = np.array([
@@ -637,6 +637,7 @@ class PredictorService:
                 float(r["bb_pos"]      or 0.5),
                 float(r["whale_score"] or 0.0),
                 float(r["mvrv_proxy"]  or 1.5),
+                float(r["vol_change"]  or 0.0),
             ]
             for r in rows
         ], dtype=float)
@@ -655,23 +656,13 @@ class PredictorService:
         """
         Compare the current N-minute CI fingerprint against all stored
         windows of the same length, optionally filtered to the same regime.
-
-        Fallback: if fewer than 20 regime-matched windows found, falls back
-        to unfiltered search.
-
-        Returns a dict with:
-          current_ci   – list of recent CI values
-          matches      – list of top_n best historical matches
-          prediction   – aggregated directional prediction
-          history_size – total rows in DB
-          regime_filtered – bool, whether regime filter was applied
         """
         try:
             with sqlite3.connect(DB_PATH, timeout=15) as conn:
                 conn.row_factory = sqlite3.Row
                 all_rows = conn.execute("""
                     SELECT id, ts, ci_value, rsi, bb_pos, regime,
-                           btc_price, mvrv_proxy, whale_score
+                           btc_price, mvrv_proxy, whale_score, vol_change
                     FROM composite_index_history
                     ORDER BY ts ASC
                 """).fetchall()
@@ -691,28 +682,23 @@ class PredictorService:
             current_regime = current_window[-1]["regime"] if current_window else "Unknown"
             current_ids    = {r["id"] for r in current_window}
 
-            # ── Multi-feature matching ────────────────────────────────────────
-            # Build z-score normalised feature matrix over full history
+            # ── Multi-feature matching (6 features) ───────────────────────────
             full_matrix_raw = PredictorService._extract_feature_matrix(rows_list)
             full_matrix, feat_mu, feat_sigma = PredictorService._zscore_cols(full_matrix_raw)
 
-            # Current feature window (normalised using history stats)
-            cur_raw = PredictorService._extract_feature_matrix(current_window)  # (L, 5)
-            cur_norm = (cur_raw - feat_mu) / feat_sigma                          # (L, 5)
-            cur_flat = cur_norm.flatten()                                         # (L*5,)
+            cur_raw = PredictorService._extract_feature_matrix(current_window)
+            cur_norm = (cur_raw - feat_mu) / feat_sigma
+            cur_flat = cur_norm.flatten()
 
-            # Trend direction vector (first-differences of CI, normalised)
             cur_trend = np.diff(cur_norm[:, 0])  # CI column deltas
 
             def _cosine(a, b):
-                """Cosine similarity between two 1-D vectors."""
                 na, nb = np.linalg.norm(a), np.linalg.norm(b)
                 if na < 1e-8 or nb < 1e-8:
                     return 0.0
                 return float(np.dot(a, b) / (na * nb))
 
             def _dtw_distance(s1, s2, w=5):
-                """1D Dynamic Time Warping distance with Sakoe-Chiba constraint band."""
                 n, m = len(s1), len(s2)
                 dtw_matrix = np.full((n + 1, m + 1), np.inf)
                 dtw_matrix[0, 0] = 0.0
@@ -735,39 +721,30 @@ class PredictorService:
                     if filter_regime and window[-1]["regime"] != filter_regime:
                         continue
 
-                    # Multi-feature distance (z-score normalised, all 5 features)
-                    win_raw  = full_matrix[i: i + lookback_minutes]  # already normalised
+                    win_raw  = full_matrix[i: i + lookback_minutes]
                     win_flat = win_raw.flatten()
                     eucl     = float(np.sqrt(np.mean((cur_flat - win_flat) ** 2)))
 
-                    # Dynamic Time Warping distance on CI series
                     dtw_dist = _dtw_distance(cur_norm[:, 0], win_raw[:, 0])
-
-                    # Cosine similarity on flattened feature vectors
-                    cos_sim  = _cosine(cur_flat, win_flat)  # -1..1
-
-                    # Trend alignment bonus: CI first-differences
+                    cos_sim  = _cosine(cur_flat, win_flat)
                     win_trend  = np.diff(win_raw[:, 0])
-                    trend_sim  = _cosine(cur_trend, win_trend)  # -1..1
+                    trend_sim  = _cosine(cur_trend, win_trend)
 
-                    # Bounded exponential similarity kernels (0..1 scale)
                     eucl_sim    = math.exp(-eucl / 1.5)
                     dtw_sim     = math.exp(-dtw_dist / 1.5)
                     cos_sim_b   = max(0.0, cos_sim)
                     trend_sim_b = max(0.0, trend_sim)
 
-                    # Recency decay: windows older than 30d are exponentially penalised.
-                    # This prevents locking on a stale bear/bull cluster from weeks ago.
+                    # Tighter Recency Decay: 7-day half-life (prioritise current market regime)
                     try:
                         win_ts_str = window[-1]["ts"]
                         from datetime import datetime as _dt2
                         win_age_days = (datetime.utcnow() - _dt2.fromisoformat(win_ts_str)).total_seconds() / 86400.0
-                        recency_mult = math.exp(-win_age_days / 30.0)   # 30-day half-life
-                        recency_mult = max(0.5, recency_mult)            # floor at 0.5
+                        recency_mult = math.exp(-win_age_days / 7.0)   # 7-day half-life
+                        recency_mult = max(0.40, recency_mult)          # floor at 0.40
                     except Exception:
                         recency_mult = 1.0
 
-                    # Combined bounded similarity score in [0, 1], scaled by recency
                     closeness = recency_mult * (0.35 * eucl_sim +
                                                0.25 * dtw_sim +
                                                0.25 * cos_sim_b +
@@ -779,8 +756,13 @@ class PredictorService:
                     fp_start = rows[i + lookback_minutes]["btc_price"]
                     fp_end   = future[-1]["btc_price"]
                     pct_chg  = 0.0
+                    mfe, mae = 0.0, 0.0
                     if fp_start and fp_start > 0:
                         pct_chg = round((fp_end - fp_start) / fp_start * 100, 3)
+                        future_prices = [r["btc_price"] for r in future if r["btc_price"] and r["btc_price"] > 0]
+                        if future_prices:
+                            mfe = round((max(future_prices) - fp_start) / fp_start * 100, 3)
+                            mae = round((min(future_prices) - fp_start) / fp_start * 100, 3)
 
                     matches.append({
                         "distance":         round(eucl, 4),
@@ -791,11 +773,12 @@ class PredictorService:
                         "window_end":       window[-1]["ts"],
                         "future_ci_mean":   round(float(np.mean([r["ci_value"] for r in future])), 4),
                         "price_change_pct": pct_chg,
+                        "mfe":              mfe,
+                        "mae":              mae,
                         "regime":           window[-1]["regime"],
                     })
                 return matches
 
-            # Try regime-filtered first
             used_regime_filter = False
             if regime_filter and current_regime and current_regime != "Unknown":
                 best = _slide(rows_list, filter_regime=current_regime)
@@ -806,15 +789,12 @@ class PredictorService:
             else:
                 best = _slide(rows_list, filter_regime=None)
 
-            # Sort by closeness DESC (higher = better match)
             best.sort(key=lambda x: x["closeness"], reverse=True)
             top_matches = best[:top_n]
 
-            # ── Smarter confidence + weighted prediction ──────────────────────
             DIR_THRESHOLD  = 0.12
             CONF_THRESHOLD = 0.60
             if top_matches:
-                # Option A: Weight by closeness² + robust median blend (70% median / 30% mean)
                 weight_sum      = 0.0
                 weighted_change = 0.0
                 for m in top_matches:
@@ -828,18 +808,15 @@ class PredictorService:
                 direction   = ("BULLISH" if pred_change > DIR_THRESHOLD else
                                ("BEARISH" if pred_change < -DIR_THRESHOLD else "NEUTRAL"))
 
-                # Agreement: fraction of top matches pointing same direction
                 match_dirs = ["BULLISH" if m["price_change_pct"] > DIR_THRESHOLD else
                               ("BEARISH" if m["price_change_pct"] < -DIR_THRESHOLD else "NEUTRAL")
                               for m in top_matches]
                 agreement = sum(1 for d in match_dirs if d == direction) / len(match_dirs)
 
-                # Consistency: low std of outcomes = more predictable
                 mean_abs = np.mean(np.abs(chg_vals)) + 1e-8
                 consistency = max(0.0, 1.0 - float(np.std(chg_vals)) / mean_abs)
                 consistency = min(1.0, consistency)
 
-                # Distance quality directly from best match closeness (in 0..1)
                 dist_quality = max(0.0, min(1.0, top_matches[0]["closeness"]))
 
                 confidence = round(
@@ -854,7 +831,25 @@ class PredictorService:
                     "outcome_consistency": round(consistency, 3),
                 }
 
-                # Machine Learning (Random Forest) Ensemble Integration
+                # Risk-to-Reward Ratio Filter (MFE vs MAE Excursion)
+                mfe_vals = [m.get("mfe", 0.0) for m in top_matches]
+                mae_vals = [m.get("mae", 0.0) for m in top_matches]
+                avg_mfe  = float(np.mean(mfe_vals)) if mfe_vals else 0.0
+                avg_mae  = float(np.mean(mae_vals)) if mae_vals else 0.0
+                if direction == "BULLISH":
+                    rr_ratio = avg_mfe / (abs(avg_mae) + 1e-4)
+                elif direction == "BEARISH":
+                    rr_ratio = abs(avg_mae) / (avg_mfe + 1e-4)
+                else:
+                    rr_ratio = 1.5
+
+                if rr_ratio < 1.2:
+                    confidence = round(confidence * 0.65, 3)
+                elif rr_ratio < 1.5:
+                    confidence = round(confidence * 0.85, 3)
+                confidence_breakdown["rr_ratio"] = round(float(rr_ratio), 2)
+
+                # ML Random Forest integration
                 ml_pred = PredictorService._ml_predict(rows_list, lookback_minutes)
                 if ml_pred and ml_pred["direction"] != "NEUTRAL":
                     if ml_pred["direction"] == direction:
@@ -868,19 +863,30 @@ class PredictorService:
                             pred_change = -abs(pred_change)
                     confidence_breakdown["ml_confidence"] = ml_pred["confidence"]
 
-                # Reconcile Composite Index conflict: penalise confidence if CI contradicts signal
+                # 1h Macro Trend Confirmation Filter
+                try:
+                    ticks_1h = PredictorService.get_ci_timeframe("1h", limit=5)
+                    if ticks_1h and isinstance(ticks_1h, list) and len(ticks_1h) > 0:
+                        macro_ci = float(ticks_1h[-1].get("ci_value", 0.0))
+                        if (macro_ci < -10.0 and direction == "BULLISH") or (macro_ci > 10.0 and direction == "BEARISH"):
+                            confidence = round(confidence * 0.60, 3)
+                            confidence_breakdown["macro_conflict"] = True
+                except Exception:
+                    pass
+
+                # Composite Index conflict check
                 ci_last = current_ci[-1] if current_ci else 0.0
                 if (ci_last < -5.0 and direction == "BULLISH") or (ci_last > 5.0 and direction == "BEARISH"):
                     confidence = round(confidence * 0.70, 3)
 
-                # Option B: Strict 60% confidence threshold safeguard
+                # Strict 60% confidence threshold safeguard
                 if confidence < CONF_THRESHOLD:
                     direction = "NEUTRAL"
                     pred_change = 0.0
                 elif direction == "NEUTRAL":
                     pred_change = 0.0
 
-                # Option C: Auto-inversion when overall accuracy < 40%
+                # Auto-inversion when overall accuracy < 40%
                 is_inverted = False
                 try:
                     stats = PredictorService.get_accuracy_stats()
