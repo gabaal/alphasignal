@@ -811,16 +811,20 @@ class PredictorService:
             top_matches = best[:top_n]
 
             # ── Smarter confidence + weighted prediction ──────────────────────
-            DIR_THRESHOLD = 0.12
+            DIR_THRESHOLD  = 0.12
+            CONF_THRESHOLD = 0.60
             if top_matches:
-                # Weight by closeness² for sharper concentration on best matches
+                # Option A: Weight by closeness² + robust median blend (70% median / 30% mean)
                 weight_sum      = 0.0
                 weighted_change = 0.0
                 for m in top_matches:
                     w = m["closeness"] ** 2
                     weighted_change += w * m["price_change_pct"]
                     weight_sum      += w
-                pred_change = weighted_change / weight_sum if weight_sum else 0.0
+                chg_vals    = [m["price_change_pct"] for m in top_matches]
+                med_change  = float(np.median(chg_vals)) if chg_vals else 0.0
+                mean_change = weighted_change / weight_sum if weight_sum else 0.0
+                pred_change = 0.70 * med_change + 0.30 * mean_change
                 direction   = ("BULLISH" if pred_change > DIR_THRESHOLD else
                                ("BEARISH" if pred_change < -DIR_THRESHOLD else "NEUTRAL"))
 
@@ -831,7 +835,6 @@ class PredictorService:
                 agreement = sum(1 for d in match_dirs if d == direction) / len(match_dirs)
 
                 # Consistency: low std of outcomes = more predictable
-                chg_vals = [m["price_change_pct"] for m in top_matches]
                 mean_abs = np.mean(np.abs(chg_vals)) + 1e-8
                 consistency = max(0.0, 1.0 - float(np.std(chg_vals)) / mean_abs)
                 consistency = min(1.0, consistency)
@@ -859,7 +862,6 @@ class PredictorService:
                     elif ml_pred["confidence"] > 0.50:
                         direction = ml_pred["direction"]
                         confidence = ml_pred["confidence"]
-                        # Align expected change sign with ML direction override
                         if direction == "BULLISH" and pred_change < 0:
                             pred_change = abs(pred_change)
                         elif direction == "BEARISH" and pred_change > 0:
@@ -871,17 +873,30 @@ class PredictorService:
                 if (ci_last < -5.0 and direction == "BULLISH") or (ci_last > 5.0 and direction == "BEARISH"):
                     confidence = round(confidence * 0.70, 3)
 
-                # If overall confidence is low, default to NEUTRAL and zero out move to protect win rate
-                if confidence < 0.35:
+                # Option B: Strict 60% confidence threshold safeguard
+                if confidence < CONF_THRESHOLD:
                     direction = "NEUTRAL"
                     pred_change = 0.0
                 elif direction == "NEUTRAL":
                     pred_change = 0.0
+
+                # Option C: Auto-inversion when overall accuracy < 40%
+                is_inverted = False
+                try:
+                    stats = PredictorService.get_accuracy_stats()
+                    raw_acc = stats.get("raw_accuracy_pct")
+                    if raw_acc is not None and raw_acc < 40.0 and direction in ("BULLISH", "BEARISH"):
+                        direction = "BEARISH" if direction == "BULLISH" else "BULLISH"
+                        pred_change = -pred_change
+                        is_inverted = True
+                except Exception:
+                    pass
             else:
                 pred_change          = 0.0
                 direction            = "NEUTRAL"
                 confidence           = 0.0
                 confidence_breakdown = {}
+                is_inverted          = False
 
             return {
                 "current_ci":       [round(v, 3) for v in current_ci],
@@ -895,6 +910,7 @@ class PredictorService:
                     "lookback_minutes": lookback_minutes,
                     "matches_found":    len(top_matches),
                     "regime":           current_regime,
+                    "inverted":         is_inverted,
                 },
                 "history_size":      len(all_rows),
                 "regime_filtered":   used_regime_filter,
@@ -945,10 +961,29 @@ class PredictorService:
             weighted_change += w * pred["predicted_change"]
             total_weight    += w
 
-        DIR_THRESHOLD = 0.12
+        DIR_THRESHOLD  = 0.12
+        CONF_THRESHOLD = 0.60
         ens_change    = weighted_change / total_weight if total_weight else 0.0
         ens_direction = ("BULLISH" if ens_change > DIR_THRESHOLD else
                          ("BEARISH" if ens_change < -DIR_THRESHOLD else "NEUTRAL"))
+        ens_confidence = round(total_weight / len(valid), 3)
+
+        # Option B: Strict 60% confidence threshold for ensemble
+        if ens_confidence < CONF_THRESHOLD:
+            ens_direction = "NEUTRAL"
+            ens_change    = 0.0
+
+        # Option C: Auto-inversion check for ensemble
+        is_inverted = False
+        try:
+            stats = PredictorService.get_accuracy_stats()
+            raw_acc = stats.get("raw_accuracy_pct")
+            if raw_acc is not None and raw_acc < 40.0 and ens_direction in ("BULLISH", "BEARISH"):
+                ens_direction = "BEARISH" if ens_direction == "BULLISH" else "BULLISH"
+                ens_change    = -ens_change
+                is_inverted   = True
+        except Exception:
+            pass
 
         # Agreement: fraction of lookbacks matching ensemble direction
         dirs = [pred["direction"] for _, pred in valid]
@@ -960,8 +995,9 @@ class PredictorService:
         base_pred.update({
             "direction":        ens_direction,
             "predicted_change": round(ens_change, 4),
-            "confidence":       round(total_weight / len(valid), 3),
+            "confidence":       ens_confidence,
             "ensemble":         True,
+            "inverted":         is_inverted,
         })
         base["prediction"] = base_pred
 

@@ -360,6 +360,7 @@ function renderPatternPredictor() {
             const dirIcon = dir === 'BULLISH' ? 'trending_up' : dir === 'BEARISH' ? 'trending_down' : 'trending_flat';
             const rfLabel = data.regime_filtered ? `<span style="font-size:0.55rem;color:var(--accent);background:rgba(125,211,252,0.1);padding:1px 6px;border-radius:4px;border:1px solid rgba(125,211,252,0.2)">REGIME MATCHED</span>` : '';
             const ensLabel = p.ensemble ? `<span style="font-size:0.55rem;color:#a78bfa;background:rgba(167,139,250,0.1);padding:1px 6px;border-radius:4px;border:1px solid rgba(167,139,250,0.2)">ENSEMBLE</span>` : '';
+            const invLabel = p.inverted ? `<span style="font-size:0.55rem;color:#f59e0b;background:rgba(245,158,11,0.15);padding:1px 6px;border-radius:4px;border:1px solid rgba(245,158,11,0.3)">INVERTED (<40% WIN RATE)</span>` : '';
 
             // Confidence breakdown bars
             const cb = p.confidence_breakdown || {};
@@ -418,7 +419,7 @@ function renderPatternPredictor() {
                         <div style="font-size:1rem;font-weight:900;color:var(--text-main)">${p.matches_found || 0}</div>
                     </div>
                 </div>
-                <div style="text-align:center;margin-top:4px;display:flex;gap:4px;justify-content:center;flex-wrap:wrap">${rfLabel}${ensLabel}</div>
+                <div style="text-align:center;margin-top:4px;display:flex;gap:4px;justify-content:center;flex-wrap:wrap">${rfLabel}${ensLabel}${invLabel}</div>
                 ${confBreakdown}
                 ${ensPanel}
                 <div style="font-size:0.6rem;color:var(--text-dim);text-align:center;margin-top:6px">History: ${data.history_size} ticks</div>
