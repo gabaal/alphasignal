@@ -481,9 +481,9 @@ function renderPatternPredictor() {
             const nEl = document.getElementById('pp-acc-n');
             if (nEl) {
                 const chips = [];
-                if (data.raw_accuracy_pct != null) chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(148,163,184,0.12);border:1px solid rgba(148,163,184,0.3);color:#94a3b8">Raw All ${data.raw_accuracy_pct}%</span>`);
+                if (data.high_conf_accuracy_pct != null) chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(125,211,252,0.12);border:1px solid rgba(125,211,252,0.3);color:#7dd3fc">High Conf ${data.high_conf_accuracy_pct}%</span>`);
                 if (data.directional_accuracy_pct != null) chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80">Directional ${data.directional_accuracy_pct}%</span>`);
-                if (data.accuracy_7d_pct != null)  chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(125,211,252,0.08);border:1px solid rgba(125,211,252,0.2);color:#7dd3fc">7d ${data.accuracy_7d_pct}%</span>`);
+                if (data.accuracy_7d_pct != null)  chips.push(`<span style="font-size:0.5rem;padding:1px 6px;border-radius:100px;background:rgba(148,163,184,0.12);border:1px solid rgba(148,163,184,0.3);color:#94a3b8">7d ${data.accuracy_7d_pct}%</span>`);
                 nEl.innerHTML = `${data.total_resolved||0} resolved<br><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:4px">${chips.join(' ')}</div>`;
             }
 

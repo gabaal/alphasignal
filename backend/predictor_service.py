@@ -859,11 +859,24 @@ class PredictorService:
                     elif ml_pred["confidence"] > 0.50:
                         direction = ml_pred["direction"]
                         confidence = ml_pred["confidence"]
+                        # Align expected change sign with ML direction override
+                        if direction == "BULLISH" and pred_change < 0:
+                            pred_change = abs(pred_change)
+                        elif direction == "BEARISH" and pred_change > 0:
+                            pred_change = -abs(pred_change)
                     confidence_breakdown["ml_confidence"] = ml_pred["confidence"]
 
-                # If overall confidence is low, default to NEUTRAL to protect win rate
+                # Reconcile Composite Index conflict: penalise confidence if CI contradicts signal
+                ci_last = current_ci[-1] if current_ci else 0.0
+                if (ci_last < -5.0 and direction == "BULLISH") or (ci_last > 5.0 and direction == "BEARISH"):
+                    confidence = round(confidence * 0.70, 3)
+
+                # If overall confidence is low, default to NEUTRAL and zero out move to protect win rate
                 if confidence < 0.35:
                     direction = "NEUTRAL"
+                    pred_change = 0.0
+                elif direction == "NEUTRAL":
+                    pred_change = 0.0
             else:
                 pred_change          = 0.0
                 direction            = "NEUTRAL"
@@ -1048,8 +1061,8 @@ class PredictorService:
             dir_rate  = _rate(directional)
             avg_err   = round(float(overall["avg_error"] or 0), 3)
 
-            # Headline accuracy prioritizes actionable signal win rate over flat compression noise
-            headline_accuracy = high_rate if high_rate is not None else (dir_rate if dir_rate is not None else raw_rate)
+            # Headline accuracy reflects true aggregate raw accuracy across resolved predictions
+            headline_accuracy = raw_rate if raw_rate is not None else 0.0
 
             # Stale data check: warn if latest CI tick is more than 3 hours old
             _stale_warning = False
