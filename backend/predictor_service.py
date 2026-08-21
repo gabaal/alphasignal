@@ -1286,6 +1286,61 @@ class PredictorService:
         except Exception as e:
             print(f"[Predictor v2] Regime backfill error: {e}", flush=True)
 
+    @staticmethod
+    def archive_legacy_predictions():
+        """
+        Archive legacy uncalibrated predictions recorded before v2 calibration update into
+        predictor_accuracy_archive, resetting predictor_accuracy to track clean v2 engine accuracy.
+        """
+        try:
+            with sqlite3.connect(DB_PATH, timeout=30) as conn:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS predictor_accuracy_archive (
+                        id INTEGER PRIMARY KEY,
+                        predicted_at TEXT,
+                        lookback_minutes INTEGER,
+                        predicted_dir TEXT,
+                        predicted_change REAL,
+                        confidence REAL,
+                        btc_price_at REAL,
+                        btc_price_after REAL,
+                        actual_change REAL,
+                        was_correct INTEGER,
+                        resolved_at TEXT,
+                        regime TEXT,
+                        archived_at TEXT
+                    )
+                """)
+
+                # Copy legacy resolved predictions (recorded prior to today's v2 fix) to archive
+                conn.execute("""
+                    INSERT OR IGNORE INTO predictor_accuracy_archive (
+                        id, predicted_at, lookback_minutes, predicted_dir,
+                        predicted_change, confidence, btc_price_at, btc_price_after,
+                        actual_change, was_correct, resolved_at, regime, archived_at
+                    )
+                    SELECT 
+                        id, predicted_at, lookback_minutes, predicted_dir,
+                        predicted_change, confidence, btc_price_at, btc_price_after,
+                        actual_change, was_correct, resolved_at, regime,
+                        datetime('now')
+                    FROM predictor_accuracy
+                    WHERE predicted_at < '2026-08-21T00:00:00'
+                """)
+
+                # Remove legacy rows from active table so scoreboard tracks v2 predictions only
+                deleted = conn.execute("""
+                    DELETE FROM predictor_accuracy
+                    WHERE predicted_at < '2026-08-21T00:00:00'
+                """).rowcount
+
+                conn.commit()
+                print(f"[Predictor v2] Archived {deleted} legacy uncalibrated predictions into predictor_accuracy_archive.", flush=True)
+                return {"archived_count": deleted}
+        except Exception as e:
+            print(f"[Predictor v2] Archive error: {e}", flush=True)
+            return {"error": str(e)}
+
     # ── main loop ─────────────────────────────────────────────────────────────
 
     def run(self):
@@ -1295,6 +1350,8 @@ class PredictorService:
         time.sleep(30)
         # Backfill any Unknown regime rows from before the fix
         self._backfill_regime_labels()
+        # Archive legacy uncalibrated predictions recorded before v2 calibration update
+        self.archive_legacy_predictions()
         # Re-resolve historical accuracy rows with exact +30m price lookup
         self.re_resolve_all_history()
         prune_counter = 0
