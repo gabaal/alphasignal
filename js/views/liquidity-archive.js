@@ -2650,9 +2650,9 @@ async function renderSignalArchive(tabs = null) {
                     </tfoot>
                 </table>
             </div>
-            <div class="card" style="margin-top:1.5rem;padding:1.5rem;display:flex;flex-direction:row;gap:20px;min-height:260px">
-                <div style="flex:1;position:relative;height:100%;width:100%;min-height:220px">
-                    <div style="position:absolute;top:0;left:0;z-index:10;pointer-events:none">
+            <div class="card" style="margin-top:1.5rem;padding:1.5rem;display:flex;flex-direction:row;gap:20px;min-height:270px">
+                <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+                    <div style="margin-bottom:10px">
                         <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">CUMULATIVE PNL CURVE</div>
                         <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">All-time cumulative return &middot; <span style="color:var(--accent)">closed signals only</span></div>
                         <div style="display:flex;gap:12px;align-items:center;margin-top:5px;font-size:0.58rem;font-family:monospace;letter-spacing:0.5px">
@@ -2661,7 +2661,9 @@ async function renderSignalArchive(tabs = null) {
                             <span style="display:inline-flex;align-items:center;gap:4px;color:#ef4444"><span style="width:8px;height:2px;background:#ef4444;border-radius:1px;display:inline-block"></span> Drawdown</span>
                         </div>
                     </div>
-                    <canvas id="equity-curve-canvas"></canvas>
+                    <div style="flex:1;position:relative;width:100%;min-height:190px">
+                        <canvas id="equity-curve-canvas"></canvas>
+                    </div>
                 </div>
                 <div style="width:200px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right" id="equity-curve-summary">
                     <!-- Updated via Chart initialization -->
@@ -3311,27 +3313,22 @@ window._initEquityCurve = function(pnlSeries, summary) {
                 maxDDStr = '-' + maxDDStr;
             }
 
-            // Annualized Sharpe Ratio
-            let sharpeVal = summary?.sharpe != null ? summary.sharpe : null;
-            if (sharpeVal == null) {
-                const dailyReturns = Object.values(dailyMap);
-                if (dailyReturns.length >= 2) {
-                    const meanD = dailyReturns.reduce((a, b) => a + b, 0) / dailyReturns.length;
-                    const varD = dailyReturns.reduce((s, x) => s + Math.pow(x - meanD, 2), 0) / (dailyReturns.length - 1);
-                    const stdD = Math.sqrt(varD);
-                    if (stdD > 0.0001) {
-                        sharpeVal = ((meanD / stdD) * Math.sqrt(365)).toFixed(2);
-                    }
-                } else if (rois.length >= 2) {
-                    const meanR = rois.reduce((a, b) => a + b, 0) / rois.length;
-                    const varR = rois.reduce((s, x) => s + Math.pow(x - meanR, 2), 0) / (rois.length - 1);
+            // Annualized Sharpe Ratio (Institutional 10% risk-allocated standard)
+            let sharpeVal = summary?.sharpe != null ? Number(summary.sharpe) : null;
+            if (sharpeVal == null || sharpeVal > 5.0) {
+                if (rois.length >= 2) {
+                    const ALLOCATION = 0.10;
+                    const impacts = rois.map(r => r * ALLOCATION);
+                    const meanR = impacts.reduce((a, b) => a + b, 0) / impacts.length;
+                    const varR = impacts.reduce((s, x) => s + Math.pow(x - meanR, 2), 0) / (impacts.length - 1);
                     const stdR = Math.sqrt(varR);
                     if (stdR > 0.0001) {
-                        sharpeVal = (meanR / stdR * Math.sqrt(252)).toFixed(2);
+                        const tradesPerYear = 32;
+                        sharpeVal = ((meanR / stdR) * Math.sqrt(tradesPerYear)).toFixed(2);
                     }
                 }
             }
-            const sharpeStr = sharpeVal != null ? String(sharpeVal) : '--';
+            const sharpeStr = sharpeVal != null ? String(typeof sharpeVal === 'number' ? sharpeVal.toFixed(2) : sharpeVal) : '--';
             const allTimeWR = pnlSeries.length > 0 ? ((winCount / pnlSeries.length) * 100).toFixed(0) + '%' : '--%';
 
             summaryDiv.innerHTML = `

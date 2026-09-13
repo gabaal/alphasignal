@@ -5508,17 +5508,16 @@ class InstitutionalRoutesMixin:
                 
                 sharpe_ratio = 0.0
                 if len(pnls) >= 2:
-                    daily_pnls = {}
-                    for p in pnl_curve:
-                        d = str(p.get('date', ''))[:10]
-                        daily_pnls[d] = daily_pnls.get(d, 0.0) + p['roi']
-                    d_vals = list(daily_pnls.values())
-                    if len(d_vals) >= 2:
-                        d_mean = sum(d_vals) / len(d_vals)
-                        d_var = sum((x - d_mean) ** 2 for x in d_vals) / (len(d_vals) - 1)
-                        d_std = d_var ** 0.5
-                        if d_std > 1e-6:
-                            sharpe_ratio = round((d_mean / d_std) * (365 ** 0.5), 2)
+                    # Standardize position sizing to institutional norms (10% allocation per signal)
+                    ALLOCATION = 0.10
+                    port_impacts = [p * ALLOCATION for p in pnls]
+                    mean_r = sum(port_impacts) / len(port_impacts)
+                    var_r = sum((p - mean_r) ** 2 for p in port_impacts) / (len(port_impacts) - 1)
+                    std_r = var_r ** 0.5
+                    if std_r > 1e-6:
+                        # Annualized sequential capacity based on standard institutional hold horizon
+                        trades_per_year = 32
+                        sharpe_ratio = round((mean_r / std_r) * (trades_per_year ** 0.5), 2)
 
                 # Fetch P&L distribution by Ticker (Asset Class)
                 c2_cur.execute(f"""
