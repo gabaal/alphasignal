@@ -3110,11 +3110,11 @@ if (typeof window.sortBreakdownTable === 'undefined') {
     };
 }
 
-if (typeof window._initEquityCurve === 'undefined') {
-    window._initEquityCurve = function(pnlSeries) {
-        if (!pnlSeries || !pnlSeries.length) return;
-        const ctx = document.getElementById('equity-curve-canvas');
-        if (!ctx) return;
+window._initEquityCurve = function(pnlSeries, summary) {
+    if (!pnlSeries || !pnlSeries.length) return;
+    summary = summary || window._lastSummaryData || {};
+    const ctx = document.getElementById('equity-curve-canvas');
+    if (!ctx) return;
         
         let cumulative = 0;
         let peak = -Infinity;
@@ -3365,7 +3365,6 @@ if (typeof window._initEquityCurve === 'undefined') {
                 </div>`;
         }
     };
-}
 
 if (typeof window._initPhase2Charts === 'undefined') {
     window._initPhase2Charts = function(summary) {
