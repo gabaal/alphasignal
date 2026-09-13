@@ -2491,7 +2491,7 @@ async function renderSignalArchive(tabs = null) {
             </div>${renderTypeBreakdown(data, response)}`;
 
         if (window._initEquityCurve && response?.summary?.pnl_curve) {
-            setTimeout(() => window._initEquityCurve(response.summary.pnl_curve), 50);
+            setTimeout(() => window._initEquityCurve(response.summary.pnl_curve, response.summary), 50);
         }
         if (window._initPhase2Charts && response?.summary) {
             setTimeout(() => window._initPhase2Charts(response.summary), 80);
@@ -2650,15 +2650,20 @@ async function renderSignalArchive(tabs = null) {
                     </tfoot>
                 </table>
             </div>
-            <div class="card" style="margin-top:1.5rem;padding:1.5rem;display:flex;flex-direction:row;gap:20px;height:250px">
-                <div style="flex:1;position:relative;height:100%;width:100%;">
+            <div class="card" style="margin-top:1.5rem;padding:1.5rem;display:flex;flex-direction:row;gap:20px;min-height:260px">
+                <div style="flex:1;position:relative;height:100%;width:100%;min-height:220px">
                     <div style="position:absolute;top:0;left:0;z-index:10;pointer-events:none">
                         <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">CUMULATIVE PNL CURVE</div>
                         <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">All-time cumulative return &middot; <span style="color:var(--accent)">closed signals only</span></div>
+                        <div style="display:flex;gap:12px;align-items:center;margin-top:5px;font-size:0.58rem;font-family:monospace;letter-spacing:0.5px">
+                            <span style="display:inline-flex;align-items:center;gap:4px;color:#00f2ff"><span style="width:8px;height:2px;background:#00f2ff;border-radius:1px;display:inline-block"></span> Cumulative P&L</span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;color:#eab308"><span style="width:8px;height:2px;background:#eab308;border-top:1px dashed #eab308;display:inline-block"></span> 30D Win Rate</span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;color:#ef4444"><span style="width:8px;height:2px;background:#ef4444;border-radius:1px;display:inline-block"></span> Drawdown</span>
+                        </div>
                     </div>
                     <canvas id="equity-curve-canvas"></canvas>
                 </div>
-                <div style="width:140px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right" id="equity-curve-summary">
+                <div style="width:200px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right" id="equity-curve-summary">
                     <!-- Updated via Chart initialization -->
                     <span style="font-size:1.8rem;font-weight:900;color:var(--text-dim);letter-spacing:-0.5px;font-family:monospace">--%</span>
                     <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">-- TRADES</div>
@@ -3262,13 +3267,102 @@ if (typeof window._initEquityCurve === 'undefined') {
         
         const summaryDiv = document.getElementById('equity-curve-summary');
         if (summaryDiv) {
-            const finalWinRate = winRatePoints.length > 0 ? winRatePoints[winRatePoints.length-1] : 0;
-            const finalDrawdown = drawdownPoints.length > 0 ? drawdownPoints[drawdownPoints.length-1] : 0;
-            
-            summaryDiv.innerHTML = `<span style="font-size:1.4rem;font-weight:900;color:${lineColor};letter-spacing:-0.5px;font-family:monospace">${isUp?'+':''}${cumulative.toFixed(2)}%</span>
-            <div style="font-size:0.55rem;color:var(--text-dim);margin-top:2px;letter-spacing:1px">${pnlSeries.length} TRADES</div>
-            <div style="font-size:0.55rem;color:rgba(234, 179, 8, 0.8);margin-top:8px;font-family:monospace;font-weight:bold">WR: ${finalWinRate}%</div>
-            <div style="font-size:0.55rem;color:rgba(239, 68, 68, 0.8);margin-top:2px;font-family:monospace;font-weight:bold">DD: ${finalDrawdown}%</div>`;
+            // Quantitative Risk & Performance Metrics derivation
+            let grossWins = 0;
+            let grossLosses = 0;
+            let winCount = 0;
+            let maxDD = 0;
+            let runPeak = 0;
+            let runCum = 0;
+            const rois = [];
+            const dailyMap = {};
+
+            pnlSeries.forEach(p => {
+                const r = Number(p.roi) || 0;
+                rois.push(r);
+                if (r > 0) {
+                    grossWins += r;
+                    winCount++;
+                } else if (r < 0) {
+                    grossLosses += Math.abs(r);
+                }
+                runCum += r;
+                if (runCum > runPeak) runPeak = runCum;
+                const curDD = runCum - runPeak;
+                if (curDD < maxDD) maxDD = curDD;
+
+                if (p.date) {
+                    const d = new Date(p.date).toISOString().slice(0, 10);
+                    dailyMap[d] = (dailyMap[d] || 0) + r;
+                }
+            });
+
+            // Profit Factor
+            let profitFactor = summary?.profit_factor != null 
+                ? Number(summary.profit_factor).toFixed(2)
+                : (grossLosses > 0 ? (grossWins / grossLosses).toFixed(2) : (grossWins > 0 ? '9.99+' : '--'));
+
+            // Max Drawdown
+            let maxDDVal = summary?.max_drawdown != null 
+                ? summary.max_drawdown 
+                : maxDD.toFixed(1);
+            let maxDDStr = (typeof maxDDVal === 'number' ? maxDDVal.toFixed(1) : String(maxDDVal)) + '%';
+            if (!maxDDStr.startsWith('-') && parseFloat(maxDDVal) !== 0) {
+                maxDDStr = '-' + maxDDStr;
+            }
+
+            // Annualized Sharpe Ratio
+            let sharpeVal = summary?.sharpe != null ? summary.sharpe : null;
+            if (sharpeVal == null) {
+                const dailyReturns = Object.values(dailyMap);
+                if (dailyReturns.length >= 2) {
+                    const meanD = dailyReturns.reduce((a, b) => a + b, 0) / dailyReturns.length;
+                    const varD = dailyReturns.reduce((s, x) => s + Math.pow(x - meanD, 2), 0) / (dailyReturns.length - 1);
+                    const stdD = Math.sqrt(varD);
+                    if (stdD > 0.0001) {
+                        sharpeVal = ((meanD / stdD) * Math.sqrt(365)).toFixed(2);
+                    }
+                } else if (rois.length >= 2) {
+                    const meanR = rois.reduce((a, b) => a + b, 0) / rois.length;
+                    const varR = rois.reduce((s, x) => s + Math.pow(x - meanR, 2), 0) / (rois.length - 1);
+                    const stdR = Math.sqrt(varR);
+                    if (stdR > 0.0001) {
+                        sharpeVal = (meanR / stdR * Math.sqrt(252)).toFixed(2);
+                    }
+                }
+            }
+            const sharpeStr = sharpeVal != null ? String(sharpeVal) : '--';
+            const allTimeWR = pnlSeries.length > 0 ? ((winCount / pnlSeries.length) * 100).toFixed(0) + '%' : '--%';
+
+            summaryDiv.innerHTML = `
+                <div style="font-size:1.65rem;font-weight:900;color:${lineColor};letter-spacing:-0.5px;font-family:monospace;line-height:1.1">
+                    ${isUp ? '+' : ''}${cumulative.toFixed(2)}%
+                </div>
+                <div style="font-size:0.58rem;font-weight:800;color:var(--text-dim);margin-top:3px;letter-spacing:1px">
+                    ${pnlSeries.length} CLOSED SIGNALS
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;margin-top:10px;width:100%">
+                    <!-- Sharpe Ratio Badge -->
+                    <div style="display:inline-flex;align-items:center;justify-content:space-between;width:100%;padding:4px 8px;border-radius:6px;background:rgba(0, 242, 255, 0.06);border:1px solid rgba(0, 242, 255, 0.25);font-size:0.62rem;font-family:monospace;font-weight:800;color:#00f2ff;box-sizing:border-box" title="Annualized Sharpe Ratio (risk-adjusted return)">
+                        <span style="font-size:0.52rem;letter-spacing:1px;color:rgba(148,163,184,0.85);font-weight:700">SHARPE</span>
+                        <span>${sharpeStr}</span>
+                    </div>
+                    <!-- Profit Factor Badge -->
+                    <div style="display:inline-flex;align-items:center;justify-content:space-between;width:100%;padding:4px 8px;border-radius:6px;background:rgba(34, 197, 94, 0.06);border:1px solid rgba(34, 197, 94, 0.25);font-size:0.62rem;font-family:monospace;font-weight:800;color:#22c55e;box-sizing:border-box" title="Profit Factor (Gross Wins / Gross Losses)">
+                        <span style="font-size:0.52rem;letter-spacing:1px;color:rgba(148,163,184,0.85);font-weight:700">PROFIT FACTOR</span>
+                        <span>${profitFactor}</span>
+                    </div>
+                    <!-- Max Drawdown Badge -->
+                    <div style="display:inline-flex;align-items:center;justify-content:space-between;width:100%;padding:4px 8px;border-radius:6px;background:rgba(239, 68, 68, 0.06);border:1px solid rgba(239, 68, 68, 0.25);font-size:0.62rem;font-family:monospace;font-weight:800;color:#ef4444;box-sizing:border-box" title="Maximum Peak-to-Trough Drawdown">
+                        <span style="font-size:0.52rem;letter-spacing:1px;color:rgba(148,163,184,0.85);font-weight:700">MAX DD</span>
+                        <span>${maxDDStr}</span>
+                    </div>
+                    <!-- Win Rate Badge -->
+                    <div style="display:inline-flex;align-items:center;justify-content:space-between;width:100%;padding:4px 8px;border-radius:6px;background:rgba(234, 179, 8, 0.06);border:1px solid rgba(234, 179, 8, 0.25);font-size:0.62rem;font-family:monospace;font-weight:800;color:#eab308;box-sizing:border-box" title="All-Time Closed Signals Win Rate">
+                        <span style="font-size:0.52rem;letter-spacing:1px;color:rgba(148,163,184,0.85);font-weight:700">WIN RATE</span>
+                        <span>${allTimeWR}</span>
+                    </div>
+                </div>`;
         }
     };
 }
@@ -3337,7 +3431,7 @@ if (typeof window._initPhase2Charts === 'undefined') {
                             },
                             y: {
                                 grid: { display: false, drawBorder: false },
-                                ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace', weight: 'bold' } }
+                                ticks: { color: '#cbd5e1', font: { size: 10, family: 'monospace', weight: 'bold' } }
                             }
                         }
                     }

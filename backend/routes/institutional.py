@@ -5488,6 +5488,38 @@ class InstitutionalRoutesMixin:
                 for ts_pnl, val_pnl in c2_cur.fetchall():
                     pnl_curve.append({'date': ts_pnl, 'roi': round(float(val_pnl), 2)})
                     
+                # Calculate Sharpe, Profit Factor, Max Drawdown
+                pnls = [p['roi'] for p in pnl_curve]
+                wins = [p for p in pnls if p > 0]
+                losses = [abs(p) for p in pnls if p < 0]
+                profit_factor = round(sum(wins) / max(sum(losses), 0.001), 2) if losses else (9.99 if wins else 0.0)
+                
+                peak = 0.0
+                cum = 0.0
+                max_dd = 0.0
+                for p in pnls:
+                    cum += p
+                    if cum > peak:
+                        peak = cum
+                    dd = cum - peak
+                    if dd < max_dd:
+                        max_dd = dd
+                max_drawdown = round(max_dd, 2)
+                
+                sharpe_ratio = 0.0
+                if len(pnls) >= 2:
+                    daily_pnls = {}
+                    for p in pnl_curve:
+                        d = str(p.get('date', ''))[:10]
+                        daily_pnls[d] = daily_pnls.get(d, 0.0) + p['roi']
+                    d_vals = list(daily_pnls.values())
+                    if len(d_vals) >= 2:
+                        d_mean = sum(d_vals) / len(d_vals)
+                        d_var = sum((x - d_mean) ** 2 for x in d_vals) / (len(d_vals) - 1)
+                        d_std = d_var ** 0.5
+                        if d_std > 1e-6:
+                            sharpe_ratio = round((d_mean / d_std) * (365 ** 0.5), 2)
+
                 # Fetch P&L distribution by Ticker (Asset Class)
                 c2_cur.execute(f"""
                     SELECT se.ticker AS symbol,
@@ -5541,6 +5573,9 @@ class InstitutionalRoutesMixin:
                 pnl_curve = []
                 by_ticker = []
                 heatmap_data = []
+                profit_factor = 0.0
+                max_drawdown = 0.0
+                sharpe_ratio = 0.0
                 print(f'[SignalHistory] by_type/pnl_curve error: {bte}')
 
             response = {
@@ -5552,18 +5587,21 @@ class InstitutionalRoutesMixin:
                     'pages': math.ceil(total_count / limit) if limit > 0 else 1
                 },
                 'summary': {
-                    'total':      total_count,
-                    'closed':     full_closed,
-                    'active':     full_active,
-                    'wins':       full_wins,       # closed signals with positive final_roi
-                    'losses':     full_losses,     # closed signals with negative final_roi
-                    'avg_roi':    full_avg_roi,    # avg final_roi across closed signals
-                    'page_wins':  page_wins,       # current-page ROI-based wins
-                    'page_losses': page_losses,    # current-page ROI-based losses
-                    'by_type':    by_type,         # per-signal-type breakdown for perf table
-                    'pnl_curve':  pnl_curve,       # chronological PNL curve markers
-                    'by_ticker':  by_ticker,       # Asset Class performance breakdown
-                    'heatmap_data': heatmap_data,  # Temporal day/hour performance
+                    'total':         total_count,
+                    'closed':        full_closed,
+                    'active':        full_active,
+                    'wins':          full_wins,       # closed signals with positive final_roi
+                    'losses':        full_losses,     # closed signals with negative final_roi
+                    'avg_roi':       full_avg_roi,    # avg final_roi across closed signals
+                    'page_wins':     page_wins,       # current-page ROI-based wins
+                    'page_losses':   page_losses,     # current-page ROI-based losses
+                    'by_type':       by_type,         # per-signal-type breakdown for perf table
+                    'pnl_curve':     pnl_curve,       # chronological PNL curve markers
+                    'by_ticker':     by_ticker,       # Asset Class performance breakdown
+                    'heatmap_data':  heatmap_data,    # Temporal day/hour performance
+                    'profit_factor': profit_factor,   # Gross wins / gross losses
+                    'sharpe':        sharpe_ratio,    # Annualized Sharpe ratio
+                    'max_drawdown':  max_drawdown,    # Maximum peak-to-trough drawdown
                 }
             }
             # - Store in cache -
