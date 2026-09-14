@@ -94,10 +94,11 @@ async function renderAnalyticsHub() {
 
 // ============= Audit & Performance Hub =============
 const auditHubTabs = [
-    { id: 'performance',      label: 'PERFORMANCE',     view: 'performance-dashboard', icon: 'trending_up' },
-    { id: 'ledger',           label: 'TRADE LEDGER',    view: 'trade-ledger',          icon: 'list_alt' },
-    { id: 'strategy-report',  label: 'STRATEGY REPORT', view: 'strategy-report',       icon: 'insert_chart' },
-    { id: 'overview',         label: 'HUB OVERVIEW',    view: 'docs-hub-audit',        icon: 'menu_book' }
+    { id: 'performance',          label: 'PERFORMANCE',         view: 'performance-dashboard', icon: 'trending_up' },
+    { id: 'global-closed',        label: 'GLOBAL BREAKDOWN',    view: 'global-closed-signals', icon: 'public' },
+    { id: 'ledger',               label: 'TRADE LEDGER',        view: 'trade-ledger',          icon: 'list_alt' },
+    { id: 'strategy-report',      label: 'STRATEGY REPORT',     view: 'strategy-report',       icon: 'insert_chart' },
+    { id: 'overview',             label: 'HUB OVERVIEW',        view: 'docs-hub-audit',        icon: 'menu_book' }
 ];
 
 async function renderAuditHub() {
