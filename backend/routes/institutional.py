@@ -4794,6 +4794,8 @@ class InstitutionalRoutesMixin:
             exp_type = query.get('type', ['json'])[0]
             if exp_type == 'signals':
                 # Read same filter params as /signal-history so EXPORT ALL = filtered set
+                f_scope     = query.get('scope',     ['user'])[0].lower()
+                is_global   = (f_scope in ('all', 'global'))
                 f_ticker    = query.get('ticker',    [None])[0]
                 f_type      = query.get('sigtype',   [None])[0]  # 'type' clashes with exp_type
                 f_severity  = query.get('severity',  [None])[0]
@@ -4802,8 +4804,8 @@ class InstitutionalRoutesMixin:
                 f_from      = query.get('from',      [None])[0]  # ISO date YYYY-MM-DD
                 f_to        = query.get('to',        [None])[0]  # ISO date YYYY-MM-DD
 
-                # User scoping: strictly own signals only
-                if user_email:
+                # User scoping: own signals by default, or all users if scope=all
+                if user_email and not is_global:
                     if f_from and f_to:
                         base_where = "WHERE datetime(se.timestamp) >= ? AND datetime(se.timestamp) <= ? AND uss.user_email = ?"
                         params = [f_from + ' 00:00:00', f_to + ' 23:59:59', user_email]
@@ -4816,6 +4818,19 @@ class InstitutionalRoutesMixin:
                     else:
                         base_where = "WHERE se.timestamp > datetime('now', ?) AND uss.user_email = ?"
                         params = [f'-{f_days} day', user_email]
+                elif is_global or user_email:
+                    if f_from and f_to:
+                        base_where = "WHERE datetime(se.timestamp) >= ? AND datetime(se.timestamp) <= ?"
+                        params = [f_from + ' 00:00:00', f_to + ' 23:59:59']
+                    elif f_from:
+                        base_where = "WHERE datetime(se.timestamp) >= ?"
+                        params = [f_from + ' 00:00:00']
+                    elif f_to:
+                        base_where = "WHERE datetime(se.timestamp) <= ?"
+                        params = [f_to + ' 23:59:59']
+                    else:
+                        base_where = "WHERE se.timestamp > datetime('now', ?)"
+                        params = [f'-{f_days} day']
                 else:
                     # Unauthenticated: export empty
                     self.send_response(401)
@@ -4846,18 +4861,22 @@ class InstitutionalRoutesMixin:
                     SELECT se.id, se.type, se.ticker, se.message, se.severity,
                            se.price, se.timestamp,
                            COALESCE(uss.status,"active") as status,
-                           uss.closed_at, uss.exit_price, uss.final_roi
+                           uss.closed_at, uss.exit_price, uss.final_roi,
+                           uss.user_email
                     FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id
                     {base_where}
                     ORDER BY se.timestamp DESC
                 ''', params)
-                rows = c.fetchall()
+                raw_rows = c.fetchall()
                 conn.close()
                 output = io.StringIO()
                 writer = csv.writer(output)
                 writer.writerow(['ID','Type','Ticker','Message','Severity','Entry_Price',
-                                 'Timestamp','Status','Closed_At','Exit_Price','Final_ROI_%'])
-                writer.writerows(rows)
+                                 'Timestamp','Status','Closed_At','Exit_Price','Final_ROI_%','Trader'])
+                for r in raw_rows:
+                    em = r[11] if len(r) > 11 and r[11] else ''
+                    masked_trader = (em[:2] + '***@' + em.split('@')[-1]) if ('@' in em) else (em or 'Trader')
+                    writer.writerow(list(r[:11]) + [masked_trader])
                 # Build filename with date range context
                 fname = f'alphasignal_signals_{datetime.now().strftime("%Y%m%d")}'
                 if f_from and f_to:  fname += f'_{f_from}_{f_to}'
@@ -5014,6 +5033,8 @@ class InstitutionalRoutesMixin:
         user_email = auth_info.get('email') if auth_info else None
         try:
             query    = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            f_scope     = query.get('scope',     ['user'])[0].lower()
+            is_global   = (f_scope in ('all', 'global'))
             f_ticker    = query.get('ticker',    [None])[0]
             f_type      = query.get('type',       [None])[0]
             f_severity  = query.get('severity',   [None])[0]
@@ -5042,8 +5063,8 @@ class InstitutionalRoutesMixin:
             order_expr = SORT_MAP.get(sort_col, 'se.timestamp')
             order_clause = f'ORDER BY {order_expr} {sort_dir.upper()}'
 
-            # - Cache check: 2-min TTL, keyed by all query params + user -
-            cache_key = f'{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_state}:{f_days}:{f_from}:{f_to}:{page}:{limit}:{sort_col}:{sort_dir}'
+            # - Cache check: 2-min TTL, keyed by all query params + scope + user -
+            cache_key = f'{f_scope}:{user_email}:{f_ticker}:{f_type}:{f_severity}:{f_direction}:{f_state}:{f_days}:{f_from}:{f_to}:{page}:{limit}:{sort_col}:{sort_dir}'
             shc = InstitutionalRoutesMixin._sig_history_cache
             entry = shc.get(cache_key)
             if entry and (time.time() - entry['ts']) < 10:
@@ -5054,7 +5075,7 @@ class InstitutionalRoutesMixin:
             c    = conn.cursor()
 
             # User scoping: WHERE clause targets JOIN columns (se.timestamp, uss.user_email)
-            if user_email:
+            if user_email and not is_global:
                 if f_from and f_to:
                     base_where  = "WHERE datetime(se.timestamp) >= ? AND datetime(se.timestamp) <= ? AND LOWER(uss.user_email) = LOWER(?)"
                     params      = [f_from + ' 00:00:00', f_to + ' 23:59:59', user_email]
@@ -5092,7 +5113,7 @@ class InstitutionalRoutesMixin:
                     
                 count_params = list(params)
             else:
-                # Unauthenticated: show all signals (public market intelligence)
+                # Global / Unauthenticated: show all signals across all users
                 if f_from and f_to:
                     base_where  = "WHERE datetime(se.timestamp) >= ? AND datetime(se.timestamp) <= ?"
                     params      = [f_from + ' 00:00:00', f_to + ' 23:59:59']
@@ -5106,6 +5127,12 @@ class InstitutionalRoutesMixin:
                     base_where  = "WHERE se.timestamp > datetime('now', ?)"
                     params      = [f'-{f_days} day']
                 
+                # Filter out NON_CRYPTO tickers
+                NON_CRYPTO = tuple(set(UNIVERSE.get('EQUITIES', []) + UNIVERSE.get('TREASURY', [])))
+                if NON_CRYPTO:
+                    base_where += f" AND se.ticker NOT IN ({','.join(['?']*len(NON_CRYPTO))})"
+                    params.extend(NON_CRYPTO)
+
                 # Filter out informational anomalies from the Signals Archive
                 base_where += (" AND se.type NOT LIKE '%FUNDING%'"
                                " AND se.type NOT LIKE '%DEPEG%'"
@@ -5174,7 +5201,8 @@ class InstitutionalRoutesMixin:
                            se.price, se.timestamp,
                            COALESCE(uss.status, 'active') AS status,
                            uss.closed_at, uss.exit_price, uss.final_roi,
-                           se.mtf_score, se.mtf_detail, se.direction
+                           se.mtf_score, se.mtf_detail, se.direction,
+                           uss.user_email
                     FROM signal_events se
                     JOIN user_signal_state uss ON uss.signal_id = se.id
                     {base_where}
@@ -5187,7 +5215,8 @@ class InstitutionalRoutesMixin:
                            se.price, se.timestamp,
                            COALESCE(uss.status, 'active') AS status,
                            uss.closed_at, uss.exit_price, uss.final_roi,
-                           se.mtf_score, se.mtf_detail, se.direction
+                           se.mtf_score, se.mtf_detail, se.direction,
+                           uss.user_email
                     FROM signal_events se
                     JOIN user_signal_state uss ON uss.signal_id = se.id
                     {base_where}
@@ -5285,7 +5314,9 @@ class InstitutionalRoutesMixin:
                        'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
 
             results = []
-            for row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, exit_px, stored_roi, mtf_score_raw, mtf_detail_raw, direction_val in rows:
+            for row in rows:
+                row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, exit_px, stored_roi, mtf_score_raw, mtf_detail_raw, direction_val = row[:14]
+                row_email = row[14] if len(row) > 14 else None
                 roi   = 0.0
                 state = 'ACTIVE'
                 curr_p = price_map.get(ticker)  # live price for this ticker
@@ -5357,6 +5388,16 @@ class InstitutionalRoutesMixin:
                 except Exception:
                     _mtf_score, _mtf_detail = None, None
 
+                # Mask trader email for privacy in multi-user view
+                trader_str = None
+                if row_email:
+                    em_str = str(row_email).strip()
+                    if '@' in em_str:
+                        parts = em_str.split('@')
+                        trader_str = parts[0][:2] + '***@' + parts[1]
+                    else:
+                        trader_str = em_str
+
                 results.append({
                     'id':         row_id,
                     'type':       sig_type,
@@ -5377,6 +5418,7 @@ class InstitutionalRoutesMixin:
                     'mtf_score':  _mtf_score,
                     'mtf_detail': _mtf_detail,
                     'direction':  direction_val.upper() if direction_val and direction_val.upper() in ('LONG', 'SHORT') else ('LONG' if sig_type in BULLISH else 'SHORT'),
+                    'trader':     trader_str,
                 })
 
 
