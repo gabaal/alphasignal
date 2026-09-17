@@ -1373,8 +1373,8 @@ async function renderSignalArchive(tabs = null) {
         </div>
         ${tabs ? renderHubTabs('archive', tabs) : ''}
 
-        <!-- State filter tabs: ACTIVE / ALL / CLOSED -->
-        <div id="archive-state-tabs" style="display:flex;gap:6px;margin-bottom:1rem;align-items:center">
+        <!-- State filter tabs: ACTIVE / ALL / CLOSED & Scope Toggle -->
+        <div id="archive-state-tabs" style="display:flex;gap:6px;margin-bottom:1rem;align-items:center;flex-wrap:wrap">
             <span style="font-size:0.5rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-right:4px">VIEW:</span>
             <button id="atab-active" onclick="window._setArchiveState('active')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(74,222,128,0.5);background:rgba(74,222,128,0.12);color:#4ade80;cursor:pointer;letter-spacing:1px;transition:all 0.15s">
                 ● ACTIVE
@@ -1393,6 +1393,14 @@ async function renderSignalArchive(tabs = null) {
             </button>
             <button id="atab-journal" onclick="window._setArchiveState('journal')" style="font-size:0.6rem;font-weight:900;padding:5px 14px;border-radius:20px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.06);color:#f59e0b;cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Your annotated trade journal">
                 📓 JOURNAL
+            </button>
+            <div style="height:20px;width:1px;background:rgba(255,255,255,0.1);margin:0 8px"></div>
+            <span style="font-size:0.5rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);margin-right:4px">SCOPE:</span>
+            <button id="scope-user" onclick="window._setArchiveScope('user')" style="font-size:0.6rem;font-weight:900;padding:5px 13px;border-radius:20px;border:1px solid rgba(0,242,255,0.5);background:rgba(0,242,255,0.12);color:var(--accent);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
+                MY SIGNALS
+            </button>
+            <button id="scope-all" onclick="window._setArchiveScope('all')" style="font-size:0.6rem;font-weight:900;padding:5px 13px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Aggregate breakdown across all terminal users (53,000+ trades)">
+                🌐 ALL USERS (GLOBAL) <span style="font-size:0.48rem;background:rgba(0,242,255,0.2);color:var(--accent);padding:1px 5px;border-radius:10px;margin-left:3px">53k+</span>
             </button>
         </div>
 
@@ -1527,6 +1535,25 @@ async function renderSignalArchive(tabs = null) {
             if (af) af.style.display = '';
             loadData(1);
         }
+    };
+
+    window._archiveScope = window._archiveScope || 'user';
+    window._setArchiveScope = function(scope) {
+        window._archiveScope = scope;
+        const isGlobal = (scope === 'all');
+        const uBtn = document.getElementById('scope-user');
+        const aBtn = document.getElementById('scope-all');
+        if (uBtn) {
+            uBtn.style.border     = !isGlobal ? '1px solid rgba(0,242,255,0.5)' : '1px solid ' + alphaColor(0.1);
+            uBtn.style.background = !isGlobal ? 'rgba(0,242,255,0.12)' : alphaColor(0.03);
+            uBtn.style.color      = !isGlobal ? 'var(--accent)' : 'var(--text-dim)';
+        }
+        if (aBtn) {
+            aBtn.style.border     = isGlobal ? '1px solid rgba(0,242,255,0.6)' : '1px solid ' + alphaColor(0.1);
+            aBtn.style.background = isGlobal ? 'rgba(0,242,255,0.15)' : alphaColor(0.03);
+            aBtn.style.color      = isGlobal ? 'var(--accent)' : 'var(--text-dim)';
+        }
+        loadData(1);
     };
 
     async function _renderNearMiss() {
@@ -2135,6 +2162,7 @@ async function renderSignalArchive(tabs = null) {
         if (severity)  url += `&severity=${severity}`;
         if (direction) url += `&direction=${direction}`;
         if (stateFilter && stateFilter !== 'all') url += `&state=${stateFilter}`;
+        if (window._archiveScope === 'all') url += '&scope=all';
         // Append server-side sort params so the DB returns the full dataset sorted
         if (sortCol && SERVER_SORT_COLS.has(sortCol)) {
             url += `&sort_col=${sortCol}&sort_dir=${sortDir}`;
@@ -2475,6 +2503,7 @@ async function renderSignalArchive(tabs = null) {
                             if(ty) u+='&sigtype='+encodeURIComponent(ty);
                             if(sv) u+='&severity='+encodeURIComponent(sv);
                             if(dv) u+='&direction='+encodeURIComponent(dv);
+                            if(window._archiveScope === 'all') u+='&scope=all';
                             return u;
                         })()}" download class="btv2-export-btn"><span class="material-symbols-outlined" style="font-size:13px">file_download</span> EXPORT ALL (${fTotal})</a>
                         <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage-1>0?currentPage-1:1})" ${currentPage===1?'disabled style="opacity:0.5"':''}>PREVIOUS</button>

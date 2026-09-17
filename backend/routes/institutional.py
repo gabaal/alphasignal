@@ -5448,7 +5448,7 @@ class InstitutionalRoutesMixin:
                 conn2 = sqlite3.connect(DB_PATH, timeout=30)
                 c2_cur = conn2.cursor()
 
-                if user_email:
+                if user_email and not is_global:
                     by_type_where  = "WHERE LOWER(uss.user_email) = LOWER(?)"
                     by_type_params = [user_email]
                     
@@ -5530,7 +5530,7 @@ class InstitutionalRoutesMixin:
                 for ts_pnl, val_pnl in c2_cur.fetchall():
                     pnl_curve.append({'date': ts_pnl, 'roi': round(float(val_pnl), 2)})
                     
-                # Calculate Sharpe, Profit Factor, Max Drawdown
+                # Calculate Sharpe, Profit Factor, Max Drawdown across ALL points
                 pnls = [p['roi'] for p in pnl_curve]
                 wins = [p for p in pnls if p > 0]
                 losses = [abs(p) for p in pnls if p < 0]
@@ -5560,6 +5560,17 @@ class InstitutionalRoutesMixin:
                         # Annualized sequential capacity based on standard institutional hold horizon
                         trades_per_year = 32
                         sharpe_ratio = round((mean_r / std_r) * (trades_per_year ** 0.5), 2)
+
+                # Downsample pnl_curve for frontend chart rendering when large (e.g. 50k+ points)
+                if len(pnl_curve) > 500:
+                    bucket_size = math.ceil(len(pnl_curve) / 450)
+                    downsampled_curve = []
+                    for i in range(0, len(pnl_curve), bucket_size):
+                        chunk = pnl_curve[i:i + bucket_size]
+                        chunk_roi = round(sum(p['roi'] for p in chunk), 2)
+                        chunk_date = chunk[-1]['date']
+                        downsampled_curve.append({'date': chunk_date, 'roi': chunk_roi})
+                    pnl_curve = downsampled_curve
 
                 # Fetch P&L distribution by Ticker (Asset Class)
                 c2_cur.execute(f"""
