@@ -72,7 +72,7 @@ async function renderGlobalClosedSignals(tabs) {
             <div style="flex:1;display:flex;flex-direction:column;min-width:280px">
                 <div style="margin-bottom:10px">
                     <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">CUMULATIVE PNL CURVE</div>
-                    <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">All-time cumulative return &middot; <span style="color:var(--accent)">closed signals only (All Platform Users)</span></div>
+                    <div style="font-size:0.75rem;color:rgba(148,163,184,0.9);margin-top:2px">Normalized Model Portfolio Equity Curve &middot; <span style="color:var(--accent)">closed signals (All Platform Users)</span></div>
                     <div style="display:flex;gap:14px;align-items:center;margin-top:6px;font-size:0.6rem;font-family:monospace;letter-spacing:0.5px">
                         <span style="display:inline-flex;align-items:center;gap:4px;color:#00f2ff"><span style="width:8px;height:2px;background:#00f2ff;border-radius:1px;display:inline-block"></span> Cumulative P&L</span>
                         <span style="display:inline-flex;align-items:center;gap:4px;color:#eab308"><span style="width:8px;height:2px;background:#eab308;border-top:1px dashed #eab308;display:inline-block"></span> 30D Win Rate</span>
@@ -262,8 +262,8 @@ async function renderGlobalClosedSignals(tabs) {
         const sharpe = summ.sharpe != null ? summ.sharpe.toFixed(2) : '--';
         const pf = summ.profit_factor != null ? summ.profit_factor.toFixed(2) : '--';
 
-        let cumRoi = 0;
-        if (summ.pnl_curve && summ.pnl_curve.length) {
+        let cumRoi = summ.cumulative_roi != null ? summ.cumulative_roi : 0;
+        if (!cumRoi && summ.pnl_curve && summ.pnl_curve.length) {
             cumRoi = summ.pnl_curve.reduce((s, p) => s + (p.roi || 0), 0);
         }
         const cumRoiStr = (cumRoi >= 0 ? '+' : '') + cumRoi.toFixed(1) + '%';
@@ -405,7 +405,7 @@ async function renderGlobalClosedSignals(tabs) {
         }
 
         let cumulative = 0;
-        let peak = -Infinity;
+        let peak = 0;
         const labels = [];
         const dataPoints = [];
         const drawdownPoints = [];
@@ -415,14 +415,17 @@ async function renderGlobalClosedSignals(tabs) {
         pnlSeries.forEach(point => {
             cumulative += point.roi;
             if (cumulative > peak) peak = cumulative;
-            const dd = Math.min(0, cumulative - peak);
+            // Standard institutional peak-to-trough percentage drawdown based on 100% initial portfolio equity
+            const peakEquity = 100 + peak;
+            const currentEquity = 100 + cumulative;
+            const dd = peakEquity > 0 ? ((currentEquity - peakEquity) / peakEquity) * 100 : 0;
 
             recentOutcomes.push(point.roi > 0 ? 1 : 0);
             if (recentOutcomes.length > 30) recentOutcomes.shift();
             const wr = recentOutcomes.length > 0 ? (recentOutcomes.reduce((a, b) => a + b, 0) / recentOutcomes.length) * 100 : 0;
 
             const dt = new Date(point.date);
-            labels.push(dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }));
+            labels.push(isNaN(dt.getTime()) ? String(point.date) : dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }));
             dataPoints.push(cumulative.toFixed(2));
             drawdownPoints.push(dd.toFixed(2));
             winRatePoints.push(wr.toFixed(2));
@@ -430,12 +433,13 @@ async function renderGlobalClosedSignals(tabs) {
 
         // Update Right Summary Block (matches Screenshot 1)
         if (summaryBox) {
-            const isUp = cumulative >= 0;
-            const cumStr = (isUp ? '+' : '') + cumulative.toFixed(2) + '%';
+            const finalCumVal = summ.cumulative_roi != null ? summ.cumulative_roi : cumulative;
+            const isUp = finalCumVal >= 0;
+            const cumStr = (isUp ? '+' : '') + finalCumVal.toFixed(2) + '%';
             const closedCnt = (summ.closed || pnlSeries.length).toLocaleString();
             const sharpeVal = summ.sharpe != null ? summ.sharpe : '--';
             const pfVal = summ.profit_factor != null ? summ.profit_factor : '--';
-            const maxDdVal = summ.max_drawdown != null ? (summ.max_drawdown > 0 ? -summ.max_drawdown : summ.max_drawdown) + '%' : '--';
+            const maxDdVal = summ.max_drawdown != null ? '-' + Math.abs(summ.max_drawdown).toFixed(1) + '%' : '--';
             const winRateVal = (summ.wins && summ.losses) ? Math.round((summ.wins / (summ.wins + summ.losses)) * 100) + '%' : '--';
 
             summaryBox.innerHTML = `

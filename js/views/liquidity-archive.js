@@ -3148,7 +3148,7 @@ window._initEquityCurve = function(pnlSeries, summary) {
     if (!ctx) return;
         
         let cumulative = 0;
-        let peak = -Infinity;
+        let peak = 0;
         const labels = [];
         const dataPoints = [];
         const drawdownPoints = [];
@@ -3158,14 +3158,17 @@ window._initEquityCurve = function(pnlSeries, summary) {
         pnlSeries.forEach(point => {
             cumulative += point.roi;
             if (cumulative > peak) peak = cumulative;
-            const dd = Math.min(0, cumulative - peak);
+            // Standard institutional peak-to-trough percentage drawdown based on 100% initial portfolio equity
+            const peakEquity = 100 + peak;
+            const currentEquity = 100 + cumulative;
+            const dd = peakEquity > 0 ? ((currentEquity - peakEquity) / peakEquity) * 100 : 0;
             
             recentOutcomes.push(point.roi > 0 ? 1 : 0);
             if (recentOutcomes.length > 30) recentOutcomes.shift();
             const wr = recentOutcomes.length > 0 ? (recentOutcomes.reduce((a,b)=>a+b, 0) / recentOutcomes.length) * 100 : 0;
             
             const dt = new Date(point.date);
-            labels.push(dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+            labels.push(isNaN(dt.getTime()) ? String(point.date) : dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
             dataPoints.push(cumulative.toFixed(2));
             drawdownPoints.push(dd.toFixed(2));
             winRatePoints.push(wr.toFixed(2));
@@ -3319,7 +3322,9 @@ window._initEquityCurve = function(pnlSeries, summary) {
                 }
                 runCum += r;
                 if (runCum > runPeak) runPeak = runCum;
-                const curDD = runCum - runPeak;
+                const peakEq = 100 + runPeak;
+                const curEq = 100 + runCum;
+                const curDD = peakEq > 0 ? ((curEq - peakEq) / peakEq) * 100 : 0;
                 if (curDD < maxDD) maxDD = curDD;
 
                 if (p.date) {
@@ -3333,14 +3338,11 @@ window._initEquityCurve = function(pnlSeries, summary) {
                 ? Number(summary.profit_factor).toFixed(2)
                 : (grossLosses > 0 ? (grossWins / grossLosses).toFixed(2) : (grossWins > 0 ? '9.99+' : '--'));
 
-            // Max Drawdown
+            // Max Drawdown (true peak-to-trough percentage)
             let maxDDVal = summary?.max_drawdown != null 
                 ? summary.max_drawdown 
-                : maxDD.toFixed(1);
-            let maxDDStr = (typeof maxDDVal === 'number' ? maxDDVal.toFixed(1) : String(maxDDVal)) + '%';
-            if (!maxDDStr.startsWith('-') && parseFloat(maxDDVal) !== 0) {
-                maxDDStr = '-' + maxDDStr;
-            }
+                : Math.abs(maxDD);
+            let maxDDStr = '-' + Math.abs(parseFloat(maxDDVal)).toFixed(1) + '%';
 
             // Annualized Sharpe Ratio (Institutional 10% risk-allocated standard)
             let sharpeVal = summary?.sharpe != null ? Number(summary.sharpe) : null;
@@ -3360,12 +3362,16 @@ window._initEquityCurve = function(pnlSeries, summary) {
             const sharpeStr = sharpeVal != null ? String(typeof sharpeVal === 'number' ? sharpeVal.toFixed(2) : sharpeVal) : '--';
             const allTimeWR = pnlSeries.length > 0 ? ((winCount / pnlSeries.length) * 100).toFixed(0) + '%' : '--%';
 
+            const finalCumVal = summary?.cumulative_roi != null ? summary.cumulative_roi : cumulative;
+            const cumStr = (finalCumVal >= 0 ? '+' : '') + finalCumVal.toFixed(2) + '%';
+            const totalSignalsCount = (summary?.closed || summary?.total || pnlSeries.length).toLocaleString();
+
             summaryDiv.innerHTML = `
                 <div style="font-size:1.65rem;font-weight:900;color:${lineColor};letter-spacing:-0.5px;font-family:monospace;line-height:1.1">
-                    ${isUp ? '+' : ''}${cumulative.toFixed(2)}%
+                    ${cumStr}
                 </div>
                 <div style="font-size:0.58rem;font-weight:800;color:var(--text-dim);margin-top:3px;letter-spacing:1px">
-                    ${pnlSeries.length} CLOSED SIGNALS
+                    ${totalSignalsCount} CLOSED SIGNALS
                 </div>
                 <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;margin-top:10px;width:100%">
                     <!-- Sharpe Ratio Badge -->

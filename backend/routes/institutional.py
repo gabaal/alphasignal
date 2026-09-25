@@ -5519,34 +5519,27 @@ class InstitutionalRoutesMixin:
                     }
                 
                 # Fetch Chronological P&L curve (closed signals with ROI)
+                # In global/multi-user scope, multiple users hold the same signal event (se.id).
+                # Grouping by se.id isolates distinct signal opportunities to prevent multi-user trade inflation.
+                group_by_se = "GROUP BY se.id" if is_global else ""
                 c2_cur.execute(f"""
-                    SELECT se.timestamp, uss.final_roi 
+                    SELECT se.timestamp, AVG(uss.final_roi) 
                     FROM signal_events se
                     JOIN user_signal_state uss ON uss.signal_id = se.id
                     {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL 
+                    {group_by_se}
                     ORDER BY se.timestamp ASC
                 """, by_type_params)
-                pnl_curve = []
+                raw_curve = []
                 for ts_pnl, val_pnl in c2_cur.fetchall():
-                    pnl_curve.append({'date': ts_pnl, 'roi': round(float(val_pnl), 2)})
+                    if val_pnl is not None:
+                        raw_curve.append({'date': ts_pnl, 'roi': round(float(val_pnl), 2)})
                     
-                # Calculate Sharpe, Profit Factor, Max Drawdown across ALL points
-                pnls = [p['roi'] for p in pnl_curve]
+                # Calculate Sharpe, Profit Factor across raw signal returns
+                pnls = [p['roi'] for p in raw_curve]
                 wins = [p for p in pnls if p > 0]
                 losses = [abs(p) for p in pnls if p < 0]
                 profit_factor = round(sum(wins) / max(sum(losses), 0.001), 2) if losses else (9.99 if wins else 0.0)
-                
-                peak = 0.0
-                cum = 0.0
-                max_dd = 0.0
-                for p in pnls:
-                    cum += p
-                    if cum > peak:
-                        peak = cum
-                    dd = cum - peak
-                    if dd < max_dd:
-                        max_dd = dd
-                max_drawdown = round(max_dd, 2)
                 
                 sharpe_ratio = 0.0
                 if len(pnls) >= 2:
@@ -5561,16 +5554,57 @@ class InstitutionalRoutesMixin:
                         trades_per_year = 32
                         sharpe_ratio = round((mean_r / std_r) * (trades_per_year ** 0.5), 2)
 
-                # Downsample pnl_curve for frontend chart rendering when large (e.g. 50k+ points)
-                if len(pnl_curve) > 500:
-                    bucket_size = math.ceil(len(pnl_curve) / 450)
+                # --- Institutional Portfolio Normalization ---
+                # Model a standardized portfolio equity curve (base 100.0%)
+                # When signals span multiple days, aggregate chronologically by calendar day.
+                # Each day's portfolio return = average return of signals closed on that day.
+                # If there are fewer than 10 distinct days, use trade-level with 10% allocation.
+                daily_groups = {}
+                for p in raw_curve:
+                    d_key = str(p['date'])[:10] if p['date'] else 'Unknown'
+                    if d_key not in daily_groups:
+                        daily_groups[d_key] = []
+                    daily_groups[d_key].append(p['roi'])
+
+                pnl_curve = []
+                if len(daily_groups) >= 10:
+                    for d_key in sorted(daily_groups.keys()):
+                        day_rois = daily_groups[d_key]
+                        day_avg = sum(day_rois) / len(day_rois)
+                        pnl_curve.append({'date': d_key, 'roi': round(day_avg, 2)})
+                else:
+                    ALLOCATION = 0.10 if is_global else 1.0
+                    for p in raw_curve:
+                        pnl_curve.append({'date': p['date'], 'roi': round(p['roi'] * ALLOCATION, 2)})
+
+                # Downsample if still excessively large (> 400 points)
+                if len(pnl_curve) > 400:
+                    bucket_size = math.ceil(len(pnl_curve) / 350)
                     downsampled_curve = []
                     for i in range(0, len(pnl_curve), bucket_size):
                         chunk = pnl_curve[i:i + bucket_size]
-                        chunk_roi = round(sum(p['roi'] for p in chunk), 2)
+                        chunk_roi = round(sum(p['roi'] for p in chunk) / len(chunk), 2)
                         chunk_date = chunk[-1]['date']
                         downsampled_curve.append({'date': chunk_date, 'roi': chunk_roi})
                     pnl_curve = downsampled_curve
+
+                # Calculate True Peak-to-Trough Percentage Drawdown on Portfolio Equity
+                peak_equity = 100.0
+                curr_equity = 100.0
+                max_dd_pct = 0.0
+
+                for pt in pnl_curve:
+                    r = pt['roi']
+                    curr_equity = max(0.01, curr_equity * (1.0 + (r / 100.0)))
+                    if curr_equity > peak_equity:
+                        peak_equity = curr_equity
+                    if peak_equity > 0:
+                        dd = ((curr_equity - peak_equity) / peak_equity) * 100.0
+                        if dd < max_dd_pct:
+                            max_dd_pct = dd
+
+                max_drawdown = round(abs(max_dd_pct), 2)
+                cum_portfolio_roi = round(curr_equity - 100.0, 2)
 
                 # Fetch P&L distribution by Ticker (Asset Class)
                 c2_cur.execute(f"""
@@ -5628,6 +5662,7 @@ class InstitutionalRoutesMixin:
                 profit_factor = 0.0
                 max_drawdown = 0.0
                 sharpe_ratio = 0.0
+                cum_portfolio_roi = 0.0
                 print(f'[SignalHistory] by_type/pnl_curve error: {bte}')
 
             response = {
@@ -5654,6 +5689,7 @@ class InstitutionalRoutesMixin:
                     'profit_factor': profit_factor,   # Gross wins / gross losses
                     'sharpe':        sharpe_ratio,    # Annualized Sharpe ratio
                     'max_drawdown':  max_drawdown,    # Maximum peak-to-trough drawdown
+                    'cumulative_roi': cum_portfolio_roi, # Institutional normalized cumulative return (%)
                 }
             }
             # - Store in cache -
