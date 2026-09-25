@@ -91,11 +91,16 @@ async function renderGlobalClosedSignals(tabs) {
 
         <!-- Bottom Row: Asset Class Distribution + Execution Heatmap (from Screenshot 1) -->
         <div style="margin-bottom:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(350px, 1fr));gap:1.5rem">
-            <!-- Asset Distribution -->
-            <div class="card" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column">
-                <div style="margin-bottom:1rem">
-                    <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">P&amp;L BY ASSET CLASS</div>
-                    <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">Top performances across all users &middot; <span style="color:var(--accent)">closed signals only</span></div>
+            <!-- Asset Distribution Card (Clickable & Expandable) -->
+            <div id="gcs-asset-card" class="card" style="padding:1.5rem;height:350px;position:relative;display:flex;flex-direction:column;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s" onmouseover="this.style.borderColor='rgba(0,242,255,0.45)';this.style.boxShadow='0 0 20px rgba(0,242,255,0.08)'" onmouseout="this.style.borderColor='';this.style.boxShadow=''" title="Click to expand complete roster of assets">
+                <div style="margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-start">
+                    <div>
+                        <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">P&amp;L BY ASSET CLASS</div>
+                        <div style="font-size:0.75rem;color:rgba(148,163,184,0.9);margin-top:2px">Top performances across all users &middot; <span style="color:var(--accent)">closed signals only</span></div>
+                    </div>
+                    <button id="gcs-asset-expand-btn" class="intel-action-btn mini outline" style="padding:3px 8px;font-size:0.58rem;display:inline-flex;align-items:center;gap:4px;cursor:pointer;border-color:rgba(0,242,255,0.3);color:var(--accent)">
+                        <span class="material-symbols-outlined" style="font-size:12px">open_in_full</span> EXPAND ALL (<span id="gcs-asset-count">--</span>)
+                    </button>
                 </div>
                 <div style="flex:1;position:relative;width:100%;min-height:220px">
                     <canvas id="gcs-asset-canvas"></canvas>
@@ -564,12 +569,33 @@ async function renderGlobalClosedSignals(tabs) {
     }
 
     // ---- 4. Asset Class Horizontal Bar Chart ----
+    let assetModalChartInstance = null;
+
     function renderAssetDistribution(byTickerList) {
         const ctx = document.getElementById('gcs-asset-canvas');
+        const countBadge = document.getElementById('gcs-asset-count');
+        const cardEl = document.getElementById('gcs-asset-card');
+        const expandBtn = document.getElementById('gcs-asset-expand-btn');
         if (!ctx) return;
 
         if (!byTickerList || !byTickerList.length) {
+            if (countBadge) countBadge.textContent = '0';
             return;
+        }
+
+        if (countBadge) {
+            countBadge.textContent = byTickerList.length;
+        }
+
+        // Attach click handlers to open modal
+        if (cardEl) {
+            cardEl.onclick = () => openAssetExpansionModal(byTickerList);
+        }
+        if (expandBtn) {
+            expandBtn.onclick = (e) => {
+                e.stopPropagation();
+                openAssetExpansionModal(byTickerList);
+            };
         }
 
         const sorted = [...byTickerList].sort((a, b) => b.total_roi - a.total_roi);
@@ -611,7 +637,8 @@ async function renderGlobalClosedSignals(tabs) {
                         callbacks: {
                             label: (context) => {
                                 const t = displayTickers[context.dataIndex];
-                                return `Total P&L: ${t.total_roi}% | Trades: ${t.total} (Wins: ${t.wins}, Losses: ${t.losses})`;
+                                const wr = t.total > 0 ? ((t.wins / t.total) * 100).toFixed(0) + '%' : '--';
+                                return `Total P&L: ${(t.total_roi >= 0 ? '+' : '')}${t.total_roi}% | Win Rate: ${wr} (${t.wins}W / ${t.losses}L, ${t.total} closed)`;
                             }
                         }
                     }
@@ -619,7 +646,7 @@ async function renderGlobalClosedSignals(tabs) {
                 scales: {
                     x: {
                         grid: { color: GRID_COLOR },
-                        ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace' }, callback: v => v + '%' }
+                        ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace' }, callback: v => (v >= 0 ? '+' : '') + v + '%' }
                     },
                     y: {
                         grid: { display: false },
@@ -628,6 +655,318 @@ async function renderGlobalClosedSignals(tabs) {
                 }
             }
         });
+    }
+
+    // Modal to expand and show ALL assets traded across the platform
+    function openAssetExpansionModal(byTickerList) {
+        if (!byTickerList || !byTickerList.length) return;
+
+        document.getElementById('gcs-asset-modal')?.remove();
+
+        const sortedAll = [...byTickerList].sort((a, b) => b.total_roi - a.total_roi);
+        const winAssets = sortedAll.filter(a => a.total_roi > 0).length;
+        const lossAssets = sortedAll.filter(a => a.total_roi <= 0).length;
+        const totalTradesAll = sortedAll.reduce((s, a) => s + (a.total || 0), 0);
+        const topAsset = sortedAll[0];
+
+        const modal = document.createElement('div');
+        modal.id = 'gcs-asset-modal';
+        modal.style.cssText = `
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(3, 7, 18, 0.88); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 1.2rem; animation: gcsFadeIn 0.15s ease;
+        `;
+
+        modal.innerHTML = `
+            <style>
+                @keyframes gcsFadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+                .gcs-tab-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-dim); padding: 5px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; cursor: pointer; transition: all 0.15s; }
+                .gcs-tab-btn.active { background: rgba(0,242,255,0.15); border-color: rgba(0,242,255,0.5); color: var(--accent); }
+                .gcs-tab-btn:hover:not(.active) { background: rgba(255,255,255,0.08); color: var(--text); }
+                .gcs-asset-table-th:hover { background: rgba(255,255,255,0.04); cursor: pointer; }
+            </style>
+            <div style="background:#0b1329;border:1px solid rgba(0,242,255,0.25);border-radius:12px;width:100%;max-width:1180px;height:90vh;max-height:860px;display:flex;flex-direction:column;box-shadow:0 25px 60px -15px rgba(0,0,0,0.8), 0 0 35px rgba(0,242,255,0.12);overflow:hidden">
+                <!-- Modal Header -->
+                <div style="padding:1.2rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;background:linear-gradient(180deg, rgba(0,242,255,0.04) 0%, rgba(0,0,0,0) 100%)">
+                    <div>
+                        <div style="font-size:0.6rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase">Platform Intelligence &bull; Asset Attribution</div>
+                        <h2 style="margin:4px 0 0;display:flex;align-items:center;gap:8px;font-size:1.15rem;color:var(--text)">
+                            <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.35rem">bar_chart</span>
+                            P&amp;L by Asset Class &bull; All Assets (${sortedAll.length})
+                            <span style="font-size:0.55rem;background:rgba(0,242,255,0.12);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:2px 8px;border-radius:12px;letter-spacing:1px;font-weight:800">ALL USERS</span>
+                        </h2>
+                        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px;font-size:0.65rem;font-family:monospace">
+                            <span style="color:#22c55e;font-weight:800">&#9650; ${winAssets} Profitable</span>
+                            <span style="color:#ef4444;font-weight:800">&#9660; ${lossAssets} Unprofitable</span>
+                            <span style="color:var(--text-dim)">&bull;</span>
+                            <span style="color:var(--text-dim)">Total Trades: <strong style="color:var(--text)">${totalTradesAll.toLocaleString()}</strong></span>
+                            ${topAsset ? `<span style="color:var(--text-dim)">&bull; Top: <strong style="color:#22c55e">${topAsset.symbol} (+${topAsset.total_roi}%)</strong></span>` : ''}
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <input type="text" id="gcs-modal-search" placeholder="FILTER TICKER..." style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:0.7rem;width:140px;font-family:monospace">
+                        <div style="display:flex;gap:4px">
+                            <button id="gcs-modal-view-chart" class="gcs-tab-btn active"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:3px">bar_chart</span> CHART</button>
+                            <button id="gcs-modal-view-table" class="gcs-tab-btn"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:3px">table_rows</span> TABLE</button>
+                        </div>
+                        <button id="gcs-modal-export-btn" class="btv2-export-btn" style="padding:5px 10px;font-size:0.65rem">
+                            <span class="material-symbols-outlined" style="font-size:12px">download</span> CSV
+                        </button>
+                        <button id="gcs-modal-close-btn" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:3px">
+                            &times; CLOSE
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Content Area -->
+                <div style="flex:1;overflow-y:auto;padding:1.2rem 1.5rem;position:relative" id="gcs-modal-content-area">
+                    <!-- Dynamic View Rendered Here -->
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        let currentModalView = 'chart';
+        let modalFilter = '';
+        let modalSortCol = 'total_roi';
+        let modalSortDir = 'desc';
+
+        function getFilteredAssets() {
+            let list = [...sortedAll];
+            if (modalFilter) {
+                list = list.filter(a => a.symbol.toUpperCase().includes(modalFilter.toUpperCase()));
+            }
+            list.sort((a, b) => {
+                let va = a[modalSortCol];
+                let vb = b[modalSortCol];
+                if (modalSortCol === 'symbol') {
+                    return modalSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+                }
+                if (modalSortCol === 'win_rate') {
+                    va = a.total > 0 ? a.wins / a.total : 0;
+                    vb = b.total > 0 ? b.wins / b.total : 0;
+                }
+                return modalSortDir === 'asc' ? va - vb : vb - va;
+            });
+            return list;
+        }
+
+        function renderModalBody() {
+            const area = document.getElementById('gcs-modal-content-area');
+            if (!area) return;
+
+            const list = getFilteredAssets();
+
+            if (!list.length) {
+                area.innerHTML = `<div style="padding:4rem;text-align:center;color:var(--text-dim);font-size:0.85rem">No assets match the filter "${modalFilter}".</div>`;
+                return;
+            }
+
+            if (currentModalView === 'chart') {
+                const chartHeight = Math.max(480, list.length * 26);
+                area.innerHTML = `
+                    <div style="margin-bottom:8px;font-size:0.65rem;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center">
+                        <span>Showing <strong>${list.length}</strong> of ${sortedAll.length} assets &middot; Scroll to view all</span>
+                        <span style="font-family:monospace;color:var(--accent)">Hover bar for win rate &amp; closed signals</span>
+                    </div>
+                    <div style="position:relative;width:100%;height:${chartHeight}px">
+                        <canvas id="gcs-asset-modal-canvas"></canvas>
+                    </div>
+                `;
+
+                const mCtx = document.getElementById('gcs-asset-modal-canvas');
+                if (assetModalChartInstance) assetModalChartInstance.destroy();
+
+                const mLabels = list.map(t => t.symbol);
+                const mData = list.map(t => t.total_roi);
+                const mBgColors = mData.map(v => v >= 0 ? 'rgba(0, 242, 255, 0.45)' : 'rgba(239, 68, 68, 0.45)');
+                const mBorderColors = mData.map(v => v >= 0 ? '#00f2ff' : '#ef4444');
+
+                assetModalChartInstance = new Chart(mCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: mLabels,
+                        datasets: [{
+                            data: mData,
+                            backgroundColor: mBgColors,
+                            borderColor: mBorderColors,
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            barThickness: 'flex'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(10, 22, 40, 0.95)',
+                                borderColor: 'rgba(255,255,255,0.1)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: (context) => {
+                                        const t = list[context.dataIndex];
+                                        const wr = t.total > 0 ? ((t.wins / t.total) * 100).toFixed(0) + '%' : '--';
+                                        return `Total ROI: ${(t.total_roi >= 0 ? '+' : '')}${t.total_roi}% | Win Rate: ${wr} (${t.wins}W / ${t.losses}L) | Trades: ${t.total} | Avg ROI: ${(t.avg_roi >= 0 ? '+' : '')}${t.avg_roi}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: GRID_COLOR },
+                                ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace' }, callback: v => (v >= 0 ? '+' : '') + v + '%' }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: '#cbd5e1', font: { size: 10, family: 'monospace', weight: 'bold' } }
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Table View
+                const maxAbsRoi = Math.max(...list.map(t => Math.abs(t.total_roi)), 1);
+                const tableRows = list.map((t, idx) => {
+                    const wrVal = t.total > 0 ? (t.wins / t.total) * 100 : 0;
+                    const wrColor = wrVal >= 55 ? CHART_GREEN : wrVal >= 45 ? CHART_AMBER : CHART_RED;
+                    const roiCol = t.total_roi >= 0 ? CHART_GREEN : CHART_RED;
+                    const roiStr = (t.total_roi >= 0 ? '+' : '') + t.total_roi.toFixed(2) + '%';
+                    const avgStr = (t.avg_roi >= 0 ? '+' : '') + t.avg_roi.toFixed(2) + '%';
+                    const isCrypto = t.symbol.includes('-USD') || t.symbol.includes('USDT');
+                    const pillColor = isCrypto ? 'rgba(0, 242, 255, 0.15)' : 'rgba(168, 85, 247, 0.15)';
+                    const pillText = isCrypto ? 'var(--accent)' : '#c084fc';
+                    const barWidth = Math.min(100, Math.round((Math.abs(t.total_roi) / maxAbsRoi) * 100));
+
+                    return `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
+                            <td style="padding:10px 12px;font-weight:900;color:var(--text);font-family:monospace;white-space:nowrap">
+                                <span style="color:var(--text-dim);font-size:0.65rem;margin-right:6px">#${idx + 1}</span>
+                                ${t.symbol}
+                                <span style="font-size:0.5rem;padding:1px 5px;border-radius:4px;background:${pillColor};color:${pillText};margin-left:6px">${isCrypto ? 'CRYPTO' : 'EQUITY'}</span>
+                            </td>
+                            <td style="padding:10px 12px;text-align:center;font-family:monospace;color:#94a3b8;font-weight:700">${t.total.toLocaleString()}</td>
+                            <td style="padding:10px 12px;text-align:center;font-family:monospace;color:#22c55e;font-weight:800">${t.wins.toLocaleString()}</td>
+                            <td style="padding:10px 12px;text-align:center;font-family:monospace;color:#ef4444;font-weight:800">${t.losses.toLocaleString()}</td>
+                            <td style="padding:10px 12px;text-align:center">
+                                <span style="font-weight:900;font-family:monospace;color:${wrColor}">${wrVal.toFixed(0)}%</span>
+                            </td>
+                            <td style="padding:10px 12px;text-align:center;font-family:monospace;font-weight:700;color:${t.avg_roi >= 0 ? CHART_GREEN : CHART_RED}">${avgStr}</td>
+                            <td style="padding:10px 12px;text-align:center;font-family:monospace;font-weight:900;font-size:0.95rem;color:${roiCol}">${roiStr}</td>
+                            <td style="padding:10px 12px;width:120px">
+                                <div style="width:100%;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden">
+                                    <div style="width:${barWidth}%;height:100%;background:${roiCol};border-radius:3px"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                area.innerHTML = `
+                    <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+                        <thead>
+                            <tr style="border-bottom:2px solid rgba(255,255,255,0.08);color:var(--text-dim);font-size:0.6rem;letter-spacing:1.5px">
+                                <th class="gcs-asset-table-th" onclick="window._gcsModalSort('symbol')" style="text-align:left;padding:8px 12px">ASSET</th>
+                                <th class="gcs-asset-table-th" onclick="window._gcsModalSort('total')" style="text-align:center;padding:8px 12px">CLOSED TRADES</th>
+                                <th class="gcs-asset-table-th" onclick="window._gcsModalSort('wins')" style="text-align:center;padding:8px 12px;color:#22c55e">WINS</th>
+                                <th class="gcs-asset-table-th" onclick="window._gcsModalSort('losses')" style="text-align:center;padding:8px 12px;color:#ef4444">LOSSES</th>
+                                <th class="gcs-asset-table-th" onclick="window._gcsModalSort('win_rate')" style="text-align:center;padding:8px 12px">WIN RATE</th>
+                                <th class="gcs-asset-table-th" onclick="window._gcsModalSort('avg_roi')" style="text-align:center;padding:8px 12px">AVG ROI</th>
+                                <th class="gcs-asset-table-th" onclick="window._gcsModalSort('total_roi')" style="text-align:center;padding:8px 12px">TOTAL P&amp;L</th>
+                                <th style="text-align:left;padding:8px 12px;width:120px">SHARE</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                `;
+            }
+        }
+
+        window._gcsModalSort = function(col) {
+            if (modalSortCol === col) {
+                modalSortDir = modalSortDir === 'desc' ? 'asc' : 'desc';
+            } else {
+                modalSortCol = col;
+                modalSortDir = 'desc';
+            }
+            renderModalBody();
+        };
+
+        // Modal event listeners
+        const searchInput = document.getElementById('gcs-modal-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                modalFilter = searchInput.value.trim();
+                renderModalBody();
+            });
+        }
+
+        const viewChartBtn = document.getElementById('gcs-modal-view-chart');
+        const viewTableBtn = document.getElementById('gcs-modal-view-table');
+        if (viewChartBtn && viewTableBtn) {
+            viewChartBtn.onclick = () => {
+                currentModalView = 'chart';
+                viewChartBtn.classList.add('active');
+                viewTableBtn.classList.remove('active');
+                renderModalBody();
+            };
+            viewTableBtn.onclick = () => {
+                currentModalView = 'table';
+                viewTableBtn.classList.add('active');
+                viewChartBtn.classList.remove('active');
+                renderModalBody();
+            };
+        }
+
+        const exportBtn = document.getElementById('gcs-modal-export-btn');
+        if (exportBtn) {
+            exportBtn.onclick = () => {
+                const list = getFilteredAssets();
+                const headers = ['Symbol', 'Total_Trades', 'Wins', 'Losses', 'Win_Rate_%', 'Avg_ROI_%', 'Total_ROI_%'];
+                const rows = list.map(t => [
+                    t.symbol,
+                    t.total,
+                    t.wins,
+                    t.losses,
+                    (t.total > 0 ? (t.wins / t.total) * 100 : 0).toFixed(1),
+                    t.avg_roi,
+                    t.total_roi
+                ]);
+                let csv = [headers.join(',')].concat(rows.map(r => r.join(','))).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `alphasignal_asset_pnl_roster_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+        }
+
+        function closeModal() {
+            modal.remove();
+            if (assetModalChartInstance) {
+                assetModalChartInstance.destroy();
+                assetModalChartInstance = null;
+            }
+            window.removeEventListener('keydown', handleKey);
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Escape') closeModal();
+        }
+
+        document.getElementById('gcs-modal-close-btn')?.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        window.addEventListener('keydown', handleKey);
+
+        renderModalBody();
     }
 
     // ---- 5. Execution Heatmap Matrix ----

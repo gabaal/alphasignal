@@ -5607,19 +5607,38 @@ class InstitutionalRoutesMixin:
                 cum_portfolio_roi = round(curr_equity - 100.0, 2)
 
                 # Fetch P&L distribution by Ticker (Asset Class)
-                c2_cur.execute(f"""
-                    SELECT se.ticker AS symbol,
-                           SUM(CASE WHEN uss.final_roi > 0 THEN 1 ELSE 0 END) as wins,
-                           SUM(CASE WHEN uss.final_roi <= 0 THEN 1 ELSE 0 END) as losses,
-                           COUNT(*) as total,
-                           AVG(uss.final_roi) as avg_roi,
-                           SUM(uss.final_roi) as total_roi
-                    FROM signal_events se
-                    JOIN user_signal_state uss ON uss.signal_id = se.id
-                    {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
-                    GROUP BY se.ticker
-                    ORDER BY total_roi DESC
-                """, by_type_params)
+                if is_global:
+                    c2_cur.execute(f"""
+                        SELECT ticker AS symbol,
+                               SUM(CASE WHEN avg_roi > 0 THEN 1 ELSE 0 END) as wins,
+                               SUM(CASE WHEN avg_roi <= 0 THEN 1 ELSE 0 END) as losses,
+                               COUNT(*) as total,
+                               AVG(avg_roi) as avg_roi,
+                               SUM(avg_roi) as total_roi
+                        FROM (
+                            SELECT se.id, se.ticker, AVG(uss.final_roi) as avg_roi
+                            FROM signal_events se
+                            JOIN user_signal_state uss ON uss.signal_id = se.id
+                            {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
+                            GROUP BY se.id, se.ticker
+                        )
+                        GROUP BY ticker
+                        ORDER BY total_roi DESC
+                    """, by_type_params)
+                else:
+                    c2_cur.execute(f"""
+                        SELECT se.ticker AS symbol,
+                               SUM(CASE WHEN uss.final_roi > 0 THEN 1 ELSE 0 END) as wins,
+                               SUM(CASE WHEN uss.final_roi <= 0 THEN 1 ELSE 0 END) as losses,
+                               COUNT(*) as total,
+                               AVG(uss.final_roi) as avg_roi,
+                               SUM(uss.final_roi) as total_roi
+                        FROM signal_events se
+                        JOIN user_signal_state uss ON uss.signal_id = se.id
+                        {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
+                        GROUP BY se.ticker
+                        ORDER BY total_roi DESC
+                    """, by_type_params)
                 by_ticker = []
                 for t_sym, t_wins, t_losses, t_total, t_avg, t_roi in c2_cur.fetchall():
                     by_ticker.append({
