@@ -5521,7 +5521,10 @@ class InstitutionalRoutesMixin:
                 # Fetch Chronological P&L curve (closed signals with ROI)
                 # In global/multi-user scope, multiple users hold the same signal event (se.id).
                 # Grouping by se.id isolates distinct signal opportunities to prevent multi-user trade inflation.
-                group_by_se = "GROUP BY se.id" if is_global else ""
+                # For individual user scope we ALSO need GROUP BY se.id so each signal event becomes its own
+                # chronological data point. Without it, AVG() collapses all rows into a single aggregate,
+                # producing only 1 point and breaking the PNL curve chart.
+                group_by_se = "GROUP BY se.id"
                 c2_cur.execute(f"""
                     SELECT se.timestamp, AVG(uss.final_roi) 
                     FROM signal_events se
