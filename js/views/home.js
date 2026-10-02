@@ -15,72 +15,6 @@ async function renderHome() {
             <div class="lp-grid-bg" aria-hidden="true"></div>
             <div class="lp-radial" aria-hidden="true"></div>
 
-            <!-- HERO -->
-            <section class="lp-hero">
-                <div class="lp-hero-left">
-                    <div class="lp-badge"><span class="lp-badge-dot"></span>TERMINAL LIVE &mdash; v2.10</div>
-                    <h1 class="lp-h1">The market tells a story.<br><em>Most dashboards miss it.</em></h1>
-                    <p class="lp-sub">AlphaSignal reads institutional order flow, options positioning, on-chain activity, and ML signal convergence -- and tells you what it actually means, in plain English.</p>
-                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;margin:1.5rem 0;font-size:0.8rem;color:var(--text-dim)">
-                        <div style="display:flex;align-items:center;gap:6px">
-                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">groups</span>
-                            <strong>2,400+</strong> active traders
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px">
-                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">verified</span>
-                            <strong id="lp-hero-closed">67,631</strong> closed trades
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px">
-                            <span class="material-symbols-outlined" style="font-size:1rem;color:#4ade80">trending_up</span>
-                            <strong id="lp-hero-winrate">60.6%</strong> verified win rate
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px">
-                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">insights</span>
-                            <strong>80+</strong> live terminal views
-                        </div>
-                    </div>
-                    <div class="lp-actions">
-                        ${!isAuthenticatedUser
-                            ? `<button class="lp-btn-primary" onclick="showAuth(true, 'register')"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>START FREE</button>`
-                            : `<button class="lp-btn-primary" onclick="switchView('signals')"><span class="material-symbols-outlined" style="font-size:18px">radar</span>LIVE SIGNALS</button>`}
-                        <button class="lp-btn-ghost" onclick="switchView('command-center')"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>OPEN DASHBOARD</button>
-                    </div>
-                </div>
-                <div class="lp-terminal">
-                    <div class="lp-term-bar">
-                        <span class="lp-term-dot" style="background:#f87171"></span>
-                        <span class="lp-term-dot" style="background:#fb923c"></span>
-                        <span class="lp-term-dot" style="background:#4ade80"></span>
-                        <span style="font-size:0.6rem;color:var(--text-dim);margin-left:8px;font-family:'JetBrains Mono',monospace">alphasignal -- live terminal</span>
-                    </div>
-                    <div class="lp-term-body">
-                        <div class="lp-term-row"><span class="lp-term-label">BTC/USD</span><span class="lp-term-val acc" id="lp-btc-price">loading...</span></div>
-                        <div class="lp-term-row"><span class="lp-term-label">ETH/USD</span><span class="lp-term-val acc" id="lp-eth-price">loading...</span></div>
-                        <div class="lp-term-row"><span class="lp-term-label">BTC FUNDING (8h)</span><span class="lp-term-val" id="lp-funding">loading...</span></div>
-                        <div class="lp-term-row"><span class="lp-term-label">FEAR &amp; GREED</span><span class="lp-term-val" id="lp-fg">loading...</span></div>
-                        <div class="lp-term-row"><span class="lp-term-label">REGIME</span><span class="lp-term-val" id="lp-oi">loading...</span></div>
-                        <div class="lp-term-row"><span class="lp-term-label">ACTIVE SIGNALS</span><span class="lp-term-val acc" id="lp-sigs">loading...</span></div>
-                        <div class="lp-term-signal" id="lp-top-signal">
-                            <div class="lp-term-signal-label">TOP Z-SCORE SIGNAL</div>
-                            <div class="lp-term-signal-val" id="lp-ts-val">--</div>
-                            <div class="lp-term-signal-sub" id="lp-ts-sub">awaiting data...</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TICKER TAPE -->
-            <div class="lp-tape" id="lp-tape-wrap">
-                <div class="lp-tape-inner" id="lp-tape-inner">
-                    ${Array(2).fill([
-                        ['BTC DOMINANCE','--'],['ETH GAS','--'],['BTC FUNDING','--'],
-                        ['PLATFORM WIN RATE','60.6%'],['CLOSED TRADES','67,631'],
-                        ['FEAR &amp; GREED','--'],['SIGNALS LIVE','--'],['TOP ALPHA','--'],
-                        ['TOP SIGNAL','--'],['REGIME','--'],['MEMPOOL','--'],['SOL FUNDING','--']
-                    ].map(([l,v])=>`<span class="lp-tape-item"><span class="lbl">${l}</span><span id="tape-${l.replace(/\W/g,'')}">${v}</span></span>`).join('')).join('')}
-                </div>
-            </div>
-
             <!-- GLOBAL CLOSED SIGNALS TRACK RECORD (Social Proof / Audit) -->
             <section class="lp-global-stats lp-reveal" id="lp-global-stats-section" style="padding: 3.5rem 2rem 1.5rem; max-width: 1240px; margin: 0 auto; position: relative;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.8rem;flex-wrap:wrap;gap:1.5rem">
@@ -180,6 +114,72 @@ async function renderHome() {
                     </div>
                 </div>
             </section>
+
+            <!-- HERO -->
+            <section class="lp-hero">
+                <div class="lp-hero-left">
+                    <div class="lp-badge"><span class="lp-badge-dot"></span>TERMINAL LIVE &mdash; v2.10</div>
+                    <h1 class="lp-h1">The market tells a story.<br><em>Most dashboards miss it.</em></h1>
+                    <p class="lp-sub">AlphaSignal reads institutional order flow, options positioning, on-chain activity, and ML signal convergence -- and tells you what it actually means, in plain English.</p>
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;margin:1.5rem 0;font-size:0.8rem;color:var(--text-dim)">
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">groups</span>
+                            <strong>2,400+</strong> active traders
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">verified</span>
+                            <strong id="lp-hero-closed">67,631</strong> closed trades
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:#4ade80">trending_up</span>
+                            <strong id="lp-hero-winrate">60.6%</strong> verified win rate
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--accent)">insights</span>
+                            <strong>80+</strong> live terminal views
+                        </div>
+                    </div>
+                    <div class="lp-actions">
+                        ${!isAuthenticatedUser
+                            ? `<button class="lp-btn-primary" onclick="showAuth(true, 'register')"><span class="material-symbols-outlined" style="font-size:18px">bolt</span>START FREE</button>`
+                            : `<button class="lp-btn-primary" onclick="switchView('signals')"><span class="material-symbols-outlined" style="font-size:18px">radar</span>LIVE SIGNALS</button>`}
+                        <button class="lp-btn-ghost" onclick="switchView('command-center')"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>OPEN DASHBOARD</button>
+                    </div>
+                </div>
+                <div class="lp-terminal">
+                    <div class="lp-term-bar">
+                        <span class="lp-term-dot" style="background:#f87171"></span>
+                        <span class="lp-term-dot" style="background:#fb923c"></span>
+                        <span class="lp-term-dot" style="background:#4ade80"></span>
+                        <span style="font-size:0.6rem;color:var(--text-dim);margin-left:8px;font-family:'JetBrains Mono',monospace">alphasignal -- live terminal</span>
+                    </div>
+                    <div class="lp-term-body">
+                        <div class="lp-term-row"><span class="lp-term-label">BTC/USD</span><span class="lp-term-val acc" id="lp-btc-price">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">ETH/USD</span><span class="lp-term-val acc" id="lp-eth-price">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">BTC FUNDING (8h)</span><span class="lp-term-val" id="lp-funding">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">FEAR &amp; GREED</span><span class="lp-term-val" id="lp-fg">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">REGIME</span><span class="lp-term-val" id="lp-oi">loading...</span></div>
+                        <div class="lp-term-row"><span class="lp-term-label">ACTIVE SIGNALS</span><span class="lp-term-val acc" id="lp-sigs">loading...</span></div>
+                        <div class="lp-term-signal" id="lp-top-signal">
+                            <div class="lp-term-signal-label">TOP Z-SCORE SIGNAL</div>
+                            <div class="lp-term-signal-val" id="lp-ts-val">--</div>
+                            <div class="lp-term-signal-sub" id="lp-ts-sub">awaiting data...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TICKER TAPE -->
+            <div class="lp-tape" id="lp-tape-wrap">
+                <div class="lp-tape-inner" id="lp-tape-inner">
+                    ${Array(2).fill([
+                        ['BTC DOMINANCE','--'],['ETH GAS','--'],['BTC FUNDING','--'],
+                        ['PLATFORM WIN RATE','60.6%'],['CLOSED TRADES','67,631'],
+                        ['FEAR &amp; GREED','--'],['SIGNALS LIVE','--'],['TOP ALPHA','--'],
+                        ['TOP SIGNAL','--'],['REGIME','--'],['MEMPOOL','--'],['SOL FUNDING','--']
+                    ].map(([l,v])=>`<span class="lp-tape-item"><span class="lbl">${l}</span><span id="tape-${l.replace(/\W/g,'')}">${v}</span></span>`).join('')).join('')}
+                </div>
+            </div>
 
             <!-- STORY 1: Signal intelligence -->
             <section class="lp-narrative">
