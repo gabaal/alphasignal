@@ -4855,6 +4855,20 @@ class InstitutionalRoutesMixin:
                                " AND se.type NOT LIKE '%CME_GAP%'"
                                " AND se.type NOT LIKE '%REBALANCE%'")
 
+                exp_sort_col = query.get('sort_col', [None])[0]
+                exp_sort_dir = query.get('sort_dir', ['desc'])[0].lower()
+                if exp_sort_dir not in ('asc', 'desc'): exp_sort_dir = 'desc'
+                EXP_SORT_MAP = {
+                    'ticker': 'se.ticker',
+                    'type': 'se.type',
+                    'severity': "CASE LOWER(COALESCE(se.severity,'')) WHEN 'critical' THEN 3 WHEN 'high' THEN 2 WHEN 'medium' THEN 1 ELSE 0 END",
+                    'entry': 'se.price',
+                    'date': 'se.timestamp',
+                    'return': 'COALESCE(uss.final_roi, 0)',
+                }
+                exp_order = EXP_SORT_MAP.get(exp_sort_col, 'se.timestamp')
+                exp_order_clause = f'ORDER BY {exp_order} {exp_sort_dir.upper()}'
+
                 conn = sqlite3.connect(DB_PATH, timeout=30)
                 c = conn.cursor()
                 c.execute(f'''
@@ -4865,7 +4879,7 @@ class InstitutionalRoutesMixin:
                            uss.user_email
                     FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id
                     {base_where}
-                    ORDER BY se.timestamp DESC
+                    {exp_order_clause}
                 ''', params)
                 raw_rows = c.fetchall()
                 conn.close()
@@ -5313,6 +5327,76 @@ class InstitutionalRoutesMixin:
                        'MOMENTUM_BREAKOUT','REGIME_SHIFT_LONG','ALPHA_DIVERGENCE_LONG',
                        'ML_ALPHA_PREDICTION','LIQUIDITY_VACUUM'}
 
+            # If sorting across all pages on computed columns (return, current, state),
+            # compute sort metric for each row, sort full dataset, then slice to current page.
+            if python_sort:
+                STATE_RANK = {'HIT_TP2': 0, 'HIT_TP1': 1, 'ACTIVE': 2, 'STOPPED': 3, 'CLOSED': 4}
+
+                def _calc_sort_val(r):
+                    sig_type      = r[1]
+                    ticker        = r[2]
+                    entry_p       = r[5]
+                    sig_status    = r[7]
+                    exit_px       = r[9]
+                    stored_roi    = r[10]
+                    direction_val = r[13]
+
+                    curr_p = price_map.get(ticker)
+                    roi = 0.0
+                    state = 'ACTIVE'
+
+                    try:
+                        entry_flt = float(entry_p) if entry_p is not None else 0.0
+                    except (ValueError, TypeError):
+                        entry_flt = 0.0
+
+                    if sig_status and sig_status.lower() == 'closed':
+                        state = 'CLOSED'
+                        try:
+                            exit_flt = float(exit_px) if exit_px is not None else 0.0
+                        except (ValueError, TypeError):
+                            exit_flt = 0.0
+
+                        if exit_flt > 0:
+                            curr_p = round(exit_flt, 10)
+                        else:
+                            curr_p = curr_p or entry_flt
+                        try:
+                            roi = round(float(stored_roi), 2) if stored_roi is not None else 0.0
+                        except (ValueError, TypeError):
+                            roi = 0.0
+                    elif entry_flt > 0 and curr_p and curr_p > 0:
+                        if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
+                            direction = 1 if direction_val.upper() == 'LONG' else -1
+                        else:
+                            direction = 1 if sig_type in BULLISH else -1
+                        roi = round(direction * (curr_p - entry_flt) / entry_flt * 100, 2)
+                        curr_p = round(curr_p, 10)
+                        if roi > _user_tp2:
+                            state = 'HIT_TP2'
+                        elif roi > _user_tp1:
+                            state = 'HIT_TP1'
+                        elif roi < -_user_sl:
+                            state = 'STOPPED'
+                    else:
+                        curr_p = entry_flt
+
+                    if sort_col == 'return':
+                        return roi
+                    elif sort_col == 'current':
+                        return float(curr_p or 0.0)
+                    elif sort_col == 'state':
+                        return STATE_RANK.get(state, 5)
+                    return 0.0
+
+                decorated = [(_calc_sort_val(r), r) for r in rows]
+                decorated.sort(key=lambda item: item[0], reverse=(sort_dir == 'desc'))
+                rows = [item[1] for item in decorated[(page - 1) * limit : page * limit]]
+
+            from datetime import datetime as _dt2, timezone, timedelta
+            from backend.services import NotificationService
+            now_dt = _dt2.utcnow()
+
             results = []
             for row in rows:
                 row_id, sig_type, ticker, message, severity, entry_p, ts, sig_status, closed_at, exit_px, stored_roi, mtf_score_raw, mtf_detail_raw, direction_val = row[:14]
@@ -5347,16 +5431,12 @@ class InstitutionalRoutesMixin:
                         state = 'STOPPED'
                 else:
                     curr_p = entry_p  # no price data at all - show entry as placeholder
-
-                from datetime import datetime as _dt2, timezone, timedelta
-                from backend.services import NotificationService
                 
                 age_days = None
                 duration_str = None
                 expires_in_str = None
                 try:
                     sig_ts = _dt2.fromisoformat(ts.replace('Z',''))
-                    now_dt = _dt2.utcnow()
                     age_days = (now_dt.date() - sig_ts.date()).days
                     
                     if state == 'CLOSED' and closed_at:
@@ -5421,24 +5501,9 @@ class InstitutionalRoutesMixin:
                     'trader':     trader_str,
                 })
 
-
             # Page-level win rate (quick supplement for current page ROI states)
             page_wins   = sum(1 for r in results if r['state'] in ('HIT_TP1','HIT_TP2'))
             page_losses = sum(1 for r in results if r['state'] == 'STOPPED')
-
-            # - Python sort + pagination for computed columns -
-            if python_sort:
-                STATE_RANK = {'HIT_TP2': 0, 'HIT_TP1': 1, 'ACTIVE': 2, 'STOPPED': 3, 'CLOSED': 4}
-
-                def _sort_key(r):
-                    if sort_col == 'return':  return float(r.get('return') or 0)
-                    if sort_col == 'current': return float(r.get('current') or 0)
-                    if sort_col == 'state':   return STATE_RANK.get(r.get('state', 'ACTIVE'), 5)
-                    return 0
-
-                results.sort(key=_sort_key, reverse=(sort_dir == 'desc'))
-                # Paginate
-                results = results[(page - 1) * limit: page * limit]
 
             # --- Per-signal-type breakdown (for Strategy Performance Breakdown table) ---
             # Intentionally ALL-TIME: ignores the current date filter so the table always

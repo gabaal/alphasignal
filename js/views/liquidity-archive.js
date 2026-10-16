@@ -1488,7 +1488,7 @@ async function renderSignalArchive(tabs = null) {
                 <button id="apply-filters" class="setup-generator-btn" style="padding:7px 18px;font-size:0.7rem;height:36px;margin:0">
                     <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:4px">filter_list</span>APPLY
                 </button>
-                <button onclick="window._drpSelect('30d',30);document.getElementById('filter-ticker').value='';document.getElementById('filter-type').value='';document.getElementById('filter-severity').value='';document.getElementById('filter-direction').value='';loadData(1)"
+                <button onclick="window._drpSelect('30d',30);document.getElementById('filter-ticker').value='';document.getElementById('filter-type').value='';document.getElementById('filter-severity').value='';document.getElementById('filter-direction').value='';window._archiveResetSort?.();loadData(1)"
                     class="intel-action-btn mini outline" style="width:auto;padding:7px 14px;font-size:0.7rem;height:36px">RESET</button>
             </div>
         </div>
@@ -2101,10 +2101,11 @@ async function renderSignalArchive(tabs = null) {
     // - Sort state lives OUTSIDE loadData so it persists across page navigation -
     let sortCol = null;
     let sortDir = 'desc';
+    window._archiveResetSort = () => { sortCol = null; sortDir = 'desc'; };
     // Server-side columns trigger a re-fetch sorted across the full dataset.
-    // Computed columns (return/current/state) are derived from live prices - sort client-side only.
-    const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction']);
-    const CLIENT_SORT_COLS = new Set(['return','current','state']);
+    // 'return', 'current', and 'state' are computed across all matching signals by the backend.
+    const SERVER_SORT_COLS = new Set(['ticker','type','severity','entry','date','direction','return','current','state']);
+    const CLIENT_SORT_COLS = new Set([]);
 
     // - Date Range Picker state -
     let drpMode = '30d';   // active pill id
@@ -2415,7 +2416,7 @@ async function renderSignalArchive(tabs = null) {
             function aTH(col, label, align='left') {
                 const isServer = SERVER_SORT_COLS.has(col);
                 const active = sortCol === col;
-                const ind = active ? (sortDir === 'asc' ? ' -' : ' -') : (isServer ? ' <span style="opacity:0.3;font-size:0.7em">-</span>' : ' <span style="opacity:0.25;font-size:0.65em" title="Sorts current page only">-*</span>');
+                const ind = active ? (sortDir === 'asc' ? ' &#9650;' : ' &#9660;') : (isServer ? ' <span style="opacity:0.3;font-size:0.7em">&#8597;</span>' : ' <span style="opacity:0.25;font-size:0.65em" title="Sorts current page only">&#8597;*</span>');
                 const color = active ? 'var(--accent)' : 'var(--text-dim)';
                 return `<th style="text-align:${align};padding:8px 12px;cursor:pointer;user-select:none;color:${color};white-space:nowrap;transition:color 0.15s" onclick="window._archiveSort('${col}')">${label}${ind}</th>`;
             }
@@ -2504,6 +2505,7 @@ async function renderSignalArchive(tabs = null) {
                             if(sv) u+='&severity='+encodeURIComponent(sv);
                             if(dv) u+='&direction='+encodeURIComponent(dv);
                             if(window._archiveScope === 'all') u+='&scope=all';
+                            if(sortCol) u+='&sort_col='+sortCol+'&sort_dir='+sortDir;
                             return u;
                         })()}" download class="btv2-export-btn"><span class="material-symbols-outlined" style="font-size:13px">file_download</span> EXPORT ALL (${fTotal})</a>
                         <button class="setup-generator-btn" style="width:85px;padding:0;font-size:0.65rem;height:24px;line-height:24px;text-align:center" onclick="window.loadArchiveData(${currentPage-1>0?currentPage-1:1})" ${currentPage===1?'disabled style="opacity:0.5"':''}>PREVIOUS</button>
