@@ -255,6 +255,66 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                 except Exception as e:
                     self.send_error_json(str(e))
                 return
+            elif path == '/api/admin/update-signal-outcome':
+                try:
+                    auth_info = self.is_authenticated()
+                    is_admin = (auth_info and auth_info.get('email') == 'geraldbaalham@live.co.uk') or (post_data.get('password') == '@WatchBottle13@')
+                    if not is_admin:
+                        return self.send_error_json('Unauthorized', 401)
+                    sig_id = post_data.get('signal_id')
+                    new_exit = post_data.get('exit_price')
+                    new_roi = post_data.get('final_roi')
+                    ticker = post_data.get('ticker')
+                    date_prefix = post_data.get('date_prefix')
+                    if not sig_id and not (ticker and date_prefix):
+                        return self.send_error_json('signal_id or (ticker and date_prefix) required', 400)
+                    
+                    conn = sqlite3.connect(DB_PATH, timeout=30)
+                    c = conn.cursor()
+                    if sig_id:
+                        c.execute("""
+                            UPDATE user_signal_state
+                            SET exit_price = COALESCE(?, exit_price),
+                                final_roi = COALESCE(?, final_roi)
+                            WHERE signal_id = ?
+                        """, (new_exit, new_roi, sig_id))
+                        uss_cnt = c.rowcount
+                        c.execute("""
+                            UPDATE alerts_history
+                            SET exit_price = COALESCE(?, exit_price),
+                                final_roi = COALESCE(?, final_roi)
+                            WHERE id = (SELECT ah_id FROM user_signal_state WHERE signal_id = ?) OR id = ?
+                        """, (new_exit, new_roi, sig_id, sig_id))
+                        ah_cnt = c.rowcount
+                    else:
+                        c.execute("""
+                            UPDATE alerts_history
+                            SET exit_price = COALESCE(?, exit_price),
+                                final_roi = COALESCE(?, final_roi)
+                            WHERE (ticker = ? OR ticker = ?)
+                              AND timestamp LIKE ?
+                              AND status = 'closed'
+                        """, (new_exit, new_roi, ticker, ticker.replace('-USD', ''), date_prefix + '%'))
+                        ah_cnt = c.rowcount
+                        c.execute("""
+                            UPDATE user_signal_state
+                            SET exit_price = COALESCE(?, exit_price),
+                                final_roi = COALESCE(?, final_roi)
+                            WHERE status = 'closed'
+                              AND (signal_id IN (
+                                  SELECT id FROM signal_events WHERE (ticker = ? OR ticker = ?) AND timestamp LIKE ?
+                              ) OR ah_id IN (
+                                  SELECT id FROM alerts_history WHERE (ticker = ? OR ticker = ?) AND timestamp LIKE ?
+                              ))
+                        """, (new_exit, new_roi, ticker, ticker.replace('-USD', ''), date_prefix + '%', ticker, ticker.replace('-USD', ''), date_prefix + '%'))
+                        uss_cnt = c.rowcount
+                    conn.commit()
+                    conn.close()
+                    InstitutionalRoutesMixin._sig_history_cache.clear()
+                    self.send_json({'success': True, 'exit_price': new_exit, 'final_roi': new_roi, 'uss_updated': uss_cnt, 'ah_updated': ah_cnt})
+                except Exception as e:
+                    self.send_error_json(str(e))
+                return
             elif path == '/api/track-view':
                 # ── Lightweight page view tracker ────────────────────────────────────
                 # Called fire-and-forget from the frontend on every switchView().

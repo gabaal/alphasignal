@@ -947,6 +947,36 @@ def init_db():
     except Exception as migration_err:
         print(f"[Migration] Error running fix_bad_render_exit_prices: {migration_err}", flush=True)
 
+    # ── Migration: Fix LDO-USD 2026-07-02 signal outcome ──
+    try:
+        # Signal #6789 LDO-USD 2026-07-02 SHORT from entry 0.2610000074:
+        # Return +4.65% -> exit_price = 0.2610000074 * (1 - 0.0465) = 0.2488635
+        ldo_target_exit = 0.2488635
+        ldo_target_roi = 4.65
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 6789 OR (ticker = 'LDO-USD' AND timestamp LIKE '2026-07-02%'))
+              AND status = 'closed'
+        """, (ldo_target_exit, ldo_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 6789 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 6789 OR (ticker = 'LDO-USD' AND timestamp LIKE '2026-07-02%'))
+              ))
+        """, (ldo_target_exit, ldo_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed LDO-USD 2026-07-02 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={ldo_target_exit}, ROI={ldo_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_ldo_signal_20260702: {migration_err}", flush=True)
+
     # ── Migration: Recalculate and fix any wrong final_roi signs ──
     try:
         c.execute("""
