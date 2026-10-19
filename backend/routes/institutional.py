@@ -5211,6 +5211,16 @@ class InstitutionalRoutesMixin:
             summary_where = base_where
             summary_params = list(params)
 
+            # --- Data integrity guard ---
+            # A closed signal exiting more than 60% away from entry is not a trade, it
+            # is a bad price lookup recorded at close time (e.g. a ticker resolving to
+            # an unrelated equity). Keep them out of the list *and* the win/loss stats
+            # instead of rendering values like -621136%.
+            INTEGRITY_GUARD = (" AND (COALESCE(uss.status,'active') != 'closed'"
+                               " OR ABS(COALESCE(uss.final_roi,0)) <= 60)")
+            summary_where += INTEGRITY_GUARD
+            base_where += INTEGRITY_GUARD
+
             # State filter — uss.status for user-specific state
             if f_state == 'active':
                 base_where  += " AND COALESCE(uss.status,'active') = 'active'"
@@ -5426,6 +5436,18 @@ class InstitutionalRoutesMixin:
                     elif sort_col == 'state':
                         return STATE_RANK.get(state, 5)
                     return 0.0
+
+                # Collapse duplicate rows: the same ticker/type/timestamp/direction is
+                # one signal that got inserted several times, not several trades.
+                _seen = set()
+                _deduped = []
+                for _r in rows:
+                    _key = (_r[2], _r[1], _r[6], _r[13])
+                    if _key in _seen:
+                        continue
+                    _seen.add(_key)
+                    _deduped.append(_r)
+                rows = _deduped
 
                 decorated = [(_calc_sort_val(r), r) for r in rows]
                 decorated.sort(key=lambda item: item[0], reverse=(sort_dir == 'desc'))

@@ -125,6 +125,26 @@ def _fetch_live_crypto_price(ticker):
     return None
 
 
+# A signal closes within days, with TP/SL thresholds of a few percent. If the exit
+# price implies anything close to this band it is a symbol-resolution failure (for
+# example 'STX-USD' resolving to Seagate's STX at $1,162 against a $0.19 entry),
+# not a trade. Refuse to persist those.
+MIN_EXIT_PRICE_RATIO = 0.25
+MAX_EXIT_PRICE_RATIO = 4.0
+
+
+def _plausible_exit_price(curr_p, entry_p):
+    """True when curr_p/entry_p is a believable move for a multi-day signal."""
+    try:
+        curr_f = float(curr_p)
+        entry_f = float(entry_p)
+        if curr_f <= 0 or entry_f <= 0:
+            return False
+        return MIN_EXIT_PRICE_RATIO <= (curr_f / entry_f) <= MAX_EXIT_PRICE_RATIO
+    except (TypeError, ValueError, ZeroDivisionError):
+        return False
+
+
 class NotificationService:
     # In-memory cooldown: key=(user_email, ticker, sig_type) -> last_sent unix timestamp
     # Prevents duplicate Telegram/Discord pushes within ALERT_COOLDOWN_SECS even when
@@ -1169,6 +1189,11 @@ class HarvestService:
                                 curr_p = price_map.get(ticker)
                                 final_roi = 0.0
                                 exit_px = 0.0
+                                # Never lock in an exit from a price that implies an
+                                # impossible move - leave the signal open instead.
+                                if curr_p and entry_p and entry_p > 0 and not _plausible_exit_price(curr_p, entry_p):
+                                    print(f"[AutoClose] implausible exit {ticker}: {curr_p} vs entry {entry_p} - leaving open", flush=True)
+                                    continue
                                 if curr_p and entry_p and entry_p > 0:
                                     if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
                                         direction = 1 if direction_val.upper() == 'LONG' else -1
@@ -1189,6 +1214,9 @@ class HarvestService:
                     # --- TP2 / Stop Loss / Trailing TP1 check (requires current price) ---
                     curr_p = price_map.get(ticker)
                     if not curr_p or not entry_p or entry_p <= 0:
+                        continue
+                    if not _plausible_exit_price(curr_p, entry_p):
+                        print(f"[AutoClose] implausible price {ticker}: {curr_p} vs entry {entry_p} - skipping", flush=True)
                         continue
                     if direction_val and direction_val.upper() in ('LONG', 'SHORT'):
                         direction = 1 if direction_val.upper() == 'LONG' else -1
