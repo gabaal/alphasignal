@@ -107,7 +107,10 @@ def _fetch_live_crypto_price(ticker):
         return None
     # OCEAN/AGIX merged into FET and are delisted/frozen on Binance (returning stale price)
     clean_ticker = ticker.replace('-USD', '').replace('USDT', '').upper()
-    if clean_ticker in ('OCEAN', 'AGIX', 'MKR'):
+    # TON is ambiguous on exchanges: Binance's TONUSDT quotes ~$1.60 while Toncoin
+    # trades near $1.34, and Yahoo's TON-USD is a different token entirely. Leave it
+    # to the Yahoo alias in caching.py (TON-USD -> TON11419-USD) as the single source.
+    if clean_ticker in ('OCEAN', 'AGIX', 'MKR', 'TON'):
         return None
     try:
         symbol = ticker.replace("-USD", "USDT").replace("-", "")

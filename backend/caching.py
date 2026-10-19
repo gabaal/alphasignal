@@ -9,6 +9,18 @@ import io
 from datetime import datetime
 from .database import SupabaseClient, DB_PATH
 
+# yfinance resolves some base symbols to the wrong asset when a ticker is shared.
+# 'TON-USD' resolves to "TON Token" (~$0.004), not Toncoin (~$1.34); Toncoin is
+# published as TON11419-USD. Map app-facing tickers -> correct upstream symbol.
+YF_SYMBOL_ALIASES = {
+    'TON-USD': 'TON11419-USD',
+}
+
+
+def resolve_yf_symbol(ticker):
+    """Translate an app-facing ticker into the yfinance symbol that actually exists."""
+    return YF_SYMBOL_ALIASES.get(ticker, ticker)
+
 class DataCache:
     def __init__(self, ttl=300):
         self._cache = {}
@@ -112,6 +124,8 @@ class DataCache:
         """Standardized downloader for single and multi-asset requests."""
         if isinstance(tickers, str): tickers = [tickers]
         unique_tickers = list(dict.fromkeys(tickers))
+        # Fetch through the alias map, but cache/label with the app-facing tickers.
+        fetch_tickers = [resolve_yf_symbol(t) for t in unique_tickers]
         key = f"dl:{','.join(unique_tickers)}:{period}:{interval}:{column}"
         
         # Check L2 Cache
@@ -154,7 +168,7 @@ class DataCache:
             return cached
             
         try:
-            raw = yf.download(unique_tickers, period=period, interval=interval, progress=False)
+            raw = yf.download(fetch_tickers, period=period, interval=interval, progress=False)
             if raw.empty: return None
             
             # 1. Standardize Output to DataFrame
@@ -189,6 +203,18 @@ class DataCache:
                 else:
                     data = raw
             
+            # 2b. Map aliased upstream symbols back to the app-facing tickers so
+            # callers (and the cache validation below) only ever see 'TON-USD'.
+            _reverse = {v: k for k, v in YF_SYMBOL_ALIASES.items() if v in fetch_tickers}
+            if _reverse:
+                if isinstance(data, pd.DataFrame):
+                    if isinstance(data.columns, pd.MultiIndex):
+                        data = data.rename(columns=_reverse, level=1)
+                    else:
+                        data = data.rename(columns=_reverse)
+                elif isinstance(data, pd.Series) and len(unique_tickers) == 1:
+                    data.name = unique_tickers[0]
+
             # 3. Cache and return
             serializable = data
             if isinstance(data, pd.DataFrame):
@@ -210,7 +236,7 @@ class DataCache:
         cached = self.get(key)
         if cached is not None:
             return cached
-        t = yf.Ticker(ticker)
+        t = yf.Ticker(resolve_yf_symbol(ticker))
         self.set(key, t)
         return t
 
