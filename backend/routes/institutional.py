@@ -5765,17 +5765,28 @@ class InstitutionalRoutesMixin:
                         ORDER BY total_roi DESC
                     """, by_type_params)
                 else:
+                    # Aggregate per distinct signal first, then per ticker. Summing
+                    # uss.final_roi directly counts the same signal once per user
+                    # (STX had 2,416 copies), which is how one asset reached -7,000%.
                     c2_cur.execute(f"""
-                        SELECT se.ticker AS symbol,
-                               SUM(CASE WHEN uss.final_roi > 0 THEN 1 ELSE 0 END) as wins,
-                               SUM(CASE WHEN uss.final_roi <= 0 THEN 1 ELSE 0 END) as losses,
+                        SELECT ticker AS symbol,
+                               SUM(CASE WHEN roi > 0 THEN 1 ELSE 0 END) as wins,
+                               SUM(CASE WHEN roi <= 0 THEN 1 ELSE 0 END) as losses,
                                COUNT(*) as total,
-                               AVG(uss.final_roi) as avg_roi,
-                               SUM(uss.final_roi) as total_roi
-                        FROM signal_events se
-                        JOIN user_signal_state uss ON uss.signal_id = se.id
-                        {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
-                        GROUP BY se.ticker
+                               AVG(roi) as avg_roi,
+                               SUM(roi) as total_roi
+                        FROM (
+                            SELECT se.id AS id, se.ticker AS ticker,
+                                   AVG(uss.final_roi) AS roi
+                            FROM signal_events se
+                            JOIN user_signal_state uss ON uss.signal_id = se.id
+                            {by_type_where}
+                              AND COALESCE(uss.status,'active')='closed'
+                              AND uss.final_roi IS NOT NULL
+                              AND ABS(COALESCE(uss.final_roi,0)) <= 60
+                            GROUP BY se.id, se.ticker
+                        )
+                        GROUP BY ticker
                         ORDER BY total_roi DESC
                     """, by_type_params)
                 by_ticker = []
@@ -5789,16 +5800,26 @@ class InstitutionalRoutesMixin:
                         'total_roi': round(float(t_roi), 2) if t_roi is not None else 0
                     })
                     
-                # Fetch Time-of-Day / Day-of-Week Heatmap matrix
+                # Fetch Time-of-Day / Day-of-Week Heatmap matrix (deduped per signal,
+                # for the same reason as the by-ticker aggregation above)
                 c2_cur.execute(f"""
-                    SELECT strftime('%w', se.timestamp) as dow,
-                           strftime('%H', se.timestamp) as hour,
+                    SELECT dow, hour,
                            COUNT(*) as total,
-                           AVG(uss.final_roi) as avg_roi,
-                           SUM(uss.final_roi) as total_roi
-                    FROM signal_events se
-                    JOIN user_signal_state uss ON uss.signal_id = se.id
-                    {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
+                           AVG(roi) as avg_roi,
+                           SUM(roi) as total_roi
+                    FROM (
+                        SELECT se.id AS id,
+                               strftime('%w', se.timestamp) as dow,
+                               strftime('%H', se.timestamp) as hour,
+                               AVG(uss.final_roi) as roi
+                        FROM signal_events se
+                        JOIN user_signal_state uss ON uss.signal_id = se.id
+                        {by_type_where}
+                          AND COALESCE(uss.status,'active')='closed'
+                          AND uss.final_roi IS NOT NULL
+                          AND ABS(COALESCE(uss.final_roi,0)) <= 60
+                        GROUP BY se.id, dow, hour
+                    )
                     GROUP BY dow, hour
                 """, by_type_params)
                 heatmap_data = []
