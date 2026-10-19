@@ -686,6 +686,18 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                                             break
                                     except: continue
                             except: pass
+                        # Optional explicit correction: let an operator close at a known
+                        # historical price instead of today's live tick. Validated against
+                        # entry so it cannot reintroduce an implausible exit.
+                        try:
+                            _manual_exit = post_data.get('exit_price')
+                            if _manual_exit is not None and entry_p and float(entry_p) > 0:
+                                _mx = float(_manual_exit)
+                                if 0 < _mx and 0.25 <= (_mx / float(entry_p)) <= 4.0:
+                                    exit_px = round(_mx, 10)
+                                    print(f"[ManualClose] signal {sig_id} using supplied exit {exit_px}", flush=True)
+                        except (TypeError, ValueError):
+                            pass
                         BULLISH_T = {'ML_LONG','RSI_OVERSOLD','MACD_BULLISH_CROSS','REGIME_BULL','WHALE_ACCUMULATION',
                                      'VOLUME_SPIKE','MOMENTUM_BREAKOUT','ALPHA_DIVERGENCE_LONG','ML_ALPHA_PREDICTION'}
                         if exit_px and entry_p and entry_p > 0:
@@ -698,8 +710,9 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                     with sqlite3.connect(DB_PATH, timeout=30) as conn:
                         c = conn.cursor()
                         # Write to user_signal_state (Phase 2: reads come from here)
+                        _closed_at = post_data.get('closed_at') or _dt.utcnow().isoformat()
                         c.execute("UPDATE user_signal_state SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE signal_id=?",
-                                  (_dt.utcnow().isoformat(), exit_px, final_roi, sig_id))
+                                  (_closed_at, exit_px, final_roi, sig_id))
                         # Keep alerts_history in sync for legacy compat (Phase 3 will drop this)
                         c.execute("UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=(SELECT ah_id FROM user_signal_state WHERE signal_id=?)",
                                   (_dt.utcnow().isoformat(), exit_px, final_roi, sig_id))
