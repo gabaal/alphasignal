@@ -5317,12 +5317,22 @@ class InstitutionalRoutesMixin:
                         clean_t = orig_t.replace('-USD', '').upper()
                         if clean_t in EQUITY_TICKERS:
                             candidates = [clean_t]
+                        elif orig_t.upper().endswith('-USD'):
+                            # Crypto: Binance is authoritative. Never fall back to the
+                            # bare ticker - 'STX' is Seagate Technology and 'IBIT' is an
+                            # ETF, so a collision silently prices a $0.38 coin at $1,162.
+                            try:
+                                from backend.services import _fetch_live_crypto_price
+                                _px = _fetch_live_crypto_price(orig_t)
+                                if _px and float(_px) > 0:
+                                    return orig_t, round(float(_px), 10)
+                            except Exception:
+                                pass
+                            candidates = [orig_t]
                         else:
                             candidates = [orig_t]
                             if '-' not in orig_t:
                                 candidates.append(orig_t + '-USD')
-                            elif orig_t.endswith('-USD'):
-                                candidates.append(orig_t[:-4])
                         for sym in candidates:
                             try:
                                 info = yf.Ticker(sym).fast_info
