@@ -15,15 +15,18 @@ async function renderPerformanceDashboard(tabs = null) {
     const d = await fetchAPI('/performance');
     if (!d) return;
 
+    const notPublished = d.status === 'insufficient_data' || d.status === 'error';
     const noData = d.total_signals === 0;
-    const winColor = d.avg_return >= 0 ? '#22c55e' : '#ef4444';
+    const winColor = (d.avg_return || 0) >= 0 ? '#22c55e' : '#ef4444';
 
     appEl.innerHTML = `
         <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start">
             <div>
                 <h2 style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:0 0 4px">Audit &amp; Performance</h2>
                 <h1><span class="material-symbols-outlined" style="vertical-align:middle;margin-right:8px;color:var(--accent)">trending_up</span>Performance Dashboard <span class="premium-badge">LIVE</span></h1>
-                <p>Track record as of ${d.updated} - Based on ${d.total_signals} signals</p>
+                <p>${notPublished
+                    ? (d.detail || 'Track record not yet statistically meaningful.')
+                    : `Track record as of ${d.updated} - Based on ${d.total_signals} signals`}</p>
             </div>
             <div style="display:flex; gap:0.5rem">
                 <button class="timeframe-btn" onclick="downloadPortfolioData('csv')" style="display:flex; align-items:center; gap:6px; background:rgba(0, 242, 255, 0.1); border-color:var(--accent)">

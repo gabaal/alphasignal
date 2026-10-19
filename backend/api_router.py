@@ -1555,6 +1555,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
             elif path == '/' and query_params.get('view') == ['signal'] and query_params.get('id'):
                 self.handle_ssr_permalink(query_params['id'][0])
             else:
+                # Unknown API paths must not fall through to the SPA shell. Returning
+                # index.html with HTTP 200 masked every missing endpoint and would
+                # hide real outages from uptime checks and error monitoring.
+                if path.startswith('/api/'):
+                    self.send_error_json('Not found', 404)
+                    return
                 # Semantic Clean URL Routing & SPA Fallback
                 safe_path = path.lstrip('/')
                 

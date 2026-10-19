@@ -429,33 +429,40 @@ if __name__ == "__main__":
     print("Initializing AlphaSignal Terminal...", flush=True)
     init_db() # Ensure all persistent intelligence tables exist
 
-    # --- ONE-OFF PROD FIX ---
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY)")
-        c.execute("SELECT 1 FROM schema_migrations WHERE version='clean_reset_v1'")
-        if not c.fetchone():
-            c.execute("DELETE FROM alerts_history")
-            c.execute("DELETE FROM signal_suppression_log")
-            c.execute("DELETE FROM trade_ledger")
-            c.execute("DELETE FROM positions")
-            c.execute("INSERT INTO schema_migrations (version) VALUES ('clean_reset_v1')")
+    # --- STORAGE PERSISTENCE CHECK ---
+    # The SQLite file lives under DATA_DIR when that env var is set (Railway volume).
+    # Without it the DB sits inside the container and is lost on every deploy.
+    if not os.getenv('DATA_DIR') and os.getenv('RAILWAY_ENVIRONMENT'):
+        print("[WARN] DATA_DIR is not set while running on Railway. The container "
+              "filesystem is ephemeral, so alphasignal.db (signals, trade ledger, "
+              "positions) will be destroyed on every deploy. Mount a volume and set "
+              "DATA_DIR=/data.", flush=True)
+
+    # --- OPTIONAL DESTRUCTIVE RESET (explicit opt-in only) ---
+    # This used to run whenever schema_migrations lacked a 'clean_reset_v1' marker.
+    # That table lives in the same SQLite file as the data, so whenever the DB was
+    # recreated the marker vanished with it and the next boot deleted every signal,
+    # trade and position again. Destructive resets must now be requested explicitly.
+    if os.getenv('RESET_ON_BOOT', '').strip().lower() in ('1', 'true', 'yes', 'on'):
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            for _tbl in ('alerts_history', 'signal_suppression_log', 'trade_ledger', 'positions'):
+                try:
+                    c.execute(f"DELETE FROM {_tbl}")
+                except sqlite3.OperationalError as _missing:
+                    print(f"[RESET_ON_BOOT] skipping {_tbl}: {_missing}", flush=True)
             conn.commit()
-            print("[PROD FIX] Successfully ran clean reset of database tables.", flush=True)
-        else:
-            print("[PROD FIX] Reset already applied previously. Skipping.", flush=True)
-        conn.close()
-    except Exception as e:
-        print(f"[PROD FIX FAILED] {e}", flush=True)
+            conn.close()
+            print("[RESET_ON_BOOT] Cleared signals/trades/positions (explicitly requested).", flush=True)
+        except Exception as e:
+            print(f"[RESET_ON_BOOT FAILED] {e}", flush=True)
     # -------------------------
 
-    # Seed historical signals on first boot / after Railway wipe
-    try:
-        from startup_seed import seed_if_needed
-        seed_if_needed()
-    except Exception as seed_err:
-        print(f"[Boot] Seed skipped: {seed_err}", flush=True)
+    # NOTE: the previous boot step imported `startup_seed`, which does not exist in
+    # this repository, so it failed with ImportError on every start and did nothing.
+    # Historical data is expected to live in the DB (see DATA_DIR above), not be
+    # regenerated at boot.
 
     # Start TCPServer FIRST to ensure API is responsive
     print(f"Binding TCPServer to 0.0.0.0:{PORT}...", flush=True)

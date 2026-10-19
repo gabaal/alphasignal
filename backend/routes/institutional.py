@@ -4695,7 +4695,7 @@ class InstitutionalRoutesMixin:
             valid_total = 0
             wins = 0
             losses = 0
-            total_roi = 0.0
+            rois = []
             best = {'ticker': '-', 'return': -999}
             worst = {'ticker': '-', 'return': 999}
             monthly = {}
@@ -4729,7 +4729,7 @@ class InstitutionalRoutesMixin:
                         raw_diff = (curr_p - entry_p) / entry_p * 100
                         roi = round(-raw_diff if direction == 'SHORT' else raw_diff, 2)
                     
-                    total_roi += roi
+                    rois.append(roi)
                     valid_total += 1
                     if roi > 0:
                         wins += 1
@@ -4747,7 +4747,41 @@ class InstitutionalRoutesMixin:
                 except:
                     continue
             win_rate = round(wins / valid_total * 100, 1) if valid_total > 0 else 0
-            avg_return = round(total_roi / valid_total, 2) if valid_total > 0 else 0
+            avg_return = round(sum(rois) / valid_total, 2) if valid_total > 0 else 0
+
+            # Compounded portfolio return. The previous implementation summed
+            # per-signal ROI, so 100 signals at -3.05% reported a nonsensical -305%.
+            equity = 1.0
+            for _r in rois:
+                equity *= (1 + _r / 100.0)
+            total_return = round((equity - 1) * 100, 2) if rois else 0.0
+
+            # Data-quality guard. Never publish a track record built on a
+            # near-empty sample, or on a sample where every closed signal has the
+            # same result (which indicates seeded/duplicated rows rather than trades).
+            MIN_SAMPLE = 10
+            distinct_results = len({round(_r, 2) for _r in rois})
+            degenerate = valid_total >= MIN_SAMPLE and distinct_results == 1
+            if valid_total < MIN_SAMPLE or degenerate:
+                if valid_total == 0:
+                    detail = 'No closed signals yet.'
+                elif degenerate:
+                    detail = (f'{valid_total} closed signals all returned the same '
+                              f'{avg_return:+.2f}% - this looks like seeded data, not a track record.')
+                else:
+                    detail = (f'Only {valid_total} closed signal(s); at least {MIN_SAMPLE} '
+                              f'are required before publishing a win rate.')
+                print(f'[Performance] Insufficient data: {detail}', flush=True)
+                self.send_json({
+                    'status': 'insufficient_data',
+                    'total_signals': 0, 'closed_signals': valid_total,
+                    'win_rate': None, 'avg_return': None, 'total_return': None,
+                    'best_pick': None, 'worst_pick': None,
+                    'monthly': [], 'signal_mix': {}, 'by_ticker': [],
+                    'detail': detail,
+                    'updated': datetime.now().strftime('%H:%M UTC')
+                })
+                return
 
             # Format monthly series with human-readable month labels
             monthly_series = sorted([{
@@ -4774,14 +4808,18 @@ class InstitutionalRoutesMixin:
                 by_ticker = []
 
             self.send_json({
+                'status': 'ok', 'closed_signals': valid_total,
                 'total_signals': total, 'win_rate': win_rate, 'avg_return': avg_return,
-                'total_return': round(total_roi, 2), 'best_pick': best, 'worst_pick': worst,
+                'total_return': total_return, 'best_pick': best, 'worst_pick': worst,
                 'monthly': monthly_series, 'signal_mix': signal_mix, 'by_ticker': by_ticker,
                 'updated': datetime.now().strftime('%H:%M UTC')
             })
         except Exception as e:
             print(f'Performance Error: {e}')
-            self.send_json({'total_signals': 0, 'win_rate': 0, 'avg_return': 0, 'error': str(e)})
+            self.send_json({'status': 'error', 'total_signals': 0, 'closed_signals': 0,
+                            'win_rate': None, 'avg_return': None, 'total_return': None,
+                            'best_pick': None, 'worst_pick': None,
+                            'detail': 'Performance data temporarily unavailable.'})
 
     def handle_export(self):
         """Export CSV or JSON snapshot. signals export honours active filter params and user scope."""
