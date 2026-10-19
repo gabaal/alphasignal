@@ -170,6 +170,18 @@ class DataCache:
         try:
             raw = yf.download(fetch_tickers, period=period, interval=interval, progress=False)
             if raw.empty: return None
+
+            # Map aliased symbols back immediately, on whichever axis level holds the
+            # tickers: yfinance has shipped both (Price, Ticker) and (Ticker, Price).
+            _alias_reverse = {v: k for k, v in YF_SYMBOL_ALIASES.items() if v in fetch_tickers}
+            if _alias_reverse:
+                if isinstance(raw.columns, pd.MultiIndex):
+                    for _lvl in range(raw.columns.nlevels):
+                        if any(_v in _alias_reverse for _v in raw.columns.get_level_values(_lvl)):
+                            raw = raw.rename(columns=_alias_reverse, level=_lvl)
+                            break
+                else:
+                    raw = raw.rename(columns=_alias_reverse)
             
             # 1. Standardize Output to DataFrame
             data = raw
@@ -203,17 +215,9 @@ class DataCache:
                 else:
                     data = raw
             
-            # 2b. Map aliased upstream symbols back to the app-facing tickers so
-            # callers (and the cache validation below) only ever see 'TON-USD'.
-            _reverse = {v: k for k, v in YF_SYMBOL_ALIASES.items() if v in fetch_tickers}
-            if _reverse:
-                if isinstance(data, pd.DataFrame):
-                    if isinstance(data.columns, pd.MultiIndex):
-                        data = data.rename(columns=_reverse, level=1)
-                    else:
-                        data = data.rename(columns=_reverse)
-                elif isinstance(data, pd.Series) and len(unique_tickers) == 1:
-                    data.name = unique_tickers[0]
+            # 2b. Single-series results should carry the app-facing ticker name.
+            if isinstance(data, pd.Series) and len(unique_tickers) == 1:
+                data.name = unique_tickers[0]
 
             # 3. Cache and return
             serializable = data
