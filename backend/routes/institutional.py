@@ -5437,12 +5437,13 @@ class InstitutionalRoutesMixin:
                         return STATE_RANK.get(state, 5)
                     return 0.0
 
-                # Collapse duplicate rows: the same ticker/type/timestamp/direction is
-                # one signal that got inserted several times, not several trades.
+                # In 'all users' scope the same signal legitimately appears once per
+                # user, each with their own outcome. Only collapse exact duplicates:
+                # the same signal id AND the same user.
                 _seen = set()
                 _deduped = []
                 for _r in rows:
-                    _key = (_r[2], _r[1], _r[6], _r[13])
+                    _key = (_r[0], _r[14] if len(_r) > 14 else None)
                     if _key in _seen:
                         continue
                     _seen.add(_key)
