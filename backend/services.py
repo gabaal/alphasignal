@@ -869,6 +869,25 @@ def _new_signal_event(c, sig_type, ticker, message, severity, price, ts,
                       z_score=None, alpha=None, direction=None, category=None,
                       mtf_score=None, mtf_detail=None):
     """Insert one row into signal_events and return its id."""
+    # The entry price must be the market price at the moment the signal fired.
+    # `price` often arrives from a cached batch download (up to 5 minutes old),
+    # which is why some entries were recorded 7-16% away from the actual print.
+    # For crypto, refresh against Binance and prefer the live tick when they differ.
+    try:
+        if ticker and str(ticker).upper().endswith('-USD'):
+            _live = _fetch_live_crypto_price(ticker)
+            if _live and float(_live) > 0:
+                _live_f = float(_live)
+                if not price or float(price) <= 0:
+                    price = round(_live_f, 10)
+                else:
+                    _drift = abs(_live_f - float(price)) / float(price)
+                    if _drift > 0.02:
+                        print(f"[EntryPrice] {ticker}: cached {price} -> live {_live_f} "
+                              f"({_drift * 100:.1f}% drift)", flush=True)
+                        price = round(_live_f, 10)
+    except Exception:
+        pass
     c.execute(
         "INSERT INTO signal_events "
         "(type, ticker, message, severity, price, timestamp, "

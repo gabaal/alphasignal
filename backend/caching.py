@@ -219,6 +219,25 @@ class DataCache:
             if isinstance(data, pd.Series) and len(unique_tickers) == 1:
                 data.name = unique_tickers[0]
 
+            # 2c. An aliased ticker can come back all-NaN in a mixed batch (equities
+            # and crypto requested together), which silently dropped it from the
+            # result set. Backfill individually so an alias never disappears.
+            if isinstance(data, pd.DataFrame) and not isinstance(data.columns, pd.MultiIndex):
+                for _app in unique_tickers:
+                    if _app in data.columns:
+                        continue
+                    _sym = resolve_yf_symbol(_app)
+                    if _sym == _app:
+                        continue
+                    try:
+                        _hist = yf.Ticker(_sym).history(period=period, interval=interval, auto_adjust=False)
+                        if _hist is not None and not _hist.empty:
+                            _col = column if (column and column in _hist.columns) else 'Close'
+                            data[_app] = _hist[_col]
+                            print(f"[Cache] backfilled {_app} from {_sym}", flush=True)
+                    except Exception as _alias_err:
+                        print(f"[Cache] alias backfill failed for {_app}: {_alias_err}", flush=True)
+
             # 3. Cache and return
             serializable = data
             if isinstance(data, pd.DataFrame):
