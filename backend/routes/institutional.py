@@ -5758,7 +5758,10 @@ class InstitutionalRoutesMixin:
                             SELECT se.id, se.ticker, AVG(uss.final_roi) as avg_roi
                             FROM signal_events se
                             JOIN user_signal_state uss ON uss.signal_id = se.id
-                            {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
+                            {by_type_where}
+                              AND COALESCE(uss.status,'active')='closed'
+                              AND uss.final_roi IS NOT NULL
+                              AND ABS(COALESCE(uss.final_roi,0)) <= 60
                             GROUP BY se.id, se.ticker
                         )
                         GROUP BY ticker
