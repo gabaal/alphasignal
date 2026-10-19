@@ -1399,8 +1399,8 @@ async function renderSignalArchive(tabs = null) {
             <button id="scope-user" onclick="window._setArchiveScope('user')" style="font-size:0.6rem;font-weight:900;padding:5px 13px;border-radius:20px;border:1px solid rgba(0,242,255,0.5);background:rgba(0,242,255,0.12);color:var(--accent);cursor:pointer;letter-spacing:1px;transition:all 0.15s">
                 MY SIGNALS
             </button>
-            <button id="scope-all" onclick="window._setArchiveScope('all')" style="font-size:0.6rem;font-weight:900;padding:5px 13px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Aggregate breakdown across all terminal users (53,000+ trades)">
-                🌐 ALL USERS (GLOBAL) <span style="font-size:0.48rem;background:rgba(0,242,255,0.2);color:var(--accent);padding:1px 5px;border-radius:10px;margin-left:3px">53k+</span>
+            <button id="scope-all" onclick="window._setArchiveScope('all')" style="font-size:0.6rem;font-weight:900;padding:5px 13px;border-radius:20px;border:1px solid ${alphaColor(0.1)};background:${alphaColor(0.03)};color:var(--text-dim);cursor:pointer;letter-spacing:1px;transition:all 0.15s" title="Aggregate breakdown across all terminal users (77,731 trades)">
+                🌐 ALL USERS (GLOBAL) <span style="font-size:0.48rem;background:rgba(0,242,255,0.2);color:var(--accent);padding:1px 5px;border-radius:10px;margin-left:3px">77k+</span>
             </button>
         </div>
 

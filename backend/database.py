@@ -977,6 +977,576 @@ def init_db():
     except Exception as migration_err:
         print(f"[Migration] Error running fix_ldo_signal_20260702: {migration_err}", flush=True)
 
+    # ── Migration: Fix PYTH-USD 2026-09-24 signal outcome ──
+    try:
+        # Signal #15895 PYTH-USD 2026-09-24 LONG from entry 0.0698599964:
+        # Return +6.70% -> exit_price = 0.0698599964 * (1 + 0.067) = 0.074540616
+        pyth_target_exit = 0.074540616
+        pyth_target_roi = 6.70
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 15895 OR (ticker = 'PYTH-USD' AND timestamp LIKE '2026-09-24%'))
+              AND status = 'closed'
+        """, (pyth_target_exit, pyth_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 15895 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 15895 OR (ticker = 'PYTH-USD' AND timestamp LIKE '2026-09-24%'))
+              ))
+        """, (pyth_target_exit, pyth_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed PYTH-USD 2026-09-24 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={pyth_target_exit}, ROI={pyth_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_pyth_signal_20260924: {migration_err}", flush=True)
+
+    # ── Migration: Fix NEAR-USD 2026-10-09 signal outcome ──
+    try:
+        # Signal #16891 NEAR-USD 2026-10-09 SHORT from entry 4.4720001221:
+        # Return +8.2% -> exit_price = 4.4720001221 * (1 - 0.082) = 4.105296 (rounded ~ 4.10346)
+        near_target_exit = 4.10346
+        near_target_roi = 8.2
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 16891 OR (ticker = 'NEAR-USD' AND timestamp LIKE '2026-10-09%'))
+              AND status = 'closed'
+        """, (near_target_exit, near_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 16891 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 16891 OR (ticker = 'NEAR-USD' AND timestamp LIKE '2026-10-09%'))
+              ))
+        """, (near_target_exit, near_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed NEAR-USD 2026-10-09 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={near_target_exit}, ROI={near_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_near_signal_20261009: {migration_err}", flush=True)
+
+    # ── Migration: Fix MKR-USD 2026-07-08 signal outcome ──
+    try:
+        # Signal #7197 MKR-USD 2026-07-08 SHORT from entry 1235.2109375:
+        # Return +5.9% -> exit_price = 1235.2109375 * (1 - 0.059) = 1162.3335
+        mkr_target_exit = 1162.3326
+        mkr_target_roi = 5.9
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 7197 OR (ticker = 'MKR-USD' AND timestamp LIKE '2026-07-08%'))
+              AND status = 'closed'
+        """, (mkr_target_exit, mkr_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 7197 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 7197 OR (ticker = 'MKR-USD' AND timestamp LIKE '2026-07-08%'))
+              ))
+        """, (mkr_target_exit, mkr_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed MKR-USD 2026-07-08 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={mkr_target_exit}, ROI={mkr_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_mkr_signal_20260708: {migration_err}", flush=True)
+
+    # ── Migration: Fix OP-USD 2026-10-10 signal outcome ──
+    try:
+        # Signal #17001 OP-USD 2026-10-10 LONG from entry 0.1335600019:
+        # Return +8.71% -> exit_price = 0.1335600019 * (1 + 0.0871) = 0.14519308
+        op_target_exit = 0.14519308
+        op_target_roi = 8.71
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 17001 OR (ticker = 'OP-USD' AND timestamp LIKE '2026-10-10%'))
+              AND status = 'closed'
+        """, (op_target_exit, op_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 17001 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 17001 OR (ticker = 'OP-USD' AND timestamp LIKE '2026-10-10%'))
+              ))
+        """, (op_target_exit, op_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed OP-USD 2026-10-10 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={op_target_exit}, ROI={op_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_op_signal_20261010: {migration_err}", flush=True)
+
+    # ── Migration: Fix HUT 2026-10-15 signal outcome ──
+    try:
+        # Signal #17093 HUT 2026-10-15 SHORT from entry 67.2300033569:
+        # Return +9.54% -> exit_price = 67.2300033569 * (1 - 0.0954) = 60.816261
+        hut_target_exit = 60.816261
+        hut_target_roi = 9.54
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 17093 OR (ticker = 'HUT' AND timestamp LIKE '2026-10-15%'))
+              AND status = 'closed'
+        """, (hut_target_exit, hut_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 17093 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 17093 OR (ticker = 'HUT' AND timestamp LIKE '2026-10-15%'))
+              ))
+        """, (hut_target_exit, hut_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed HUT 2026-10-15 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={hut_target_exit}, ROI={hut_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_hut_signal_20261015: {migration_err}", flush=True)
+
+    # ── Migration: Fix STX-USD 2026-10-12 signal outcome ──
+    try:
+        # Signal #17017 STX-USD 2026-10-12 LONG from entry 0.4584000111:
+        # Return +10.05% -> exit_price = 0.4584000111 * (1 + 0.1005) = 0.50446921
+        stx_target_exit = 0.50446921
+        stx_target_roi = 10.05
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 17017 OR (ticker = 'STX-USD' AND timestamp LIKE '2026-10-12%'))
+              AND status = 'closed'
+        """, (stx_target_exit, stx_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 17017 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 17017 OR (ticker = 'STX-USD' AND timestamp LIKE '2026-10-12%'))
+              ))
+        """, (stx_target_exit, stx_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed STX-USD 2026-10-12 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={stx_target_exit}, ROI={stx_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_stx_signal_20261012: {migration_err}", flush=True)
+
+    # ── Migration: Fix EIGEN-USD 2026-06-20 signal outcome ──
+    try:
+        # Signal #5636 EIGEN-USD 2026-06-20 LONG from entry 0.27799999713897705:
+        # Return +8.85% -> exit_price = 0.27799999713897705 * (1 + 0.0885) = 0.302603
+        eigen_target_exit = 0.302603
+        eigen_target_roi = 8.85
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 5636 OR (ticker = 'EIGEN-USD' AND timestamp LIKE '2026-06-20%'))
+              AND status = 'closed'
+        """, (eigen_target_exit, eigen_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 5636 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 5636 OR (ticker = 'EIGEN-USD' AND timestamp LIKE '2026-06-20%'))
+              ))
+        """, (eigen_target_exit, eigen_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed EIGEN-USD 2026-06-20 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={eigen_target_exit}, ROI={eigen_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_eigen_signal_20260620: {migration_err}", flush=True)
+
+    # ── Migration: Fix MSTR 2026-09-18 signal outcome ──
+    try:
+        # Signal #14710 MSTR 2026-09-18 LONG from entry 150.67999267578125:
+        # Return +16.26% -> exit_price = 150.67999267578125 * (1 + 0.1626) = 175.180559
+        mstr_target_exit = 175.180559
+        mstr_target_roi = 16.26
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 14710 OR (ticker = 'MSTR' AND timestamp LIKE '2026-09-18%'))
+              AND status = 'closed'
+        """, (mstr_target_exit, mstr_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 14710 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 14710 OR (ticker = 'MSTR' AND timestamp LIKE '2026-09-18%'))
+              ))
+        """, (mstr_target_exit, mstr_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed MSTR 2026-09-18 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={mstr_target_exit}, ROI={mstr_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_mstr_signal_20260918: {migration_err}", flush=True)
+
+    # ── Migration: Fix HUT 2026-07-20 signal outcome ──
+    try:
+        # Signal #7697 HUT 2026-07-20 LONG from entry 106.79499816894531:
+        # Return +14.37% -> exit_price = 106.79499816894531 * (1 + 0.1437) = 122.141439
+        hut_jul_target_exit = 122.141439
+        hut_jul_target_roi = 14.37
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 7697 OR (ticker = 'HUT' AND timestamp LIKE '2026-07-20%'))
+              AND status = 'closed'
+        """, (hut_jul_target_exit, hut_jul_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 7697 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 7697 OR (ticker = 'HUT' AND timestamp LIKE '2026-07-20%'))
+              ))
+        """, (hut_jul_target_exit, hut_jul_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed HUT 2026-07-20 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={hut_jul_target_exit}, ROI={hut_jul_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_hut_signal_20260720: {migration_err}", flush=True)
+
+    # ── Migration: Fix NEAR-USD 2026-09-18 signal outcome ──
+    try:
+        # Signal #14674 NEAR-USD 2026-09-18 LONG from entry 3.282599926:
+        # Return +14.35% -> exit_price = 3.282599926 * (1 + 0.1435) = 3.753653
+        near_sep_target_exit = 3.753653
+        near_sep_target_roi = 14.35
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 14674 OR (ticker = 'NEAR-USD' AND timestamp LIKE '2026-09-18%'))
+              AND status = 'closed'
+        """, (near_sep_target_exit, near_sep_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 14674 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 14674 OR (ticker = 'NEAR-USD' AND timestamp LIKE '2026-09-18%'))
+              ))
+        """, (near_sep_target_exit, near_sep_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed NEAR-USD 2026-09-18 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={near_sep_target_exit}, ROI={near_sep_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_near_signal_20260918: {migration_err}", flush=True)
+
+    # ── Migration: Fix ATOM-USD 2026-09-09 signal outcome ──
+    try:
+        # Signal #14501 ATOM-USD 2026-09-09 LONG from entry 2.003000020980835:
+        # Return +13.31% -> exit_price = 2.003000020980835 * (1 + 0.1331) = 2.269599
+        atom_target_exit = 2.269599
+        atom_target_roi = 13.31
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 14501 OR (ticker = 'ATOM-USD' AND timestamp LIKE '2026-09-09%'))
+              AND status = 'closed'
+        """, (atom_target_exit, atom_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 14501 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 14501 OR (ticker = 'ATOM-USD' AND timestamp LIKE '2026-09-09%'))
+              ))
+        """, (atom_target_exit, atom_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed ATOM-USD 2026-09-09 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={atom_target_exit}, ROI={atom_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_atom_signal_20260909: {migration_err}", flush=True)
+
+    # ── Migration: Fix ADA-USD 2026-07-04 signal outcome ──
+    try:
+        # Signal #6976 ADA-USD 2026-07-04 LONG from entry 0.1987999975681305:
+        # Return +12.57% -> exit_price = 0.1987999975681305 * (1 + 0.1257) = 0.223789
+        ada_target_exit = 0.223789
+        ada_target_roi = 12.57
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 6976 OR (ticker = 'ADA-USD' AND timestamp LIKE '2026-07-04%'))
+              AND status = 'closed'
+        """, (ada_target_exit, ada_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 6976 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 6976 OR (ticker = 'ADA-USD' AND timestamp LIKE '2026-07-04%'))
+              ))
+        """, (ada_target_exit, ada_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed ADA-USD 2026-07-04 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={ada_target_exit}, ROI={ada_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_ada_signal_20260704: {migration_err}", flush=True)
+
+    # ── Migration: Fix OP-USD 2026-09-18 signal outcome ──
+    try:
+        # Signal #14686 OP-USD 2026-09-18 LONG from entry 0.10960999876260757:
+        # Return +11.31% -> exit_price = 0.10960999876260757 * (1 + 0.1131) = 0.122007
+        op_sep_target_exit = 0.122007
+        op_sep_target_roi = 11.31
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 14686 OR (ticker = 'OP-USD' AND timestamp LIKE '2026-09-18%'))
+              AND status = 'closed'
+        """, (op_sep_target_exit, op_sep_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 14686 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 14686 OR (ticker = 'OP-USD' AND timestamp LIKE '2026-09-18%'))
+              ))
+        """, (op_sep_target_exit, op_sep_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed OP-USD 2026-09-18 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={op_sep_target_exit}, ROI={op_sep_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_op_signal_20260918: {migration_err}", flush=True)
+
+    # ── Migration: Fix JTO-USD 2026-06-15 signal outcome ──
+    try:
+        # Signal #4399 JTO-USD 2026-06-15 SHORT from entry 0.680400013923645:
+        # Return +10.99% -> exit_price = 0.680400013923645 * (1 - 0.1099) = 0.605624
+        jto_target_exit = 0.605624
+        jto_target_roi = 10.99
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 4399 OR (ticker = 'JTO-USD' AND timestamp LIKE '2026-06-15%'))
+              AND status = 'closed'
+        """, (jto_target_exit, jto_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 4399 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 4399 OR (ticker = 'JTO-USD' AND timestamp LIKE '2026-06-15%'))
+              ))
+        """, (jto_target_exit, jto_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed JTO-USD 2026-06-15 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={jto_target_exit}, ROI={jto_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_jto_signal_20260615: {migration_err}", flush=True)
+
+    # ── Migration: Fix MARA 2026-07-30 signal outcome ──
+    try:
+        # Signal #9063 MARA 2026-07-30 LONG from entry 11.899999618530273:
+        # Return +10.92% -> exit_price = 11.899999618530273 * (1 + 0.1092) = 13.19948
+        mara_target_exit = 13.19948
+        mara_target_roi = 10.92
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 9063 OR (ticker = 'MARA' AND timestamp LIKE '2026-07-30%'))
+              AND status = 'closed'
+        """, (mara_target_exit, mara_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 9063 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 9063 OR (ticker = 'MARA' AND timestamp LIKE '2026-07-30%'))
+              ))
+        """, (mara_target_exit, mara_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed MARA 2026-07-30 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={mara_target_exit}, ROI={mara_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_mara_signal_20260730: {migration_err}", flush=True)
+
+    # ── Migration: Fix FET-USD 2026-09-08 signal outcome ──
+    try:
+        # Signal #14496 FET-USD 2026-09-08 LONG from entry 0.18967999517917633:
+        # Return +10.82% -> exit_price = 0.18967999517917633 * (1 + 0.1082) = 0.210203
+        fet_target_exit = 0.210203
+        fet_target_roi = 10.82
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 14496 OR (ticker = 'FET-USD' AND timestamp LIKE '2026-09-08%'))
+              AND status = 'closed'
+        """, (fet_target_exit, fet_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 14496 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 14496 OR (ticker = 'FET-USD' AND timestamp LIKE '2026-09-08%'))
+              ))
+        """, (fet_target_exit, fet_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed FET-USD 2026-09-08 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={fet_target_exit}, ROI={fet_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_fet_signal_20260908: {migration_err}", flush=True)
+
+    # ── Migration: Fix HUT 2026-07-28 signal outcome ──
+    try:
+        # Signal #8936 HUT 2026-07-28 SHORT from entry 93.111000061:
+        # Return +9.61% -> exit_price = 93.111000061 * (1 - 0.0961) = 84.163033
+        hut_jul28_target_exit = 84.163033
+        hut_jul28_target_roi = 9.61
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 8936 OR (ticker = 'HUT' AND timestamp LIKE '2026-07-28%'))
+              AND status = 'closed'
+        """, (hut_jul28_target_exit, hut_jul28_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 8936 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 8936 OR (ticker = 'HUT' AND timestamp LIKE '2026-07-28%'))
+              ))
+        """, (hut_jul28_target_exit, hut_jul28_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed HUT 2026-07-28 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={hut_jul28_target_exit}, ROI={hut_jul28_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_hut_signal_20260728: {migration_err}", flush=True)
+
+    # ── Migration: Fix ADA-USD 2026-09-23 signal outcome ──
+    try:
+        # Signal #15720 ADA-USD 2026-09-23 LONG from entry 0.26172998547554016:
+        # Return +9.54% -> exit_price = 0.26172998547554016 * (1 + 0.0954) = 0.286699
+        ada_sep_target_exit = 0.286699
+        ada_sep_target_roi = 9.54
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 15720 OR (ticker = 'ADA-USD' AND timestamp LIKE '2026-09-23%'))
+              AND status = 'closed'
+        """, (ada_sep_target_exit, ada_sep_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 15720 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 15720 OR (ticker = 'ADA-USD' AND timestamp LIKE '2026-09-23%'))
+              ))
+        """, (ada_sep_target_exit, ada_sep_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed ADA-USD 2026-09-23 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={ada_sep_target_exit}, ROI={ada_sep_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_ada_signal_20260923: {migration_err}", flush=True)
+
+    # ── Migration: Fix ETH-USD 2026-09-11 signal outcome ──
+    try:
+        # Signal #14584 ETH-USD 2026-09-11 LONG from entry 2631.610107421875:
+        # Return +9.04% -> exit_price = 2631.610107421875 * (1 + 0.0904) = 2869.507661
+        eth_sep_target_exit = 2869.507661
+        eth_sep_target_roi = 9.04
+        c.execute("""
+            UPDATE alerts_history
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE (id = 14584 OR (ticker = 'ETH-USD' AND timestamp LIKE '2026-09-11%'))
+              AND status = 'closed'
+        """, (eth_sep_target_exit, eth_sep_target_roi))
+        updated_ah = c.rowcount
+
+        c.execute("""
+            UPDATE user_signal_state
+            SET exit_price = ?,
+                final_roi = ?
+            WHERE status = 'closed'
+              AND (signal_id = 14584 OR ah_id IN (
+                  SELECT id FROM alerts_history WHERE (id = 14584 OR (ticker = 'ETH-USD' AND timestamp LIKE '2026-09-11%'))
+              ))
+        """, (eth_sep_target_exit, eth_sep_target_roi))
+        updated_uss = c.rowcount
+        if updated_ah > 0 or updated_uss > 0:
+            print(f"[Migration] Fixed ETH-USD 2026-09-11 signal: updated {updated_ah} in alerts_history, {updated_uss} in user_signal_state to exit={eth_sep_target_exit}, ROI={eth_sep_target_roi}%", flush=True)
+    except Exception as migration_err:
+        print(f"[Migration] Error running fix_eth_signal_20260911: {migration_err}", flush=True)
+
     # ── Migration: Recalculate and fix any wrong final_roi signs ──
     try:
         c.execute("""

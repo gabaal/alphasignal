@@ -25,7 +25,7 @@ async function renderGlobalClosedSignals(tabs) {
                     <span class="premium-badge">LIVE</span>
                     <span style="font-size:0.55rem;background:rgba(0,242,255,0.12);color:var(--accent);border:1px solid rgba(0,242,255,0.3);padding:2px 8px;border-radius:12px;letter-spacing:1px;font-weight:800">ALL USERS</span>
                 </h1>
-                <p style="margin:6px 0 0;font-size:0.78rem;color:var(--text-dim)">Aggregated performance breakdown across all terminal users (53,000+ closed trades) &mdash; trader emails anonymised.</p>
+                <p style="margin:6px 0 0;font-size:0.78rem;color:var(--text-dim)">Aggregated performance breakdown across all terminal users (<span id="gcs-subtitle-trades">77,731</span> closed trades) &mdash; trader emails anonymised.</p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                 <select id="gcs-days" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">
@@ -58,7 +58,7 @@ async function renderGlobalClosedSignals(tabs) {
                     <span class="material-symbols-outlined" style="color:var(--accent);font-size:1.3rem">bar_chart</span>
                     <div>
                         <div style="font-size:0.65rem;font-weight:900;letter-spacing:2px;color:var(--text-dim)">STRATEGY PERFORMANCE BREAKDOWN</div>
-                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">All-time win rate and avg return by signal type &middot; <span style="color:var(--accent)">ALL PLATFORM USERS (53,000+ TRADES)</span> &middot; Click columns to sort</div>
+                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">All-time win rate and avg return by signal type &middot; <span style="color:var(--accent)">ALL PLATFORM USERS (<span id="gcs-strat-trades">77,731</span> TRADES)</span> &middot; Click columns to sort</div>
                     </div>
                 </div>
             </div>
@@ -259,6 +259,12 @@ async function renderGlobalClosedSignals(tabs) {
         if (!kpiRow) return;
 
         const totalClosed = summ.closed ?? summ.total ?? 0;
+        if (totalClosed > 0) {
+            const subEl = document.getElementById('gcs-subtitle-trades');
+            if (subEl) subEl.textContent = Number(totalClosed).toLocaleString();
+            const stratTradesEl = document.getElementById('gcs-strat-trades');
+            if (stratTradesEl) stratTradesEl.textContent = Number(totalClosed).toLocaleString();
+        }
         const wins = summ.wins ?? 0;
         const losses = summ.losses ?? 0;
         const decided = wins + losses;
