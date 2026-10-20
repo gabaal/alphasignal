@@ -5715,28 +5715,13 @@ class InstitutionalRoutesMixin:
                 # When signals span multiple days, aggregate chronologically by calendar day.
                 # Each day's portfolio return = average return of signals closed on that day.
                 # If there are fewer than 10 distinct days, use trade-level with 10% allocation.
-                daily_groups = {}
-                for p in raw_curve:
-                    d_key = str(p['date'])[:10] if p['date'] else 'Unknown'
-                    if d_key not in daily_groups:
-                        daily_groups[d_key] = []
-                    daily_groups[d_key].append(p['roi'])
-
-                pnl_curve = []
-                if len(daily_groups) >= 10:
-                    for d_key in sorted(daily_groups.keys()):
-                        day_rois = daily_groups[d_key]
-                        # A single corrupt exit must not be able to define a whole
-                        # trading day: the equity compounding below uses this average,
-                        # so a -1200% day collapses the curve to -96% instantly
-                        # (the cliff at 22 Jun). Bound each day to a realistic move.
-                        day_avg = sum(day_rois) / len(day_rois)
-                        day_avg = max(-25.0, min(25.0, day_avg))
-                        pnl_curve.append({'date': d_key, 'roi': round(day_avg, 2)})
-                else:
-                    ALLOCATION = 0.10 if is_global else 1.0
-                    for p in raw_curve:
-                        pnl_curve.append({'date': p['date'], 'roi': round(p['roi'] * ALLOCATION, 2)})
+                # Per-trade contribution to a fixed-size model portfolio. Each signal
+                # takes ALLOCATION of the book, so the curve is the SUM of per-trade
+                # P&L. The previous version compounded daily averages, which turned
+                # 766 trades into +3,766% - a number no portfolio can produce.
+                ALLOCATION = 0.10 if is_global else 1.0
+                pnl_curve = [{'date': p['date'], 'roi': round(p['roi'] * ALLOCATION, 2)}
+                             for p in raw_curve]
 
                 # Downsample if still excessively large (> 400 points)
                 if len(pnl_curve) > 400:
@@ -5755,8 +5740,8 @@ class InstitutionalRoutesMixin:
                 max_dd_pct = 0.0
 
                 for pt in pnl_curve:
-                    r = pt['roi']
-                    curr_equity = max(0.01, curr_equity * (1.0 + (r / 100.0)))
+                    # Additive: equity moves by the trade's contribution to the book.
+                    curr_equity += pt['roi']
                     if curr_equity > peak_equity:
                         peak_equity = curr_equity
                     if peak_equity > 0:
