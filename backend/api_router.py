@@ -707,6 +707,12 @@ class AlphaHandler(http.server.SimpleHTTPRequestHandler, AuthRoutesMixin, Market
                             else:
                                 direction = 1 if (sig_type or '').upper() in BULLISH_T else -1
                             final_roi = round(direction * (exit_px - entry_p) / entry_p * 100, 2)
+                    else:
+                        # Refuse to touch a signal this caller has no state row for.
+                        # The UPDATE below is unscoped, so proceeding would null every
+                        # user's copy of the signal.
+                        self.send_error_json('Signal not found for this user', 404)
+                        return
                     with sqlite3.connect(DB_PATH, timeout=30) as conn:
                         c = conn.cursor()
                         # Write to user_signal_state (Phase 2: reads come from here)
