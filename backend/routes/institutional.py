@@ -5232,15 +5232,24 @@ class InstitutionalRoutesMixin:
             c.execute(f"SELECT COUNT(*) FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id {base_where}", count_params)
             total_count = c.fetchone()[0]
 
-            # Summary counts across FULL filtered dataset (ignoring the active/closed tab selection so stats remain visible)
+            # Summary counts at SIGNAL level. One signal is stored once per user,
+            # so counting rows reported 78,821 "trades" for 798 real signals and
+            # weighted every average by how many users happened to hold it.
             c.execute(f"""
                 SELECT
-                    SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN 1 ELSE 0 END) as closed_count,
-                    SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi > 0 THEN 1 ELSE 0 END) as closed_wins,
-                    SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi < 0 THEN 1 ELSE 0 END) as closed_losses,
-                    AVG(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN uss.final_roi END) as avg_roi,
-                    SUM(CASE WHEN COALESCE(uss.status,'active')='active' THEN 1 ELSE 0 END) as active_count
-                FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id {summary_where}
+                    SUM(CASE WHEN closed=1 AND roi IS NOT NULL AND roi != 0 THEN 1 ELSE 0 END) as closed_count,
+                    SUM(CASE WHEN closed=1 AND roi > 0 THEN 1 ELSE 0 END) as closed_wins,
+                    SUM(CASE WHEN closed=1 AND roi < 0 THEN 1 ELSE 0 END) as closed_losses,
+                    AVG(CASE WHEN closed=1 AND roi IS NOT NULL AND roi != 0 THEN roi END) as avg_roi,
+                    SUM(CASE WHEN closed=0 THEN 1 ELSE 0 END) as active_count
+                FROM (
+                    SELECT se.id,
+                           MAX(CASE WHEN COALESCE(uss.status,'active')='closed' THEN 1 ELSE 0 END) as closed,
+                           AVG(uss.final_roi) as roi
+                    FROM signal_events se JOIN user_signal_state uss ON uss.signal_id = se.id
+                    {summary_where} AND ABS(COALESCE(uss.final_roi,0)) <= 60
+                    GROUP BY se.id
+                )
             """, summary_params)
             summary_row = c.fetchone() or (0, 0, 0, None, 0)
 
@@ -5626,19 +5635,26 @@ class InstitutionalRoutesMixin:
                                   " AND se.type NOT LIKE '%REBALANCE%'")
 
                 c2_cur.execute(f"""
-                    SELECT
-                        CASE WHEN se.type = 'ML_ALPHA_PREDICTION' THEN se.type || '_' || COALESCE(se.direction, 'LONG') ELSE se.type END as effective_type,
-                        SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi > 0 THEN 1 ELSE 0 END) as wins,
-                        SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi < 0 THEN 1 ELSE 0 END) as losses,
-                        SUM(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN 1 ELSE 0 END) as closed,
-                        SUM(CASE WHEN COALESCE(uss.status,'active')='active' THEN 1 ELSE 0 END) as active,
-                        AVG(CASE WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN uss.final_roi END) as avg_roi,
-                        SUM(CASE WHEN COALESCE(uss.status,'active')='active' THEN 1
-                                 WHEN COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL AND uss.final_roi != 0 THEN 1
-                                 ELSE 0 END) as total
-                    FROM signal_events se
-                    JOIN user_signal_state uss ON uss.signal_id = se.id
-                    {by_type_where}
+                    SELECT effective_type,
+                           SUM(CASE WHEN closed=1 AND roi > 0 THEN 1 ELSE 0 END) as wins,
+                           SUM(CASE WHEN closed=1 AND roi < 0 THEN 1 ELSE 0 END) as losses,
+                           SUM(CASE WHEN closed=1 AND roi IS NOT NULL AND roi != 0 THEN 1 ELSE 0 END) as closed,
+                           SUM(CASE WHEN closed=0 THEN 1 ELSE 0 END) as active,
+                           AVG(CASE WHEN closed=1 AND roi IS NOT NULL AND roi != 0 THEN roi END) as avg_roi,
+                           SUM(CASE WHEN closed=1 AND roi IS NOT NULL AND roi != 0 THEN 1
+                                    WHEN closed=0 THEN 1 ELSE 0 END) as total
+                    FROM (
+                        SELECT se.id,
+                               CASE WHEN se.type = 'ML_ALPHA_PREDICTION'
+                                    THEN se.type || '_' || COALESCE(se.direction, 'LONG')
+                                    ELSE se.type END as effective_type,
+                               MAX(CASE WHEN COALESCE(uss.status,'active')='closed' THEN 1 ELSE 0 END) as closed,
+                               AVG(uss.final_roi) as roi
+                        FROM signal_events se
+                        JOIN user_signal_state uss ON uss.signal_id = se.id
+                        {by_type_where} AND ABS(COALESCE(uss.final_roi,0)) <= 60
+                        GROUP BY se.id
+                    )
                     GROUP BY effective_type
                 """, by_type_params)
                 by_type = {}
