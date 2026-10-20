@@ -80,7 +80,6 @@ const viewMap = {
     'correlation-matrix': renderCorrelationMatrix,
     'alpha-score': renderAlphaScore,
     'performance-dashboard': renderPerformanceDashboard,
-    'global-closed-signals': renderGlobalClosedSignals,
     'explain-velocity': () => switchView('help'),
     'explain-telegram': renderHelp,
     'explain-pwa': renderHelp,

@@ -32,10 +32,6 @@ async function renderHome() {
                         </p>
                     </div>
                     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                        <button class="lp-btn-ghost" onclick="switchView('global-closed-signals')" style="padding:10px 18px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:6px">
-                            <span class="material-symbols-outlined" style="font-size:16px;color:var(--accent)">public</span>
-                            EXPLORE FULL BREAKDOWN
-                        </button>
                         <button class="lp-btn-primary" onclick="switchView('audit-hub')" style="padding:10px 18px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:6px">
                             <span class="material-symbols-outlined" style="font-size:16px">trending_up</span>
                             AUDIT HUB &rarr;
@@ -104,9 +100,6 @@ async function renderHome() {
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;gap:12px">
-                            <a href="/global-closed-signals" onclick="event.preventDefault(); switchView('global-closed-signals')" style="color:var(--accent);font-size:0.72rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px">
-                                Open Signal Ledger <span class="material-symbols-outlined" style="font-size:14px">arrow_forward</span>
-                            </a>
                         </div>
                     </div>
                     <div id="lp-gcs-strategy-table-wrap" style="overflow-x:auto">
