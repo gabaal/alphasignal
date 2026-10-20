@@ -5665,7 +5665,8 @@ class InstitutionalRoutesMixin:
                     SELECT se.timestamp, AVG(uss.final_roi) 
                     FROM signal_events se
                     JOIN user_signal_state uss ON uss.signal_id = se.id
-                    {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL 
+                    {by_type_where} AND COALESCE(uss.status,'active')='closed' AND uss.final_roi IS NOT NULL
+                      AND ABS(COALESCE(uss.final_roi,0)) <= 60
                     {group_by_se}
                     ORDER BY se.timestamp ASC
                 """, by_type_params)
@@ -5709,7 +5710,12 @@ class InstitutionalRoutesMixin:
                 if len(daily_groups) >= 10:
                     for d_key in sorted(daily_groups.keys()):
                         day_rois = daily_groups[d_key]
+                        # A single corrupt exit must not be able to define a whole
+                        # trading day: the equity compounding below uses this average,
+                        # so a -1200% day collapses the curve to -96% instantly
+                        # (the cliff at 22 Jun). Bound each day to a realistic move.
                         day_avg = sum(day_rois) / len(day_rois)
+                        day_avg = max(-25.0, min(25.0, day_avg))
                         pnl_curve.append({'date': d_key, 'roi': round(day_avg, 2)})
                 else:
                     ALLOCATION = 0.10 if is_global else 1.0
