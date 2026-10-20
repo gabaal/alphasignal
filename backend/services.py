@@ -1218,8 +1218,16 @@ class HarvestService:
                                         direction = 1 if direction_val.upper() == 'LONG' else -1
                                     else:
                                         direction = 1 if (sig_type or '').upper() in BULLISH else -1
-                                    final_roi = round(direction * (curr_p - entry_p) / entry_p * 100, 2)
-                                    exit_px = round(curr_p, 10)
+                                    _raw_roi = direction * (curr_p - entry_p) / entry_p * 100
+                                    # A signal carries a stop and a target. If it expired
+                                    # after the market ran past either, it would already have
+                                    # been closed there - never book a move outside the
+                                    # envelope (BTBT expired at -47.69% with a 3% stop).
+                                    _clamped = max(-abs(sl_threshold), min(tp2_threshold, _raw_roi))
+                                    if abs(_clamped - _raw_roi) > 0.01:
+                                        print(f"[AutoClose] {ticker} expiry clipped {_raw_roi:+.2f}% -> {_clamped:+.2f}%", flush=True)
+                                    final_roi = round(_clamped, 2)
+                                    exit_px = round(entry_p * (1 + direction * _clamped / 100.0), 10)
                                 c.execute(
                                     "UPDATE alerts_history SET status='closed', closed_at=?, exit_price=?, final_roi=? WHERE id=?",
                                     (now_ts, exit_px, final_roi, sig_id)
